@@ -10,7 +10,7 @@
 		"test:screenshots": "DEV=true node dist/index.js",
 		"test:activity": "DEV=true node dist/activity.js",
 		"test": "yarn test:activity && yarn test:screenshots",
-		"zip": "zip -9 -r function.zip node_modules package.json -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/node/node_modules/typescript/\\* -x node_modules/@highlight-run/rrweb/node_modules/typescript/\\* && cd dist && zip ../function.zip * && cd ..",
+		"zip": "zip -9 -r function.zip node_modules package.json -x node_modules/\\*\\*/\\*.map -x node_modules/\\*\\*/\\*.d.ts -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/node/node_modules/typescript/\\* -x node_modules/@highlight-run/rrweb/node_modules/typescript/\\* -x node_modules/puppeteer-screen-recorder/node_modules/@ffmpeg-installer/\\* && cd dist && zip ../function.zip * && cd ..",
 		"check": "node dist/check.js",
 		"update:screenshots": "aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-screenshots lambda updated'",
 		"update:activity": "aws lambda update-function-code --function-name session-activity --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-activity lambda updated'",
@@ -20,18 +20,21 @@
 		"hoistingLimits": "dependencies"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.352.0",
+		"@aws-sdk/client-s3": "^3.400.0",
 		"@highlight-run/rrweb": "workspace:*",
-		"@sparticuz/chromium": "^114.0.0",
-		"puppeteer-core": "^19.11.1"
+		"@sparticuz/chromium": "^116.0.0",
+		"pg": "^8.11.3",
+		"puppeteer-core": "^21.1.1",
+		"puppeteer-screen-recorder": "^2.1.2"
 	},
 	"devDependencies": {
 		"@types/aws-lambda": "^8.10.119",
 		"@types/find": "^0.2.1",
 		"@types/fs-extra": "^11.0.1",
-		"@types/node": "^18.15.3",
-		"tsup": "^6.7.0",
-		"typescript": "^5.0.2"
+		"@types/node": "^20.5.7",
+		"@types/pg": "^8.10.2",
+		"tsup": "^7.2.0",
+		"typescript": "^5.2.2"
 	},
 	"packageManager": "yarn@3.2.0"
 }

@@ -10,6 +10,9 @@ type ErrorSourcePreviewProps = {
 	lineNumber?: StackSectionProps['lineNumber']
 	columnNumber?: StackSectionProps['columnNumber']
 	functionName?: StackSectionProps['functionName']
+	enhancementSource?: StackSectionProps['enhancementSource']
+	enhancementVersion?: StackSectionProps['enhancementVersion']
+	externalLink?: StackSectionProps['externalLink']
 	linesBefore?: StackSectionProps['linesBefore']
 	linesAfter?: StackSectionProps['linesAfter']
 	showLineNumbers?: boolean

@@ -11,6 +11,7 @@ const DAY_VALUES = Array.from({ length: 30 }, (_, i) => i + 1)
 export const AutoresolveStaleErrorsForm = () => {
 	const [enableAutoResolveStaleErrors, setEnableAutoResolveStaleErrors] =
 		useState<boolean>(false)
+	const formStore = Form.useFormStore({})
 
 	const {
 		allProjectSettings: data,
@@ -56,7 +57,7 @@ export const AutoresolveStaleErrorsForm = () => {
 	]
 
 	return (
-		<>
+		<Form store={formStore}>
 			{categories.map((c) => (
 				<BorderBox key={c.key}>
 					<Box py="8">
@@ -69,6 +70,8 @@ export const AutoresolveStaleErrorsForm = () => {
 
 								if (!isOptIn) {
 									setAutoResolveStaleErrorsDayInterval(0)
+								} else {
+									setAutoResolveStaleErrorsDayInterval(1)
 								}
 							},
 							false,
@@ -128,6 +131,6 @@ export const AutoresolveStaleErrorsForm = () => {
 					)}
 				</BorderBox>
 			))}
-		</>
+		</Form>
 	)
 }

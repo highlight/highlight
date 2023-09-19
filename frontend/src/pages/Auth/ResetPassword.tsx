@@ -6,7 +6,7 @@ import {
 	IconSolidCheveronLeft,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 	vars,
 } from '@highlight-run/ui'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -23,22 +23,23 @@ export const ResetPassword: React.FC = () => {
 	const location = useLocation()
 	const initialEmail: string = location.state?.email ?? ''
 	const [loading, setLoading] = useState(false)
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			email: initialEmail ?? '',
 		},
 	})
+	const email = formStore.useValue('email')
 
 	useEffect(() => analytics.page(), [])
 
 	return (
 		<Form
-			state={formState}
+			store={formStore}
 			resetOnSubmit={false}
 			onSubmit={() => {
 				analytics.track('Reset password submission')
 
-				if (!validateEmail(formState.values.email)) {
+				if (!validateEmail(email)) {
 					message.warning('Please enter a valid email.')
 					analytics.track('Reset password submission error')
 					setLoading(false)
@@ -46,7 +47,7 @@ export const ResetPassword: React.FC = () => {
 				}
 
 				setLoading(true)
-				auth.sendPasswordResetEmail(formState.values.email)
+				auth.sendPasswordResetEmail(email)
 					.catch(() => {
 						// swallow error if user does not exist
 						analytics.track('Reset password submission error')
@@ -59,7 +60,7 @@ export const ResetPassword: React.FC = () => {
 
 						setTimeout(() => {
 							navigate(SIGN_IN_ROUTE, {
-								state: { email: formState.values.email },
+								state: { email },
 							})
 						}, 1000)
 					})
@@ -80,7 +81,7 @@ export const ResetPassword: React.FC = () => {
 							onClick={() => {
 								navigate(SIGN_IN_ROUTE, {
 									state: {
-										email: formState.values.email,
+										email,
 									},
 								})
 							}}
@@ -93,7 +94,7 @@ export const ResetPassword: React.FC = () => {
 			<AuthBody>
 				<Stack gap="12">
 					<Form.Input
-						name={formState.names.email}
+						name={formStore.names.email}
 						label="Email"
 						type="email"
 						autoFocus

@@ -317,6 +317,17 @@ query GetSessionInsight($secure_id: String!) {
 	}
 }
 
+query GetSessionExports {
+	session_exports {
+		id
+		session_id
+		type
+		url
+		error
+		target_emails
+	}
+}
+
 query GetSessionComments($session_secure_id: String!) {
 	session_comments(session_secure_id: $session_secure_id) {
 		id
@@ -1150,6 +1161,9 @@ fragment ErrorObject on ErrorObject {
 		linesBefore
 		linesAfter
 		error
+		enhancementSource
+		enhancementVersion
+		externalLink
 		sourceMappingErrorMetadata {
 			errorCode
 			stackTraceFileURL
@@ -1173,6 +1187,7 @@ fragment ErrorObject on ErrorObject {
 	browser
 	environment
 	serviceVersion
+	serviceName
 }
 
 query GetErrorObject($id: ID!) {
@@ -1999,11 +2014,11 @@ query GetEmailOptOuts($token: String, $admin_id: ID) {
 
 query GetLogs(
 	$project_id: ID!
-	$params: LogsParamsInput!
+	$params: QueryInput!
 	$after: String
 	$before: String
 	$at: String
-	$direction: LogDirection!
+	$direction: SortDirection!
 ) {
 	logs(
 		project_id: $project_id
@@ -2037,7 +2052,7 @@ query GetLogs(
 	}
 }
 
-query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 	sessionLogs(project_id: $project_id, params: $params) {
 		cursor
 		node {
@@ -2048,11 +2063,11 @@ query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
 	}
 }
 
-query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
+query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
 	logs_total_count(project_id: $project_id, params: $params)
 }
 
-query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	logs_histogram(project_id: $project_id, params: $params) {
 		totalCount
 		buckets {
@@ -2066,7 +2081,7 @@ query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
 }
 
 query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	logs_keys(project_id: $project_id, date_range: $date_range) {
+	keys: logs_keys(project_id: $project_id, date_range: $date_range) {
 		name
 		type
 	}
@@ -2077,7 +2092,7 @@ query GetLogsKeyValues(
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
 ) {
-	logs_key_values(
+	key_values: logs_key_values(
 		project_id: $project_id
 		key_name: $key_name
 		date_range: $date_range
@@ -2129,7 +2144,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		workspace_id
 		ai_application
 		ai_insights
-		enable_enhanced_errors
+		enable_session_export
 	}
 }
 
@@ -2160,11 +2175,12 @@ query GetErrorObjects(
 				event
 				timestamp
 				errorGroupSecureID
+				serviceVersion
 				session {
 					secureID
 					email
-					appVersion
 					fingerprint
+					excluded
 				}
 			}
 		}
@@ -2243,22 +2259,66 @@ query FindSimilarErrors($query: String!) {
 	}
 }
 
-query GetTraces($project_id: ID!, $params: TracesParamsInput!) {
-	traces(project_id: $project_id, params: $params) {
-		timestamp
-		traceID
-		spanID
-		parentSpanID
-		projectID
-		secureSessionID
-		traceState
-		spanName
-		spanKind
-		duration
-		serviceName
-		serviceVersion
-		traceAttributes
-		statusCode
-		statusMessage
+query GetTraces(
+	$project_id: ID!
+	$params: QueryInput!
+	$after: String
+	$before: String
+	$at: String
+	$direction: SortDirection!
+) {
+	traces(
+		project_id: $project_id
+		params: $params
+		after: $after
+		before: $before
+		at: $at
+		direction: $direction
+	) {
+		edges {
+			cursor
+			node {
+				timestamp
+				traceID
+				spanID
+				parentSpanID
+				projectID
+				secureSessionID
+				traceState
+				spanName
+				spanKind
+				duration
+				serviceName
+				serviceVersion
+				traceAttributes
+				statusCode
+				statusMessage
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
 	}
+}
+
+query GetTracesKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
+	keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+		name
+		type
+	}
+}
+
+query GetTracesKeyValues(
+	$project_id: ID!
+	$key_name: String!
+	$date_range: DateRangeRequiredInput!
+) {
+	key_values: traces_key_values(
+		project_id: $project_id
+		key_name: $key_name
+		date_range: $date_range
+	)
 }

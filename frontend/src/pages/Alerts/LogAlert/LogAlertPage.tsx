@@ -5,16 +5,17 @@ import {
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import {
+	Ariakit,
 	Badge,
 	Box,
 	Column,
 	Container,
 	defaultPresets,
 	Form,
-	FormState,
 	getNow,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
@@ -26,7 +27,7 @@ import {
 	Tag,
 	Text,
 	useForm,
-	useFormState,
+	useFormStore,
 	useMenu,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -41,9 +42,7 @@ import {
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
-import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
-import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
@@ -54,6 +53,8 @@ import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
 
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
@@ -81,8 +82,8 @@ export const LogAlertPage = () => {
 		variables: {
 			project_id: projectId,
 			date_range: {
-				start_date: moment(startDate).format(LOG_TIME_FORMAT),
-				end_date: moment(endDate).format(LOG_TIME_FORMAT),
+				start_date: moment(startDate).format(TIME_FORMAT),
+				end_date: moment(endDate).format(TIME_FORMAT),
 			},
 		},
 	})
@@ -112,7 +113,7 @@ export const LogAlertPage = () => {
 		skip: !alert_id,
 	})
 
-	const form = useFormState<LogMonitorForm>({
+	const formStore = useFormStore<LogMonitorForm>({
 		defaultValues: {
 			query: initialQuery,
 			name: '',
@@ -128,16 +129,23 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
+	const formValues = formStore.useState().values
 
-	form.useSubmit(() => {
-		setSubmittedQuery(form.values.query)
+	const [query, setQuery] = useState(initialQuery)
+	const handleUpdateInputQuery = (query: string) => {
+		setSubmittedQuery(query)
+		formStore.setValue(formStore.names.query, query)
+	}
+
+	formStore.useSubmit(() => {
+		setSubmittedQuery(query)
 	})
 
 	useEffect(() => {
 		if (!loading && data) {
 			setInitialQuery(data?.log_alert.query)
 			setSubmittedQuery(data?.log_alert.query)
-			form.setValues({
+			formStore.setValues({
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
 				belowThreshold: data?.log_alert.BelowThreshold,
@@ -183,10 +191,7 @@ export const LogAlertPage = () => {
 		],
 	})
 	const [deleteLogAlertMutation] = useDeleteLogAlertMutation({
-		refetchQueries: [
-			namedOperations.Query.GetLogAlert,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
 	const { project_id } = useParams<{
@@ -195,9 +200,9 @@ export const LogAlertPage = () => {
 
 	const navigate = useNavigate()
 
-	const belowThreshold = form.values.belowThreshold
-	const threshold = form.values.threshold
-	const frequency = form.values.frequency
+	const belowThreshold = formValues.belowThreshold
+	const threshold = formValues.threshold
+	const frequency = formValues.frequency
 
 	const header = (
 		<Box
@@ -253,59 +258,60 @@ export const LogAlertPage = () => {
 					trackingId="saveLogMonitoringAlert"
 					onClick={() => {
 						const input = {
-							count_threshold: form.getValue(
-								form.names.threshold,
-							),
-							below_threshold: form.getValue(
-								form.names.belowThreshold,
-							),
+							count_threshold: formValues.threshold!,
+							below_threshold: formValues.belowThreshold,
 							disabled: false,
-							discord_channels: form.values.discordChannels.map(
+							discord_channels: formValues.discordChannels.map(
 								(c) => ({
 									name: c.name,
 									id: c.id,
 								}),
 							),
-							emails: form.getValue(form.names.emails),
-							environments: form.getValue(
-								form.names.excludedEnvironments,
-							),
-							name: form.getValue(form.names.name),
+							emails: formValues.emails,
+							environments: formValues.excludedEnvironments,
+							name: formValues.name,
 							project_id: project_id || '0',
-							slack_channels: form.values.slackChannels.map(
+							slack_channels: formValues.slackChannels.map(
 								(c) => ({
 									webhook_channel_id: c.webhook_channel_id,
 									webhook_channel_name:
 										c.webhook_channel_name,
 								}),
 							),
-							webhook_destinations: form
-								.getValue(form.names.webhookDestinations)
+							webhook_destinations: formStore
+								.getValue(formStore.names.webhookDestinations)
 								.map((d: string) => ({ url: d })),
-							threshold_window: form.getValue(
-								form.names.frequency,
-							),
-							query: form.getValue(form.names.query),
+							threshold_window: formValues.frequency,
+							query: formValues.query,
 						}
 
 						const nameErr = !input.name
 						const thresholdErr = !input.count_threshold
-						if (nameErr || thresholdErr) {
+						const queryErr = !input.query
+						if (nameErr || thresholdErr || queryErr) {
 							const errs = []
 							if (nameErr) {
-								form.setError(
-									form.names.name,
+								formStore.setError(
+									formStore.names.name,
 									'Name is required',
 								)
 								errs.push('name')
 							}
 
 							if (thresholdErr) {
-								form.setError(
-									form.names.threshold,
+								formStore.setError(
+									formStore.names.threshold,
 									'Threshold is required',
 								)
 								errs.push('threshold')
+							}
+
+							if (queryErr) {
+								formStore.setError(
+									formStore.names.query,
+									'Query is required',
+								)
+								errs.push('query')
 							}
 
 							message.error(
@@ -356,7 +362,7 @@ export const LogAlertPage = () => {
 		</Box>
 	)
 
-	const isLoading = !isCreate && !form.values.loaded
+	const isLoading = !isCreate && !formValues.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -380,7 +386,7 @@ export const LogAlertPage = () => {
 							py="24"
 							gap="40"
 						>
-							<Form state={form} resetOnSubmit={false}>
+							<Form store={formStore} resetOnSubmit={false}>
 								<Stack gap="40">
 									<Box
 										display="flex"
@@ -440,16 +446,33 @@ export const LogAlertPage = () => {
 											/>
 										</Box>
 										<AlertTitleField />
-										<Box cssClass={styles.queryContainer}>
+										<Box
+											cssClass={styles.queryContainer}
+											style={{
+												borderColor: formStore.getError(
+													'query',
+												)
+													? 'var(--color-red-500)'
+													: undefined,
+											}}
+										>
 											<Search
 												initialQuery={initialQuery}
-												keys={keysData?.logs_keys ?? []}
+												keys={keysData?.keys ?? []}
 												startDate={startDate}
 												endDate={endDate}
 												hideIcon
 												className={styles.combobox}
 												keysLoading={keysLoading}
 												placeholder="Define query..."
+												query={query}
+												setQuery={setQuery}
+												onFormSubmit={
+													handleUpdateInputQuery
+												}
+												fetchValuesLazyQuery={
+													useGetLogsKeyValuesLazyQuery
+												}
 											/>
 										</Box>
 										<LogsHistogram
@@ -485,7 +508,8 @@ export const LogAlertPage = () => {
 
 const LogAlertForm = () => {
 	const { projectId } = useProjectId()
-	const form = useForm() as FormState<LogMonitorForm>
+	const formStore = useForm() as Ariakit.FormStore<LogMonitorForm>
+	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useLogAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
@@ -543,8 +567,7 @@ const LogAlertForm = () => {
 					<Column.Container gap="12">
 						<Column>
 							<Form.Input
-								name={form.names.threshold}
-								value={form.values.threshold}
+								name={formStore.names.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -556,7 +579,7 @@ const LogAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: form.errors.threshold
+									borderColor: errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}
@@ -566,11 +589,10 @@ const LogAlertForm = () => {
 						<Column>
 							<Form.Select
 								label="Alert frequency"
-								name={form.names.frequency.toString()}
-								value={form.values.frequency}
+								name={formStore.names.frequency.toString()}
 								onChange={(e) =>
-									form.setValue(
-										form.names.frequency,
+									formStore.setValue(
+										formStore.names.frequency,
 										e.target.value,
 									)
 								}
@@ -606,22 +628,24 @@ const LogAlertForm = () => {
 
 					<Form.NamedSection
 						label="Excluded environments"
-						name={form.names.excludedEnvironments}
+						name={formStore.names.excludedEnvironments}
 					>
 						<Select
 							aria-label="Excluded environments list"
 							placeholder="Select excluded environments"
 							options={environments}
 							onChange={(values: any): any =>
-								form.setValue(
-									form.names.excludedEnvironments,
+								formStore.setValue(
+									formStore.names.excludedEnvironments,
 									values,
 								)
 							}
-							value={form.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -637,7 +661,7 @@ const LogAlertForm = () => {
 					<Box borderTop="dividerWeak" width="full" />
 					<Form.NamedSection
 						label="Slack channels to notify"
-						name={form.names.slackChannels}
+						name={formStore.names.slackChannels}
 					>
 						<Select
 							aria-label="Slack channels to notify"
@@ -649,8 +673,8 @@ const LogAlertForm = () => {
 								setSlackSearchQuery(value)
 							}}
 							onChange={(values) => {
-								form.setValue(
-									form.names.slackChannels,
+								formStore.setValue(
+									formStore.names.slackChannels,
 									values.map((v: any) => ({
 										webhook_channel_name: v.label,
 										webhook_channel_id: v.value,
@@ -658,7 +682,6 @@ const LogAlertForm = () => {
 									})),
 								)
 							}}
-							value={form.values.slackChannels}
 							notFoundContent={
 								<SlackLoadOrConnect
 									isLoading={slackLoading}
@@ -673,12 +696,15 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.slackChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
 					<Form.NamedSection
 						label="Discord channels to notify"
-						name={form.names.discordChannels}
+						name={formStore.names.discordChannels}
 					>
 						<Select
 							aria-label="Discord channels to notify"
@@ -686,8 +712,8 @@ const LogAlertForm = () => {
 							options={discordChannels}
 							optionFilterProp="label"
 							onChange={(values) => {
-								form.setValue(
-									form.names.discordChannels,
+								formStore.setValue(
+									formStore.names.discordChannels,
 									values.map((v: any) => ({
 										name: v.label,
 										id: v.value,
@@ -695,7 +721,6 @@ const LogAlertForm = () => {
 									})),
 								)
 							}}
-							value={form.values.discordChannels}
 							notFoundContent={
 								discordChannels.length === 0 ? (
 									<Link to="/integrations">
@@ -708,44 +733,52 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.discordChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
 					<Form.NamedSection
 						label="Emails to notify"
-						name={form.names.emails}
+						name={formStore.names.emails}
 					>
 						<Select
 							aria-label="Emails to notify"
 							placeholder="Select emails"
 							options={emails}
 							onChange={(values: any): any =>
-								form.setValue(form.names.emails, values)
+								formStore.setValue(
+									formStore.names.emails,
+									values,
+								)
 							}
-							value={form.values.emails}
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(formStore.names.emails)}
 						/>
 					</Form.NamedSection>
 
 					<Form.NamedSection
 						label="Webhooks to notify"
-						name={form.names.emails}
+						name={formStore.names.webhookDestinations}
 					>
 						<Select
 							aria-label="Webhooks to notify"
 							placeholder="Enter webhook addresses"
 							onChange={(values: any): any =>
-								form.setValue(
-									form.names.webhookDestinations,
+								formStore.setValue(
+									formStore.names.webhookDestinations,
 									values,
 								)
 							}
-							value={form.values.webhookDestinations}
 							notFoundContent={null}
 							className={styles.selectContainer}
 							mode="tags"
+							value={formStore.getValue(
+								formStore.names.webhookDestinations,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -757,7 +790,9 @@ const LogAlertForm = () => {
 const ThresholdTypeConfiguration = () => {
 	const form = useForm()
 	const menu = useMenu()
-	const belowThreshold = form.values.belowThreshold
+	const menuState = menu.getState()
+	const belowThreshold = form.useValue('belowThreshold')
+
 	return (
 		<>
 			<Menu.Button
@@ -766,7 +801,7 @@ const ThresholdTypeConfiguration = () => {
 				emphasis="high"
 				cssClass={styles.thresholdTypeButton}
 				iconRight={
-					menu.open ? (
+					menuState.open ? (
 						<IconSolidCheveronUp />
 					) : (
 						<IconSolidCheveronDown />

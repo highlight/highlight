@@ -63,6 +63,8 @@ const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 
 // assuming 120 fps
 export const FRAME_MS = 1000 / 120
+// update every 30 frames
+export const THROTTLED_UPDATE_MS = FRAME_MS * 30
 
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
 export const LOOKAHEAD_MS = 1000 * 60
@@ -474,32 +476,11 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
-			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
-			// Compute the string rather than number here, so that dependencies don't
-			// have to re-render on every tick
-			if (s.isLiveMode && s.lastActiveTimestamp != 0) {
-				if (s.lastActiveTimestamp > time - 1000 * 60) {
-					s.lastActiveString = 'less than 1 minute ago'
-				} else {
-					s.lastActiveString = moment(s.lastActiveTimestamp).from(
-						time,
-					)
-				}
-			} else if (s.lastActiveString !== null) {
-				s.lastActiveString = null
-			}
-
-			if (!s.isLiveMode && s.replayerState !== ReplayerState.Playing) {
-				break
-			}
-			s.time = time
-			if (s.time >= s.sessionMetadata.totalTime) {
-				s.replayerState = s.isLiveMode
-					? ReplayerState.Paused // Waiting for more data
-					: ReplayerState.SessionEnded
-			}
+			s = updatePlayerTime(s)
 			break
 		case PlayerActionType.onEvent:
+			if (!s.replayer) break
+			s = updatePlayerTime(s)
 			if (usefulEvent(action.event)) {
 				s.currentEvent = action.event.identifier
 			}
@@ -698,6 +679,32 @@ const replayerAction = (
 			{ name: 'replayerState', value: ReplayerState[desiredState] },
 		],
 	)
+	return s
+}
+
+const updatePlayerTime = (s: PlayerState): PlayerState => {
+	const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
+	// Compute the string rather than number here, so that dependencies don't
+	// have to re-render on every tick
+	if (s.isLiveMode && s.lastActiveTimestamp != 0) {
+		if (s.lastActiveTimestamp > time - 1000 * 60) {
+			s.lastActiveString = 'less than 1 minute ago'
+		} else {
+			s.lastActiveString = moment(s.lastActiveTimestamp).from(time)
+		}
+	} else if (s.lastActiveString !== null) {
+		s.lastActiveString = null
+	}
+
+	if (!s.isLiveMode && s.replayerState !== ReplayerState.Playing) {
+		return s
+	}
+	s.time = time
+	if (s.time >= s.sessionMetadata.totalTime) {
+		s.replayerState = s.isLiveMode
+			? ReplayerState.Paused // Waiting for more data
+			: ReplayerState.SessionEnded
+	}
 	return s
 }
 

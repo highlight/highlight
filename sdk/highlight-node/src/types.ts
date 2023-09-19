@@ -21,4 +21,10 @@ export interface NodeOptions extends HighlightOptions {
 	 * This app's version ideally set to the latest deployed git SHA.
 	 */
 	serviceVersion?: string
+	/**
+	 * Enables node fs instrumentation @default false
+	 * see .
+	 * {@link https://opentelemetry.io/docs/instrumentation/js/libraries/#registration}
+	 */
+	enableFsInstrumentation?: boolean
 }

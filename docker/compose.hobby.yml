@@ -41,6 +41,7 @@ x-backend-env: &backend-env
         - OPENSEARCH_DOMAIN_READ
         - OPENSEARCH_PASSWORD
         - OPENSEARCH_USERNAME
+        - OTLP_ENDPOINT
         - PSQL_DB
         - PSQL_HOST
         - PSQL_PASSWORD

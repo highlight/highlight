@@ -227,6 +227,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if val, ok := eventAttributes[string(semconv.ExceptionMessageKey)]; ok { // we know that exception.message will be in the event attributes map
 		fields.exceptionMessage = val.(string)
 		delete(fields.attrs, string(semconv.ExceptionMessageKey))
+		// if this is a log that is emitted from an error,
+		// we should use the error text as the log body
+		if fields.logMessage == "" {
+			fields.logMessage = fields.exceptionMessage
+		}
 	}
 
 	if val, ok := eventAttributes[string(semconv.ExceptionStacktraceKey)]; ok { // we know that exception.stacktrace will be in the event attributes map
@@ -263,13 +268,8 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
-	projectIDInt, err := projectToInt(fields.projectID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	fields.projectIDInt = projectIDInt
+	var err error
+	fields.projectIDInt, err = projectToInt(fields.projectID)
 
 	if fields.projectIDInt == 1 && util.IsProduction() {
 		if fields.serviceName == "all" || fields.serviceName == "" {
@@ -278,7 +278,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
-	return fields, nil
+	return fields, err
 }
 
 func mergeMaps(maps ...map[string]any) map[string]any {

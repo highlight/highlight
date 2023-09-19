@@ -115,6 +115,57 @@ jobs:
                   function_name: sendEmail
                   zip_file: backend/sendEmail.zip
 
+    deploy-session-export-lambdas:
+        needs: migrate-database
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version-file: 'backend/go.mod'
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
+            - name: Build and zip
+              run: |
+                  cd backend/
+                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/saveSessionExport
+                  zip saveSessionExport.zip saveSessionExport
+                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/sendEmail
+                  zip sendEmail.zip sendEmail
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Update Lambda secrets
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+              run: |
+                  aws lambda update-function-configuration --function-name saveSessionExport \
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name sendSessionExportEmail \
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+            - name: Deploy saveSessionExport
+              uses: appleboy/lambda-action@v0.1.9
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: saveSessionExport
+                  zip_file: backend/saveSessionExport.zip
+            - name: Deploy sendSessionExportEmail
+              uses: appleboy/lambda-action@v0.1.9
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: sendSessionExportEmail
+                  zip_file: backend/sendEmail.zip
+
     deploy-digest-lambdas:
         needs: migrate-database
         runs-on: ubuntu-latest

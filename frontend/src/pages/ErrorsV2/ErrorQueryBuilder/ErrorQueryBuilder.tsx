@@ -4,7 +4,7 @@ import {
 	useGetErrorSegmentsQuery,
 } from '@graph/hooks'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
+import { useCallback } from 'react'
 
 import QueryBuilder, {
 	CustomField,
@@ -72,15 +72,24 @@ export const CUSTOM_FIELDS: CustomField[] = [
 			type: 'text',
 		},
 	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'service_name',
+		options: {
+			type: 'text',
+		},
+	},
 ]
 
 const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
 	const { refetch } = useGetErrorFieldsOpensearchQuery({
 		skip: true,
 	})
-	const fetchFields = (variables: FetchFieldVariables) =>
-		refetch(variables).then((r) => r.data.error_fields_opensearch)
-	const { setShowLeftPanel } = useErrorPageConfiguration()
+	const fetchFields = useCallback(
+		(variables: FetchFieldVariables) =>
+			refetch(variables).then((r) => r.data.error_fields_opensearch),
+		[refetch],
+	)
 
 	return (
 		<QueryBuilder
@@ -90,7 +99,6 @@ const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
 			fetchFields={fetchFields}
 			useEditAnySegmentMutation={useEditErrorSegmentMutation}
 			useGetAnySegmentsQuery={useGetErrorSegmentsQuery}
-			setShowLeftPanel={setShowLeftPanel}
 			CreateAnySegmentModal={CreateErrorSegmentModal}
 			DeleteAnySegmentModal={DeleteErrorSegmentModal}
 			{...props}

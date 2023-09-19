@@ -15,26 +15,38 @@ exporters:
         compression: gzip
         tls:
             insecure_skip_verify: true
+        sending_queue:
+            num_consumers: 64
+            queue_size: 8192
+        retry_on_failure:
+            initial_interval: 1s
 processors:
-    batch:
     memory_limiter:
         check_interval: 1s
         limit_percentage: 75
         spike_limit_percentage: 15
+    batch:
+        send_batch_size: 1024
+        send_batch_max_size: 1024
+        timeout: 1s
 service:
+    telemetry:
+        metrics:
+            address: '0.0.0.0:8888'
+            level: detailed
     extensions: [health_check, memory_ballast]
     pipelines:
         traces:
             receivers: [otlp]
-            processors: [batch, memory_limiter]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp]
         metrics:
             receivers: [otlp]
-            processors: [batch, memory_limiter]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp]
         logs:
             receivers: [otlp, fluentforward, tcplog]
-            processors: [batch, memory_limiter]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp]
 extensions:
     health_check:

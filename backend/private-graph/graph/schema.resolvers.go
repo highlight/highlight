@@ -37,6 +37,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/phonehome"
@@ -653,6 +654,52 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 		return nil, err
 	}
 	return workspaceSettings, nil
+}
+
+// ExportSession is the resolver for the exportSession field.
+func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID string) (bool, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return false, err
+	}
+
+	cfg, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if !cfg.EnableSessionExport {
+		return false, e.New("session export is not enabled")
+	}
+
+	go func() {
+		export := model.SessionExport{
+			SessionID:    session.ID,
+			Type:         model.SessionExportFormatMP4,
+			TargetEmails: []string{*admin.Email},
+		}
+
+		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
+			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
+		}).FirstOrCreate(&export)
+		if tx.Error != nil {
+			log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
+			return
+		}
+
+		_, err := r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
+			Project:      session.ProjectID,
+			Session:      session.ID,
+			Format:       export.Type,
+			TargetEmails: export.TargetEmails,
+		})
+		if err != nil {
+			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		}
+	}()
+	return true, nil
 }
 
 // MarkErrorGroupAsViewed is the resolver for the markErrorGroupAsViewed field.
@@ -1474,11 +1521,12 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		imageBytes, err := r.getSessionScreenshot(ctx, projectID, session.ID, chunkTs, chunkIdx)
+		format := model.SessionExportFormatPng
+		resp, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, session.ID, pointy.Int(chunkTs), pointy.Int(chunkIdx), &format)
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
-			sessionImageStr = base64.StdEncoding.EncodeToString(imageBytes)
+			sessionImageStr = base64.StdEncoding.EncodeToString(resp.Image)
 			sessionImage = &sessionImageStr
 			if err := r.DB.Model(&model.SessionComment{}).Where(
 				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},
@@ -2421,6 +2469,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		if err := r.RemoveClickUpFromWorkspace(workspace); err != nil {
 			return false, err
 		}
+	} else if integrationType == modelInputs.IntegrationTypeGitHub {
+		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
+			return false, err
+		}
 	} else {
 		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, integrationType); err != nil {
 			return false, err
@@ -3015,13 +3067,14 @@ func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id
 	}
 
 	alert := &model.LogAlert{}
-	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
+	if err := r.DB.Model(&model.LogAlert{}).
 		Where("project_id = ?", projectID).
+		Where("id = ?", id).
 		Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "this log alert does not exist in this project.")
 	}
 
-	if err := r.DB.Delete(alert).Error; err != nil {
+	if err := r.DB.Delete("id = ?", id).Error; err != nil {
 		return nil, e.Wrap(err, "error trying to delete log alert")
 	}
 
@@ -5041,7 +5094,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 		metric = pointy.String("")
 	}
 	if useClickhouse != nil && *useClickhouse {
-		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, errorGroupIDs, params)
+		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params)
 		if err != nil {
 			return nil, err
 		}
@@ -7573,7 +7626,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, err
@@ -7638,7 +7691,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 }
 
 // SessionLogs is the resolver for the sessionLogs field.
-func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7648,7 +7701,7 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.
-func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
+func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return 0, err
@@ -7658,7 +7711,7 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 }
 
 // LogsHistogram is the resolver for the logs_histogram field.
-func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (*modelInputs.LogsHistogram, error) {
+func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7668,7 +7721,7 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.LogKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7801,6 +7854,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	return insight, nil
 }
 
+// SessionExports is the resolver for the session_exports field.
+func (r *queryResolver) SessionExports(ctx context.Context) ([]*model.SessionExport, error) {
+	var sessionExports []*model.SessionExport
+	if err := r.DB.Model(&model.SessionExport{}).Order("id DESC").Scan(&sessionExports).Error; err != nil {
+		return nil, err
+	}
+	return sessionExports, nil
+}
+
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
 	return r.Store.GetSystemConfiguration(ctx)
@@ -7843,13 +7905,38 @@ func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]
 }
 
 // Traces is the resolver for the traces field.
-func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params)
+	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params, clickhouse.Pagination{
+		After:     after,
+		Before:    before,
+		At:        at,
+		Direction: direction,
+	})
+}
+
+// TracesKeys is the resolver for the traces_keys field.
+func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
+}
+
+// TracesKeyValues is the resolver for the traces_key_values field.
+func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // Params is the resolver for the params field.
@@ -8102,6 +8189,11 @@ GROUP BY
 	return tagsResponse, nil
 }
 
+// TargetEmails is the resolver for the target_emails field.
+func (r *sessionExportResolver) TargetEmails(ctx context.Context, obj *model.SessionExport) ([]string, error) {
+	return obj.TargetEmails, nil
+}
+
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
@@ -8206,6 +8298,9 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+// SessionExport returns generated.SessionExportResolver implementation.
+func (r *Resolver) SessionExport() generated.SessionExportResolver { return &sessionExportResolver{r} }
+
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
@@ -8230,5 +8325,6 @@ type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+type sessionExportResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }

@@ -13,6 +13,7 @@ export const RageClicksForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const formStore = Form.useFormStore({})
 	const [rageClickWindowSeconds, setRageClickWindowSeconds] =
 		useState<number>(0)
 	const [rageClickRadiusPixels, setRageClickRadiusPixels] =
@@ -47,7 +48,7 @@ export const RageClicksForm = () => {
 
 	return (
 		<BorderBox>
-			<form key={project_id}>
+			<Form store={formStore} key={project_id}>
 				<Stack gap="8">
 					<BoxLabel
 						label="Rage clicks"
@@ -147,7 +148,7 @@ export const RageClicksForm = () => {
 						</Form.NamedSection>
 					</Box>
 				</Stack>
-			</form>
+			</Form>
 		</BorderBox>
 	)
 }

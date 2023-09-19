@@ -6,9 +6,8 @@
 	<version>${revision}</version>
 	<packaging>pom</packaging>
 
-	<name>Highlight Java SDK</name>
+	<name>Highlight Java</name>
 	<url>https://github.com/highlight/highlight</url>
-	<description>highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)</description>
 	<inceptionYear>2023</inceptionYear>
 
 	<licenses>
@@ -38,10 +37,13 @@
 	</issueManagement>
 
 	<properties>
-		<revision>1.0.0-b0</revision>
+		<revision>0.0.0-b0</revision>
 		<project.language.name>java</project.language.name>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
+
+		<maven.install.skip>true</maven.install.skip>
+		<skipStaging>true</skipStaging>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -56,6 +58,7 @@
 		<plugin.source.version>3.2.1</plugin.source.version>
 		<plugin.gpg.version>3.0.1</plugin.gpg.version>
 		<plugin.staging-maven.version>1.6.13</plugin.staging-maven.version>
+		<plugin.flatten.version>1.5.0</plugin.flatten.version>
 	</properties>
 
 	<repositories>
@@ -179,7 +182,40 @@
 								<include>*</include>
 							</includes>
 						</filter>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
 					</filters>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>${plugin.flatten.version}</version>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>package</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>clean</flattenMode>
 				</configuration>
 			</plugin>
 			<plugin>

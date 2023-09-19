@@ -1019,9 +1019,12 @@ const TimelineIndicatorsBarGraph = ({
 								/>
 								<Box
 									as="span"
-									className={clsx(style.timeIndicatorHair, {
-										[style.hairHidden]: !showHistogram,
-									})}
+									cssClass={[
+										style.timeIndicatorHair,
+										{
+											[style.hairHidden]: !showHistogram,
+										},
+									]}
 									ref={timeIndicatorHairRef}
 								/>
 							</div>

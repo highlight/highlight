@@ -36,6 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
@@ -892,6 +893,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
+	highlight.RecordMetric(
+		ctx, mgraph.SessionActiveMetricName, float64(accumulator.ActiveDuration),
+		attribute.Bool("Excluded", false),
+		attribute.Bool("Processed", true),
+		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+	)
+	highlight.RecordMetric(
+		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
+		attribute.Bool("Excluded", false),
+		attribute.Bool("Processed", true),
+		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: s.SecureID,
@@ -994,9 +1007,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			count64 := int64(count)
-			slackAlertPayload := model.SendSlackAlertInput{Workspace: workspace,
-				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
-				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", accumulator.RageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}}
+			slackAlertPayload := model.SendSlackAlertInput{
+				Workspace:       workspace,
+				SessionSecureID: s.SecureID,
+				SessionExcluded: s.Excluded && *s.Processed,
+				UserIdentifier:  s.Identifier,
+				UserObject:      s.UserObject,
+				RageClicksCount: &count64,
+				QueryParams:     map[string]string{"tsAbs": fmt.Sprintf("%d", accumulator.RageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))},
+			}
 
 			hookPayload := zapier.HookPayload{
 				UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
@@ -1375,17 +1394,17 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			if err == nil && logs.Integrated {
 				c.BackendLoggingIntegrated = c.BackendLoggingIntegrated || logs.Integrated
 			}
-			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
+			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 30),
 				EndDate:   time.Now(),
 			}})
 			c.LogCount += int64(count)
-			countWeek, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
+			countWeek, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 7),
 				EndDate:   time.Now(),
 			}})
 			c.LogCountLastWeek += int64(countWeek)
-			countDay, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
+			countDay, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24),
 				EndDate:   time.Now(),
 			}})

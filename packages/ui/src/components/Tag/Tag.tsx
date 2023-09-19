@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as AriakitButton, ButtonProps } from 'ariakit/button'
+import { Button as AriakitButton, ButtonProps } from '@ariakit/react'
 import { Text, Props as TextProps } from '../Text/Text'
 
 import * as styles from './styles.css'
@@ -63,7 +63,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size })}
+					cssClass={styles.iconVariants({ size })}
 					onClick={onIconLeftClick}
 				>
 					{icon}
@@ -85,7 +85,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size })}
+					cssClass={styles.iconVariants({ size })}
 					onClick={onIconRightClick}
 				>
 					{iconRight}

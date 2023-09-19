@@ -35,6 +35,12 @@ export class Highlight {
 			})
 		}
 
+		if (!this._projectID) {
+			console.warn(
+				'Highlight project id was not provided. Data will not be recorded.',
+			)
+		}
+
 		this.tracer = trace.getTracer('highlight-node')
 
 		const exporter = new OTLPTraceExporter({
@@ -69,7 +75,13 @@ export class Highlight {
 			},
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [getNodeAutoInstrumentations()],
+			instrumentations: [
+				getNodeAutoInstrumentations({
+					'@opentelemetry/instrumentation-fs': {
+						enabled: options.enableFsInstrumentation ?? false,
+					},
+				}),
+			],
 		})
 		this.otel.start()
 

@@ -11,13 +11,12 @@ import {
 	Stack,
 	Tag,
 	Text,
-	usePopover,
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { copyToClipboard } from '@util/string'
-import React, { useEffect } from 'react'
+import React from 'react'
 
 import * as styles from './styles.css'
 
@@ -242,13 +241,6 @@ const StackSectionError: React.FC<
 > = ({ children, error, keys, title }) => {
 	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
-	const { mounted } = usePopover()
-
-	useEffect(() => {
-		if (!mounted) {
-			setShowMetadata(false)
-		}
-	}, [mounted])
 
 	const metadata = keys.reduce((accumulator: any[], key) => {
 		if (error[key]) {

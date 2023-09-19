@@ -317,20 +317,17 @@ export default function Error({
 
 Adding the `withHighlightConfig` to your next config will configure highlight frontend proxying. This means that frontend session recording and error capture data will be piped through your domain on `/highlight-events` to avoid ad-blockers from stopping this traffic.
 
-1. Install `next-build-id` with `npm install next-build-id`.
-2. Turn on `instrumentationHook`.
-3. Wrap the config with `withHighlightConfig`.
+1. Turn on `instrumentationHook`.
+2. Wrap the config with `withHighlightConfig`.
 
 If you use a `next.config.js` file:
 
 ```javascript
 // next.config.js
-const nextBuildId = require('next-build-id')
 const { withHighlightConfig } = require('@highlight-run/next/server')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
 		appDir: true,
 		instrumentationHook: true,
@@ -347,7 +344,6 @@ If you use a `next.config.mjs` file:
 // next.config.mjs
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
-import nextBuildId from 'next-build-id'
 import { withHighlightConfig } from '@highlight-run/next/server'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -355,7 +351,6 @@ const __dirname = dirname(__filename)
 
 /** @type {import('next').NextConfig} */
 const nextConfig = withHighlightConfig({
-	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
 		appDir: true,
 		instrumentationHook: true,
@@ -389,16 +384,13 @@ We recommend shipping your source maps to your production server. Your client-si
 
 Shipping source maps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`. Alternatively, you can upload source maps directly to Highlight using our `withHighlightConfig` function.
 
-Make sure to implement `nextConfig.generateBuildId` so that our source map uploader can version your source maps correctly.
 
 ```javascript
 // next.config.js
-const nextBuildId = require('next-build-id')
 const { withHighlightConfig } = require('@highlight-run/next/server')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
 		appDir: true,
 		instrumentationHook: true,

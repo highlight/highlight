@@ -8,4 +8,28 @@
 	</parent>
 
 	<artifactId>highlight-log-java</artifactId>
+
+	<name>Highlight Java Log Standard</name>
+	<url>https://github.com/highlight/highlight</url>
+	<inceptionYear>2023</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Nils Gereke</name>
+			<email>mail@wuffy.eu</email>
+			<url>https://github.com/NgLoader</url>
+		</developer>
+	</developers>
+
+	<properties>
+		<maven.install.skip>false</maven.install.skip>
+		<skipStaging>false</skipStaging>
+	</properties>
 </project>
