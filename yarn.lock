@@ -611,36 +611,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ariakit/core@npm:0.2.9":
-  version: 0.2.9
-  resolution: "@ariakit/core@npm:0.2.9"
-  checksum: b880f002e54349913ec5ee6a2d1508e094bd053e8caccfe7b65f2c53648d16348241b73f9892042eb96f9d6eb735f38246a60e53468799662b5e8238a69d497b
+"@ariakit/core@npm:0.3.2":
+  version: 0.3.2
+  resolution: "@ariakit/core@npm:0.3.2"
+  checksum: cf5d1c217a130ac1e2c0571aa4b5ab83460752adefddc0de0ad9abcf7c62018ba7564bcd46a54a675234f2f39a8e77b5a3cf21e7d3bdcf8501d67518c49b83d9
   languageName: node
   linkType: hard
 
-"@ariakit/react-core@npm:0.2.17":
-  version: 0.2.17
-  resolution: "@ariakit/react-core@npm:0.2.17"
+"@ariakit/react-core@npm:0.3.2":
+  version: 0.3.2
+  resolution: "@ariakit/react-core@npm:0.3.2"
   dependencies:
-    "@ariakit/core": 0.2.9
+    "@ariakit/core": 0.3.2
     "@floating-ui/dom": ^1.0.0
     use-sync-external-store: ^1.2.0
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 5f56a2ed35c407bfa3ea7358af7dc76fb69470b8ae0d4c7445ff9d788c2775b59301cd4b90eaaf6ffd2d0f1c8e09a929032aeda7e49636c938e6866bbb9729dd
+  checksum: 898314fc473788b591406e8bd4e6504679e19801d2d74dca4d94d6cb016b0b25bcb5ef8235e94d7e76977bac6f69bc400018a57d4bd2ab701e81895ff034a69a
   languageName: node
   linkType: hard
 
-"@ariakit/react@npm:^0.2.17":
-  version: 0.2.17
-  resolution: "@ariakit/react@npm:0.2.17"
+"@ariakit/react@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "@ariakit/react@npm:0.3.2"
   dependencies:
-    "@ariakit/react-core": 0.2.17
+    "@ariakit/react-core": 0.3.2
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 972b562f5439240e574e3f8db449aedc5fa2faf9f5de9b753f624e4e2e76b554f2603770d4cf1218b662765cb9f673495fe311475a062c0b5b935e7631447f97
+  checksum: b44f3309116a8ae20b37613fea71148f862a732abee7381921d112c164fde70fab64f54a45fa28ae54e8b15ebbedb8be94bc3e14c178f216a33d544a9abb73f1
   languageName: node
   linkType: hard
 
@@ -12845,7 +12845,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/ui@workspace:packages/ui"
   dependencies:
-    "@ariakit/react": ^0.2.17
+    "@ariakit/react": ^0.3.2
     "@babel/core": ^7.19.3
     "@capsizecss/core": ^3.0.0
     "@capsizecss/metrics": ^0.3.0
