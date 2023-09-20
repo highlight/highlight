@@ -15,7 +15,7 @@ exporters:
         compression: gzip
         sending_queue:
             num_consumers: 1024
-            queue_size: 8192
+            queue_size: 65536
         retry_on_failure:
             initial_interval: 0.1s
             max_interval: 1s
@@ -23,11 +23,11 @@ exporters:
 processors:
     memory_limiter:
         check_interval: 0.1s
-        limit_mib: 23040
-        spike_limit_mib: 3072
+        limit_mib: 13107
+        spike_limit_mib: 1024
     batch:
-        send_batch_size: 256
-        send_batch_max_size: 256
+        send_batch_size: 128
+        send_batch_max_size: 128
         timeout: 1s
 service:
     telemetry:
@@ -53,4 +53,4 @@ extensions:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
     memory_ballast:
-        size_mib: 6144
+        size_mib: 3276
