@@ -14,7 +14,7 @@ exporters:
         endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
         sending_queue:
-            num_consumers: 512
+            num_consumers: 2048
             queue_size: 8192
         retry_on_failure:
             initial_interval: 0.1s
