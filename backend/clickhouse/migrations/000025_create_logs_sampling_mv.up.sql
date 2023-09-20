@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW logs_sampling_mv TO logs_sampling (
+CREATE MATERIALIZED VIEW IF NOT EXISTS logs_sampling_mv TO logs_sampling (
     `Timestamp` DateTime,
     `UUID` UUID,
     `TraceId` String,
