@@ -30,6 +30,7 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { DEFAULT_FREQUENCY } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
@@ -368,9 +369,11 @@ const AlertPicker = function ({
 						projectId,
 					})
 
+					const a = alertOptions.find((a) => a.name === alert)
 					const requestVariables = {
 						project_id: projectId,
-						count_threshold: 1,
+						count_threshold: a?.thresholdPerMinute ?? 1,
+						threshold_window: Number(DEFAULT_FREQUENCY),
 						slack_channels:
 							platform === 'slack'
 								? [
@@ -402,7 +405,6 @@ const AlertPicker = function ({
 									input: {
 										...requestVariables,
 										name: 'New Session Alert',
-										threshold_window: 1,
 										exclude_rules: [],
 										user_properties: [],
 										track_properties: [],
@@ -418,7 +420,6 @@ const AlertPicker = function ({
 								variables: {
 									...requestVariables,
 									name: 'Error Alert',
-									threshold_window: 1,
 									regex_groups: [],
 									frequency: 3600,
 								},
@@ -431,7 +432,6 @@ const AlertPicker = function ({
 									input: {
 										...requestVariables,
 										name: 'Error Log Alert',
-										threshold_window: 1,
 										below_threshold: false,
 										disabled: false,
 										query: 'level:error',
@@ -568,7 +568,13 @@ const AlertPicker = function ({
 									size="medium"
 									shape="rounded"
 									variant="gray"
-									label={`${option.thresholdPerMinute} alerts/min`}
+									label={`${
+										option.thresholdPerMinute
+									} ${option.name.toLowerCase()}${
+										option.thresholdPerMinute <= 1
+											? ''
+											: 's'
+									}/min`}
 								/>
 							</Box>
 						</Box>
