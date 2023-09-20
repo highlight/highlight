@@ -9,12 +9,14 @@ export default withEdgeHighlight(async function handler(request: NextRequest) {
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 
-	console.info('Here: /api/edge-test/route.ts 🌚🌚🌚', { success })
+	console.info('Here: /api/page-router-edge-test/route.ts 🌚🌚🌚', {
+		success,
+	})
 
 	if (success === 'true') {
-		return new Response('Success: /api/edge-test')
+		return new Response('Success: /api/page-router-edge-test')
 	} else {
-		throw new Error('Error: /api/edge-test (Edge Runtime)')
+		throw new Error('Error: /api/page-router-edge-test (Edge Runtime)')
 	}
 })
 

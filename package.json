@@ -138,6 +138,8 @@
 		"trim-newlines": "3.0.1",
 		"ua-parser-js": "0.7.33",
 		"undici": "5.19.1",
-		"webpack": "5.76.0"
+		"webpack": "5.76.0",
+		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",
+		"@protobufjs/inquire@^1.1.0": "patch:@protobufjs/inquire@npm%3A1.1.0#./.yarn/patches/@protobufjs-inquire-npm-1.1.0-3c7759e9ce.patch"
 	}
 }
