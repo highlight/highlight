@@ -5716,6 +5716,10 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
 func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
 	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
 }
 
@@ -5780,6 +5784,10 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 
 // FieldsClickhouse is the resolver for the fields_clickhouse field.
 func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
 	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
@@ -5843,6 +5851,10 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 
 // ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
 func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
 	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
