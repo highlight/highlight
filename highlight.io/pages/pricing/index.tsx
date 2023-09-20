@@ -230,7 +230,7 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 ]
 
 const billingPeriodOptions = ['Monthly', 'Annual'] as const
-type BillingPeriod = typeof billingPeriodOptions[number]
+type BillingPeriod = (typeof billingPeriodOptions)[number]
 
 const retentionOptions = [
 	'30 days',
@@ -239,7 +239,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -249,7 +249,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'UsageBased', 'Enterprise'] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -347,7 +347,7 @@ const PlanTable = () => {
 	return (
 		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="flex flex-col-reverse items-stretch w-full sm:flex-row gap-7 justify-center">
+			<div className="flex flex-col items-stretch w-full sm:flex-row gap-7 justify-center">
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
@@ -393,10 +393,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					>
 						<Typography type="copy3">{feature.feature}</Typography>
 						{feature.tooltip && (
-							<HeadlessTooltip
-								tooltip={feature.tooltip}
-								styling="-left-7"
-							/>
+							<HeadlessTooltip tooltip={feature.tooltip} />
 						)}
 					</div>
 				))}
