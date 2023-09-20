@@ -5,7 +5,7 @@ createdAt: 2023-09-18T18:05:43.021Z
 updatedAt: 2023-09-18T18:05:43.021Z
 ---
 
-Services are a useful tool to group your logs, errors, and traces. In order to create a new service, a service name must be provided to your SDK configuration.
+Services are a useful tool to delineate your logs, errors, and traces. In order to create a new service, a service name must be provided to your SDK configuration.
 Reference the [SDK start up guides](../../../getting-started/1_overview.md) for more help.
 
 For example, in Golang, the following SDK will create a new service named "my-app":
