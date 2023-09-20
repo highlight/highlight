@@ -682,7 +682,10 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 			TargetEmails: []string{*admin.Email},
 		}
 
-		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
+		tx := r.DB.Model(&export).Where(&model.SessionExport{
+			SessionID: session.ID,
+			Type:      model.SessionExportFormatMP4,
+		}).Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
 			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
 		}).FirstOrCreate(&export)
@@ -8004,9 +8007,19 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 }
 
 // SessionExports is the resolver for the session_exports field.
-func (r *queryResolver) SessionExports(ctx context.Context) ([]*model.SessionExport, error) {
-	var sessionExports []*model.SessionExport
-	if err := r.DB.Model(&model.SessionExport{}).Order("id DESC").Scan(&sessionExports).Error; err != nil {
+func (r *queryResolver) SessionExports(ctx context.Context, projectID int) ([]*modelInputs.SessionExportWithSession, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionExports []*modelInputs.SessionExportWithSession
+	if err := r.DB.
+		Table("session_exports").
+		Joins("INNER JOIN sessions s ON s.id = session_exports.session_id").
+		Where(`s.project_id = ?`, projectID).
+		Order("session_exports.id DESC").
+		Scan(&sessionExports).Error; err != nil {
 		return nil, err
 	}
 	return sessionExports, nil
@@ -8338,11 +8351,6 @@ GROUP BY
 	return tagsResponse, nil
 }
 
-// TargetEmails is the resolver for the target_emails field.
-func (r *sessionExportResolver) TargetEmails(ctx context.Context, obj *model.SessionExport) ([]string, error) {
-	return obj.TargetEmails, nil
-}
-
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
@@ -8447,9 +8455,6 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
-// SessionExport returns generated.SessionExportResolver implementation.
-func (r *Resolver) SessionExport() generated.SessionExportResolver { return &sessionExportResolver{r} }
-
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
@@ -8474,6 +8479,5 @@ type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-type sessionExportResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }

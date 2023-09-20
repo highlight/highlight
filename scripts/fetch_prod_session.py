@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 
-DROP_SESSION_KEYS = {"user_id", "details", "status"}
+DROP_SESSION_KEYS = {"user_id", "details", "status", "migration_state"}
 DROP_ERROR_GROUP_KEYS = {"metadata_log", "resolved"}
 DROP_ERROR_OBJECT_KEYS = {"line_no", "column_no", "error_type"}
 DROP_TIMELINE_INDICATORS_KEYS = {"id"}

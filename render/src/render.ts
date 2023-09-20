@@ -32,6 +32,7 @@ export interface RenderConfig {
 
 export async function render(
 	events: string,
+	chunk_idx: number,
 	intervals: any[],
 	worker: number,
 	workers: number,
@@ -45,7 +46,7 @@ export async function render(
 	events = events.replace(/`/g, '\\`')
 	events = events.replace(/\$/g, '\\$')
 	if (!dir?.length) {
-		const prefix = path.join(tmpdir(), 'render_')
+		const prefix = path.join(tmpdir(), `render_${chunk_idx}_`)
 		dir = await promisify(mkdtemp)(prefix)
 	}
 

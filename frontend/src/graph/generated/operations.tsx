@@ -1849,14 +1849,20 @@ export type GetSessionInsightQuery = { __typename?: 'Query' } & {
 }
 
 export type GetSessionExportsQueryVariables = Types.Exact<{
-	[key: string]: never
+	project_id: Types.Scalars['ID']
 }>
 
 export type GetSessionExportsQuery = { __typename?: 'Query' } & {
 	session_exports: Array<
-		{ __typename?: 'SessionExport' } & Pick<
-			Types.SessionExport,
-			'id' | 'session_id' | 'type' | 'url' | 'error' | 'target_emails'
+		{ __typename?: 'SessionExportWithSession' } & Pick<
+			Types.SessionExportWithSession,
+			| 'created_at'
+			| 'type'
+			| 'url'
+			| 'error'
+			| 'secure_id'
+			| 'identifier'
+			| 'active_length'
 		>
 	>
 }

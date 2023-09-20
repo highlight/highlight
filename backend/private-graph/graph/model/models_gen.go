@@ -689,6 +689,16 @@ type SessionCommentTagInput struct {
 	Name string `json:"name"`
 }
 
+type SessionExportWithSession struct {
+	CreatedAt    time.Time `json:"created_at"`
+	Type         string    `json:"type"`
+	URL          string    `json:"url"`
+	Error        string    `json:"error"`
+	SecureID     string    `json:"secure_id"`
+	Identifier   string    `json:"identifier"`
+	ActiveLength *int      `json:"active_length"`
+}
+
 type SessionQuery struct {
 	ID        int `json:"id"`
 	ProjectID int `json:"project_id"`

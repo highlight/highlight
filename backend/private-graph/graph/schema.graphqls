@@ -1600,13 +1600,15 @@ type SystemConfiguration {
 	maintenance_end: Timestamp
 }
 
-type SessionExport {
-	id: ID!
-	session_id: ID!
+type SessionExportWithSession {
+	created_at: Timestamp!
 	type: String!
 	url: String!
 	error: String!
-	target_emails: [String!]!
+	# session details
+	secure_id: String!
+	identifier: String!
+	active_length: Int
 }
 
 enum EmailOptOutCategory {
@@ -1947,7 +1949,7 @@ type Query {
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
-	session_exports: [SessionExport!]!
+	session_exports(project_id: ID!): [SessionExportWithSession!]!
 	system_configuration: SystemConfiguration!
 
 	services(
