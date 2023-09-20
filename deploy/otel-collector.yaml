@@ -26,8 +26,8 @@ processors:
         limit_mib: 12288
         spike_limit_mib: 1024
     batch:
-        send_batch_size: 512
-        send_batch_max_size: 512
+        send_batch_size: 1024
+        send_batch_max_size: 1024
         timeout: 1s
 service:
     telemetry:
