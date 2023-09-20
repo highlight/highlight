@@ -16,6 +16,7 @@ import { SessionAlertType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	Callout,
 	Form,
 	IconSolidCheck,
 	IconSolidCheveronRight,
@@ -129,20 +130,51 @@ export const AlertsSetup: React.FC = function () {
 		}
 	}, [alertsSetup, hidden])
 
+	const header = (
+		<Header
+			title="Create alerts for your app"
+			subtitle="Don’t search for interesting activity; get alerted proactively."
+		/>
+	)
+
 	if (hidden) {
-		return null
+		return (
+			<Box style={{ maxWidth: 560, marginTop: 80 }} margin="auto">
+				{header}
+				<Callout title="You have already created alerts.">
+					<Stack gap="16">
+						<Text size="small" weight="medium" color="moderate">
+							Go to the alerts page to create new alerts, or
+							configure existing ones. If you want to learn more
+							about alerts, be sure to read the docs!
+						</Text>
+						<Box display="flex" alignItems="center" gap="8">
+							<Button
+								kind="secondary"
+								size="small"
+								emphasis="high"
+								trackingId="setup-alerts-configure"
+							>
+								Go to alerts
+							</Button>
+							<Button
+								kind="secondary"
+								emphasis="low"
+								trackingId="setup-alerts-learn-more"
+							>
+								Learn more
+							</Button>
+						</Box>
+					</Stack>
+				</Callout>
+			</Box>
+		)
 	}
 
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-				<Header
-					title="Create alerts for your app"
-					subtitle={
-						'Don’t search for interesting activity, get alerted proactively. ' +
-						'Connect your messaging platform of choice.'
-					}
-				/>
+				{header}
 				{platform ? (
 					<AlertPicker platform={platform} />
 				) : (
