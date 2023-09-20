@@ -1858,7 +1858,7 @@ type Alert struct {
 	ThresholdWindow      *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
 	ChannelsToNotify     *string
 	EmailsToNotify       *string
-	Name                 *string
+	Name                 string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 	Frequency            int     `gorm:"default:15"` // time in seconds
@@ -1901,7 +1901,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
 
-	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", *obj.Name, input.Group.Event, errorURL)
+	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", obj.Name, input.Group.Event, errorURL)
 	if input.SessionSecureID == "" || input.SessionExcluded {
 		message += " (No recorded session)"
 	} else {
@@ -1910,7 +1910,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	}
 
 	for _, email := range emailsToNotify {
-		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
+		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", obj.Name, input.Group.Event)); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
 	}
@@ -2161,6 +2161,10 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 	return sanitizedChannels, nil
 }
 
+func (obj *Alert) GetName() string {
+	return obj.Name
+}
+
 func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for emails to notify")
@@ -2262,6 +2266,14 @@ func (obj *MetricMonitor) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackCh
 	return sanitizedChannels, nil
 }
 
+func (obj *MetricMonitor) GetName() string {
+	return obj.Name
+}
+
+func (obj *MetricMonitor) GetId() int {
+	return obj.ID
+}
+
 func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for track properties")
@@ -2321,9 +2333,10 @@ type SendWelcomeSlackMessageInput struct {
 	Admin                *Admin
 	OperationName        string
 	OperationDescription string
+	ID                   int
 	Project              *Project
-	AlertID              *int
 	IncludeEditLink      bool
+	URLSlug              string
 }
 
 type DeleteSessionsTask struct {
@@ -2332,7 +2345,12 @@ type DeleteSessionsTask struct {
 	SessionID int
 }
 
-func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcomeSlackMessageInput) error {
+type IAlert interface {
+	GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error)
+	GetName() string
+}
+
+func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcomeSlackMessageInput) error {
 	if obj == nil {
 		return e.New("Alert needs to be defined.")
 	}
@@ -2345,8 +2363,11 @@ func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcom
 	if input.Project == nil {
 		return e.New("Project needs to be defined.")
 	}
-	if input.AlertID == nil {
-		return e.New("AlertID needs to be defined.")
+	if input.ID == 0 {
+		return e.New("ID needs to be defined.")
+	}
+	if input.URLSlug == "" {
+		return e.New("URLSlug needs to be defined.")
 	}
 
 	// get alerts channels
@@ -2371,7 +2392,7 @@ func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcom
 	}
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	alertUrl := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, input.Project.Model.ID, *input.AlertID)
+	alertUrl := fmt.Sprintf("%s/%d/%s/%d", frontendURL, input.Project.Model.ID, input.URLSlug, input.ID)
 	if !input.IncludeEditLink {
 		alertUrl = ""
 	}
@@ -2405,124 +2426,7 @@ func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcom
 				continue
 			}
 
-			message := fmt.Sprintf("👋 %s has %s the alert \"%s\". %s %s", *adminName, input.OperationName, *obj.Name, input.OperationDescription, alertUrl)
-			slackChannelId := *channel.WebhookChannelID
-			slackChannelName := *channel.WebhookChannel
-
-			go func() {
-				// The Highlight Slack bot needs to join the channel before it can send a message.
-				// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
-				log.WithContext(ctx).Printf("Sending Slack Bot Message for welcome message")
-				if slackClient != nil {
-					if strings.Contains(slackChannelName, "#") {
-						_, _, _, err := slackClient.JoinConversation(slackChannelId)
-						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
-						}
-					}
-					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
-						slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
-						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
-					)
-					if err != nil {
-						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
-							Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
-					}
-
-				} else {
-					log.WithContext(ctx).Printf("Slack Bot Client was not defined for sending welcome message")
-				}
-			}()
-		}
-	}
-
-	return nil
-}
-
-type SendWelcomeSlackMessageForMetricMonitorInput struct {
-	Workspace            *Workspace
-	Admin                *Admin
-	OperationName        string
-	OperationDescription string
-	Project              *Project
-	MonitorID            *int
-	IncludeEditLink      bool
-}
-
-func (obj *MetricMonitor) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcomeSlackMessageForMetricMonitorInput) error {
-	if obj == nil {
-		return e.New("metric monitor needs to be defined.")
-	}
-	if input.Workspace == nil {
-		return e.New("Workspace needs to be defined.")
-	}
-	if input.Admin == nil {
-		return e.New("Admin needs to be defined.")
-	}
-	if input.Project == nil {
-		return e.New("Project needs to be defined.")
-	}
-	if input.MonitorID == nil {
-		return e.New("AlertID needs to be defined.")
-	}
-
-	// get alerts channels
-	channels, err := obj.GetChannelsToNotify()
-	if err != nil {
-		return e.Wrap(err, "error getting channels to notify welcome slack message")
-	}
-	if len(channels) <= 0 {
-		return nil
-	}
-	// get project's channels
-	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
-	if err != nil {
-		return e.Wrap(err, "error getting slack webhook url for alert")
-	}
-	if len(integratedSlackChannels) <= 0 {
-		return nil
-	}
-	var slackClient *slack.Client
-	if input.Workspace.SlackAccessToken != nil {
-		slackClient = slack.New(*input.Workspace.SlackAccessToken)
-	}
-
-	frontendURL := os.Getenv("FRONTEND_URI")
-	alertUrl := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, input.Project.Model.ID, *input.MonitorID)
-	if !input.IncludeEditLink {
-		alertUrl = ""
-	}
-	adminName := input.Admin.Name
-
-	if adminName == nil {
-		adminName = input.Admin.Email
-	}
-
-	// send message
-	for _, channel := range channels {
-		if channel.WebhookChannel != nil {
-			var slackWebhookURL string
-			isWebhookChannel := false
-
-			// Find the webhook URL
-			for _, ch := range integratedSlackChannels {
-				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
-					slackWebhookURL = ch.WebhookURL
-
-					if ch.WebhookAccessToken != "" {
-						isWebhookChannel = true
-					}
-					break
-				}
-			}
-
-			if slackWebhookURL == "" && isWebhookChannel {
-				log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
-					Error("requested channel has no matching slackWebhookURL when sending welcome message")
-				continue
-			}
-
-			message := fmt.Sprintf("👋 %s has %s the alert \"%s\". %s %s", *adminName, input.OperationName, obj.Name, input.OperationDescription, alertUrl)
+			message := fmt.Sprintf("👋 %s has %s the alert \"%s\". %s %s", *adminName, input.OperationName, obj.GetName(), input.OperationDescription, alertUrl)
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 

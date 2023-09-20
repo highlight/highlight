@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"encoding/json"
+
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/openlyinc/pointy"
 
@@ -98,7 +99,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 			Type:                 &inputType,
 			ChannelsToNotify:     channelsString,
 			EmailsToNotify:       emailsString,
-			Name:                 &input.Name,
+			Name:                 input.Name,
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
 			Default:              *defaultArg,

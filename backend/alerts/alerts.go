@@ -530,7 +530,7 @@ type LogAlertEvent struct {
 
 func SendLogAlert(event LogAlertEvent) error {
 	payload := integrations.LogAlertPayload{
-		Name:           *event.LogAlert.Name,
+		Name:           event.LogAlert.Name,
 		Query:          event.LogAlert.Query,
 		Count:          event.Count,
 		StartDate:      event.StartDate,
