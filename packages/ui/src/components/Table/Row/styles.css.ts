@@ -28,13 +28,9 @@ export const row = style({
 		[`${headStyles.head} &`]: {
 			background: 'none',
 		},
-		[`${tableStyles.table}:not(${tableStyles.noBorder}) ${headStyles.head} &:first-of-type`]:
+		[`${tableStyles.table}:not(${tableStyles.noBorder}):not(${tableStyles.withSearch}) ${headStyles.head} &:first-of-type`]:
 			{
 				borderTop: BORDER,
-			},
-
-		[`${tableStyles.table}:not(${tableStyles.noBorder}) ${headStyles.head} &:first-of-type`]:
-			{
 				borderTopLeftRadius: 8,
 				borderTopRightRadius: 8,
 			},
