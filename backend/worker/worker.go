@@ -502,9 +502,6 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	for _, cfg := range []WorkerConfig{logsConfig, tracesConfig, dataSyncConfig} {
-		if cfg.Workers == 0 {
-			cfg.Workers = 1
-		}
 		if cfg.FlushSize == 0 {
 			cfg.FlushSize = DefaultBatchFlushSize
 		}

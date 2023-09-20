@@ -68,13 +68,12 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
 	}
 
-	ddSpan, ddCtx := tracer.StartSpanFromContext(ctx, operationName, ddOptions...)
+	ddSpan, mergedCtx := tracer.StartSpanFromContext(ctx, operationName, ddOptions...)
 	var hSpan trace.Span
 	if !hTracingDisabled {
 		hSpan, _ = highlight.StartTrace(ctx, operationName, cfg.Tags...)
+		mergedCtx = trace.ContextWithSpan(mergedCtx, hSpan)
 	}
-
-	mergedCtx := trace.ContextWithSpan(ddCtx, hSpan)
 
 	return MultiSpan{
 		ddSpan: ddSpan,
