@@ -1,5 +1,8 @@
 import { vars } from '@highlight-run/ui'
-import { small } from '@highlight-run/ui/src/components/Text/styles.css'
+import {
+	sMonotype,
+	typographyStyles,
+} from '@highlight-run/ui/src/components/Text/styles.css'
 import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { globalStyle, style } from '@vanilla-extract/css'
 
@@ -15,13 +18,14 @@ export const combobox = style([
 	sprinkles({
 		py: '6',
 	}),
+	typographyStyles.family.monospace,
 	{
+		...sMonotype,
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		color: 'transparent', // hide text - shown in tags
 		display: 'flex',
-		fontSize: 13,
 		width: '100%',
 		selectors: {
 			'&:focus': {
@@ -35,39 +39,42 @@ globalStyle(`${combobox}::selection`, {
 	backgroundColor: `rgba(0, 0, 0, 0.3)`,
 })
 
-export const comboboxTag = style({
-	...small,
-	alignItems: 'center',
-	display: 'inline-flex',
-	position: 'relative',
-	selectors: {
-		'&:after': {
-			backgroundColor: `rgba(0, 0, 0, 0.05)`,
-			border: vars.border.dividerWeak,
-			borderRadius: vars.borderRadius[4],
-			content: ' ',
-			cursor: 'pointer',
-			fontFeatureSettings: 'normal', // disable tabular numbers
-			height: 20,
-			letterSpacing: 'normal',
-			position: 'absolute',
-			top: 'calc(50% - 4px)',
-			left: -1,
-			bottom: 0,
-			right: -1,
-			width: 'calc(100% + 2px)',
-		},
-		'&:hover:after': {
-			backgroundColor: `rgba(0, 0, 0, 0.1)`,
+export const comboboxTag = style([
+	typographyStyles.family.monospace,
+	{
+		...sMonotype,
+		alignItems: 'center',
+		display: 'inline-flex',
+		position: 'relative',
+		selectors: {
+			'&:after': {
+				backgroundColor: `rgba(0, 0, 0, 0.05)`,
+				border: vars.border.dividerWeak,
+				borderRadius: vars.borderRadius[4],
+				content: ' ',
+				cursor: 'pointer',
+				fontFeatureSettings: 'normal', // disable tabular numbers
+				height: 20,
+				letterSpacing: 'normal',
+				position: 'absolute',
+				top: 'calc(50% - 4px)',
+				left: -2,
+				bottom: 0,
+				right: -2,
+				width: 'calc(100% + 4px)',
+			},
+			'&:hover:after': {
+				backgroundColor: `rgba(0, 0, 0, 0.1)`,
+			},
 		},
 	},
-})
+])
 
 export const comboboxTagClose = style({
 	cursor: 'pointer',
 	display: 'none',
 	position: 'absolute',
-	right: -7,
+	right: -8,
 	top: 2,
 	zIndex: 1,
 	selectors: {

@@ -33,7 +33,7 @@ export const large = createStyleObject({
 })
 
 // Monospace
-const sMonotype = createStyleObject({
+export const sMonotype = createStyleObject({
 	fontSize: 13,
 	leading: 20,
 	fontMetrics: plexoFontMetrics,
@@ -50,8 +50,9 @@ const xxsMonotype = createStyleObject({
 })
 
 const mainFontFamily = 'Inter'
+const monospaceFontFamily = 'IBM Plex Mono'
 
-const family = {
+export const family = {
 	body: {
 		fontFamily: `${mainFontFamily}, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol`,
 	},
@@ -59,8 +60,7 @@ const family = {
 		fontFamily: `${mainFontFamily}, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif`,
 	},
 	monospace: {
-		fontFamily:
-			'IBM Plex Mono, Menlo, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier, monospace',
+		fontFamily: `${monospaceFontFamily}, Menlo, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier, monospace`,
 	},
 } as const
 

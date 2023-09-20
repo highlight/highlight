@@ -361,8 +361,8 @@ export const Search: React.FC<{
 					position="absolute"
 					display="flex"
 					alignItems="center"
-					gap="2"
 					style={{
+						gap: 8,
 						left: 2,
 					}}
 				>
@@ -377,16 +377,21 @@ export const Search: React.FC<{
 								cssClass={styles.comboboxTag}
 								py="6"
 								position="relative"
-								onClick={() => {
-									handleItemRemove(index)
+								whiteSpace="nowrap"
+								style={{
+									textOverflow: 'ellipsis',
 								}}
 							>
 								<IconSolidXCircle
 									className={styles.comboboxTagClose}
 									size={13}
+									onClick={() => {
+										handleItemRemove(index)
+									}}
 								/>
-								{term.key === BODY_KEY ? `` : `${term.key}:`}
-								{term.value}
+								{term.key === BODY_KEY
+									? term.value
+									: `${term.key}:${term.value}`}
 							</Box>
 						)
 					})}
