@@ -36,7 +36,7 @@ const ErrorFeedHistogram = React.memo(() => {
 			},
 		},
 		skip: !backendSearchQuery?.childSearchQuery || !project_id,
-		fetchPolicy: 'cache-first',
+		fetchPolicy: 'network-only',
 	})
 
 	const histogram: {

@@ -32,3 +32,9 @@
 ### Fix
 
 ### Tests
+
+## v0.6.1 (2023-09-18)
+
+### Fix
+
+- Update queue export settings to reduce possibility of OOM due to large number of traces / logs.

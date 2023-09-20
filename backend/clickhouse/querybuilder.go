@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -228,13 +229,19 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 			if !found {
 				return "", fmt.Errorf("separator not found for between query %s", v)
 			}
-			start, err := strconv.ParseInt(before, 10, 64)
+			start, err := strconv.ParseFloat(before, 64)
 			if err != nil {
 				return "", err
 			}
-			end, err := strconv.ParseInt(after, 10, 64)
+			start *= 1000
+			end, err := strconv.ParseFloat(after, 64)
 			if err != nil {
 				return "", err
+			}
+			end *= 1000
+			// If the slider is at the maximum, allow any length length greater than the min
+			if after == "60" {
+				end = math.Inf(1)
 			}
 			conditions = append(conditions, sb.Between(mappedName, start, end))
 		case BetweenDate:

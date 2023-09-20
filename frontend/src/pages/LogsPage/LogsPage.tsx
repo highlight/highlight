@@ -7,11 +7,15 @@ import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import { QueryParamConfig, useQueryParam } from 'use-query-params'
 
-import { TIME_MODE } from '@/components/Search/SearchForm/constants'
+import {
+	TIME_FORMAT,
+	TIME_MODE,
+} from '@/components/Search/SearchForm/constants'
 import {
 	EndDateParam,
 	FixedRangeStartDateParam,
@@ -20,9 +24,11 @@ import {
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import {
+	useGetLogsHistogramQuery,
 	useGetLogsKeysQuery,
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 
 const LogsPage = () => {
@@ -106,6 +112,22 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		[fetchMoreForward, fetchMoreBackward],
 	)
 
+	const { projectId } = useNumericProjectId()
+	const { data: histogramData, loading: histogramLoading } =
+		useGetLogsHistogramQuery({
+			variables: {
+				project_id: project_id!,
+				params: {
+					query,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+				},
+			},
+			skip: !projectId,
+		})
+
 	return (
 		<>
 			<Helmet>
@@ -140,17 +162,19 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<LogsCount
-						query={query}
 						startDate={startDate}
 						endDate={endDate}
 						presets={defaultPresets}
+						totalCount={histogramData?.logs_histogram.objectCount}
+						logCountLoading={histogramLoading}
 					/>
 					<LogsHistogram
-						query={query}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
+						histogramData={histogramData}
+						loading={histogramLoading}
 					/>
 					<Box width="full">
 						<AdditionalFeedResults

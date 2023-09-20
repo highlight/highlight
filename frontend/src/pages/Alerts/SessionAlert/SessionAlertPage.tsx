@@ -92,7 +92,7 @@ export const SessionAlertPage = () => {
 
 	const { alertsPayload } = useAlertsContext()
 	const alert = alert_id
-		? (findAlert(alert_id, alertsPayload) as any)
+		? (findAlert(alert_id, 'session', alertsPayload) as any)
 		: undefined
 	const [alertType, setAlertType] = useState(
 		alert?.Type || SessionAlertType.NewSessionAlert,
@@ -672,6 +672,9 @@ const SessionAlertForm = ({
 										)
 									}}
 									className={styles.selectContainer}
+									value={formStore.getValue(
+										formStore.names.excludeRules,
+									)}
 								/>
 							</Form.NamedSection>
 						)}
@@ -693,6 +696,9 @@ const SessionAlertForm = ({
 											values,
 										)
 									}
+									value={formStore.getValue(
+										formStore.names.userProperties,
+									)}
 								/>
 							</Form.NamedSection>
 						)}
@@ -713,6 +719,9 @@ const SessionAlertForm = ({
 											values,
 										)
 									}
+									value={formStore.getValue(
+										formStore.names.trackProperties,
+									)}
 								/>
 							</Form.NamedSection>
 						)}
@@ -745,6 +754,9 @@ const SessionAlertForm = ({
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>

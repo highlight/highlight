@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/pino",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"packageManager": "yarn@3.5.0",
 	"publishConfig": {
 		"access": "public"

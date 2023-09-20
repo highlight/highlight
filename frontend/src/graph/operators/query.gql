@@ -2077,6 +2077,8 @@ query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 				level
 			}
 		}
+		objectCount
+		sampleFactor
 	}
 }
 

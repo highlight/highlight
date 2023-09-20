@@ -9,10 +9,10 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/nqd/flat"
 	"github.com/samber/lo"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type tableConfig[TReservedKey ~string] struct {
@@ -114,14 +114,14 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadLogs"))
-	span.SetTag("Query", sql)
-	span.SetTag("Params", params)
+	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadLogs"))
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("Params", params)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return nil, err
 	}
 
@@ -137,7 +137,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	}
 	rows.Close()
 
-	span.Finish(tracer.WithError(rows.Err()))
+	span.Finish(rows.Err())
 	return getConnection(edges, pagination), nil
 }
 
@@ -311,8 +311,8 @@ func Keys[T ~string](ctx context.Context, client *Client, config tableConfig[T],
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, _ := tracer.StartSpanFromContext(ctx, "tableName", tracer.ResourceName("Keys"))
-	span.SetTag("Query", sql)
+	span, _ := util.StartSpanFromContext(ctx, "tableName", util.ResourceName("Keys"))
+	span.SetAttribute("Query", sql)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -346,7 +346,7 @@ func Keys[T ~string](ctx context.Context, client *Client, config tableConfig[T],
 
 	rows.Close()
 
-	span.Finish(tracer.WithError(rows.Err()))
+	span.Finish(rows.Err())
 	return keys, rows.Err()
 }
 

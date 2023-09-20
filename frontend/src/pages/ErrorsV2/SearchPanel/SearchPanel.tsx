@@ -72,6 +72,7 @@ const SearchPanel = () => {
 			)
 		},
 		skip: !backendSearchQuery || !projectId,
+		fetchPolicy: 'network-only',
 	})
 
 	const [moreDataQuery] = useGetErrorGroupsOpenSearchLazyQuery({

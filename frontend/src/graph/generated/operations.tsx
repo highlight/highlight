@@ -4363,7 +4363,7 @@ export type GetLogsHistogramQueryVariables = Types.Exact<{
 export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 	logs_histogram: { __typename?: 'LogsHistogram' } & Pick<
 		Types.LogsHistogram,
-		'totalCount'
+		'totalCount' | 'objectCount' | 'sampleFactor'
 	> & {
 			buckets: Array<
 				{ __typename?: 'LogsHistogramBucket' } & Pick<

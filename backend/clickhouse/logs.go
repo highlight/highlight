@@ -10,15 +10,16 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/samber/lo"
 )
 
 const LogsTable = "logs"
+const LogsSamplingTable = "logs_sampling"
+const SamplingRows = 20_000_000
 
 var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	tableName: LogsTable,
@@ -46,6 +47,21 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 		"ServiceName",
 		"ServiceVersion",
 	},
+}
+
+var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
+	tableName: fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
+	keysToColumns: map[modelInputs.ReservedLogKey]string{
+		modelInputs.ReservedLogKeyLevel:           "SeverityText",
+		modelInputs.ReservedLogKeySecureSessionID: "SecureSessionId",
+		modelInputs.ReservedLogKeySpanID:          "SpanId",
+		modelInputs.ReservedLogKeyTraceID:         "TraceId",
+		modelInputs.ReservedLogKeySource:          "Source",
+		modelInputs.ReservedLogKeyServiceName:     "ServiceName",
+		modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
+	},
+	reservedKeys:     modelInputs.AllReservedLogKey,
+	attributesColumn: "LogAttributes",
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
@@ -165,19 +181,19 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadSessionLogs"))
+	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadSessionLogs"))
 	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
 	if err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return nil, err
 	}
-	span.SetTag("Query", query)
-	span.SetTag("Params", params)
+	span.SetAttribute("Query", query)
+	span.SetAttribute("Params", params)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return nil, err
 	}
 
@@ -204,7 +220,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 		})
 	}
 	rows.Close()
-	span.Finish(tracer.WithError(rows.Err()))
+	span.Finish(rows.Err())
 	return edges, rows.Err()
 }
 
@@ -276,22 +292,43 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 
-	fromSb, err := makeSelectBuilder(
-		logsTableConfig,
-		fmt.Sprintf(
-			"intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber, count()",
-			nBuckets,
-			startTimestamp,
-			endTimestamp,
-			startTimestamp,
-		),
-		projectID,
-		params,
-		Pagination{CountOnly: true},
-		OrderBackwardNatural,
-		OrderForwardNatural,
-	)
-
+	// If the queried time range is >= 24 hours, query the sampling table.
+	// Else, query the logs table directly.
+	var fromSb *sqlbuilder.SelectBuilder
+	var err error
+	if params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 24*time.Hour {
+		fromSb, err = makeSelectBuilder(
+			logsSamplingTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber), toUInt64(round(count() * any(_sample_factor))), any(_sample_factor)",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	} else {
+		fromSb, err = makeSelectBuilder(
+			logsTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber), count(), 1.0",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -316,18 +353,19 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	}
 
 	var (
-		groupKey int64
-		count    uint64
+		groupKey     uint64
+		count        uint64
+		sampleFactor float64
 	)
 
 	buckets := make(map[uint64]map[modelInputs.LogLevel]uint64)
 
 	for rows.Next() {
-		if err := rows.Scan(&groupKey, &count); err != nil {
+		if err := rows.Scan(&groupKey, &count, &sampleFactor); err != nil {
 			return nil, err
 		}
 
-		bucketId := uint64(groupKey / 8)
+		bucketId := groupKey / 8
 		level := logrus.Level(groupKey % 8)
 
 		// clamp bucket to [0, nBuckets)
@@ -344,6 +382,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		buckets[bucketId][getLogLevel(level)] = count
 	}
 
+	var objectCount uint64
 	for bucketId := uint64(0); bucketId < uint64(nBuckets); bucketId++ {
 		if _, ok := buckets[bucketId]; !ok {
 			continue
@@ -358,6 +397,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 				Level: level,
 				Count: bucket[level],
 			})
+			objectCount += bucket[level]
 		}
 
 		histogram.Buckets = append(histogram.Buckets, &modelInputs.LogsHistogramBucket{
@@ -365,6 +405,9 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 			Counts:   counts,
 		})
 	}
+
+	histogram.ObjectCount = objectCount
+	histogram.SampleFactor = sampleFactor
 
 	return histogram, err
 }

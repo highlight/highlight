@@ -26,8 +26,8 @@ processors:
         limit_percentage: 75
         spike_limit_percentage: 15
     batch:
-        send_batch_size: 1024
-        send_batch_max_size: 1024
+        send_batch_size: 128
+        send_batch_max_size: 128
         timeout: 1s
 service:
     telemetry:

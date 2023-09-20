@@ -16,11 +16,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 )
 
@@ -162,7 +162,7 @@ func getSourcemapRequestToken(r *http.Request) string {
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		span, _ := tracer.StartSpanFromContext(ctx, "middleware.private")
+		span, _ := util.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
 		var err error
 		if token := r.Header.Get("token"); token != "" {

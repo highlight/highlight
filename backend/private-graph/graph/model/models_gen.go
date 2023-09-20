@@ -63,6 +63,7 @@ type AdminAboutYouDetails struct {
 	UserDefinedRole     string  `json:"user_defined_role"`
 	UserDefinedPersona  string  `json:"user_defined_persona"`
 	UserDefinedTeamSize string  `json:"user_defined_team_size"`
+	HeardAbout          string  `json:"heard_about"`
 	Referral            string  `json:"referral"`
 	Phone               *string `json:"phone"`
 }
@@ -72,6 +73,7 @@ type AdminAndWorkspaceDetails struct {
 	LastName                    string  `json:"last_name"`
 	UserDefinedRole             string  `json:"user_defined_role"`
 	UserDefinedTeamSize         string  `json:"user_defined_team_size"`
+	HeardAbout                  string  `json:"heard_about"`
 	Referral                    string  `json:"referral"`
 	WorkspaceName               string  `json:"workspace_name"`
 	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
@@ -490,8 +492,10 @@ func (LogEdge) IsEdge()                {}
 func (this LogEdge) GetCursor() string { return this.Cursor }
 
 type LogsHistogram struct {
-	Buckets    []*LogsHistogramBucket `json:"buckets"`
-	TotalCount uint64                 `json:"totalCount"`
+	Buckets      []*LogsHistogramBucket `json:"buckets"`
+	TotalCount   uint64                 `json:"totalCount"`
+	ObjectCount  uint64                 `json:"objectCount"`
+	SampleFactor float64                `json:"sampleFactor"`
 }
 
 type LogsHistogramBucket struct {

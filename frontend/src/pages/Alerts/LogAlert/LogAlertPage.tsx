@@ -4,6 +4,7 @@ import {
 	useCreateLogAlertMutation,
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
+	useGetLogsHistogramQuery,
 	useGetLogsKeysQuery,
 	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
@@ -362,6 +363,21 @@ export const LogAlertPage = () => {
 		</Box>
 	)
 
+	const { data: histogramData, loading: histogramLoading } =
+		useGetLogsHistogramQuery({
+			variables: {
+				project_id: project_id!,
+				params: {
+					query: submittedQuery,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+				},
+			},
+			skip: !projectId,
+		})
+
 	const isLoading = !isCreate && !formValues.loaded
 
 	return (
@@ -476,7 +492,6 @@ export const LogAlertPage = () => {
 											/>
 										</Box>
 										<LogsHistogram
-											query={submittedQuery}
 											startDate={startDate}
 											endDate={endDate}
 											onDatesChange={(
@@ -493,6 +508,8 @@ export const LogAlertPage = () => {
 											threshold={threshold}
 											belowThreshold={belowThreshold}
 											frequencySeconds={frequency}
+											histogramData={histogramData}
+											loading={histogramLoading}
 										/>
 									</Box>
 									<LogAlertForm />
@@ -643,6 +660,9 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -693,6 +713,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.slackChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -727,6 +750,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.discordChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -747,12 +773,13 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(formStore.names.emails)}
 						/>
 					</Form.NamedSection>
 
 					<Form.NamedSection
 						label="Webhooks to notify"
-						name={formStore.names.emails}
+						name={formStore.names.webhookDestinations}
 					>
 						<Select
 							aria-label="Webhooks to notify"
@@ -766,6 +793,9 @@ const LogAlertForm = () => {
 							notFoundContent={null}
 							className={styles.selectContainer}
 							mode="tags"
+							value={formStore.getValue(
+								formStore.names.webhookDestinations,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
