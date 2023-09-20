@@ -476,7 +476,9 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 							</Text>
 							<ButtonLink
 								onClick={() => {
-									navigate(`/${projectId}/settings/sessions`)
+									navigate(
+										`/${projectId}/settings/sessions#exports`,
+									)
 								}}
 							>
 								<Text>Click here to check progress.</Text>
