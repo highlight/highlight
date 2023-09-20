@@ -30,7 +30,7 @@ func TestNewLogRowWithLongBody(t *testing.T) {
 		body += "a"
 	}
 	lr := NewLogRow(now, 1, WithBody(ctx, body))
-	assert.Equal(t, 2048+3, len(lr.Body))
+	assert.Equal(t, 65536+3, len(lr.Body))
 }
 
 func TestNewLogRowWithSource(t *testing.T) {
