@@ -37,6 +37,7 @@ jobs:
                         - 'sdk/highlight-node/**'
                         - 'sdk/highlight-react/**'
                         - 'sdk/highlight-remix/**'
+                        - 'sdk/opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers**'
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
