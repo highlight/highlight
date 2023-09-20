@@ -6746,6 +6746,14 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 	if err != nil {
 		return nil, err
 	}
+
+	if r.isDemoProject(ctx, id) {
+		return &model.Project{
+			Model: project.Model,
+			Name:  project.Name,
+		}, nil
+	}
+
 	return project, nil
 }
 
@@ -6915,6 +6923,17 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	if r.isDemoProject(ctx, projectID) {
+		return &model.Workspace{
+			Model: workspace.Model,
+			Name:  workspace.Name,
+			Projects: []model.Project{{
+				Model: project.Model,
+				Name:  project.Name,
+			}},
+		}, nil
 	}
 
 	// workspace secret should not be visible unless the admin has workspace access
