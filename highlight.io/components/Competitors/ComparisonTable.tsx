@@ -16,7 +16,7 @@ import {
 	Competitor,
 } from './competitors'
 
-function HeadlessTooltip(props: { tooltip: string }) {
+export function HeadlessTooltip(props: { tooltip: string; styling?: string }) {
 	const [isShowing, setIsShowing] = useState(false)
 
 	return (
@@ -41,7 +41,9 @@ function HeadlessTooltip(props: { tooltip: string }) {
 						leaveFrom="opacity-100 translate-y-0"
 						leaveTo="opacity-0 translate-y-1"
 					>
-						<Popover.Panel className="absolute right-0 bottom-4 z-10 p-2 w-[200px] bg-dark-background border-[1px] border-divider-on-dark rounded-md ">
+						<Popover.Panel
+							className={`absolute right-0 bottom-4 z-10 p-2 w-[200px] bg-dark-background border-[1px] border-divider-on-dark rounded-md ${props.styling}`}
+						>
 							<Typography
 								type="copy4"
 								className="text-darker-copy-on-dark text-center"
