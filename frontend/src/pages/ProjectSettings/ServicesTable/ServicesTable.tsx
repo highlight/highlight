@@ -32,6 +32,7 @@ import {
 	GithubSettingsFormValues,
 	GitHubSettingsModal,
 } from '../GitHubSettingsModal/GitHubSettingsModal'
+import * as styles from './ServicesTable.css'
 
 type Pagination = {
 	after?: string
@@ -181,6 +182,7 @@ export const ServicesTable: React.FC = () => {
 						size="small"
 						emphasis="low"
 						onClick={() => handleServiceSelection(service)}
+						className={styles.repoButton}
 					>
 						<Badge
 							variant="outlineGray"
