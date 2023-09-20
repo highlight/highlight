@@ -234,6 +234,7 @@ export const AdminForm: React.FC = () => {
 									placeholder="Last Name"
 									required
 									rounded="last"
+									cssClass={styles.lastName}
 								/>
 							</Stack>
 						</Stack>
