@@ -669,7 +669,7 @@ export const RangedInput = ({
 						className="absolute inset-y-0 left-0 h-full bg-blue-cta/30"
 						style={{
 							width: `${
-								Math.pow(normalize(includedRange), 1 / 3) * 100
+								Math.pow(normalize(value), 1 / 3) * 100
 							}%`,
 						}}
 					/>
