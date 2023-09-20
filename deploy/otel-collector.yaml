@@ -15,7 +15,7 @@ exporters:
         compression: gzip
         sending_queue:
             num_consumers: 64
-            queue_size: 65536
+            queue_size: 16384
         retry_on_failure:
             initial_interval: 0.1s
             max_interval: 1s
@@ -26,8 +26,8 @@ processors:
         limit_mib: 11470
         spike_limit_mib: 1024
     batch:
-        send_batch_size: 1024
-        send_batch_max_size: 1024
+        send_batch_size: 256
+        send_batch_max_size: 256
         timeout: 1s
 service:
     telemetry:
