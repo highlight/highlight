@@ -631,8 +631,10 @@ type ComplexityRoot struct {
 	}
 
 	LogsHistogram struct {
-		Buckets    func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Buckets      func(childComplexity int) int
+		ObjectCount  func(childComplexity int) int
+		SampleFactor func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	LogsHistogramBucket struct {
@@ -4398,6 +4400,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LogsHistogram.Buckets(childComplexity), true
+
+	case "LogsHistogram.objectCount":
+		if e.complexity.LogsHistogram.ObjectCount == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogram.ObjectCount(childComplexity), true
+
+	case "LogsHistogram.sampleFactor":
+		if e.complexity.LogsHistogram.SampleFactor == nil {
+			break
+		}
+
+		return e.complexity.LogsHistogram.SampleFactor(childComplexity), true
 
 	case "LogsHistogram.totalCount":
 		if e.complexity.LogsHistogram.TotalCount == nil {
@@ -10628,6 +10644,8 @@ type LogsHistogramBucket {
 type LogsHistogram {
 	buckets: [LogsHistogramBucket!]!
 	totalCount: UInt64!
+	objectCount: UInt64!
+	sampleFactor: Float!
 }
 
 type QueryKey {
@@ -35461,6 +35479,94 @@ func (ec *executionContext) fieldContext_LogsHistogram_totalCount(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _LogsHistogram_objectCount(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogram_objectCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ObjectCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogram_objectCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogsHistogram_sampleFactor(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogsHistogram_sampleFactor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SampleFactor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogsHistogram_sampleFactor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LogsHistogramBucket_bucketId(ctx context.Context, field graphql.CollectedField, obj *model.LogsHistogramBucket) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LogsHistogramBucket_bucketId(ctx, field)
 	if err != nil {
@@ -53064,6 +53170,10 @@ func (ec *executionContext) fieldContext_Query_logs_histogram(ctx context.Contex
 				return ec.fieldContext_LogsHistogram_buckets(ctx, field)
 			case "totalCount":
 				return ec.fieldContext_LogsHistogram_totalCount(ctx, field)
+			case "objectCount":
+				return ec.fieldContext_LogsHistogram_objectCount(ctx, field)
+			case "sampleFactor":
+				return ec.fieldContext_LogsHistogram_sampleFactor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LogsHistogram", field.Name)
 		},
@@ -74960,6 +75070,20 @@ func (ec *executionContext) _LogsHistogram(ctx context.Context, sel ast.Selectio
 		case "totalCount":
 
 			out.Values[i] = ec._LogsHistogram_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "objectCount":
+
+			out.Values[i] = ec._LogsHistogram_objectCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sampleFactor":
+
+			out.Values[i] = ec._LogsHistogram_sampleFactor(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

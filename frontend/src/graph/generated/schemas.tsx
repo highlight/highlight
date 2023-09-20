@@ -865,6 +865,8 @@ export enum LogSource {
 export type LogsHistogram = {
 	__typename?: 'LogsHistogram'
 	buckets: Array<LogsHistogramBucket>
+	objectCount: Scalars['UInt64']
+	sampleFactor: Scalars['Float']
 	totalCount: Scalars['UInt64']
 }
 

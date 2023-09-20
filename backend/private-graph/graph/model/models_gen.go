@@ -492,8 +492,10 @@ func (LogEdge) IsEdge()                {}
 func (this LogEdge) GetCursor() string { return this.Cursor }
 
 type LogsHistogram struct {
-	Buckets    []*LogsHistogramBucket `json:"buckets"`
-	TotalCount uint64                 `json:"totalCount"`
+	Buckets      []*LogsHistogramBucket `json:"buckets"`
+	TotalCount   uint64                 `json:"totalCount"`
+	ObjectCount  uint64                 `json:"objectCount"`
+	SampleFactor float64                `json:"sampleFactor"`
 }
 
 type LogsHistogramBucket struct {

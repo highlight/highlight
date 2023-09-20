@@ -12929,6 +12929,8 @@ export const GetLogsHistogramDocument = gql`
 					level
 				}
 			}
+			objectCount
+			sampleFactor
 		}
 	}
 `
