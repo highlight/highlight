@@ -17,13 +17,13 @@ import SearchPagination from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import {
 	useGetBillingDetailsForProjectQuery,
-	useGetSessionsHistogramQuery,
-	useGetSessionsOpenSearchLazyQuery,
-	useGetSessionsOpenSearchQuery,
+	useGetSessionsClickhouseLazyQuery,
+	useGetSessionsClickhouseQuery,
+	useGetSessionsHistogramClickhouseQuery,
 } from '@graph/hooks'
 import {
-	GetSessionsOpenSearchQuery,
-	GetSessionsOpenSearchQueryVariables,
+	GetSessionsClickhouseQuery,
+	GetSessionsClickhouseQueryVariables,
 } from '@graph/operations'
 import {
 	ClickhouseQuery,
@@ -72,10 +72,10 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 	const { setSearchQuery, backendSearchQuery, searchQuery } =
 		useSearchContext()
 
-	const { loading, data } = useGetSessionsHistogramQuery({
+	const { loading, data } = useGetSessionsHistogramClickhouseQuery({
 		variables: {
 			project_id: project_id!,
-			query: backendSearchQuery?.searchQuery as string,
+			query: JSON.parse(searchQuery),
 			histogram_options: {
 				bucket_size:
 					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
@@ -90,7 +90,6 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 					).format(),
 				},
 			},
-			clickhouse_query: JSON.parse(searchQuery),
 		},
 		skip: !backendSearchQuery || !project_id,
 		fetchPolicy: 'network-only',
@@ -103,20 +102,23 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 		seriesList: [],
 		bucketTimes: [],
 	}
-	if (data?.sessions_histogram) {
-		histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
-			(startTime) => new Date(startTime).valueOf(),
-		)
+	if (data?.sessions_histogram_clickhouse) {
+		histogram.bucketTimes =
+			data?.sessions_histogram_clickhouse.bucket_times.map((startTime) =>
+				new Date(startTime).valueOf(),
+			)
 		histogram.seriesList = [
 			{
 				label: 'sessions',
 				color: 'n11',
-				counts: data?.sessions_histogram.sessions_without_errors,
+				counts: data?.sessions_histogram_clickhouse
+					.sessions_without_errors,
 			},
 			{
 				label: 'w/errors',
 				color: 'p11',
-				counts: data?.sessions_histogram.sessions_with_errors,
+				counts: data?.sessions_histogram_clickhouse
+					.sessions_with_errors,
 			},
 		]
 	}
@@ -179,27 +181,26 @@ export const SessionFeedV3 = React.memo(() => {
 		skip: !project_id || project_id === DEMO_PROJECT_ID,
 	})
 
-	const addSessions = (response: GetSessionsOpenSearchQuery) => {
-		if (response?.sessions_opensearch) {
+	const addSessions = (response: GetSessionsClickhouseQuery) => {
+		if (response?.sessions_clickhouse) {
 			setSessionResults({
-				...response.sessions_opensearch,
-				sessions: response.sessions_opensearch.sessions.map((s) => ({
+				...response.sessions_clickhouse,
+				sessions: response.sessions_clickhouse.sessions.map((s) => ({
 					...s,
 					payload_updated_at: new Date().toISOString(),
 				})),
 			})
 			totalPages.current = Math.ceil(
-				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
+				response?.sessions_clickhouse.totalCount / DEFAULT_PAGE_SIZE,
 			)
-			setSearchResultsCount(response?.sessions_opensearch.totalCount)
+			setSearchResultsCount(response?.sessions_clickhouse.totalCount)
 		}
 		setSearchResultsLoading(false)
 	}
 
-	const { loading } = useGetSessionsOpenSearchQuery({
+	const { loading } = useGetSessionsClickhouseQuery({
 		variables: {
-			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: JSON.parse(searchQuery),
+			query: JSON.parse(searchQuery),
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: project_id!,
@@ -210,16 +211,16 @@ export const SessionFeedV3 = React.memo(() => {
 		fetchPolicy: 'network-only',
 	})
 
-	const [moreDataQuery] = useGetSessionsOpenSearchLazyQuery({
+	const [moreDataQuery] = useGetSessionsClickhouseLazyQuery({
 		fetchPolicy: 'network-only',
 	})
 
 	const { numMore: moreSessions, reset: resetMoreSessions } = usePollQuery<
-		GetSessionsOpenSearchQuery,
-		GetSessionsOpenSearchQueryVariables
+		GetSessionsClickhouseQuery,
+		GetSessionsClickhouseQueryVariables
 	>({
 		variableFn: useCallback(() => {
-			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
+			const query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
 			// if the query end date is close to 'now',
@@ -227,30 +228,6 @@ export const SessionFeedV3 = React.memo(() => {
 			// otherwise, we are using a custom date range and should not poll
 			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
 				return undefined
-			}
-			query = {
-				...query,
-				bool: {
-					...query.bool,
-					must: [
-						{
-							bool: {
-								should: [
-									{
-										range: {
-											created_at: {
-												gte: new Date(
-													Date.parse(lte),
-												).toISOString(),
-											},
-										},
-									},
-								],
-							},
-						},
-						...query.bool.must.slice(1),
-					],
-				},
 			}
 			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
 			const newRules = clickhouseQuery.rules.filter(
@@ -265,12 +242,11 @@ export const SessionFeedV3 = React.memo(() => {
 			])
 			clickhouseQuery.rules = newRules
 			return {
-				query: JSON.stringify(query),
+				query: clickhouseQuery,
 				count: DEFAULT_PAGE_SIZE,
 				page: 1,
 				project_id: project_id!,
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
-				clickhouse_query: clickhouseQuery,
 			}
 		}, [
 			backendSearchQuery?.searchQuery,
@@ -280,7 +256,7 @@ export const SessionFeedV3 = React.memo(() => {
 		]),
 		moreDataQuery,
 		getResultCount: useCallback(
-			(result) => result?.data?.sessions_opensearch.totalCount,
+			(result) => result?.data?.sessions_clickhouse.totalCount,
 			[],
 		),
 	})

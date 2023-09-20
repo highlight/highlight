@@ -24,13 +24,13 @@ const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
 const ApplicationRouter: React.FC = () => {
 	const { projectId } = useNumericProjectId()
-	const { page, backendSearchQuery } = useSearchContext()
-	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
+	const { page, searchQuery } = useSearchContext()
+	const { page: errorPage, searchQuery: errorSearchQuery } =
 		useErrorSearchContext()
-	usePreloadSessions({ page: page || 1, backendSearchQuery })
+	usePreloadSessions({ page: page || 1, query: JSON.parse(searchQuery) })
 	usePreloadErrors({
 		page: errorPage || 1,
-		backendSearchQuery: errorBackendSearchQuery,
+		query: JSON.parse(errorSearchQuery),
 	})
 	const { isHighlightAdmin, isLoggedIn } = useAuthContext()
 

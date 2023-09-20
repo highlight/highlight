@@ -5716,6 +5716,10 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
 func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
 	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
 }
 
@@ -5780,6 +5784,10 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 
 // FieldsClickhouse is the resolver for the fields_clickhouse field.
 func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
 	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
@@ -5843,81 +5851,11 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 
 // ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
 func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
-}
-
-// QuickFieldsOpensearch is the resolver for the quickFields_opensearch field.
-func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
-	if useClickhouse != nil && *useClickhouse {
-		if startDate == nil || endDate == nil {
-			return nil, errors.New("startDate and endDate must not be nil")
-		}
-		return r.QuickFieldsClickhouse(ctx, projectID, count, query, *startDate, *endDate)
-	}
-
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
-
-	var q string
-	if query == "" {
-		q = `{"bool":{"must":[]}}`
-	} else {
-		q = fmt.Sprintf(`
-		{"bool":{"must":[
-			{"multi_match": {
-				"query": "%s",
-				"type": "bool_prefix",
-				"fields": [
-					"Value",
-					"Value._2gram",
-					"Value._3gram"
-				]
-			}}
-		]}}`, query)
-	}
-
-	options := opensearch.SearchOptions{
-		MaxResults: ptr.Int(count),
-	}
-
-	var g errgroup.Group
-	results := []*model.Field{}
-	errorResults := []*model.Field{}
-
-	g.Go(func() error {
-		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session or error fields")
-	}
-
-	for _, er := range errorResults {
-		er.Type = "error-field"
-		results = append(results, er)
-	}
-
-	return results, nil
-}
-
-// QuickFieldsClickhouse is the resolver for the quickFields_clickhouse field.
-func (r *queryResolver) QuickFieldsClickhouse(ctx context.Context, projectID int, count int, query string, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
-	panic(fmt.Errorf("not implemented: QuickFieldsClickhouse - quickFields_clickhouse"))
+	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.

@@ -1791,8 +1791,6 @@ export type Query = {
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
 	property_suggestion?: Maybe<Array<Maybe<Field>>>
-	quickFields_clickhouse: Array<Maybe<Field>>
-	quickFields_opensearch: Array<Maybe<Field>>
 	rageClicksForProject: Array<RageClickEventForProject>
 	rage_click_alerts: Array<Maybe<SessionAlert>>
 	rage_clicks: Array<RageClickEvent>
@@ -2312,23 +2310,6 @@ export type QueryProperty_SuggestionArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	type: Scalars['String']
-}
-
-export type QueryQuickFields_ClickhouseArgs = {
-	count: Scalars['Int']
-	end_date: Scalars['Timestamp']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date: Scalars['Timestamp']
-}
-
-export type QueryQuickFields_OpensearchArgs = {
-	count: Scalars['Int']
-	end_date?: InputMaybe<Scalars['Timestamp']>
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date?: InputMaybe<Scalars['Timestamp']>
-	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryRageClicksForProjectArgs = {

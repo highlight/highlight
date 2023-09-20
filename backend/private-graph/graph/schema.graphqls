@@ -1811,21 +1811,6 @@ type Query {
 		start_date: Timestamp!
 		end_date: Timestamp!
 	): [String!]!
-	quickFields_opensearch(
-		project_id: ID!
-		count: Int!
-		query: String!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
-	): [Field]!
-	quickFields_clickhouse(
-		project_id: ID!
-		count: Int!
-		query: String!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [Field]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
 	# gets all the projects of a user

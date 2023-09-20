@@ -565,55 +565,31 @@ query GetFieldTypes(
 	}
 }
 
-query GetFieldsOpensearch(
+query GetFieldTypesClickhouse(
 	$project_id: ID!
-	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
-	$start_date: Timestamp
-	$end_date: Timestamp
-	$use_clickhouse: Boolean
+	$start_date: Timestamp!
+	$end_date: Timestamp!
 ) {
-	fields_opensearch(
+	field_types_clickhouse(
 		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
 		start_date: $start_date
 		end_date: $end_date
-		use_clickhouse: $use_clickhouse
-	)
-}
-
-query GetQuickFieldsOpensearch(
-	$project_id: ID!
-	$count: Int!
-	$query: String!
-) {
-	quickFields_opensearch(
-		project_id: $project_id
-		count: $count
-		query: $query
 	) {
 		type
 		name
-		value
 	}
 }
 
-query GetErrorFieldsOpensearch(
+query GetFieldsClickhouse(
 	$project_id: ID!
 	$count: Int!
 	$field_type: String!
 	$field_name: String!
 	$query: String!
-	$start_date: Timestamp
-	$end_date: Timestamp
-	$use_clickhouse: Boolean
+	$start_date: Timestamp!
+	$end_date: Timestamp!
 ) {
-	error_fields_opensearch(
+	fields_clickhouse(
 		project_id: $project_id
 		count: $count
 		field_type: $field_type
@@ -621,24 +597,41 @@ query GetErrorFieldsOpensearch(
 		query: $query
 		start_date: $start_date
 		end_date: $end_date
-		use_clickhouse: $use_clickhouse
 	)
 }
 
-query GetSessionsOpenSearch(
+query GetErrorFieldsClickhouse(
 	$project_id: ID!
 	$count: Int!
+	$field_type: String!
+	$field_name: String!
 	$query: String!
-	$clickhouse_query: ClickhouseQuery
+	$start_date: Timestamp!
+	$end_date: Timestamp!
+) {
+	error_fields_clickhouse(
+		project_id: $project_id
+		count: $count
+		field_type: $field_type
+		field_name: $field_name
+		query: $query
+		start_date: $start_date
+		end_date: $end_date
+	)
+}
+
+query GetSessionsClickhouse(
+	$project_id: ID!
+	$count: Int!
+	$query: ClickhouseQuery!
 	$sort_desc: Boolean!
 	$sort_field: String
 	$page: Int
 ) {
-	sessions_opensearch(
+	sessions_clickhouse(
 		project_id: $project_id
 		count: $count
 		query: $query
-		clickhouse_query: $clickhouse_query
 		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
@@ -686,17 +679,15 @@ query GetSessionsOpenSearch(
 	}
 }
 
-query GetSessionsHistogram(
+query GetSessionsHistogramClickhouse(
 	$project_id: ID!
-	$query: String!
+	$query: ClickhouseQuery!
 	$histogram_options: DateHistogramOptions!
-	$clickhouse_query: ClickhouseQuery
 ) {
-	sessions_histogram(
+	sessions_histogram_clickhouse(
 		project_id: $project_id
 		query: $query
 		histogram_options: $histogram_options
-		clickhouse_query: $clickhouse_query
 	) {
 		bucket_times
 		sessions_without_errors
@@ -705,18 +696,16 @@ query GetSessionsHistogram(
 	}
 }
 
-query GetErrorGroupsOpenSearch(
+query GetErrorGroupsClickhouse(
 	$project_id: ID!
 	$count: Int!
-	$query: String!
-	$clickhouse_query: ClickhouseQuery
+	$query: ClickhouseQuery!
 	$page: Int
 ) {
-	error_groups_opensearch(
+	error_groups_clickhouse(
 		project_id: $project_id
 		count: $count
 		query: $query
-		clickhouse_query: $clickhouse_query
 		page: $page
 	) {
 		error_groups {
@@ -751,16 +740,14 @@ query GetErrorGroupsOpenSearch(
 	}
 }
 
-query GetErrorsHistogram(
+query GetErrorsHistogramClickhouse(
 	$project_id: ID!
-	$query: String!
-	$clickhouse_query: ClickhouseQuery
+	$query: ClickhouseQuery!
 	$histogram_options: DateHistogramOptions!
 ) {
-	errors_histogram(
+	errors_histogram_clickhouse(
 		project_id: $project_id
 		query: $query
-		clickhouse_query: $clickhouse_query
 		histogram_options: $histogram_options
 	) {
 		bucket_times
