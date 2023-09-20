@@ -133,7 +133,7 @@ const cache = new InMemoryCache({
 					'params',
 					['query', 'date_range', ['start_date', 'end_date']],
 				]),
-				error_groups_opensearch: {
+				error_groups_clickhouse: {
 					keyArgs: ['project_id', 'count', 'query', 'page'],
 				},
 			},

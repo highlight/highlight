@@ -6858,165 +6858,84 @@ export type GetFieldTypesQueryResult = Apollo.QueryResult<
 	Types.GetFieldTypesQuery,
 	Types.GetFieldTypesQueryVariables
 >
-export const GetFieldsOpensearchDocument = gql`
-	query GetFieldsOpensearch(
+export const GetFieldTypesClickhouseDocument = gql`
+	query GetFieldTypesClickhouse(
 		$project_id: ID!
-		$count: Int!
-		$field_type: String!
-		$field_name: String!
-		$query: String!
-		$start_date: Timestamp
-		$end_date: Timestamp
-		$use_clickhouse: Boolean
+		$start_date: Timestamp!
+		$end_date: Timestamp!
 	) {
-		fields_opensearch(
+		field_types_clickhouse(
 			project_id: $project_id
-			count: $count
-			field_type: $field_type
-			field_name: $field_name
-			query: $query
 			start_date: $start_date
 			end_date: $end_date
-			use_clickhouse: $use_clickhouse
-		)
-	}
-`
-
-/**
- * __useGetFieldsOpensearchQuery__
- *
- * To run a query within a React component, call `useGetFieldsOpensearchQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFieldsOpensearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFieldsOpensearchQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      count: // value for 'count'
- *      field_type: // value for 'field_type'
- *      field_name: // value for 'field_name'
- *      query: // value for 'query'
- *      start_date: // value for 'start_date'
- *      end_date: // value for 'end_date'
- *      use_clickhouse: // value for 'use_clickhouse'
- *   },
- * });
- */
-export function useGetFieldsOpensearchQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetFieldsOpensearchQuery,
-		Types.GetFieldsOpensearchQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetFieldsOpensearchQuery,
-		Types.GetFieldsOpensearchQueryVariables
-	>(GetFieldsOpensearchDocument, baseOptions)
-}
-export function useGetFieldsOpensearchLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetFieldsOpensearchQuery,
-		Types.GetFieldsOpensearchQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetFieldsOpensearchQuery,
-		Types.GetFieldsOpensearchQueryVariables
-	>(GetFieldsOpensearchDocument, baseOptions)
-}
-export type GetFieldsOpensearchQueryHookResult = ReturnType<
-	typeof useGetFieldsOpensearchQuery
->
-export type GetFieldsOpensearchLazyQueryHookResult = ReturnType<
-	typeof useGetFieldsOpensearchLazyQuery
->
-export type GetFieldsOpensearchQueryResult = Apollo.QueryResult<
-	Types.GetFieldsOpensearchQuery,
-	Types.GetFieldsOpensearchQueryVariables
->
-export const GetQuickFieldsOpensearchDocument = gql`
-	query GetQuickFieldsOpensearch(
-		$project_id: ID!
-		$count: Int!
-		$query: String!
-	) {
-		quickFields_opensearch(
-			project_id: $project_id
-			count: $count
-			query: $query
 		) {
 			type
 			name
-			value
 		}
 	}
 `
 
 /**
- * __useGetQuickFieldsOpensearchQuery__
+ * __useGetFieldTypesClickhouseQuery__
  *
- * To run a query within a React component, call `useGetQuickFieldsOpensearchQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetQuickFieldsOpensearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetFieldTypesClickhouseQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFieldTypesClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetQuickFieldsOpensearchQuery({
+ * const { data, loading, error } = useGetFieldTypesClickhouseQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      count: // value for 'count'
- *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
  *   },
  * });
  */
-export function useGetQuickFieldsOpensearchQuery(
+export function useGetFieldTypesClickhouseQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetQuickFieldsOpensearchQuery,
-		Types.GetQuickFieldsOpensearchQueryVariables
+		Types.GetFieldTypesClickhouseQuery,
+		Types.GetFieldTypesClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetQuickFieldsOpensearchQuery,
-		Types.GetQuickFieldsOpensearchQueryVariables
-	>(GetQuickFieldsOpensearchDocument, baseOptions)
+		Types.GetFieldTypesClickhouseQuery,
+		Types.GetFieldTypesClickhouseQueryVariables
+	>(GetFieldTypesClickhouseDocument, baseOptions)
 }
-export function useGetQuickFieldsOpensearchLazyQuery(
+export function useGetFieldTypesClickhouseLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetQuickFieldsOpensearchQuery,
-		Types.GetQuickFieldsOpensearchQueryVariables
+		Types.GetFieldTypesClickhouseQuery,
+		Types.GetFieldTypesClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetQuickFieldsOpensearchQuery,
-		Types.GetQuickFieldsOpensearchQueryVariables
-	>(GetQuickFieldsOpensearchDocument, baseOptions)
+		Types.GetFieldTypesClickhouseQuery,
+		Types.GetFieldTypesClickhouseQueryVariables
+	>(GetFieldTypesClickhouseDocument, baseOptions)
 }
-export type GetQuickFieldsOpensearchQueryHookResult = ReturnType<
-	typeof useGetQuickFieldsOpensearchQuery
+export type GetFieldTypesClickhouseQueryHookResult = ReturnType<
+	typeof useGetFieldTypesClickhouseQuery
 >
-export type GetQuickFieldsOpensearchLazyQueryHookResult = ReturnType<
-	typeof useGetQuickFieldsOpensearchLazyQuery
+export type GetFieldTypesClickhouseLazyQueryHookResult = ReturnType<
+	typeof useGetFieldTypesClickhouseLazyQuery
 >
-export type GetQuickFieldsOpensearchQueryResult = Apollo.QueryResult<
-	Types.GetQuickFieldsOpensearchQuery,
-	Types.GetQuickFieldsOpensearchQueryVariables
+export type GetFieldTypesClickhouseQueryResult = Apollo.QueryResult<
+	Types.GetFieldTypesClickhouseQuery,
+	Types.GetFieldTypesClickhouseQueryVariables
 >
-export const GetErrorFieldsOpensearchDocument = gql`
-	query GetErrorFieldsOpensearch(
+export const GetFieldsClickhouseDocument = gql`
+	query GetFieldsClickhouse(
 		$project_id: ID!
 		$count: Int!
 		$field_type: String!
 		$field_name: String!
 		$query: String!
-		$start_date: Timestamp
-		$end_date: Timestamp
-		$use_clickhouse: Boolean
+		$start_date: Timestamp!
+		$end_date: Timestamp!
 	) {
-		error_fields_opensearch(
+		fields_clickhouse(
 			project_id: $project_id
 			count: $count
 			field_type: $field_type
@@ -7024,22 +6943,21 @@ export const GetErrorFieldsOpensearchDocument = gql`
 			query: $query
 			start_date: $start_date
 			end_date: $end_date
-			use_clickhouse: $use_clickhouse
 		)
 	}
 `
 
 /**
- * __useGetErrorFieldsOpensearchQuery__
+ * __useGetFieldsClickhouseQuery__
  *
- * To run a query within a React component, call `useGetErrorFieldsOpensearchQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorFieldsOpensearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetFieldsClickhouseQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFieldsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetErrorFieldsOpensearchQuery({
+ * const { data, loading, error } = useGetFieldsClickhouseQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
@@ -7048,57 +6966,130 @@ export const GetErrorFieldsOpensearchDocument = gql`
  *      query: // value for 'query'
  *      start_date: // value for 'start_date'
  *      end_date: // value for 'end_date'
- *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
-export function useGetErrorFieldsOpensearchQuery(
+export function useGetFieldsClickhouseQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorFieldsOpensearchQuery,
-		Types.GetErrorFieldsOpensearchQueryVariables
+		Types.GetFieldsClickhouseQuery,
+		Types.GetFieldsClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetErrorFieldsOpensearchQuery,
-		Types.GetErrorFieldsOpensearchQueryVariables
-	>(GetErrorFieldsOpensearchDocument, baseOptions)
+		Types.GetFieldsClickhouseQuery,
+		Types.GetFieldsClickhouseQueryVariables
+	>(GetFieldsClickhouseDocument, baseOptions)
 }
-export function useGetErrorFieldsOpensearchLazyQuery(
+export function useGetFieldsClickhouseLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorFieldsOpensearchQuery,
-		Types.GetErrorFieldsOpensearchQueryVariables
+		Types.GetFieldsClickhouseQuery,
+		Types.GetFieldsClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetErrorFieldsOpensearchQuery,
-		Types.GetErrorFieldsOpensearchQueryVariables
-	>(GetErrorFieldsOpensearchDocument, baseOptions)
+		Types.GetFieldsClickhouseQuery,
+		Types.GetFieldsClickhouseQueryVariables
+	>(GetFieldsClickhouseDocument, baseOptions)
 }
-export type GetErrorFieldsOpensearchQueryHookResult = ReturnType<
-	typeof useGetErrorFieldsOpensearchQuery
+export type GetFieldsClickhouseQueryHookResult = ReturnType<
+	typeof useGetFieldsClickhouseQuery
 >
-export type GetErrorFieldsOpensearchLazyQueryHookResult = ReturnType<
-	typeof useGetErrorFieldsOpensearchLazyQuery
+export type GetFieldsClickhouseLazyQueryHookResult = ReturnType<
+	typeof useGetFieldsClickhouseLazyQuery
 >
-export type GetErrorFieldsOpensearchQueryResult = Apollo.QueryResult<
-	Types.GetErrorFieldsOpensearchQuery,
-	Types.GetErrorFieldsOpensearchQueryVariables
+export type GetFieldsClickhouseQueryResult = Apollo.QueryResult<
+	Types.GetFieldsClickhouseQuery,
+	Types.GetFieldsClickhouseQueryVariables
 >
-export const GetSessionsOpenSearchDocument = gql`
-	query GetSessionsOpenSearch(
+export const GetErrorFieldsClickhouseDocument = gql`
+	query GetErrorFieldsClickhouse(
 		$project_id: ID!
 		$count: Int!
+		$field_type: String!
+		$field_name: String!
 		$query: String!
-		$clickhouse_query: ClickhouseQuery
+		$start_date: Timestamp!
+		$end_date: Timestamp!
+	) {
+		error_fields_clickhouse(
+			project_id: $project_id
+			count: $count
+			field_type: $field_type
+			field_name: $field_name
+			query: $query
+			start_date: $start_date
+			end_date: $end_date
+		)
+	}
+`
+
+/**
+ * __useGetErrorFieldsClickhouseQuery__
+ *
+ * To run a query within a React component, call `useGetErrorFieldsClickhouseQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorFieldsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorFieldsClickhouseQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      field_type: // value for 'field_type'
+ *      field_name: // value for 'field_name'
+ *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *   },
+ * });
+ */
+export function useGetErrorFieldsClickhouseQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorFieldsClickhouseQuery,
+		Types.GetErrorFieldsClickhouseQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorFieldsClickhouseQuery,
+		Types.GetErrorFieldsClickhouseQueryVariables
+	>(GetErrorFieldsClickhouseDocument, baseOptions)
+}
+export function useGetErrorFieldsClickhouseLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorFieldsClickhouseQuery,
+		Types.GetErrorFieldsClickhouseQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorFieldsClickhouseQuery,
+		Types.GetErrorFieldsClickhouseQueryVariables
+	>(GetErrorFieldsClickhouseDocument, baseOptions)
+}
+export type GetErrorFieldsClickhouseQueryHookResult = ReturnType<
+	typeof useGetErrorFieldsClickhouseQuery
+>
+export type GetErrorFieldsClickhouseLazyQueryHookResult = ReturnType<
+	typeof useGetErrorFieldsClickhouseLazyQuery
+>
+export type GetErrorFieldsClickhouseQueryResult = Apollo.QueryResult<
+	Types.GetErrorFieldsClickhouseQuery,
+	Types.GetErrorFieldsClickhouseQueryVariables
+>
+export const GetSessionsClickhouseDocument = gql`
+	query GetSessionsClickhouse(
+		$project_id: ID!
+		$count: Int!
+		$query: ClickhouseQuery!
 		$sort_desc: Boolean!
 		$sort_field: String
 		$page: Int
 	) {
-		sessions_opensearch(
+		sessions_clickhouse(
 			project_id: $project_id
 			count: $count
 			query: $query
-			clickhouse_query: $clickhouse_query
 			sort_field: $sort_field
 			sort_desc: $sort_desc
 			page: $page
@@ -7148,71 +7139,68 @@ export const GetSessionsOpenSearchDocument = gql`
 `
 
 /**
- * __useGetSessionsOpenSearchQuery__
+ * __useGetSessionsClickhouseQuery__
  *
- * To run a query within a React component, call `useGetSessionsOpenSearchQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionsOpenSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSessionsClickhouseQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSessionsOpenSearchQuery({
+ * const { data, loading, error } = useGetSessionsClickhouseQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
- *      clickhouse_query: // value for 'clickhouse_query'
  *      sort_desc: // value for 'sort_desc'
  *      sort_field: // value for 'sort_field'
  *      page: // value for 'page'
  *   },
  * });
  */
-export function useGetSessionsOpenSearchQuery(
+export function useGetSessionsClickhouseQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSessionsOpenSearchQuery,
-		Types.GetSessionsOpenSearchQueryVariables
+		Types.GetSessionsClickhouseQuery,
+		Types.GetSessionsClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetSessionsOpenSearchQuery,
-		Types.GetSessionsOpenSearchQueryVariables
-	>(GetSessionsOpenSearchDocument, baseOptions)
+		Types.GetSessionsClickhouseQuery,
+		Types.GetSessionsClickhouseQueryVariables
+	>(GetSessionsClickhouseDocument, baseOptions)
 }
-export function useGetSessionsOpenSearchLazyQuery(
+export function useGetSessionsClickhouseLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSessionsOpenSearchQuery,
-		Types.GetSessionsOpenSearchQueryVariables
+		Types.GetSessionsClickhouseQuery,
+		Types.GetSessionsClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetSessionsOpenSearchQuery,
-		Types.GetSessionsOpenSearchQueryVariables
-	>(GetSessionsOpenSearchDocument, baseOptions)
+		Types.GetSessionsClickhouseQuery,
+		Types.GetSessionsClickhouseQueryVariables
+	>(GetSessionsClickhouseDocument, baseOptions)
 }
-export type GetSessionsOpenSearchQueryHookResult = ReturnType<
-	typeof useGetSessionsOpenSearchQuery
+export type GetSessionsClickhouseQueryHookResult = ReturnType<
+	typeof useGetSessionsClickhouseQuery
 >
-export type GetSessionsOpenSearchLazyQueryHookResult = ReturnType<
-	typeof useGetSessionsOpenSearchLazyQuery
+export type GetSessionsClickhouseLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsClickhouseLazyQuery
 >
-export type GetSessionsOpenSearchQueryResult = Apollo.QueryResult<
-	Types.GetSessionsOpenSearchQuery,
-	Types.GetSessionsOpenSearchQueryVariables
+export type GetSessionsClickhouseQueryResult = Apollo.QueryResult<
+	Types.GetSessionsClickhouseQuery,
+	Types.GetSessionsClickhouseQueryVariables
 >
-export const GetSessionsHistogramDocument = gql`
-	query GetSessionsHistogram(
+export const GetSessionsHistogramClickhouseDocument = gql`
+	query GetSessionsHistogramClickhouse(
 		$project_id: ID!
-		$query: String!
+		$query: ClickhouseQuery!
 		$histogram_options: DateHistogramOptions!
-		$clickhouse_query: ClickhouseQuery
 	) {
-		sessions_histogram(
+		sessions_histogram_clickhouse(
 			project_id: $project_id
 			query: $query
 			histogram_options: $histogram_options
-			clickhouse_query: $clickhouse_query
 		) {
 			bucket_times
 			sessions_without_errors
@@ -7223,69 +7211,66 @@ export const GetSessionsHistogramDocument = gql`
 `
 
 /**
- * __useGetSessionsHistogramQuery__
+ * __useGetSessionsHistogramClickhouseQuery__
  *
- * To run a query within a React component, call `useGetSessionsHistogramQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSessionsHistogramClickhouseQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsHistogramClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSessionsHistogramQuery({
+ * const { data, loading, error } = useGetSessionsHistogramClickhouseQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
  *      histogram_options: // value for 'histogram_options'
- *      clickhouse_query: // value for 'clickhouse_query'
  *   },
  * });
  */
-export function useGetSessionsHistogramQuery(
+export function useGetSessionsHistogramClickhouseQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSessionsHistogramQuery,
-		Types.GetSessionsHistogramQueryVariables
+		Types.GetSessionsHistogramClickhouseQuery,
+		Types.GetSessionsHistogramClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetSessionsHistogramQuery,
-		Types.GetSessionsHistogramQueryVariables
-	>(GetSessionsHistogramDocument, baseOptions)
+		Types.GetSessionsHistogramClickhouseQuery,
+		Types.GetSessionsHistogramClickhouseQueryVariables
+	>(GetSessionsHistogramClickhouseDocument, baseOptions)
 }
-export function useGetSessionsHistogramLazyQuery(
+export function useGetSessionsHistogramClickhouseLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSessionsHistogramQuery,
-		Types.GetSessionsHistogramQueryVariables
+		Types.GetSessionsHistogramClickhouseQuery,
+		Types.GetSessionsHistogramClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetSessionsHistogramQuery,
-		Types.GetSessionsHistogramQueryVariables
-	>(GetSessionsHistogramDocument, baseOptions)
+		Types.GetSessionsHistogramClickhouseQuery,
+		Types.GetSessionsHistogramClickhouseQueryVariables
+	>(GetSessionsHistogramClickhouseDocument, baseOptions)
 }
-export type GetSessionsHistogramQueryHookResult = ReturnType<
-	typeof useGetSessionsHistogramQuery
+export type GetSessionsHistogramClickhouseQueryHookResult = ReturnType<
+	typeof useGetSessionsHistogramClickhouseQuery
 >
-export type GetSessionsHistogramLazyQueryHookResult = ReturnType<
-	typeof useGetSessionsHistogramLazyQuery
+export type GetSessionsHistogramClickhouseLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsHistogramClickhouseLazyQuery
 >
-export type GetSessionsHistogramQueryResult = Apollo.QueryResult<
-	Types.GetSessionsHistogramQuery,
-	Types.GetSessionsHistogramQueryVariables
+export type GetSessionsHistogramClickhouseQueryResult = Apollo.QueryResult<
+	Types.GetSessionsHistogramClickhouseQuery,
+	Types.GetSessionsHistogramClickhouseQueryVariables
 >
-export const GetErrorGroupsOpenSearchDocument = gql`
-	query GetErrorGroupsOpenSearch(
+export const GetErrorGroupsClickhouseDocument = gql`
+	query GetErrorGroupsClickhouse(
 		$project_id: ID!
 		$count: Int!
-		$query: String!
-		$clickhouse_query: ClickhouseQuery
+		$query: ClickhouseQuery!
 		$page: Int
 	) {
-		error_groups_opensearch(
+		error_groups_clickhouse(
 			project_id: $project_id
 			count: $count
 			query: $query
-			clickhouse_query: $clickhouse_query
 			page: $page
 		) {
 			error_groups {
@@ -7322,68 +7307,65 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 `
 
 /**
- * __useGetErrorGroupsOpenSearchQuery__
+ * __useGetErrorGroupsClickhouseQuery__
  *
- * To run a query within a React component, call `useGetErrorGroupsOpenSearchQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorGroupsOpenSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetErrorGroupsClickhouseQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupsClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetErrorGroupsOpenSearchQuery({
+ * const { data, loading, error } = useGetErrorGroupsClickhouseQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
- *      clickhouse_query: // value for 'clickhouse_query'
  *      page: // value for 'page'
  *   },
  * });
  */
-export function useGetErrorGroupsOpenSearchQuery(
+export function useGetErrorGroupsClickhouseQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorGroupsOpenSearchQuery,
-		Types.GetErrorGroupsOpenSearchQueryVariables
+		Types.GetErrorGroupsClickhouseQuery,
+		Types.GetErrorGroupsClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetErrorGroupsOpenSearchQuery,
-		Types.GetErrorGroupsOpenSearchQueryVariables
-	>(GetErrorGroupsOpenSearchDocument, baseOptions)
+		Types.GetErrorGroupsClickhouseQuery,
+		Types.GetErrorGroupsClickhouseQueryVariables
+	>(GetErrorGroupsClickhouseDocument, baseOptions)
 }
-export function useGetErrorGroupsOpenSearchLazyQuery(
+export function useGetErrorGroupsClickhouseLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorGroupsOpenSearchQuery,
-		Types.GetErrorGroupsOpenSearchQueryVariables
+		Types.GetErrorGroupsClickhouseQuery,
+		Types.GetErrorGroupsClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetErrorGroupsOpenSearchQuery,
-		Types.GetErrorGroupsOpenSearchQueryVariables
-	>(GetErrorGroupsOpenSearchDocument, baseOptions)
+		Types.GetErrorGroupsClickhouseQuery,
+		Types.GetErrorGroupsClickhouseQueryVariables
+	>(GetErrorGroupsClickhouseDocument, baseOptions)
 }
-export type GetErrorGroupsOpenSearchQueryHookResult = ReturnType<
-	typeof useGetErrorGroupsOpenSearchQuery
+export type GetErrorGroupsClickhouseQueryHookResult = ReturnType<
+	typeof useGetErrorGroupsClickhouseQuery
 >
-export type GetErrorGroupsOpenSearchLazyQueryHookResult = ReturnType<
-	typeof useGetErrorGroupsOpenSearchLazyQuery
+export type GetErrorGroupsClickhouseLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupsClickhouseLazyQuery
 >
-export type GetErrorGroupsOpenSearchQueryResult = Apollo.QueryResult<
-	Types.GetErrorGroupsOpenSearchQuery,
-	Types.GetErrorGroupsOpenSearchQueryVariables
+export type GetErrorGroupsClickhouseQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupsClickhouseQuery,
+	Types.GetErrorGroupsClickhouseQueryVariables
 >
-export const GetErrorsHistogramDocument = gql`
-	query GetErrorsHistogram(
+export const GetErrorsHistogramClickhouseDocument = gql`
+	query GetErrorsHistogramClickhouse(
 		$project_id: ID!
-		$query: String!
-		$clickhouse_query: ClickhouseQuery
+		$query: ClickhouseQuery!
 		$histogram_options: DateHistogramOptions!
 	) {
-		errors_histogram(
+		errors_histogram_clickhouse(
 			project_id: $project_id
 			query: $query
-			clickhouse_query: $clickhouse_query
 			histogram_options: $histogram_options
 		) {
 			bucket_times
@@ -7393,55 +7375,54 @@ export const GetErrorsHistogramDocument = gql`
 `
 
 /**
- * __useGetErrorsHistogramQuery__
+ * __useGetErrorsHistogramClickhouseQuery__
  *
- * To run a query within a React component, call `useGetErrorsHistogramQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetErrorsHistogramClickhouseQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorsHistogramClickhouseQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetErrorsHistogramQuery({
+ * const { data, loading, error } = useGetErrorsHistogramClickhouseQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
- *      clickhouse_query: // value for 'clickhouse_query'
  *      histogram_options: // value for 'histogram_options'
  *   },
  * });
  */
-export function useGetErrorsHistogramQuery(
+export function useGetErrorsHistogramClickhouseQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorsHistogramQuery,
-		Types.GetErrorsHistogramQueryVariables
+		Types.GetErrorsHistogramClickhouseQuery,
+		Types.GetErrorsHistogramClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetErrorsHistogramQuery,
-		Types.GetErrorsHistogramQueryVariables
-	>(GetErrorsHistogramDocument, baseOptions)
+		Types.GetErrorsHistogramClickhouseQuery,
+		Types.GetErrorsHistogramClickhouseQueryVariables
+	>(GetErrorsHistogramClickhouseDocument, baseOptions)
 }
-export function useGetErrorsHistogramLazyQuery(
+export function useGetErrorsHistogramClickhouseLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorsHistogramQuery,
-		Types.GetErrorsHistogramQueryVariables
+		Types.GetErrorsHistogramClickhouseQuery,
+		Types.GetErrorsHistogramClickhouseQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetErrorsHistogramQuery,
-		Types.GetErrorsHistogramQueryVariables
-	>(GetErrorsHistogramDocument, baseOptions)
+		Types.GetErrorsHistogramClickhouseQuery,
+		Types.GetErrorsHistogramClickhouseQueryVariables
+	>(GetErrorsHistogramClickhouseDocument, baseOptions)
 }
-export type GetErrorsHistogramQueryHookResult = ReturnType<
-	typeof useGetErrorsHistogramQuery
+export type GetErrorsHistogramClickhouseQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramClickhouseQuery
 >
-export type GetErrorsHistogramLazyQueryHookResult = ReturnType<
-	typeof useGetErrorsHistogramLazyQuery
+export type GetErrorsHistogramClickhouseLazyQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramClickhouseLazyQuery
 >
-export type GetErrorsHistogramQueryResult = Apollo.QueryResult<
-	Types.GetErrorsHistogramQuery,
-	Types.GetErrorsHistogramQueryVariables
+export type GetErrorsHistogramClickhouseQueryResult = Apollo.QueryResult<
+	Types.GetErrorsHistogramClickhouseQuery,
+	Types.GetErrorsHistogramClickhouseQueryVariables
 >
 export const GetProjectsDocument = gql`
 	query GetProjects {

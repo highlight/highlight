@@ -1,6 +1,6 @@
 import {
 	useEditSegmentMutation,
-	useGetFieldsOpensearchQuery,
+	useGetFieldsClickhouseQuery,
 	useGetFieldTypesQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
@@ -132,12 +132,12 @@ export const CUSTOM_FIELDS: CustomField[] = [
 ]
 
 const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
-	const { refetch } = useGetFieldsOpensearchQuery({
+	const { refetch } = useGetFieldsClickhouseQuery({
 		skip: true,
 	})
 	const fetchFields = useCallback(
 		(variables: FetchFieldVariables) =>
-			refetch(variables).then((r) => r.data.fields_opensearch),
+			refetch(variables).then((r) => r.data.fields_clickhouse),
 		[refetch],
 	)
 

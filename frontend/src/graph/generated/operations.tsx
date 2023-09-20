@@ -2200,67 +2200,59 @@ export type GetFieldTypesQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetFieldsOpensearchQueryVariables = Types.Exact<{
+export type GetFieldTypesClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	count: Types.Scalars['Int']
-	field_type: Types.Scalars['String']
-	field_name: Types.Scalars['String']
-	query: Types.Scalars['String']
-	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
+	start_date: Types.Scalars['Timestamp']
+	end_date: Types.Scalars['Timestamp']
 }>
 
-export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'fields_opensearch'
->
-
-export type GetQuickFieldsOpensearchQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	count: Types.Scalars['Int']
-	query: Types.Scalars['String']
-}>
-
-export type GetQuickFieldsOpensearchQuery = { __typename?: 'Query' } & {
-	quickFields_opensearch: Array<
-		Types.Maybe<
-			{ __typename?: 'Field' } & Pick<
-				Types.Field,
-				'type' | 'name' | 'value'
-			>
-		>
+export type GetFieldTypesClickhouseQuery = { __typename?: 'Query' } & {
+	field_types_clickhouse: Array<
+		{ __typename?: 'Field' } & Pick<Types.Field, 'type' | 'name'>
 	>
 }
 
-export type GetErrorFieldsOpensearchQueryVariables = Types.Exact<{
+export type GetFieldsClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
 	field_type: Types.Scalars['String']
 	field_name: Types.Scalars['String']
 	query: Types.Scalars['String']
-	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
+	start_date: Types.Scalars['Timestamp']
+	end_date: Types.Scalars['Timestamp']
 }>
 
-export type GetErrorFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
+export type GetFieldsClickhouseQuery = { __typename?: 'Query' } & Pick<
 	Types.Query,
-	'error_fields_opensearch'
+	'fields_clickhouse'
 >
 
-export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
+export type GetErrorFieldsClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
+	field_type: Types.Scalars['String']
+	field_name: Types.Scalars['String']
 	query: Types.Scalars['String']
-	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
+	start_date: Types.Scalars['Timestamp']
+	end_date: Types.Scalars['Timestamp']
+}>
+
+export type GetErrorFieldsClickhouseQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'error_fields_clickhouse'
+>
+
+export type GetSessionsClickhouseQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	count: Types.Scalars['Int']
+	query: Types.ClickhouseQuery
 	sort_desc: Types.Scalars['Boolean']
 	sort_field?: Types.Maybe<Types.Scalars['String']>
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
-export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
-	sessions_opensearch: { __typename?: 'SessionResults' } & Pick<
+export type GetSessionsClickhouseQuery = { __typename?: 'Query' } & {
+	sessions_clickhouse: { __typename?: 'SessionResults' } & Pick<
 		Types.SessionResults,
 		'totalCount'
 	> & {
@@ -2314,15 +2306,14 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
 		}
 }
 
-export type GetSessionsHistogramQueryVariables = Types.Exact<{
+export type GetSessionsHistogramClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
+	query: Types.ClickhouseQuery
 	histogram_options: Types.DateHistogramOptions
-	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 }>
 
-export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
-	sessions_histogram: { __typename?: 'SessionsHistogram' } & Pick<
+export type GetSessionsHistogramClickhouseQuery = { __typename?: 'Query' } & {
+	sessions_histogram_clickhouse: { __typename?: 'SessionsHistogram' } & Pick<
 		Types.SessionsHistogram,
 		| 'bucket_times'
 		| 'sessions_without_errors'
@@ -2331,16 +2322,15 @@ export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
+export type GetErrorGroupsClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
-	query: Types.Scalars['String']
-	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
+	query: Types.ClickhouseQuery
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
-export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
-	error_groups_opensearch: { __typename?: 'ErrorResults' } & Pick<
+export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
+	error_groups_clickhouse: { __typename?: 'ErrorResults' } & Pick<
 		Types.ErrorResults,
 		'totalCount'
 	> & {
@@ -2383,15 +2373,14 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 		}
 }
 
-export type GetErrorsHistogramQueryVariables = Types.Exact<{
+export type GetErrorsHistogramClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
+	query: Types.ClickhouseQuery
 	histogram_options: Types.DateHistogramOptions
 }>
 
-export type GetErrorsHistogramQuery = { __typename?: 'Query' } & {
-	errors_histogram: { __typename?: 'ErrorsHistogram' } & Pick<
+export type GetErrorsHistogramClickhouseQuery = { __typename?: 'Query' } & {
+	errors_histogram_clickhouse: { __typename?: 'ErrorsHistogram' } & Pick<
 		Types.ErrorsHistogram,
 		'bucket_times' | 'error_objects'
 	>
@@ -4715,13 +4704,14 @@ export const namedOperations = {
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
 		GetFieldTypes: 'GetFieldTypes' as const,
-		GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
-		GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
-		GetErrorFieldsOpensearch: 'GetErrorFieldsOpensearch' as const,
-		GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
-		GetSessionsHistogram: 'GetSessionsHistogram' as const,
-		GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
-		GetErrorsHistogram: 'GetErrorsHistogram' as const,
+		GetFieldTypesClickhouse: 'GetFieldTypesClickhouse' as const,
+		GetFieldsClickhouse: 'GetFieldsClickhouse' as const,
+		GetErrorFieldsClickhouse: 'GetErrorFieldsClickhouse' as const,
+		GetSessionsClickhouse: 'GetSessionsClickhouse' as const,
+		GetSessionsHistogramClickhouse:
+			'GetSessionsHistogramClickhouse' as const,
+		GetErrorGroupsClickhouse: 'GetErrorGroupsClickhouse' as const,
+		GetErrorsHistogramClickhouse: 'GetErrorsHistogramClickhouse' as const,
 		GetProjects: 'GetProjects' as const,
 		GetWorkspace: 'GetWorkspace' as const,
 		GetWorkspaceForInviteLink: 'GetWorkspaceForInviteLink' as const,
