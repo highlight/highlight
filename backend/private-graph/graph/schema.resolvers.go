@@ -2571,7 +2571,16 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
-	if err := newMetricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &newMetricMonitor.ID, Project: project, OperationName: "created", OperationDescription: "Monitor alerts will be sent here", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, newMetricMonitor, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Monitor alerts will be sent here",
+		ID:                   newMetricMonitor.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/monitors",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2659,7 +2668,16 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error updating metric monitor")
 	}
 
-	if err := metricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "updated", OperationDescription: "Monitor alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, metricMonitor, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Monitor alerts will now be sent to this channel.",
+		ID:                   metricMonitorID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/monitors",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 	return metricMonitor, nil
@@ -2709,7 +2727,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Type:                 &model.AlertType.ERROR,
 			ChannelsToNotify:     channelsString,
 			EmailsToNotify:       emailsString,
-			Name:                 &name,
+			Name:                 name,
 			LastAdminToEditID:    admin.ID,
 			Frequency:            frequency,
 			Default:              *defaultArg,
@@ -2724,7 +2742,16 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
-	if err := newAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, newAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   newAlert.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2786,7 +2813,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		projectAlert.ThresholdWindow = thresholdWindow
 	}
 	if name != nil {
-		projectAlert.Name = name
+		projectAlert.Name = *name
 	}
 
 	projectAlert.LastAdminToEditID = admin.ID
@@ -2811,7 +2838,16 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, projectAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   errorAlertID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 	return projectAlert, nil
@@ -2835,7 +2871,16 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error trying to delete error alert")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, projectAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Alerts will no longer be sent to this channel.",
+		ID:                   errorAlertID,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2860,7 +2905,16 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 		return nil, e.Wrap(err, "error trying to delete metric monitor")
 	}
 
-	if err := metricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "deleted", OperationDescription: "Monitor alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, metricMonitor, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Monitor alerts will no longer be sent to this channel.",
+		ID:                   metricMonitorID,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts/monitors",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2960,7 +3014,16 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 		return nil, e.Wrap(err, "error updating session alert")
 	}
 
-	if err := sessionAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &id, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, sessionAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   id,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 	return sessionAlert, nil
@@ -2984,7 +3047,16 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 	if err := r.DB.Create(sessionAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new session feedback alert")
 	}
-	if err := sessionAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, sessionAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   sessionAlert.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -3009,7 +3081,16 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error trying to delete session alert")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, projectAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Alerts will no longer be sent to this channel.",
+		ID:                   sessionAlertID,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -3029,12 +3110,24 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build log alert")
 	}
-	alert.ID = id
 
 	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
 		Where("project_id = ?", input.ProjectID).
 		Save(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating log alert")
+	}
+
+	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Log alerts will now be sent to this channel.",
+		ID:                   id,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/logs",
+	}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return alert, nil
@@ -3058,12 +3151,25 @@ func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs
 		return nil, e.Wrap(err, "error creating a new log alert")
 	}
 
+	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Log alerts will now be sent to this channel.",
+		ID:                   alert.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/logs",
+	}); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
 	return alert, nil
 }
 
 // DeleteLogAlert is the resolver for the deleteLogAlert field.
 func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id int) (*model.LogAlert, error) {
-	_, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -3076,8 +3182,30 @@ func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id
 		return nil, e.Wrap(err, "this log alert does not exist in this project.")
 	}
 
-	if err := r.DB.Delete("id = ?", id).Error; err != nil {
+	if err := r.DB.Where("id = ?", id).Delete(&model.LogAlert{}).Error; err != nil {
 		return nil, e.Wrap(err, "error trying to delete log alert")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Log alerts will no longer be sent to this channel.",
+		ID:                   id,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts",
+	}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return alert, nil
