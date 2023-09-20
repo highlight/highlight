@@ -451,10 +451,27 @@ const TimelineIndicatorsBarGraph = ({
 		timeIndicatorTopDiv.style.cursor = 'grabbing'
 	}, [])
 
+	const onCanvasDrag = useCallback((e: PointerEvent) => {
+		const canvasDiv = canvasRef.current
+		if (!canvasDiv) {
+			return
+		}
+
+		const el = e.target as HTMLDivElement
+		// Only set dragging when the user clicks on the canvas, but not one of the
+		// bars in the histogram.
+		if (el === canvasDiv || el.parentNode === canvasDiv) {
+			setIsDragging(true)
+		}
+	}, [])
+
 	useHTMLElementEvent(timeIndicatorHairRef.current, 'pointerdown', onDrag, {
 		passive: true,
 	})
 	useHTMLElementEvent(timeIndicatorTopRef.current, 'pointerdown', onDrag, {
+		passive: true,
+	})
+	useHTMLElementEvent(canvasRef.current, 'pointerdown', onCanvasDrag, {
 		passive: true,
 	})
 
