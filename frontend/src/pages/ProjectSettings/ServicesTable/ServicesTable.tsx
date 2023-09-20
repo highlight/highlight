@@ -189,7 +189,7 @@ export const ServicesTable: React.FC = () => {
 							iconStart={
 								repoName && <IconSolidGithub size={12} />
 							}
-							iconEnd={<IconSolidCheveronDown />}
+							iconEnd={<IconSolidCheveronDown size={12} />}
 							label={repoName || 'None'}
 							gap="4"
 							size="medium"
