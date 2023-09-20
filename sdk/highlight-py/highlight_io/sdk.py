@@ -232,9 +232,6 @@ class H(object):
             if type(v) in [bool, str, bytes, int, float]:
                 attrs[f"http.headers.{k}"] = v
         span.add_event(name="exception", attributes=attrs)
-        logging.exception(
-            f"Highlight caught an http error (status_code={status_code}, detail={detail})"
-        )
 
     @staticmethod
     def record_exception(
@@ -264,7 +261,6 @@ class H(object):
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
         span.record_exception(e, attributes)
-        logging.exception("Highlight caught an error", exc_info=e)
 
     @property
     def logging_handler(self) -> logging.Handler:

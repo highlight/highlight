@@ -38,3 +38,9 @@
 ### Fix
 
 - Update queue export settings to reduce possibility of OOM due to large number of traces / logs.
+
+## v0.6.2 (2023-09-20)
+
+### Fix
+
+- Remove `Highlight caught a ...` log messages as error logs are generated server side.
