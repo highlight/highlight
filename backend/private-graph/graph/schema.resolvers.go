@@ -354,13 +354,14 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 	if err := r.Transaction(func(transactionR *mutationResolver) error {
 		// Update admin details
 		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
-			FirstName:           adminAndWorkspaceDetails.FirstName,
-			LastName:            adminAndWorkspaceDetails.LastName,
-			UserDefinedRole:     adminAndWorkspaceDetails.UserDefinedRole,
-			UserDefinedPersona:  "",
-			UserDefinedTeamSize: adminAndWorkspaceDetails.UserDefinedTeamSize,
-			HeardAbout:          adminAndWorkspaceDetails.HeardAbout,
-			Referral:            adminAndWorkspaceDetails.Referral,
+			FirstName:               adminAndWorkspaceDetails.FirstName,
+			LastName:                adminAndWorkspaceDetails.LastName,
+			UserDefinedRole:         adminAndWorkspaceDetails.UserDefinedRole,
+			UserDefinedPersona:      "",
+			UserDefinedTeamSize:     adminAndWorkspaceDetails.UserDefinedTeamSize,
+			HeardAbout:              adminAndWorkspaceDetails.HeardAbout,
+			Referral:                adminAndWorkspaceDetails.Referral,
+			PhoneHomeContactAllowed: adminAndWorkspaceDetails.PhoneHomeContactAllowed,
 		}); err != nil {
 			return e.Wrap(err, "error updating admin details")
 		}
@@ -412,6 +413,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.UserDefinedTeamSize = &adminDetails.UserDefinedTeamSize
 	admin.HeardAbout = &adminDetails.HeardAbout
+	admin.PhoneHomeContactAllowed = &adminDetails.PhoneHomeContactAllowed
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = pointy.String("")

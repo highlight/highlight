@@ -2,6 +2,7 @@ package phonehome
 
 import (
 	"context"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	"github.com/highlight-run/highlight/backend/util"
@@ -29,6 +30,9 @@ const ErrorViewCount = "highlight-error-view-count"
 const LogViewCount = "highlight-log-view-count"
 
 const AboutYouSpanName = "highlight-about-you"
+const AboutYouSpanAdminFirstName = "highlight-about-you-admin-first-name"
+const AboutYouSpanAdminLastName = "highlight-about-you-admin-last-name"
+const AboutYouSpanAdminEmail = "highlight-about-you-admin-email"
 const AboutYouSpanReferral = "highlight-about-you-referral"
 const AboutYouSpanRole = "highlight-about-you-role"
 const AboutYouSpanTeamSize = "highlight-about-you-team-size"
@@ -103,17 +107,14 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 	}
 
 	tags, _ := GetDefaultAttributes()
-	if admin.UserDefinedRole != nil {
-		tags = append(tags, attribute.String(AboutYouSpanRole, *admin.UserDefinedRole))
-	}
-	if admin.UserDefinedTeamSize != nil {
-		tags = append(tags, attribute.String(AboutYouSpanTeamSize, *admin.UserDefinedTeamSize))
-	}
-	if admin.HeardAbout != nil {
-		tags = append(tags, attribute.String(AboutYouSpanHeardAbout, *admin.HeardAbout))
-	}
-	if admin.Referral != nil {
-		tags = append(tags, attribute.String(AboutYouSpanReferral, *admin.Referral))
+	tags = append(tags, attribute.String(AboutYouSpanRole, ptr.ToString(admin.UserDefinedRole)))
+	tags = append(tags, attribute.String(AboutYouSpanTeamSize, ptr.ToString(admin.UserDefinedTeamSize)))
+	tags = append(tags, attribute.String(AboutYouSpanHeardAbout, ptr.ToString(admin.HeardAbout)))
+	tags = append(tags, attribute.String(AboutYouSpanReferral, ptr.ToString(admin.Referral)))
+	if ptr.ToBool(admin.PhoneHomeContactAllowed) {
+		tags = append(tags, attribute.String(AboutYouSpanAdminFirstName, ptr.ToString(admin.FirstName)))
+		tags = append(tags, attribute.String(AboutYouSpanAdminLastName, ptr.ToString(admin.LastName)))
+		tags = append(tags, attribute.String(AboutYouSpanAdminEmail, ptr.ToString(admin.Email)))
 	}
 
 	s, _ := highlight.StartTrace(ctx, AboutYouSpanName, tags...)

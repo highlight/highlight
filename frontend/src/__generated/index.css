@@ -5394,6 +5394,9 @@ body {
 ._17v45he0:focus {
   border: var(--_1pyqka91q) solid 1px;
 }
+._17v45he1 {
+  border-top: none;
+}
 ._1ta0zd10 {
   width: 280px;
 }
