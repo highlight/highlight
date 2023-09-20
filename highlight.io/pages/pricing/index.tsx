@@ -230,7 +230,7 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 ]
 
 const billingPeriodOptions = ['Monthly', 'Annual'] as const
-type BillingPeriod = (typeof billingPeriodOptions)[number]
+type BillingPeriod = typeof billingPeriodOptions[number]
 
 const retentionOptions = [
 	'30 days',
@@ -239,7 +239,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = (typeof retentionOptions)[number]
+type Retention = typeof retentionOptions[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -249,7 +249,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'UsageBased', 'Enterprise'] as const
-type TierName = (typeof tierOptions)[number]
+type TierName = typeof tierOptions[number]
 
 type PricingTier = {
 	label: string
@@ -384,7 +384,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 				{features.map((feature, index) => (
 					<div
 						key={index}
-						className="flex justify-between gap-1 items-start"
+						className="flex justify-betweent gap-1 items-start"
 					>
 						<Typography type="copy3">{feature.feature}</Typography>
 						{feature.tooltip && (
