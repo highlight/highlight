@@ -79,7 +79,7 @@ export const ErrorAlertPage = () => {
 
 	const { alertsPayload } = useAlertsContext()
 	const alert = alert_id
-		? (findAlert(alert_id, alertsPayload) as any)
+		? (findAlert(alert_id, 'error', alertsPayload) as any)
 		: undefined
 
 	const formStore = useFormStore<ErrorAlertFormItem>({
@@ -444,6 +444,9 @@ const ErrorAlertForm = () => {
 							}
 							className={styles.selectContainer}
 							mode="tags"
+							value={formStore.getValue(
+								formStore.names.regex_groups,
+							)}
 						/>
 					</Form.NamedSection>
 					<Column.Container gap="12">
@@ -540,6 +543,9 @@ const ErrorAlertForm = () => {
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>

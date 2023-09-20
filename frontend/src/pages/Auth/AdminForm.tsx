@@ -45,6 +45,14 @@ enum TeamSize {
 	Thousand = '501-1000+',
 }
 
+enum HeardAbout {
+	youtube = 'YouTube',
+	linkedin = 'LinkedIn',
+	twitter = 'Twitter / X',
+	google = 'Google',
+	other = 'Other',
+}
+
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const [error, setError] = useState('')
@@ -84,6 +92,7 @@ export const AdminForm: React.FC = () => {
 			companyName: '',
 			promoCode: '',
 			teamSize: '',
+			heardAbout: '',
 		},
 	})
 
@@ -119,6 +128,7 @@ export const AdminForm: React.FC = () => {
 							user_defined_role: formState.values.role,
 							user_defined_persona: '',
 							user_defined_team_size: formState.values.teamSize,
+							heard_about: formState.values.heardAbout,
 							referral: attributionData.referral,
 						},
 					},
@@ -137,6 +147,7 @@ export const AdminForm: React.FC = () => {
 							user_defined_team_size: formState.values.teamSize,
 							workspace_name: formState.values.companyName,
 							promo_code: formState.values.promoCode || undefined,
+							heard_about: formState.values.heardAbout,
 							referral: attributionData.referral,
 						},
 					},
@@ -245,6 +256,21 @@ export const AdminForm: React.FC = () => {
 								Select your team size
 							</option>
 							{Object.entries(TeamSize).map(([k, v]) => (
+								<option value={k} key={k}>
+									{v}
+								</option>
+							))}
+						</Form.Select>
+						<Form.Select
+							className={styles.select}
+							name={formStore.names.heardAbout}
+							label="Where did you hear about us?"
+							optional
+						>
+							<option value="" disabled>
+								Select where you heard about us
+							</option>
+							{Object.entries(HeardAbout).map(([k, v]) => (
 								<option value={k} key={k}>
 									{v}
 								</option>

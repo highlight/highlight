@@ -1,7 +1,14 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import {
+	CreateAlertButton,
+	Divider,
+} from '@components/CreateAlertButton/CreateAlertButton'
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
+import {
+	useGetAlertsPagePayloadQuery,
+	useGetSessionsOpenSearchQuery,
+} from '@graph/hooks'
 import {
 	Badge,
 	Box,
@@ -76,6 +83,14 @@ export const SessionLevelBarV2: React.FC<
 		fetchPolicy: 'cache-first',
 		skip: !projectId || !backendSearchQuery?.searchQuery,
 	})
+	const { data: alertsData } = useGetAlertsPagePayloadQuery({
+		variables: {
+			project_id: projectId!,
+		},
+		skip: !projectId,
+	})
+	const showCreateAlertButton = alertsData?.new_session_alerts?.length === 0
+
 	const isDefaultView = DEFAULT_RIGHT_PANEL_VIEWS.includes(rightPanelView)
 
 	const sessionIdx = sessionResults.sessions.findIndex(
@@ -136,10 +151,7 @@ export const SessionLevelBarV2: React.FC<
 	)
 
 	return (
-		<Box
-			className={styles.sessionLevelBarV2}
-			style={{ width: props.width }}
-		>
+		<Box cssClass={styles.sessionLevelBarV2} style={{ width: props.width }}>
 			<Box
 				p="6"
 				gap="12"
@@ -223,7 +235,7 @@ export const SessionLevelBarV2: React.FC<
 						</Stack>
 					)}
 					<Box
-						className={styles.currentUrl}
+						cssClass={styles.currentUrl}
 						onMouseEnter={() => {
 							if (delayRef.current) {
 								window.clearTimeout(delayRef.current)
@@ -282,10 +294,14 @@ export const SessionLevelBarV2: React.FC<
 						</Box>
 					)}
 				</Box>
-				<Box className={styles.rightButtons}>
+				<Box cssClass={styles.rightButtons}>
 					{session && (
 						<>
 							<SessionShareButtonV2 />
+							{showCreateAlertButton ? (
+								<CreateAlertButton type="session" />
+							) : null}
+							<Divider />
 							<PlayerModeSwitch />
 							<SwitchButton
 								size="small"

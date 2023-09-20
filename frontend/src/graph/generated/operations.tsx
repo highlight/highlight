@@ -1849,14 +1849,20 @@ export type GetSessionInsightQuery = { __typename?: 'Query' } & {
 }
 
 export type GetSessionExportsQueryVariables = Types.Exact<{
-	[key: string]: never
+	project_id: Types.Scalars['ID']
 }>
 
 export type GetSessionExportsQuery = { __typename?: 'Query' } & {
 	session_exports: Array<
-		{ __typename?: 'SessionExport' } & Pick<
-			Types.SessionExport,
-			'id' | 'session_id' | 'type' | 'url' | 'error' | 'target_emails'
+		{ __typename?: 'SessionExportWithSession' } & Pick<
+			Types.SessionExportWithSession,
+			| 'created_at'
+			| 'type'
+			| 'url'
+			| 'error'
+			| 'secure_id'
+			| 'identifier'
+			| 'active_length'
 		>
 	>
 }
@@ -4363,7 +4369,7 @@ export type GetLogsHistogramQueryVariables = Types.Exact<{
 export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 	logs_histogram: { __typename?: 'LogsHistogram' } & Pick<
 		Types.LogsHistogram,
-		'totalCount'
+		'totalCount' | 'objectCount' | 'sampleFactor'
 	> & {
 			buckets: Array<
 				{ __typename?: 'LogsHistogramBucket' } & Pick<
@@ -4513,6 +4519,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 						| 'event'
 						| 'timestamp'
 						| 'errorGroupSecureID'
+						| 'serviceVersion'
 					> & {
 							session?: Types.Maybe<
 								{
@@ -4521,7 +4528,6 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									Types.ErrorObjectNodeSession,
 									| 'secureID'
 									| 'email'
-									| 'appVersion'
 									| 'fingerprint'
 									| 'excluded'
 								>

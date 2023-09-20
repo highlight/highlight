@@ -12,8 +12,6 @@ import (
 
 	"github.com/samber/lo"
 
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -490,7 +488,6 @@ func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[i
 
 func (o *Handler) Listen(r *chi.Mux) {
 	r.Route("/otel/v1", func(r chi.Router) {
-		r.Use(highlightChi.Middleware)
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 	})

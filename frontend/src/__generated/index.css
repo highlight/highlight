@@ -4117,6 +4117,15 @@ body {
 .mquqy92:active {
   color: var(--_1pyqka9w);
 }
+.mquqy93 {
+  color: var(--_1pyqka9s);
+}
+.mquqy93:hover {
+  color: var(--_1pyqka9x);
+}
+.mquqy93:active {
+  color: var(--_1pyqka9x);
+}
 ._118xo1h2 {
   background: transparent;
 }
@@ -5254,6 +5263,7 @@ body {
   background: none;
 }
 .bzezgw0:not(.bzezgw1) ._1o6rn2q0 ._65ghl30:first-of-type {
+  border-top: 1px solid var(--_1pyqka9k);
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
@@ -5799,6 +5809,11 @@ body {
 ._1tecd1ua .ant-select-selection-item {
   display: flex;
   align-items: center;
+}
+.xaifbz0 {
+  border-right: var(--_1pyqka9j) solid 1px;
+  height: 16px;
+  width: 1px;
 }
 ._10haslo0 {
   display: flex;

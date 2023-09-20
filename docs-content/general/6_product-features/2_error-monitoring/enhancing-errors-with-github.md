@@ -20,9 +20,7 @@ In order to turn on GitHub Enhancements, 3 actions need to be completed for your
 Services are created to group your logs, errors, and traces by the application that is running the code. Having a service can make it helpful to decipher
 which application caused an error, especially in code paths shared by multiple applications. They can also be used also filters for logs and traces.
 
-In order to create a new service, a service name must be added to your SDK. Reference the [SDK start up guides](../../../getting-started/1_overview.md) for more help.
-
-For example, in Golang, it would look something like:
+Services are created by passing in a service name via the SDK. For example, in Golang, the following SDK will create a new service named "my-app":
 ```
 highlight.SetProjectID("<YOUR_PROJECT_ID>")
 highlight.Start(
@@ -32,10 +30,10 @@ highlight.Start(
 defer highlight.Stop()
 ```
 
+Reference the [SDK start up guides](../../../getting-started/1_overview.md) for more help. For more information about services, see [Services documentation](../../6_product-features/3_general-features/services.md).
+
 <b>Note:</b> There is also a service version that is provided in the example above. This is not necessary to enable GitHub enhancements, but is recommended that this be the
 current GIT SHA of the deployed code to use the most accurate files. If not provided, Highlight will fallback to your current default branch (e.g. main) GIT SHA.
-
-![Service's page](/images/features/enhancingErrorsWithGithub1.png)
 
 ## Add the GitHub Integration to Highlight
 Enable GitHub on Highlight by going to the [integrations](https://app.highlight.io/integrations) and click the "Connect" button in the GitHub section.
@@ -51,7 +49,7 @@ deployment process to the correct file in GitHub.
 After removing this path (and possibly adding something else), you should be able to point this string to a GitHub file.
 2. <b>GitHub path prefix</b> - This path prefix is a string that can be appended to the front of the stacktracepath, and will be prepended to your files in order to correctly find the file in GitHub.
 
-![Service Configuration Form](/images/features/enhancingErrorsWithGithub2.png)
+![Service Configuration Form](/images/features/enhancingErrorsWithGithub.png)
 
 An example:
 <ol>

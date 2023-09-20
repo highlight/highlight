@@ -63,6 +63,7 @@ type AdminAboutYouDetails struct {
 	UserDefinedRole     string  `json:"user_defined_role"`
 	UserDefinedPersona  string  `json:"user_defined_persona"`
 	UserDefinedTeamSize string  `json:"user_defined_team_size"`
+	HeardAbout          string  `json:"heard_about"`
 	Referral            string  `json:"referral"`
 	Phone               *string `json:"phone"`
 }
@@ -72,6 +73,7 @@ type AdminAndWorkspaceDetails struct {
 	LastName                    string  `json:"last_name"`
 	UserDefinedRole             string  `json:"user_defined_role"`
 	UserDefinedTeamSize         string  `json:"user_defined_team_size"`
+	HeardAbout                  string  `json:"heard_about"`
 	Referral                    string  `json:"referral"`
 	WorkspaceName               string  `json:"workspace_name"`
 	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
@@ -329,11 +331,11 @@ type ErrorObjectNode struct {
 	Timestamp          time.Time               `json:"timestamp"`
 	Session            *ErrorObjectNodeSession `json:"session"`
 	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
+	ServiceVersion     string                  `json:"serviceVersion"`
 }
 
 type ErrorObjectNodeSession struct {
 	SecureID    string  `json:"secureID"`
-	AppVersion  *string `json:"appVersion"`
 	Email       *string `json:"email"`
 	Fingerprint *int    `json:"fingerprint"`
 	Excluded    bool    `json:"excluded"`
@@ -490,8 +492,10 @@ func (LogEdge) IsEdge()                {}
 func (this LogEdge) GetCursor() string { return this.Cursor }
 
 type LogsHistogram struct {
-	Buckets    []*LogsHistogramBucket `json:"buckets"`
-	TotalCount uint64                 `json:"totalCount"`
+	Buckets      []*LogsHistogramBucket `json:"buckets"`
+	TotalCount   uint64                 `json:"totalCount"`
+	ObjectCount  uint64                 `json:"objectCount"`
+	SampleFactor float64                `json:"sampleFactor"`
 }
 
 type LogsHistogramBucket struct {
@@ -683,6 +687,16 @@ type SessionAlertInput struct {
 type SessionCommentTagInput struct {
 	ID   *int   `json:"id"`
 	Name string `json:"name"`
+}
+
+type SessionExportWithSession struct {
+	CreatedAt    time.Time `json:"created_at"`
+	Type         string    `json:"type"`
+	URL          string    `json:"url"`
+	Error        string    `json:"error"`
+	SecureID     string    `json:"secure_id"`
+	Identifier   string    `json:"identifier"`
+	ActiveLength *int      `json:"active_length"`
 }
 
 type SessionQuery struct {

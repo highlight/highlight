@@ -19,7 +19,6 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
@@ -470,7 +469,7 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 }
 
 func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{}) error {
-	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
+	span, _ := util.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
 	defer span.Finish()
 	if err := r.Cache.Set(&cache.Item{
 		Ctx:   ctx,
@@ -478,21 +477,26 @@ func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{})
 		Value: companies,
 		TTL:   time.Hour,
 	}); err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return err
 	}
 	return nil
 }
 
 func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{}) (err error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
+	span, _ := util.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
 	err = r.Cache.Get(ctx, CacheKeyHubspotCompanies, companies)
-	span.Finish(tracer.WithError(err))
+	span.Finish(err)
 	return
 }
 
 func (r *Client) SetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string, expirationTime time.Time) error {
-	return r.setFlag(ctx, GithubRateLimitKey(gitHubRepo), true, time.Until(expirationTime))
+	expirationDuration := time.Until(expirationTime)
+	if expirationDuration <= 0 {
+		expirationDuration = time.Hour
+	}
+
+	return r.setFlag(ctx, GithubRateLimitKey(gitHubRepo), true, expirationDuration)
 }
 
 func (r *Client) GetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string) (bool, error) {
@@ -538,4 +542,8 @@ func (r *Client) Del(ctx context.Context, key string) error {
 		return r.redisClient.Del(ctx, key).Err()
 	}
 	return nil
+}
+
+func (r *Client) TTL(ctx context.Context, key string) time.Duration {
+	return r.redisClient.TTL(ctx, key).Val()
 }

@@ -1,8 +1,8 @@
 import { BufferConfig, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import { trace } from '@opentelemetry/api'
-import type { Attributes, Tracer } from '@opentelemetry/api'
 
+import type { Attributes, Tracer } from '@opentelemetry/api'
+import { trace } from '@opentelemetry/api'
 import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
@@ -11,7 +11,8 @@ import { hookConsole } from './hooks'
 import log from './log'
 import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-import { Resource, processDetectorSync } from '@opentelemetry/resources'
+import { processDetectorSync, Resource } from '@opentelemetry/resources'
+import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -19,8 +20,8 @@ const OTLP_HTTP = 'https://otel.highlight.io:4318'
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
 
-	constructor(config: any) {
-		super(config)
+	constructor(config: any, options: any) {
+		super(config, options)
 
 		this._listeners = new Map()
 	}
@@ -75,10 +76,15 @@ export class Highlight {
 		this.tracer = trace.getTracer('highlight-node')
 
 		const exporter = new OTLPTraceExporter({
+			compression: CompressionAlgorithm.GZIP,
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
-		this.processor = new CustomSpanProcessor(exporter)
+		this.processor = new CustomSpanProcessor(exporter, {
+			scheduledDelayMillis: 1000,
+			maxExportBatchSize: 128,
+			maxQueueSize: 1024,
+		})
 
 		const attributes: Attributes = {}
 		attributes['highlight.project_id'] = this._projectID

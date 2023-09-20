@@ -36,6 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
@@ -44,7 +45,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -271,8 +271,8 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id int, err error) {
-	s, _ := tracer.StartSpanFromContext(ctx, "getSessionID", tracer.ResourceName("worker.getSessionID"))
-	s.SetTag("secure_id", sessionSecureID)
+	s, _ := util.StartSpanFromContext(ctx, "getSessionID", util.ResourceName("worker.getSessionID"))
+	s.SetAttribute("secure_id", sessionSecureID)
 	defer s.Finish()
 	if sessionSecureID == "" {
 		return 0, e.New("getSessionID called with no secure id")
@@ -384,6 +384,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.HubSpotCreateContactForAdmin.UserDefinedRole,
 			task.HubSpotCreateContactForAdmin.UserDefinedPersona,
 			task.HubSpotCreateContactForAdmin.UserDefinedTeamSize,
+			task.HubSpotCreateContactForAdmin.HeardAbout,
 			task.HubSpotCreateContactForAdmin.First,
 			task.HubSpotCreateContactForAdmin.Last,
 			task.HubSpotCreateContactForAdmin.Phone,
@@ -445,10 +446,11 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 type WorkerConfig struct {
-	Workers      int
-	FlushSize    int
-	FlushTimeout time.Duration
-	Topic        kafkaqueue.TopicType
+	Workers         int
+	FlushSize       int
+	FlushTimeout    time.Duration
+	Topic           kafkaqueue.TopicType
+	TracingDisabled bool
 }
 
 func (w *Worker) PublicWorker(ctx context.Context) {
@@ -471,10 +473,11 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	tracesConfig := WorkerConfig{
-		Topic:        kafkaqueue.TopicTypeTraces,
-		Workers:      sys.TraceWorkers,
-		FlushSize:    sys.TraceFlushSize,
-		FlushTimeout: sys.TraceFlushTimeout,
+		Topic:           kafkaqueue.TopicTypeTraces,
+		Workers:         sys.TraceWorkers,
+		FlushSize:       sys.TraceFlushSize,
+		FlushTimeout:    sys.TraceFlushTimeout,
+		TracingDisabled: true,
 	}
 
 	dataSyncConfig := WorkerConfig{
@@ -499,9 +502,6 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	for _, cfg := range []WorkerConfig{logsConfig, tracesConfig, dataSyncConfig} {
-		if cfg.Workers == 0 {
-			cfg.Workers = 1
-		}
 		if cfg.FlushSize == 0 {
 			cfg.FlushSize = DefaultBatchFlushSize
 		}
@@ -522,6 +522,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 					BatchFlushSize:      config.FlushSize,
 					BatchedFlushTimeout: config.FlushTimeout,
 					Name:                string(config.Topic),
+					TracingDisabled:     config.TracingDisabled,
 				}
 				k.ProcessMessages(ctx)
 				wg.Done()
@@ -548,8 +549,8 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
 
 	for _, table := range []string{"resources_objects", "messages_objects"} {
-		deleteSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.deleteObjects",
-			tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
+		deleteSpan, ctx := util.StartSpanFromContext(ctx, "worker.deleteObjects",
+			util.ResourceName("worker.deleteObjects"), util.Tag("table", table))
 		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error deleting expired objects from %s", table))
 		}
@@ -892,6 +893,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
+	highlight.RecordMetric(
+		ctx, mgraph.SessionActiveMetricName, float64(accumulator.ActiveDuration),
+		attribute.Bool("Excluded", false),
+		attribute.Bool("Processed", true),
+		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+	)
+	highlight.RecordMetric(
+		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
+		attribute.Bool("Excluded", false),
+		attribute.Bool("Processed", true),
+		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: s.SecureID,
@@ -997,7 +1010,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			slackAlertPayload := model.SendSlackAlertInput{
 				Workspace:       workspace,
 				SessionSecureID: s.SecureID,
-				SessionExcluded: s.Excluded,
+				SessionExcluded: s.Excluded && *s.Processed,
 				UserIdentifier:  s.Identifier,
 				UserObject:      s.UserObject,
 				RageClicksCount: &count64,
@@ -1058,7 +1071,7 @@ func (w *Worker) Start(ctx context.Context) {
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
-		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
 		sessionLimitJitter := rand.Intn(100)
 		limit := processSessionLimit + sessionLimitJitter
 		txStart := time.Now()
@@ -1151,7 +1164,7 @@ func (w *Worker) Start(ctx context.Context) {
 					vmStat, _ = mem.VirtualMemory()
 				}
 
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("project_id", session.ProjectID), tracer.Tag("session_secure_id", session.SecureID))
+				span, ctx := util.StartSpanFromContext(ctx, "worker.operation", util.ResourceName("worker.processSession"), util.Tag("project_id", session.ProjectID), util.Tag("session_secure_id", session.SecureID))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded bool
@@ -1178,7 +1191,7 @@ func (w *Worker) Start(ctx context.Context) {
 						span.Finish()
 					} else {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
-						span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
+						span.Finish(e.Wrapf(err, "error processing session: %v", session.ID))
 					}
 
 					return
@@ -1277,8 +1290,8 @@ func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
-	span, _ := tracer.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
-		tracer.ResourceName("worker.refreshMaterializedViews"))
+	span, _ := util.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
+		util.ResourceName("worker.refreshMaterializedViews"))
 	defer span.Finish()
 
 	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {

@@ -37,6 +37,20 @@ export const variants = recipe({
 					},
 				},
 			},
+
+			light: {
+				color: vars.theme.interactive.fill.secondary.enabled,
+				selectors: {
+					'&:hover': {
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
+					},
+					'&:active': {
+						color: vars.theme.interactive.fill.secondary.content
+							.onDisabled,
+					},
+				},
+			},
 		},
 	},
 

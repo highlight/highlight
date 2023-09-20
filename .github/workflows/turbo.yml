@@ -86,7 +86,9 @@ jobs:
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              run: yarn test:render
+              run: doppler run -- yarn test:render
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
             - name: Validate session screenshot lambda size
               # this can only run after `yarn test:render` runs

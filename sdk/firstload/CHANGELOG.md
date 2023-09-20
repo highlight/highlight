@@ -384,3 +384,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Remove canvas recording logging (not only enabled if the `debug` setting is provided).
+
+## 7.5.2
+
+### Patch Changes
+
+- Auto-inline CSS on 127.0.0.1 (a common alias for localhost).

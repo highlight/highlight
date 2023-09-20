@@ -7,7 +7,6 @@ import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils
 import { bytesToPrettyString } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
-import clsx from 'clsx'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -267,16 +266,11 @@ const MetadataPanel = () => {
 	)
 
 	return (
-		<Box className={style.container}>
+		<Box cssClass={style.container}>
 			{!session ? (
 				<LoadingBox />
 			) : (
-				<Box
-					className={clsx(
-						style.metadataPanel,
-						styledVerticalScrollbar,
-					)}
-				>
+				<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
 					{Object.entries({
 						[MetadataSection.Session]: sessionData,
 						[MetadataSection.User]: userData,

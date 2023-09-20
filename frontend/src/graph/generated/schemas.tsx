@@ -69,6 +69,7 @@ export type Admin = {
 	about_you_details_filled?: Maybe<Scalars['Boolean']>
 	email: Scalars['String']
 	email_verified?: Maybe<Scalars['Boolean']>
+	heard_about?: Maybe<Scalars['String']>
 	id: Scalars['ID']
 	name: Scalars['String']
 	phone?: Maybe<Scalars['String']>
@@ -83,6 +84,7 @@ export type Admin = {
 
 export type AdminAboutYouDetails = {
 	first_name: Scalars['String']
+	heard_about: Scalars['String']
 	last_name: Scalars['String']
 	phone?: InputMaybe<Scalars['String']>
 	referral: Scalars['String']
@@ -94,6 +96,7 @@ export type AdminAboutYouDetails = {
 export type AdminAndWorkspaceDetails = {
 	allowed_auto_join_email_origins?: InputMaybe<Scalars['String']>
 	first_name: Scalars['String']
+	heard_about: Scalars['String']
 	last_name: Scalars['String']
 	promo_code?: InputMaybe<Scalars['String']>
 	referral: Scalars['String']
@@ -556,13 +559,13 @@ export type ErrorObjectNode = {
 	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
+	serviceVersion: Scalars['String']
 	session?: Maybe<ErrorObjectNodeSession>
 	timestamp: Scalars['Timestamp']
 }
 
 export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
-	appVersion?: Maybe<Scalars['String']>
 	email?: Maybe<Scalars['String']>
 	excluded: Scalars['Boolean']
 	fingerprint?: Maybe<Scalars['Int']>
@@ -862,6 +865,8 @@ export enum LogSource {
 export type LogsHistogram = {
 	__typename?: 'LogsHistogram'
 	buckets: Array<LogsHistogramBucket>
+	objectCount: Scalars['UInt64']
+	sampleFactor: Scalars['Float']
 	totalCount: Scalars['UInt64']
 }
 
@@ -1800,7 +1805,7 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
-	session_exports: Array<SessionExport>
+	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
@@ -2382,6 +2387,10 @@ export type QuerySession_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QuerySession_ExportsArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QuerySession_InsightArgs = {
 	secure_id: Scalars['String']
 }
@@ -2884,12 +2893,13 @@ export enum SessionExcludedReason {
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
 }
 
-export type SessionExport = {
-	__typename?: 'SessionExport'
+export type SessionExportWithSession = {
+	__typename?: 'SessionExportWithSession'
+	active_length?: Maybe<Scalars['Int']>
+	created_at: Scalars['Timestamp']
 	error: Scalars['String']
-	id: Scalars['ID']
-	session_id: Scalars['ID']
-	target_emails: Array<Scalars['String']>
+	identifier: Scalars['String']
+	secure_id: Scalars['String']
 	type: Scalars['String']
 	url: Scalars['String']
 }

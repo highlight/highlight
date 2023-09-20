@@ -115,7 +115,7 @@ const ErrorsPage = ({
 	}, [activeError, errors])
 
 	return (
-		<Box className={styles.errorsContainer}>
+		<Box cssClass={styles.errorsContainer}>
 			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : !session || !errorsToRender.length ? (
@@ -197,7 +197,7 @@ const ErrorRow = React.memo(
 		return (
 			<Box key={error.id} mx="4">
 				<Box
-					className={styles.errorRowVariants({
+					cssClass={styles.errorRowVariants({
 						current,
 						selected: selectedError,
 					})}

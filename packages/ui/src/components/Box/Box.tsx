@@ -6,7 +6,10 @@ import { hiddenScroll } from './Box.css'
 
 export type BoxProps = Sprinkles &
 	React.PropsWithChildren &
-	Omit<React.AllHTMLAttributes<HTMLElement>, 'color' | 'height' | 'width'> & {
+	Omit<
+		React.AllHTMLAttributes<HTMLElement>,
+		'color' | 'height' | 'width' | 'className'
+	> & {
 		as?: React.ElementType
 		// Can't use className because it does some conversion on its values and
 		// breaks values like arrays, which would otherwise be valid for clsx.

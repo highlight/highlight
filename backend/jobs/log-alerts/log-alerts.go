@@ -97,15 +97,7 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 }
 
 func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) error {
-	lastTs, err := redis.GetLastLogTimestamp(ctx, alert.ProjectID)
-	if err != nil {
-		return errors.Wrap(err, "error retrieving last log timestamp")
-	}
-	// If there's no log timestamp set, assume time.Now()
-	if lastTs.IsZero() {
-		lastTs = time.Now()
-	}
-	end := lastTs.Add(-time.Minute)
+	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(alert.Frequency) * time.Second)
 
 	count64, err := ccClient.ReadLogsTotalCount(ctx, alert.ProjectID, modelInputs.QueryInput{Query: alert.Query, DateRange: &modelInputs.DateRangeRequiredInput{
@@ -123,6 +115,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 	}
 
 	log.WithContext(ctx).WithFields(log.Fields{
+		"id":        alert.ID,
 		"query":     alert.Query,
 		"frequency": alert.Frequency,
 		"start":     start.Format(time.RFC3339),
@@ -162,7 +155,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 		message := fmt.Sprintf(
 			"🚨 *%s* fired!\nLog count %swas %s the threshold.\n"+
 				"_Count_: %d | _Threshold_: %d",
-			*alert.Name,
+			alert.Name,
 			queryStr,
 			aboveStr,
 			count,
@@ -202,14 +195,14 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 					"<em>Count</em>: %d | <em>Threshold</em>: %d"+
 					"<br><br>"+
 					"<a href=\"%s\">View Logs</a>",
-				*alert.Name,
+				alert.Name,
 				queryStr,
 				aboveStr,
 				count,
 				alert.CountThreshold,
 				alertUrl,
 			)
-			if err := Email.SendAlertEmail(ctx, MailClient, *email, message, "Log Alert", *alert.Name); err != nil {
+			if err := Email.SendAlertEmail(ctx, MailClient, *email, message, "Log Alert", alert.Name); err != nil {
 				log.WithContext(ctx).Error(err)
 			}
 		}

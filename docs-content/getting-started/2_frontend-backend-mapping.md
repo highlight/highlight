@@ -59,6 +59,31 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 - [Python Backend Integration](4_backend-sdk/python)
 
+## Distributed Tracing
+
+Your backend might be a distributed system with multiple services. Say, for example, a
+frontend Next.js application with a Next.js backend ,which makes HTTP requests to
+a Python FastAPI microservice. In a case like that, you may want errors and logs from your Python service to be
+attributed to the frontend sessions in Highlight.
+
+Our frontend -> backend tracing uses the `x-highlight-request` HTTP header to attribute frontend requests with backend errors and logs. So, in the case of the example above, assuming all of your services have the highlight sdk installed, if your Next.js backend performs an HTTP request to a FastAPI backend and you forward the `x-highlight-request` header along, the trace will carry over information about the frontend session.
+
+```javascript
+await fetch('my-fastapi-backend:8000/api', { headers: {'x-highlight-request': request.headers.get(`x-highlight-request`)} })
+```
+
+A more complex application might not make HTTP requests between backend services, however. Instead, it may
+use a message broker like Kafka to queue up jobs. In that case, you'll need to add a way to
+store the `x-highlight-request` you receive from the frontend along with your enqueued messages.
+The service that consumes the messages can then pass the value to the highlight SDK via custom
+error wrapping or logging code as per usual.
+
+```javascript
+// the receiving example references `request.headers`, but this could be read from another service-to-service protocol (ie. gRPC, Apache Kafka message)
+const parsed = H.parseHeaders(request.headers)
+H.consumeError(error, parsed.secureSessionId, parsed.requestId)
+```
+
 ## Troubleshooting
 
 1.  Ensure `tracingOrigins` and `networkRecording` are properly set.
@@ -67,4 +92,4 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 3.  For debugging the backend SDK of your choice, in order to debug, we suggest enabling verbose logging. For example, in Go, add `highlight.SetDebugMode(myLogger)`
 
-4.  If all else fails, please send us an email at support@highlight.io or join the #support channel on our [discord](https://discord.gg/yxaXEAqgwN).
+4.  If all else fails, please email us at support@highlight.io or join the #support channel on our [discord](https://discord.gg/yxaXEAqgwN).
