@@ -1,7 +1,4 @@
-import {
-	ChevronDownIcon,
-	InformationCircleIcon,
-} from '@heroicons/react/20/solid'
+import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
 import Image from 'next/image'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
@@ -28,6 +25,7 @@ import classNames from 'classnames'
 import { useState } from 'react'
 import Collapsible from 'react-collapsible'
 import { Section } from '../../components/common/Section/Section'
+import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 
 const OverageLink = ({
@@ -255,7 +253,10 @@ type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
-	features: string[]
+	features: {
+		feature: string
+		tooltip?: string
+	}[]
 	badgeText?: string
 	calculateUsage?: boolean
 	buttonLabel: string
@@ -266,10 +267,18 @@ const priceTiers: Record<TierName, PricingTier> = {
 	Free: {
 		label: 'Free forever',
 		features: [
-			'500 monthly sessions',
-			'1,000 monthly errors',
-			'1,000,000 monthly logs',
-			'Unlimited seats',
+			{
+				feature: '500 monthly sessions',
+			},
+			{
+				feature: '1,000 monthly errors',
+			},
+			{
+				feature: '1,000,000 monthly logs',
+			},
+			{
+				feature: 'Unlimited seats',
+			},
 		],
 		buttonLabel: 'Start free trial',
 		buttonLink: 'https://app.highlight.io/sign_up',
@@ -277,10 +286,18 @@ const priceTiers: Record<TierName, PricingTier> = {
 	UsageBased: {
 		label: 'Pay as you go',
 		features: [
-			'500 monthly sessions',
-			'1,000 monthly errors',
-			'1,000,000 monthly logs',
-			'Unlimited seats',
+			{
+				feature: '500 monthly sessions',
+			},
+			{
+				feature: '1,000 monthly errors',
+			},
+			{
+				feature: '1,000,000 monthly logs',
+			},
+			{
+				feature: 'Unlimited seats',
+			},
 		],
 		badgeText: 'Most popular',
 		calculateUsage: true,
@@ -290,11 +307,31 @@ const priceTiers: Record<TierName, PricingTier> = {
 	Enterprise: {
 		label: 'Enterprise',
 		features: [
-			'Custom pricing',
-			'SAML & SSO',
-			'RBAC & Audit Logs',
-			'Data Export',
-			'Grafana Integration',
+			{
+				feature: 'Custom pricing',
+				tooltip:
+					'At higher volumes, we can heavily discount usage; reach out to learn more.',
+			},
+			{
+				feature: 'SAML & SSO',
+				tooltip:
+					'Secure user management to ensure you can manage your team with your existing tooling.',
+			},
+			{
+				feature: 'RBAC & Audit Logs',
+				tooltip:
+					'Infrastructure for auditing and adding fine-grained access controls.',
+			},
+			{
+				feature: 'Data Export',
+				tooltip:
+					'Recurring or one-off exports of your observability data for offline analysis.',
+			},
+			{
+				feature: 'Grafana Integration',
+				tooltip:
+					'Exposure to a Grafana instance for visualization of traces/metrics/logs',
+			},
 		],
 		buttonLabel: 'Contact us',
 		buttonLink: 'mailto:sales@highlight.io',
@@ -344,18 +381,19 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 				</div>
 			</div>
 			<div className="p-5 flex flex-col gap-2.5 flex-grow">
-				<div className="flex items-center gap-1">
-					<Typography type="copy3" emphasis>
-						Included
-					</Typography>
-					<OverageLink className="text-white transition-colors hover:text-blue-cta">
-						<InformationCircleIcon className="inline w-5 h-5 mb-[1px]" />
-					</OverageLink>
-				</div>
 				{features.map((feature, index) => (
-					<Typography key={index} type="copy3">
-						{feature}
-					</Typography>
+					<div
+						key={index}
+						className="flex justify-between gap-1 items-start"
+					>
+						<Typography type="copy3">{feature.feature}</Typography>
+						{feature.tooltip && (
+							<HeadlessTooltip
+								tooltip={feature.tooltip}
+								styling="-left-7"
+							/>
+						)}
+					</div>
 				))}
 			</div>
 			<div className="px-5 pb-5 flex flex-col gap-2.5">
@@ -577,7 +615,10 @@ const CalculatorRowDesktop = ({
 				</div>
 			</div>
 			<div className="hidden border-l border-divider-on-dark md:inline-block">
-				<CalculatorCostDisplay heading="Base + Usage" cost={cost} />
+				<CalculatorCostDisplay
+					heading="Base + Usage (Monthly)"
+					cost={cost}
+				/>
 			</div>
 		</div>
 	)
