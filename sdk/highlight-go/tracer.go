@@ -12,7 +12,6 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"time"
 )
 
 type GraphqlTracer interface {
@@ -53,7 +52,6 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		return next(ctx)
 	}
 
-	start := time.Now()
 	fc := graphql.GetFieldContext(ctx)
 	fieldName := fc.Field.Name
 	name := fmt.Sprintf("graphql.field.%s", fieldName)
@@ -69,14 +67,12 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		}
 	}
 	res, err := next(ctx)
-	end := graphql.Now()
 	RecordSpanError(
 		span, err,
 		attribute.String(SourceAttribute, "InterceptField"),
 	)
 	EndTrace(span)
 
-	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
 	return res, err
 }
 
@@ -111,17 +107,11 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		semconv.GraphqlOperationName(opName),
 		attribute.String("graphql.operation.variables", variables),
 	)
-	start := graphql.Now()
 	resp := next(ctx)
-	end := graphql.Now()
 	// though there is a resp.Errors, we should not record it because it will
 	// be a duplicate of errors on individual fields.
 	EndTrace(span)
 
-	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
-	if resp != nil {
-		RecordMetric(ctx, name+".errorsCount", float64(len(resp.Errors)))
-	}
 	return resp
 }
 

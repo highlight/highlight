@@ -2544,21 +2544,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						continue
 					}
 
-					jsSpan, _ := util.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-						util.ResourceName("go.parseEvents.EscapeJavascript"), util.Tag("project_id", projectID))
 					// escape script tags in any javascript
 					err = snapshot.EscapeJavascript(ctx)
-					jsSpan.Finish(err)
 					if err != nil {
 						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
 
 					// Replace any static resources with our own, hosted in S3
 					if settings != nil && settings.ReplaceAssets {
-						assetsSpan, _ := util.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-							util.ResourceName("go.parseEvents.replaceAssets"), util.Tag("project_id", projectID), util.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
-						assetsSpan.Finish()
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}
@@ -2576,10 +2570,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						}
 					}
 					if event.Type == parse.IncrementalSnapshot {
-						incrementalEventSpan, _ := util.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-							util.ResourceName("go.parseEvents.incrementalEvent"), util.Tag("project_id", projectID))
 						mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
-						incrementalEventSpan.Finish(err)
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
 						}

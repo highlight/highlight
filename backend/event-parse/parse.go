@@ -637,10 +637,7 @@ lexerLoop:
 
 func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
-	span, _ := util.StartSpanFromContext(ctx, "event-parse.parse.ReplaceAssets", util.ResourceName("getOrCreateUrls"), util.Tag("project_id", projectId))
-	span.SetAttribute("numberOfURLs", len(urls))
 	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis)
-	span.Finish(err)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}
