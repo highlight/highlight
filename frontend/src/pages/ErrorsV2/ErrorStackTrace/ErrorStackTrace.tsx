@@ -287,9 +287,21 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						.
 					</Tooltip>
 				)}
-				<Text cssClass={clsx(styles.name, styles.file)} as="span">
-					{truncateFileName(fileName || '')}
-				</Text>
+				<Tooltip
+					trigger={
+						<Text
+							cssClass={clsx(styles.name, styles.file)}
+							as="span"
+						>
+							{truncateFileName(fileName || '')}
+						</Text>
+					}
+				>
+					<Box p="6">
+						<Text wrap="breakWord">{fileName}</Text>
+					</Box>
+				</Tooltip>
+
 				{externalLink && (
 					<LinkButton
 						kind="secondary"
@@ -418,11 +430,13 @@ const SourcemapError: React.FC<{
 const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 5) => {
 	const tokens = fileName.split('/')
 
-	const relativeFileCount = tokens.length - numberOfLevelsToGoUp - 1
-	const relativePrefix =
-		relativeFileCount > 0 ? '/..'.repeat(relativeFileCount) + '/' : ''
+	// add one for the starting "/"
+	const useRelativePath = tokens.length > 1 + numberOfLevelsToGoUp
+	if (!useRelativePath) {
+		return fileName
+	}
 
-	return `${relativePrefix}${tokens
+	return `.../${tokens
 		.splice(tokens.length - numberOfLevelsToGoUp)
 		.join('/')}`
 }
