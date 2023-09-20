@@ -4,8 +4,5 @@
 
 ## 0.1.4
 
-
-## 3.3.2
-
 - Tune settings of opentelemetry SDK to reduce memory usage.
 - Enable GZIP compression of exported data.
