@@ -3,4 +3,4 @@
 	url = https://github.com/highlight/rrweb.git
 [submodule "opentelemetry-sdk-workers"]
 	path = opentelemetry-sdk-workers
-	url = git@github.com:highlight/opentelemetry-sdk-workers.git
+	url = https://github.com/highlight/opentelemetry-sdk-workers.git

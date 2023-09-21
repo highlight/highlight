@@ -48,7 +48,6 @@
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:^",
 		"@highlight-run/node": "workspace:*",
-		"@highlight-run/opentelemetry-sdk-workers": "workspace:^",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
 		"@opentelemetry/api": "^1.6.0",
@@ -56,6 +55,7 @@
 		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
+		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"@trpc/server": "^9.27.4",
 		"@types/jest": "27.4.1",
 		"chokidar-cli": "^3.0.0",

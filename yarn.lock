@@ -12337,7 +12337,7 @@ __metadata:
   resolution: "@highlight-run/cloudflare@workspace:sdk/highlight-cloudflare"
   dependencies:
     "@cloudflare/workers-types": ^4.20230518.0
-    "@highlight-run/opentelemetry-sdk-workers": "workspace:^"
+    "@highlight-run/opentelemetry-sdk-workers": "workspace:*"
     "@opentelemetry/resources": 1.17.0
     tsup: ^6.7.0
   languageName: unknown
@@ -12525,7 +12525,7 @@ __metadata:
   dependencies:
     "@highlight-run/cloudflare": "workspace:^"
     "@highlight-run/node": "workspace:*"
-    "@highlight-run/opentelemetry-sdk-workers": "workspace:^"
+    "@highlight-run/opentelemetry-sdk-workers": "workspace:*"
     "@highlight-run/react": "workspace:*"
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@opentelemetry/api": ^1.6.0
@@ -12571,7 +12571,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/opentelemetry-sdk-workers@workspace:^, @highlight-run/opentelemetry-sdk-workers@workspace:opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers":
+"@highlight-run/opentelemetry-sdk-workers@workspace:*, @highlight-run/opentelemetry-sdk-workers@workspace:opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers":
   version: 0.0.0-use.local
   resolution: "@highlight-run/opentelemetry-sdk-workers@workspace:opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers"
   dependencies:
