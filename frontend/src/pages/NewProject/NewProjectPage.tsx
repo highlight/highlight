@@ -1,6 +1,6 @@
+import { InfoCircleFilled } from '@ant-design/icons'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
-import { CardForm, CardFormActionsContainer } from '@components/Card/Card'
-import Dot from '@components/Dot/Dot'
+import { CardForm } from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import { CircularSpinner } from '@components/Loading/Loading'
 import {
@@ -15,11 +15,12 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { Box, Callout, IconOutlineX, Text } from '@highlight-run/ui'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
+import { Divider, message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -151,27 +152,75 @@ const NewProjectPage = () => {
 			<Helmet>
 				<title>{isWorkspace ? 'New Workspace' : 'New Project'}</title>
 			</Helmet>
-			<div className={styles.box} key={workspace_id}>
-				<h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
-				<p className={styles.subTitle}>
-					{isWorkspace &&
-						`This is usually your company name (e.g. Pied Piper, Hooli, Google, etc.) and can contain multiple projects.`}
-					{!isWorkspace &&
-						`Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
-				</p>
+			<Box
+				display="flex"
+				borderRadius="8"
+				key={workspace_id}
+				style={{
+					maxWidth: '324px',
+				}}
+				border="secondary"
+				backgroundColor="white"
+			>
 				<CardForm onSubmit={onSubmit} className={styles.cardForm}>
-					<Input
-						placeholder={
-							isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
-						}
-						name="name"
-						value={name}
-						onChange={(e) => {
-							setName(e.target.value)
-						}}
-						autoComplete="off"
-						autoFocus
-					/>
+					<Box
+						p="10"
+						display="flex"
+						alignItems="center"
+						justifyContent="space-between"
+					>
+						<Text cssClass={[styles.noPaddingMargin]} color="n11">
+							Create new {pageTypeCaps.toLowerCase()}
+						</Text>
+						<IconOutlineX
+							strokeWidth="8"
+							style={{
+								color: '#6F6E77',
+							}}
+						/>
+					</Box>
+					<Divider className="m-0" />
+					<Box
+						py="8"
+						px="12"
+						gap="16"
+						display="flex"
+						flexDirection="column"
+					>
+						<Input
+							autoFocus
+							name="name"
+							value={name}
+							autoComplete="off"
+							onChange={(e) => {
+								setName(e.target.value)
+							}}
+							className={styles.inputField}
+							placeholder={`${
+								isWorkspace ? 'Workspace' : 'Project'
+							} name`}
+						/>
+						<Callout
+							style={{
+								border: 0,
+								padding: 0,
+							}}
+							icon={() => (
+								<InfoCircleFilled
+									style={{
+										color: '#6F6E77CC',
+									}}
+								/>
+							)}
+						>
+							<Text color="n11">
+								{isWorkspace
+									? `This is usually your company name (e.g. Google), and can contain multiple projects.`
+									: `This is usually a single application (e.g. web front end, landing page, etc.).`}
+							</Text>
+						</Callout>
+					</Box>
+					<Divider className="mt-2 mb-0" />
 					{isWorkspace &&
 						(showPromoCode ? (
 							<label className={styles.inputLabel}>
@@ -202,14 +251,97 @@ const NewProjectPage = () => {
 							}}
 						/>
 					)}
-					<CardFormActionsContainer>
+					<Box
+						m="0"
+						py="4"
+						pr="4"
+						gap="4"
+						display="flex"
+						borderRadius="8"
+						alignItems="center"
+						backgroundColor="raised"
+						justifyContent="flex-end"
+					>
+						{isWorkspace && (
+							<ButtonLink
+								type="text"
+								to={`/switch${search}`}
+								className={clsx(
+									styles.button,
+									styles.transparent,
+								)}
+								trackingId={`Enter${pageTypeCaps}`}
+							>
+								<Text color="n11">
+									Already Have a Workspace?
+								</Text>
+								{!loading &&
+									!!data &&
+									data.workspaces_count !== 0 && (
+										<Box
+											ml="4"
+											px="3"
+											py="3"
+											display="flex"
+											borderRadius="4"
+											border="secondary"
+											alignItems="center"
+											justifyContent="center"
+										>
+											<Text size="xSmall" color="n11">
+												{data.workspaces_count}
+											</Text>
+										</Box>
+									)}
+							</ButtonLink>
+						)}
+						{!isWorkspace &&
+							currentWorkspaceData?.workspace &&
+							currentWorkspaceData.workspace.projects.length >
+								0 && (
+								<ButtonLink
+									type="text"
+									trackingId={`Enter${pageTypeCaps}`}
+									to={`/w/${workspace_id}/switch${search}`}
+									className={clsx(
+										styles.button,
+										styles.transparent,
+									)}
+								>
+									<Text color="n11">
+										Enter existing project
+									</Text>
+									{!loading && (
+										<Box
+											ml="4"
+											px="3"
+											py="3"
+											display="flex"
+											borderRadius="4"
+											border="secondary"
+											alignItems="center"
+											justifyContent="center"
+										>
+											<Text size="xSmall" color="n11">
+												{
+													currentWorkspaceData
+														.workspace.projects
+														.length
+												}
+											</Text>
+										</Box>
+									)}
+								</ButtonLink>
+							)}
 						<Button
-							trackingId={`Create${pageTypeCaps}`}
 							type="primary"
-							className={clsx(styles.button)}
-							block
 							htmlType="submit"
 							disabled={name.length === 0}
+							className={clsx(
+								styles.button,
+								name.length === 0 && styles.createDisabled,
+							)}
+							trackingId={`Create${pageTypeCaps}`}
 						>
 							{projectLoading || workspaceLoading ? (
 								<CircularSpinner
@@ -222,49 +354,9 @@ const NewProjectPage = () => {
 								`Create ${pageTypeCaps}`
 							)}
 						</Button>
-						{isWorkspace && (
-							<ButtonLink
-								trackingId={`Enter${pageTypeCaps}`}
-								className={clsx(styles.button)}
-								to={`/switch${search}`}
-								fullWidth
-								type="default"
-							>
-								Already Have a Workspace?{' '}
-								{!loading &&
-									!!data &&
-									data.workspaces_count !== 0 && (
-										<Dot className={styles.workspaceCount}>
-											{data.workspaces_count}
-										</Dot>
-									)}
-							</ButtonLink>
-						)}
-						{!isWorkspace &&
-							currentWorkspaceData?.workspace &&
-							currentWorkspaceData.workspace.projects.length >
-								0 && (
-								<ButtonLink
-									trackingId={`Enter${pageTypeCaps}`}
-									className={clsx(styles.button)}
-									to={`/w/${workspace_id}/switch${search}`}
-									fullWidth
-									type="default"
-								>
-									Enter an Existing Project{' '}
-									{!loading && (
-										<Dot className={styles.workspaceCount}>
-											{
-												currentWorkspaceData.workspace
-													.projects.length
-											}
-										</Dot>
-									)}
-								</ButtonLink>
-							)}
-					</CardFormActionsContainer>
+					</Box>
 				</CardForm>
-			</div>
+			</Box>
 		</>
 	)
 }
