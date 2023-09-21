@@ -40,10 +40,35 @@ type ConsoleFn = (...data: any) => void
 let consoleHooked = false
 
 export function safeStringify(obj: any): string {
+	const seenObjects: any[] = []
+
+	// https://stackoverflow.com/a/14962496
+	function isCyclic(obj: any) {
+		const seenObjects: any[] = []
+		function detect(obj: any) {
+			if (obj && typeof obj === 'object') {
+				if (seenObjects.indexOf(obj) !== -1) {
+					return true
+				}
+				seenObjects.push(obj)
+				for (const key in obj) {
+					if (Object.hasOwn(obj, key) && detect(obj[key])) {
+						return true
+					}
+				}
+			}
+			return false
+		}
+
+		return detect(obj)
+	}
+
 	function replacer(input: any): any {
 		if (input && typeof input === 'object') {
 			for (let k in input) {
-				if (typeof input[k] === 'object') {
+				if (isCyclic(input[k])) {
+					input[k] = input[k].toString()
+				} else if (typeof input[k] === 'object') {
 					replacer(input[k])
 				} else if (!canStringify(input[k])) {
 					input[k] = input[k].toString()

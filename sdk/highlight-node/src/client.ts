@@ -14,6 +14,8 @@ import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
+import { version } from '../package.json'
+import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -41,7 +43,7 @@ export class Highlight {
 			)
 		}
 
-		this.tracer = trace.getTracer('highlight-node')
+		this.tracer = trace.getTracer('highlight-node', version)
 
 		const exporter = new OTLPTraceExporter({
 			compression: CompressionAlgorithm.GZIP,
@@ -66,6 +68,8 @@ export class Highlight {
 			attributes[SemanticResourceAttributes.SERVICE_VERSION] =
 				options.serviceVersion
 		}
+
+		diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ALL)
 
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
@@ -132,21 +136,14 @@ export class Highlight {
 		tags?: { name: string; value: string }[],
 	) {
 		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight-ctx')
+		const span = this.startSpan(
+			'highlight-metric',
+			secureSessionId,
+			requestId,
+		)
 		span.addEvent('metric', {
-			['highlight.project_id']: this._projectID,
 			['metric.name']: name,
 			['metric.value']: value,
-			...(secureSessionId
-				? {
-						['highlight.session_id']: secureSessionId,
-				  }
-				: {}),
-			...(requestId
-				? {
-						['highlight.trace_id']: requestId,
-				  }
-				: {}),
 		})
 		for (const t of tags || []) {
 			span.setAttribute(t.name, t.value)
@@ -164,7 +161,12 @@ export class Highlight {
 		metadata?: Attributes,
 	) {
 		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight-ctx')
+		const span = this.startSpan(
+			'highlight-log',
+			secureSessionId,
+			requestId,
+			metadata,
+		)
 		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
 		span.addEvent(
 			'log',
@@ -172,19 +174,8 @@ export class Highlight {
 				...(metadata ?? {}),
 				// pass stack so that error creation on our end can show a structured stacktrace for errors
 				['exception.stacktrace']: JSON.stringify(stack),
-				['highlight.project_id']: this._projectID,
 				['log.severity']: level,
 				['log.message']: msg,
-				...(secureSessionId
-					? {
-							['highlight.session_id']: secureSessionId,
-					  }
-					: {}),
-				...(requestId
-					? {
-							['highlight.trace_id']: requestId,
-					  }
-					: {}),
 			},
 			date,
 		)
@@ -197,8 +188,23 @@ export class Highlight {
 		requestId: string | undefined,
 		metadata?: Attributes,
 	) {
-		const span = this.tracer.startSpan('highlight-ctx')
+		const span = this.startSpan(
+			'highlight-consume-error',
+			secureSessionId,
+			requestId,
+			metadata,
+		)
 		span.recordException(error)
+		span.end()
+	}
+
+	startSpan(
+		name: string,
+		secureSessionId?: string,
+		requestId?: string,
+		metadata?: Attributes,
+	) {
+		const span = this.tracer.startSpan(name)
 		if (metadata != undefined) {
 			span.setAttributes(metadata)
 		}
@@ -208,8 +214,8 @@ export class Highlight {
 		if (requestId) {
 			span.setAttributes({ ['highlight.trace_id']: requestId })
 		}
-		this._log('created error span', span)
-		span.end()
+		this._log('created span', span)
+		return span
 	}
 
 	async flush() {

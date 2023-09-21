@@ -1,0 +1,16 @@
+{
+	"name": "axios-highlight",
+	"packageManager": "yarn@3.5.0",
+	"type": "module",
+	"scripts": {
+		"build": "yarn tsup --format esm --target esnext src",
+		"start": "yarn build && yarn node dist/index.js"
+	},
+	"dependencies": {
+		"@highlight-run/node": "workspace:*",
+		"axios": "^1.5.0"
+	},
+	"devDependencies": {
+		"tsup": "^7.2.0"
+	}
+}

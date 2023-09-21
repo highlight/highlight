@@ -2,7 +2,7 @@ import { IncomingHttpHeaders } from 'http'
 import { Highlight } from '.'
 import { NodeOptions } from './types.js'
 import log from './log'
-import type { Attributes } from '@opentelemetry/api'
+import type { Attributes, Span } from '@opentelemetry/api'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -13,6 +13,12 @@ export interface HighlightInterface {
 	parseHeaders: (
 		headers: IncomingHttpHeaders,
 	) => { secureSessionId: string; requestId: string } | undefined
+	startSpan: (
+		name: string,
+		secureSessionId: string | undefined,
+		requestId: string | undefined,
+		metadata?: Attributes,
+	) => Span
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
@@ -59,6 +65,19 @@ export const H: HighlightInterface = {
 		}
 	},
 	isInitialized: () => !!highlight_obj,
+	startSpan: (
+		name: string,
+		secureSessionId: string | undefined,
+		requestId: string | undefined,
+		metadata?: Attributes,
+	) => {
+		return highlight_obj.startSpan(
+			name,
+			secureSessionId,
+			requestId,
+			metadata,
+		)
+	},
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
