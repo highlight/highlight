@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS default.log_secure_session_id_mv;

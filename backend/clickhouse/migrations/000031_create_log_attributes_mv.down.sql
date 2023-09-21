@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS default.log_attributes_mv;
