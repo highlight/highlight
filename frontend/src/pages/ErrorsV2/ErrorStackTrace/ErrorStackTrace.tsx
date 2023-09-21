@@ -9,6 +9,7 @@ import {
 	Callout,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
+	IconSolidClipboardCopy,
 	IconSolidExclamation,
 	IconSolidExternalLink,
 	IconSolidGithub,
@@ -21,6 +22,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
+import { copyToClipboard } from '@util/string'
 import clsx from 'clsx'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
@@ -287,20 +289,35 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						.
 					</Tooltip>
 				)}
-				<Tooltip
-					trigger={
-						<Text
-							cssClass={clsx(styles.name, styles.file)}
-							as="span"
-						>
-							{truncateFileName(fileName || '')}
-						</Text>
-					}
-				>
-					<Box p="6">
-						<Text wrap="breakWord">{fileName}</Text>
-					</Box>
-				</Tooltip>
+				{fileName && (
+					<Tooltip
+						trigger={
+							<Text
+								cssClass={clsx(styles.name, styles.file)}
+								as="span"
+							>
+								{truncateFileName(fileName)}
+							</Text>
+						}
+					>
+						<Box display="flex">
+							<ButtonIcon
+								kind="secondary"
+								size="xSmall"
+								shape="square"
+								emphasis="low"
+								icon={<IconSolidClipboardCopy size={12} />}
+								onClick={(e) => {
+									e.stopPropagation()
+									copyToClipboard(fileName)
+								}}
+							/>
+							<Text cssClass={styles.fileName} wrap="breakWord">
+								{fileName}
+							</Text>
+						</Box>
+					</Tooltip>
+				)}
 
 				{externalLink && (
 					<LinkButton
