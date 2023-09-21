@@ -10,6 +10,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 )
@@ -88,7 +89,11 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResponse)
+	_, err = w.Write(jsonResponse)
+
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error writing password-auth login response"))
+	}
 }
 
 func (r *Resolver) ValidateAuthToken(w http.ResponseWriter, req *http.Request) {
@@ -123,5 +128,9 @@ func (r *Resolver) ValidateAuthToken(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResponse)
+	_, err = w.Write(jsonResponse)
+
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error writing validate-auth-token response"))
+	}
 }
