@@ -1,6 +1,5 @@
 // pages/api/test.ts
-import { NextApiRequest, NextApiResponse } from 'next'
-import { NextRequest, NextFetchEvent } from 'next/server'
+import { NextRequest } from 'next/server'
 
 import { withEdgeHighlight } from '@/app/utils/edge-highlight.config'
 import { z } from 'zod'
