@@ -49,6 +49,9 @@
 	"files": [
 		"dist"
 	],
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
 	"devDependencies": {
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",

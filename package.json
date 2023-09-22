@@ -23,6 +23,7 @@
 		"sdk/pino",
 		"render",
 		"rrweb/packages/*",
+		"opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers",
 		"scripts",
 		"sourcemap-uploader"
 	],
@@ -33,7 +34,7 @@
 		"build:sdk": "yarn turbo run build --filter highlight.run --filter @highlight-run/client --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest... --filter @highlight-run/pino...",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
-		"clean": "find . -d -name node_modules -exec rm -r \"{}\" \\; && find . -name tsconfig.tsbuildinfo -delete && find . -d -name dist -exec rm -r \"{}\" \\; && find . -d -name build -exec rm -r \"{}\" \\; && find . -d -name es -exec rm -r \"{}\" \\;",
+		"clean": "find . -depth -name node_modules -exec rm -r \"{}\" \\; && find . -name tsconfig.tsbuildinfo -delete && find . -depth -name dist -exec rm -r \"{}\" \\; && find . -depth -name build -exec rm -r \"{}\" \\; && find . -depth -name es -exec rm -r \"{}\" \\;",
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
 		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
@@ -48,7 +49,7 @@
 		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
 		"e2e:cloudflare": "yarn turbo run dev --filter cloudflare-worker...",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
-		"e2e:nextjs": "yarn turbo run dev --filter nextjs... --filter=!@highlight-run/client",
+		"e2e:nextjs": "yarn turbo run dev --filter nextjs... --filter=!@highlight-run/client --filter=!highlight.run --filter=!@highlight-run/opentelemetry-sdk-workers",
 		"e2e:remix": "yarn turbo run dev --filter remix...",
 		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
 		"format-check": "prettier --check --ignore-unknown .",
@@ -67,7 +68,7 @@
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
-		"test:all": "yarn turbo run test --filter=!render --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
+		"test:all": "yarn turbo run test --filter=!render --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs --filter=!nextjs",
 		"test:render": "yarn turbo run test --filter=render",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
@@ -122,6 +123,7 @@
 		"lodash": "4.17.21",
 		"minimatch": "3.0.5",
 		"minimist": "1.2.6",
+		"next": "13.4.12",
 		"node-fetch": "2.6.7",
 		"node-forge": "1.3.0",
 		"normalize-url": "4.5.1",
@@ -129,11 +131,15 @@
 		"object-path": "0.11.8",
 		"prismjs": "1.27.0",
 		"puppeteer": "19.8.5",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
 		"tmpl": "1.0.5",
 		"trim": "0.0.3",
 		"trim-newlines": "3.0.1",
 		"ua-parser-js": "0.7.33",
 		"undici": "5.19.1",
-		"webpack": "5.76.0"
+		"webpack": "5.76.0",
+		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",
+		"@protobufjs/inquire@^1.1.0": "patch:@protobufjs/inquire@npm%3A1.1.0#./.yarn/patches/@protobufjs-inquire-npm-1.1.0-3c7759e9ce.patch"
 	}
 }

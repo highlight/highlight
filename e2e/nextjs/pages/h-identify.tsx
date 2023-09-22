@@ -6,8 +6,9 @@ import { useEffect } from 'react'
 export default function HighlightIdentify() {
 	useEffect(() => {
 		H.identify('chris.esplin@highlight.io', {
-			highlightDisplayName: 'Chris Esplin',
+			highlightDisplayName: 'Chris "Highlight" Esplin',
 			accountType: 'fake',
+			host: window.location.host,
 			hasUsedFeature: true,
 		})
 	}, [])

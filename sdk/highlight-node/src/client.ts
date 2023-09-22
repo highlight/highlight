@@ -1,7 +1,6 @@
-import {
-	BatchSpanProcessor,
-	SpanProcessor,
-} from '@opentelemetry/sdk-trace-base'
+import { BufferConfig, Span } from '@opentelemetry/sdk-trace-base'
+import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
+
 import type { Attributes, Tracer } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeOptions } from './types.js'
@@ -17,6 +16,39 @@ import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
+// @ts-ignore
+class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
+	private _listeners: Map<Symbol, () => void>
+
+	constructor(config: any, options: any) {
+		super(config, options)
+
+		this._listeners = new Map()
+	}
+
+	onShutdown(): void {}
+
+	async forceFlush(): Promise<void> {
+		// @ts-ignore
+		const finishedSpansCount = this._finishedSpans.length
+
+		await super.forceFlush()
+
+		if (finishedSpansCount > 0) {
+			Array.from(this._listeners.values()).forEach((listener) =>
+				listener(),
+			)
+		}
+	}
+
+	registerListener(listener: () => void) {
+		const id = Symbol()
+		this._listeners.set(id, listener)
+
+		return () => this._listeners.delete(id)
+	}
+}
+
 export class Highlight {
 	readonly FLUSH_TIMEOUT = 10
 	_intervalFunction: ReturnType<typeof setInterval>
@@ -24,7 +56,7 @@ export class Highlight {
 	_debug: boolean
 	otel: NodeSDK
 	private tracer: Tracer
-	private processor: SpanProcessor
+	private processor: CustomSpanProcessor
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -48,7 +80,7 @@ export class Highlight {
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
-		this.processor = new BatchSpanProcessor(exporter, {
+		this.processor = new CustomSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 128,
 			maxQueueSize: 1024,
@@ -108,6 +140,21 @@ export class Highlight {
 		}
 
 		this._log(`Initialized SDK for project ${this._projectID}`)
+	}
+
+	get activeSpanProcessor(): CustomSpanProcessor {
+		// @ts-ignore
+		return trace.getTracerProvider()?._delegate.activeSpanProcessor
+			._spanProcessors[0]
+	}
+
+	get finishedSpans(): Span[] {
+		const processor = this.activeSpanProcessor
+		const finishedSpans: CustomSpanProcessor['_finishedSpans'] =
+			// @ts-ignore
+			processor?._finishedSpans ?? []
+
+		return finishedSpans
 	}
 
 	async stop() {
@@ -216,5 +263,41 @@ export class Highlight {
 		await this.processor
 			.forceFlush()
 			.catch((e) => console.warn('highlight-node failed to flush: ', e))
+	}
+
+	async waitForFlush() {
+		return new Promise<void>(async (resolve) => {
+			let resolved = false
+			let waitingForFinishedSpans = false
+
+			await this.flush()
+
+			let intervalTimer = setInterval(async () => {
+				const finishedSpansCount = this.finishedSpans.length
+
+				if (finishedSpansCount) {
+					waitingForFinishedSpans = true
+				} else if (waitingForFinishedSpans) {
+					finish()
+				}
+			}, 10)
+			let timer = setTimeout(finish, 10000)
+			function finish() {
+				intervalTimer && clearInterval(intervalTimer)
+				timer && clearTimeout(timer)
+				unlisten()
+
+				if (!resolved) {
+					resolved = true
+					resolve()
+				}
+			}
+
+			const unlisten = this.processor.registerListener(finish)
+		})
+	}
+
+	setAttributes(attributes: Attributes) {
+		return this.otel.addResource(new Resource(attributes))
 	}
 }
