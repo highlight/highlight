@@ -22,8 +22,9 @@ type config struct {
 }
 
 var (
-	signalChan chan os.Signal
-	conf       *config
+	interruptChan chan bool
+	signalChan    chan os.Signal
+	conf          *config
 )
 
 type Option interface {
@@ -109,6 +110,7 @@ func (d deadLog) Errorf(_ string, _ ...interface{}) {}
 
 // init gets called once when you import the package
 func init() {
+	interruptChan = make(chan bool, 1)
 	signalChan = make(chan os.Signal, 1)
 	conf = &config{}
 
@@ -141,8 +143,10 @@ func StartWithContext(ctx context.Context, opts ...Option) {
 	}
 	state = started
 	go func() {
-		for state == started {
+		for {
 			select {
+			case <-interruptChan:
+				return
 			case <-signalChan:
 				shutdown()
 				return
@@ -156,6 +160,7 @@ func StartWithContext(ctx context.Context, opts ...Option) {
 
 // Stop flushes and shuts down the SDK.
 func Stop() {
+	interruptChan <- true
 	shutdown()
 }
 
