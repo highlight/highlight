@@ -111,6 +111,15 @@ const alertOptions: AlertOption[] = [
 	},
 ]
 
+const AlertsSetupHeader: React.FC = function () {
+	return (
+		<Header
+			title="Create alerts for your app"
+			subtitle="Don’t search for interesting activity; get alerted proactively."
+		/>
+	)
+}
+
 export const AlertsSetup: React.FC = function () {
 	const { projectId } = useProjectId()
 	const [alertsSetup] = useIntegratedLocalStorage(projectId, 'alerts')
@@ -130,17 +139,10 @@ export const AlertsSetup: React.FC = function () {
 		}
 	}, [alertsSetup, hidden])
 
-	const header = (
-		<Header
-			title="Create alerts for your app"
-			subtitle="Don’t search for interesting activity; get alerted proactively."
-		/>
-	)
-
 	if (hidden) {
 		return (
 			<Box style={{ maxWidth: 560, marginTop: 80 }} margin="auto">
-				{header}
+				<AlertsSetupHeader />
 				<Callout title="You have already created alerts.">
 					<Stack gap="16">
 						<Text size="small" weight="medium" color="moderate">
@@ -174,7 +176,7 @@ export const AlertsSetup: React.FC = function () {
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-				{header}
+				<AlertsSetupHeader />
 				{platform ? (
 					<AlertPicker platform={platform} />
 				) : (
@@ -346,9 +348,9 @@ const AlertPicker = function ({
 	const hasDefaultErrorAlert = data?.error_alerts.find((a) => a?.default)
 	const hasDefaultLogAlert = data?.log_alerts.find((a) => a?.default)
 	const hasChanges =
-		(alertsSelected.indexOf('Session') === -1) != !hasDefaultSessionAlert ||
-		(alertsSelected.indexOf('Error') === -1) != !hasDefaultErrorAlert ||
-		(alertsSelected.indexOf('Log') === -1) != !hasDefaultLogAlert
+		alertsSelected.includes('Session') !== !!hasDefaultSessionAlert ||
+		alertsSelected.includes('Error') !== !!hasDefaultErrorAlert ||
+		alertsSelected.includes('Log') !== !!hasDefaultLogAlert
 
 	useEffect(() => {
 		onAlertsSelected([
@@ -566,10 +568,9 @@ const AlertPicker = function ({
 											)
 										}
 									}}
-									checked={
-										alertsSelected.indexOf(option.name) !==
-										-1
-									}
+									checked={alertsSelected.includes(
+										option.name,
+									)}
 								/>
 								<Text size="medium" color="strong">
 									{option.name} Alert
@@ -582,14 +583,12 @@ const AlertPicker = function ({
 									kind="secondary"
 									emphasis="medium"
 									iconLeft={
-										alertsSelected.indexOf(option.name) ===
-										-1
+										!alertsSelected.includes(option.name)
 											? notificationOption?.logoDisabled
 											: notificationOption?.logo
 									}
 									disabled={
-										alertsSelected.indexOf(option.name) ===
-										-1
+										!alertsSelected.includes(option.name)
 									}
 								>
 									{emailDestination
