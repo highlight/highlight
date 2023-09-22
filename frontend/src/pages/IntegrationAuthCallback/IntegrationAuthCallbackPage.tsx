@@ -22,6 +22,10 @@ import { useEffect, useMemo } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import { useAuthContext } from '@/authentication/AuthContext'
+import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
+import { authRedirect } from '@/pages/Auth/utils'
+
 interface Props {
 	code: string
 	projectId?: string
@@ -147,7 +151,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 		next: StringParam,
 	})
 
-	const { data } = useGetProjectsAndWorkspacesQuery()
+	const { data, loading } = useGetProjectsAndWorkspacesQuery()
 
 	let projectId = ''
 	if (data?.projects && data.projects[0]) {
@@ -162,15 +166,25 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 		}
 	}, [addVercelIntegrationToProject, code, projectId])
 
+	const { isLoggedIn } = useAuthContext()
 	const { search } = useLocation()
+
+	if (loading) {
+		return null
+	}
 
 	// If there are no projects, redirect to create one
 	if (data?.projects?.length === 0) {
+		const callbackPath = `/callback/vercel${search}`
+
+		if (!isLoggedIn) {
+			authRedirect.set(callbackPath)
+			return <Navigate to={SIGN_IN_ROUTE} replace />
+		}
+
 		return (
 			<Navigate
-				to={`/new?next=${encodeURIComponent(
-					`/callback/vercel${search}`,
-				)}`}
+				to={`/new?next=${encodeURIComponent(callbackPath)}`}
 				replace
 			/>
 		)
@@ -192,6 +206,8 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 						<h3>Configuring Vercel Integration</h3>
 						<VercelIntegrationSettings
 							onSuccess={() => {
+								authRedirect.clear()
+
 								if (next) {
 									window.location.href = next
 								} else {
@@ -199,6 +215,8 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 								}
 							}}
 							onCancel={() => {
+								authRedirect.clear()
+
 								if (next) {
 									window.close()
 								} else {
@@ -345,11 +363,14 @@ const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
 	}>()
+	const { isAuthLoading } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
-		setLoadingState(AppLoadingState.EXTENDED_LOADING)
-	}, [setLoadingState])
+		if (isAuthLoading) {
+			setLoadingState(AppLoadingState.EXTENDED_LOADING)
+		}
+	}, [isAuthLoading, setLoadingState])
 
 	const { code, projectId, workspaceId, next, installationId, setupAction } =
 		useMemo(() => {
