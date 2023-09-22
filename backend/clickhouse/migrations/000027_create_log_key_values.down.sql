@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS default.log_key_values;
+DROP TABLE IF EXISTS log_key_values;

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS default.log_key_values (
+CREATE TABLE IF NOT EXISTS log_key_values (
     `ProjectId` Int32,
     `Key` LowCardinality(String),
     `Day` DateTime,

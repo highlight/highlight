@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW IF NOT EXISTS default.log_key_values_mv TO default.log_key_values (
+CREATE MATERIALIZED VIEW IF NOT EXISTS log_key_values_mv TO log_key_values (
     `ProjectId` Int32,
     `Key` LowCardinality(String),
     `Day` DateTime,
@@ -10,7 +10,7 @@ SELECT ProjectId AS ProjectId,
     toStartOfDay(LogTimestamp) AS Day,
     Value,
     count() AS Count
-FROM default.log_attributes
+FROM log_attributes
 GROUP BY ProjectId,
     Key,
     Day,

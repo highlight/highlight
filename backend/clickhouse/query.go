@@ -415,7 +415,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
 		GroupBy("1").
-		OrderBy("2 DESC").
+		OrderBy("2 DESC, 1").
 		Limit(500)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -464,7 +464,7 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
 		GroupBy("1").
-		OrderBy("2 DESC").
+		OrderBy("2 DESC, 1").
 		Limit(500)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)

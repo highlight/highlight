@@ -1,1 +1,1 @@
-DROP VIEW IF EXISTS default.log_trace_id_mv;
+DROP VIEW IF EXISTS log_trace_id_mv;

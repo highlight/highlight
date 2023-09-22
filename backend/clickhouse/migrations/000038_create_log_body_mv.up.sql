@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW IF NOT EXISTS log_secure_session_id_mv TO log_attributes (
+CREATE MATERIALIZED VIEW IF NOT EXISTS log_body_mv TO log_attributes (
     `ProjectId` UInt32,
     `Key` String,
     `LogTimestamp` DateTime,
@@ -6,9 +6,9 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS log_secure_session_id_mv TO log_attribute
     `Value` String
 ) AS
 SELECT ProjectId AS ProjectId,
-    'secure_session_id' AS Key,
+    'message' AS Key,
     Timestamp AS LogTimestamp,
     UUID AS LogUUID,
-    SecureSessionId AS Value
+    Body AS Value
 FROM logs
-WHERE (SecureSessionId != '');
+WHERE (Body != '');

@@ -1,1 +1,1 @@
-DROP VIEW IF EXISTS default.log_keys_mv;
+DROP VIEW IF EXISTS log_keys_mv;

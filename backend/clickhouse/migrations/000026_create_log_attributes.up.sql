@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS default.log_attributes (
+CREATE TABLE IF NOT EXISTS log_attributes (
     `ProjectId` Int32,
     `Key` LowCardinality(String),
     `LogTimestamp` DateTime,

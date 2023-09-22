@@ -1,1 +1,1 @@
-DROP VIEW IF EXISTS default.log_service_version_mv;
+DROP VIEW IF EXISTS log_service_version_mv;

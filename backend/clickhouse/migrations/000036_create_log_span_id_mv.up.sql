@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW IF NOT EXISTS default.log_span_id_mv TO default.log_attributes (
+CREATE MATERIALIZED VIEW IF NOT EXISTS log_span_id_mv TO log_attributes (
     `ProjectId` UInt32,
     `Key` String,
     `LogTimestamp` DateTime,
@@ -10,5 +10,5 @@ SELECT ProjectId AS ProjectId,
     Timestamp AS LogTimestamp,
     UUID AS LogUUID,
     SpanId AS Value
-FROM default.logs
+FROM logs
 WHERE (SpanId != '');

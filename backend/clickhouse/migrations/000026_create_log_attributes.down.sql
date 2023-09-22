@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS default.log_attributes;
+DROP TABLE IF EXISTS log_attributes;

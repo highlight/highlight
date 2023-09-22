@@ -1,1 +1,1 @@
-DROP VIEW IF EXISTS default.log_source_mv;
+DROP VIEW IF EXISTS log_source_mv;

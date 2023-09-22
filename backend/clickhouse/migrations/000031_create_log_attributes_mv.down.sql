@@ -1,1 +1,1 @@
-DROP VIEW IF EXISTS default.log_attributes_mv;
+DROP VIEW IF EXISTS log_attributes_mv;

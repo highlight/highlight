@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW IF NOT EXISTS default.log_attributes_mv TO default.log_attributes (
+CREATE MATERIALIZED VIEW IF NOT EXISTS log_attributes_mv TO log_attributes (
     `ProjectId` UInt32,
     `Key` String,
     `LogTimestamp` DateTime,
@@ -10,5 +10,17 @@ SELECT ProjectId AS ProjectId,
     Timestamp AS LogTimestamp,
     UUID AS LogUUID,
     arrayJoin(LogAttributes).2 AS Value
-FROM default.logs
-WHERE (Value != '');
+FROM logs
+WHERE (
+        Key NOT IN (
+            'level',
+            'secure_session_id',
+            'service_name',
+            'service_version',
+            'source',
+            'span_id',
+            'trace_id',
+            'message'
+        )
+    )
+    AND (Value != '');
