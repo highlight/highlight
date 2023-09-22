@@ -677,35 +677,35 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 		return false, e.New("session export is not enabled")
 	}
 
-	go func() {
-		export := model.SessionExport{
-			SessionID:    session.ID,
-			Type:         model.SessionExportFormatMP4,
-			TargetEmails: []string{*admin.Email},
-		}
+	export := model.SessionExport{
+		SessionID:    session.ID,
+		Type:         model.SessionExportFormatMP4,
+		TargetEmails: []string{*admin.Email},
+	}
 
-		tx := r.DB.Model(&export).Where(&model.SessionExport{
-			SessionID: session.ID,
-			Type:      model.SessionExportFormatMP4,
-		}).Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
-			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
-		}).FirstOrCreate(&export)
-		if tx.Error != nil {
-			log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
-			return
-		}
+	tx := r.DB.Model(&export).Where(&model.SessionExport{
+		SessionID: session.ID,
+		Type:      model.SessionExportFormatMP4,
+	}).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
+		DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
+	}).FirstOrCreate(&export)
+	if tx.Error != nil {
+		log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
+		return false, tx.Error
+	}
 
-		_, err := r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
-			Project:      session.ProjectID,
-			Session:      session.ID,
-			Format:       export.Type,
-			TargetEmails: export.TargetEmails,
-		})
-		if err != nil {
-			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
-		}
-	}()
+	_, err = r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
+		Project:      session.ProjectID,
+		Session:      session.ID,
+		Format:       export.Type,
+		TargetEmails: export.TargetEmails,
+	})
+	if err != nil {
+		log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		return false, err
+	}
+
 	return true, nil
 }
 
