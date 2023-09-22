@@ -39,7 +39,7 @@ func BuildLogAlert(project *model.Project, workspace *model.Workspace, admin *mo
 			Type:                 pointy.String("LogAlert"),
 			ChannelsToNotify:     channelsString,
 			EmailsToNotify:       emailsString,
-			Name:                 &input.Name,
+			Name:                 input.Name,
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
 			Default:              *defaultArg,

@@ -69,6 +69,7 @@ export type Admin = {
 	about_you_details_filled?: Maybe<Scalars['Boolean']>
 	email: Scalars['String']
 	email_verified?: Maybe<Scalars['Boolean']>
+	heard_about?: Maybe<Scalars['String']>
 	id: Scalars['ID']
 	name: Scalars['String']
 	phone?: Maybe<Scalars['String']>
@@ -83,8 +84,10 @@ export type Admin = {
 
 export type AdminAboutYouDetails = {
 	first_name: Scalars['String']
+	heard_about: Scalars['String']
 	last_name: Scalars['String']
 	phone?: InputMaybe<Scalars['String']>
+	phone_home_contact_allowed: Scalars['Boolean']
 	referral: Scalars['String']
 	user_defined_persona: Scalars['String']
 	user_defined_role: Scalars['String']
@@ -94,7 +97,9 @@ export type AdminAboutYouDetails = {
 export type AdminAndWorkspaceDetails = {
 	allowed_auto_join_email_origins?: InputMaybe<Scalars['String']>
 	first_name: Scalars['String']
+	heard_about: Scalars['String']
 	last_name: Scalars['String']
+	phone_home_contact_allowed: Scalars['Boolean']
 	promo_code?: InputMaybe<Scalars['String']>
 	referral: Scalars['String']
 	user_defined_role: Scalars['String']
@@ -862,6 +867,8 @@ export enum LogSource {
 export type LogsHistogram = {
 	__typename?: 'LogsHistogram'
 	buckets: Array<LogsHistogramBucket>
+	objectCount: Scalars['UInt64']
+	sampleFactor: Scalars['Float']
 	totalCount: Scalars['UInt64']
 }
 
@@ -1784,8 +1791,6 @@ export type Query = {
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
 	property_suggestion?: Maybe<Array<Maybe<Field>>>
-	quickFields_clickhouse: Array<Maybe<Field>>
-	quickFields_opensearch: Array<Maybe<Field>>
 	rageClicksForProject: Array<RageClickEventForProject>
 	rage_click_alerts: Array<Maybe<SessionAlert>>
 	rage_clicks: Array<RageClickEvent>
@@ -1800,7 +1805,7 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
-	session_exports: Array<SessionExport>
+	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
@@ -2307,23 +2312,6 @@ export type QueryProperty_SuggestionArgs = {
 	type: Scalars['String']
 }
 
-export type QueryQuickFields_ClickhouseArgs = {
-	count: Scalars['Int']
-	end_date: Scalars['Timestamp']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date: Scalars['Timestamp']
-}
-
-export type QueryQuickFields_OpensearchArgs = {
-	count: Scalars['Int']
-	end_date?: InputMaybe<Scalars['Timestamp']>
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date?: InputMaybe<Scalars['Timestamp']>
-	use_clickhouse?: InputMaybe<Scalars['Boolean']>
-}
-
 export type QueryRageClicksForProjectArgs = {
 	lookBackPeriod: Scalars['Int']
 	project_id: Scalars['ID']
@@ -2379,6 +2367,10 @@ export type QuerySession_CommentsArgs = {
 }
 
 export type QuerySession_Comments_For_ProjectArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QuerySession_ExportsArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2884,12 +2876,13 @@ export enum SessionExcludedReason {
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
 }
 
-export type SessionExport = {
-	__typename?: 'SessionExport'
+export type SessionExportWithSession = {
+	__typename?: 'SessionExportWithSession'
+	active_length?: Maybe<Scalars['Int']>
+	created_at: Scalars['Timestamp']
 	error: Scalars['String']
-	id: Scalars['ID']
-	session_id: Scalars['ID']
-	target_emails: Array<Scalars['String']>
+	identifier: Scalars['String']
+	secure_id: Scalars['String']
 	type: Scalars['String']
 	url: Scalars['String']
 }

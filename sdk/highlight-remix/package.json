@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/remix",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "Client for interfacing with Highlight in Remix",
 	"packageManager": "yarn@3.5.0",
 	"author": "",
@@ -40,7 +40,7 @@
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/react": "workspace:*",
-		"@opentelemetry/instrumentation": "0.41.1",
+		"@opentelemetry/instrumentation": "0.43.0",
 		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.5"
 	},

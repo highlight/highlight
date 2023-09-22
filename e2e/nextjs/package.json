@@ -3,18 +3,17 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev -p 3005",
-		"build": "next build",
+		"dev": "rm -rf .next && next dev -p 3005",
+		"build": "rm -rf .next && next build",
 		"deploy": "yarn build && vercel build && vercel deploy --prebuilt",
 		"start": "next start",
 		"lint": "next lint"
 	},
 	"installConfig": {
-		"hoistingLimits": "dependencies"
+		"hoistingLimits": "workspaces"
 	},
 	"dependencies": {
-		"@highlight-run/cloudflare": "workspace:*",
-		"@highlight-run/next": "workspace:*",
+		"@highlight-run/next": "workspace:^",
 		"@next/env": "^13.4.12",
 		"@tanstack/react-query": "^4.29.7",
 		"@trpc/client": "^10.26.0",

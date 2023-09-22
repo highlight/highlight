@@ -12,10 +12,12 @@ import {
 	useExportSessionMutation,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import {
 	Badge,
 	Box,
 	ButtonIcon,
+	ButtonLink,
 	IconSolidArrowsExpand,
 	IconSolidChartBar,
 	IconSolidClock,
@@ -33,6 +35,7 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
@@ -65,6 +68,7 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useCallback } from 'react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
 import style from './ToolbarControlBar.module.css'
@@ -404,6 +408,8 @@ interface ControlSettingsProps {
 	setShowSettingsPopover: (shouldShow: boolean) => void
 }
 const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
+	const navigate = useNavigate()
+	const { projectId } = useProjectId()
 	const [showSessionSettings, setShowSessionSettings] = useState(true)
 	const { currentWorkspace } = useApplicationContext()
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
@@ -453,10 +459,34 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					variables: {
 						session_secure_id: session.secure_id,
 					},
+					refetchQueries: [namedOperations.Query.GetSessionExports],
 				})
-				message.info(
-					'You will receive an email once the session is ready. Check the settings page.',
-				)
+				message.open({
+					content: (
+						<Box
+							display="flex"
+							alignItems="center"
+							justifyContent="center"
+							gap="2"
+							cssClass={style.toast}
+						>
+							<Text>
+								You will receive an email once the session is
+								ready.
+							</Text>
+							<ButtonLink
+								onClick={() => {
+									navigate(
+										`/${projectId}/settings/sessions#exports`,
+									)
+								}}
+							>
+								<Text>Click here to check progress.</Text>
+							</ButtonLink>
+						</Box>
+					),
+					duration: 10,
+				})
 			} catch (e) {
 				message.error(`An error occurred exporting the session: ${e}`)
 			}
@@ -464,6 +494,8 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	}, [
 		currentWorkspace?.id,
 		exportSessionMutation,
+		navigate,
+		projectId,
 		session?.secure_id,
 		workspaceSettingsData?.workspaceSettings?.enable_session_export,
 	])

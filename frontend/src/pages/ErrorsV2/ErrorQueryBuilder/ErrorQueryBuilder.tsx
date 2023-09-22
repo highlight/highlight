@@ -1,6 +1,6 @@
 import {
 	useEditErrorSegmentMutation,
-	useGetErrorFieldsOpensearchQuery,
+	useGetErrorFieldsClickhouseQuery,
 	useGetErrorSegmentsQuery,
 } from '@graph/hooks'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
@@ -82,12 +82,12 @@ export const CUSTOM_FIELDS: CustomField[] = [
 ]
 
 const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
-	const { refetch } = useGetErrorFieldsOpensearchQuery({
+	const { refetch } = useGetErrorFieldsClickhouseQuery({
 		skip: true,
 	})
 	const fetchFields = useCallback(
 		(variables: FetchFieldVariables) =>
-			refetch(variables).then((r) => r.data.error_fields_opensearch),
+			refetch(variables).then((r) => r.data.error_fields_clickhouse),
 		[refetch],
 	)
 

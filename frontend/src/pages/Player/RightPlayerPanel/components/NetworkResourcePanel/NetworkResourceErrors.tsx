@@ -1,9 +1,7 @@
 import { Box, Callout, Text } from '@highlight-run/ui'
-import { useLocalStorage } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import LoadingBox from '@/components/LoadingBox'
-import { useGetErrorGroupsOpenSearchQuery } from '@/graph/generated/hooks'
+import { useGetErrorGroupsClickhouseQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
@@ -27,28 +25,12 @@ export const NetworkResourceErrors: React.FC<{
 	const requestId = getHighlightRequestId(resource)
 	const errors = sessionErrors.filter((e) => e.request_id === requestId)
 	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
-	const { data, loading } = useGetErrorGroupsOpenSearchQuery({
+	const { data, loading } = useGetErrorGroupsClickhouseQuery({
 		variables: {
-			query: `{
-				"bool": {
-					"must": {
-						"terms": {
-							"secure_id.keyword": [${errorGroupSecureIds.map((id) => `"${id}"`).join(',')}]
-						}
-					}
-				}
-			}`.replace(/\s+/g, ''),
-			clickhouse_query: useClickhouse
-				? {
-						isAnd: true,
-						rules: [['secure_id', 'is', ...errorGroupSecureIds]],
-				  }
-				: undefined,
+			query: {
+				isAnd: true,
+				rules: [['secure_id', 'is', ...errorGroupSecureIds]],
+			},
 			project_id: projectId,
 			count: errorGroupSecureIds.length,
 		},
@@ -60,8 +42,8 @@ export const NetworkResourceErrors: React.FC<{
 
 	return (
 		<>
-			{data?.error_groups_opensearch.error_groups?.length ? (
-				data?.error_groups_opensearch.error_groups.map(
+			{data?.error_groups_clickhouse.error_groups?.length ? (
+				data?.error_groups_clickhouse.error_groups.map(
 					(errorGroup, idx) => (
 						<Box
 							py="8"

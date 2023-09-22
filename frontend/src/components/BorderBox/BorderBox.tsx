@@ -1,9 +1,21 @@
 import { Box } from '@highlight-run/ui'
 import React from 'react'
 
-const BorderBox: React.FC<React.PropsWithChildren> = ({ children }) => {
+interface Props {
+	noPadding?: boolean
+}
+
+const BorderBox: React.FC<React.PropsWithChildren<Props>> = ({
+	children,
+	noPadding,
+}) => {
+	const props = { px: '8', py: '12' } as const
 	return (
-		<Box border="dividerWeak" borderRadius="8" p="8">
+		<Box
+			border="dividerWeak"
+			borderRadius="8"
+			{...(noPadding ? {} : props)}
+		>
 			{children}
 		</Box>
 	)

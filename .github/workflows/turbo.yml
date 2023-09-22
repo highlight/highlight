@@ -21,7 +21,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
               with:
-                  submodules: true
+                  submodules: recursive
 
             - uses: dorny/paths-filter@v2
               id: filter
@@ -37,6 +37,7 @@ jobs:
                         - 'sdk/highlight-node/**'
                         - 'sdk/highlight-react/**'
                         - 'sdk/highlight-remix/**'
+                        - 'sdk/opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers/**'
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
@@ -86,7 +87,9 @@ jobs:
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              run: yarn test:render
+              run: doppler run -- yarn test:render
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
             - name: Validate session screenshot lambda size
               # this can only run after `yarn test:render` runs
@@ -150,7 +153,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
               with:
-                  submodules: true
+                  submodules: recursive
 
             - name: Setup Node.js environment
               uses: buildjet/setup-node@v3

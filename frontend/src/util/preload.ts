@@ -1,21 +1,24 @@
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
-import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	GetEnhancedUserDetailsDocument,
 	GetErrorGroupDocument,
-	GetErrorGroupsOpenSearchDocument,
+	GetErrorGroupsClickhouseDocument,
 	GetErrorInstanceDocument,
-	GetErrorsHistogramDocument,
+	GetErrorsHistogramClickhouseDocument,
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
 	GetSessionDocument,
 	GetSessionIntervalsDocument,
 	GetSessionPayloadDocument,
-	GetSessionsHistogramDocument,
-	GetSessionsOpenSearchDocument,
+	GetSessionsClickhouseDocument,
+	GetSessionsHistogramClickhouseDocument,
 	GetWebVitalsDocument,
 } from '@graph/hooks'
-import { ErrorInstance, OpenSearchCalendarInterval } from '@graph/schemas'
+import {
+	ClickhouseQuery,
+	ErrorInstance,
+	OpenSearchCalendarInterval,
+} from '@graph/schemas'
 import { LoadingError } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { indexedDBFetch, IndexedDBLink, isIndexedDBEnabled } from '@util/db'
 import { client } from '@util/graph'
@@ -26,6 +29,14 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
 
+import {
+	GetErrorGroupsClickhouseQuery,
+	GetErrorGroupsClickhouseQueryVariables,
+	GetSessionsClickhouseQuery,
+	GetSessionsClickhouseQueryVariables,
+	GetSessionsHistogramClickhouseQueryVariables,
+} from '@/graph/generated/operations'
+
 const CONCURRENT_SESSION_PRELOADS = 1
 const CONCURRENT_ERROR_PRELOADS = 10
 const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 3
@@ -34,10 +45,10 @@ const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 3
 const RESOURCE_FILE_SIZE_LIMIT_BYTES = 16 * 1024 * 1024
 
 export const usePreloadSessions = function ({
-	backendSearchQuery,
+	query,
 }: {
 	page: number
-	backendSearchQuery: BackendSearchQuery
+	query: ClickhouseQuery
 }) {
 	const { project_id } = useParams<{
 		project_id: string
@@ -57,7 +68,7 @@ export const usePreloadSessions = function ({
 			) {
 				return false
 			}
-			if (!backendSearchQuery?.searchQuery) {
+			if (!query) {
 				return false
 			}
 
@@ -67,12 +78,12 @@ export const usePreloadSessions = function ({
 			}
 
 			log('preload.ts', 'sessions query', {
-				searchQuery: backendSearchQuery?.searchQuery,
+				query,
 			})
 			client.query({
-				query: GetSessionsHistogramDocument,
+				query: GetSessionsHistogramClickhouseDocument,
 				variables: {
-					query: backendSearchQuery?.searchQuery,
+					query,
 					project_id,
 					histogram_options: {
 						bounds: {
@@ -90,23 +101,26 @@ export const usePreloadSessions = function ({
 							Intl.DateTimeFormat().resolvedOptions().timeZone ??
 							'UTC',
 					},
-				},
+				} as GetSessionsHistogramClickhouseQueryVariables,
 			})
-			const { data: sessions } = await client.query({
-				query: GetSessionsOpenSearchDocument,
-				variables: {
-					query: backendSearchQuery?.searchQuery,
-					count: DEFAULT_PAGE_SIZE,
-					page: pageToLoad,
-					project_id,
-					sort_desc: true,
-				},
-			})
-			if (!sessions?.sessions_opensearch.sessions.length) return false
+			const {
+				data: sessions,
+			}: { data: GetSessionsClickhouseQuery | undefined } =
+				await client.query({
+					query: GetSessionsClickhouseDocument,
+					variables: {
+						query,
+						count: DEFAULT_PAGE_SIZE,
+						page: pageToLoad,
+						project_id,
+						sort_desc: true,
+					} as GetSessionsClickhouseQueryVariables,
+				})
+			if (!sessions?.sessions_clickhouse.sessions.length) return false
 			preloadedPages.current.add(pageToLoad)
 
 			const promises: Promise<void>[] = []
-			for (const _s of sessions?.sessions_opensearch.sessions || []) {
+			for (const _s of sessions?.sessions_clickhouse.sessions || []) {
 				promises.push(loadSession(_s.secure_id))
 				if (promises.length === CONCURRENT_SESSION_PRELOADS) {
 					await Promise.all(promises)
@@ -115,14 +129,14 @@ export const usePreloadSessions = function ({
 			}
 			await Promise.all(promises)
 		})()
-	}, [pageToLoad, project_id, backendSearchQuery?.searchQuery])
+	}, [pageToLoad, project_id, query])
 }
 
 export const usePreloadErrors = function ({
-	backendSearchQuery,
+	query,
 }: {
 	page: number
-	backendSearchQuery: BackendSearchQuery
+	query: ClickhouseQuery
 }) {
 	const { project_id } = useParams<{
 		project_id: string
@@ -142,30 +156,33 @@ export const usePreloadErrors = function ({
 			) {
 				return false
 			}
-			if (!backendSearchQuery?.searchQuery) {
+			if (!query) {
 				return false
 			}
-			const { data: errors } = await client.query({
-				query: GetErrorGroupsOpenSearchDocument,
-				variables: {
-					query: backendSearchQuery.searchQuery,
-					count: DEFAULT_PAGE_SIZE,
-					page: pageToLoad,
-					project_id,
-				},
-			})
+			const {
+				data: errors,
+			}: { data: GetErrorGroupsClickhouseQuery | undefined } =
+				await client.query({
+					query: GetErrorGroupsClickhouseDocument,
+					variables: {
+						query,
+						count: DEFAULT_PAGE_SIZE,
+						page: pageToLoad,
+						project_id,
+					} as GetErrorGroupsClickhouseQueryVariables,
+				})
 
-			if (!errors?.error_groups_opensearch.error_groups.length)
+			if (!errors?.error_groups_clickhouse.error_groups.length)
 				return false
 			preloadedPages.current.add(pageToLoad)
 
 			log('preload.ts', 'errors query', {
-				searchQuery: backendSearchQuery?.searchQuery,
+				query,
 			})
 			client.query({
-				query: GetErrorsHistogramDocument,
+				query: GetErrorsHistogramClickhouseDocument,
 				variables: {
-					query: backendSearchQuery.searchQuery,
+					query,
 					project_id,
 					histogram_options: {
 						bounds: {
@@ -186,7 +203,7 @@ export const usePreloadErrors = function ({
 				},
 			})
 			const promises: Promise<void>[] = []
-			for (const _eg of errors?.error_groups_opensearch.error_groups ||
+			for (const _eg of errors?.error_groups_clickhouse.error_groups ||
 				[]) {
 				promises.push(loadErrorGroup(project_id!, _eg.secure_id))
 				if (promises.length === CONCURRENT_ERROR_PRELOADS) {
@@ -196,7 +213,7 @@ export const usePreloadErrors = function ({
 			}
 			await Promise.all(promises)
 		})()
-	}, [project_id, pageToLoad, backendSearchQuery?.searchQuery])
+	}, [project_id, pageToLoad, query])
 }
 
 export const checkResourceLimit = async function (resources_url: string) {

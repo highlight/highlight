@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS log_service_name_mv;

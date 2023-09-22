@@ -341,7 +341,10 @@ export class Highlight {
 	_initMembers(options: HighlightClassOptions) {
 		this.sessionShortcut = false
 		this._recordingStartTime = 0
-		this._isOnLocalHost = window.location.hostname === 'localhost'
+		this._isOnLocalHost =
+			window.location.hostname === 'localhost' ||
+			window.location.hostname === '127.0.0.1' ||
+			window.location.hostname === ''
 
 		this.ready = false
 		this.state = 'NotRecording'

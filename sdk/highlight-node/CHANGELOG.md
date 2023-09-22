@@ -97,3 +97,16 @@
 ### Minor Changes
 
 -   Ensure console serialization works with `BigInteger` and other unserializeable types.
+
+## 3.3.2
+
+### Patch Changes
+
+- Tune settings of opentelemetry SDK to reduce memory usage.
+- Enable GZIP compression of exported data.
+
+## 3.4.0
+
+### Minor Changes
+
+- Added `Highlight.waitForFlush` and `H.consumeAndFlush` to keep serverless functions alive while flushing

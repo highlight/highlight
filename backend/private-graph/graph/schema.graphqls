@@ -817,6 +817,8 @@ type LogsHistogramBucket {
 type LogsHistogram {
 	buckets: [LogsHistogramBucket!]!
 	totalCount: UInt64!
+	objectCount: UInt64!
+	sampleFactor: Float!
 }
 
 type QueryKey {
@@ -981,6 +983,8 @@ input AdminAboutYouDetails {
 	user_defined_role: String!
 	user_defined_persona: String!
 	user_defined_team_size: String!
+	heard_about: String!
+	phone_home_contact_allowed: Boolean!
 	referral: String!
 	phone: String
 }
@@ -991,6 +995,8 @@ input AdminAndWorkspaceDetails {
 	last_name: String!
 	user_defined_role: String!
 	user_defined_team_size: String!
+	heard_about: String!
+	phone_home_contact_allowed: Boolean!
 	referral: String!
 
 	# Workspace
@@ -1107,6 +1113,7 @@ type Admin {
 	referral: String
 	user_defined_role: String
 	user_defined_team_size: String
+	heard_about: String
 	about_you_details_filled: Boolean
 	user_defined_persona: String
 }
@@ -1595,13 +1602,15 @@ type SystemConfiguration {
 	maintenance_end: Timestamp
 }
 
-type SessionExport {
-	id: ID!
-	session_id: ID!
+type SessionExportWithSession {
+	created_at: Timestamp!
 	type: String!
 	url: String!
 	error: String!
-	target_emails: [String!]!
+	# session details
+	secure_id: String!
+	identifier: String!
+	active_length: Int
 }
 
 enum EmailOptOutCategory {
@@ -1802,21 +1811,6 @@ type Query {
 		start_date: Timestamp!
 		end_date: Timestamp!
 	): [String!]!
-	quickFields_opensearch(
-		project_id: ID!
-		count: Int!
-		query: String!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
-	): [Field]!
-	quickFields_clickhouse(
-		project_id: ID!
-		count: Int!
-		query: String!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [Field]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
 	# gets all the projects of a user
@@ -1942,7 +1936,7 @@ type Query {
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
-	session_exports: [SessionExport!]!
+	session_exports(project_id: ID!): [SessionExportWithSession!]!
 	system_configuration: SystemConfiguration!
 
 	services(

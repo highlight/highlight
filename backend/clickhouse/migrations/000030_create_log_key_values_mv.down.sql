@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS log_key_values_mv;

@@ -15,10 +15,13 @@ export function HighlightButtons() {
 		>
 			<Button
 				onClick={() => {
-					H.identify('vadim@highlight.io', { foo: 'bar' })
+					H.identify('vadim@highlight.io', {
+						foo: 'bar',
+						host: window.location.host,
+					})
 				}}
 			>
-				Identify
+				Identify As Vadim
 			</Button>
 			<Button
 				onClick={() => {
