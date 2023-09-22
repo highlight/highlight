@@ -4,6 +4,7 @@ import {
 	typographyStyles,
 } from '@highlight-run/ui/src/components/Text/styles.css'
 import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { globalStyle, style } from '@vanilla-extract/css'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -24,7 +25,6 @@ export const combobox = style([
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
-		color: 'transparent', // hide text - shown in tags
 		display: 'flex',
 		width: '100%',
 		selectors: {
@@ -39,38 +39,33 @@ globalStyle(`${combobox}::selection`, {
 	backgroundColor: `rgba(0, 0, 0, 0.3)`,
 })
 
-export const comboboxTag = style([
+export const comboboxTagsContainer = style([
 	typographyStyles.family.monospace,
-	{
-		...sMonotype,
-		alignItems: 'center',
-		display: 'inline-flex',
-		position: 'relative',
-		selectors: {
-			'&:after': {
-				backgroundColor: `rgba(0, 0, 0, 0.05)`,
-				border: vars.border.dividerWeak,
-				borderRadius: vars.borderRadius[4],
-				content: ' ',
-				cursor: 'pointer',
-				fontFeatureSettings: 'normal', // disable tabular numbers
-				height: 20,
-				letterSpacing: 'normal',
-				position: 'absolute',
-				top: 'calc(50% - 4px)',
-				left: -2,
-				bottom: 0,
-				right: -2,
-				width: 'calc(100% + 4px)',
-			},
-			'&:hover:after': {
-				backgroundColor: `rgba(0, 0, 0, 0.1)`,
-			},
-		},
-	},
+	sMonotype,
 ])
 
+export const comboboxTag = style({
+	color: 'transparent',
+	display: 'inline-flex',
+	fontFeatureSettings: 'normal', // disable tabular numbers
+	position: 'relative',
+})
+
+export const comboboxTagBackground = style({
+	backgroundColor: `rgba(0, 0, 0, 0.1)`,
+	borderRadius: vars.borderRadius[4],
+	height: 20,
+	letterSpacing: 'normal',
+	position: 'absolute',
+	top: 7,
+	left: -2,
+	bottom: 0,
+	right: -2,
+	width: 'calc(100% + 4px)',
+})
+
 export const comboboxTagClose = style({
+	color: themeVars.static.content.default,
 	cursor: 'pointer',
 	display: 'none',
 	position: 'absolute',

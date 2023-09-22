@@ -42,6 +42,7 @@ import {
 import {
 	BODY_KEY,
 	parseSearchQuery,
+	queryAsStringParams,
 	quoteQueryValue,
 	SearchParam,
 	stringifySearchQuery,
@@ -235,6 +236,7 @@ export const Search: React.FC<{
 		fetchValuesLazyQuery()
 
 	const queryTerms = parseSearchQuery(query)
+	const queryAsStringParts = queryAsStringParams(query)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
@@ -327,9 +329,11 @@ export const Search: React.FC<{
 		comboboxStore.setState('moves', 0)
 	}
 
-	const handleItemRemove = (index: number) => {
-		queryTerms.splice(index, 1)
-		const newQuery = stringifySearchQuery(queryTerms)
+	const handleRemoveItem = (index: number) => {
+		const parts = [...queryAsStringParts]
+		parts.splice(index, 1)
+		debugger
+		const newQuery = parts.join(' ')
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
@@ -341,9 +345,6 @@ export const Search: React.FC<{
 			flexGrow={1}
 			ref={containerRef}
 			position="relative"
-			style={{
-				paddingLeft: hideIcon ? undefined : 40,
-			}}
 		>
 			{!hideIcon ? (
 				<IconSolidSearch className={styles.searchIcon} />
@@ -359,40 +360,44 @@ export const Search: React.FC<{
 			>
 				<Box
 					position="absolute"
-					display="flex"
+					display="inline-block"
 					alignItems="center"
+					cssClass={styles.comboboxTagsContainer}
 					style={{
-						gap: 8,
 						left: 2,
+						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
-					{queryTerms.map((term, index) => {
-						if (term.key === BODY_KEY && !term.value.length) {
+					{queryAsStringParts.map((term, index) => {
+						if (!term.length) {
 							return null
 						}
 
 						return (
-							<Box
-								key={index}
-								cssClass={styles.comboboxTag}
-								py="6"
-								position="relative"
-								whiteSpace="nowrap"
-								style={{
-									textOverflow: 'ellipsis',
-								}}
-							>
-								<IconSolidXCircle
-									className={styles.comboboxTagClose}
-									size={13}
-									onClick={() => {
-										handleItemRemove(index)
+							<>
+								<Box
+									key={index}
+									cssClass={styles.comboboxTag}
+									py="6"
+									position="relative"
+									whiteSpace="nowrap"
+									style={{
+										textOverflow: 'ellipsis',
 									}}
-								/>
-								{term.key === BODY_KEY
-									? term.value
-									: `${term.key}:${term.value}`}
-							</Box>
+								>
+									<Box
+										cssClass={styles.comboboxTagBackground}
+										shadow="innerSecondary"
+									/>
+									<IconSolidXCircle
+										className={styles.comboboxTagClose}
+										size={13}
+										onClick={() => handleRemoveItem(index)}
+									/>
+									<Box style={{ zIndex: 1 }}>{term}</Box>
+								</Box>
+								&nbsp;
+							</>
 						)
 					})}
 				</Box>
@@ -405,10 +410,25 @@ export const Search: React.FC<{
 					placeholder={placeholder ?? 'Search...'}
 					className={className ?? styles.combobox}
 					value={query}
+					onKeyDownCapture={(e) => {
+						// Don't allow multiple spaces
+						const currentCursorIndex =
+							e.currentTarget.selectionStart ?? 0
+
+						const isNextToSpace =
+							query[currentCursorIndex - 1] === ' ' ||
+							query[currentCursorIndex] === ' '
+
+						console.log(e)
+						if (e.key === ' ' && isNextToSpace) {
+							e.preventDefault()
+						}
+					}}
 					onChange={(e) => {
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
 						// after a delay or blurring the input.
+						// const newValue = e.target.value.replaceAll('  ', ' ')
 						setQuery(e.target.value)
 					}}
 					onBlur={() => {
@@ -421,6 +441,9 @@ export const Search: React.FC<{
 							submitQuery(query)
 							comboboxStore.setOpen(false)
 						}
+					}}
+					style={{
+						paddingLeft: hideIcon ? undefined : 40,
 					}}
 				/>
 

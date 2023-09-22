@@ -11,7 +11,7 @@ export const BODY_KEY = 'body'
 
 // Inspired by search-query-parser:
 // https://github.com/nepsilon/search-query-parser/blob/8158d09c70b66168440e93ffabd720f4c8314c9b/lib/search-query-parser.js#L40
-const PARSE_REGEX =
+export const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+|\s$/g
 
 export const parseSearchQuery = (query = ''): SearchParam[] => {
@@ -61,6 +61,21 @@ export const parseSearchQuery = (query = ''): SearchParam[] => {
 					offsetStart: isEmptyString ? match.index + 1 : match.index,
 				})
 			}
+		}
+	}
+
+	return terms
+}
+
+export const queryAsStringParams = (query: string): string[] => {
+	const terms = []
+	let match
+
+	while ((match = PARSE_REGEX.exec(query)) !== null) {
+		const term = match[0]
+
+		if (term.trim() !== '') {
+			terms.push(term)
 		}
 	}
 
