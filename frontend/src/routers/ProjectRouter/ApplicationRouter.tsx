@@ -16,6 +16,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 import { TracesPage } from '@/pages/Traces/TracesPage'
 
@@ -90,7 +91,7 @@ const ApplicationRouter: React.FC = () => {
 					<Route path="*" element={<DashboardsRouter />} />
 				</>
 			) : (
-				<Route path="*" element={<Navigate to="/" replace />} />
+				<Route path="*" element={<SignInRedirect />} />
 			)}
 		</Routes>
 	)

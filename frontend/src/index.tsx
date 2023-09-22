@@ -48,6 +48,7 @@ import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
 import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
+import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
 document.body.className = 'highlight-light-theme'
@@ -393,6 +394,7 @@ const AuthenticationRoleRouter = () => {
 					analytics.track('Sign out')
 					setUser(null)
 					setAuthRole(AuthRole.UNAUTHENTICATED)
+					authRedirect.clear()
 				},
 			}}
 		>
