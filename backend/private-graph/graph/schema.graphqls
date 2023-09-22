@@ -2306,7 +2306,7 @@ type Mutation {
 	deleteDashboard(id: ID!): Boolean!
 	deleteSessions(
 		project_id: ID!
-		query: String!
+		query: ClickhouseQuery!
 		sessionCount: Int!
 	): Boolean!
 	updateVercelProjectMappings(

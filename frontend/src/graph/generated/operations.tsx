@@ -1275,7 +1275,7 @@ export type DeleteDashboardMutation = { __typename?: 'Mutation' } & Pick<
 
 export type DeleteSessionsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
+	query: Types.ClickhouseQuery
 	sessionCount: Types.Scalars['Int']
 }>
 

@@ -1086,7 +1086,7 @@ mutation DeleteDashboard($id: ID!) {
 
 mutation DeleteSessions(
 	$project_id: ID!
-	$query: String!
+	$query: ClickhouseQuery!
 	$sessionCount: Int!
 ) {
 	deleteSessions(

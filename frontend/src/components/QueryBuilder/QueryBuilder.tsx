@@ -1147,7 +1147,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	} = props
 
 	const {
-		backendSearchQuery,
 		searchQuery,
 		setSearchQuery,
 		existingQuery,
@@ -1689,7 +1688,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					{!isOnErrorsPage && (
 						<DropdownMenu
 							sessionCount={searchResultsCount || 0}
-							sessionQuery={backendSearchQuery?.searchQuery || ''}
+							sessionQuery={JSON.parse(searchQuery)}
 						/>
 					)}
 
@@ -1706,12 +1705,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 		)
 	}, [
 		dateRange,
+		isOnErrorsPage,
 		searchResultsCount,
-		backendSearchQuery?.searchQuery,
+		searchQuery,
 		updateRule,
 		timeRangeRule,
 		setShowLeftPanel,
-		isOnErrorsPage,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {

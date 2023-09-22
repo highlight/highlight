@@ -4,18 +4,18 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -34,16 +34,16 @@ type Handlers interface {
 
 type handlers struct {
 	db               *gorm.DB
-	opensearchClient *opensearch.Client
+	clickhouseClient *clickhouse.Client
 	s3Client         *s3.Client
 	s3ClientEast2    *s3.Client
 	sendgridClient   *sendgrid.Client
 }
 
-func InitHandlers(db *gorm.DB, opensearchClient *opensearch.Client, s3Client *s3.Client, s3ClientEast2 *s3.Client, sendgridClient *sendgrid.Client) *handlers {
+func InitHandlers(db *gorm.DB, clickhouseClient *clickhouse.Client, s3Client *s3.Client, s3ClientEast2 *s3.Client, sendgridClient *sendgrid.Client) *handlers {
 	return &handlers{
 		db:               db,
-		opensearchClient: opensearchClient,
+		clickhouseClient: clickhouseClient,
 		s3Client:         s3Client,
 		s3ClientEast2:    s3ClientEast2,
 		sendgridClient:   sendgridClient,
@@ -57,7 +57,7 @@ func NewHandlers() *handlers {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
 
-	opensearchClient, err := opensearch.NewOpensearchClient(nil)
+	clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating opensearch client"))
 	}
@@ -80,7 +80,7 @@ func NewHandlers() *handlers {
 
 	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 
-	return InitHandlers(db, opensearchClient, s3Client, s3ClientEast2, sendgridClient)
+	return InitHandlers(db, clickhouseClient, s3Client, s3ClientEast2, sendgridClient)
 }
 
 func (h *handlers) getSessionClientAndBucket(sessionId int) (*s3.Client, *string) {
@@ -100,15 +100,11 @@ func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event u
 		return nil, errors.Wrap(err, "error getting session ids to delete")
 	}
 
-	for _, sessionId := range sessionIds {
-		if !event.DryRun {
-			if err := h.opensearchClient.Delete(opensearch.IndexSessions, sessionId); err != nil {
-				return nil, errors.Wrap(err, "error creating bulk delete request")
-			}
+	if !event.DryRun {
+		if err := h.clickhouseClient.DeleteSessions(ctx, event.ProjectId, sessionIds); err != nil {
+			return nil, errors.Wrap(err, "error creating bulk delete request")
 		}
 	}
-
-	h.opensearchClient.Close()
 
 	return &event, nil
 }
@@ -190,37 +186,24 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 
 func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySessionsInput) ([]utils.BatchIdResponse, error) {
 	taskId := uuid.New().String()
-	lastId := 0
 	responses := []utils.BatchIdResponse{}
+	page := 1
 	for {
 		batchId := uuid.New().String()
 		toDelete := []model.DeleteSessionsTask{}
 
-		options := opensearch.SearchOptions{
-			MaxResults:    ptr.Int(10000),
-			SortField:     ptr.String("id"),
-			SortOrder:     ptr.String("asc"),
-			IncludeFields: []string{"id"},
-		}
-		if lastId != 0 {
-			options.SearchAfter = []interface{}{lastId}
-		}
-
-		results := []model.Session{}
-		_, _, err := h.opensearchClient.Search([]opensearch.Index{opensearch.IndexSessions},
-			event.ProjectId, event.Query, options, &results)
+		ids, _, err := h.clickhouseClient.QuerySessionIds(ctx, nil, event.ProjectId, 10000, event.Query, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
 		if err != nil {
 			return nil, err
 		}
 
-		if len(results) == 0 {
+		if len(ids) == 0 {
 			break
 		}
-		lastId = results[len(results)-1].ID
 
-		for _, r := range results {
+		for _, id := range ids {
 			toDelete = append(toDelete, model.DeleteSessionsTask{
-				SessionID: r.ID,
+				SessionID: int(id),
 				TaskID:    taskId,
 				BatchID:   batchId,
 			})
@@ -236,6 +219,8 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 			BatchId:   batchId,
 			DryRun:    event.DryRun,
 		})
+
+		page += 1
 	}
 
 	return responses, nil

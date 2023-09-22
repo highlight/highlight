@@ -4471,7 +4471,7 @@ export type DeleteDashboardMutationOptions = Apollo.BaseMutationOptions<
 export const DeleteSessionsDocument = gql`
 	mutation DeleteSessions(
 		$project_id: ID!
-		$query: String!
+		$query: ClickhouseQuery!
 		$sessionCount: Int!
 	) {
 		deleteSessions(
