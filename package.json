@@ -11,6 +11,7 @@
 		"packages/*",
 		"highlight.io",
 		"frontend",
+		"opentelemetry-js/experimental/packages/opentelemetry-sdk-node",
 		"sdk/client",
 		"sdk/firstload",
 		"sdk/highlight-apollo",

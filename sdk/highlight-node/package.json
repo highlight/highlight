@@ -15,7 +15,7 @@
 	"scripts": {
 		"typegen": "tsup src/index.ts --dts-only",
 		"dev": "yarn build --watch",
-		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"build": "tsup",
 		"test": "jest"
 	},
 	"installConfig": {
@@ -30,12 +30,12 @@
 		"@opentelemetry/core": "1.15.2",
 		"@opentelemetry/exporter-trace-otlp-http": "0.41.2",
 		"@opentelemetry/resources": "1.15.2",
-		"@opentelemetry/sdk-node": "0.41.2",
 		"@opentelemetry/sdk-trace-base": "1.15.2",
 		"@opentelemetry/semantic-conventions": "1.15.2",
 		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
+		"@opentelemetry/sdk-node": "workspace:*",
 		"@types/jest": "^29.2.0",
 		"@types/lru-cache": "^7.10.10",
 		"@types/node": "17.0.13",

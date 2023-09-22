@@ -1,6 +1,13 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
 	"pipeline": {
+		"@opentelemetry/sdk-node#compile": {},
+		"@highlight-run/node#typegen": {
+			"dependsOn": ["@opentelemetry/sdk-node#compile", "^typegen"]
+		},
+		"@highlight-run/node#build": {
+			"dependsOn": ["@opentelemetry/sdk-node#compile", "^build"]
+		},
 		"highlight.run#typegen": {
 			"dependsOn": [
 				"@highlight-run/rrweb#build",

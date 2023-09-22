@@ -1,3 +1,6 @@
 [submodule "rrweb"]
 	path = rrweb
 	url = https://github.com/highlight/rrweb.git
+[submodule "opentelemetry-js"]
+	path = opentelemetry-js
+	url = https://github.com/highlight/opentelemetry-js.git
