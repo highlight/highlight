@@ -33,7 +33,7 @@ func main() {
 		ProjectId:    1,
 		Email:        "zane@highlight.io",
 		FirstName:    "Zane",
-		Query:        model.ClickhouseQuery{IsAnd: true, Rules: [][]string{{"processed", "is", "true"}, {"created_at", "between_date", "2022-07-15T23:00:25.525Z", "2022-08-01T23:00:25.525Z"}}},
+		Query:        model.ClickhouseQuery{IsAnd: true, Rules: [][]string{{"custom_processed", "is", "true"}, {"custom_created_at", "between_date", "2022-07-15T23:00:25.525Z_2023-09-01T23:59:59.999Z"}}},
 		SessionCount: 256,
 		DryRun:       true,
 	}
