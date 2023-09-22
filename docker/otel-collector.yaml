@@ -10,6 +10,9 @@ receivers:
     tcplog:
         listen_address: '0.0.0.0:34302'
 exporters:
+    logging:
+        sampling_initial: 10
+        sampling_thereafter: 1000
     otlphttp:
         endpoint: 'https://host.docker.internal:8082/otel'
         compression: gzip
@@ -39,15 +42,15 @@ service:
         traces:
             receivers: [otlp]
             processors: [memory_limiter, batch]
-            exporters: [otlphttp]
+            exporters: [otlphttp, logging]
         metrics:
             receivers: [otlp]
             processors: [memory_limiter, batch]
-            exporters: [otlphttp]
+            exporters: [otlphttp, logging]
         logs:
             receivers: [otlp, fluentforward, tcplog]
             processors: [memory_limiter, batch]
-            exporters: [otlphttp]
+            exporters: [otlphttp, logging]
 extensions:
     health_check:
         endpoint: '0.0.0.0:4319'
