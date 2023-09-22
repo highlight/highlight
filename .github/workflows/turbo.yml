@@ -21,7 +21,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
               with:
-                  submodules: true
+                  submodules: recursive
 
             - uses: dorny/paths-filter@v2
               id: filter
@@ -153,7 +153,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
               with:
-                  submodules: true
+                  submodules: recursive
 
             - name: Setup Node.js environment
               uses: buildjet/setup-node@v3
