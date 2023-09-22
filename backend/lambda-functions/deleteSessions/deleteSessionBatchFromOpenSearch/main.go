@@ -21,7 +21,6 @@ func main() {
 		highlight.WithServiceName("lambda-functions--deleteSession-batchFromOpenSearch"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 	)
-	defer highlight.Stop()
 	hlog.Init()
 	lambda.StartWithOptions(
 		h.DeleteSessionBatchFromOpenSearch,

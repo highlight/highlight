@@ -99,7 +99,11 @@ func StartOTLP() (*OTLP, error) {
 }
 
 func (o *OTLP) shutdown() {
-	err := o.tracerProvider.Shutdown(context.Background())
+	err := o.tracerProvider.ForceFlush(context.Background())
+	if err != nil {
+		logger.Error(err)
+	}
+	err = o.tracerProvider.Shutdown(context.Background())
 	if err != nil {
 		logger.Error(err)
 	}

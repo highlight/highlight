@@ -22,10 +22,8 @@ type config struct {
 }
 
 var (
-	interruptChan chan bool
-	signalChan    chan os.Signal
-	wg            sync.WaitGroup
-	conf          *config
+	signalChan chan os.Signal
+	conf       *config
 )
 
 type Option interface {
@@ -111,7 +109,6 @@ func (d deadLog) Errorf(_ string, _ ...interface{}) {}
 
 // init gets called once when you import the package
 func init() {
-	interruptChan = make(chan bool, 1)
 	signalChan = make(chan os.Signal, 1)
 	conf = &config{}
 
@@ -144,11 +141,8 @@ func StartWithContext(ctx context.Context, opts ...Option) {
 	}
 	state = started
 	go func() {
-		for {
+		for state == started {
 			select {
-			case <-interruptChan:
-				shutdown()
-				return
 			case <-signalChan:
 				shutdown()
 				return
@@ -160,16 +154,9 @@ func StartWithContext(ctx context.Context, opts ...Option) {
 	}()
 }
 
-// Stop sends an interrupt signal to the main process, closing the channels and returning the goroutines.
+// Stop flushes and shuts down the SDK.
 func Stop() {
-	stateMutex.RLock()
-	defer stateMutex.RUnlock()
-	if state == stopped || state == idle {
-		return
-	}
-	_ = otlp.tracerProvider.ForceFlush(context.Background())
-	_ = otlp.tracerProvider.Shutdown(context.Background())
-	interruptChan <- true
+	shutdown()
 }
 
 func IsRunning() bool {
@@ -250,5 +237,4 @@ func shutdown() {
 		otlp.shutdown()
 	}
 	state = stopped
-	wg.Wait()
 }
