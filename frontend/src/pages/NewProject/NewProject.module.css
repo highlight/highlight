@@ -71,10 +71,7 @@
 }
 
 .promoCodeToggle {
-	color: var(--color-purple);
 	cursor: pointer;
-	margin-top: -6px;
-	width: fit-content;
 }
 
 .inputField {

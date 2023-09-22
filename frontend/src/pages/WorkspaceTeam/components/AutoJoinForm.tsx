@@ -1,14 +1,15 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Select from '@components/Select/Select'
-import Switch from '@components/Switch/Switch'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetWorkspaceAdminsQuery,
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { Box, Text } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import Checkbox from 'antd/es/checkbox'
 import React, { useEffect, useState } from 'react'
 
 import styles from './AutoJoinForm.module.css'
@@ -105,42 +106,50 @@ function AutoJoinForm({
 			mouseEnterDelay={0}
 		>
 			<div className={styles.container}>
-				<Switch
-					trackingId="WorkspaceAutoJoin"
-					label={label || 'Enable Auto Join'}
-					labelFirst={labelFirst}
-					checked={origins.emailOrigins.length > 0}
-					loading={loading}
-					onChange={(checked) => {
-						if (checked) {
-							onChangeMsg(
-								[adminsEmailDomain],
-								'Successfully enabled auto-join!',
-							)
-						} else {
-							onChangeMsg([], 'Successfully disabled auto-join!')
+				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
+					<Checkbox
+						checked={origins.emailOrigins.length > 0}
+						onChange={(event) => {
+							const checked = event.target.checked
+							if (checked) {
+								onChangeMsg(
+									[adminsEmailDomain],
+									'Successfully enabled auto-join!',
+								)
+							} else {
+								onChangeMsg(
+									[],
+									'Successfully disabled auto-join!',
+								)
+							}
+						}}
+					/>
+					<Text>Allowed email domains</Text>
+				</Box>
+				<Text color="n11">
+					Allow everyone with a '@
+					<Select
+						placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
+						className={styles.select}
+						loading={loading}
+						value={
+							newWorkspace
+								? [adminsEmailDomain]
+								: origins.emailOrigins
 						}
-					}}
-					className={styles.switchClass}
-				/>
-				<Select
-					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-					className={styles.select}
-					loading={loading}
-					value={
-						newWorkspace
-							? [adminsEmailDomain]
-							: origins.emailOrigins
-					}
-					mode="tags"
-					disabled={newWorkspace}
-					onChange={onChange}
-					options={origins.allowedEmailOrigins.map((emailOrigin) => ({
-						displayValue: emailOrigin,
-						id: emailOrigin,
-						value: emailOrigin,
-					}))}
-				/>
+						mode="tags"
+						disabled={newWorkspace}
+						onChange={onChange}
+						options={origins.allowedEmailOrigins.map(
+							(emailOrigin) => ({
+								displayValue: emailOrigin,
+								id: emailOrigin,
+								value: emailOrigin,
+							}),
+						)}
+					/>
+					' email domain to join your workspace
+				</Text>
 			</div>
 		</Tooltip>
 	)
@@ -155,7 +164,6 @@ const getEmailDomain = (email?: string) => {
 	if (!email.includes('@')) {
 		return ''
 	}
-
 	const [, domain] = email.split('@')
 	return domain
 }

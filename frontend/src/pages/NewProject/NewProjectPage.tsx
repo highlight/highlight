@@ -173,6 +173,9 @@ const NewProjectPage = () => {
 							Create new {pageTypeCaps.toLowerCase()}
 						</Text>
 						<IconOutlineX
+							onClick={() => {
+								history.back()
+							}}
 							strokeWidth="8"
 							style={{
 								color: '#6F6E77',
@@ -215,42 +218,61 @@ const NewProjectPage = () => {
 						>
 							<Text color="n11">
 								{isWorkspace
-									? `This is usually your company name (e.g. Google), and can contain multiple projects.`
+									? `This is usually your company name (e.g. Pied Piper), and can contain multiple projects.`
 									: `This is usually a single application (e.g. web front end, landing page, etc.).`}
 							</Text>
 						</Callout>
 					</Box>
-					<Divider className="mt-2 mb-0" />
 					{isWorkspace &&
 						(showPromoCode ? (
-							<label className={styles.inputLabel}>
-								Promo code
+							<Box
+								py="8"
+								px="12"
+								display="flex"
+								flexDirection="column"
+							>
+								<Text weight="medium" color="n11">
+									Promocode
+								</Text>
 								<Input
-									placeholder="Enter a promo code (optional)"
 									value={promoCode}
 									onChange={(e) => {
 										setPromoCode(e.target.value)
 									}}
+									className={styles.inputField}
+									placeholder="Enter a promo code"
 								/>
-							</label>
+							</Box>
 						) : (
-							<span
-								onClick={() => {
-									setShowPromoCode(true)
-								}}
-								className={styles.promoCodeToggle}
+							<Box
+								py="8"
+								px="12"
+								gap="16"
+								display="flex"
+								flexDirection="column"
 							>
-								Use a promo code?
-							</span>
+								<span
+									onClick={() => {
+										setShowPromoCode(true)
+									}}
+									className={styles.promoCodeToggle}
+								>
+									+ Add a promo code
+								</span>
+							</Box>
 						))}
-					{isWorkspace && (
-						<AutoJoinForm
-							newWorkspace
-							updateOrigins={(domains) => {
-								setAutoJoinDomains(domains)
-							}}
-						/>
-					)}
+					<Box p="8" backgroundColor="raised">
+						{isWorkspace && (
+							<Box border="secondary" borderRadius="8" p="8">
+								<AutoJoinForm
+									newWorkspace
+									updateOrigins={(domains) => {
+										setAutoJoinDomains(domains)
+									}}
+								/>
+							</Box>
+						)}
+					</Box>
 					<Box
 						m="0"
 						py="4"
@@ -272,9 +294,7 @@ const NewProjectPage = () => {
 								)}
 								trackingId={`Enter${pageTypeCaps}`}
 							>
-								<Text color="n11">
-									Already Have a Workspace?
-								</Text>
+								<Text color="n11">Enter existing</Text>
 								{!loading &&
 									!!data &&
 									data.workspaces_count !== 0 && (
