@@ -85,7 +85,7 @@
 		"reflame-build": "yarn build:reflame",
 		"lint": "eslint ./src",
 		"lint:fix": "eslint ./src --fix",
-		"sourcemaps": "yarn workspace @highlight-run/sourcemap-uploader run upload --apiKey \"${HIGHLIGHT_API_KEY}\" --appVersion \"${APP_VERSION}\" --path ./build",
+		"sourcemaps": "yarn workspace @highlight-run/sourcemap-uploader exec dist/index.js upload --apiKey \"${HIGHLIGHT_API_KEY}\" --appVersion \"${APP_VERSION}\" --path ./build",
 		"test": "TZ=UTC vitest --run",
 		"test:watch": "TZ=UTC vitest",
 		"types:check": "tsc -noEmit",
