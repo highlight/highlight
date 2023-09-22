@@ -7,7 +7,7 @@ import { SignUp } from '@pages/Auth/SignUp'
 import { Landing } from '@pages/Landing/Landing'
 import firebase from 'firebase/compat/app'
 import React, { useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 
@@ -18,7 +18,6 @@ export const SIGN_UP_ROUTE = '/sign_up'
 
 export const AuthRouter: React.FC = () => {
 	const { isAuthLoading } = useAuthContext()
-	debugger
 
 	const [resolver, setResolver] =
 		useState<firebase.auth.MultiFactorResolver>()
