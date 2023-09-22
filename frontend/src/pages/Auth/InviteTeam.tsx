@@ -132,7 +132,6 @@ export const InviteTeamForm: React.FC = () => {
 					message.error(
 						`An error occurred inviting your team. Please try again later.`,
 					)
-					authRedirect.clear()
 					return navigate(redirectRoute)
 				}
 
@@ -143,7 +142,6 @@ export const InviteTeamForm: React.FC = () => {
 				}
 			}
 
-			authRedirect.clear()
 			navigate(redirectRoute)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
