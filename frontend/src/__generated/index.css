@@ -5395,7 +5395,11 @@ body {
   border: var(--_1pyqka91q) solid 1px;
 }
 ._17v45he1 {
-  border-top: none;
+  border-top: 0;
+}
+._17v45he1:focus,
+._17v45he1:hover {
+  border-top: 0 !important;
 }
 ._1ta0zd10 {
   width: 280px;
