@@ -22,7 +22,6 @@ type config struct {
 }
 
 var (
-	flushInterval time.Duration
 	interruptChan chan bool
 	signalChan    chan os.Signal
 	wg            sync.WaitGroup
@@ -118,7 +117,6 @@ func init() {
 
 	signal.Notify(signalChan, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGINT)
 	SetOTLPEndpoint(OTLPDefaultEndpoint)
-	SetFlushInterval(2 * time.Second)
 	SetDebugMode(deadLog{})
 }
 
@@ -148,12 +146,6 @@ func StartWithContext(ctx context.Context, opts ...Option) {
 	go func() {
 		for {
 			select {
-			case <-time.After(flushInterval):
-				wg.Add(1)
-				if err := otlp.tracerProvider.ForceFlush(ctx); err != nil {
-					logger.Errorf("error flushing otlp exporter: %s", err)
-				}
-				wg.Done()
 			case <-interruptChan:
 				shutdown()
 				return
@@ -175,6 +167,8 @@ func Stop() {
 	if state == stopped || state == idle {
 		return
 	}
+	_ = otlp.tracerProvider.ForceFlush(context.Background())
+	_ = otlp.tracerProvider.Shutdown(context.Background())
 	interruptChan <- true
 }
 
@@ -185,9 +179,8 @@ func IsRunning() bool {
 // SetFlushInterval allows you to override the amount of time in which the
 // Highlight client will collect errors before sending them to our backend.
 // - newFlushInterval is an integer representing seconds
-func SetFlushInterval(newFlushInterval time.Duration) {
-	flushInterval = newFlushInterval
-}
+// Deprecated - this is managed by the opentelemetry SDK.
+func SetFlushInterval(_ time.Duration) {}
 
 // SetOTLPEndpoint allows you to override the otlp address used for sending errors and traces.
 // Use the root http url. Eg: https://otel.highlight.io:4318

@@ -23,5 +23,8 @@ func main() {
 	)
 	defer highlight.Stop()
 	hlog.Init()
-	lambda.Start(h.SendEmail)
+	lambda.StartWithOptions(
+		h.SendEmail,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

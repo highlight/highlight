@@ -150,7 +150,7 @@ func EndTrace(span trace.Span) {
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	span, _ := StartTrace(ctx, "highlight-ctx", tags...)
+	span, _ := StartTrace(ctx, "highlight-ctx")
 	defer EndTrace(span)
 	tags = append(tags, attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value))
 	span.AddEvent(MetricEvent, trace.WithAttributes(tags...))
