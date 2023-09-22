@@ -22,7 +22,8 @@
   },
   "scripts": {
     "typegen": "tsup src/index.ts src/lib.ts --dts-only",
-    "build": "tsup src/index.ts src/lib.ts --format cjs,esm --dts"
+    "build": "tsup src/index.ts src/lib.ts --format cjs,esm --dts",
+    "run": "node dist/index.js"
   },
   "installConfig": {
     "hoistingLimits": "workspaces"
