@@ -71,11 +71,15 @@ export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
+	const newProjectMatch = useMatch('/new')
+	const newWorkspaceMatch = useMatch('/w/:workspace_id/new')
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const inviteMatch = useMatch('/invite/:invite')
 	const joinWorkspaceMatch = useMatch('/join_workspace')
 	const isInvitePage = !!inviteMatch
+	const isNewProjectPage = !!newWorkspaceMatch
+	const isNewWorkspacePage = !!newProjectMatch
 	const isJoinWorkspacePage = !!joinWorkspaceMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId()
@@ -216,6 +220,18 @@ export const AppRouter = () => {
 			>
 				<WithSessionSearchContext>
 					<WithErrorSearchContext>
+						{(isNewWorkspacePage || isNewProjectPage) &&
+							(isLoggedIn ? (
+								<NewProjectPage
+									workspace_id={
+										isNewProjectPage
+											? workspaceId
+											: undefined
+									}
+								/>
+							) : (
+								<Navigate to={SIGN_IN_ROUTE} />
+							))}
 						<Routes>
 							<Route
 								path="/error-tags"
@@ -276,19 +292,6 @@ export const AppRouter = () => {
 							/>
 
 							<Route
-								path="/new"
-								element={
-									isLoggedIn ? (
-										<Landing>
-											<NewProjectPage />
-										</Landing>
-									) : (
-										<Navigate to={SIGN_IN_ROUTE} />
-									)
-								}
-							/>
-
-							<Route
 								path="/switch"
 								element={
 									isLoggedIn ? (
@@ -308,19 +311,6 @@ export const AppRouter = () => {
 										<WorkspaceInvitation />
 									) : (
 										<Navigate to={SIGN_UP_ROUTE} />
-									)
-								}
-							/>
-
-							<Route
-								path="/w/:workspace_id/new"
-								element={
-									isLoggedIn ? (
-										<Landing>
-											<NewProjectPage />
-										</Landing>
-									) : (
-										<Navigate to={SIGN_IN_ROUTE} />
 									)
 								}
 							/>
