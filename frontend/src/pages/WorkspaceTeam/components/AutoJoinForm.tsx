@@ -19,8 +19,6 @@ const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
 function AutoJoinForm({
 	updateOrigins,
 	newWorkspace,
-	label,
-	labelFirst,
 }: {
 	updateOrigins?: (domains: string[]) => void
 	newWorkspace?: boolean
