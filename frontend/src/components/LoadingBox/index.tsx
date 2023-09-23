@@ -30,6 +30,6 @@ const LoadingBox: React.FC<LoadingBoxProps> = ({ height, width, ...props }) => {
 	)
 }
 
-export const LoadingBox_test = <LoadingBox height={300} width={300} />
+export const LoadingBox_test = <LoadingBox height={200} width={200} />
 
 export default LoadingBox
