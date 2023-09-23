@@ -43,6 +43,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 		createProject,
 		{ loading: projectLoading, data: projectData, error: projectError },
 	] = useCreateProjectMutation()
+
 	const [
 		createWorkspace,
 		{
@@ -91,7 +92,6 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 			})
 			const createdWorkspaceId = result.data?.createWorkspace?.id
 			analytics.track('CreateWorkspace', { name })
-			await client.cache.reset()
 			setName('')
 			if (createdWorkspaceId && autoJoinDomains?.length) {
 				await updateAllowedEmailOrigins({
@@ -117,10 +117,10 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 					],
 				})
 				analytics.track('CreateProject', { name })
-				await client.cache.reset()
 				setName('')
 			}
 		}
+		await client.cache.reset()
 	}
 
 	// When a workspace is created, redirect to the 'create project' page
