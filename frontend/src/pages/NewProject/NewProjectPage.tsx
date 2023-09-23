@@ -178,6 +178,7 @@ const NewProjectPage = () => {
 							}}
 							strokeWidth="8"
 							style={{
+								cursor: 'pointer',
 								color: '#6F6E77',
 							}}
 						/>
