@@ -261,8 +261,8 @@ const NewProjectPage = () => {
 								</span>
 							</Box>
 						))}
-					<Box p="8" backgroundColor="raised">
-						{isWorkspace && (
+					{isWorkspace && (
+						<Box p="8" backgroundColor="raised">
 							<Box border="secondary" borderRadius="8" p="8">
 								<AutoJoinForm
 									newWorkspace
@@ -271,10 +271,10 @@ const NewProjectPage = () => {
 									}}
 								/>
 							</Box>
-						)}
-					</Box>
+						</Box>
+					)}
 					<Box
-						m="0"
+						my="0"
 						py="4"
 						pr="4"
 						gap="4"
@@ -283,6 +283,7 @@ const NewProjectPage = () => {
 						alignItems="center"
 						backgroundColor="raised"
 						justifyContent="flex-end"
+						mt={isWorkspace ? '0' : '8'}
 					>
 						{isWorkspace && (
 							<ButtonLink
