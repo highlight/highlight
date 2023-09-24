@@ -2187,19 +2187,6 @@ export type GetWebSocketEventsQuery = { __typename?: 'Query' } & Pick<
 	'websocket_events'
 >
 
-export type GetFieldTypesQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
-}>
-
-export type GetFieldTypesQuery = { __typename?: 'Query' } & {
-	field_types: Array<
-		{ __typename?: 'Field' } & Pick<Types.Field, 'type' | 'name'>
-	>
-}
-
 export type GetFieldTypesClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	start_date: Types.Scalars['Timestamp']
@@ -2207,7 +2194,7 @@ export type GetFieldTypesClickhouseQueryVariables = Types.Exact<{
 }>
 
 export type GetFieldTypesClickhouseQuery = { __typename?: 'Query' } & {
-	field_types_clickhouse: Array<
+	field_types: Array<
 		{ __typename?: 'Field' } & Pick<Types.Field, 'type' | 'name'>
 	>
 }
@@ -4703,7 +4690,6 @@ export const namedOperations = {
 		GetSessionIntervals: 'GetSessionIntervals' as const,
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
-		GetFieldTypes: 'GetFieldTypes' as const,
 		GetFieldTypesClickhouse: 'GetFieldTypesClickhouse' as const,
 		GetFieldsClickhouse: 'GetFieldsClickhouse' as const,
 		GetErrorFieldsClickhouse: 'GetErrorFieldsClickhouse' as const,
