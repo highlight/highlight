@@ -1166,11 +1166,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	if err := r.DataSyncQueue.Submit(ctx,
-		strconv.Itoa(existingSession.ID),
+		strconv.Itoa(session.ID),
 		&kafka_queue.Message{
 			Type: kafka_queue.SessionDataSync,
 			SessionDataSync: &kafka_queue.SessionDataSyncArgs{
-				SessionID: existingSession.ID}}); err != nil {
+				SessionID: session.ID}}); err != nil {
 		return nil, err
 	}
 
