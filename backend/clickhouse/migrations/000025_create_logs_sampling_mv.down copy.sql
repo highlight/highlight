@@ -1,1 +1,0 @@
-DROP MATERIALIZED VIEW IF EXISTS logs_sampling_mv;

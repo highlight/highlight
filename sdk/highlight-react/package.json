@@ -15,6 +15,9 @@
 		"build": "tsup src/index.tsx --format cjs,esm --dts",
 		"dev": "yarn build --watch"
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
 	"devDependencies": {
 		"@types/node": "^18.7.16",
 		"@types/react": "^18.0.28",

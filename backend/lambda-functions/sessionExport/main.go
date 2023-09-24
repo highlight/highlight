@@ -33,6 +33,8 @@ func main() {
 	}
 	ctx := context.Background()
 
+	log.WithContext(ctx).WithField("input", input).Info("locally testing session export")
+
 	export, err := h.SaveSessionExport(ctx, &input)
 	if err != nil {
 		log.WithContext(ctx).Fatal(err)
