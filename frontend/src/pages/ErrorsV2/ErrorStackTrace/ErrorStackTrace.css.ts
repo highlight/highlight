@@ -52,3 +52,10 @@ export const name = style({
 export const file = style({
 	maxWidth: 560,
 })
+
+export const fileName = style({
+	maxWidth: 300,
+	paddingBottom: 6,
+	paddingRight: 6,
+	paddingTop: 6,
+})

@@ -390,3 +390,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Auto-inline CSS on 127.0.0.1 (a common alias for localhost).
+
+## 7.5.3
+
+### Patch Changes
+
+- Ensure `H.snapshot()` does not use `setTimeout` to avoid blocking the event loop.
