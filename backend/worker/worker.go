@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
 	"math"
 	"math/rand"
 	"os"
@@ -444,7 +445,13 @@ type WorkerConfig struct {
 	TracingDisabled bool
 }
 
-func (w *Worker) PublicWorker(ctx context.Context) {
+func (w *Worker) GetPublicWorker(topic kafkaqueue.TopicType) func(context.Context) {
+	return func(ctx context.Context) {
+		w.PublicWorker(ctx, topic)
+	}
+}
+
+func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -456,13 +463,16 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		mainWorkers = sys.MainWorkers
 	}
 
+	mainConfig := WorkerConfig{
+		Topic:   kafkaqueue.TopicTypeDefault,
+		Workers: mainWorkers,
+	}
 	logsConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeBatched,
 		Workers:      sys.LogsWorkers,
 		FlushSize:    sys.LogsFlushSize,
 		FlushTimeout: sys.LogsFlushTimeout,
 	}
-
 	tracesConfig := WorkerConfig{
 		Topic:           kafkaqueue.TopicTypeTraces,
 		Workers:         sys.TraceWorkers,
@@ -470,7 +480,6 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		FlushTimeout:    sys.TraceFlushTimeout,
 		TracingDisabled: true,
 	}
-
 	dataSyncConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeDataSync,
 		Workers:      sys.DataSyncWorkers,
@@ -478,21 +487,12 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		FlushTimeout: sys.DataSyncTimeout,
 	}
 
-	wg := sync.WaitGroup{}
-	wg.Add(mainWorkers)
-	for i := 0; i < mainWorkers; i++ {
-		go func(workerId int) {
-			k := KafkaWorker{
-				KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil),
-				Worker:       w,
-				WorkerThread: workerId,
-			}
-			k.ProcessMessages(ctx)
-			wg.Done()
-		}(i)
-	}
+	kafkaWorkerConfigs := lo.Filter([]WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig}, func(cfg WorkerConfig, _ int) bool {
+		return cfg.Topic == topic
+	})
 
-	for _, cfg := range []WorkerConfig{logsConfig, tracesConfig, dataSyncConfig} {
+	wg := sync.WaitGroup{}
+	for _, cfg := range kafkaWorkerConfigs {
 		if cfg.FlushSize == 0 {
 			cfg.FlushSize = DefaultBatchFlushSize
 		}
@@ -501,23 +501,35 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}
 		wg.Add(cfg.Workers)
 		for i := 0; i < cfg.Workers; i++ {
-			go func(config WorkerConfig, workerId int) {
-				ctx := context.Background()
-				k := KafkaBatchWorker{
-					KafkaQueue: kafkaqueue.New(
-						ctx,
-						kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: config.Topic}),
-						kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(config.FlushSize)},
-					),
-					Worker:              w,
-					BatchFlushSize:      config.FlushSize,
-					BatchedFlushTimeout: config.FlushTimeout,
-					Name:                string(config.Topic),
-					TracingDisabled:     config.TracingDisabled,
-				}
-				k.ProcessMessages(ctx)
-				wg.Done()
-			}(cfg, i)
+			if cfg.Topic == kafkaqueue.TopicTypeDefault {
+				go func(workerId int) {
+					k := KafkaWorker{
+						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil),
+						Worker:       w,
+						WorkerThread: workerId,
+					}
+					k.ProcessMessages(ctx)
+					wg.Done()
+				}(i)
+			} else {
+				go func(config WorkerConfig, workerId int) {
+					ctx := context.Background()
+					k := KafkaBatchWorker{
+						KafkaQueue: kafkaqueue.New(
+							ctx,
+							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: config.Topic}),
+							kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(config.FlushSize)},
+						),
+						Worker:              w,
+						BatchFlushSize:      config.FlushSize,
+						BatchedFlushTimeout: config.FlushTimeout,
+						Name:                string(config.Topic),
+						TracingDisabled:     config.TracingDisabled,
+					}
+					k.ProcessMessages(ctx)
+					wg.Done()
+				}(cfg, i)
+			}
 		}
 	}
 
@@ -1479,8 +1491,14 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.RefreshMaterializedViews
 	case "delete-completed-sessions":
 		return w.DeleteCompletedSessions
-	case "public-worker":
-		return w.PublicWorker
+	case "public-worker-main":
+		return w.GetPublicWorker(kafkaqueue.TopicTypeDefault)
+	case "public-worker-batched":
+		return w.GetPublicWorker(kafkaqueue.TopicTypeBatched)
+	case "public-worker-datasync":
+		return w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)
+	case "public-worker-traces":
+		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
 	case "auto-resolve-stale-errors":
 		return w.AutoResolveStaleErrors
 	default:

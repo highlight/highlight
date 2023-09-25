@@ -610,8 +610,11 @@ func main() {
 			go func() {
 				w.Start(ctx)
 			}()
-			// for the 'All' worker, explicitly run the PublicWorker as well
-			go w.PublicWorker(ctx)
+			// for the 'All' worker, explicitly run all kafka workers
+			go w.GetPublicWorker(kafkaqueue.TopicTypeDefault)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
 			// in `all` mode, report stripe usage every hour
 			go func() {
 				w.ReportStripeUsage(ctx)
