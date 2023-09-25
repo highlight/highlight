@@ -396,3 +396,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Ensure `H.snapshot()` does not use `setTimeout` to avoid blocking the event loop.
+
+## 7.5.4
+
+### Patch Changes
+
+- Record network request payloads with absolute timestamps.
