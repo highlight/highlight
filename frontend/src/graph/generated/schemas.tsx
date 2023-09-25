@@ -115,7 +115,6 @@ export enum AdminRole {
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
 	autoResolveStaleErrorsDayInterval: Scalars['Int']
-	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
 	error_filters?: Maybe<Scalars['StringArray']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
@@ -1287,7 +1286,6 @@ export type MutationEditErrorSegmentArgs = {
 }
 
 export type MutationEditProjectArgs = {
-	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
@@ -1302,7 +1300,6 @@ export type MutationEditProjectArgs = {
 
 export type MutationEditProjectSettingsArgs = {
 	autoResolveStaleErrorsDayInterval?: InputMaybe<Scalars['Int']>
-	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
@@ -1673,7 +1670,6 @@ export enum ProductType {
 
 export type Project = {
 	__typename?: 'Project'
-	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
 	error_filters?: Maybe<Scalars['StringArray']>
 	error_json_paths?: Maybe<Scalars['StringArray']>

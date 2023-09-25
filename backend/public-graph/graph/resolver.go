@@ -1176,13 +1176,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 
-	if len(input.NetworkRecordingDomains) > 0 {
-		project.BackendDomains = input.NetworkRecordingDomains
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{BackendDomains: project.BackendDomains}).Error; err != nil {
-			return nil, e.Wrap(err, "failed to update project backend domains")
-		}
-	}
-
 	go func() {
 		defer util.Recover()
 		if quotaPercent >= 1 {

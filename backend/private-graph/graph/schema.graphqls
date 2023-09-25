@@ -366,7 +366,6 @@ type Project {
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
-	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 }
 
@@ -383,7 +382,6 @@ type AllProjectSettings {
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
-	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
@@ -1931,7 +1929,6 @@ type Mutation {
 		rage_click_window_seconds: Int
 		rage_click_radius_pixels: Int
 		rage_click_count: Int
-		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
 	editProjectSettings(
@@ -1944,7 +1941,6 @@ type Mutation {
 		rage_click_window_seconds: Int
 		rage_click_radius_pixels: Int
 		rage_click_count: Int
-		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
 		autoResolveStaleErrorsDayInterval: Int

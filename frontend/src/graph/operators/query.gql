@@ -943,7 +943,6 @@ query GetProject($id: ID!) {
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 		secret
 	}
 	workspace: workspace_for_project(project_id: $id) {
@@ -2094,7 +2093,6 @@ query GetProjectSettings($projectId: ID!) {
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 		filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval
 	}

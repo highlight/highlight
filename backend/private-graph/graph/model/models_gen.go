@@ -95,7 +95,6 @@ type AllProjectSettings struct {
 	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds"`
 	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels"`
 	RageClickCount                    *int           `json:"rage_click_count"`
-	BackendDomains                    pq.StringArray `json:"backend_domains"`
 	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
 	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
 	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`

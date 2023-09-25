@@ -39,7 +39,7 @@ Many OpenTelemetry SDK implementations offer a `span.record_exception(exc)` meth
 ```python
 
 # create a trace for the current invocation
-with self.tracer.start_as_current_span("highlight-ctx") as span:
+with self.tracer.start_as_current_span("my-span-name") as span:
     span.set_attributes({"highlight.project_id": _project_id})
     span.set_attributes({"highlight.session_id": session_id})
     span.set_attributes({"highlight.trace_id": request_id})
