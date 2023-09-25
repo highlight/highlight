@@ -19,6 +19,8 @@ import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { isInsideElement } from '@util/dom'
 import React, { useRef, useState } from 'react'
 
+import { ClickhouseQuery } from '@/graph/generated/schemas'
+
 import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
 
 export const DropdownMenu = function ({
@@ -26,7 +28,7 @@ export const DropdownMenu = function ({
 	sessionQuery,
 }: {
 	sessionCount: number
-	sessionQuery: string
+	sessionQuery: ClickhouseQuery
 }) {
 	const { checkPolicyAccess } = useAuthorization()
 	const canDelete = checkPolicyAccess({

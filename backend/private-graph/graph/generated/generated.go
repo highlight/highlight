@@ -728,7 +728,7 @@ type ComplexityRoot struct {
 		DeleteSegment                    func(childComplexity int, segmentID int) int
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
-		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
+		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
@@ -1557,7 +1557,7 @@ type MutationResolver interface {
 	ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error)
 	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error)
 	DeleteDashboard(ctx context.Context, id int) (bool, error)
-	DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error)
+	DeleteSessions(ctx context.Context, projectID int, query model.ClickhouseQuery, sessionCount int) (bool, error)
 	UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*model.VercelProjectMappingInput) (bool, error)
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
 	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
@@ -5049,7 +5049,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteSessions(childComplexity, args["project_id"].(int), args["query"].(string), args["sessionCount"].(int)), true
+		return e.complexity.Mutation.DeleteSessions(childComplexity, args["project_id"].(int), args["query"].(model.ClickhouseQuery), args["sessionCount"].(int)), true
 
 	case "Mutation.editErrorSegment":
 		if e.complexity.Mutation.EditErrorSegment == nil {
@@ -12114,7 +12114,7 @@ type Mutation {
 	deleteDashboard(id: ID!): Boolean!
 	deleteSessions(
 		project_id: ID!
-		query: String!
+		query: ClickhouseQuery!
 		sessionCount: Int!
 	): Boolean!
 	updateVercelProjectMappings(
@@ -13469,10 +13469,10 @@ func (ec *executionContext) field_Mutation_deleteSessions_args(ctx context.Conte
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 string
+	var arg1 model.ClickhouseQuery
 	if tmp, ok := rawArgs["query"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNClickhouseQuery2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -42090,7 +42090,7 @@ func (ec *executionContext) _Mutation_deleteSessions(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSessions(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["sessionCount"].(int))
+		return ec.resolvers.Mutation().DeleteSessions(rctx, fc.Args["project_id"].(int), fc.Args["query"].(model.ClickhouseQuery), fc.Args["sessionCount"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

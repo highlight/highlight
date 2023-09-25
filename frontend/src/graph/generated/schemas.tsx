@@ -1275,7 +1275,7 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
-	query: Scalars['String']
+	query: ClickhouseQuery
 	sessionCount: Scalars['Int']
 }
 
