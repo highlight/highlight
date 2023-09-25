@@ -31,6 +31,7 @@ const ProjectIDAttribute = "highlight.project_id"
 const SessionIDAttribute = "highlight.session_id"
 const RequestIDAttribute = "highlight.trace_id"
 const SourceAttribute = "highlight.source"
+const TraceTypeAttribute = "highlight.type"
 
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
@@ -39,6 +40,10 @@ const LogMessageAttribute = "log.message"
 const MetricEvent = "metric"
 const MetricEventName = "metric.name"
 const MetricEventValue = "metric.value"
+
+type TraceType string
+
+const TraceTypeNetworkRequest TraceType = "http.request"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider

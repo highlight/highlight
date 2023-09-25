@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 	"hash/fnv"
 	"io"
 	"net/http"
 	"net/mail"
-	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -51,7 +52,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -2940,33 +2940,27 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
 		attributes := []attribute.KeyValue{
+			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
-			attribute.Int(privateModel.NetworkRequestAttributeBodySize.String(), len(re.RequestResponsePairs.Request.Body)),
-			attribute.Float64(privateModel.NetworkRequestAttributeResponseSize.String(), re.RequestResponsePairs.Response.Size),
-			attribute.Float64(privateModel.NetworkRequestAttributeStatus.String(), re.RequestResponsePairs.Response.Status),
-			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds())),
-			attribute.String(privateModel.NetworkRequestAttributeMethod.String(), re.RequestResponsePairs.Request.Method),
+			semconv.HTTPURLKey.String(re.Name),
+			semconv.HTTPRequestContentLengthKey.Int(len(re.RequestResponsePairs.Request.Body)),
+			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
+			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
+			semconv.HTTPMethodKey.String(re.RequestResponsePairs.Request.Method),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
+			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds())),
 		}
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
 		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
 			if _, ok := requestBody["operationName"]; ok {
-				attributes = append(attributes, attribute.String(privateModel.NetworkRequestAttributeGraphqlOperation.String(), requestBody["operationName"].(string)))
+				attributes = append(attributes, semconv.GraphqlOperationName(requestBody["operationName"].(string)))
 			}
 		}
 
-		u, err := url.Parse(re.Name)
-		if err == nil {
-			attributes = append(attributes, attribute.String(privateModel.NetworkRequestAttributeURL.String(), u.String()))
-		}
-
-		// request time is relative to session start
-		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
-
-		span, _ := highlight.StartTraceWithTimestamp(context.Background(), "highlight-frontend-req", sessionObj.CreatedAt.Add(d), attributes...)
-		span.End()
+		span, _ := highlight.StartTraceWithTimestamp(context.Background(), fmt.Sprintf(`%s %s`, re.RequestResponsePairs.Request.Method, re.Name), sessionObj.CreatedAt.Add(time.Millisecond*time.Duration(re.StartTime)), attributes...)
+		span.End(trace.WithTimestamp(sessionObj.CreatedAt.Add(time.Millisecond * time.Duration(re.ResponseEnd))))
 	}
 	return nil
 }
