@@ -1637,25 +1637,12 @@ type Query {
 		project_id: ID!
 		lookBackPeriod: Int!
 	): [RageClickEventForProject!]!
-	error_groups_opensearch(
-		project_id: ID!
-		count: Int!
-		query: String!
-		clickhouse_query: ClickhouseQuery
-		page: Int
-	): ErrorResults!
 	error_groups_clickhouse(
 		project_id: ID!
 		count: Int!
 		query: ClickhouseQuery!
 		page: Int
 	): ErrorResults!
-	errors_histogram(
-		project_id: ID!
-		query: String!
-		histogram_options: DateHistogramOptions!
-		clickhouse_query: ClickhouseQuery
-	): ErrorsHistogram!
 	errors_histogram_clickhouse(
 		project_id: ID!
 		query: ClickhouseQuery!
@@ -1734,15 +1721,6 @@ type Query {
 		project_id: ID!
 		lookBackPeriod: Int!
 	): UserFingerprintCount
-	sessions_opensearch(
-		project_id: ID!
-		count: Int!
-		query: String!
-		clickhouse_query: ClickhouseQuery
-		sort_field: String
-		sort_desc: Boolean!
-		page: Int
-	): SessionResults!
 	sessions_clickhouse(
 		project_id: ID!
 		count: Int!
@@ -1751,38 +1729,16 @@ type Query {
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!
-	sessions_histogram(
-		project_id: ID!
-		query: String!
-		histogram_options: DateHistogramOptions!
-		clickhouse_query: ClickhouseQuery
-	): SessionsHistogram!
 	sessions_histogram_clickhouse(
 		project_id: ID!
 		query: ClickhouseQuery!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	field_types(
-		project_id: ID!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
-	): [Field!]!
 	field_types_clickhouse(
 		project_id: ID!
 		start_date: Timestamp!
 		end_date: Timestamp!
 	): [Field!]!
-	fields_opensearch(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
-	): [String!]!
 	fields_clickhouse(
 		project_id: ID!
 		count: Int!
@@ -1791,16 +1747,6 @@ type Query {
 		query: String!
 		start_date: Timestamp!
 		end_date: Timestamp!
-	): [String!]!
-	error_fields_opensearch(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
 	): [String!]!
 	error_fields_clickhouse(
 		project_id: ID!

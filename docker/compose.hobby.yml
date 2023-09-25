@@ -74,14 +74,6 @@ services:
         volumes:
             - ./otel-collector.hobby.yaml:/etc/otel-collector-config.yaml
 
-    backend-setup-opensearch:
-        image: ghcr.io/highlight/highlight-backend:latest
-        command:
-            - /build/backend
-            - -runtime=worker
-            - -worker-handler=init-opensearch
-        <<: [*depends-infra, *backend-env]
-
     backend:
         container_name: backend
         image: ghcr.io/highlight/highlight-backend:latest
@@ -96,9 +88,6 @@ services:
         volumes:
             - highlight-data:/highlight-data
         <<: *backend-env
-        depends_on:
-            backend-setup-opensearch:
-                condition: service_completed_successfully
 
     frontend:
         container_name: frontend

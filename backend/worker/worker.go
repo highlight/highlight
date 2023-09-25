@@ -23,7 +23,6 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	journey_handlers "github.com/highlight-run/highlight/backend/lambda-functions/journeys/handlers"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -83,14 +82,6 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payl
 		&model.Session{ObjectStorageEnabled: &model.T, Chunked: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
-	}
-
-	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"object_storage_enabled":  true,
-		"payload_size":            totalPayloadSize,
-		"direct_download_enabled": true,
-	}); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
@@ -573,13 +564,6 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
 
-	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"Excluded":  true,
-		"processed": true,
-	}); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
-	}
-
 	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
@@ -866,17 +850,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
-	}
-
-	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"processed":       true,
-		"length":          sessionTotalLengthInMilliseconds,
-		"active_length":   accumulator.ActiveDuration.Milliseconds(),
-		"EventCounts":     eventCountsString,
-		"has_rage_clicks": hasRageClicks,
-		"pages_visited":   pagesVisited,
-	}); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
@@ -1180,9 +1153,6 @@ func (w *Worker) Start(ctx context.Context) {
 
 					if excluded {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
-						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
-							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
-						}
 
 						if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error submitting data sync message"))
@@ -1212,72 +1182,11 @@ func (w *Worker) ReportStripeUsage(ctx context.Context) {
 	pricing.NewWorker(w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient, w.Resolver.HubspotApi).ReportAllUsage(ctx)
 }
 
-func (w *Worker) UpdateOpenSearchIndex(ctx context.Context) {
-	w.IndexTable(ctx, opensearch.IndexFields, &model.Field{}, true)
-	w.IndexTable(ctx, opensearch.IndexErrorFields, &model.ErrorField{}, true)
-	w.IndexErrorGroups(ctx, true)
-	w.IndexErrorObjects(ctx, true)
-	w.IndexSessions(ctx, true)
-
-	// Close the indexer channel and flush remaining items
-	if err := w.Resolver.OpenSearch.Close(); err != nil {
-		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
-	}
-
-	// Report the indexer statistics
-	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
-	if stats.NumFailed > 0 {
-		log.WithContext(ctx).Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
-	} else {
-		log.WithContext(ctx).Infof("Successfully indexed [%d] documents", stats.NumFlushed)
-	}
-}
-
 func (w *Worker) MigrateDB(ctx context.Context) {
 	_, err := model.MigrateDB(ctx, w.Resolver.DB)
 
 	if err != nil {
 		log.WithContext(ctx).Fatalf("Error migrating DB: %v", err)
-	}
-}
-
-func (w *Worker) InitializeOpenSearchSessions(ctx context.Context) {
-	w.InitIndexMappings(ctx)
-	w.IndexSessions(ctx, false)
-
-	// Close the indexer channel and flush remaining items
-	if err := w.Resolver.OpenSearch.Close(); err != nil {
-		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
-	}
-
-	// Report the indexer statistics
-	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
-	if stats.NumFailed > 0 {
-		log.WithContext(ctx).Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
-	} else {
-		log.WithContext(ctx).Infof("Successfully indexed [%d] documents", stats.NumFlushed)
-	}
-}
-
-func (w *Worker) InitializeOpenSearchIndex(ctx context.Context) {
-	w.InitIndexMappings(ctx)
-	w.IndexTable(ctx, opensearch.IndexFields, &model.Field{}, false)
-	w.IndexTable(ctx, opensearch.IndexErrorFields, &model.ErrorField{}, false)
-	w.IndexErrorGroups(ctx, false)
-	w.IndexErrorObjects(ctx, false)
-	w.IndexSessions(ctx, false)
-
-	// Close the indexer channel and flush remaining items
-	if err := w.Resolver.OpenSearch.Close(); err != nil {
-		log.WithContext(ctx).Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
-	}
-
-	// Report the indexer statistics
-	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
-	if stats.NumFailed > 0 {
-		log.WithContext(ctx).Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
-	} else {
-		log.WithContext(ctx).Infof("Successfully indexed [%d] documents", stats.NumFlushed)
 	}
 }
 
@@ -1556,14 +1465,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 	switch handlerFlag {
 	case "report-stripe-usage":
 		return w.ReportStripeUsage
-	case "init-opensearch":
-		return w.InitializeOpenSearchIndex
-	case "init-opensearch-sessions":
-		return w.InitializeOpenSearchSessions
 	case "migrate-db":
 		return w.MigrateDB
-	case "update-opensearch":
-		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
 		return w.StartMetricMonitorWatcher
 	case "log-alerts":

@@ -1,7 +1,7 @@
 import {
 	useEditSegmentMutation,
 	useGetFieldsClickhouseQuery,
-	useGetFieldTypesQuery,
+	useGetFieldTypesClickhouseQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
@@ -157,12 +157,11 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 
 	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
 	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
-	const { data: fieldData } = useGetFieldTypesQuery({
+	const { data: fieldData } = useGetFieldTypesClickhouseQuery({
 		variables: {
 			project_id: project_id!,
-			start_date: startDate,
-			end_date: endDate,
-			use_clickhouse: true,
+			start_date: startDate!,
+			end_date: endDate!,
 		},
 		skip: !project_id,
 	})

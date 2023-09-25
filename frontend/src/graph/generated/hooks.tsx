@@ -6788,83 +6788,13 @@ export type GetWebSocketEventsQueryResult = Apollo.QueryResult<
 	Types.GetWebSocketEventsQuery,
 	Types.GetWebSocketEventsQueryVariables
 >
-export const GetFieldTypesDocument = gql`
-	query GetFieldTypes(
-		$project_id: ID!
-		$start_date: Timestamp
-		$end_date: Timestamp
-		$use_clickhouse: Boolean
-	) {
-		field_types(
-			project_id: $project_id
-			start_date: $start_date
-			end_date: $end_date
-			use_clickhouse: $use_clickhouse
-		) {
-			type
-			name
-		}
-	}
-`
-
-/**
- * __useGetFieldTypesQuery__
- *
- * To run a query within a React component, call `useGetFieldTypesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFieldTypesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFieldTypesQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      start_date: // value for 'start_date'
- *      end_date: // value for 'end_date'
- *      use_clickhouse: // value for 'use_clickhouse'
- *   },
- * });
- */
-export function useGetFieldTypesQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetFieldTypesQuery,
-		Types.GetFieldTypesQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetFieldTypesQuery,
-		Types.GetFieldTypesQueryVariables
-	>(GetFieldTypesDocument, baseOptions)
-}
-export function useGetFieldTypesLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetFieldTypesQuery,
-		Types.GetFieldTypesQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetFieldTypesQuery,
-		Types.GetFieldTypesQueryVariables
-	>(GetFieldTypesDocument, baseOptions)
-}
-export type GetFieldTypesQueryHookResult = ReturnType<
-	typeof useGetFieldTypesQuery
->
-export type GetFieldTypesLazyQueryHookResult = ReturnType<
-	typeof useGetFieldTypesLazyQuery
->
-export type GetFieldTypesQueryResult = Apollo.QueryResult<
-	Types.GetFieldTypesQuery,
-	Types.GetFieldTypesQueryVariables
->
 export const GetFieldTypesClickhouseDocument = gql`
 	query GetFieldTypesClickhouse(
 		$project_id: ID!
 		$start_date: Timestamp!
 		$end_date: Timestamp!
 	) {
-		field_types_clickhouse(
+		field_types: field_types_clickhouse(
 			project_id: $project_id
 			start_date: $start_date
 			end_date: $end_date

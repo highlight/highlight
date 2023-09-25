@@ -66,7 +66,6 @@ import (
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
@@ -138,7 +137,6 @@ type Resolver struct {
 	LambdaClient           *lambda.Client
 	ClearbitClient         *clearbit.Client
 	PrivateWorkerPool      *workerpool.WorkerPool
-	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	RH                     *resthooks.Resthook
 	HubspotApi             hubspotApi.Api
@@ -546,106 +544,6 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.Error
 	return &results[0].Time, &results[1].Time, nil
 }
 
-func (r *Resolver) GetErrorFrequenciesOpensearch(errorGroups []*model.ErrorGroup, lookbackPeriod int) (map[int][]int64, map[int][]*modelInputs.ErrorDistributionItem, error) {
-	endDate := time.Now().UTC()
-	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
-	startDateFormatted := startDate.Format("2006-01-02")
-
-	aggQuery :=
-		fmt.Sprintf(`{"bool": {
-			"must": [
-				{
-					"terms": {
-					"routing.keyword" : [%s]
-				}},
-				{
-					"range": {
-					"timestamp": {
-						"gte": "%s"
-					}
-				}}
-			]
-		}}`,
-			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
-			startDateFormatted)
-	aggOptions := opensearch.SearchOptions{
-		MaxResults: pointy.Int(0),
-		Aggregation: &opensearch.TermsAggregation{
-			Field: "routing.keyword",
-			SubAggregation: &opensearch.DateHistogramAggregation{
-				Field:            "timestamp",
-				CalendarInterval: "day",
-				SortOrder:        "desc",
-				Format:           "yyyy-MM-dd",
-				TimeZone:         "UTC",
-			},
-		},
-	}
-
-	var ignored []struct{}
-	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	errFreqs := map[int][]int64{}
-	errMetrics := map[int][]*modelInputs.ErrorDistributionItem{}
-	for _, ar1 := range aggResults {
-		errorGroupId, err := strconv.Atoi(ar1.Key)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		freqMap := map[string]int64{}
-		for _, ar2 := range ar1.SubAggregationResults {
-			freqMap[ar2.Key] = ar2.DocCount
-		}
-
-		var freqs []int64
-		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
-			curDateFormatted := curDate.Format("2006-01-02")
-			freq, ok := freqMap[curDateFormatted]
-			if !ok {
-				freq = 0
-			}
-			freqs = append(freqs, freq)
-			errMetrics[errorGroupId] = append(errMetrics[errorGroupId], &modelInputs.ErrorDistributionItem{ErrorGroupID: errorGroupId, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: freq})
-		}
-
-		errFreqs[errorGroupId] = freqs
-	}
-
-	return errFreqs, errMetrics, nil
-}
-
-func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
-	bucket, _ := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Minute)
-	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID), true)
-	span, _ := util.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
-	span.SetAttribute("projectID", projectID)
-	span.SetAttribute("errorGroupID", errorGroupID)
-	results, err := r.TDB.Query(ctx, query)
-	if err != nil {
-		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
-	}
-	var response []*modelInputs.ErrorDistributionItem
-	for _, r := range results {
-		if r.Value != nil {
-			for _, k := range []string{
-				"count", "environmentCount", "identifierCount", "sessionCount",
-			} {
-				response = append(response, &modelInputs.ErrorDistributionItem{
-					ErrorGroupID: errorGroupID,
-					Date:         r.Time,
-					Name:         k,
-					Value:        r.Values[k].(int64),
-				})
-			}
-		}
-	}
-	return response, nil
-}
-
 func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
 	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 	var errorGroupFilters []string
@@ -698,88 +596,6 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 		}
 	}
 	return response, nil
-}
-
-func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
-	params := modelInputs.ErrorGroupFrequenciesParamsInput{
-		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
-			EndDate:   time.Now(),
-		},
-		ResolutionMinutes: 24 * 60,
-	}
-	var errorGroupMap = make(map[int]*model.ErrorGroup)
-	for _, errorGroup := range errorGroups {
-		errorGroup.ErrorMetrics = []*modelInputs.ErrorDistributionItem{}
-		errorGroupMap[errorGroup.ID] = errorGroup
-	}
-	oldErrorGroups := make(map[int]*model.ErrorGroup)
-	var err error
-	var results []*modelInputs.ErrorDistributionItem
-	for _, eg := range errorGroups {
-		if time.Since(eg.CreatedAt) <= time.Hour {
-			results, err = r.GetErrorGroupFrequenciesUnsampled(ctx, eg.ProjectID, eg.ID)
-			if err != nil {
-				log.WithContext(ctx).Error(err)
-			}
-			endDate := time.Now().UTC().AddDate(0, 0, -1)
-			startDate := endDate.AddDate(0, 0, -1*(lookbackPeriod-1))
-			for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
-				eg.ErrorFrequency = append(eg.ErrorFrequency, 0)
-				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: 0})
-			}
-			for _, r := range results {
-				if r.Name == "count" {
-					eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
-				}
-				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
-			}
-			// fallback to using opensearch for the frequency query
-			if len(results) == 0 {
-				errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch([]*model.ErrorGroup{eg}, lookbackPeriod)
-				if err != nil {
-					log.WithContext(ctx).Error(err)
-				} else {
-					eg.ErrorFrequency = errFreqs[eg.ID]
-					eg.ErrorMetrics = errMetrics[eg.ID]
-				}
-			}
-		} else {
-			oldErrorGroups[eg.ID] = eg
-		}
-	}
-
-	results, err = r.GetErrorGroupFrequencies(ctx, projectID, lo.Map(lo.Values(oldErrorGroups), func(eg *model.ErrorGroup, i int) int {
-		return eg.ID
-	}), params, "")
-	if err != nil {
-		return err
-	}
-	for _, r := range results {
-		eg := errorGroupMap[r.ErrorGroupID]
-		// in case influx returns an error group that isn't part of the inputs
-		if eg == nil {
-			continue
-		}
-		if r.Name == "count" {
-			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
-		}
-		eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
-	}
-	// fallback to using opensearch for the frequency query
-	if len(results) == 0 {
-		errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch(lo.Values(oldErrorGroups), lookbackPeriod)
-		if err != nil {
-			log.WithContext(ctx).Error(err)
-		} else {
-			for egID, freqs := range errFreqs {
-				eg := oldErrorGroups[egID]
-				eg.ErrorFrequency = freqs
-				eg.ErrorMetrics = errMetrics[egID]
-			}
-		}
-	}
-	return nil
 }
 
 func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
@@ -932,17 +748,6 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	}
 
 	return eg, true, nil
-}
-
-func (r *Resolver) loadErrorGroupFrequencies(ctx context.Context, eg *model.ErrorGroup) error {
-	var err error
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
-		return e.Wrap(err, "error querying error group occurrences")
-	}
-	if err := r.SetErrorFrequencies(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
-		return e.Wrap(err, "error querying error group frequencies")
-	}
-	return nil
 }
 
 func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *model.ErrorGroup) error {
@@ -3619,143 +3424,6 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		return time.Now().AddDate(-2, 0, 0)
 	}
 	return time.Now()
-}
-
-func FormatErrorInstancesQuery(query string, retentionDate time.Time) string {
-	return fmt.Sprintf(`
-	{
-		"bool": {
-		   "must": [
-			  {
-				"range": {
-					"timestamp": {
-					   "gt": "%s"
-					}
-				 }
-			  },
-			  %s
-		   ]
-		}
-	 }`, retentionDate.Format(time.RFC3339), query)
-}
-
-func FormatErrorGroupsQuery(query string, retentionDate time.Time) string {
-	return fmt.Sprintf(`
-	{
-		"bool": {
-		   "must": [
-			  {
-				"range": {
-					"updated_at": {
-					   "gt": "%s"
-					}
-				 }
-			  },
-			  %s
-		   ]
-		}
-	 }`, retentionDate.Format(time.RFC3339), query)
-}
-
-func FormatSessionsQuery(query string, retentionDate time.Time) string {
-	return fmt.Sprintf(`
-	{
-		"bool": {
-		   "must": [
-			  {
-				"range": {
-					"created_at": {
-					   "gt": "%s"
-					}
-				 }
-			  },
-			  {
-				 "bool": {
-					"must_not": [
-					   {
-						  "term": {
-							 "Excluded": true
-						  }
-					   },
-					   {
-						  "term": {
-							 "within_billing_quota": false
-						  }
-					   },
-					   {
-						  "bool": {
-							 "must": [
-								{
-								   "term": {
-									  "processed": "true"
-								   }
-								},
-								{
-								   "bool": {
-									  "should": [
-										 {
-											"range": {
-											   "active_length": {
-												  "lt": 1000
-											   }
-											}
-										 },
-										 {
-											"range": {
-											   "length": {
-												  "lt": 1000
-											   }
-											}
-										 }
-									  ]
-								   }
-								}
-							 ]
-						  }
-					   }
-					]
-				 }
-			  },
-			  %s
-		   ]
-		}
-	 }`, retentionDate.Format(time.RFC3339), query)
-}
-
-func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
-	aggregation := opensearch.DateHistogramAggregation{
-		Field:            field,
-		CalendarInterval: histogramOptions.BucketSize.CalendarInterval.String(),
-		SortOrder:        "asc",
-		Format:           "epoch_millis",
-		TimeZone:         histogramOptions.TimeZone,
-		DateBounds: &opensearch.DateBounds{
-			Min: histogramOptions.Bounds.StartDate.UnixMilli(),
-			Max: histogramOptions.Bounds.EndDate.UnixMilli(),
-		},
-	}
-	if subAggregation != nil {
-		aggregation.SubAggregation = subAggregation
-	}
-	return &aggregation
-}
-
-func GetBucketTimesAndTotalCounts(ctx context.Context, aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
-	bucketTimes, totalCounts := []time.Time{}, []int64{}
-	for _, date_bucket := range aggs {
-		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
-		if err != nil {
-			log.WithContext(ctx).Errorf("Error parsing date bucket key for histogram: %s", err.Error())
-			break
-		}
-		bucketTimes = append(bucketTimes, time.UnixMilli(unixMillis))
-		totalCounts = append(totalCounts, date_bucket.DocCount)
-	}
-	if len(aggs) > 0 {
-		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
-		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
-	}
-	return bucketTimes, totalCounts
 }
 
 func MergeHistogramBucketTimes(bucketTimes []time.Time, multiple int) []time.Time {

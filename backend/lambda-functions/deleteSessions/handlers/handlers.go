@@ -59,7 +59,7 @@ func NewHandlers() *handlers {
 
 	clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
 	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating opensearch client"))
+		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating clickhouse client"))
 	}
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))

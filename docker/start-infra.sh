@@ -22,8 +22,6 @@ fi
 pushd ../backend
 # migrate postgres schema
 go run ./migrations/main.go > /tmp/highlightSetup.log 2>&1
-# setup opensearch indices
-go run main.go -runtime=worker -worker-handler=init-opensearch >> /tmp/highlightSetup.log 2>&1
 if grep -e 'OPENSEARCH_ERROR' /tmp/highlightSetup.log; then
   echo 'Failed to migrate highlight infrastructure.'
   grep -e 'OPENSEARCH_ERROR' /tmp/highlightSetup.log
