@@ -390,6 +390,7 @@ type AllWorkspaceSettings struct {
 	ReplaceAssets            bool    `gorm:"default:false"`
 	StoreIP                  bool    `gorm:"default:false"`
 	EnableSessionExport      bool    `gorm:"default:false"`
+	EnableNetworkTraces      bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {

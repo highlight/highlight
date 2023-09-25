@@ -2529,12 +2529,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error saving resources data")
 		}
 
-		resourcesParsed := make(map[string][]NetworkResource)
-		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return nil
-		}
-		if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
-			return err
+		settings, _ := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+		if settings.EnableNetworkTraces {
+			resourcesParsed := make(map[string][]NetworkResource)
+			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+				return nil
+			}
+			if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
+				return err
+			}
 		}
 
 		return nil
