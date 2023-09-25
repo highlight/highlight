@@ -32,5 +32,10 @@ export const select = style({
 })
 
 export const lastName = style({
-	borderTop: 'none',
+	borderTop: 0,
+	selectors: {
+		'&:focus, &:hover': {
+			borderTop: `0 !important`,
+		},
+	},
 })

@@ -7,7 +7,9 @@ import { SignUp } from '@pages/Auth/SignUp'
 import { Landing } from '@pages/Landing/Landing'
 import firebase from 'firebase/compat/app'
 import React, { useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
+
+import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 
 import * as styles from './AuthRouter.css'
 
@@ -38,10 +40,7 @@ export const AuthRouter: React.FC = () => {
 						element={<MultiFactor resolver={resolver} />}
 					/>
 					<Route path="/reset_password" element={<ResetPassword />} />
-					<Route
-						path="/*"
-						element={<Navigate to={SIGN_IN_ROUTE} replace />}
-					/>
+					<Route path="/*" element={<SignInRedirect />} />
 				</Routes>
 			</Box>
 		</Landing>
