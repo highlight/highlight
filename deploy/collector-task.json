@@ -93,8 +93,8 @@
 	"placementConstraints": [],
 	"compatibilities": ["EC2", "FARGATE"],
 	"requiresCompatibilities": ["FARGATE"],
-	"cpu": "1024",
-	"memory": "2048",
+	"cpu": "4096",
+	"memory": "16384",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},

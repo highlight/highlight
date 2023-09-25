@@ -9,6 +9,7 @@ import {
 	Callout,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
+	IconSolidClipboardCopy,
 	IconSolidExclamation,
 	IconSolidExternalLink,
 	IconSolidGithub,
@@ -21,6 +22,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
+import { copyToClipboard } from '@util/string'
 import clsx from 'clsx'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
@@ -287,9 +289,36 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						.
 					</Tooltip>
 				)}
-				<Text cssClass={clsx(styles.name, styles.file)} as="span">
-					{truncateFileName(fileName || '')}
-				</Text>
+				{fileName && (
+					<Tooltip
+						trigger={
+							<Text
+								cssClass={clsx(styles.name, styles.file)}
+								as="span"
+							>
+								{truncateFileName(fileName)}
+							</Text>
+						}
+					>
+						<Box display="flex">
+							<ButtonIcon
+								kind="secondary"
+								size="xSmall"
+								shape="square"
+								emphasis="low"
+								icon={<IconSolidClipboardCopy size={12} />}
+								onClick={(e) => {
+									e.stopPropagation()
+									copyToClipboard(fileName)
+								}}
+							/>
+							<Text cssClass={styles.fileName} wrap="breakWord">
+								{fileName}
+							</Text>
+						</Box>
+					</Tooltip>
+				)}
+
 				{externalLink && (
 					<LinkButton
 						kind="secondary"
@@ -418,11 +447,13 @@ const SourcemapError: React.FC<{
 const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 5) => {
 	const tokens = fileName.split('/')
 
-	const relativeFileCount = tokens.length - numberOfLevelsToGoUp - 1
-	const relativePrefix =
-		relativeFileCount > 0 ? '/..'.repeat(relativeFileCount) + '/' : ''
+	// add one for the starting "/"
+	const useRelativePath = tokens.length > 1 + numberOfLevelsToGoUp
+	if (!useRelativePath) {
+		return fileName
+	}
 
-	return `${relativePrefix}${tokens
+	return `.../${tokens
 		.splice(tokens.length - numberOfLevelsToGoUp)
 		.join('/')}`
 }

@@ -17,6 +17,12 @@ import moment from 'moment/moment'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+enum ExportStatus {
+	Success = 'Success',
+	Failure = 'Failure',
+	InProgress = 'In Progress',
+}
+
 export const SessionExportForm = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -59,87 +65,93 @@ export const SessionExportForm = () => {
 							</Table.Row>
 						</Table.Head>
 						<Table.Body>
-							{data?.session_exports?.map((se) => (
-								<Table.Row
-									key={se.secure_id}
-									gridColumns={gridColumns}
-								>
-									<Table.Cell>
-										<Badge
-											iconStart={
-												!se.url ? (
-													<IconAnimatedLoading
-														size={14}
-													/>
-												) : undefined
-											}
-											variant={
-												se.url
-													? 'green'
-													: se.error
-													? 'red'
-													: 'gray'
-											}
-											label={
-												se.url
-													? 'Success'
-													: se.error
-													? 'Failure'
-													: 'In Progress'
-											}
-										/>
-									</Table.Cell>
-									<Table.Cell>
-										<Text>
-											{moment
-												.duration(
-													se.active_length,
-													'millisecond',
-												)
-												.humanize()}
-										</Text>
-									</Table.Cell>
-									<Table.Cell>
-										<Text>
-											{moment(se.created_at).format(
-												'lll',
-											)}
-										</Text>
-									</Table.Cell>
-									<Table.Cell justifyContent="center">
-										<Box display="flex" gap="4">
-											<Tag
-												shape="basic"
-												emphasis="medium"
-												kind="secondary"
-												iconLeft={<IconSolidDownload />}
-												disabled={!se.url}
-												onClick={() =>
-													window.open(
-														se.url,
-														'_blank',
-													)
+							{data?.session_exports?.map((se) => {
+								const status = se.error
+									? ExportStatus.Failure
+									: se.url
+									? ExportStatus.Success
+									: ExportStatus.InProgress
+								return (
+									<Table.Row
+										key={se.secure_id}
+										gridColumns={gridColumns}
+									>
+										<Table.Cell>
+											<Badge
+												iconStart={
+													status ===
+													ExportStatus.InProgress ? (
+														<IconAnimatedLoading
+															size={14}
+														/>
+													) : undefined
 												}
-											>
-												Download
-											</Tag>
-											<Tag
-												shape="basic"
-												emphasis="medium"
-												kind="secondary"
-												iconLeft={
-													<IconSolidExternalLink />
+												variant={
+													status ===
+													ExportStatus.Success
+														? 'green'
+														: status ===
+														  ExportStatus.Failure
+														? 'red'
+														: 'gray'
 												}
-												onClick={() =>
-													navigate(
-														`/${projectId}/sessions/${se.secure_id}`,
-													)
-												}
+												label={status}
 											/>
-										</Box>
-									</Table.Cell>
-								</Table.Row>
-							))}
+										</Table.Cell>
+										<Table.Cell>
+											<Text>
+												{moment
+													.duration(
+														se.active_length,
+														'millisecond',
+													)
+													.humanize()}
+											</Text>
+										</Table.Cell>
+										<Table.Cell>
+											<Text>
+												{moment(se.created_at).format(
+													'lll',
+												)}
+											</Text>
+										</Table.Cell>
+										<Table.Cell justifyContent="center">
+											<Box display="flex" gap="4">
+												<Tag
+													shape="basic"
+													emphasis="medium"
+													kind="secondary"
+													iconLeft={
+														<IconSolidDownload />
+													}
+													disabled={!se.url}
+													onClick={() =>
+														window.open(
+															se.url,
+															'_blank',
+														)
+													}
+												>
+													Download
+												</Tag>
+												<Tag
+													shape="basic"
+													emphasis="medium"
+													kind="secondary"
+													iconLeft={
+														<IconSolidExternalLink />
+													}
+													onClick={() =>
+														navigate(
+															`/${projectId}/sessions/${se.secure_id}`,
+														)
+													}
+												/>
+											</Box>
+										</Table.Cell>
+									</Table.Row>
+								)
+							})}
 						</Table.Body>
 					</Table>
 				</Stack>

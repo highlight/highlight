@@ -12375,6 +12375,7 @@ __metadata:
     "@highlight-run/react-mentions": 4.4.2
     "@highlight-run/rrweb": "workspace:*"
     "@highlight-run/rrweb-types": "workspace:*"
+    "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
     "@rehooks/local-storage": ^2.4.0
     "@stripe/stripe-js": ^1.32.0
