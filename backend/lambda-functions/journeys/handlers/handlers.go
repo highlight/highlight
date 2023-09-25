@@ -295,7 +295,7 @@ func (h *handlers) UpdateNormalnessScores(ctx context.Context) error {
 					inner join user_journey_steps u
 						on s.id = u.session_id
 					inner join frequencies f
-						on (f.url = u.url or f.next_url = u.next_url) and f.project_id = u.project_id
+						on f.url = u.url and f.project_id = u.project_id
 				group by session_id, index
 				order by session_id, index) a
 				group by a.session_id
