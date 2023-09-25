@@ -6216,7 +6216,6 @@ body {
   background-color: var(--_1pyqka91o);
   border-radius: 40px;
   bottom: 0;
-  cursor: grab;
   display: flex;
   height: 100%;
   justify-content: space-between;
@@ -6225,6 +6224,9 @@ body {
   z-index: 2;
 }
 ._13m092k1 {
+  cursor: grab;
+}
+._13m092k2 {
   background-color: var(--_1pyqka9i);
   border-radius: 40px;
   cursor: ew-resize;
@@ -6235,18 +6237,18 @@ body {
   padding: 0 2px;
   user-select: none;
 }
-._13m092k2 {
+._13m092k3 {
   background-color: #ffffff;
   border-radius: 3px;
   height: 50%;
   user-select: none;
   width: 3px;
 }
-._13m092k3 {
+._13m092k4 {
   height: 100%;
   width: 100%;
 }
-._13m092k4 {
+._13m092k5 {
   transition: width 0.17s linear;
 }
 ._2maxeq0 {
