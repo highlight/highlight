@@ -1136,6 +1136,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String("OSVersion", session.OSVersion),
 		attribute.String("Postal", session.Postal),
 		attribute.String("State", session.State),
+		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	)
 	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
@@ -1464,6 +1465,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		attribute.String("Identifier", session.Identifier),
 		attribute.Bool("Identified", session.Identified),
 		attribute.Bool("FirstTime", *session.FirstTime),
+		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	}
 	for k, v := range allUserProperties {
@@ -1984,14 +1986,14 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 	return errorFields
 }
 
-func (r *Resolver) updateErrorsCount(ctx context.Context, errorsBySession map[string]int64, errors int, errorType string) {
+func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsBySession map[string]int64, errors int, errorType string) {
 	dailyErrorCountSpan, _ := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload", util.ResourceName("db.updateDailyErrorCounts"))
 	dailyErrorCountSpan.SetAttribute("numberOfErrors", errors)
 	dailyErrorCountSpan.SetAttribute("numberOfSessions", len(errorsBySession))
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
-		highlight.RecordMetric(ctx, "errors", float64(count), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
+		highlight.RecordMetric(ctx, "errors", float64(count), attribute.Int(highlight.ProjectIDAttribute, projectID), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
@@ -2067,7 +2069,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 
-	r.updateErrorsCount(ctx, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
+	r.updateErrorsCount(ctx, projectID, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
 
 	err = r.MarkBackendSetupImpl(ctx, projectID, model.MarkBackendSetupTypeError)
 	if err != nil {
@@ -2581,7 +2583,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// increment daily error table
 		numErrors := int64(len(errors))
 		if numErrors > 0 {
-			r.updateErrorsCount(ctx, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
+			r.updateErrorsCount(ctx, projectID, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
 		}
 
 		// put errors in db
