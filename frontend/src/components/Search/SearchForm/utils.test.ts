@@ -222,7 +222,18 @@ describe('quoteQueryValue', () => {
 
 describe('queryAsStringParams', () => {
 	it('parses a simple query correctly', () => {
-		const query = 'body-a source:backend     body-b source:frontend body-c '
+		const query = 'body-a source:backend body-b source:frontend body-c '
+		expect(queryAsStringParams(query)).toEqual([
+			'body-a',
+			'source:backend',
+			'body-b',
+			'source:frontend',
+			'body-c',
+		])
+	})
+
+	it('handles extra whitespace appropriately', () => {
+		const query = 'body-a source:backend    body-b source:frontend body-c '
 		expect(queryAsStringParams(query)).toEqual([
 			'body-a',
 			'source:backend',

@@ -25,7 +25,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	DateTimeParam,
@@ -41,6 +41,7 @@ import {
 } from '@/components/Search/SearchForm/constants'
 import {
 	BODY_KEY,
+	DEFAULT_OPERATOR,
 	parseSearchQuery,
 	queryAsStringParams,
 	quoteQueryValue,
@@ -304,8 +305,12 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
+	// TODO: Fix squashing body when selecting key. To repro, type "asdf " and
+	// note how the dropdown opens. If you select a key from the list it
+	// ends up removing the body term.
 	const handleItemSelect = (key: Keys[0] | string, noQuotes?: boolean) => {
 		const isValueSelect = typeof key === 'string'
+		const activeTermKey = queryTerms[activeTermIndex].key
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
@@ -313,8 +318,20 @@ export const Search: React.FC<{
 				? key
 				: quoteQueryValue(key)
 		} else {
-			queryTerms[activeTermIndex].key = key.name
-			queryTerms[activeTermIndex].value = ''
+			if (activeTermKey === BODY_KEY && activeTerm.value.endsWith(' ')) {
+				queryTerms[activeTermIndex].value =
+					queryTerms[activeTermIndex].value.trim()
+
+				queryTerms.push({
+					key: key.name,
+					value: '',
+					operator: DEFAULT_OPERATOR,
+					offsetStart: query.length,
+				})
+			} else {
+				queryTerms[activeTermIndex].key = key.name
+				queryTerms[activeTermIndex].value = ''
+			}
 		}
 
 		const newQuery = stringifySearchQuery(queryTerms)
@@ -332,7 +349,6 @@ export const Search: React.FC<{
 	const handleRemoveItem = (index: number) => {
 		const parts = [...queryAsStringParts]
 		parts.splice(index, 1)
-		debugger
 		const newQuery = parts.join(' ')
 		setQuery(newQuery)
 		submitQuery(newQuery)
@@ -359,9 +375,6 @@ export const Search: React.FC<{
 				position="relative"
 			>
 				<Box
-					position="absolute"
-					display="inline-block"
-					alignItems="center"
 					cssClass={styles.comboboxTagsContainer}
 					style={{
 						left: 2,
@@ -374,30 +387,12 @@ export const Search: React.FC<{
 						}
 
 						return (
-							<>
-								<Box
-									key={index}
-									cssClass={styles.comboboxTag}
-									py="6"
-									position="relative"
-									whiteSpace="nowrap"
-									style={{
-										textOverflow: 'ellipsis',
-									}}
-								>
-									<Box
-										cssClass={styles.comboboxTagBackground}
-										shadow="innerSecondary"
-									/>
-									<IconSolidXCircle
-										className={styles.comboboxTagClose}
-										size={13}
-										onClick={() => handleRemoveItem(index)}
-									/>
-									<Box style={{ zIndex: 1 }}>{term}</Box>
-								</Box>
-								&nbsp;
-							</>
+							<TermTag
+								key={index}
+								term={term}
+								index={index}
+								onRemoveItem={handleRemoveItem}
+							/>
 						)
 					})}
 				</Box>
@@ -410,29 +405,16 @@ export const Search: React.FC<{
 					placeholder={placeholder ?? 'Search...'}
 					className={className ?? styles.combobox}
 					value={query}
-					onKeyDownCapture={(e) => {
-						// Don't allow multiple spaces
-						const currentCursorIndex =
-							e.currentTarget.selectionStart ?? 0
-
-						const isNextToSpace =
-							query[currentCursorIndex - 1] === ' ' ||
-							query[currentCursorIndex] === ' '
-
-						console.log(e)
-						if (e.key === ' ' && isNextToSpace) {
-							e.preventDefault()
-						}
-					}}
 					onChange={(e) => {
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
 						// after a delay or blurring the input.
-						// const newValue = e.target.value.replaceAll('  ', ' ')
 						setQuery(e.target.value)
 					}}
-					onBlur={() => {
-						submitQuery(query)
+					onBlur={(e) => {
+						const newQuery = e.target.value.replace(/\s\s+/g, ' ')
+						setQuery(newQuery)
+						submitQuery(newQuery)
 						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
@@ -588,6 +570,45 @@ export const Search: React.FC<{
 				</Combobox.Popover>
 			)}
 		</Box>
+	)
+}
+
+const TermTag: React.FC<{
+	index: number
+	term: string
+	onRemoveItem: (index: number) => void
+}> = ({ index, term, onRemoveItem }) => {
+	const [showClose, setShowClose] = useState(false)
+
+	return (
+		<>
+			<Box
+				cssClass={styles.comboboxTag}
+				py="6"
+				position="relative"
+				whiteSpace="nowrap"
+				onMouseEnter={() => {
+					setShowClose(true)
+				}}
+				onMouseLeave={() => {
+					setShowClose(false)
+				}}
+			>
+				<Box
+					cssClass={styles.comboboxTagBackground}
+					shadow="innerSecondary"
+				/>
+				{/* TODO: See if we can get this to show again */}
+				<IconSolidXCircle
+					className={styles.comboboxTagClose}
+					display={showClose ? 'block' : 'none'}
+					size={13}
+					onClick={() => onRemoveItem(index)}
+				/>
+				<Box>{term}</Box>
+			</Box>
+			&nbsp;
+		</>
 	)
 }
 

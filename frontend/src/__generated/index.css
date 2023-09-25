@@ -5739,6 +5739,7 @@ body {
   border: 0;
   caret-color: var(--_1pyqka9b);
   display: flex;
+  pointer-events: auto;
   width: 100%;
 }
 ._10xh0c22::before {
@@ -5754,9 +5755,6 @@ body {
 ._10xh0c22:focus {
   outline: 0;
 }
-._10xh0c22::selection {
-  background-color: rgba(0, 0, 0, 0.3);
-}
 ._10xh0c23 {
   font-family:
     IBM Plex Mono,
@@ -5767,6 +5765,10 @@ body {
     monospace;
   font-size: 13px;
   line-height: 20px;
+  align-items: center;
+  display: inline-block;
+  pointer-events: none;
+  position: absolute;
 }
 ._10xh0c23::before {
   content: "";
@@ -5783,6 +5785,7 @@ body {
   display: inline-flex;
   font-feature-settings: normal;
   position: relative;
+  text-overflow: ellipsis;
 }
 ._10xh0c25 {
   background-color: rgba(0, 0, 0, 0.1);
@@ -5797,16 +5800,13 @@ body {
   width: calc(100% + 4px);
 }
 ._10xh0c26 {
-  background-color: var(--_1pyqka9b);
+  color: var(--_1pyqka9b);
   cursor: pointer;
-  display: none;
   position: absolute;
+  pointer-events: auto;
   right: -8px;
-  top: 2px;
+  top: 1px;
   z-index: 1;
-}
-._10xh0c24:hover ._10xh0c26 {
-  display: block;
 }
 ._10xh0c27 {
   background: var(--_1pyqka91);

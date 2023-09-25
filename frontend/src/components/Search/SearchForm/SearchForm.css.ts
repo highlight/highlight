@@ -5,7 +5,7 @@ import {
 } from '@highlight-run/ui/src/components/Text/styles.css'
 import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
-import { globalStyle, style } from '@vanilla-extract/css'
+import { style } from '@vanilla-extract/css'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -26,7 +26,9 @@ export const combobox = style([
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		display: 'flex',
+		pointerEvents: 'auto',
 		width: '100%',
+		// zIndex: 1,
 		selectors: {
 			'&:focus': {
 				outline: 0,
@@ -35,13 +37,15 @@ export const combobox = style([
 	},
 ])
 
-globalStyle(`${combobox}::selection`, {
-	backgroundColor: `rgba(0, 0, 0, 0.3)`,
-})
-
 export const comboboxTagsContainer = style([
 	typographyStyles.family.monospace,
 	sMonotype,
+	{
+		alignItems: 'center',
+		display: 'inline-block',
+		pointerEvents: 'none',
+		position: 'absolute',
+	},
 ])
 
 export const comboboxTag = style({
@@ -49,6 +53,7 @@ export const comboboxTag = style({
 	display: 'inline-flex',
 	fontFeatureSettings: 'normal', // disable tabular numbers
 	position: 'relative',
+	textOverflow: 'ellipsis',
 })
 
 export const comboboxTagBackground = style({
@@ -67,16 +72,11 @@ export const comboboxTagBackground = style({
 export const comboboxTagClose = style({
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
-	display: 'none',
 	position: 'absolute',
+	pointerEvents: 'auto',
 	right: -8,
-	top: 2,
+	top: 1,
 	zIndex: 1,
-	selectors: {
-		[`${comboboxTag}:hover &`]: {
-			display: 'block',
-		},
-	},
 })
 
 export const comboboxPopover = style({
