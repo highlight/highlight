@@ -1798,6 +1798,7 @@ export type Query = {
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
+	serviceByName?: Maybe<Service>
 	services?: Maybe<ServiceConnection>
 	session?: Maybe<Session>
 	sessionLogs: Array<LogEdge>
@@ -2356,6 +2357,11 @@ export type QuerySegmentsArgs = {
 }
 
 export type QueryServerIntegrationArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryServiceByNameArgs = {
+	name: Scalars['String']
 	project_id: Scalars['ID']
 }
 

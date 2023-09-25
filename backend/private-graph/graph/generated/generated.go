@@ -938,6 +938,7 @@ type ComplexityRoot struct {
 		Resources                    func(childComplexity int, sessionSecureID string) int
 		Segments                     func(childComplexity int, projectID int) int
 		ServerIntegration            func(childComplexity int, projectID int) int
+		ServiceByName                func(childComplexity int, projectID int, name string) int
 		Services                     func(childComplexity int, projectID int, after *string, before *string, query *string) int
 		Session                      func(childComplexity int, secureID string) int
 		SessionCommentTagsForProject func(childComplexity int, projectID int) int
@@ -1716,6 +1717,7 @@ type QueryResolver interface {
 	SessionExports(ctx context.Context) ([]*model1.SessionExport, error)
 	SystemConfiguration(ctx context.Context) (*model1.SystemConfiguration, error)
 	Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*model.ServiceConnection, error)
+	ServiceByName(ctx context.Context, projectID int, name string) (*model1.Service, error)
 	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
 	MatchErrorTag(ctx context.Context, query string) ([]*model.MatchedErrorTag, error)
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
@@ -7122,6 +7124,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ServerIntegration(childComplexity, args["project_id"].(int)), true
 
+	case "Query.serviceByName":
+		if e.complexity.Query.ServiceByName == nil {
+			break
+		}
+
+		args, err := ec.field_Query_serviceByName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServiceByName(childComplexity, args["project_id"].(int), args["name"].(string)), true
+
 	case "Query.services":
 		if e.complexity.Query.Services == nil {
 			break
@@ -11783,6 +11797,7 @@ type Query {
 		before: String
 		query: String
 	): ServiceConnection
+	serviceByName(project_id: ID!, name: String!): Service
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
@@ -17831,6 +17846,30 @@ func (ec *executionContext) field_Query_serverIntegration_args(ctx context.Conte
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_serviceByName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
 	return args, nil
 }
 
@@ -53692,6 +53731,75 @@ func (ec *executionContext) fieldContext_Query_services(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_serviceByName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_serviceByName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServiceByName(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Service)
+	fc.Result = res
+	return ec.marshalOService2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_serviceByName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Service_id(ctx, field)
+			case "projectID":
+				return ec.fieldContext_Service_projectID(ctx, field)
+			case "name":
+				return ec.fieldContext_Service_name(ctx, field)
+			case "status":
+				return ec.fieldContext_Service_status(ctx, field)
+			case "githubRepoPath":
+				return ec.fieldContext_Service_githubRepoPath(ctx, field)
+			case "buildPrefix":
+				return ec.fieldContext_Service_buildPrefix(ctx, field)
+			case "githubPrefix":
+				return ec.fieldContext_Service_githubPrefix(ctx, field)
+			case "errorDetails":
+				return ec.fieldContext_Service_errorDetails(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_serviceByName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_error_tags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_error_tags(ctx, field)
 	if err != nil {
@@ -79324,6 +79432,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_services(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "serviceByName":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serviceByName(ctx, field)
 				return res
 			}
 

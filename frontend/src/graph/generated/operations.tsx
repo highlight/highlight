@@ -4574,6 +4574,27 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetServiceByNameQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+}>
+
+export type GetServiceByNameQuery = { __typename?: 'Query' } & {
+	serviceByName?: Types.Maybe<
+		{ __typename?: 'Service' } & Pick<
+			Types.Service,
+			| 'id'
+			| 'projectID'
+			| 'name'
+			| 'status'
+			| 'githubRepoPath'
+			| 'buildPrefix'
+			| 'githubPrefix'
+			| 'errorDetails'
+		>
+	>
+}
+
 export type ErrorTagFragment = { __typename?: 'ErrorTag' } & Pick<
 	Types.ErrorTag,
 	'id' | 'created_at' | 'title' | 'description'
@@ -4817,6 +4838,7 @@ export const namedOperations = {
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
+		GetServiceByName: 'GetServiceByName' as const,
 		GetErrorTags: 'GetErrorTags' as const,
 		MatchErrorTag: 'MatchErrorTag' as const,
 		FindSimilarErrors: 'FindSimilarErrors' as const,

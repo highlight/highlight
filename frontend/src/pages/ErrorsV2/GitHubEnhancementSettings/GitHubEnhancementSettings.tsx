@@ -1,13 +1,12 @@
 import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
-import { Maybe } from '@graph/schemas'
 import {
 	Badge,
 	Box,
-	IconSolidArrowRight,
 	IconSolidBeaker,
 	IconSolidCheckCircle,
 	IconSolidGithub,
+	IconSolidX,
 	Stack,
 	Text,
 } from '@highlight-run/ui'
@@ -15,71 +14,124 @@ import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubI
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
+
+import LoadingBox from '@/components/LoadingBox'
+import { useGetServiceByNameQuery } from '@/graph/generated/hooks'
+import { ErrorObjectFragment } from '@/graph/generated/operations'
 
 import * as styles from './GitHubEnhancementSettings.css'
+import { GitHubEnhancementSettingsForm } from './GitHubEnhancementSettingsForm'
 
 type Props = {
-	onCancel: () => void
-	serviceName?: Maybe<string>
+	onClose: () => void
+	errorObject: ErrorObjectFragment
+}
+
+type StepAction = {
+	title: string
+	iconLeft?: React.ReactElement
+	onClick: () => void
+	disabled?: boolean
+	primary?: boolean
 }
 
 export const GitHubEnhancementSettings: React.FC<Props> = ({
-	serviceName,
-	onCancel,
+	errorObject,
+	onClose,
 }) => {
-	const [integrationModalVisible, setIntegrationModalVisible] =
-		useState(false)
 	const { configurationPage } = GITHUB_INTEGRATION
 	const {
 		settings: { isIntegrated },
-		// data: githubData,
+		data: githubData,
 	} = useGitHubIntegration()
+
+	const [integrationModalVisible, setIntegrationModalVisible] =
+		useState(false)
+	const submitRef = useRef<HTMLButtonElement>(null)
+
+	const { data: serviceData, loading } = useGetServiceByNameQuery({
+		variables: {
+			project_id: String(errorObject.project_id),
+			name: errorObject.serviceName!,
+		},
+		skip: !errorObject.serviceName,
+	})
+
+	const handleSave = () => {
+		if (submitRef.current) {
+			submitRef.current.click()
+		}
+		onClose()
+	}
 
 	const steps = [
 		{
 			step: 'A',
 			title: 'Report services',
-			description:
-				'Add service name to your SDK to better deliniate errors and logs.',
-			completed: !!serviceName,
-			action: {
-				title: 'Read docs',
-				onClick: () =>
-					window.open(
-						'https://www.highlight.io/docs/general/product-features/general-features/services',
-						'_blank',
-					),
-			},
+			completed: !!errorObject.serviceName,
+			actions: [
+				{
+					title: 'Read docs',
+					onClick: () =>
+						window.open(
+							'https://www.highlight.io/docs/general/product-features/general-features/services',
+							'_blank',
+						),
+				},
+			],
 		},
 		{
 			step: 'B',
 			title: 'Connect to GitHub',
-			description: 'Connect to GitHub to access repositories.',
 			completed: isIntegrated,
-			action: {
-				title: 'Integrate GitHub',
-				iconLeft: <IconSolidGithub />,
-				onClick: () => setIntegrationModalVisible(true),
-				disabled: isIntegrated,
-			},
+			actions: [
+				{
+					title: 'Integrate GitHub',
+					iconLeft: <IconSolidGithub />,
+					onClick: () => setIntegrationModalVisible(true),
+					disabled: isIntegrated,
+				},
+			],
 		},
 		{
 			step: 'C',
 			title: 'Configure enhancement settings',
-			description:
-				'Link a GitHub repository to your service to start enhancing stacktraces.',
-			completed: false,
-			action: {
-				title: 'Start',
-				iconRight: <IconSolidArrowRight />,
-				onClick: () => {}, // TODO(spenny): show form
-				disabled: !serviceName || !isIntegrated,
+			completed: !!serviceData?.serviceByName?.githubRepoPath,
+			actions: [
+				{
+					title: 'Test enhancement',
+					iconLeft: <IconSolidBeaker />,
+					// TODO(spenny): implement
+					onClick: () => {},
+					// TODO(spenny): should we disable this based on form values
+					disabled: !isIntegrated && !errorObject.serviceName,
+				},
+				{
+					title: 'Save changes',
+					onClick: handleSave,
+					// TODO(spenny): should we disable this based on form values
+					disabled: !isIntegrated && !errorObject.serviceName,
+					primary: true,
+				},
+			],
+			component: () => {
+				if (loading) {
+					return <LoadingBox />
+				}
+
+				return (
+					<GitHubEnhancementSettingsForm
+						githubRepos={githubData?.github_repos || []}
+						errorObject={errorObject}
+						service={serviceData?.serviceByName}
+						submitRef={submitRef}
+					/>
+				)
 			},
 		},
 	]
 
-	// TODO(spenny): build form
 	return (
 		<Stack cssClass={styles.container}>
 			<Stack
@@ -95,36 +147,19 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 						trackingId="error-github-enhancement-cancel"
 						kind="secondary"
 						emphasis="low"
-						onClick={onCancel}
+						onClick={onClose}
 						size="small"
+						iconRight={<IconSolidX />}
 					>
 						Cancel
-					</Button>
-					<Button
-						trackingId="error-github-enhancement-test"
-						kind="secondary"
-						emphasis="medium"
-						size="small"
-						iconLeft={<IconSolidBeaker />}
-						disabled={true} // TODO(spenny): enable when form is ready
-					>
-						Test enhancement
-					</Button>
-					<Button
-						trackingId="error-github-enhancement-save"
-						kind="primary"
-						size="small"
-						disabled={true} // TODO(spenny): enable when form is ready
-					>
-						Save settings
 					</Button>
 				</Stack>
 			</Stack>
 
-			<Stack direction="row" width="full">
+			<Stack direction="column" width="full" gap="8">
 				{steps.map((step) => (
 					<Card className={styles.cardStep} key={step.step}>
-						<Stack direction="row" gap="8">
+						<Stack direction="row" gap="8" alignItems="center">
 							<Box display="flex" alignItems="flex-start">
 								{step.completed ? (
 									<Badge
@@ -142,24 +177,41 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 									/>
 								)}
 							</Box>
-							<Stack pt="4" gap="16">
+							<Stack
+								direction="row"
+								alignItems="center"
+								justifyContent="space-between"
+								width="full"
+							>
 								<Text color="strong">{step.title}</Text>
-								<Text color="moderate">{step.description}</Text>
-								<Box>
-									<Button
-										trackingId={`error-github-enhancement-step-${step.step}`}
-										kind="secondary"
-										size="xSmall"
-										iconLeft={step.action.iconLeft}
-										iconRight={step.action.iconRight}
-										disabled={step.action.disabled}
-										onClick={step.action.onClick}
-									>
-										{step.action.title}
-									</Button>
-								</Box>
+								<Stack
+									direction="row"
+									alignItems="center"
+									gap="4"
+								>
+									{step.actions.map(
+										(action: StepAction, index: number) => (
+											<Button
+												key={action.title}
+												trackingId={`error-github-enhancement-step-${step.step}${index}`}
+												kind={
+													action.primary
+														? 'primary'
+														: 'secondary'
+												}
+												size="xSmall"
+												iconLeft={action.iconLeft}
+												disabled={action.disabled}
+												onClick={action.onClick}
+											>
+												{action.title}
+											</Button>
+										),
+									)}
+								</Stack>
 							</Stack>
 						</Stack>
+						{step.component && <Box pt="8">{step.component()}</Box>}
 					</Card>
 				))}
 			</Stack>

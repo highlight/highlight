@@ -13635,6 +13635,70 @@ export type GetServicesQueryResult = Apollo.QueryResult<
 	Types.GetServicesQuery,
 	Types.GetServicesQueryVariables
 >
+export const GetServiceByNameDocument = gql`
+	query GetServiceByName($project_id: ID!, $name: String!) {
+		serviceByName(project_id: $project_id, name: $name) {
+			id
+			projectID
+			name
+			status
+			githubRepoPath
+			buildPrefix
+			githubPrefix
+			errorDetails
+		}
+	}
+`
+
+/**
+ * __useGetServiceByNameQuery__
+ *
+ * To run a query within a React component, call `useGetServiceByNameQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServiceByNameQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServiceByNameQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useGetServiceByNameQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>(GetServiceByNameDocument, baseOptions)
+}
+export function useGetServiceByNameLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>(GetServiceByNameDocument, baseOptions)
+}
+export type GetServiceByNameQueryHookResult = ReturnType<
+	typeof useGetServiceByNameQuery
+>
+export type GetServiceByNameLazyQueryHookResult = ReturnType<
+	typeof useGetServiceByNameLazyQuery
+>
+export type GetServiceByNameQueryResult = Apollo.QueryResult<
+	Types.GetServiceByNameQuery,
+	Types.GetServiceByNameQueryVariables
+>
 export const GetErrorTagsDocument = gql`
 	query GetErrorTags {
 		error_tags {

@@ -214,8 +214,8 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			errorInstance.error_object.structured_stack_trace?.length ? (
 				displayGitHubSettings ? (
 					<GitHubEnhancementSettings
-						onCancel={() => setDisplayGitHubSettings(false)}
-						serviceName={errorInstance?.error_object?.serviceName}
+						onClose={() => setDisplayGitHubSettings(false)}
+						errorObject={errorInstance.error_object}
 					/>
 				) : (
 					<>
