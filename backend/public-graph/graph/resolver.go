@@ -2540,14 +2540,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return nil
 		}
-		if len(resourcesParsed["resources"]) > 0 {
-			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-				return err
-			}
-			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
-			if err := r.DB.Create(obj).Error; err != nil {
-				return e.Wrap(err, "error creating resources object")
-			}
+		if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
+			return err
 		}
 
 		return nil
@@ -2947,8 +2941,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	return nil
 }
 
-func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
-	// TODO(vkorolik) delete backend domains
+func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
