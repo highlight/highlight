@@ -2939,6 +2939,10 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 
 func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
+		method := re.RequestResponsePairs.Request.Method
+		if method == "" {
+			method = http.MethodGet
+		}
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
@@ -2947,7 +2951,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			semconv.HTTPRequestContentLengthKey.Int(len(re.RequestResponsePairs.Request.Body)),
 			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
 			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
-			semconv.HTTPMethodKey.String(re.RequestResponsePairs.Request.Method),
+			semconv.HTTPMethodKey.String(method),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds())),
 		}
@@ -2959,7 +2963,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			}
 		}
 
-		span, _ := highlight.StartTraceWithTimestamp(context.Background(), fmt.Sprintf(`%s %s`, re.RequestResponsePairs.Request.Method, re.Name), sessionObj.CreatedAt.Add(time.Millisecond*time.Duration(re.StartTime)), attributes...)
+		span, _ := highlight.StartTraceWithTimestamp(context.Background(), strings.Join([]string{method, re.Name}, " "), sessionObj.CreatedAt.Add(time.Millisecond*time.Duration(re.StartTime)), attributes...)
 		span.End(trace.WithTimestamp(sessionObj.CreatedAt.Add(time.Millisecond * time.Duration(re.ResponseEnd))))
 	}
 	return nil
