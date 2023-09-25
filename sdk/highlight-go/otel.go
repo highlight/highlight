@@ -109,9 +109,9 @@ func (o *OTLP) shutdown() {
 	}
 }
 
-func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	sessionID, requestID, _ := validateRequest(ctx)
-	ctx, span := tracer.Start(ctx, name)
+	ctx, span := tracer.Start(ctx, name, trace.WithTimestamp(t))
 	attrs := []attribute.KeyValue{
 		attribute.String(ProjectIDAttribute, conf.projectID),
 		attribute.String(SessionIDAttribute, sessionID),
@@ -120,6 +120,10 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 	attrs = append(attrs, tags...)
 	span.SetAttributes(attrs...)
 	return span, ctx
+}
+
+func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	return StartTraceWithTimestamp(ctx, name, time.Now(), tags...)
 }
 
 func StartTraceWithoutResourceAttributes(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {

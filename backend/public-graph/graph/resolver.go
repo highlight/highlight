@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -2535,6 +2536,20 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error saving resources data")
 		}
 
+		resourcesParsed := make(map[string][]NetworkResource)
+		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+			return nil
+		}
+		if len(resourcesParsed["resources"]) > 0 {
+			if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
+				return err
+			}
+			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
+			if err := r.DB.Create(obj).Error; err != nil {
+				return e.Wrap(err, "error creating resources object")
+			}
+		}
+
 		return nil
 	})
 
@@ -2928,6 +2943,41 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 		}); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
+	}
+	return nil
+}
+
+func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
+	// TODO(vkorolik) delete backend domains
+	for _, re := range resources {
+		attributes := []attribute.KeyValue{
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
+			attribute.Int(privateModel.NetworkRequestAttributeBodySize.String(), len(re.RequestResponsePairs.Request.Body)),
+			attribute.Float64(privateModel.NetworkRequestAttributeResponseSize.String(), re.RequestResponsePairs.Response.Size),
+			attribute.Float64(privateModel.NetworkRequestAttributeStatus.String(), re.RequestResponsePairs.Response.Status),
+			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds())),
+			attribute.String(privateModel.NetworkRequestAttributeMethod.String(), re.RequestResponsePairs.Request.Method),
+			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
+		}
+		requestBody := make(map[string]interface{})
+		// if the request body is json and contains the graphql key operationName, treat it as an operation
+		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
+			if _, ok := requestBody["operationName"]; ok {
+				attributes = append(attributes, attribute.String(privateModel.NetworkRequestAttributeGraphqlOperation.String(), requestBody["operationName"].(string)))
+			}
+		}
+
+		u, err := url.Parse(re.Name)
+		if err == nil {
+			attributes = append(attributes, attribute.String(privateModel.NetworkRequestAttributeURL.String(), u.String()))
+		}
+
+		// request time is relative to session start
+		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
+
+		span, _ := highlight.StartTraceWithTimestamp(context.Background(), "highlight-frontend-req", sessionObj.CreatedAt.Add(d), attributes...)
+		span.End()
 	}
 	return nil
 }
