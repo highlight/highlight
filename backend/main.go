@@ -136,7 +136,7 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 
 	errors := make(chan error, 5)
 	wg := sync.WaitGroup{}
-	wg.Add(5)
+	wg.Add(4)
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
