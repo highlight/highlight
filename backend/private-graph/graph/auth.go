@@ -21,7 +21,7 @@ type LoginCredentials struct {
 }
 
 var AdminPassword = os.Getenv("ADMIN_PASSWORD")
-var ADMIN_PASSWORD_TOKEN_DURATION = time.Hour * 24
+var AdminPasswordTokenDuration = time.Hour * 24
 
 func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 	var credentials LoginCredentials
@@ -59,7 +59,7 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
-	atClaims["exp"] = time.Now().Add(ADMIN_PASSWORD_TOKEN_DURATION).Unix()
+	atClaims["exp"] = time.Now().Add(AdminPasswordTokenDuration).Unix()
 	atClaims["email"] = user.Email
 	atClaims["uid"] = user.UID
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
