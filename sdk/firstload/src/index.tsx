@@ -7,11 +7,12 @@ import type {
 	Highlight,
 	HighlightClassOptions,
 } from '@highlight-run/client/src'
-import type {
+import {
 	HighlightOptions,
 	HighlightPublicInterface,
 	Metadata,
 	Metric,
+	OnHighlightReadyOptions,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types'
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
@@ -52,6 +53,9 @@ interface HighlightWindow extends Window {
 }
 
 declare var window: HighlightWindow
+
+let onHighlightReadyQueue: (() => void | Promise<void>)[] = []
+let onHighlightReadyInterval: number | undefined = undefined
 
 let script: HTMLScriptElement
 let highlight_obj: Highlight
@@ -275,32 +279,31 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	start: (options) => {
-		try {
-			if (highlight_obj?.state === 'Recording') {
-				if (!options?.silent) {
-					console.warn(
-						'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
-					)
-				}
-				return
-			} else {
-				first_load_listeners.startListening()
-				var interval = setInterval(function () {
-					if (highlight_obj) {
-						clearInterval(interval)
-						highlight_obj.initialize(options)
-					}
-				}, 200)
+		if (highlight_obj?.state === 'Recording') {
+			if (!options?.silent) {
+				console.warn(
+					'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
+				)
 			}
-		} catch (e) {
-			HighlightWarning('start', e)
+		} else {
+			H.onHighlightReady(
+				async () => {
+					first_load_listeners.startListening()
+					await highlight_obj.initialize(options)
+				},
+				{ waitForReady: false },
+			)
 		}
 	},
-	stop: () => {
-		try {
+	stop: (options) => {
+		if (highlight_obj?.state !== 'Recording') {
+			if (!options?.silent) {
+				console.warn(
+					'Highlight is already stopped. Please call `H.start()`.',
+				)
+			}
+		} else {
 			H.onHighlightReady(() => highlight_obj.stopRecording(true))
-		} catch (e) {
-			HighlightWarning('stop', e)
 		}
 	},
 	identify: (identifier: string, metadata: Metadata = {}) => {
@@ -397,17 +400,31 @@ const H: HighlightPublicInterface = {
 			})
 		})
 	},
-	onHighlightReady: (func: () => void) => {
+	onHighlightReady: async (func, options) => {
 		try {
-			if (highlight_obj && highlight_obj.ready) {
-				func()
+			if (
+				highlight_obj &&
+				(options?.waitForReady === false || highlight_obj.ready)
+			) {
+				await func()
 			} else {
-				var interval = setInterval(function () {
-					if (highlight_obj && highlight_obj.ready) {
-						clearInterval(interval)
-						func()
-					}
-				}, 200)
+				onHighlightReadyQueue.push(func)
+				if (onHighlightReadyInterval === undefined) {
+					onHighlightReadyInterval = setInterval(async () => {
+						if (
+							highlight_obj &&
+							(options?.waitForReady === false ||
+								highlight_obj.ready)
+						) {
+							for (const f of onHighlightReadyQueue) {
+								await f()
+							}
+							onHighlightReadyQueue = []
+							clearInterval(onHighlightReadyInterval)
+							onHighlightReadyInterval = undefined
+						}
+					}, 200) as unknown as number
+				}
 			}
 		} catch (e) {
 			HighlightWarning('onHighlightReady', e)
