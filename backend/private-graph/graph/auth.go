@@ -21,7 +21,7 @@ type LoginCredentials struct {
 }
 
 var ADMIN_PASSWORD = os.Getenv("ADMIN_PASSWORD")
-var ADMIN_PASSWORD_TOKEN_DURATION = time.Now().Add(time.Hour * 24).Unix()
+var ADMIN_PASSWORD_TOKEN_DURATION = time.Hour * 24
 
 func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 	var credentials LoginCredentials
@@ -55,18 +55,11 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := &auth.UserInfo{
-		DisplayName: "Hobby Highlighter",
-		Email:       credentials.Email,
-		PhoneNumber: "+14081234567",
-		PhotoURL:    "https://picsum.photos/200",
-		ProviderID:  "",
-		UID:         "12345abcdef09876a1b2c3d4e5f",
-	}
+	user := GetPasswordAuthUser(credentials.Email)
 
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
-	atClaims["exp"] = ADMIN_PASSWORD_TOKEN_DURATION
+	atClaims["exp"] = time.Now().Add(ADMIN_PASSWORD_TOKEN_DURATION).Unix()
 	atClaims["email"] = user.Email
 	atClaims["uid"] = user.UID
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
@@ -108,14 +101,7 @@ func (r *Resolver) ValidateAuthToken(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := &auth.UserInfo{
-		DisplayName: "Hobby Highlighter",
-		Email:       email.(string),
-		PhoneNumber: "+14081234567",
-		PhotoURL:    "https://picsum.photos/200",
-		ProviderID:  "",
-		UID:         uid.(string),
-	}
+	user := GetPasswordAuthUser(email.(string))
 
 	response := make(map[string]interface{})
 	response["user"] = user
@@ -132,5 +118,16 @@ func (r *Resolver) ValidateAuthToken(w http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error writing validate-auth-token response"))
+	}
+}
+
+func GetPasswordAuthUser(email string) *auth.UserInfo {
+	return &auth.UserInfo{
+		DisplayName: "Hobby Highlighter",
+		Email:       email,
+		PhoneNumber: "+14081234567",
+		PhotoURL:    "https://picsum.photos/200",
+		ProviderID:  "",
+		UID:         "12345abcdef09876a1b2c3d4e5f",
 	}
 }

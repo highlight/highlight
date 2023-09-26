@@ -128,13 +128,13 @@ func authenticateToken(tokenString string) (jwt.MapClaims, error) {
 		return claims, e.Wrap(err, "invalid id token")
 	}
 
-	exp, ok := claims["exp"].(float64)
+	exp, ok := claims["exp"]
 	if !ok {
 		return claims, e.Wrap(err, "invalid exp claim")
 	}
 
 	// Check if the current time is after the expiration
-	if time.Now().After(time.Unix(int64(exp), 0)) {
+	if time.Now().After(time.Unix(exp.(int64), 0)) {
 		return claims, e.Wrap(err, "token expired")
 	}
 
@@ -143,14 +143,7 @@ func authenticateToken(tokenString string) (jwt.MapClaims, error) {
 
 func (c *PasswordAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
 	return &auth.UserRecord{
-		UserInfo: &auth.UserInfo{
-			DisplayName: "Hobby Highlighter",
-			Email:       "demo@example.com",
-			PhoneNumber: "+14081234567",
-			PhotoURL:    "https://picsum.photos/200",
-			ProviderID:  "",
-			UID:         "12345abcdef09876a1b2c3d4e5f",
-		},
+		UserInfo:      GetPasswordAuthUser("demo@example.com"),
 		EmailVerified: true,
 	}, nil
 }
