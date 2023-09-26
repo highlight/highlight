@@ -164,13 +164,16 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 					),
 					onClick: handleTestConfiguration,
 					// TODO(spenny): should we disable this based on form values
-					disabled: !isIntegrated && !testedError.serviceName,
+					disabled:
+						testLoading ||
+						!isIntegrated ||
+						!testedError.serviceName,
 				},
 				{
 					title: 'Save changes',
 					onClick: handleSave,
 					// TODO(spenny): should we disable this based on form values
-					disabled: !isIntegrated && !testedError.serviceName,
+					disabled: !isIntegrated || !testedError.serviceName,
 					primary: true,
 				},
 			],
