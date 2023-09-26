@@ -14,8 +14,8 @@ import {
 	Box,
 	Callout,
 	IconSolidCode,
+	IconSolidCog,
 	IconSolidExternalLink,
-	IconSolidGithub,
 	Stack,
 	Tag,
 	Text,
@@ -232,12 +232,12 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									kind="secondary"
 									emphasis="medium"
 									trackingId="errorInstanceGithubEnhancementSetup"
-									iconLeft={<IconSolidGithub size={16} />}
+									iconLeft={<IconSolidCog size={12} />}
 									onClick={() =>
 										setDisplayGitHubSettings(true)
 									}
 								>
-									GitHub enhancement setup
+									Setup GitHub-enhanced stacktraces
 								</Button>
 							)}
 						</Stack>

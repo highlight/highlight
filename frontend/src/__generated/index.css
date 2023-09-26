@@ -5911,24 +5911,21 @@ body {
   display: flex;
   align-items: center;
 }
-@keyframes _124ax692 {
+._124ax690 {
+  background: var(--_1pyqka92);
+  border-radius: 6px;
+  padding: 8px;
+}
+._124ax691 {
+  padding: 8px;
+}
+@keyframes _1068vpp5 {
   0% {
     transform: rotate(0deg);
   }
   100% {
     transform: rotate(360deg);
   }
-}
-._124ax690 {
-  background: var(--_1pyqka92);
-  border-radius: 6px;
-  padding: 8px 4px;
-}
-._124ax691 {
-  padding: 8px;
-}
-._124ax693 {
-  animation: 1s _124ax692 linear infinite;
 }
 ._1068vpp0 {
   width: 100%;
@@ -5948,6 +5945,9 @@ body {
 }
 ._1068vpp4 {
   position: absolute;
+}
+._1068vpp6 {
+  animation: 1s _1068vpp5 linear infinite;
 }
 ._33eaux0 {
   max-height: 16em;

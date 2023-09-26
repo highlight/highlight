@@ -1,17 +1,26 @@
+import { Button } from '@components/Button'
 import {
 	Box,
 	ButtonIcon,
 	Form,
+	IconSolidBeaker,
+	IconSolidInformationCircle,
+	IconSolidLoading,
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	Stack,
+	Text,
 	Tooltip,
 	vars,
 } from '@highlight-run/ui'
 import { Select } from 'antd'
-import clsx from 'clsx'
-import React, { useImperativeHandle, useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 
+import LoadingBox from '@/components/LoadingBox'
+import {
+	useEditServiceGithubSettingsMutation,
+	useTestErrorEnhancementMutation,
+} from '@/graph/generated/hooks'
 import { ErrorObjectFragment } from '@/graph/generated/operations'
 import { GitHubRepo, Maybe, Service } from '@/graph/generated/schemas'
 import ErrorStackTrace from '@/pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
@@ -22,9 +31,8 @@ type GithubSettingsFormProps = {
 	errorObject: ErrorObjectFragment
 	githubRepos: GitHubRepo[]
 	service?: Maybe<Service>
-	submitRef: any
-	testRef: any
-	testLoading: boolean
+	onSave: () => void
+	disabled?: boolean
 }
 
 export type GithubSettingsFormValues = {
@@ -33,14 +41,13 @@ export type GithubSettingsFormValues = {
 	githubPrefix: string | null
 }
 
-export const GitHubEnhancementSettingsForm = ({
-	githubRepos,
-	errorObject,
-	service,
-	submitRef,
-	testRef,
-	testLoading,
-}: GithubSettingsFormProps) => {
+export const GitHubEnhancementSettingsForm: React.FC<
+	GithubSettingsFormProps
+> = ({ githubRepos, errorObject, service, onSave, disabled }) => {
+	const [testedError, setTestedError] =
+		useState<ErrorObjectFragment>(errorObject)
+	const [testLoading, setTestLoading] = useState(false)
+
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
@@ -54,6 +61,9 @@ export const GitHubEnhancementSettingsForm = ({
 		[githubRepos],
 	)
 
+	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
+	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
+
 	const formStore = Form.useFormStore<GithubSettingsFormValues>({
 		defaultValues: {
 			githubRepo: service?.githubRepoPath || null,
@@ -63,28 +73,99 @@ export const GitHubEnhancementSettingsForm = ({
 	})
 	const formState = formStore.useState()
 
-	useImperativeHandle(
-		testRef,
-		() => {
-			return {
-				getFormValues: () => formState.values,
-			}
-		},
-		[formState.values],
-	)
+	const handleSave = () => {
+		const formValues = formState.values
+		const submittedValues = formValues?.githubRepo
+			? formValues
+			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
 
-	useImperativeHandle(
-		submitRef,
-		() => {
-			return {
-				getFormValues: () => formState.values,
-			}
-		},
-		[formState.values],
-	)
+		editServiceGithubSettings({
+			variables: {
+				id: String(service?.id),
+				project_id: String(service?.projectID),
+				github_repo_path: submittedValues.githubRepo,
+				build_prefix: submittedValues.buildPrefix,
+				github_prefix: submittedValues.githubPrefix,
+			},
+		})
 
+		onSave()
+	}
+
+	const handleTestConfiguration = () => {
+		setTestLoading(true)
+
+		const formValues = formState.values
+		testErrorEnhancement({
+			variables: {
+				error_object_id: testedError.id,
+				github_repo_path: String(formValues?.githubRepo),
+				build_prefix: formValues?.buildPrefix,
+				github_prefix: formValues?.githubPrefix,
+			},
+		}).then(({ data }) => {
+			if (data?.testErrorEnhancement) {
+				const updatedError: ErrorObjectFragment = {
+					...testedError,
+					...data.testErrorEnhancement,
+				}
+
+				setTestedError(updatedError)
+			}
+			setTestLoading(false)
+		})
+	}
+
+	// TODO(spenny): changing between errors - state remains the same
 	return (
 		<Form store={formStore}>
+			<Stack
+				direction="row"
+				alignItems="center"
+				justifyContent="space-between"
+				width="full"
+				marginBottom="12"
+			>
+				<Text color="strong">Configure enhancement settings</Text>
+				<Stack direction="row" alignItems="center" gap="4">
+					<Button
+						trackingId="error-github-enhancement-test-configuration"
+						kind="secondary"
+						size="xSmall"
+						iconLeft={
+							testLoading ? (
+								<IconSolidLoading
+									className={styles.loadingIcon}
+								/>
+							) : (
+								<IconSolidBeaker />
+							)
+						}
+						disabled={
+							disabled ||
+							testLoading ||
+							!formStore.getValue(formStore.names.githubRepo)
+						}
+						onClick={handleTestConfiguration}
+					>
+						Test enhancement
+					</Button>
+					<Button
+						trackingId="error-github-enhancement-step-save-configuration"
+						kind="primary"
+						size="xSmall"
+						disabled={
+							disabled ||
+							testLoading ||
+							!formStore.getValue(formStore.names.githubRepo)
+						}
+						onClick={handleSave}
+					>
+						Save changes
+					</Button>
+				</Stack>
+			</Stack>
+
 			<Stack direction="row" gap="0">
 				<Stack gap="16" width="full" paddingRight="8">
 					<Form.NamedSection
@@ -106,6 +187,7 @@ export const GitHubEnhancementSettingsForm = ({
 									?.split('/')
 									.pop()}
 								options={githubOptions}
+								disabled={disabled || testLoading}
 								notFoundContent={<span>No repos found</span>}
 								optionFilterProp="label"
 								filterOption
@@ -115,7 +197,11 @@ export const GitHubEnhancementSettingsForm = ({
 								kind="secondary"
 								emphasis="medium"
 								size="medium"
-								disabled={!formState.values.githubRepo}
+								disabled={
+									!formState.values.githubRepo ||
+									disabled ||
+									testLoading
+								}
 								onClick={() =>
 									formStore.setValue(
 										formStore.names.githubRepo,
@@ -134,6 +220,25 @@ export const GitHubEnhancementSettingsForm = ({
 							/>
 						</Box>
 					</Form.NamedSection>
+					{disabled && (
+						<Box
+							display="flex"
+							alignItems="flex-start"
+							gap="4"
+							cssClass={styles.example}
+						>
+							<Box>
+								<IconSolidInformationCircle
+									color={vars.theme.static.content.weak}
+									size={14}
+								/>
+							</Box>
+							<Text>
+								Report service & connect to GitHub before being
+								able to access the enhancement settings.
+							</Text>
+						</Box>
+					)}
 				</Stack>
 				<Stack
 					gap="16"
@@ -145,12 +250,13 @@ export const GitHubEnhancementSettingsForm = ({
 						name={formStore.names.buildPrefix}
 						label="Build path prefix"
 						placeholder="/build"
+						disabled={disabled || testLoading}
 						icon={
 							<Tooltip
 								trigger={
 									<IconSolidQuestionMarkCircle
 										color={vars.theme.static.content.weak}
-										size={14}
+										size={12}
 									/>
 								}
 								renderInLine
@@ -167,6 +273,7 @@ export const GitHubEnhancementSettingsForm = ({
 						name={formStore.names.githubPrefix}
 						label="GitHub path prefix"
 						placeholder="/src"
+						disabled={disabled || testLoading}
 						icon={
 							<Tooltip
 								trigger={
@@ -187,9 +294,15 @@ export const GitHubEnhancementSettingsForm = ({
 					/>
 				</Stack>
 			</Stack>
-			<Box pt="8" cssClass={clsx({ [styles.loading]: testLoading })}>
-				<ErrorStackTrace errorObject={errorObject} />
-			</Box>
+			{!disabled && (
+				<Box pt="8">
+					{testLoading ? (
+						<LoadingBox height={200} />
+					) : (
+						<ErrorStackTrace errorObject={errorObject} />
+					)}
+				</Box>
+			)}
 		</Form>
 	)
 }

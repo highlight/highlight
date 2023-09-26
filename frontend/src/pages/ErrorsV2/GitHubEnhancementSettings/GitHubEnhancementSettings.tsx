@@ -3,10 +3,8 @@ import Card from '@components/Card/Card'
 import {
 	Badge,
 	Box,
-	IconSolidBeaker,
 	IconSolidCheckCircle,
 	IconSolidGithub,
-	IconSolidLoading,
 	IconSolidX,
 	Stack,
 	Text,
@@ -15,189 +13,77 @@ import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubI
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import LoadingBox from '@/components/LoadingBox'
-import {
-	useEditServiceGithubSettingsMutation,
-	useGetServiceByNameQuery,
-	useTestErrorEnhancementMutation,
-} from '@/graph/generated/hooks'
+import { useGetServiceByNameQuery } from '@/graph/generated/hooks'
 import { ErrorObjectFragment } from '@/graph/generated/operations'
 
 import * as styles from './GitHubEnhancementSettings.css'
-import {
-	GitHubEnhancementSettingsForm,
-	GithubSettingsFormValues,
-} from './GitHubEnhancementSettingsForm'
+import { GitHubEnhancementSettingsForm } from './GitHubEnhancementSettingsForm'
 
 type Props = {
 	onClose: () => void
 	errorObject: ErrorObjectFragment
 }
 
-type StepAction = {
-	title: string
-	iconLeft?: React.ReactElement
-	onClick: () => void
-	disabled?: boolean
-	primary?: boolean
-}
-
-type EnhancementButtonRef = HTMLButtonElement & {
-	getFormValues: () => GithubSettingsFormValues
-}
-
 export const GitHubEnhancementSettings: React.FC<Props> = ({
 	errorObject,
 	onClose,
 }) => {
+	const navigate = useNavigate()
 	const { configurationPage } = GITHUB_INTEGRATION
 	const {
 		settings: { isIntegrated },
 		data: githubData,
 	} = useGitHubIntegration()
-	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
-	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
 	const [integrationModalVisible, setIntegrationModalVisible] =
 		useState(false)
-	const [testedError, setTestedError] =
-		useState<ErrorObjectFragment>(errorObject)
-	const [testLoading, setTestLoading] = useState(false)
-
-	const submitRef = useRef<EnhancementButtonRef>(null)
-	const testConfigurationRef = useRef<EnhancementButtonRef>(null)
 
 	const { data: serviceData, loading } = useGetServiceByNameQuery({
 		variables: {
-			project_id: String(testedError.project_id),
-			name: testedError.serviceName!,
+			project_id: String(errorObject.project_id),
+			name: errorObject.serviceName!,
 		},
-		skip: !testedError.serviceName,
+		skip: !errorObject.serviceName,
 	})
-
-	const handleSave = () => {
-		const formValues = submitRef.current?.getFormValues()
-		const submittedValues = formValues?.githubRepo
-			? formValues
-			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
-
-		editServiceGithubSettings({
-			variables: {
-				id: String(serviceData?.serviceByName?.id),
-				project_id: String(serviceData?.serviceByName?.projectID),
-				github_repo_path: submittedValues.githubRepo,
-				build_prefix: submittedValues.buildPrefix,
-				github_prefix: submittedValues.githubPrefix,
-			},
-		})
-
-		onClose()
-	}
-
-	const handleTestConfiguration = () => {
-		// TODO(spenny): disable or error if no repo path
-		const formValues = testConfigurationRef.current?.getFormValues()
-
-		setTestLoading(true)
-		testErrorEnhancement({
-			variables: {
-				error_object_id: testedError.id,
-				github_repo_path: String(formValues?.githubRepo),
-				build_prefix: formValues?.buildPrefix,
-				github_prefix: formValues?.githubPrefix,
-			},
-		}).then(({ data }) => {
-			if (data?.testErrorEnhancement) {
-				const updatedError: ErrorObjectFragment = {
-					...testedError,
-					...data.testErrorEnhancement,
-				}
-
-				setTestedError(updatedError)
-			}
-			setTestLoading(false)
-		})
-	}
 
 	const steps = [
 		{
 			step: 'A',
 			title: 'Report services',
-			completed: !!testedError.serviceName,
-			actions: [
-				{
-					title: 'Read docs',
-					onClick: () =>
-						window.open(
-							'https://www.highlight.io/docs/general/product-features/general-features/services',
-							'_blank',
-						),
-				},
-			],
+			completed: !!errorObject.serviceName,
+			action: {
+				title: 'Read docs',
+				onClick: () =>
+					window.open(
+						'https://www.highlight.io/docs/general/product-features/general-features/services',
+						'_blank',
+					),
+			},
 		},
 		{
 			step: 'B',
 			title: 'Connect to GitHub',
 			completed: isIntegrated,
-			actions: [
-				{
-					title: 'Integrate GitHub',
-					iconLeft: <IconSolidGithub />,
-					onClick: () => setIntegrationModalVisible(true),
-					disabled: isIntegrated,
-				},
-			],
-		},
-		{
-			step: 'C',
-			title: 'Configure enhancement settings',
-			completed: !!serviceData?.serviceByName?.githubRepoPath,
-			actions: [
-				{
-					title: 'Test enhancement',
-					iconLeft: testLoading ? (
-						<IconSolidLoading className={styles.loading} />
-					) : (
-						<IconSolidBeaker />
-					),
-					onClick: handleTestConfiguration,
-					// TODO(spenny): should we disable this based on form values
-					disabled:
-						testLoading ||
-						!isIntegrated ||
-						!testedError.serviceName,
-				},
-				{
-					title: 'Save changes',
-					onClick: handleSave,
-					// TODO(spenny): should we disable this based on form values
-					disabled: !isIntegrated || !testedError.serviceName,
-					primary: true,
-				},
-			],
-			component: () => {
-				if (loading) {
-					return <LoadingBox />
-				}
-
-				return (
-					<GitHubEnhancementSettingsForm
-						githubRepos={githubData?.github_repos || []}
-						errorObject={testedError}
-						service={serviceData?.serviceByName}
-						submitRef={submitRef}
-						testRef={testConfigurationRef}
-						testLoading={testLoading}
-					/>
-				)
-			},
+			action: isIntegrated
+				? {
+						title: 'Manage Integration',
+						onClick: () =>
+							navigate(`/${errorObject.project_id}/integrations`),
+				  }
+				: {
+						title: 'Connect to GitHub',
+						iconLeft: <IconSolidGithub />,
+						onClick: () => setIntegrationModalVisible(true),
+				  },
 		},
 	]
 
 	return (
-		<Stack cssClass={styles.container}>
+		<Stack cssClass={styles.container} gap="12">
 			<Stack
 				direction="row"
 				justifyContent="space-between"
@@ -248,37 +134,36 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 								width="full"
 							>
 								<Text color="strong">{step.title}</Text>
-								<Stack
-									direction="row"
-									alignItems="center"
-									gap="4"
+								<Button
+									trackingId={`error-github-enhancement-step-${step.step}`}
+									kind="secondary"
+									size="xSmall"
+									iconLeft={step.action.iconLeft}
+									onClick={step.action.onClick}
 								>
-									{step.actions.map(
-										(action: StepAction, index: number) => (
-											<Button
-												key={action.title}
-												trackingId={`error-github-enhancement-step-${step.step}${index}`}
-												kind={
-													action.primary
-														? 'primary'
-														: 'secondary'
-												}
-												size="xSmall"
-												iconLeft={action.iconLeft}
-												disabled={action.disabled}
-												onClick={action.onClick}
-											>
-												{action.title}
-											</Button>
-										),
-									)}
-								</Stack>
+									{step.action.title}
+								</Button>
 							</Stack>
 						</Stack>
-						{step.component && <Box pt="8">{step.component()}</Box>}
 					</Card>
 				))}
 			</Stack>
+
+			{loading ? (
+				<LoadingBox />
+			) : (
+				<Box borderTop="dividerWeak" paddingTop="12">
+					<GitHubEnhancementSettingsForm
+						githubRepos={githubData?.github_repos || []}
+						errorObject={errorObject}
+						service={serviceData?.serviceByName}
+						onSave={onClose}
+						disabled={
+							!isIntegrated || !serviceData?.serviceByName?.name
+						}
+					/>
+				</Box>
+			)}
 
 			<IntegrationModal
 				title="Configuring GitHub Integration"
