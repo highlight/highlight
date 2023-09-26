@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -5277,8 +5278,12 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		pgSortStr = "created_at ASC"
 	}
 
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
 	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -5314,8 +5319,12 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
 	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -7209,10 +7218,6 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
-	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7220,6 +7225,12 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 	// Update the the number of logs viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		// If the user is not authenticated (e.g. demo page), return
+		admin, err := r.getCurrentAdmin(ctx)
+		if err != nil {
+			return
+		}
+
 		ctx := context.Background()
 		var totalLogCount int64
 		if err := r.DB.Raw(`
