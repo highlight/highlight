@@ -1,4 +1,4 @@
-import { Box, Heading, Stack, Text } from '@highlight-run/ui'
+import { Box, Heading, Stack, Text, Tooltip } from '@highlight-run/ui'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useState } from 'react'
@@ -94,36 +94,65 @@ export const TracePage: React.FC<Props> = () => {
 						const marginLeft = (diff / totalDuration) * 100
 
 						return (
-							<Box
-								key={span?.spanID}
-								borderRadius="4"
-								p="4"
-								py="6"
-								mb="2"
-								display="flex"
-								alignItems="center"
-								justifyContent="space-between"
-								style={{ marginLeft, width: `${width}%` }}
-								cssClass={clsx(styles.span, {
-									[styles.selectedSpan]:
-										span === selectedSpan,
-									[styles.hoveredSpan]: span === hoveredSpan,
-								})}
-								onClick={() => setSelectedSpan(span)}
-								onMouseOver={() => setHoveredSpan(span)}
-								onMouseOut={() => setHoveredSpan(undefined)}
+							<Tooltip
+								key={span.spanID}
+								trigger={
+									<Box
+										borderRadius="4"
+										p="4"
+										py="6"
+										mb="2"
+										display="flex"
+										alignItems="center"
+										justifyContent="space-between"
+										style={{
+											marginLeft,
+											width: `${width}%`,
+										}}
+										cssClass={clsx(styles.span, {
+											[styles.selectedSpan]:
+												span === selectedSpan,
+											[styles.hoveredSpan]:
+												span === hoveredSpan,
+										})}
+										onClick={() => setSelectedSpan(span)}
+										onMouseOver={() => setHoveredSpan(span)}
+										onMouseOut={() =>
+											setHoveredSpan(undefined)
+										}
+									>
+										<>
+											<Text size="xSmall" lines="1">
+												{span?.spanName}
+											</Text>
+											<Box flexShrink={0}>
+												<Text size="xSmall">
+													{getTraceDurationString(
+														span.duration / 1000,
+													)}
+												</Text>
+											</Box>
+										</>
+									</Box>
+								}
 							>
-								<Text size="xSmall" lines="1">
-									{span?.spanName}
-								</Text>
-								<Box flexShrink={0}>
-									<Text size="xSmall">
-										{getTraceDurationString(
-											span.duration / 1000,
-										)}
-									</Text>
-								</Box>
-							</Box>
+								{highlightedSpan && (
+									<Box
+										display="flex"
+										gap="6"
+										flexDirection="column"
+									>
+										<Text color="moderate">
+											{highlightedSpan.spanName}
+										</Text>
+										<Text weight="bold">
+											{getTraceDurationString(
+												highlightedSpan.duration / 1000,
+											)}
+										</Text>
+									</Box>
+								)}
+							</Tooltip>
 						)
 					})}
 				</Box>
@@ -140,6 +169,8 @@ export const TracePage: React.FC<Props> = () => {
 
 const SpanAttributes: React.FC<{ span: Trace }> = ({ span }) => {
 	const attributes = { ...span }
+
+	// Drop any attributes we don't want to display
 	delete attributes.__typename
 
 	return <JsonViewer src={attributes} collapsed={false} />

@@ -8,6 +8,7 @@ export const hoveredSpan = style({})
 export const span = style({
 	backgroundColor: themeVars.interactive.outline.primary.enabled,
 	color: themeVars.static.content.sentiment.informative,
+	cursor: 'default',
 	selectors: {
 		[`${hoveredSpan}.&`]: {
 			backgroundColor: themeVars.interactive.outline.primary.hover,
