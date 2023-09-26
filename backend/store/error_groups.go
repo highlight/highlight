@@ -9,7 +9,6 @@ import (
 
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/samber/lo"
@@ -224,10 +223,6 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 
 	if err != nil {
 		return errorGroup, err
-	}
-
-	if err := store.opensearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
-		return errorGroup, errors.New("error updating error group state in OpenSearch")
 	}
 
 	if err := store.dataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {

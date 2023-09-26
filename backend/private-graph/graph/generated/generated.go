@@ -56,7 +56,6 @@ type ResolverRoot interface {
 	Session() SessionResolver
 	SessionAlert() SessionAlertResolver
 	SessionComment() SessionCommentResolver
-	SessionExport() SessionExportResolver
 	Subscription() SubscriptionResolver
 	TimelineIndicatorEvent() TimelineIndicatorEventResolver
 }
@@ -729,7 +728,7 @@ type ComplexityRoot struct {
 		DeleteSegment                    func(childComplexity int, segmentID int) int
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
-		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
+		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
@@ -861,12 +860,10 @@ type ComplexityRoot struct {
 		ErrorCommentsForProject      func(childComplexity int, projectID int) int
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
 		ErrorFieldsClickhouse        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
-		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) int
 		ErrorGroup                   func(childComplexity int, secureID string, useClickhouse *bool) int
 		ErrorGroupFrequencies        func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) int
 		ErrorGroupTags               func(childComplexity int, errorGroupSecureID string, useClickhouse *bool) int
 		ErrorGroupsClickhouse        func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, page *int) int
-		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, clickhouseQuery *model.ClickhouseQuery, page *int) int
 		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
 		ErrorIssue                   func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                  func(childComplexity int, id int) int
@@ -876,16 +873,13 @@ type ComplexityRoot struct {
 		ErrorSegments                func(childComplexity int, projectID int) int
 		ErrorTags                    func(childComplexity int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
-		ErrorsHistogram              func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions, clickhouseQuery *model.ClickhouseQuery) int
 		ErrorsHistogramClickhouse    func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
 		EventChunkURL                func(childComplexity int, secureID string, index int) int
 		EventChunks                  func(childComplexity int, secureID string) int
 		Events                       func(childComplexity int, sessionSecureID string) int
 		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
-		FieldTypes                   func(childComplexity int, projectID int, startDate *time.Time, endDate *time.Time, useClickhouse *bool) int
 		FieldTypesClickhouse         func(childComplexity int, projectID int, startDate time.Time, endDate time.Time) int
 		FieldsClickhouse             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
-		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) int
 		FindSimilarErrors            func(childComplexity int, query string) int
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls       func(childComplexity int, apiKey string, paths []string) int
@@ -930,8 +924,6 @@ type ComplexityRoot struct {
 		ProjectSuggestion            func(childComplexity int, query string) int
 		Projects                     func(childComplexity int) int
 		PropertySuggestion           func(childComplexity int, projectID int, query string, typeArg string) int
-		QuickFieldsClickhouse        func(childComplexity int, projectID int, count int, query string, startDate time.Time, endDate time.Time) int
-		QuickFieldsOpensearch        func(childComplexity int, projectID int, count int, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) int
 		RageClickAlerts              func(childComplexity int, projectID int) int
 		RageClicks                   func(childComplexity int, sessionSecureID string) int
 		RageClicksForProject         func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -946,14 +938,12 @@ type ComplexityRoot struct {
 		SessionComments              func(childComplexity int, sessionSecureID string) int
 		SessionCommentsForAdmin      func(childComplexity int) int
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
-		SessionExports               func(childComplexity int) int
+		SessionExports               func(childComplexity int, projectID int) int
 		SessionInsight               func(childComplexity int, secureID string) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
 		SessionLogs                  func(childComplexity int, projectID int, params model.QueryInput) int
 		SessionsClickhouse           func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) int
-		SessionsHistogram            func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions, clickhouseQuery *model.ClickhouseQuery) int
 		SessionsHistogramClickhouse  func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
-		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, clickhouseQuery *model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SourcemapFiles               func(childComplexity int, projectID int, version *string) int
 		SourcemapVersions            func(childComplexity int, projectID int) int
@@ -1187,11 +1177,12 @@ type ComplexityRoot struct {
 		Name func(childComplexity int) int
 	}
 
-	SessionExport struct {
+	SessionExportWithSession struct {
+		ActiveLength func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
 		Error        func(childComplexity int) int
-		ID           func(childComplexity int) int
-		SessionID    func(childComplexity int) int
-		TargetEmails func(childComplexity int) int
+		Identifier   func(childComplexity int) int
+		SecureID     func(childComplexity int) int
 		Type         func(childComplexity int) int
 		URL          func(childComplexity int) int
 	}
@@ -1561,7 +1552,7 @@ type MutationResolver interface {
 	ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error)
 	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error)
 	DeleteDashboard(ctx context.Context, id int) (bool, error)
-	DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error)
+	DeleteSessions(ctx context.Context, projectID int, query model.ClickhouseQuery, sessionCount int) (bool, error)
 	UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*model.VercelProjectMappingInput) (bool, error)
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
 	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
@@ -1582,9 +1573,7 @@ type QueryResolver interface {
 	WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
-	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *model.ClickhouseQuery, page *int) (*model1.ErrorResults, error)
 	ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query model.ClickhouseQuery, page *int) (*model1.ErrorResults, error)
-	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions, clickhouseQuery *model.ClickhouseQuery) (*model1.ErrorsHistogram, error)
 	ErrorsHistogramClickhouse(ctx context.Context, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
@@ -1625,18 +1614,11 @@ type QueryResolver interface {
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
-	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model1.SessionResults, error)
 	SessionsClickhouse(ctx context.Context, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model1.SessionResults, error)
-	SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions, clickhouseQuery *model.ClickhouseQuery) (*model1.SessionsHistogram, error)
 	SessionsHistogramClickhouse(ctx context.Context, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) (*model1.SessionsHistogram, error)
-	FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model1.Field, error)
 	FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model1.Field, error)
-	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error)
 	FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error)
-	ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error)
 	ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error)
-	QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model1.Field, error)
-	QuickFieldsClickhouse(ctx context.Context, projectID int, count int, query string, startDate time.Time, endDate time.Time) ([]*model1.Field, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
@@ -1716,7 +1698,7 @@ type QueryResolver interface {
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
 	SessionInsight(ctx context.Context, secureID string) (*model1.SessionInsight, error)
-	SessionExports(ctx context.Context) ([]*model1.SessionExport, error)
+	SessionExports(ctx context.Context, projectID int) ([]*model.SessionExportWithSession, error)
 	SystemConfiguration(ctx context.Context) (*model1.SystemConfiguration, error)
 	Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*model.ServiceConnection, error)
 	ServiceByName(ctx context.Context, projectID int, name string) (*model1.Service, error)
@@ -1761,9 +1743,6 @@ type SessionCommentResolver interface {
 	Type(ctx context.Context, obj *model1.SessionComment) (model.SessionCommentType, error)
 	Metadata(ctx context.Context, obj *model1.SessionComment) (interface{}, error)
 	Tags(ctx context.Context, obj *model1.SessionComment) ([]*string, error)
-}
-type SessionExportResolver interface {
-	TargetEmails(ctx context.Context, obj *model1.SessionExport) ([]string, error)
 }
 type SubscriptionResolver interface {
 	SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model1.SessionPayload, error)
@@ -5060,7 +5039,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteSessions(childComplexity, args["project_id"].(int), args["query"].(string), args["sessionCount"].(int)), true
+		return e.complexity.Mutation.DeleteSessions(childComplexity, args["project_id"].(int), args["query"].(model.ClickhouseQuery), args["sessionCount"].(int)), true
 
 	case "Mutation.editErrorSegment":
 		if e.complexity.Mutation.EditErrorSegment == nil {
@@ -6217,18 +6196,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorFieldsClickhouse(childComplexity, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string), args["start_date"].(time.Time), args["end_date"].(time.Time)), true
 
-	case "Query.error_fields_opensearch":
-		if e.complexity.Query.ErrorFieldsOpensearch == nil {
-			break
-		}
-
-		args, err := ec.field_Query_error_fields_opensearch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ErrorFieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string), args["start_date"].(*time.Time), args["end_date"].(*time.Time), args["use_clickhouse"].(*bool)), true
-
 	case "Query.error_group":
 		if e.complexity.Query.ErrorGroup == nil {
 			break
@@ -6276,18 +6243,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ErrorGroupsClickhouse(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(model.ClickhouseQuery), args["page"].(*int)), true
-
-	case "Query.error_groups_opensearch":
-		if e.complexity.Query.ErrorGroupsOpensearch == nil {
-			break
-		}
-
-		args, err := ec.field_Query_error_groups_opensearch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["clickhouse_query"].(*model.ClickhouseQuery), args["page"].(*int)), true
 
 	case "Query.error_instance":
 		if e.complexity.Query.ErrorInstance == nil {
@@ -6392,18 +6347,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Errors(childComplexity, args["session_secure_id"].(string)), true
 
-	case "Query.errors_histogram":
-		if e.complexity.Query.ErrorsHistogram == nil {
-			break
-		}
-
-		args, err := ec.field_Query_errors_histogram_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ErrorsHistogram(childComplexity, args["project_id"].(int), args["query"].(string), args["histogram_options"].(model.DateHistogramOptions), args["clickhouse_query"].(*model.ClickhouseQuery)), true
-
 	case "Query.errors_histogram_clickhouse":
 		if e.complexity.Query.ErrorsHistogramClickhouse == nil {
 			break
@@ -6464,18 +6407,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FieldSuggestion(childComplexity, args["project_id"].(int), args["name"].(string), args["query"].(string)), true
 
-	case "Query.field_types":
-		if e.complexity.Query.FieldTypes == nil {
-			break
-		}
-
-		args, err := ec.field_Query_field_types_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FieldTypes(childComplexity, args["project_id"].(int), args["start_date"].(*time.Time), args["end_date"].(*time.Time), args["use_clickhouse"].(*bool)), true
-
 	case "Query.field_types_clickhouse":
 		if e.complexity.Query.FieldTypesClickhouse == nil {
 			break
@@ -6499,18 +6430,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FieldsClickhouse(childComplexity, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string), args["start_date"].(time.Time), args["end_date"].(time.Time)), true
-
-	case "Query.fields_opensearch":
-		if e.complexity.Query.FieldsOpensearch == nil {
-			break
-		}
-
-		args, err := ec.field_Query_fields_opensearch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["field_type"].(string), args["field_name"].(string), args["query"].(string), args["start_date"].(*time.Time), args["end_date"].(*time.Time), args["use_clickhouse"].(*bool)), true
 
 	case "Query.find_similar_errors":
 		if e.complexity.Query.FindSimilarErrors == nil {
@@ -7030,30 +6949,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.PropertySuggestion(childComplexity, args["project_id"].(int), args["query"].(string), args["type"].(string)), true
 
-	case "Query.quickFields_clickhouse":
-		if e.complexity.Query.QuickFieldsClickhouse == nil {
-			break
-		}
-
-		args, err := ec.field_Query_quickFields_clickhouse_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.QuickFieldsClickhouse(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["start_date"].(time.Time), args["end_date"].(time.Time)), true
-
-	case "Query.quickFields_opensearch":
-		if e.complexity.Query.QuickFieldsOpensearch == nil {
-			break
-		}
-
-		args, err := ec.field_Query_quickFields_opensearch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.QuickFieldsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["start_date"].(*time.Time), args["end_date"].(*time.Time), args["use_clickhouse"].(*bool)), true
-
 	case "Query.rage_click_alerts":
 		if e.complexity.Query.RageClickAlerts == nil {
 			break
@@ -7222,7 +7117,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.SessionExports(childComplexity), true
+		args, err := ec.field_Query_session_exports_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionExports(childComplexity, args["project_id"].(int)), true
 
 	case "Query.session_insight":
 		if e.complexity.Query.SessionInsight == nil {
@@ -7272,18 +7172,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionsClickhouse(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(model.ClickhouseQuery), args["sort_field"].(*string), args["sort_desc"].(bool), args["page"].(*int)), true
 
-	case "Query.sessions_histogram":
-		if e.complexity.Query.SessionsHistogram == nil {
-			break
-		}
-
-		args, err := ec.field_Query_sessions_histogram_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SessionsHistogram(childComplexity, args["project_id"].(int), args["query"].(string), args["histogram_options"].(model.DateHistogramOptions), args["clickhouse_query"].(*model.ClickhouseQuery)), true
-
 	case "Query.sessions_histogram_clickhouse":
 		if e.complexity.Query.SessionsHistogramClickhouse == nil {
 			break
@@ -7295,18 +7183,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SessionsHistogramClickhouse(childComplexity, args["project_id"].(int), args["query"].(model.ClickhouseQuery), args["histogram_options"].(model.DateHistogramOptions)), true
-
-	case "Query.sessions_opensearch":
-		if e.complexity.Query.SessionsOpensearch == nil {
-			break
-		}
-
-		args, err := ec.field_Query_sessions_opensearch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SessionsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["clickhouse_query"].(*model.ClickhouseQuery), args["sort_field"].(*string), args["sort_desc"].(bool), args["page"].(*int)), true
 
 	case "Query.slack_channel_suggestion":
 		if e.complexity.Query.SlackChannelSuggestion == nil {
@@ -8698,47 +8574,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionCommentTag.Name(childComplexity), true
 
-	case "SessionExport.error":
-		if e.complexity.SessionExport.Error == nil {
+	case "SessionExportWithSession.active_length":
+		if e.complexity.SessionExportWithSession.ActiveLength == nil {
 			break
 		}
 
-		return e.complexity.SessionExport.Error(childComplexity), true
+		return e.complexity.SessionExportWithSession.ActiveLength(childComplexity), true
 
-	case "SessionExport.id":
-		if e.complexity.SessionExport.ID == nil {
+	case "SessionExportWithSession.created_at":
+		if e.complexity.SessionExportWithSession.CreatedAt == nil {
 			break
 		}
 
-		return e.complexity.SessionExport.ID(childComplexity), true
+		return e.complexity.SessionExportWithSession.CreatedAt(childComplexity), true
 
-	case "SessionExport.session_id":
-		if e.complexity.SessionExport.SessionID == nil {
+	case "SessionExportWithSession.error":
+		if e.complexity.SessionExportWithSession.Error == nil {
 			break
 		}
 
-		return e.complexity.SessionExport.SessionID(childComplexity), true
+		return e.complexity.SessionExportWithSession.Error(childComplexity), true
 
-	case "SessionExport.target_emails":
-		if e.complexity.SessionExport.TargetEmails == nil {
+	case "SessionExportWithSession.identifier":
+		if e.complexity.SessionExportWithSession.Identifier == nil {
 			break
 		}
 
-		return e.complexity.SessionExport.TargetEmails(childComplexity), true
+		return e.complexity.SessionExportWithSession.Identifier(childComplexity), true
 
-	case "SessionExport.type":
-		if e.complexity.SessionExport.Type == nil {
+	case "SessionExportWithSession.secure_id":
+		if e.complexity.SessionExportWithSession.SecureID == nil {
 			break
 		}
 
-		return e.complexity.SessionExport.Type(childComplexity), true
+		return e.complexity.SessionExportWithSession.SecureID(childComplexity), true
 
-	case "SessionExport.url":
-		if e.complexity.SessionExport.URL == nil {
+	case "SessionExportWithSession.type":
+		if e.complexity.SessionExportWithSession.Type == nil {
 			break
 		}
 
-		return e.complexity.SessionExport.URL(childComplexity), true
+		return e.complexity.SessionExportWithSession.Type(childComplexity), true
+
+	case "SessionExportWithSession.url":
+		if e.complexity.SessionExportWithSession.URL == nil {
+			break
+		}
+
+		return e.complexity.SessionExportWithSession.URL(childComplexity), true
 
 	case "SessionInsight.id":
 		if e.complexity.SessionInsight.ID == nil {
@@ -10839,6 +10722,7 @@ input AdminAboutYouDetails {
 	user_defined_persona: String!
 	user_defined_team_size: String!
 	heard_about: String!
+	phone_home_contact_allowed: Boolean!
 	referral: String!
 	phone: String
 }
@@ -10850,6 +10734,7 @@ input AdminAndWorkspaceDetails {
 	user_defined_role: String!
 	user_defined_team_size: String!
 	heard_about: String!
+	phone_home_contact_allowed: Boolean!
 	referral: String!
 
 	# Workspace
@@ -11455,13 +11340,15 @@ type SystemConfiguration {
 	maintenance_end: Timestamp
 }
 
-type SessionExport {
-	id: ID!
-	session_id: ID!
+type SessionExportWithSession {
+	created_at: Timestamp!
 	type: String!
 	url: String!
 	error: String!
-	target_emails: [String!]!
+	# session details
+	secure_id: String!
+	identifier: String!
+	active_length: Int
 }
 
 enum EmailOptOutCategory {
@@ -11488,25 +11375,12 @@ type Query {
 		project_id: ID!
 		lookBackPeriod: Int!
 	): [RageClickEventForProject!]!
-	error_groups_opensearch(
-		project_id: ID!
-		count: Int!
-		query: String!
-		clickhouse_query: ClickhouseQuery
-		page: Int
-	): ErrorResults!
 	error_groups_clickhouse(
 		project_id: ID!
 		count: Int!
 		query: ClickhouseQuery!
 		page: Int
 	): ErrorResults!
-	errors_histogram(
-		project_id: ID!
-		query: String!
-		histogram_options: DateHistogramOptions!
-		clickhouse_query: ClickhouseQuery
-	): ErrorsHistogram!
 	errors_histogram_clickhouse(
 		project_id: ID!
 		query: ClickhouseQuery!
@@ -11585,15 +11459,6 @@ type Query {
 		project_id: ID!
 		lookBackPeriod: Int!
 	): UserFingerprintCount
-	sessions_opensearch(
-		project_id: ID!
-		count: Int!
-		query: String!
-		clickhouse_query: ClickhouseQuery
-		sort_field: String
-		sort_desc: Boolean!
-		page: Int
-	): SessionResults!
 	sessions_clickhouse(
 		project_id: ID!
 		count: Int!
@@ -11602,38 +11467,16 @@ type Query {
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!
-	sessions_histogram(
-		project_id: ID!
-		query: String!
-		histogram_options: DateHistogramOptions!
-		clickhouse_query: ClickhouseQuery
-	): SessionsHistogram!
 	sessions_histogram_clickhouse(
 		project_id: ID!
 		query: ClickhouseQuery!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	field_types(
-		project_id: ID!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
-	): [Field!]!
 	field_types_clickhouse(
 		project_id: ID!
 		start_date: Timestamp!
 		end_date: Timestamp!
 	): [Field!]!
-	fields_opensearch(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
-	): [String!]!
 	fields_clickhouse(
 		project_id: ID!
 		count: Int!
@@ -11642,16 +11485,6 @@ type Query {
 		query: String!
 		start_date: Timestamp!
 		end_date: Timestamp!
-	): [String!]!
-	error_fields_opensearch(
-		project_id: ID!
-		count: Int!
-		field_type: String!
-		field_name: String!
-		query: String!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
 	): [String!]!
 	error_fields_clickhouse(
 		project_id: ID!
@@ -11662,21 +11495,6 @@ type Query {
 		start_date: Timestamp!
 		end_date: Timestamp!
 	): [String!]!
-	quickFields_opensearch(
-		project_id: ID!
-		count: Int!
-		query: String!
-		start_date: Timestamp
-		end_date: Timestamp
-		use_clickhouse: Boolean
-	): [Field]!
-	quickFields_clickhouse(
-		project_id: ID!
-		count: Int!
-		query: String!
-		start_date: Timestamp!
-		end_date: Timestamp!
-	): [Field]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
 	# gets all the projects of a user
@@ -11802,7 +11620,7 @@ type Query {
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
-	session_exports: [SessionExport!]!
+	session_exports(project_id: ID!): [SessionExportWithSession!]!
 	system_configuration: SystemConfiguration!
 
 	services(
@@ -12173,7 +11991,7 @@ type Mutation {
 	deleteDashboard(id: ID!): Boolean!
 	deleteSessions(
 		project_id: ID!
-		query: String!
+		query: ClickhouseQuery!
 		sessionCount: Int!
 	): Boolean!
 	updateVercelProjectMappings(
@@ -13534,10 +13352,10 @@ func (ec *executionContext) field_Mutation_deleteSessions_args(ctx context.Conte
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 string
+	var arg1 model.ClickhouseQuery
 	if tmp, ok := rawArgs["query"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNClickhouseQuery2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -16051,84 +15869,6 @@ func (ec *executionContext) field_Query_error_fields_clickhouse_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_error_fields_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["field_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field_type"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["field_type"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["field_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field_name"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["field_name"] = arg3
-	var arg4 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg4, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg4
-	var arg5 *time.Time
-	if tmp, ok := rawArgs["start_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-		arg5, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["start_date"] = arg5
-	var arg6 *time.Time
-	if tmp, ok := rawArgs["end_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-		arg6, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg6
-	var arg7 *bool
-	if tmp, ok := rawArgs["use_clickhouse"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_clickhouse"))
-		arg7, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["use_clickhouse"] = arg7
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_error_group_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -16192,57 +15932,6 @@ func (ec *executionContext) field_Query_error_groups_clickhouse_args(ctx context
 		}
 	}
 	args["page"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_error_groups_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	var arg3 *model.ClickhouseQuery
-	if tmp, ok := rawArgs["clickhouse_query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clickhouse_query"))
-		arg3, err = ec.unmarshalOClickhouseQuery2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["clickhouse_query"] = arg3
-	var arg4 *int
-	if tmp, ok := rawArgs["page"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["page"] = arg4
 	return args, nil
 }
 
@@ -16402,48 +16091,6 @@ func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_errors_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg1
-	var arg2 model.DateHistogramOptions
-	if tmp, ok := rawArgs["histogram_options"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("histogram_options"))
-		arg2, err = ec.unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["histogram_options"] = arg2
-	var arg3 *model.ClickhouseQuery
-	if tmp, ok := rawArgs["clickhouse_query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clickhouse_query"))
-		arg3, err = ec.unmarshalOClickhouseQuery2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["clickhouse_query"] = arg3
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_errors_histogram_clickhouse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -16564,48 +16211,6 @@ func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_field_types_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 *time.Time
-	if tmp, ok := rawArgs["start_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-		arg1, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["start_date"] = arg1
-	var arg2 *time.Time
-	if tmp, ok := rawArgs["end_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-		arg2, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["use_clickhouse"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_clickhouse"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["use_clickhouse"] = arg3
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_field_types_clickhouse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -16705,84 +16310,6 @@ func (ec *executionContext) field_Query_fields_clickhouse_args(ctx context.Conte
 		}
 	}
 	args["end_date"] = arg6
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_fields_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["field_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field_type"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["field_type"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["field_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field_name"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["field_name"] = arg3
-	var arg4 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg4, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg4
-	var arg5 *time.Time
-	if tmp, ok := rawArgs["start_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-		arg5, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["start_date"] = arg5
-	var arg6 *time.Time
-	if tmp, ok := rawArgs["end_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-		arg6, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg6
-	var arg7 *bool
-	if tmp, ok := rawArgs["use_clickhouse"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_clickhouse"))
-		arg7, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["use_clickhouse"] = arg7
 	return args, nil
 }
 
@@ -17677,117 +17204,6 @@ func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Con
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_quickFields_clickhouse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	var arg3 time.Time
-	if tmp, ok := rawArgs["start_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-		arg3, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["start_date"] = arg3
-	var arg4 time.Time
-	if tmp, ok := rawArgs["end_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-		arg4, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg4
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_quickFields_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	var arg3 *time.Time
-	if tmp, ok := rawArgs["start_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-		arg3, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["start_date"] = arg3
-	var arg4 *time.Time
-	if tmp, ok := rawArgs["end_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-		arg4, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg4
-	var arg5 *bool
-	if tmp, ok := rawArgs["use_clickhouse"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_clickhouse"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["use_clickhouse"] = arg5
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_rageClicksForProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -18061,6 +17477,21 @@ func (ec *executionContext) field_Query_session_comments_for_project_args(ctx co
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_session_exports_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_session_insight_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -18151,48 +17582,6 @@ func (ec *executionContext) field_Query_sessions_clickhouse_args(ctx context.Con
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_sessions_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg1
-	var arg2 model.DateHistogramOptions
-	if tmp, ok := rawArgs["histogram_options"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("histogram_options"))
-		arg2, err = ec.unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["histogram_options"] = arg2
-	var arg3 *model.ClickhouseQuery
-	if tmp, ok := rawArgs["clickhouse_query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clickhouse_query"))
-		arg3, err = ec.unmarshalOClickhouseQuery2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["clickhouse_query"] = arg3
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_sessions_histogram_clickhouse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -18223,75 +17612,6 @@ func (ec *executionContext) field_Query_sessions_histogram_clickhouse_args(ctx c
 		}
 	}
 	args["histogram_options"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_sessions_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	var arg3 *model.ClickhouseQuery
-	if tmp, ok := rawArgs["clickhouse_query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clickhouse_query"))
-		arg3, err = ec.unmarshalOClickhouseQuery2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["clickhouse_query"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["sort_field"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_field"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["sort_field"] = arg4
-	var arg5 bool
-	if tmp, ok := rawArgs["sort_desc"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_desc"))
-		arg5, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["sort_desc"] = arg5
-	var arg6 *int
-	if tmp, ok := rawArgs["page"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["page"] = arg6
 	return args, nil
 }
 
@@ -42317,7 +41637,7 @@ func (ec *executionContext) _Mutation_deleteSessions(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSessions(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["sessionCount"].(int))
+		return ec.resolvers.Mutation().DeleteSessions(rctx, fc.Args["project_id"].(int), fc.Args["query"].(model.ClickhouseQuery), fc.Args["sessionCount"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44885,66 +44205,6 @@ func (ec *executionContext) fieldContext_Query_rageClicksForProject(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_error_groups_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_error_groups_opensearch(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["clickhouse_query"].(*model.ClickhouseQuery), fc.Args["page"].(*int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model1.ErrorResults)
-	fc.Result = res
-	return ec.marshalNErrorResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_error_groups_opensearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "error_groups":
-				return ec.fieldContext_ErrorResults_error_groups(ctx, field)
-			case "totalCount":
-				return ec.fieldContext_ErrorResults_totalCount(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorResults", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_error_groups_opensearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_error_groups_clickhouse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_error_groups_clickhouse(ctx, field)
 	if err != nil {
@@ -44999,66 +44259,6 @@ func (ec *executionContext) fieldContext_Query_error_groups_clickhouse(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_error_groups_clickhouse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_errors_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_errors_histogram(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["histogram_options"].(model.DateHistogramOptions), fc.Args["clickhouse_query"].(*model.ClickhouseQuery))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model1.ErrorsHistogram)
-	fc.Result = res
-	return ec.marshalNErrorsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorsHistogram(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_errors_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "bucket_times":
-				return ec.fieldContext_ErrorsHistogram_bucket_times(ctx, field)
-			case "error_objects":
-				return ec.fieldContext_ErrorsHistogram_error_objects(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorsHistogram", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_errors_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -47798,66 +46998,6 @@ func (ec *executionContext) fieldContext_Query_userFingerprintCount(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_sessions_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_sessions_opensearch(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["clickhouse_query"].(*model.ClickhouseQuery), fc.Args["sort_field"].(*string), fc.Args["sort_desc"].(bool), fc.Args["page"].(*int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionResults)
-	fc.Result = res
-	return ec.marshalNSessionResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_sessions_opensearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "sessions":
-				return ec.fieldContext_SessionResults_sessions(ctx, field)
-			case "totalCount":
-				return ec.fieldContext_SessionResults_totalCount(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionResults", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_sessions_opensearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_sessions_clickhouse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_sessions_clickhouse(ctx, field)
 	if err != nil {
@@ -47912,70 +47052,6 @@ func (ec *executionContext) fieldContext_Query_sessions_clickhouse(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_sessions_clickhouse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_sessions_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_sessions_histogram(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["histogram_options"].(model.DateHistogramOptions), fc.Args["clickhouse_query"].(*model.ClickhouseQuery))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionsHistogram)
-	fc.Result = res
-	return ec.marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_sessions_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "bucket_times":
-				return ec.fieldContext_SessionsHistogram_bucket_times(ctx, field)
-			case "sessions_without_errors":
-				return ec.fieldContext_SessionsHistogram_sessions_without_errors(ctx, field)
-			case "sessions_with_errors":
-				return ec.fieldContext_SessionsHistogram_sessions_with_errors(ctx, field)
-			case "total_sessions":
-				return ec.fieldContext_SessionsHistogram_total_sessions(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionsHistogram", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_sessions_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -48046,70 +47122,6 @@ func (ec *executionContext) fieldContext_Query_sessions_histogram_clickhouse(ctx
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_field_types(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_field_types(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldTypes(rctx, fc.Args["project_id"].(int), fc.Args["start_date"].(*time.Time), fc.Args["end_date"].(*time.Time), fc.Args["use_clickhouse"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.Field)
-	fc.Result = res
-	return ec.marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFieldᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_field_types(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Field_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Field_name(ctx, field)
-			case "value":
-				return ec.fieldContext_Field_value(ctx, field)
-			case "type":
-				return ec.fieldContext_Field_type(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Field", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_field_types_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_field_types_clickhouse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_field_types_clickhouse(ctx, field)
 	if err != nil {
@@ -48174,60 +47186,6 @@ func (ec *executionContext) fieldContext_Query_field_types_clickhouse(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_fields_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_fields_opensearch(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["field_type"].(string), fc.Args["field_name"].(string), fc.Args["query"].(string), fc.Args["start_date"].(*time.Time), fc.Args["end_date"].(*time.Time), fc.Args["use_clickhouse"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_fields_opensearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_fields_opensearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_fields_clickhouse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_fields_clickhouse(ctx, field)
 	if err != nil {
@@ -48282,60 +47240,6 @@ func (ec *executionContext) fieldContext_Query_fields_clickhouse(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_error_fields_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_error_fields_opensearch(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorFieldsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["field_type"].(string), fc.Args["field_name"].(string), fc.Args["query"].(string), fc.Args["start_date"].(*time.Time), fc.Args["end_date"].(*time.Time), fc.Args["use_clickhouse"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_error_fields_opensearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_error_fields_opensearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_error_fields_clickhouse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_error_fields_clickhouse(ctx, field)
 	if err != nil {
@@ -48384,134 +47288,6 @@ func (ec *executionContext) fieldContext_Query_error_fields_clickhouse(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_error_fields_clickhouse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_quickFields_opensearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_quickFields_opensearch(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().QuickFieldsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["start_date"].(*time.Time), fc.Args["end_date"].(*time.Time), fc.Args["use_clickhouse"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.Field)
-	fc.Result = res
-	return ec.marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_quickFields_opensearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Field_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Field_name(ctx, field)
-			case "value":
-				return ec.fieldContext_Field_value(ctx, field)
-			case "type":
-				return ec.fieldContext_Field_type(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Field", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_quickFields_opensearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_quickFields_clickhouse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_quickFields_clickhouse(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().QuickFieldsClickhouse(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["start_date"].(time.Time), fc.Args["end_date"].(time.Time))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.Field)
-	fc.Result = res
-	return ec.marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_quickFields_clickhouse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Field_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Field_name(ctx, field)
-			case "value":
-				return ec.fieldContext_Field_value(ctx, field)
-			case "type":
-				return ec.fieldContext_Field_type(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Field", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_quickFields_clickhouse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -53751,7 +52527,7 @@ func (ec *executionContext) _Query_session_exports(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionExports(rctx)
+		return ec.resolvers.Query().SessionExports(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -53762,9 +52538,9 @@ func (ec *executionContext) _Query_session_exports(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.SessionExport)
+	res := resTmp.([]*model.SessionExportWithSession)
 	fc.Result = res
-	return ec.marshalNSessionExport2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionExportᚄ(ctx, field.Selections, res)
+	return ec.marshalNSessionExportWithSession2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExportWithSessionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_session_exports(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -53775,21 +52551,34 @@ func (ec *executionContext) fieldContext_Query_session_exports(ctx context.Conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_SessionExport_id(ctx, field)
-			case "session_id":
-				return ec.fieldContext_SessionExport_session_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_SessionExportWithSession_created_at(ctx, field)
 			case "type":
-				return ec.fieldContext_SessionExport_type(ctx, field)
+				return ec.fieldContext_SessionExportWithSession_type(ctx, field)
 			case "url":
-				return ec.fieldContext_SessionExport_url(ctx, field)
+				return ec.fieldContext_SessionExportWithSession_url(ctx, field)
 			case "error":
-				return ec.fieldContext_SessionExport_error(ctx, field)
-			case "target_emails":
-				return ec.fieldContext_SessionExport_target_emails(ctx, field)
+				return ec.fieldContext_SessionExportWithSession_error(ctx, field)
+			case "secure_id":
+				return ec.fieldContext_SessionExportWithSession_secure_id(ctx, field)
+			case "identifier":
+				return ec.fieldContext_SessionExportWithSession_identifier(ctx, field)
+			case "active_length":
+				return ec.fieldContext_SessionExportWithSession_active_length(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionExport", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SessionExportWithSession", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_session_exports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -61074,8 +59863,8 @@ func (ec *executionContext) fieldContext_SessionCommentTag_name(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionExport_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionExport) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionExport_id(ctx, field)
+func (ec *executionContext) _SessionExportWithSession_created_at(ctx context.Context, field graphql.CollectedField, obj *model.SessionExportWithSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionExportWithSession_created_at(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -61088,7 +59877,7 @@ func (ec *executionContext) _SessionExport_id(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.CreatedAt, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -61100,70 +59889,26 @@ func (ec *executionContext) _SessionExport_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SessionExport_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SessionExportWithSession_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SessionExport",
+		Object:     "SessionExportWithSession",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type Timestamp does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionExport_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionExport) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionExport_session_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SessionID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionExport_session_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionExport",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SessionExport_type(ctx context.Context, field graphql.CollectedField, obj *model1.SessionExport) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionExport_type(ctx, field)
+func (ec *executionContext) _SessionExportWithSession_type(ctx context.Context, field graphql.CollectedField, obj *model.SessionExportWithSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionExportWithSession_type(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -61193,9 +59938,9 @@ func (ec *executionContext) _SessionExport_type(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SessionExport_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SessionExportWithSession_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SessionExport",
+		Object:     "SessionExportWithSession",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -61206,8 +59951,8 @@ func (ec *executionContext) fieldContext_SessionExport_type(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionExport_url(ctx context.Context, field graphql.CollectedField, obj *model1.SessionExport) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionExport_url(ctx, field)
+func (ec *executionContext) _SessionExportWithSession_url(ctx context.Context, field graphql.CollectedField, obj *model.SessionExportWithSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionExportWithSession_url(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -61237,9 +59982,9 @@ func (ec *executionContext) _SessionExport_url(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SessionExport_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SessionExportWithSession_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SessionExport",
+		Object:     "SessionExportWithSession",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -61250,8 +59995,8 @@ func (ec *executionContext) fieldContext_SessionExport_url(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionExport_error(ctx context.Context, field graphql.CollectedField, obj *model1.SessionExport) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionExport_error(ctx, field)
+func (ec *executionContext) _SessionExportWithSession_error(ctx context.Context, field graphql.CollectedField, obj *model.SessionExportWithSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionExportWithSession_error(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -61281,9 +60026,9 @@ func (ec *executionContext) _SessionExport_error(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SessionExport_error(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SessionExportWithSession_error(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SessionExport",
+		Object:     "SessionExportWithSession",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -61294,8 +60039,8 @@ func (ec *executionContext) fieldContext_SessionExport_error(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionExport_target_emails(ctx context.Context, field graphql.CollectedField, obj *model1.SessionExport) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionExport_target_emails(ctx, field)
+func (ec *executionContext) _SessionExportWithSession_secure_id(ctx context.Context, field graphql.CollectedField, obj *model.SessionExportWithSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionExportWithSession_secure_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -61308,7 +60053,7 @@ func (ec *executionContext) _SessionExport_target_emails(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.SessionExport().TargetEmails(rctx, obj)
+		return obj.SecureID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -61320,19 +60065,104 @@ func (ec *executionContext) _SessionExport_target_emails(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SessionExport_target_emails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SessionExportWithSession_secure_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SessionExport",
+		Object:     "SessionExportWithSession",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionExportWithSession_identifier(ctx context.Context, field graphql.CollectedField, obj *model.SessionExportWithSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionExportWithSession_identifier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionExportWithSession_identifier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionExportWithSession",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionExportWithSession_active_length(ctx context.Context, field graphql.CollectedField, obj *model.SessionExportWithSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionExportWithSession_active_length(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActiveLength, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionExportWithSession_active_length(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionExportWithSession",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -69651,7 +68481,7 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_persona", "user_defined_team_size", "heard_about", "referral", "phone"}
+	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_persona", "user_defined_team_size", "heard_about", "phone_home_contact_allowed", "referral", "phone"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -69706,6 +68536,14 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "phone_home_contact_allowed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone_home_contact_allowed"))
+			it.PhoneHomeContactAllowed, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "referral":
 			var err error
 
@@ -69735,7 +68573,7 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_team_size", "heard_about", "referral", "workspace_name", "allowed_auto_join_email_origins", "promo_code"}
+	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_team_size", "heard_about", "phone_home_contact_allowed", "referral", "workspace_name", "allowed_auto_join_email_origins", "promo_code"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -69779,6 +68617,14 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("heard_about"))
 			it.HeardAbout, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone_home_contact_allowed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone_home_contact_allowed"))
+			it.PhoneHomeContactAllowed, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -76877,26 +75723,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "error_groups_opensearch":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_error_groups_opensearch(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "error_groups_clickhouse":
 			field := field
 
@@ -76907,26 +75733,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_groups_clickhouse(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "errors_histogram":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_errors_histogram(ctx, field)
 				return res
 			}
 
@@ -77737,26 +76543,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "sessions_opensearch":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_sessions_opensearch(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "sessions_clickhouse":
 			field := field
 
@@ -77767,26 +76553,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessions_clickhouse(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "sessions_histogram":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_sessions_histogram(ctx, field)
 				return res
 			}
 
@@ -77817,26 +76583,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "field_types":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_field_types(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "field_types_clickhouse":
 			field := field
 
@@ -77847,26 +76593,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_field_types_clickhouse(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "fields_opensearch":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_fields_opensearch(ctx, field)
 				return res
 			}
 
@@ -77897,26 +76623,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "error_fields_opensearch":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_error_fields_opensearch(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "error_fields_clickhouse":
 			field := field
 
@@ -77927,46 +76633,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_fields_clickhouse(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "quickFields_opensearch":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_quickFields_opensearch(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "quickFields_clickhouse":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_quickFields_clickhouse(ctx, field)
 				return res
 			}
 
@@ -81254,71 +79920,62 @@ func (ec *executionContext) _SessionCommentTag(ctx context.Context, sel ast.Sele
 	return out
 }
 
-var sessionExportImplementors = []string{"SessionExport"}
+var sessionExportWithSessionImplementors = []string{"SessionExportWithSession"}
 
-func (ec *executionContext) _SessionExport(ctx context.Context, sel ast.SelectionSet, obj *model1.SessionExport) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, sessionExportImplementors)
+func (ec *executionContext) _SessionExportWithSession(ctx context.Context, sel ast.SelectionSet, obj *model.SessionExportWithSession) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sessionExportWithSessionImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("SessionExport")
-		case "id":
+			out.Values[i] = graphql.MarshalString("SessionExportWithSession")
+		case "created_at":
 
-			out.Values[i] = ec._SessionExport_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "session_id":
-
-			out.Values[i] = ec._SessionExport_session_id(ctx, field, obj)
+			out.Values[i] = ec._SessionExportWithSession_created_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "type":
 
-			out.Values[i] = ec._SessionExport_type(ctx, field, obj)
+			out.Values[i] = ec._SessionExportWithSession_type(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "url":
 
-			out.Values[i] = ec._SessionExport_url(ctx, field, obj)
+			out.Values[i] = ec._SessionExportWithSession_url(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "error":
 
-			out.Values[i] = ec._SessionExport_error(ctx, field, obj)
+			out.Values[i] = ec._SessionExportWithSession_error(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
-		case "target_emails":
-			field := field
+		case "secure_id":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._SessionExport_target_emails(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._SessionExportWithSession_secure_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
+		case "identifier":
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = ec._SessionExportWithSession_identifier(ctx, field, obj)
 
-			})
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "active_length":
+
+			out.Values[i] = ec._SessionExportWithSession_active_length(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -84924,44 +83581,6 @@ func (ec *executionContext) marshalNExternalAttachment2ᚕᚖgithubᚗcomᚋhigh
 	return ret
 }
 
-func (ec *executionContext) marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
 func (ec *executionContext) marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -86882,7 +85501,7 @@ func (ec *executionContext) marshalNSessionCommentType2githubᚗcomᚋhighlight�
 	return v
 }
 
-func (ec *executionContext) marshalNSessionExport2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionExportᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.SessionExport) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionExportWithSession2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExportWithSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SessionExportWithSession) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -86906,7 +85525,7 @@ func (ec *executionContext) marshalNSessionExport2ᚕᚖgithubᚗcomᚋhighlight
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSessionExport2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionExport(ctx, sel, v[i])
+			ret[i] = ec.marshalNSessionExportWithSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExportWithSession(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -86926,14 +85545,14 @@ func (ec *executionContext) marshalNSessionExport2ᚕᚖgithubᚗcomᚋhighlight
 	return ret
 }
 
-func (ec *executionContext) marshalNSessionExport2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionExport(ctx context.Context, sel ast.SelectionSet, v *model1.SessionExport) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionExportWithSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExportWithSession(ctx context.Context, sel ast.SelectionSet, v *model.SessionExportWithSession) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._SessionExport(ctx, sel, v)
+	return ec._SessionExportWithSession(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSessionInterval2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionIntervalᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.SessionInterval) graphql.Marshaler {
@@ -88384,14 +87003,6 @@ func (ec *executionContext) marshalOCategoryHistogramPayload2ᚖgithubᚗcomᚋh
 		return graphql.Null
 	}
 	return ec._CategoryHistogramPayload(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOClickhouseQuery2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx context.Context, v interface{}) (*model.ClickhouseQuery, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputClickhouseQuery(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOCommentReply2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐCommentReply(ctx context.Context, sel ast.SelectionSet, v *model1.CommentReply) graphql.Marshaler {

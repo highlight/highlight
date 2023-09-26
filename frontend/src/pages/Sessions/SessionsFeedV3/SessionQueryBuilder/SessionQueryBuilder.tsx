@@ -1,7 +1,7 @@
 import {
 	useEditSegmentMutation,
-	useGetFieldsOpensearchQuery,
-	useGetFieldTypesQuery,
+	useGetFieldsClickhouseQuery,
+	useGetFieldTypesClickhouseQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
@@ -132,12 +132,12 @@ export const CUSTOM_FIELDS: CustomField[] = [
 ]
 
 const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
-	const { refetch } = useGetFieldsOpensearchQuery({
+	const { refetch } = useGetFieldsClickhouseQuery({
 		skip: true,
 	})
 	const fetchFields = useCallback(
 		(variables: FetchFieldVariables) =>
-			refetch(variables).then((r) => r.data.fields_opensearch),
+			refetch(variables).then((r) => r.data.fields_clickhouse),
 		[refetch],
 	)
 
@@ -157,12 +157,11 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 
 	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
 	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
-	const { data: fieldData } = useGetFieldTypesQuery({
+	const { data: fieldData } = useGetFieldTypesClickhouseQuery({
 		variables: {
 			project_id: project_id!,
-			start_date: startDate,
-			end_date: endDate,
-			use_clickhouse: true,
+			start_date: startDate!,
+			end_date: endDate!,
 		},
 		skip: !project_id,
 	})

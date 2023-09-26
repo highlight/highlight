@@ -37,7 +37,7 @@ enum MetricCategory {
 }
 
 const HighlightWarning = (context: string, msg: any) => {
-	console.warn(`Highlight Warning: (${context}): `, msg)
+	console.warn(`highlight.run warning: (${context}): `, msg)
 }
 
 interface HighlightWindow extends Window {
@@ -188,7 +188,9 @@ const H: HighlightPublicInterface = {
 	},
 	snapshot: async (element: HTMLCanvasElement) => {
 		try {
-			H.onHighlightReady(() => highlight_obj.snapshot(element))
+			if (highlight_obj && highlight_obj.ready) {
+				return await highlight_obj.snapshot(element)
+			}
 		} catch (e) {
 			HighlightWarning('snapshot', e)
 		}

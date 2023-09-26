@@ -23,8 +23,8 @@ import { useLocation } from 'react-router-dom'
 
 import {
 	useGetAlertsPagePayloadQuery,
-	useGetErrorGroupsOpenSearchQuery,
-	useGetSessionsOpenSearchQuery,
+	useGetErrorGroupsClickhouseQuery,
+	useGetSessionsClickhouseQuery,
 } from '@/graph/generated/hooks'
 
 import * as styles from './IntegrationBar.css'
@@ -63,11 +63,10 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
-	const { data: sessionData } = useGetSessionsOpenSearchQuery({
+	const { data: sessionData } = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: '{"match_all": {}}',
-			clickhouse_query: { isAnd: true, rules: [] },
+			query: { isAnd: true, rules: [] },
 			count: 1,
 			page: 1,
 			sort_desc: true,
@@ -76,11 +75,10 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		fetchPolicy: 'no-cache',
 	})
 
-	const { data: errorGroupData } = useGetErrorGroupsOpenSearchQuery({
+	const { data: errorGroupData } = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: '{"match_all": {}}',
-			clickhouse_query: { isAnd: true, rules: [] },
+			query: { isAnd: true, rules: [] },
 			count: 1,
 		},
 		skip: area !== 'backend' || !integrated,
@@ -95,9 +93,9 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 
 	const resource =
 		area === 'client'
-			? sessionData?.sessions_opensearch.sessions[0]
+			? sessionData?.sessions_clickhouse.sessions[0]
 			: area === 'backend'
-			? errorGroupData?.error_groups_opensearch.error_groups[0]
+			? errorGroupData?.error_groups_clickhouse.error_groups[0]
 			: undefined
 	const alert =
 		area === 'alerts'

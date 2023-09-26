@@ -19,3 +19,4 @@ scripts/venv
 .yarnrc.yml
 __generated
 .reflame.config.jsonc
+opentelemetry-sdk-workers

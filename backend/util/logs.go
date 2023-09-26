@@ -6,8 +6,8 @@ import (
 	"strconv"
 )
 
-const LogAttributeValueLengthLimit = 2 << 10
-const LogAttributeValueWarningLengthLimit = 2 << 8
+const LogAttributeValueLengthLimit = 2 << 15
+const LogAttributeValueWarningLengthLimit = 2 << 9
 
 func FormatLogAttributes(ctx context.Context, k string, v interface{}) map[string]string {
 	if vStr, ok := v.(string); ok {

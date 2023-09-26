@@ -77,7 +77,7 @@ export async function getRenderExport(
 
 export async function uploadRenderExport(
 	project: number,
-	session: number,
+	sessionSecureID: string,
 	format: string,
 	localPath: string,
 	ts?: number,
@@ -86,7 +86,7 @@ export async function uploadRenderExport(
 	const stat = statSync(localPath)
 	console.log(`uploading file ${localPath} size ${stat.size}`)
 	const ext = format.split('/').pop()
-	let key = `${project}/${session}${ts ? '-' : ''}${ts ?? ''}${
+	let key = `${project}/${sessionSecureID}${ts ? '-' : ''}${ts ?? ''}${
 		tsEnd ? '-' : ''
 	}${tsEnd ?? ''}.${ext}`
 	const command = new PutObjectCommand({

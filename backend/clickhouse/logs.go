@@ -19,6 +19,8 @@ import (
 
 const LogsTable = "logs"
 const LogsSamplingTable = "logs_sampling"
+const LogKeysTable = "log_keys"
+const LogKeyValuesTable = "log_key_values"
 const SamplingRows = 20_000_000
 
 var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
@@ -413,9 +415,9 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return Keys(ctx, client, logsTableConfig, projectID, startDate, endDate)
+	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate)
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValues(ctx, client, logsTableConfig, projectID, keyName, startDate, endDate)
+	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate)
 }

@@ -12,7 +12,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 )
@@ -28,7 +27,7 @@ func TestMain(m *testing.M) {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store = NewStore(db, &opensearch.Client{}, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})
+	store = NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})
 	code := m.Run()
 	os.Exit(code)
 }

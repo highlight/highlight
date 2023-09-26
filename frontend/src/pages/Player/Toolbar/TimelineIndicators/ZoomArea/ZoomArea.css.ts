@@ -7,13 +7,16 @@ export const zoomArea = style({
 	backgroundColor: themeVars.interactive.outline.secondary.enabled,
 	borderRadius: 40,
 	bottom: 0,
-	cursor: 'grab',
 	display: 'flex',
 	height: '100%',
 	justifyContent: 'space-between',
 	opacity: 0.8,
 	position: 'absolute',
 	zIndex: 2,
+})
+
+export const zoomAreaDraggable = style({
+	cursor: 'grab',
 })
 
 export const zoomAreaSide = style({

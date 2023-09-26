@@ -413,3 +413,13 @@ func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count
 
 	return values, nil
 }
+
+func (client *Client) DeleteSessions(ctx context.Context, projectId int, sessionIds []int) error {
+	sb := sqlbuilder.NewDeleteBuilder()
+	sb.DeleteFrom(SessionsTable).
+		Where(sb.Equal("ProjectID", projectId)).
+		Where(sb.In("ID", sessionIds))
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	return client.conn.Exec(ctx, sql, args...)
+}

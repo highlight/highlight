@@ -58,14 +58,15 @@ type AccountDetailsMember struct {
 }
 
 type AdminAboutYouDetails struct {
-	FirstName           string  `json:"first_name"`
-	LastName            string  `json:"last_name"`
-	UserDefinedRole     string  `json:"user_defined_role"`
-	UserDefinedPersona  string  `json:"user_defined_persona"`
-	UserDefinedTeamSize string  `json:"user_defined_team_size"`
-	HeardAbout          string  `json:"heard_about"`
-	Referral            string  `json:"referral"`
-	Phone               *string `json:"phone"`
+	FirstName               string  `json:"first_name"`
+	LastName                string  `json:"last_name"`
+	UserDefinedRole         string  `json:"user_defined_role"`
+	UserDefinedPersona      string  `json:"user_defined_persona"`
+	UserDefinedTeamSize     string  `json:"user_defined_team_size"`
+	HeardAbout              string  `json:"heard_about"`
+	PhoneHomeContactAllowed bool    `json:"phone_home_contact_allowed"`
+	Referral                string  `json:"referral"`
+	Phone                   *string `json:"phone"`
 }
 
 type AdminAndWorkspaceDetails struct {
@@ -74,6 +75,7 @@ type AdminAndWorkspaceDetails struct {
 	UserDefinedRole             string  `json:"user_defined_role"`
 	UserDefinedTeamSize         string  `json:"user_defined_team_size"`
 	HeardAbout                  string  `json:"heard_about"`
+	PhoneHomeContactAllowed     bool    `json:"phone_home_contact_allowed"`
 	Referral                    string  `json:"referral"`
 	WorkspaceName               string  `json:"workspace_name"`
 	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
@@ -687,6 +689,16 @@ type SessionAlertInput struct {
 type SessionCommentTagInput struct {
 	ID   *int   `json:"id"`
 	Name string `json:"name"`
+}
+
+type SessionExportWithSession struct {
+	CreatedAt    time.Time `json:"created_at"`
+	Type         string    `json:"type"`
+	URL          string    `json:"url"`
+	Error        string    `json:"error"`
+	SecureID     string    `json:"secure_id"`
+	Identifier   string    `json:"identifier"`
+	ActiveLength *int      `json:"active_length"`
 }
 
 type SessionQuery struct {

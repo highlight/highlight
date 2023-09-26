@@ -4,7 +4,8 @@ import path from 'path'
 import { tmpdir } from 'os'
 import { promisify } from 'util'
 import { exists, mkdir } from 'fs'
-import { getSessionIntervals } from './pg'
+import { getSessionChunks, getSessionIntervals } from './pg'
+import { combineMP4s } from './ffmpeg'
 
 export async function serialRender(
 	project: number,
@@ -21,25 +22,46 @@ export async function serialRender(
 			chunk || ''
 		}`,
 	)
-	const [events, intervals] = await Promise.all([
-		getEvents(project, session, chunk),
+	const chunks = chunk
+		? [chunk]
+		: (await getSessionChunks(session)).map((c) => c.chunk_index)
+	const [intervals, ...chunkEvents] = await Promise.all([
 		getSessionIntervals(project, session),
+		...chunks.map((idx) => getEvents(project, session, idx)),
 	])
 	console.log(
-		`got events ${events.length} got intervals ${
+		`got events ${chunkEvents.length} chunks, total ${chunkEvents.reduce(
+			(a, b) => a + b.length,
+			0,
+		)} got intervals ${
 			intervals.length
 		} serial render for ${project} ${session} ${ts}-${tsEnd} ${
 			chunk || ''
 		}`,
 	)
-	return {
-		dir,
-		files: await render(events, intervals, 0, 1, {
-			fps,
-			ts,
-			tsEnd,
+	if (chunkEvents.length === 1) {
+		return {
 			dir,
-			video,
-		}),
+			files: await render(chunkEvents[0], 0, intervals, 0, 1, {
+				fps,
+				ts,
+				tsEnd,
+				dir,
+				video,
+			}),
+		}
+	} else {
+		const files: string[] = []
+		for (const [idx, events] of chunkEvents.entries()) {
+			files.push(
+				...(await render(events, idx, intervals, 0, 1, {
+					fps,
+					video: true,
+				})),
+			)
+		}
+		console.log(`produced files ${files}. combining`)
+		const out = await combineMP4s(...files)
+		return { files: [out] }
 	}
 }

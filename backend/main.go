@@ -36,7 +36,6 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -102,7 +101,7 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
 	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
 	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault})
 	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched})
@@ -119,7 +118,7 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 			return
 		}
 		if runtimeFlag != util.PublicGraph {
-			if err := enhancedHealthCheck(ctx, db, tdb, rClient, osClient, ccClient); err != nil {
+			if err := enhancedHealthCheck(ctx, db, tdb, rClient, ccClient); err != nil {
 				log.WithContext(ctx).Error(fmt.Sprintf("failed enhanced health check: %s", err))
 				http.Error(w, fmt.Sprintf("failed enhanced health check: %s", err), 500)
 				return
@@ -132,12 +131,12 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 	}
 }
 
-func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) error {
+func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, ccClient *clickhouse.Client) error {
 	const Timeout = 5 * time.Second
 
 	errors := make(chan error, 5)
 	wg := sync.WaitGroup{}
-	wg.Add(5)
+	wg.Add(4)
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
@@ -169,20 +168,6 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer cancel()
 		if err := rClient.SetIsPendingSession(ctx, "health-check-test-session", true); err != nil {
 			msg := fmt.Sprintf("failed to set redis flag: %s", err)
-			log.WithContext(ctx).Error(msg)
-			errors <- e.New(msg)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		ctx, cancel := context.WithTimeout(ctx, Timeout)
-		defer cancel()
-		if err := osClient.IndexSynchronous(ctx, opensearch.IndexParams{
-			Index:  opensearch.IndexSessions,
-			ID:     0,
-			Object: struct{}{},
-		}); err != nil {
-			msg := fmt.Sprintf("failed to perform opensearch index: %s", err)
 			log.WithContext(ctx).Error(msg)
 			errors <- e.New(msg)
 		}
@@ -331,11 +316,6 @@ func main() {
 		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
 		kafkaqueue.Producer, nil)
 
-	opensearchClient, err := opensearch.NewOpensearchClient(db)
-	if err != nil {
-		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
-	}
-
 	lambda, err := lambda.NewLambdaClient()
 	if err != nil {
 		log.WithContext(ctx).Errorf("error creating lambda client: %v", err)
@@ -373,14 +353,13 @@ func main() {
 		EmbeddingsClient:       embeddings.New(),
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
-		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Store:                  store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
+		Store:                  store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
 	}
@@ -403,7 +382,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
+	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,
@@ -502,11 +481,10 @@ func main() {
 			MailClient:       sendgrid.NewSendClient(sendgridKey),
 			EmbeddingsClient: embeddings.New(),
 			StorageClient:    storageClient,
-			OpenSearch:       opensearchClient,
 			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:            redisClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
+			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -594,12 +572,11 @@ func main() {
 			MailClient:       sendgrid.NewSendClient(sendgridKey),
 			EmbeddingsClient: embeddings.New(),
 			StorageClient:    storageClient,
-			OpenSearch:       opensearchClient,
 			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:            redisClient,
 			Clickhouse:       clickhouseClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
+			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

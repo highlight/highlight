@@ -39,7 +39,7 @@ const LogsCount = ({
 
 	return (
 		<Stack direction="row" gap="8" px="12" py="8" align="center">
-			{totalCount && (
+			{totalCount !== undefined ? (
 				<>
 					<Text
 						size="xSmall"
@@ -57,7 +57,7 @@ const LogsCount = ({
 						{dateLabel}
 					</Text>
 				</>
-			)}
+			) : null}
 		</Stack>
 	)
 }

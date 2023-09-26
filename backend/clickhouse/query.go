@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -399,5 +400,98 @@ func KeyValues[T ~string](ctx context.Context, client *Client, config tableConfi
 
 	rows.Close()
 
+	return values, rows.Err()
+}
+
+func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": 1_000_000,
+	}))
+
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("Key, sum(Count)").
+		From(tableName).
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
+		GroupBy("1").
+		OrderBy("2 DESC, 1").
+		Limit(500)
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
+	span.SetAttribute("Query", sql)
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	keys := []*modelInputs.QueryKey{}
+	for rows.Next() {
+		var (
+			key   string
+			count uint64
+		)
+		if err := rows.Scan(&key, &count); err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, &modelInputs.QueryKey{
+			Name: key,
+			Type: modelInputs.KeyTypeString, // For now, assume everything is a string
+		})
+	}
+
+	rows.Close()
+
+	span.Finish(rows.Err())
+	return keys, rows.Err()
+}
+
+func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": 1_000_000,
+	}))
+
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("Value, sum(Count)").
+		From(tableName).
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(sb.Equal("Key", keyName)).
+		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
+		GroupBy("1").
+		OrderBy("2 DESC, 1").
+		Limit(500)
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readKeyValues", util.ResourceName(tableName))
+	span.SetAttribute("Query", sql)
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var (
+			value string
+			count uint64
+		)
+		if err := rows.Scan(&value, &count); err != nil {
+			return nil, err
+		}
+
+		values = append(values, value)
+	}
+
+	rows.Close()
+
+	span.Finish(rows.Err())
 	return values, rows.Err()
 }
