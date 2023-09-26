@@ -5889,6 +5889,14 @@ body {
   display: flex;
   align-items: center;
 }
+@keyframes _124ax692 {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 ._124ax690 {
   background: var(--_1pyqka92);
   border-radius: 6px;
@@ -5896,6 +5904,9 @@ body {
 }
 ._124ax691 {
   padding: 8px;
+}
+._124ax693 {
+  animation: 1s _124ax692 linear infinite;
 }
 ._1068vpp0 {
   width: 100%;
@@ -5909,6 +5920,12 @@ body {
 }
 ._1068vpp2 {
   color: var(--_1pyqka9c);
+}
+._1068vpp3 {
+  opacity: 0.5;
+}
+._1068vpp4 {
+  position: absolute;
 }
 ._33eaux0 {
   max-height: 16em;

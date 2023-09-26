@@ -1410,6 +1410,41 @@ export type UpsertDiscordChannelMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type TestErrorEnhancementMutationVariables = Types.Exact<{
+	error_object_id: Types.Scalars['ID']
+	github_repo_path: Types.Scalars['String']
+	github_prefix?: Types.Maybe<Types.Scalars['String']>
+	build_prefix?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
+	testErrorEnhancement?: Types.Maybe<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			'id' | 'type' | 'serviceName' | 'serviceVersion' | 'stack_trace'
+		> & {
+				structured_stack_trace: Array<
+					Types.Maybe<
+						{ __typename?: 'ErrorTrace' } & Pick<
+							Types.ErrorTrace,
+							| 'columnNumber'
+							| 'enhancementSource'
+							| 'enhancementVersion'
+							| 'error'
+							| 'externalLink'
+							| 'fileName'
+							| 'functionName'
+							| 'lineContent'
+							| 'lineNumber'
+							| 'linesAfter'
+							| 'linesBefore'
+						>
+					>
+				>
+			}
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4930,6 +4965,7 @@ export const namedOperations = {
 		CreateErrorTag: 'CreateErrorTag' as const,
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
+		testErrorEnhancement: 'testErrorEnhancement' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

@@ -6,6 +6,7 @@ import {
 	IconSolidBeaker,
 	IconSolidCheckCircle,
 	IconSolidGithub,
+	IconSolidLoading,
 	IconSolidX,
 	Stack,
 	Text,
@@ -17,11 +18,18 @@ import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
 import React, { useRef, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
-import { useGetServiceByNameQuery } from '@/graph/generated/hooks'
+import {
+	useEditServiceGithubSettingsMutation,
+	useGetServiceByNameQuery,
+	useTestErrorEnhancementMutation,
+} from '@/graph/generated/hooks'
 import { ErrorObjectFragment } from '@/graph/generated/operations'
 
 import * as styles from './GitHubEnhancementSettings.css'
-import { GitHubEnhancementSettingsForm } from './GitHubEnhancementSettingsForm'
+import {
+	GitHubEnhancementSettingsForm,
+	GithubSettingsFormValues,
+} from './GitHubEnhancementSettingsForm'
 
 type Props = {
 	onClose: () => void
@@ -36,6 +44,10 @@ type StepAction = {
 	primary?: boolean
 }
 
+type EnhancementButtonRef = HTMLButtonElement & {
+	getFormValues: () => GithubSettingsFormValues
+}
+
 export const GitHubEnhancementSettings: React.FC<Props> = ({
 	errorObject,
 	onClose,
@@ -45,31 +57,75 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 		settings: { isIntegrated },
 		data: githubData,
 	} = useGitHubIntegration()
+	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
+	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
 	const [integrationModalVisible, setIntegrationModalVisible] =
 		useState(false)
-	const submitRef = useRef<HTMLButtonElement>(null)
+	const [testedError, setTestedError] =
+		useState<ErrorObjectFragment>(errorObject)
+	const [testLoading, setTestLoading] = useState(false)
+
+	const submitRef = useRef<EnhancementButtonRef>(null)
+	const testConfigurationRef = useRef<EnhancementButtonRef>(null)
 
 	const { data: serviceData, loading } = useGetServiceByNameQuery({
 		variables: {
-			project_id: String(errorObject.project_id),
-			name: errorObject.serviceName!,
+			project_id: String(testedError.project_id),
+			name: testedError.serviceName!,
 		},
-		skip: !errorObject.serviceName,
+		skip: !testedError.serviceName,
 	})
 
 	const handleSave = () => {
-		if (submitRef.current) {
-			submitRef.current.click()
-		}
+		const formValues = submitRef.current?.getFormValues()
+		const submittedValues = formValues?.githubRepo
+			? formValues
+			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
+
+		editServiceGithubSettings({
+			variables: {
+				id: String(serviceData?.serviceByName?.id),
+				project_id: String(serviceData?.serviceByName?.projectID),
+				github_repo_path: submittedValues.githubRepo,
+				build_prefix: submittedValues.buildPrefix,
+				github_prefix: submittedValues.githubPrefix,
+			},
+		})
+
 		onClose()
+	}
+
+	const handleTestConfiguration = () => {
+		// TODO(spenny): disable or error if no repo path
+		const formValues = testConfigurationRef.current?.getFormValues()
+
+		setTestLoading(true)
+		testErrorEnhancement({
+			variables: {
+				error_object_id: testedError.id,
+				github_repo_path: String(formValues?.githubRepo),
+				build_prefix: formValues?.buildPrefix,
+				github_prefix: formValues?.githubPrefix,
+			},
+		}).then(({ data }) => {
+			if (data?.testErrorEnhancement) {
+				const updatedError: ErrorObjectFragment = {
+					...testedError,
+					...data.testErrorEnhancement,
+				}
+
+				setTestedError(updatedError)
+			}
+			setTestLoading(false)
+		})
 	}
 
 	const steps = [
 		{
 			step: 'A',
 			title: 'Report services',
-			completed: !!errorObject.serviceName,
+			completed: !!testedError.serviceName,
 			actions: [
 				{
 					title: 'Read docs',
@@ -101,17 +157,20 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 			actions: [
 				{
 					title: 'Test enhancement',
-					iconLeft: <IconSolidBeaker />,
-					// TODO(spenny): implement
-					onClick: () => {},
+					iconLeft: testLoading ? (
+						<IconSolidLoading className={styles.loading} />
+					) : (
+						<IconSolidBeaker />
+					),
+					onClick: handleTestConfiguration,
 					// TODO(spenny): should we disable this based on form values
-					disabled: !isIntegrated && !errorObject.serviceName,
+					disabled: !isIntegrated && !testedError.serviceName,
 				},
 				{
 					title: 'Save changes',
 					onClick: handleSave,
 					// TODO(spenny): should we disable this based on form values
-					disabled: !isIntegrated && !errorObject.serviceName,
+					disabled: !isIntegrated && !testedError.serviceName,
 					primary: true,
 				},
 			],
@@ -123,9 +182,11 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 				return (
 					<GitHubEnhancementSettingsForm
 						githubRepos={githubData?.github_repos || []}
-						errorObject={errorObject}
+						errorObject={testedError}
 						service={serviceData?.serviceByName}
 						submitRef={submitRef}
+						testRef={testConfigurationRef}
+						testLoading={testLoading}
 					/>
 				)
 			},

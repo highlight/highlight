@@ -9,13 +9,10 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import { Select } from 'antd'
-import React, { useMemo } from 'react'
+import clsx from 'clsx'
+import React, { useImperativeHandle, useMemo } from 'react'
 
-import { useEditServiceGithubSettingsMutation } from '@/graph/generated/hooks'
-import {
-	ErrorObjectFragment,
-	namedOperations,
-} from '@/graph/generated/operations'
+import { ErrorObjectFragment } from '@/graph/generated/operations'
 import { GitHubRepo, Maybe, Service } from '@/graph/generated/schemas'
 import ErrorStackTrace from '@/pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 
@@ -26,6 +23,8 @@ type GithubSettingsFormProps = {
 	githubRepos: GitHubRepo[]
 	service?: Maybe<Service>
 	submitRef: any
+	testRef: any
+	testLoading: boolean
 }
 
 export type GithubSettingsFormValues = {
@@ -39,6 +38,8 @@ export const GitHubEnhancementSettingsForm = ({
 	errorObject,
 	service,
 	submitRef,
+	testRef,
+	testLoading,
 }: GithubSettingsFormProps) => {
 	const githubOptions = useMemo(
 		() =>
@@ -53,8 +54,6 @@ export const GitHubEnhancementSettingsForm = ({
 		[githubRepos],
 	)
 
-	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
-
 	const formStore = Form.useFormStore<GithubSettingsFormValues>({
 		defaultValues: {
 			githubRepo: service?.githubRepoPath || null,
@@ -64,27 +63,28 @@ export const GitHubEnhancementSettingsForm = ({
 	})
 	const formState = formStore.useState()
 
-	const handleSubmit = (formValues: GithubSettingsFormValues) => {
-		const submittedValues = formValues.githubRepo
-			? formValues
-			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
+	useImperativeHandle(
+		testRef,
+		() => {
+			return {
+				getFormValues: () => formState.values,
+			}
+		},
+		[formState.values],
+	)
 
-		editServiceGithubSettings({
-			variables: {
-				id: String(service?.id),
-				project_id: String(service?.projectID),
-				github_repo_path: submittedValues.githubRepo,
-				build_prefix: submittedValues.buildPrefix,
-				github_prefix: submittedValues.githubPrefix,
-			},
-			refetchQueries: [namedOperations.Query.GetServices],
-		})
-	}
+	useImperativeHandle(
+		submitRef,
+		() => {
+			return {
+				getFormValues: () => formState.values,
+			}
+		},
+		[formState.values],
+	)
 
-	// TODO(spenny): support testing and saving
 	return (
-		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
-			<button ref={submitRef} type="submit" style={{ display: 'none' }} />
+		<Form store={formStore}>
 			<Stack direction="row" gap="0">
 				<Stack gap="16" width="full" paddingRight="8">
 					<Form.NamedSection
@@ -187,7 +187,7 @@ export const GitHubEnhancementSettingsForm = ({
 					/>
 				</Stack>
 			</Stack>
-			<Box pt="8">
+			<Box pt="8" cssClass={clsx({ [styles.loading]: testLoading })}>
 				<ErrorStackTrace errorObject={errorObject} />
 			</Box>
 		</Form>

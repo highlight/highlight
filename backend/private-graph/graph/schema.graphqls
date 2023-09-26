@@ -2352,6 +2352,12 @@ type Mutation {
 	createErrorTag(title: String!, description: String!): ErrorTag!
 	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
 	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
+	testErrorEnhancement(
+		error_object_id: ID!
+		github_repo_path: String!
+		github_prefix: String
+		build_prefix: String
+	): ErrorObject
 }
 
 type Subscription {

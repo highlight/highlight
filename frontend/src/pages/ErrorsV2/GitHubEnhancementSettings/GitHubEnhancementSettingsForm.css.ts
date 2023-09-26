@@ -16,3 +16,11 @@ export const example = style({
 export const tooltipContent = style({
 	color: vars.theme.static.content.moderate,
 })
+
+export const loading = style({
+	opacity: 0.5,
+})
+
+export const loadingBoxContainer = style({
+	position: 'absolute',
+})
