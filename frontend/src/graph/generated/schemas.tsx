@@ -1820,6 +1820,7 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
+	trace?: Maybe<Array<Trace>>
 	traces: TraceConnection
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
@@ -2443,6 +2444,11 @@ export type QueryTimeline_Indicator_EventsArgs = {
 export type QueryTopUsersArgs = {
 	lookBackPeriod: Scalars['Int']
 	project_id: Scalars['ID']
+}
+
+export type QueryTraceArgs = {
+	project_id: Scalars['ID']
+	trace_id: Scalars['String']
 }
 
 export type QueryTracesArgs = {

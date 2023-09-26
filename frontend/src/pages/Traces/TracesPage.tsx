@@ -2,6 +2,7 @@ import { Box, defaultPresets } from '@highlight-run/ui'
 import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
+import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import {
@@ -24,11 +25,13 @@ import {
 	useGetTracesQuery,
 } from '@/graph/generated/hooks'
 import { SortDirection } from '@/graph/generated/schemas'
-import { useProjectId } from '@/hooks/useProjectId'
 import { TracesList } from '@/pages/Traces/TracesList'
+import { useParams } from '@/util/react-router/useParams'
 
 export const TracesPage: React.FC = () => {
-	const { projectId } = useProjectId()
+	const { project_id: projectId } = useParams<{
+		project_id: string
+	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
@@ -47,7 +50,7 @@ export const TracesPage: React.FC = () => {
 
 	const { data, loading } = useGetTracesQuery({
 		variables: {
-			project_id: projectId,
+			project_id: projectId!,
 			params: {
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
@@ -73,6 +76,8 @@ export const TracesPage: React.FC = () => {
 				display="flex"
 				flexDirection="column"
 				height="full"
+				position="relative"
+				overflow="hidden"
 			>
 				<Box
 					backgroundColor="white"
@@ -98,6 +103,8 @@ export const TracesPage: React.FC = () => {
 					<TracesList traces={data?.traces} loading={loading} />
 				</Box>
 			</Box>
+
+			<Outlet />
 		</>
 	)
 }

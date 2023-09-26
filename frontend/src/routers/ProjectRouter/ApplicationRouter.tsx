@@ -17,6 +17,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
+import { TracePanel } from '@/pages/Traces/TracePanel'
 import { TracesPage } from '@/pages/Traces/TracesPage'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
@@ -49,7 +50,9 @@ const ApplicationRouter: React.FC = () => {
 			{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
 				<>
 					{isHighlightAdmin && (
-						<Route path="traces/*" element={<TracesPage />} />
+						<Route path="traces" element={<TracesPage />}>
+							<Route path=":trace_id" element={<TracePanel />} />
+						</Route>
 					)}
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />
 					<Route path="settings/*" element={<SettingsRouter />} />
