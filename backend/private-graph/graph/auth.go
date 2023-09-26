@@ -20,7 +20,7 @@ type LoginCredentials struct {
 	Password string `json:"password" binding:"required"`
 }
 
-var ADMIN_PASSWORD = os.Getenv("ADMIN_PASSWORD")
+var AdminPassword = os.Getenv("ADMIN_PASSWORD")
 var ADMIN_PASSWORD_TOKEN_DURATION = time.Hour * 24
 
 func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
@@ -28,7 +28,7 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
 
-	if ADMIN_PASSWORD == "" {
+	if AdminPassword == "" {
 		http.Error(w, "", http.StatusInternalServerError)
 		log.WithContext(ctx).Error(errors.New("Password auth mode not properly configured."))
 		return
@@ -50,7 +50,7 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if ADMIN_PASSWORD != credentials.Password {
+	if AdminPassword != credentials.Password {
 		http.Error(w, "invalid password", http.StatusBadRequest)
 		return
 	}
