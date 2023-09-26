@@ -4,8 +4,10 @@ import {
 	Callout,
 	Form,
 	FormState,
+	IconSolidCheckCircle,
 	IconSolidSearch,
 	Stack,
+	SwitchButton,
 	Text,
 	useFormStore,
 } from '@highlight-run/ui'
@@ -32,6 +34,7 @@ type Pagination = {
 
 export interface SearchFormState {
 	email: string
+	withSession: boolean
 }
 
 export const ErrorInstances = ({ errorGroup }: Props) => {
@@ -39,9 +42,11 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 	const formStore = useFormStore<SearchFormState>({
 		defaultValues: {
 			email: '',
+			withSession: false,
 		},
 	})
 	const email = formStore.useValue('email')
+	const withSession = formStore.useValue('withSession')
 	const [query, setQuery] = useState('')
 
 	const [pagination, setPagination] = useState<Pagination>({
@@ -60,7 +65,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		setQuery(`email:${email}`)
+		setQuery(`${withSession ? 'has_session:true ' : ''}email:${email}`)
 		setCurrentSearchEmail(email)
 	}
 
@@ -181,27 +186,44 @@ const ErrorInstancesContainer: React.FC<
 		childrenBoxProps.display = 'flex'
 		childrenBoxProps.alignItems = 'center'
 	}
-
+	const withSession = form.useValue('withSession')
 	return (
 		<Stack direction="column">
 			<Box my="8">
 				<Form store={form} onSubmit={onSubmit}>
-					<Box
-						position="relative"
-						alignItems="stretch"
-						display="flex"
-						flexGrow={1}
-						color="weak"
-					>
-						<IconSolidSearch
-							size={16}
-							className={styles.searchIcon}
-						/>
-						<Form.Input
-							name={form.names.email}
-							placeholder="Search for email"
-							style={{ paddingLeft: 28, width: 310 }}
-						/>
+					<Box display="flex" alignItems="center">
+						<Box
+							position="relative"
+							alignItems="stretch"
+							display="flex"
+							flexGrow={1}
+							color="weak"
+						>
+							<IconSolidSearch
+								size={16}
+								className={styles.searchIcon}
+							/>
+							<Form.Input
+								name={form.names.email}
+								placeholder="Search for email"
+								style={{ paddingLeft: 28, width: 310 }}
+							/>
+						</Box>
+						<Box display="flex" alignItems="center" gap="6">
+							<SwitchButton
+								type="submit"
+								size="xxSmall"
+								iconLeft={<IconSolidCheckCircle size={12} />}
+								checked={withSession}
+								onChange={() => {
+									form.setValue(
+										form.names.withSession,
+										!withSession,
+									)
+								}}
+							/>
+							<Text size="xSmall">With session</Text>
+						</Box>
 					</Box>
 				</Form>
 			</Box>
