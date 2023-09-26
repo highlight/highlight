@@ -11,6 +11,7 @@ import {
 	Text,
 	useFormStore,
 } from '@highlight-run/ui'
+import useLocalStorage from '@rehooks/local-storage'
 import React, { useState } from 'react'
 
 import { Button } from '@/components/Button'
@@ -38,11 +39,15 @@ export interface SearchFormState {
 }
 
 export const ErrorInstances = ({ errorGroup }: Props) => {
+	const [hasSessionDefault, setHasSessionDefault] = useLocalStorage<boolean>(
+		'highlight-error-object-instances-has-session',
+		false,
+	)
 	const [currentSearchEmail, setCurrentSearchEmail] = React.useState('')
 	const formStore = useFormStore<SearchFormState>({
 		defaultValues: {
 			email: '',
-			hasSession: false,
+			hasSession: hasSessionDefault,
 		},
 	})
 	const email = formStore.useValue('email')
@@ -68,6 +73,10 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 		setQuery(`${hasSession ? 'has_session:true ' : ''}email:${email}`)
 		setCurrentSearchEmail(email)
 	}
+
+	React.useEffect(() => {
+		setHasSessionDefault(hasSession)
+	}, [hasSession, setHasSessionDefault])
 
 	if (loading) {
 		return (
@@ -191,12 +200,11 @@ const ErrorInstancesContainer: React.FC<
 		<Stack direction="column">
 			<Box my="8">
 				<Form store={form} onSubmit={onSubmit}>
-					<Box display="flex" alignItems="center">
+					<Box display="flex" alignItems="center" gap="12" px="12">
 						<Box
 							position="relative"
 							alignItems="stretch"
 							display="flex"
-							flexGrow={1}
 							color="weak"
 						>
 							<IconSolidSearch
