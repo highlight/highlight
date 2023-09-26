@@ -1,36 +1,35 @@
 import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { LogLevel, ProductType } from '@graph/schemas'
 import { Box, defaultPresets, getNow } from '@highlight-run/ui'
-import { TIME_MODE } from '@pages/LogsPage/constants'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
-import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
+import { QueryParamConfig, useQueryParam } from 'use-query-params'
+
 import {
-	DateTimeParam,
-	QueryParamConfig,
-	StringParam,
-	useQueryParam,
-	withDefault,
-} from 'use-query-params'
-
+	TIME_FORMAT,
+	TIME_MODE,
+} from '@/components/Search/SearchForm/constants'
+import {
+	EndDateParam,
+	FixedRangeStartDateParam,
+	PermalinkStartDateParam,
+	QueryParam,
+	SearchForm,
+} from '@/components/Search/SearchForm/SearchForm'
+import {
+	useGetLogsHistogramQuery,
+	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
+} from '@/graph/generated/hooks'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
-
-export const QueryParam = withDefault(StringParam, '')
-export const FixedRangeStartDateParam = withDefault(
-	DateTimeParam,
-	defaultPresets[0].startDate,
-)
-export const PermalinkStartDateParam = withDefault(
-	DateTimeParam,
-	defaultPresets[5].startDate,
-)
-export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
@@ -113,6 +112,22 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		[fetchMoreForward, fetchMoreBackward],
 	)
 
+	const { projectId } = useNumericProjectId()
+	const { data: histogramData, loading: histogramLoading } =
+		useGetLogsHistogramQuery({
+			variables: {
+				project_id: project_id!,
+				params: {
+					query,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+				},
+			},
+			skip: !projectId,
+		})
+
 	return (
 		<>
 			<Helmet>
@@ -143,19 +158,23 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						presets={defaultPresets}
 						minDate={defaultPresets[5].startDate}
 						timeMode={timeMode}
+						fetchKeys={useGetLogsKeysQuery}
+						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<LogsCount
-						query={query}
 						startDate={startDate}
 						endDate={endDate}
 						presets={defaultPresets}
+						totalCount={histogramData?.logs_histogram.objectCount}
+						logCountLoading={histogramLoading}
 					/>
 					<LogsHistogram
-						query={query}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
+						histogramData={histogramData}
+						loading={histogramLoading}
 					/>
 					<Box width="full">
 						<AdditionalFeedResults

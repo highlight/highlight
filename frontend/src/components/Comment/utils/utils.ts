@@ -97,7 +97,7 @@ export const useDeleteComment = (comment: ParsedSessionComment) => {
 	const [deleteSessionComment] = useDeleteSessionCommentMutation({
 		refetchQueries: [
 			namedOperations.Query.GetSessionComments,
-			namedOperations.Query.GetSessionsOpenSearch,
+			namedOperations.Query.GetSessionsClickhouse,
 		],
 	})
 

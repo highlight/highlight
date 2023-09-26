@@ -22,6 +22,10 @@ import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
+import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@/context/AppLoadingContext'
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 import analytics from '@/util/analytics'
 
@@ -34,10 +38,12 @@ type Props = {
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
 	const { fetchAdmin, signIn } = useAuthContext()
+	const { setLoadingState } = useAppLoadingContext()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const location = useLocation()
+
 	const initialEmail: string = location.state?.email ?? ''
 	const formStore = useFormStore({
 		defaultValues: {
@@ -45,14 +51,26 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			password: '',
 		},
 	})
-	const formState = formStore.getState()
-	const [createAdmin] = useCreateAdminMutation()
-	const { data } = useGetWorkspaceForInviteLinkQuery({
-		variables: {
-			secret: inviteCode!,
-		},
-		skip: !inviteCode,
+	const email = formStore.useValue('email')
+	formStore.useSubmit(async (formState) => {
+		setLoading(true)
+
+		auth.signInWithEmailAndPassword(
+			formState.values.email,
+			formState.values.password,
+		)
+			.then(handleAuth)
+			.catch(handleAuthError)
 	})
+
+	const [createAdmin] = useCreateAdminMutation()
+	const { data, loading: loadingWorkspaceForInvite } =
+		useGetWorkspaceForInviteLinkQuery({
+			variables: {
+				secret: inviteCode!,
+			},
+			skip: !inviteCode,
+		})
 	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleAuth = useCallback(
@@ -102,22 +120,14 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	}
 
 	useEffect(() => analytics.page(), [])
+	useEffect(() => {
+		if (!loadingWorkspaceForInvite) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
+	}, [loadingWorkspaceForInvite, setLoadingState])
 
 	return (
-		<Form
-			store={formStore}
-			resetOnSubmit={false}
-			onSubmit={() => {
-				setLoading(true)
-
-				auth.signInWithEmailAndPassword(
-					formState.values.email,
-					formState.values.password,
-				)
-					.then(handleAuth)
-					.catch(handleAuthError)
-			}}
-		>
+		<Form store={formStore} resetOnSubmit={false}>
 			<AuthHeader>
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
@@ -129,10 +139,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						</Heading>
 						<Text>
 							New here?{' '}
-							<Link
-								to={SIGN_UP_ROUTE}
-								state={{ email: formState.values.email }}
-							>
+							<Link to={SIGN_UP_ROUTE} state={{ email }}>
 								Create an account
 							</Link>
 							.
@@ -155,10 +162,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						type="password"
 						autoComplete="current-password"
 					/>
-					<Link
-						to="/reset_password"
-						state={{ email: formState.values.email }}
-					>
+					<Link to="/reset_password" state={{ email }}>
 						<Text size="xSmall">Forgot your password?</Text>
 					</Link>
 					{error && <AuthError>{error}</AuthError>}

@@ -1,6 +1,5 @@
 import { ErrorGroup, Maybe, Project } from '@graph/schemas'
 import { cloneDeep } from 'lodash'
-import moment from 'moment/moment'
 
 export const getProjectPrefix = (project?: Maybe<Pick<Project, 'name'>>) =>
 	project?.name.slice(0, 3).toUpperCase() || 'HIG'
@@ -17,34 +16,60 @@ export const getErrorGroupStats = function (
 		counts = [...Array(lookbackDays - counts.length).fill(0), ...counts]
 	}
 
-	const totalCount = counts?.reduce((a, b) => a + b, 0) || 1
+	// With clickhouse enabled, we're emitting new monthCount and monthIdentifierCount metrics.
+	// If those are present, use them instead of aggregating the count / identifier count
+	const monthCount = errorGroup?.error_metrics
+		.filter((x) => x.name === 'monthCount')
+		.reduce((a, b) => a + b.value, 0)
+
+	const monthUserCount = errorGroup?.error_metrics
+		.filter((x) => x.name === 'monthIdentifierCount')
+		.reduce((a, b) => a + b.value, 0)
+
+	const totalCount = monthCount || counts?.reduce((a, b) => a + b, 0) || 1
 	const userCount =
+		monthUserCount ||
 		errorGroup?.error_metrics
 			?.filter((x) => x?.name === 'identifierCount')
-			?.reduce((a, b) => a + b.value, 0) || 1
+			?.reduce((a, b) => a + b.value, 0) ||
+		1
+
 	const weekly: { count: number[]; users: number[] } = {
 		count: [],
 		users: [],
 	}
-	for (let i = 0; i < 2; i++) {
-		weekly.count.push(
-			errorGroup?.error_metrics
-				?.filter((x) => x?.name === 'count')
-				?.slice(i * 7, (i + 1) * 14)
-				?.reduce((a, b) => a + b.value, 0) || 0,
-		)
-		weekly.users.push(
-			errorGroup?.error_metrics
-				?.filter((x) => x?.name === 'identifierCount')
-				?.slice(i * 7, (i + 1) * 14)
-				?.reduce((a, b) => a + b.value, 0) || 0,
-		)
+
+	// With clickhouse enabled, we're emitting new weekCount and weekIdentifierCount metrics.
+	// If those are present, use them instead of aggregating the count / identifier count
+	const weekCounts = errorGroup?.error_metrics
+		.filter((x) => x.name === 'weekCount')
+		.map((x) => x.value)
+
+	const weekIdentifierCounts = errorGroup?.error_metrics
+		.filter((x) => x.name === 'weekIdentifierCount')
+		.map((x) => x.value)
+
+	if (weekCounts?.length && weekIdentifierCounts?.length) {
+		weekly.count = weekCounts
+		weekly.users = weekIdentifierCounts
+	} else {
+		for (let i = 0; i < 2; i++) {
+			weekly.count.push(
+				errorGroup?.error_metrics
+					?.filter((x) => x?.name === 'count')
+					?.slice(i * 7, (i + 1) * 14)
+					?.reduce((a, b) => a + b.value, 0) || 0,
+			)
+			weekly.users.push(
+				errorGroup?.error_metrics
+					?.filter((x) => x?.name === 'identifierCount')
+					?.slice(i * 7, (i + 1) * 14)
+					?.reduce((a, b) => a + b.value, 0) || 0,
+			)
+		}
 	}
+
 	return {
-		startDate: moment.max(
-			moment(errorGroup?.created_at),
-			moment().subtract(lookbackDays, 'days'),
-		),
 		weekly,
 		counts,
 		totalCount,

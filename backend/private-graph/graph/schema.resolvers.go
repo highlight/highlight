@@ -9,7 +9,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -31,7 +30,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
-	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
@@ -39,7 +37,6 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -54,6 +51,7 @@ import (
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
@@ -61,7 +59,6 @@ import (
 	stripe "github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -355,12 +352,14 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 	if err := r.Transaction(func(transactionR *mutationResolver) error {
 		// Update admin details
 		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
-			FirstName:           adminAndWorkspaceDetails.FirstName,
-			LastName:            adminAndWorkspaceDetails.LastName,
-			UserDefinedRole:     adminAndWorkspaceDetails.UserDefinedRole,
-			UserDefinedPersona:  "",
-			UserDefinedTeamSize: adminAndWorkspaceDetails.UserDefinedTeamSize,
-			Referral:            adminAndWorkspaceDetails.Referral,
+			FirstName:               adminAndWorkspaceDetails.FirstName,
+			LastName:                adminAndWorkspaceDetails.LastName,
+			UserDefinedRole:         adminAndWorkspaceDetails.UserDefinedRole,
+			UserDefinedPersona:      "",
+			UserDefinedTeamSize:     adminAndWorkspaceDetails.UserDefinedTeamSize,
+			HeardAbout:              adminAndWorkspaceDetails.HeardAbout,
+			Referral:                adminAndWorkspaceDetails.Referral,
+			PhoneHomeContactAllowed: adminAndWorkspaceDetails.PhoneHomeContactAllowed,
 		}); err != nil {
 			return e.Wrap(err, "error updating admin details")
 		}
@@ -411,6 +410,8 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.UserDefinedTeamSize = &adminDetails.UserDefinedTeamSize
+	admin.HeardAbout = &adminDetails.HeardAbout
+	admin.PhoneHomeContactAllowed = &adminDetails.PhoneHomeContactAllowed
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = pointy.String("")
@@ -424,6 +425,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 			*admin.UserDefinedRole,
 			*admin.UserDefinedPersona,
 			*admin.UserDefinedTeamSize,
+			*admin.HeardAbout,
 			*admin.FirstName,
 			*admin.LastName,
 			*admin.Phone,
@@ -673,32 +675,35 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 		return false, e.New("session export is not enabled")
 	}
 
-	go func() {
-		export := model.SessionExport{
-			SessionID:    session.ID,
-			Type:         model.SessionExportFormatMP4,
-			TargetEmails: []string{*admin.Email},
-		}
+	export := model.SessionExport{
+		SessionID:    session.ID,
+		Type:         model.SessionExportFormatMP4,
+		TargetEmails: []string{*admin.Email},
+	}
 
-		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
-			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
-		}).FirstOrCreate(&export)
-		if tx.Error != nil {
-			log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
-			return
-		}
+	tx := r.DB.Model(&export).Where(&model.SessionExport{
+		SessionID: session.ID,
+		Type:      model.SessionExportFormatMP4,
+	}).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
+		DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
+	}).FirstOrCreate(&export)
+	if tx.Error != nil {
+		log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
+		return false, tx.Error
+	}
 
-		_, err := r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
-			Project:      session.ProjectID,
-			Session:      session.ID,
-			Format:       export.Type,
-			TargetEmails: export.TargetEmails,
-		})
-		if err != nil {
-			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
-		}
-	}()
+	_, err = r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
+		Project:      session.ProjectID,
+		Session:      session.ID,
+		Format:       export.Type,
+		TargetEmails: export.TargetEmails,
+	})
+	if err != nil {
+		log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -773,21 +778,6 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 	}
 	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).Take(&newErrorGroup).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing error as viewed")
-	}
-
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, eg.ID, map[string]interface{}{"viewed": viewed}); err != nil {
-		return nil, e.Wrap(err, "error updating error in opensearch")
-	}
-
-	newAdminView := struct {
-		ID int `json:"id"`
-	}{
-		ID: admin.ID,
-	}
-
-	if err := r.OpenSearch.AppendToField(opensearch.IndexErrorsCombined, newErrorGroup.ID, "viewed_by_admins", []interface{}{
-		newAdminView}); err != nil {
-		return nil, e.Wrap(err, "error updating error gorups's admin viewed by in opensearch")
 	}
 
 	if err := r.DB.Model(&eg).Association("ViewedByAdmins").Append(admin); err != nil {
@@ -868,21 +858,6 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&newSession).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
-	}
-
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
-	newAdminView := struct {
-		ID int `json:"id"`
-	}{
-		ID: admin.ID,
-	}
-
-	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, newSession.ID, "viewed_by_admins", []interface{}{
-		newAdminView}); err != nil {
-		return nil, e.Wrap(err, "error updating session's admin viewed by in opensearch")
 	}
 
 	if err := r.DB.Model(&s).Association("ViewedByAdmins").Append(admin); err != nil {
@@ -1462,16 +1437,12 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		XCoordinate:     xCoordinate,
 		YCoordinate:     yCoordinate,
 	}
-	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-		tracer.ResourceName("db.createSessionComment"), tracer.Tag("project_id", projectID))
+	createSessionCommentSpan, _ := util.StartSpanFromContext(ctx, "resolver.createSessionComment",
+		util.ResourceName("db.createSessionComment"), util.Tag("project_id", projectID))
 	if err := r.DB.Create(sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment")
 	}
 	createSessionCommentSpan.Finish()
-
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"has_comments": true}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
 
 	// Create associations between tags and comments.
 	if len(tags) > 0 {
@@ -1731,7 +1702,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
-	session, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
+	_, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
 
 	if err != nil {
 		return nil, err
@@ -1756,17 +1727,6 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	var commentCount int64
 	if err := r.DB.Table("session_comments").Where(&model.SessionComment{SessionSecureId: sessionComment.SessionSecureId}).Count(&commentCount).Error; err != nil {
 		return nil, e.Wrap(err, "error counting session comments")
-	}
-
-	if commentCount == 0 {
-		if err := r.OpenSearch.UpdateSynchronous(
-			opensearch.IndexSessions,
-			session.ID,
-			map[string]interface{}{"has_comments": false},
-		); err != nil {
-			return nil, e.Wrap(err, "error updating session in opensearch")
-		}
-
 	}
 
 	return &model.T, nil
@@ -1836,8 +1796,8 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 		AdminId:          admin.ID,
 		Text:             text,
 	}
-	createSessionCommentReplySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionCommentReply",
-		tracer.ResourceName("db.createSessionCommentReply"), tracer.Tag("project_id", sessionComment.ProjectID))
+	createSessionCommentReplySpan, _ := util.StartSpanFromContext(ctx, "resolver.createSessionCommentReply",
+		util.ResourceName("db.createSessionCommentReply"), util.Tag("project_id", sessionComment.ProjectID))
 	if err := r.DB.Create(commentReply).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment reply")
 	}
@@ -1945,8 +1905,8 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		Text:          text,
 	}
 
-	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-		tracer.ResourceName("db.createErrorComment"), tracer.Tag("project_id", projectID))
+	createErrorCommentSpan, _ := util.StartSpanFromContext(ctx, "resolver.createErrorComment",
+		util.ResourceName("db.createErrorComment"), util.Tag("project_id", projectID))
 
 	if err := r.DB.Create(errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error comment")
@@ -2275,8 +2235,8 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 		AdminId:        admin.ID,
 		Text:           text,
 	}
-	createErrorCommentReplySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorCommentReply",
-		tracer.ResourceName("db.createErrorCommentReply"), tracer.Tag("project_id", errorComment.ProjectID))
+	createErrorCommentReplySpan, _ := util.StartSpanFromContext(ctx, "resolver.createErrorCommentReply",
+		util.ResourceName("db.createErrorCommentReply"), util.Tag("project_id", errorComment.ProjectID))
 	if err := r.DB.Create(commentReply).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error comment reply")
 	}
@@ -2469,6 +2429,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		if err := r.RemoveClickUpFromWorkspace(workspace); err != nil {
 			return false, err
 		}
+	} else if integrationType == modelInputs.IntegrationTypeGitHub {
+		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
+			return false, err
+		}
 	} else {
 		if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, integrationType); err != nil {
 			return false, err
@@ -2565,7 +2529,16 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
-	if err := newMetricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &newMetricMonitor.ID, Project: project, OperationName: "created", OperationDescription: "Monitor alerts will be sent here", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, newMetricMonitor, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Monitor alerts will be sent here",
+		ID:                   newMetricMonitor.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/monitors",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2653,7 +2626,16 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error updating metric monitor")
 	}
 
-	if err := metricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "updated", OperationDescription: "Monitor alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, metricMonitor, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Monitor alerts will now be sent to this channel.",
+		ID:                   metricMonitorID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/monitors",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 	return metricMonitor, nil
@@ -2703,7 +2685,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Type:                 &model.AlertType.ERROR,
 			ChannelsToNotify:     channelsString,
 			EmailsToNotify:       emailsString,
-			Name:                 &name,
+			Name:                 name,
 			LastAdminToEditID:    admin.ID,
 			Frequency:            frequency,
 			Default:              *defaultArg,
@@ -2718,7 +2700,16 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
-	if err := newAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, newAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   newAlert.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2780,7 +2771,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		projectAlert.ThresholdWindow = thresholdWindow
 	}
 	if name != nil {
-		projectAlert.Name = name
+		projectAlert.Name = *name
 	}
 
 	projectAlert.LastAdminToEditID = admin.ID
@@ -2805,7 +2796,16 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, projectAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   errorAlertID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 	return projectAlert, nil
@@ -2829,7 +2829,16 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error trying to delete error alert")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, projectAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Alerts will no longer be sent to this channel.",
+		ID:                   errorAlertID,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2854,7 +2863,16 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 		return nil, e.Wrap(err, "error trying to delete metric monitor")
 	}
 
-	if err := metricMonitor.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageForMetricMonitorInput{Workspace: workspace, Admin: admin, MonitorID: &metricMonitorID, Project: project, OperationName: "deleted", OperationDescription: "Monitor alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, metricMonitor, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Monitor alerts will no longer be sent to this channel.",
+		ID:                   metricMonitorID,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts/monitors",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -2954,7 +2972,16 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 		return nil, e.Wrap(err, "error updating session alert")
 	}
 
-	if err := sessionAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &id, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, sessionAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   id,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 	return sessionAlert, nil
@@ -2978,7 +3005,16 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 	if err := r.DB.Create(sessionAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new session feedback alert")
 	}
-	if err := sessionAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, sessionAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Alerts will now be sent to this channel.",
+		ID:                   sessionAlert.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -3003,7 +3039,16 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error trying to delete session alert")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(ctx, &model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+	if err := model.SendWelcomeSlackMessage(ctx, projectAlert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Alerts will no longer be sent to this channel.",
+		ID:                   sessionAlertID,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts",
+	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -3023,12 +3068,24 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build log alert")
 	}
-	alert.ID = id
 
 	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
 		Where("project_id = ?", input.ProjectID).
 		Save(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating log alert")
+	}
+
+	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "updated",
+		OperationDescription: "Log alerts will now be sent to this channel.",
+		ID:                   id,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/logs",
+	}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return alert, nil
@@ -3052,25 +3109,61 @@ func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs
 		return nil, e.Wrap(err, "error creating a new log alert")
 	}
 
+	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "created",
+		OperationDescription: "Log alerts will now be sent to this channel.",
+		ID:                   alert.ID,
+		Project:              project,
+		IncludeEditLink:      true,
+		URLSlug:              "alerts/logs",
+	}); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
 	return alert, nil
 }
 
 // DeleteLogAlert is the resolver for the deleteLogAlert field.
 func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id int) (*model.LogAlert, error) {
-	_, err := r.isAdminInProject(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
 	alert := &model.LogAlert{}
-	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
+	if err := r.DB.Model(&model.LogAlert{}).
 		Where("project_id = ?", projectID).
+		Where("id = ?", id).
 		Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "this log alert does not exist in this project.")
 	}
 
-	if err := r.DB.Delete(alert).Error; err != nil {
+	if err := r.DB.Where("id = ?", id).Delete(&model.LogAlert{}).Error; err != nil {
 		return nil, e.Wrap(err, "error trying to delete log alert")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
+		Workspace:            workspace,
+		Admin:                admin,
+		OperationName:        "deleted",
+		OperationDescription: "Log alerts will no longer be sent to this channel.",
+		ID:                   id,
+		Project:              project,
+		IncludeEditLink:      false,
+		URLSlug:              "alerts",
+	}); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	return alert, nil
@@ -3123,11 +3216,6 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	}
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
-	}
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"IsPublic": isPublic,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
 	}
 
 	return errorGroup, nil
@@ -3191,7 +3279,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
 	const RequestAccessMinimumDelay = time.Minute * 10
 
-	span, _ := tracer.StartSpanFromContext(ctx, "private-graph.RequestAccess", tracer.ResourceName("handler"), tracer.Tag("project_id", projectID))
+	span, _ := util.StartSpanFromContext(ctx, "private-graph.RequestAccess", util.ResourceName("handler"), util.Tag("project_id", projectID))
 	defer span.Finish()
 	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
 	time.Sleep(time.Millisecond * time.Duration(10*rand.Float64()))
@@ -3388,7 +3476,7 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 }
 
 // DeleteSessions is the resolver for the deleteSessions field.
-func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error) {
+func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, sessionCount int) (bool, error) {
 	if util.IsDevOrTestEnv() {
 		return false, nil
 	}
@@ -4109,8 +4197,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 	rageClicks := []*modelInputs.RageClickEventForProject{}
 
-	rageClicksSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.RageClicksForProject"), tracer.Tag("project_id", projectID))
+	rageClicksSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal",
+		util.ResourceName("db.RageClicksForProject"), util.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
 	SELECT
 		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
@@ -4140,65 +4228,6 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	rageClicksSpan.Finish()
 
 	return rageClicks, nil
-}
-
-// ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
-	if clickhouseQuery != nil {
-		return r.ErrorGroupsClickhouse(ctx, projectID, count, *clickhouseQuery, page)
-	}
-
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	results := []opensearch.OpenSearchError{}
-	options := opensearch.SearchOptions{
-		MaxResults:    ptr.Int(count),
-		SortField:     ptr.String("updated_at"),
-		SortOrder:     ptr.String("desc"),
-		ReturnCount:   ptr.Bool(true),
-		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
-	}
-	if page != nil {
-		// page param is 1 indexed
-		options.ResultsFrom = ptr.Int((*page - 1) * count)
-	}
-	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
-	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
-	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
-	errorGroupsOpensearchSearchSpan.Finish()
-
-	if err != nil {
-		return nil, err
-	}
-
-	asErrorGroups := []*model.ErrorGroup{}
-	for _, result := range results {
-		asErrorGroups = append(asErrorGroups, result.ErrorGroup)
-	}
-
-	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
-
-	err = r.SetErrorFrequencies(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
-	errorFrequencyInfluxSpan.Finish()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.ErrorResults{
-		ErrorGroups: lo.Map(asErrorGroups, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
-		TotalCount:  resultCount,
-	}, nil
 }
 
 // ErrorGroupsClickhouse is the resolver for the error_groups_clickhouse field.
@@ -4241,46 +4270,6 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	}, nil
 }
 
-// ErrorsHistogram is the resolver for the errors_histogram field.
-func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions, clickhouseQuery *modelInputs.ClickhouseQuery) (*model.ErrorsHistogram, error) {
-	if clickhouseQuery != nil {
-		return r.ErrorsHistogramClickhouse(ctx, projectID, *clickhouseQuery, histogramOptions)
-	}
-
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	results := []opensearch.OpenSearchError{}
-	options := opensearch.SearchOptions{
-		MaxResults:        ptr.Int(0),
-		SortField:         ptr.String("updated_at"),
-		SortOrder:         ptr.String("desc"),
-		ReturnCount:       ptr.Bool(false),
-		ExcludeFields:     []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
-		ProjectIDOnParent: ptr.Bool(true),
-		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
-	}
-
-	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
-	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
-	if err != nil {
-		return nil, err
-	}
-
-	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(ctx, aggs, histogramOptions)
-	return &model.ErrorsHistogram{
-		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
-		ErrorObjects: MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
-	}, nil
-}
-
 // ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
 func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -4315,14 +4304,8 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if err != nil {
 		return nil, err
 	}
-	if useClickhouse != nil && *useClickhouse {
-		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
-			return nil, err
-		}
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg); err != nil {
+		return nil, err
 	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
@@ -4480,9 +4463,9 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
 			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
-			clearbitApiRequestSpan, ctx := tracer.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
-				tracer.ResourceName("clearbit.api.request"),
-				tracer.Tag("session_id", s.ID), tracer.Tag("workspace_id", w.ID), tracer.Tag("project_id", p.ID), tracer.Tag("plan_tier", w.PlanTier))
+			clearbitApiRequestSpan, ctx := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
+				util.ResourceName("clearbit.api.request"),
+				util.Tag("session_id", s.ID), util.Tag("workspace_id", w.ID), util.Tag("project_id", p.ID), util.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
 			clearbitApiRequestSpan.Finish()
 			p, co = pc.Person, pc.Company
@@ -4565,8 +4548,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 	if err != nil {
 		return nil, err
 	}
-	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
+	eventsQuerySpan, _ := util.StartSpanFromContext(ctx, "resolver.internal",
+		util.ResourceName("db.errorObjectsQuery"), util.Tag("project_id", s.ProjectID))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
 	if err := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: &s.ID}).Find(&errorsObj).Error; err != nil {
@@ -5054,7 +5037,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequencies(ctx, errGroup); err != nil {
+	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, errGroup); err != nil {
 		return nil, err
 	}
 
@@ -5069,7 +5052,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return dists, nil
 	}
 
-	if err := r.SetErrorFrequencies(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, []*model.ErrorGroup{errGroup}, dateOffset); err != nil {
 		return nil, e.Wrap(err, "error setting error frequencies")
 	}
 	return errGroup.ErrorFrequency, nil
@@ -5088,14 +5071,11 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 	if metric == nil {
 		metric = pointy.String("")
 	}
-	if useClickhouse != nil && *useClickhouse {
-		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, errorGroupIDs, params)
-		if err != nil {
-			return nil, err
-		}
-		return results, nil
+	results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params)
+	if err != nil {
+		return nil, err
 	}
-	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
+	return results, nil
 }
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
@@ -5105,55 +5085,7 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID s
 		return nil, err
 	}
 
-	if useClickhouse != nil && *useClickhouse {
-		return r.ClickhouseClient.QueryErrorGroupTags(ctx, errorGroup.ProjectID, errorGroup.ID)
-	}
-
-	query := fmt.Sprintf(`
-	{
-		"size": 0,
-		"query": {
-			"has_parent": {
-				"parent_type": "parent",
-				"query": {
-					"terms": {
-						"_id": ["%d"]
-					}
-				}
-			}
-		},
-		"aggs": {
-			"browser": {
-				"terms": {
-					"field": "browser.keyword"
-				}
-			},
-			"environment": {
-				"terms": {
-					"field": "environment.keyword"
-				}
-			},
-			"os_name": {
-				"terms": {
-					"field": "os_name.keyword"
-				}
-			}
-		}
-	  }
-	`, errorGroup.ID)
-
-	res, err := r.OpenSearch.RawSearch(opensearch.IndexErrorsCombined, query)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var aggregations errorgroups.TagsAggregations
-	if err := json.Unmarshal(res, &aggregations); err != nil {
-		return nil, e.Wrap(err, "failed to unmarshal aggregations")
-	}
-
-	return errorgroups.BuildAggregations(aggregations), nil
+	return r.ClickhouseClient.QueryErrorGroupTags(ctx, errorGroup.ProjectID, errorGroup.ID)
 }
 
 // Referrers is the resolver for the referrers field.
@@ -5197,8 +5129,8 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	}
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
-	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
+	topUsersSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal",
+		util.ResourceName("db.topUsers"), util.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
 	SELECT *
 	FROM (
@@ -5307,8 +5239,8 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	}
 
 	var count int64
-	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("project_id", projectID))
+	span, _ := util.StartSpanFromContext(ctx, "resolver.internal",
+		util.ResourceName("db.userFingerprintCount"), util.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
 		SELECT
 			COUNT(DISTINCT fingerprint)
@@ -5325,57 +5257,6 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	span.Finish()
 
 	return &modelInputs.UserFingerprintCount{Count: count}, nil
-}
-
-// SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
-	if clickhouseQuery != nil {
-		return r.SessionsClickhouse(ctx, projectID, count, *clickhouseQuery, sortField, sortDesc, page)
-	}
-
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	results := []model.Session{}
-
-	sortOrder := "desc"
-	if !sortDesc {
-		sortOrder = "asc"
-	}
-
-	sortFieldStr := "created_at"
-	if sortField != nil {
-		sortFieldStr = *sortField
-	}
-
-	options := opensearch.SearchOptions{
-		MaxResults:    ptr.Int(count),
-		SortField:     ptr.String(sortFieldStr),
-		SortOrder:     ptr.String(sortOrder),
-		ReturnCount:   ptr.Bool(true),
-		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
-	}
-	if page != nil {
-		// page param is 1 indexed
-		options.ResultsFrom = ptr.Int((*page - 1) * count)
-	}
-
-	q := FormatSessionsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
-	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.SessionResults{
-		Sessions:   results,
-		TotalCount: resultCount,
-	}, nil
 }
 
 // SessionsClickhouse is the resolver for the sessions_clickhouse field.
@@ -5426,61 +5307,6 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	}, nil
 }
 
-// SessionsHistogram is the resolver for the sessions_histogram field.
-func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions, clickhouseQuery *modelInputs.ClickhouseQuery) (*model.SessionsHistogram, error) {
-	if clickhouseQuery != nil {
-		return r.SessionsHistogramClickhouse(ctx, projectID, *clickhouseQuery, histogramOptions)
-	}
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	results := []model.Session{}
-	options := opensearch.SearchOptions{
-		MaxResults:    ptr.Int(0),
-		SortField:     ptr.String("created_at"),
-		ReturnCount:   ptr.Bool(false),
-		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
-		Aggregation: GetDateHistogramAggregation(histogramOptions, "created_at",
-			&opensearch.TermsAggregation{
-				Field:   "has_errors",
-				Missing: ptr.String("false"),
-			}),
-	}
-	q := FormatSessionsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
-	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
-	if err != nil {
-		return nil, err
-	}
-
-	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(ctx, aggs, histogramOptions)
-	noErrorsCounts, withErrorsCounts := []int64{}, []int64{}
-	for _, dateBucket := range aggs {
-		noErrors, withErrors := int64(0), int64(0)
-		for _, errorsBucket := range dateBucket.SubAggregationResults {
-			if errorsBucket.Key == "false" {
-				noErrors = errorsBucket.DocCount
-			} else if errorsBucket.Key == "true" {
-				withErrors = errorsBucket.DocCount
-			}
-		}
-		noErrorsCounts = append(noErrorsCounts, noErrors)
-		withErrorsCounts = append(withErrorsCounts, withErrors)
-	}
-
-	return &model.SessionsHistogram{
-		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
-		SessionsWithoutErrors: MergeHistogramBucketCounts(noErrorsCounts, histogramOptions.BucketSize.Multiple),
-		SessionsWithErrors:    MergeHistogramBucketCounts(withErrorsCounts, histogramOptions.BucketSize.Multiple),
-		TotalSessions:         MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
-	}, nil
-}
-
 // SessionsHistogramClickhouse is the resolver for the sessions_histogram_clickhouse field.
 func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5520,272 +5346,31 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 	}, nil
 }
 
-// FieldTypes is the resolver for the field_types field.
-func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
-	if useClickhouse != nil && *useClickhouse {
-		if startDate == nil || endDate == nil {
-			return nil, errors.New("startDate and endDate must not be nil")
-		}
-		return r.FieldTypesClickhouse(ctx, projectID, *startDate, *endDate)
-	}
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, nil
-	}
-
-	var startDateNotNil time.Time
-	if startDate != nil {
-		startDateNotNil = *startDate
-	}
-
-	aggQuery := `{"bool": {
-		"must": []
-	}}`
-	if endDate != nil {
-		aggQuery = fmt.Sprintf(`{
-			"range": {
-				"created_at": {
-					"lt": "%s"
-				}
-			}
-		}`, (*endDate).Format(time.RFC3339))
-	}
-
-	sessionsQuery := FormatSessionsQuery(aggQuery, startDateNotNil)
-
-	aggOptions := opensearch.SearchOptions{
-		MaxResults: pointy.Int(0),
-		Aggregation: &opensearch.TermsAggregation{
-			Field:   "fields.Key.raw",
-			Include: pointy.String("(session|track|user)_.*"),
-			Exclude: pointy.String("(session|track|user)_[0-9]+"), // Exclude numeric field types
-			Size:    pointy.Int(500),
-		},
-	}
-
-	ignored := []struct{}{}
-	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, sessionsQuery, aggOptions, &ignored)
-	if err != nil {
-		return nil, err
-	}
-
-	keys := lo.Filter(
-		lo.Map(aggResults, func(ar opensearch.AggregationResult, idx int) string { return ar.Key }),
-		func(key string, idx int) bool { return len(key) > 0 })
-
-	return lo.Map(keys, func(key string, idx int) *model.Field {
-		typ, name, _ := strings.Cut(key, "_")
-		return &model.Field{
-			Type: typ,
-			Name: name,
-		}
-	}), nil
-}
-
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
 func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
-	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
-}
-
-// FieldsOpensearch is the resolver for the fields_opensearch field.
-func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
-	if useClickhouse != nil && *useClickhouse {
-		if startDate == nil || endDate == nil {
-			return nil, errors.New("startDate and endDate must not be nil")
-		}
-		return r.FieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
-	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
-
-	var q string
-	if query == "" {
-		q = fmt.Sprintf(`
-		{"bool":{"must":[
-			{"term":{"Type.keyword":"%s"}},
-			{"term":{"Name.keyword":"%s"}}
-		]}}`, fieldType, fieldName)
-	} else {
-		q = fmt.Sprintf(`
-		{"bool":{"must":[
-			{"term":{"Type.keyword":"%s"}},
-			{"term":{"Name.keyword":"%s"}},
-			{"multi_match": {
-				"query": "%s",
-				"type": "bool_prefix",
-				"fields": [
-					"Value",
-					"Value._2gram",
-					"Value._3gram"
-				]
-			}}
-		]}}`, fieldType, fieldName, query)
-	}
-
-	results := []*model.Field{}
-	options := opensearch.SearchOptions{
-		MaxResults: ptr.Int(count),
-	}
-	_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get all unique values from the returned fields
-	valueMap := map[string]bool{}
-	for _, result := range results {
-		valueMap[result.Value] = true
-	}
-	values := []string{}
-	for value := range valueMap {
-		values = append(values, value)
-	}
-
-	return values, nil
+	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
 }
 
 // FieldsClickhouse is the resolver for the fields_clickhouse field.
 func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
-}
-
-// ErrorFieldsOpensearch is the resolver for the error_fields_opensearch field.
-func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
-	if useClickhouse != nil && *useClickhouse {
-		if startDate == nil || endDate == nil {
-			return nil, errors.New("startDate and endDate must not be nil")
-		}
-		return r.ErrorFieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
-	}
-
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
-
-	var q string
-	if query == "" {
-		q = fmt.Sprintf(`
-		{"bool":{"must":[
-			{"term":{"Name.keyword":"%s"}}
-		]}}`, fieldName)
-	} else {
-		q = fmt.Sprintf(`
-		{"bool":{"must":[
-			{"term":{"Name.keyword":"%s"}},
-			{"multi_match": {
-				"query": "%s",
-				"type": "bool_prefix",
-				"fields": [
-					"Value",
-					"Value._2gram",
-					"Value._3gram"
-				]
-			}}
-		]}}`, fieldName, query)
-	}
-
-	results := []*model.ErrorField{}
-	options := opensearch.SearchOptions{
-		MaxResults: ptr.Int(count),
-	}
-	_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &results)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get all unique values from the returned fields
-	valueMap := map[string]bool{}
-	for _, result := range results {
-		valueMap[result.Value] = true
-	}
-	values := []string{}
-	for value := range valueMap {
-		values = append(values, value)
-	}
-
-	return values, nil
+	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
 func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
-}
-
-// QuickFieldsOpensearch is the resolver for the quickFields_opensearch field.
-func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
-	if useClickhouse != nil && *useClickhouse {
-		if startDate == nil || endDate == nil {
-			return nil, errors.New("startDate and endDate must not be nil")
-		}
-		return r.QuickFieldsClickhouse(ctx, projectID, count, query, *startDate, *endDate)
-	}
-
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
-
-	var q string
-	if query == "" {
-		q = `{"bool":{"must":[]}}`
-	} else {
-		q = fmt.Sprintf(`
-		{"bool":{"must":[
-			{"multi_match": {
-				"query": "%s",
-				"type": "bool_prefix",
-				"fields": [
-					"Value",
-					"Value._2gram",
-					"Value._3gram"
-				]
-			}}
-		]}}`, query)
-	}
-
-	options := opensearch.SearchOptions{
-		MaxResults: ptr.Int(count),
-	}
-
-	var g errgroup.Group
-	results := []*model.Field{}
-	errorResults := []*model.Field{}
-
-	g.Go(func() error {
-		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexFields}, projectID, q, options, &results)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		_, _, err = r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorFields}, projectID, q, options, &errorResults)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session or error fields")
-	}
-
-	for _, er := range errorResults {
-		er.Type = "error-field"
-		results = append(results, er)
-	}
-
-	return results, nil
-}
-
-// QuickFieldsClickhouse is the resolver for the quickFields_clickhouse field.
-func (r *queryResolver) QuickFieldsClickhouse(ctx context.Context, projectID int, count int, query string, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
-	panic(fmt.Errorf("not implemented: QuickFieldsClickhouse - quickFields_clickhouse"))
+	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.
@@ -6253,24 +5838,8 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 		return nil, err
 	}
 
-	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*", "case_insensitive": true}}}`, query)
-	options := opensearch.SearchOptions{
-		MaxResults: pointy.Int(0),
-		Aggregation: &opensearch.TermsAggregation{
-			Field: "identifier.keyword",
-		},
-	}
-
-	results := []model.Session{}
-	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, input, options, &results)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying identifier aggregates")
-	}
-
-	// Only care about the keys, not the doc counts. Return all nonempty keys.
-	return lo.Filter(
-		lo.Map(aggs, func(ar opensearch.AggregationResult, idx int) string { return ar.Key }),
-		func(key string, idx int) bool { return len(key) > 0 }), nil
+	// Suggest identifiers for sessions >= 1 month old
+	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, 50, "user", "identifier", query, time.Now().AddDate(0, -1, 0), time.Now())
 }
 
 // SlackChannelSuggestion is the resolver for the slack_channel_suggestion field.
@@ -6747,6 +6316,14 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 	if err != nil {
 		return nil, err
 	}
+
+	if r.isDemoProject(ctx, id) {
+		return &model.Project{
+			Model: project.Model,
+			Name:  project.Name,
+		}, nil
+	}
+
 	return project, nil
 }
 
@@ -6918,6 +6495,17 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 		return nil, e.Wrap(err, "error querying workspace")
 	}
 
+	if r.isDemoProject(ctx, projectID) {
+		return &model.Workspace{
+			Model: workspace.Model,
+			Name:  workspace.Name,
+			Projects: []model.Project{{
+				Model: project.Model,
+				Name:  project.Name,
+			}},
+		}, nil
+	}
+
 	// workspace secret should not be visible unless the admin has workspace access
 	workspace.Secret = new(string)
 
@@ -6933,8 +6521,8 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 // Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
-	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
-		tracer.Tag("admin_uid", admin.UID))
+	adminSpan, ctx := util.StartSpanFromContext(ctx, "resolver.getAdmin", util.ResourceName("db.admin"),
+		util.Tag("admin_uid", admin.UID))
 
 	if err := r.DB.Where(&model.Admin{UID: admin.UID}).Take(&admin).Error; err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
@@ -6943,33 +6531,33 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			// create a new user in our DB.
 			if admin, err = r.createAdmin(ctx); err != nil {
 				spanError := e.Wrap(err, "error creating admin in postgres")
-				adminSpan.Finish(tracer.WithError(spanError))
+				adminSpan.Finish(spanError)
 				return nil, spanError
 			}
 		} else {
 			spanError := e.Wrap(err, "error retrieving admin from postgres")
-			adminSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(spanError)
 			return nil, spanError
 		}
 	}
 
 	// Check email verification status
 	if admin.EmailVerified != nil && !*admin.EmailVerified {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebaseForEmailVerification"),
-			tracer.Tag("admin_uid", *admin.UID))
+		firebaseSpan, _ := util.StartSpanFromContext(ctx, "resolver.getAdmin", util.ResourceName("db.updateAdminFromFirebaseForEmailVerification"),
+			util.Tag("admin_uid", *admin.UID))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
 		if err != nil {
 			spanError := e.Wrap(err, "error retrieving user from firebase api for email verification")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(spanError)
+			firebaseSpan.Finish(spanError)
 			return nil, spanError
 		}
 		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
 			EmailVerified: &firebaseUser.EmailVerified,
 		}).Error; err != nil {
 			spanError := e.Wrap(err, "error updating admin fields")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(spanError)
+			firebaseSpan.Finish(spanError)
 			return nil, spanError
 		}
 		admin.EmailVerified = &firebaseUser.EmailVerified
@@ -7258,8 +6846,8 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		  |> distinct(column: "_field")
 		  |> yield(name: "distinct")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
-	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
-	tdbQuerySpan.SetTag("projectID", projectID)
+	tdbQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
+	tdbQuerySpan.SetAttribute("projectID", projectID)
 	results, err := r.TDB.Query(ctx, query)
 	tdbQuerySpan.Finish()
 	if err != nil {
@@ -7281,9 +6869,9 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		import "influxdata/influxdb/schema"
 		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
-	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
-	tdbQuerySpan.SetTag("projectID", projectID)
-	tdbQuerySpan.SetTag("metricName", metricName)
+	tdbQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryMetricTags")
+	tdbQuerySpan.SetAttribute("projectID", projectID)
+	tdbQuerySpan.SetAttribute("metricName", metricName)
 	results, err := r.TDB.Query(ctx, query)
 	tdbQuerySpan.Finish()
 	if err != nil {
@@ -7311,10 +6899,10 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 		import "influxdata/influxdb/schema"
 		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
-	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
-	tdbQuerySpan.SetTag("projectID", projectID)
-	tdbQuerySpan.SetTag("metricName", metricName)
-	tdbQuerySpan.SetTag("tagName", tagName)
+	tdbQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
+	tdbQuerySpan.SetAttribute("projectID", projectID)
+	tdbQuerySpan.SetAttribute("metricName", metricName)
+	tdbQuerySpan.SetAttribute("tagName", tagName)
 	results, err := r.TDB.Query(ctx, query)
 	tdbQuerySpan.Finish()
 	if err != nil {
@@ -7367,9 +6955,9 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	  ])
 		  |> sort()
   `, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, div, minPercentile, maxPercentile)
-		histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
-		histogramRangeQuerySpan.SetTag("projectID", projectID)
-		histogramRangeQuerySpan.SetTag("metricName", metricName)
+		histogramRangeQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
+		histogramRangeQuerySpan.SetAttribute("projectID", projectID)
+		histogramRangeQuerySpan.SetAttribute("metricName", metricName)
 		results, err := r.TDB.Query(ctx, query)
 		histogramRangeQuerySpan.Finish()
 		if err != nil {
@@ -7413,10 +7001,10 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
 	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
-	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
-	histogramQuerySpan.SetTag("projectID", projectID)
-	histogramQuerySpan.SetTag("metricName", metricName)
-	histogramQuerySpan.SetTag("buckets", params.Buckets)
+	histogramQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
+	histogramQuerySpan.SetAttribute("projectID", projectID)
+	histogramQuerySpan.SetAttribute("metricName", metricName)
+	histogramQuerySpan.SetAttribute("buckets", params.Buckets)
 	results, err := r.TDB.Query(ctx, query)
 	histogramQuerySpan.Finish()
 	if err != nil {
@@ -7478,10 +7066,10 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
           |> limit(n: 10)
 		  |> yield(name: "count")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
-	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
-	networkHistogramSpan.SetTag("projectID", projectID)
-	networkHistogramSpan.SetTag("attribute", params.Attribute.String())
-	networkHistogramSpan.SetTag("lookbackDays", params.LookbackDays)
+	networkHistogramSpan, _ := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
+	networkHistogramSpan.SetAttribute("projectID", projectID)
+	networkHistogramSpan.SetAttribute("attribute", params.Attribute.String())
+	networkHistogramSpan.SetAttribute("lookbackDays", params.LookbackDays)
 	results, err := r.TDB.Query(ctx, query)
 	networkHistogramSpan.Finish()
 	if err != nil {
@@ -7629,7 +7217,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7696,7 +7284,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 }
 
 // SessionLogs is the resolver for the sessionLogs field.
-func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7706,7 +7294,7 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.
-func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
+func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return 0, err
@@ -7716,7 +7304,7 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 }
 
 // LogsHistogram is the resolver for the logs_histogram field.
-func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (*modelInputs.LogsHistogram, error) {
+func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7726,7 +7314,7 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.LogKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7747,15 +7335,15 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 
 // LogsErrorObjects is the resolver for the logs_error_objects field.
 func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
-	ddS, _ := tracer.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
-		tracer.ResourceName("DB.Query"), tracer.Tag("NumLogCursors", len(logCursors)))
+	ddS, _ := util.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
+		util.ResourceName("DB.Query"), util.Tag("NumLogCursors", len(logCursors)))
 	s, ctx := highlight.StartTrace(ctx, "LogsErrorObjects.DB.Query", attribute.Int("NumLogCursors", len(logCursors)))
 
 	var errorObjects []*model.ErrorObject
 	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
 		s.RecordError(err)
 		highlight.EndTrace(s)
-		ddS.Finish(tracer.WithError(err))
+		ddS.Finish(err)
 		return nil, e.Wrap(err, "failed to find errors for log cursors")
 	}
 	highlight.EndTrace(s)
@@ -7860,9 +7448,19 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 }
 
 // SessionExports is the resolver for the session_exports field.
-func (r *queryResolver) SessionExports(ctx context.Context) ([]*model.SessionExport, error) {
-	var sessionExports []*model.SessionExport
-	if err := r.DB.Model(&model.SessionExport{}).Order("id DESC").Scan(&sessionExports).Error; err != nil {
+func (r *queryResolver) SessionExports(ctx context.Context, projectID int) ([]*modelInputs.SessionExportWithSession, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionExports []*modelInputs.SessionExportWithSession
+	if err := r.DB.
+		Table("session_exports").
+		Joins("INNER JOIN sessions s ON s.id = session_exports.session_id").
+		Where(`s.project_id = ?`, projectID).
+		Order("session_exports.id DESC").
+		Scan(&sessionExports).Error; err != nil {
 		return nil, err
 	}
 	return sessionExports, nil
@@ -7910,13 +7508,38 @@ func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]
 }
 
 // Traces is the resolver for the traces field.
-func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params)
+	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params, clickhouse.Pagination{
+		After:     after,
+		Before:    before,
+		At:        at,
+		Direction: direction,
+	})
+}
+
+// TracesKeys is the resolver for the traces_keys field.
+func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
+}
+
+// TracesKeyValues is the resolver for the traces_key_values field.
+func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // Params is the resolver for the params field.
@@ -8169,11 +7792,6 @@ GROUP BY
 	return tagsResponse, nil
 }
 
-// TargetEmails is the resolver for the target_emails field.
-func (r *sessionExportResolver) TargetEmails(ctx context.Context, obj *model.SessionExport) ([]string, error) {
-	return obj.TargetEmails, nil
-}
-
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
@@ -8278,9 +7896,6 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
-// SessionExport returns generated.SessionExportResolver implementation.
-func (r *Resolver) SessionExport() generated.SessionExportResolver { return &sessionExportResolver{r} }
-
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
@@ -8305,6 +7920,5 @@ type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-type sessionExportResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }

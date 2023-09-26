@@ -18,10 +18,12 @@ func init() {
 func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
-		highlight.WithServiceName("lambda-functions--deleteSessionBatchFromS3"),
+		highlight.WithServiceName("lambda-functions--deleteSession-batchFromS3"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 	)
-	defer highlight.Stop()
 	hlog.Init()
-	lambda.Start(h.DeleteSessionBatchFromS3)
+	lambda.StartWithOptions(
+		h.DeleteSessionBatchFromS3,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

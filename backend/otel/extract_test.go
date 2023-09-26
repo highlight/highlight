@@ -341,7 +341,7 @@ func TestExtractFields_TrimLongFields(t *testing.T) {
 	})
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, 2048+3, len(fields.attrs["foo"]))
+	assert.Equal(t, 65536+3, len(fields.attrs["foo"]))
 }
 
 func TestMergeMaps(t *testing.T) {

@@ -96,7 +96,8 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                export_timeout_millis=5000,
+                max_export_batch_size=128,
+                max_queue_size=1024,
             )
         )
         trace.set_tracer_provider(self._trace_provider)
@@ -111,7 +112,8 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                export_timeout_millis=5000,
+                max_export_batch_size=128,
+                max_queue_size=1024,
             )
         )
         _logs.set_logger_provider(self._log_provider)
@@ -230,9 +232,6 @@ class H(object):
             if type(v) in [bool, str, bytes, int, float]:
                 attrs[f"http.headers.{k}"] = v
         span.add_event(name="exception", attributes=attrs)
-        logging.exception(
-            f"Highlight caught an http error (status_code={status_code}, detail={detail})"
-        )
 
     @staticmethod
     def record_exception(
@@ -262,7 +261,6 @@ class H(object):
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
         span.record_exception(e, attributes)
-        logging.exception("Highlight caught an error", exc_info=e)
 
     @property
     def logging_handler(self) -> logging.Handler:

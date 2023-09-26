@@ -8,8 +8,10 @@ import { message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useState } from 'react'
 
+import { ClickhouseQuery } from '@/graph/generated/schemas'
+
 interface Props {
-	query: string
+	query: ClickhouseQuery
 	sessionCount: number
 	visible: boolean
 	setVisible: (newVal: boolean) => void

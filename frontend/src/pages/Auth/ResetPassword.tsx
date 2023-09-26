@@ -28,7 +28,7 @@ export const ResetPassword: React.FC = () => {
 			email: initialEmail ?? '',
 		},
 	})
-	const formState = formStore.getState()
+	const email = formStore.useValue('email')
 
 	useEffect(() => analytics.page(), [])
 
@@ -39,7 +39,7 @@ export const ResetPassword: React.FC = () => {
 			onSubmit={() => {
 				analytics.track('Reset password submission')
 
-				if (!validateEmail(formState.values.email)) {
+				if (!validateEmail(email)) {
 					message.warning('Please enter a valid email.')
 					analytics.track('Reset password submission error')
 					setLoading(false)
@@ -47,7 +47,7 @@ export const ResetPassword: React.FC = () => {
 				}
 
 				setLoading(true)
-				auth.sendPasswordResetEmail(formState.values.email)
+				auth.sendPasswordResetEmail(email)
 					.catch(() => {
 						// swallow error if user does not exist
 						analytics.track('Reset password submission error')
@@ -60,7 +60,7 @@ export const ResetPassword: React.FC = () => {
 
 						setTimeout(() => {
 							navigate(SIGN_IN_ROUTE, {
-								state: { email: formState.values.email },
+								state: { email },
 							})
 						}, 1000)
 					})
@@ -81,7 +81,7 @@ export const ResetPassword: React.FC = () => {
 							onClick={() => {
 								navigate(SIGN_IN_ROUTE, {
 									state: {
-										email: formState.values.email,
+										email,
 									},
 								})
 							}}

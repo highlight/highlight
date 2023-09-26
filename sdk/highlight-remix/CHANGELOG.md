@@ -23,3 +23,16 @@
 ### Minor changes
 
 - Added support for setting `serviceName`
+
+## 0.4.1
+
+### Minor Changes
+
+-   Ensure console serialization works with `BigInteger` and other unserializeable types.
+
+## 0.4.2
+
+### Patch Changes
+
+- Tune settings of opentelemetry SDK to reduce memory usage.
+- Enable GZIP compression of exported data.

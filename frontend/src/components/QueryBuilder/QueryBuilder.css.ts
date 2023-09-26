@@ -65,3 +65,8 @@ export const selectPopover = style({
 	zIndex: 10,
 	maxWidth: '50vw',
 })
+
+export const loadingBox = style({
+	height: '20px',
+	pointerEvents: 'none',
+})

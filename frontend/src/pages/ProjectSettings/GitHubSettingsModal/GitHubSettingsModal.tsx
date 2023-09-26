@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import {
@@ -159,7 +160,7 @@ const GithubSettingsForm = ({
 			githubPrefix: service.githubPrefix || null,
 		},
 	})
-	const formState = formStore.getState()
+	const formState = formStore.useState()
 
 	const exampleLink = formState.values.githubPrefix
 		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
@@ -309,26 +310,48 @@ const GithubSettingsForm = ({
 				<Box
 					display="flex"
 					alignItems="center"
-					justifyContent="flex-end"
-					gap="8"
+					justifyContent="space-between"
 				>
-					<Button
+					<LinkButton
 						kind="secondary"
-						trackingId="cancel-service-github-settings"
+						to="https://www.highlight.io/docs/general/product-features/error-monitoring/enhancing-errors-with-github#link-your-service-to-a-github-repo"
+						trackingId="enhance-stack-traces-docs"
+						emphasis="low"
 						size="medium"
-						emphasis="medium"
-						onClick={handleCancel}
+						target="_blank"
+						iconLeft={
+							<IconSolidQuestionMarkCircle
+								color={vars.theme.static.content.weak}
+								size={14}
+							/>
+						}
 					>
-						Cancel
-					</Button>
-					<Button
-						type="submit"
-						kind="primary"
-						trackingId="update-service-github-settings"
-						size="medium"
+						Learn more
+					</LinkButton>
+					<Box
+						display="flex"
+						alignItems="center"
+						justifyContent="flex-end"
+						gap="8"
 					>
-						Save
-					</Button>
+						<Button
+							kind="secondary"
+							trackingId="cancel-service-github-settings"
+							size="medium"
+							emphasis="medium"
+							onClick={handleCancel}
+						>
+							Cancel
+						</Button>
+						<Button
+							type="submit"
+							kind="primary"
+							trackingId="update-service-github-settings"
+							size="medium"
+						>
+							Save
+						</Button>
+					</Box>
 				</Box>
 			</Box>
 		</Form>

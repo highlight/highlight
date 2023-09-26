@@ -1,42 +1,24 @@
 import LoadingBox from '@components/LoadingBox'
-import { useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
-import { useNumericProjectId } from '@hooks/useProjectId'
-import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
-import moment from 'moment'
 import { useMemo } from 'react'
 
 import * as styles from './LogsCount.css'
 
 const LogsCount = ({
-	query,
 	startDate,
 	endDate,
 	presets,
+	totalCount,
+	logCountLoading,
 }: {
-	query: string
 	startDate: Date
 	endDate: Date
 	presets: Preset[]
+	totalCount: number | undefined
+	logCountLoading: boolean
 }) => {
-	const { projectId } = useNumericProjectId()
-	const { data: totalCount, loading: logCountLoading } =
-		useGetLogsTotalCountQuery({
-			variables: {
-				project_id: projectId!,
-				params: {
-					query,
-					date_range: {
-						start_date: moment(startDate).format(LOG_TIME_FORMAT),
-						end_date: moment(endDate).format(LOG_TIME_FORMAT),
-					},
-				},
-			},
-			skip: !projectId,
-		})
-
 	const dateLabel = useMemo(() => {
 		const isPreset = presets.find((preset) => {
 			return preset.startDate.getTime() === startDate.getTime()
@@ -57,14 +39,14 @@ const LogsCount = ({
 
 	return (
 		<Stack direction="row" gap="8" px="12" py="8" align="center">
-			{totalCount && (
+			{totalCount !== undefined ? (
 				<>
 					<Text
 						size="xSmall"
 						color="weak"
 						cssClass={styles.countText}
 					>
-						{formatNumber(totalCount.logs_total_count)} logs
+						{formatNumber(totalCount)} logs
 					</Text>
 					<Box br="dividerWeak" height="full" />
 					<Text
@@ -75,7 +57,7 @@ const LogsCount = ({
 						{dateLabel}
 					</Text>
 				</>
-			)}
+			) : null}
 		</Stack>
 	)
 }

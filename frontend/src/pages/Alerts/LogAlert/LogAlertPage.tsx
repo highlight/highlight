@@ -4,7 +4,9 @@ import {
 	useCreateLogAlertMutation,
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
+	useGetLogsHistogramQuery,
 	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import {
@@ -41,9 +43,7 @@ import {
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
-import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
-import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
@@ -54,6 +54,8 @@ import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
 
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
@@ -81,8 +83,8 @@ export const LogAlertPage = () => {
 		variables: {
 			project_id: projectId,
 			date_range: {
-				start_date: moment(startDate).format(LOG_TIME_FORMAT),
-				end_date: moment(endDate).format(LOG_TIME_FORMAT),
+				start_date: moment(startDate).format(TIME_FORMAT),
+				end_date: moment(endDate).format(TIME_FORMAT),
 			},
 		},
 	})
@@ -128,11 +130,12 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = formStore.getState().values
+	const formValues = formStore.useState().values
 
 	const [query, setQuery] = useState(initialQuery)
-	const handleSearchSubmit = (query: string) => {
+	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
+		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
@@ -189,10 +192,7 @@ export const LogAlertPage = () => {
 		],
 	})
 	const [deleteLogAlertMutation] = useDeleteLogAlertMutation({
-		refetchQueries: [
-			namedOperations.Query.GetLogAlert,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
 	const { project_id } = useParams<{
@@ -288,7 +288,8 @@ export const LogAlertPage = () => {
 
 						const nameErr = !input.name
 						const thresholdErr = !input.count_threshold
-						if (nameErr || thresholdErr) {
+						const queryErr = !input.query
+						if (nameErr || thresholdErr || queryErr) {
 							const errs = []
 							if (nameErr) {
 								formStore.setError(
@@ -304,6 +305,14 @@ export const LogAlertPage = () => {
 									'Threshold is required',
 								)
 								errs.push('threshold')
+							}
+
+							if (queryErr) {
+								formStore.setError(
+									formStore.names.query,
+									'Query is required',
+								)
+								errs.push('query')
 							}
 
 							message.error(
@@ -353,6 +362,21 @@ export const LogAlertPage = () => {
 			</Box>
 		</Box>
 	)
+
+	const { data: histogramData, loading: histogramLoading } =
+		useGetLogsHistogramQuery({
+			variables: {
+				project_id: project_id!,
+				params: {
+					query: submittedQuery,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+				},
+			},
+			skip: !projectId,
+		})
 
 	const isLoading = !isCreate && !formValues.loaded
 
@@ -438,10 +462,19 @@ export const LogAlertPage = () => {
 											/>
 										</Box>
 										<AlertTitleField />
-										<Box cssClass={styles.queryContainer}>
+										<Box
+											cssClass={styles.queryContainer}
+											style={{
+												borderColor: formStore.getError(
+													'query',
+												)
+													? 'var(--color-red-500)'
+													: undefined,
+											}}
+										>
 											<Search
 												initialQuery={initialQuery}
-												keys={keysData?.logs_keys ?? []}
+												keys={keysData?.keys ?? []}
 												startDate={startDate}
 												endDate={endDate}
 												hideIcon
@@ -451,12 +484,14 @@ export const LogAlertPage = () => {
 												query={query}
 												setQuery={setQuery}
 												onFormSubmit={
-													handleSearchSubmit
+													handleUpdateInputQuery
+												}
+												fetchValuesLazyQuery={
+													useGetLogsKeyValuesLazyQuery
 												}
 											/>
 										</Box>
 										<LogsHistogram
-											query={submittedQuery}
 											startDate={startDate}
 											endDate={endDate}
 											onDatesChange={(
@@ -473,6 +508,8 @@ export const LogAlertPage = () => {
 											threshold={threshold}
 											belowThreshold={belowThreshold}
 											frequencySeconds={frequency}
+											histogramData={histogramData}
+											loading={histogramLoading}
 										/>
 									</Box>
 									<LogAlertForm />
@@ -489,7 +526,7 @@ export const LogAlertPage = () => {
 const LogAlertForm = () => {
 	const { projectId } = useProjectId()
 	const formStore = useForm() as Ariakit.FormStore<LogMonitorForm>
-	const formState = formStore.getState()
+	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useLogAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
@@ -559,7 +596,7 @@ const LogAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: formState.errors.threshold
+									borderColor: errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}
@@ -623,6 +660,9 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -673,6 +713,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.slackChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -707,6 +750,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.discordChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -727,12 +773,13 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(formStore.names.emails)}
 						/>
 					</Form.NamedSection>
 
 					<Form.NamedSection
 						label="Webhooks to notify"
-						name={formStore.names.emails}
+						name={formStore.names.webhookDestinations}
 					>
 						<Select
 							aria-label="Webhooks to notify"
@@ -746,6 +793,9 @@ const LogAlertForm = () => {
 							notFoundContent={null}
 							className={styles.selectContainer}
 							mode="tags"
+							value={formStore.getValue(
+								formStore.names.webhookDestinations,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -758,7 +808,8 @@ const ThresholdTypeConfiguration = () => {
 	const form = useForm()
 	const menu = useMenu()
 	const menuState = menu.getState()
-	const belowThreshold = form.getState().values.belowThreshold
+	const belowThreshold = form.useValue('belowThreshold')
+
 	return (
 		<>
 			<Menu.Button

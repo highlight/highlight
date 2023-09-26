@@ -185,7 +185,7 @@ func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*
 		return nil, err
 	}
 
-	client, err := github.NewClient(ctx, *gitHubAccessToken)
+	client, err := github.NewClient(ctx, *gitHubAccessToken, store.redis)
 	if err != nil {
 		return nil, err
 	}

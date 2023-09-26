@@ -1,16 +1,14 @@
-import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
-import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
+import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
-import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
-import moment from 'moment'
 import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'
+import { GetLogsHistogramQuery } from '@/graph/generated/operations'
 
 import * as styles from './LogsHistogram.css'
 
@@ -32,7 +30,8 @@ type LogsHistogramProps = Omit<
 	| 'maxBucketCount'
 	| 'loadingState'
 > & {
-	query: string
+	histogramData: GetLogsHistogramQuery | undefined
+	loading: boolean
 	outline?: boolean
 	threshold?: number
 	belowThreshold?: boolean
@@ -54,7 +53,6 @@ interface LogsHistogramChartProps {
 
 const LogsHistogram = ({
 	outline,
-	query,
 	startDate,
 	endDate,
 	onDatesChange,
@@ -62,32 +60,16 @@ const LogsHistogram = ({
 	threshold,
 	belowThreshold,
 	frequencySeconds,
+	histogramData,
+	loading,
 	...props
 }: LogsHistogramProps) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
-	const { data, loading } = useGetLogsHistogramQuery({
-		variables: {
-			project_id: project_id!,
-			params: {
-				query,
-				date_range: {
-					start_date: moment(startDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate).format(LOG_TIME_FORMAT),
-				},
-			},
-		},
-		skip: !project_id,
-	})
-
 	const maxBucketCount = useMemo(() => {
-		if (!data?.logs_histogram) {
+		if (!histogramData?.logs_histogram) {
 			return 0
 		}
 
-		const { buckets } = data.logs_histogram
+		const { buckets } = histogramData.logs_histogram
 
 		let maxBucketCount = 0
 		buckets.forEach((bucket) => {
@@ -100,14 +82,14 @@ const LogsHistogram = ({
 		})
 
 		return maxBucketCount
-	}, [data?.logs_histogram])
+	}, [histogramData?.logs_histogram])
 
 	const buckets = useMemo(() => {
-		if (!data?.logs_histogram) {
+		if (!histogramData?.logs_histogram) {
 			return []
 		}
 
-		const { totalCount, buckets } = data.logs_histogram
+		const { totalCount, buckets } = histogramData.logs_histogram
 
 		const bucketData = new Map<number, LogCount[]>()
 
@@ -143,7 +125,7 @@ const LogsHistogram = ({
 			} as HistogramBucket
 			return bucket
 		})
-	}, [data?.logs_histogram, endDate, maxBucketCount, startDate])
+	}, [histogramData?.logs_histogram, endDate, maxBucketCount, startDate])
 
 	const tickValues = useMemo(() => {
 		// return the axis with up to 5 ticks based on maxBucketCount
@@ -214,7 +196,8 @@ const LogsHistogram = ({
 		) * 100
 
 	const showLoadingState =
-		loading || (!outline && (!data?.logs_histogram || !maxBucketCount))
+		loading ||
+		(!outline && (!histogramData?.logs_histogram || !maxBucketCount))
 
 	if (!loading && !maxBucketCount && !outline) {
 		return (

@@ -79,7 +79,7 @@ const TopRoutesTable = ({
 							<>
 								Have you{' '}
 								<Link
-									to={`/${project_id}/settings/recording#network`}
+									to={`/${project_id}/settings/sessions#network`}
 								>
 									configured your backend domains?
 								</Link>{' '}

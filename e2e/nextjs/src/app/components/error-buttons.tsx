@@ -50,7 +50,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					Pages Api: Success
+					Pages Api (Node.js): Success
 				</Button>
 
 				<Button
@@ -60,7 +60,27 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					Pages Api: Error&nbsp;&nbsp;&nbsp;
+					Pages Api (Node.js): Error&nbsp;&nbsp;&nbsp;
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/page-router-edge-test?success=true')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					Pages Api (Edge): Success
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/page-router-edge-test?success=false')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					Pages Api (Edge): Error&nbsp;&nbsp;&nbsp;
 				</Button>
 
 				<hr />
@@ -72,7 +92,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory: Success
+					App Directory (Node.js): Success
 				</Button>
 
 				<Button
@@ -82,7 +102,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory: Error&nbsp;&nbsp;&nbsp;
+					App Directory (Node.js): Error&nbsp;&nbsp;&nbsp;
 				</Button>
 
 				<Button
@@ -92,7 +112,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					Edge Function: Success
+					App Directory (Edge): Success
 				</Button>
 
 				<Button
@@ -102,7 +122,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					Edge Function: Error&nbsp;&nbsp;&nbsp;
+					App Directory (Edge): Error&nbsp;&nbsp;&nbsp;
 				</Button>
 			</ErrorBoundary>
 		</div>

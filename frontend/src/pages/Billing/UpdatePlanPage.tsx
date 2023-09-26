@@ -496,7 +496,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			logsLimitCents: undefined,
 		},
 	})
-	const formState = formStore.getState()
+	const formState = formStore.useState()
 
 	const [saveBillingPlan, { loading: billingPlanLoading }] =
 		useSaveBillingPlanMutation({

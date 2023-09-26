@@ -44,10 +44,13 @@ export const combobox = style({
 
 export const comboboxWrapper = style({
 	padding: '6px 8px',
-	borderBottom: `1px solid ${vars.color.n7}`,
 	display: 'flex',
 	gap: 4,
 	alignItems: 'center',
+})
+
+export const comboboxHasResults = style({
+	borderBottom: `1px solid ${vars.color.n7}`,
 })
 
 export const comboboxList = style({
@@ -62,6 +65,7 @@ export const selectPopover = style({
 	minWidth: 150,
 	zIndex: 10,
 	maxWidth: '50vw',
+	boxShadow: vars.shadows.medium,
 })
 
 export const selectItem = style({

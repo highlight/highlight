@@ -8,6 +8,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { getResponseStatusCode } from '@pages/Player/helpers'
+import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	LoadingError,
@@ -27,7 +28,13 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ErrorObject } from '@/graph/generated/schemas'
@@ -172,21 +179,20 @@ export const NetworkPage = ({
 					virtuoso.current.scrollToIndex({
 						index,
 						align: 'center',
-						behavior: 'smooth',
 					})
 				}
 			})
-		}, 1000 / 60),
+		}, THROTTLED_UPDATE_MS),
 		[],
 	)
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (autoScroll && state === ReplayerState.Playing) {
 			scrollFunction(currentResourceIdx)
 		}
 	}, [currentResourceIdx, scrollFunction, autoScroll, state])
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		// scroll network events on player timeline click
 		if (autoScroll && state === ReplayerState.Paused) {
 			scrollFunction(currentResourceIdx)
@@ -194,14 +200,14 @@ export const NetworkPage = ({
 	}, [autoScroll, currentResourceIdx, scrollFunction, state, time])
 
 	return (
-		<Box className={styles.container}>
+		<Box cssClass={styles.container}>
 			{resourceLoadingError ? (
 				<ResourceLoadingErrorCallout error={resourceLoadingError} />
 			) : !isPlayerReady || loading || !session ? (
 				<LoadingBox />
 			) : resourcesToRender.length > 0 ? (
-				<Box className={styles.container}>
-					<Box className={styles.networkHeader}>
+				<Box cssClass={styles.container}>
+					<Box cssClass={styles.networkHeader}>
 						<Text color="n11">Status</Text>
 						<Text color="n11">Type</Text>
 						<Text color="n11">Name</Text>
@@ -209,7 +215,7 @@ export const NetworkPage = ({
 						<Text color="n11">Latency</Text>
 						<Text color="n11">Waterfall</Text>
 					</Box>
-					<Box className={styles.networkBox}>
+					<Box cssClass={styles.networkBox}>
 						<Virtuoso
 							ref={virtuoso}
 							overscan={1024}
@@ -397,15 +403,15 @@ const ResourceRow = ({
 						? formatTime(resource.responseEnd - resource.startTime)
 						: 'N/A'}
 				</Text>
-				<Box className={styles.timingBarWrapper}>
+				<Box cssClass={styles.timingBarWrapper}>
 					<Box
 						style={{
 							width: `${leftPaddingPercent}%`,
 						}}
-						className={styles.timingBarEmptySection}
+						cssClass={styles.timingBarEmptySection}
 					/>
 					<Box
-						className={styles.timingBar}
+						cssClass={styles.timingBar}
 						style={{
 							width: `${actualPercent}%`,
 						}}
@@ -414,7 +420,7 @@ const ResourceRow = ({
 						style={{
 							width: `${rightPaddingPercent}%`,
 						}}
-						className={styles.timingBarEmptySection}
+						cssClass={styles.timingBarEmptySection}
 					/>
 				</Box>
 				<Tag

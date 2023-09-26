@@ -1,14 +1,26 @@
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
+import { stringify } from 'query-string'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
+import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import {
+	SearchForm,
+	SearchFormProps,
+} from '@/components/Search/SearchForm/SearchForm'
+import {
+	DEFAULT_OPERATOR,
+	stringifySearchQuery,
+} from '@/components/Search/SearchForm/utils'
+import {
+	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
+} from '@/graph/generated/hooks'
+import { useProjectId } from '@/hooks/useProjectId'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
-import { SearchForm } from '@/pages/LogsPage/SearchForm/SearchForm'
-import {
-	DEFAULT_LOGS_OPERATOR,
-	stringifyLogsQuery,
-} from '@/pages/LogsPage/SearchForm/utils'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { NetworkResource } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { useParams } from '@/util/react-router/useParams'
@@ -71,10 +83,10 @@ export const NetworkResourceLogs: React.FC<{
 	useEffect(() => {
 		setQuery(
 			requestId
-				? stringifyLogsQuery([
+				? stringifySearchQuery([
 						{
 							key: 'trace_id',
-							operator: DEFAULT_LOGS_OPERATOR,
+							operator: DEFAULT_OPERATOR,
 							value: requestId,
 							offsetStart: 0,
 						},
@@ -111,9 +123,11 @@ export const NetworkResourceLogs: React.FC<{
 						minDate={new Date(sessionStartTime)}
 						timeMode="permalink"
 						disableSearch
-						addLinkToViewInLogViewer
+						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
+						fetchKeys={useGetLogsKeysQuery}
+						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<Box
 						height="screen"
@@ -175,5 +189,43 @@ const NoLogsFound = () => {
 				</Callout>
 			</Box>
 		</FullScreenContainer>
+	)
+}
+
+const SearchFormActions: SearchFormProps['actions'] = ({
+	query,
+	startDate,
+	endDate,
+}) => {
+	const navigate = useNavigate()
+	const { projectId } = useProjectId()
+
+	return (
+		<Button
+			kind="secondary"
+			trackingId="view-in-log-viewer"
+			onClick={() => {
+				const encodedQuery = encodeQueryParams(
+					{
+						query: StringParam,
+						start_date: DateTimeParam,
+						end_date: DateTimeParam,
+					},
+					{
+						query: query,
+						start_date: startDate,
+						end_date: endDate,
+					},
+				)
+				navigate({
+					pathname: `/${projectId}/logs`,
+					search: stringify(encodedQuery),
+				})
+			}}
+			emphasis="medium"
+			iconLeft={<IconSolidExternalLink />}
+		>
+			View in log viewer
+		</Button>
 	)
 }

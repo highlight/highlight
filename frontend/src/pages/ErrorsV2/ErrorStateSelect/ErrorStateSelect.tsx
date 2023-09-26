@@ -57,7 +57,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const [updateErrorGroupState] = useUpdateErrorGroupStateMutation({
 		refetchQueries: [
 			namedOperations.Query.GetErrorGroup,
-			namedOperations.Query.GetErrorGroupsOpenSearch,
+			namedOperations.Query.GetErrorGroupsClickhouse,
 		],
 		awaitRefetchQueries: true,
 	})

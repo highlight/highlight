@@ -79,7 +79,7 @@ export const ErrorAlertPage = () => {
 
 	const { alertsPayload } = useAlertsContext()
 	const alert = alert_id
-		? (findAlert(alert_id, alertsPayload) as any)
+		? (findAlert(alert_id, 'error', alertsPayload) as any)
 		: undefined
 
 	const formStore = useFormStore<ErrorAlertFormItem>({
@@ -98,7 +98,7 @@ export const ErrorAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = formStore.getState().values
+	const formValues = formStore.useState().values
 
 	useEffect(() => {
 		if (alert) {
@@ -401,7 +401,7 @@ export const ErrorAlertPage = () => {
 
 const ErrorAlertForm = () => {
 	const formStore = useForm() as FormState<ErrorAlertFormItem>
-	const formState = formStore.getState()
+	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useAlertsContext()
 	const environments = dedupeEnvironments(
@@ -444,6 +444,9 @@ const ErrorAlertForm = () => {
 							}
 							className={styles.selectContainer}
 							mode="tags"
+							value={formStore.getValue(
+								formStore.names.regex_groups,
+							)}
 						/>
 					</Form.NamedSection>
 					<Column.Container gap="12">
@@ -461,7 +464,7 @@ const ErrorAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: formState.errors.threshold
+									borderColor: errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}
@@ -540,6 +543,9 @@ const ErrorAlertForm = () => {
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -550,11 +556,10 @@ const ErrorAlertForm = () => {
 }
 
 const ThresholdTypeConfiguration = () => {
-	const form = useForm() as FormState<ErrorAlertFormItem>
-	const formState = form.getState()
+	const formStore = useForm() as FormState<ErrorAlertFormItem>
+	const belowThreshold = formStore.useValue('belowThreshold')
 	const menu = useMenu()
 	const menuState = menu.getState()
-	const belowThreshold = formState.values.belowThreshold
 	return (
 		<>
 			<Menu.Button
@@ -575,14 +580,14 @@ const ThresholdTypeConfiguration = () => {
 			<Menu.List>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', false)
+						formStore.setValue('belowThreshold', false)
 					}}
 				>
 					Above threshold
 				</Menu.Item>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', true)
+						formStore.setValue('belowThreshold', true)
 					}}
 				>
 					Below threshold

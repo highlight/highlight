@@ -78,7 +78,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 
 	const valueSet = new Set(value)
 
-	const query = combobox.getState().value
+	const query = combobox.useState('value')
 
 	const isLoading = options === undefined
 
@@ -119,7 +119,12 @@ export const ComboboxSelect = <T extends string | string[]>({
 				autoFocusOnHide={false}
 			>
 				<PopoverArrow size={0} />
-				<div className={styles.comboboxWrapper}>
+				<div
+					className={clsx(styles.comboboxWrapper, {
+						[styles.comboboxHasResults]:
+							allOptions.length > 0 || isLoading,
+					})}
+				>
 					<IconSolidSearch />
 					<Combobox
 						store={combobox}

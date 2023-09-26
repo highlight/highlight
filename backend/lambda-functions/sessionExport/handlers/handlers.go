@@ -48,18 +48,22 @@ func (h *handlers) SaveSessionExport(ctx context.Context, event *utils.SaveSessi
 		SessionID:    event.SessionID,
 		Type:         event.Type,
 		URL:          event.URL,
+		Error:        event.Error,
 		TargetEmails: event.TargetEmails,
 	}
-	tx := h.db.Model(&export).Clauses(clause.OnConflict{
+	tx := h.db.Debug().Model(&export).Where(&model.SessionExport{
+		SessionID: event.SessionID,
+		Type:      event.Type,
+	}).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
-		DoUpdates: clause.AssignmentColumns([]string{"url"}),
-	}).FirstOrCreate(&export)
+		DoUpdates: clause.AssignmentColumns([]string{"url", "error"}),
+	}).Create(&export)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
 
 	session := model.Session{Model: model.Model{ID: event.SessionID}}
-	if err := h.db.Model(&session).Where(&session).Take(&session).Error; err != nil {
+	if err := h.db.Debug().Model(&session).Where(&session).Take(&session).Error; err != nil {
 		return nil, err
 	}
 
@@ -72,6 +76,7 @@ func (h *handlers) SaveSessionExport(ctx context.Context, event *utils.SaveSessi
 		SessionSecureId: session.SecureID,
 		User:            user,
 		URL:             event.URL,
+		Error:           event.Error,
 		TargetEmails:    event.TargetEmails,
 	}, nil
 }

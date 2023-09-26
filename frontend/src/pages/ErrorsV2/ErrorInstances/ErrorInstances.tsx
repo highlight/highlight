@@ -41,7 +41,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			email: '',
 		},
 	})
-	const formState = formStore.getState()
+	const email = formStore.useValue('email')
 	const [query, setQuery] = useState('')
 
 	const [pagination, setPagination] = useState<Pagination>({
@@ -60,8 +60,8 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		setQuery(`email:${formState.values.email}`)
-		setCurrentSearchEmail(formState.values.email)
+		setQuery(`email:${email}`)
+		setCurrentSearchEmail(email)
 	}
 
 	if (loading) {

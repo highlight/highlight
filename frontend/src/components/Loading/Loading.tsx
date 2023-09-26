@@ -3,6 +3,7 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { IconSolidLoading } from '@highlight-run/ui'
 import SvgHighlightLogoWithNoBackground from '@icons/HighlightLogoWithNoBackground'
 import { Spin } from 'antd'
 import clsx from 'clsx'
@@ -116,3 +117,25 @@ export const LoadingPage = React.memo<{ show?: boolean; className?: string }>(
 		)
 	},
 )
+
+export const IconAnimatedLoading = ({ size }: { size?: string | number }) => {
+	return (
+		<motion.div
+			animate={{ rotate: 360 }}
+			transition={{
+				duration: 1,
+				repeat: Infinity,
+				ease: 'linear',
+			}}
+			style={{
+				display: 'flex',
+				justifyContent: 'center',
+				alignItems: 'center',
+				width: 14,
+				height: 14,
+			}}
+		>
+			<IconSolidLoading size={size} />
+		</motion.div>
+	)
+}

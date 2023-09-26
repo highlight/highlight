@@ -14,7 +14,9 @@ import {
 	ButtonLink,
 	Callout,
 	Form,
+	IconSolidCheckCircle,
 	Stack,
+	SwitchButton,
 	Text,
 	useFormStore,
 } from '@highlight-run/ui'
@@ -23,6 +25,7 @@ import { Landing } from '@pages/Landing/Landing'
 import { INVITE_TEAM_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
+import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -45,8 +48,17 @@ enum TeamSize {
 	Thousand = '501-1000+',
 }
 
+enum HeardAbout {
+	youtube = 'YouTube',
+	linkedin = 'LinkedIn',
+	twitter = 'Twitter / X',
+	google = 'Google',
+	other = 'Other',
+}
+
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
+	const [error, setError] = useState('')
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
@@ -83,23 +95,25 @@ export const AdminForm: React.FC = () => {
 			companyName: '',
 			promoCode: '',
 			teamSize: '',
+			heardAbout: '',
+			phoneHomeContactAllowed: true,
 		},
 	})
-	const formState = formStore.getState()
 
-	const disableForm = loading || formState.submitSucceed > 0
+	const submitSucceeded = formStore.useState('submitSucceed')
+	const phoneHomeContactAllowed = formStore.useValue(
+		formStore.names.phoneHomeContactAllowed,
+	)
+	const disableForm = loading || submitSucceeded > 0
 
-	formStore.useSubmit(async () => {
+	formStore.useSubmit(async (formState) => {
 		if (disableForm) {
 			return
 		}
 
 		if (!formState.valid) {
 			analytics.track('About you submission failed')
-			formStore.setError(
-				'__error',
-				'Please fill out all form fields correctly.',
-			)
+			setError('Please fill out all form fields correctly.')
 			return
 		}
 
@@ -121,6 +135,9 @@ export const AdminForm: React.FC = () => {
 							user_defined_role: formState.values.role,
 							user_defined_persona: '',
 							user_defined_team_size: formState.values.teamSize,
+							heard_about: formState.values.heardAbout,
+							phone_home_contact_allowed:
+								formState.values.phoneHomeContactAllowed,
 							referral: attributionData.referral,
 						},
 					},
@@ -139,6 +156,9 @@ export const AdminForm: React.FC = () => {
 							user_defined_team_size: formState.values.teamSize,
 							workspace_name: formState.values.companyName,
 							promo_code: formState.values.promoCode || undefined,
+							heard_about: formState.values.heardAbout,
+							phone_home_contact_allowed:
+								formState.values.phoneHomeContactAllowed,
 							referral: attributionData.referral,
 						},
 					},
@@ -165,7 +185,7 @@ export const AdminForm: React.FC = () => {
 				errorMessage = 'Something went wrong. Please try again.'
 			}
 
-			formStore.setError('__error', errorMessage)
+			setError(errorMessage)
 		}
 	})
 
@@ -214,6 +234,7 @@ export const AdminForm: React.FC = () => {
 									placeholder="Last Name"
 									required
 									rounded="last"
+									cssClass={styles.lastName}
 								/>
 							</Stack>
 						</Stack>
@@ -228,7 +249,7 @@ export const AdminForm: React.FC = () => {
 							className={styles.select}
 							name={formStore.names.role}
 							label="Role"
-							optional
+							required
 						>
 							<option value="" disabled>
 								Select your role
@@ -241,12 +262,27 @@ export const AdminForm: React.FC = () => {
 							className={styles.select}
 							name={formStore.names.teamSize}
 							label="Team Size"
-							optional
+							required
 						>
 							<option value="" disabled>
 								Select your team size
 							</option>
 							{Object.entries(TeamSize).map(([k, v]) => (
+								<option value={k} key={k}>
+									{v}
+								</option>
+							))}
+						</Form.Select>
+						<Form.Select
+							className={styles.select}
+							name={formStore.names.heardAbout}
+							label="Where did you hear about us?"
+							required
+						>
+							<option value="" disabled>
+								Select how you heard about us
+							</option>
+							{Object.entries(HeardAbout).map(([k, v]) => (
 								<option value={k} key={k}>
 									{v}
 								</option>
@@ -269,22 +305,64 @@ export const AdminForm: React.FC = () => {
 									</ButtonLink>
 								</Box>
 							))}
-						{(formState.errors as any).__error && (
-							<Callout kind="error">
-								{(formState.errors as any).__error}
-							</Callout>
-						)}
+						{error && <Callout kind="error">{error}</Callout>}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>
-					<Button
-						trackingId="about-you-submit"
-						disabled={disableForm}
-						loading={disableForm}
-						type="submit"
-					>
-						{inWorkspace ? 'Submit' : 'Create Workspace'}
-					</Button>
+					<Stack gap="12">
+						{isOnPrem ? (
+							<Box width="full">
+								<Callout icon={false}>
+									<Stack gap="8">
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="6"
+										>
+											<SwitchButton
+												type="button"
+												size="xxSmall"
+												iconLeft={
+													<IconSolidCheckCircle
+														size={12}
+													/>
+												}
+												checked={
+													phoneHomeContactAllowed
+												}
+												onChange={() => {
+													formStore.setValue(
+														formStore.names
+															.phoneHomeContactAllowed,
+														!phoneHomeContactAllowed,
+													)
+												}}
+											/>
+											<Text
+												size="small"
+												weight="bold"
+												color="strong"
+											>
+												Help improve highlight.io
+											</Text>
+										</Box>
+										<Text size="small" weight="medium">
+											Allow us to reach out for feedback
+											about the self-hosted version.
+										</Text>
+									</Stack>
+								</Callout>
+							</Box>
+						) : null}
+						<Button
+							trackingId="about-you-submit"
+							disabled={disableForm}
+							loading={disableForm}
+							type="submit"
+						>
+							{inWorkspace ? 'Submit' : 'Create Workspace'}
+						</Button>
+					</Stack>
 				</AuthFooter>
 			</Form>
 		</Landing>

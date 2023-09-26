@@ -18,10 +18,12 @@ func init() {
 func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
-		highlight.WithServiceName("lambda-functions--deleteSessionBatchFromPostgres"),
+		highlight.WithServiceName("lambda-functions--deleteSession-batchFromPostgres"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 	)
-	defer highlight.Stop()
 	hlog.Init()
-	lambda.Start(h.DeleteSessionBatchFromPostgres)
+	lambda.StartWithOptions(
+		h.DeleteSessionBatchFromPostgres,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

@@ -37,7 +37,7 @@
 	</issueManagement>
 
 	<properties>
-		<revision>0.0.0-b0</revision>
+		<revision>0.0.0-b1</revision>
 		<project.language.name>java</project.language.name>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>

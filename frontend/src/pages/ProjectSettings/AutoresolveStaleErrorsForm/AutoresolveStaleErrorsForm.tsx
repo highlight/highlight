@@ -70,6 +70,8 @@ export const AutoresolveStaleErrorsForm = () => {
 
 								if (!isOptIn) {
 									setAutoResolveStaleErrorsDayInterval(0)
+								} else {
+									setAutoResolveStaleErrorsDayInterval(1)
 								}
 							},
 							false,

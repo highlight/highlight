@@ -20,7 +20,6 @@ PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
 REACT_APP_PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
 REACT_APP_PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
 REACT_APP_FRONTEND_URI=https://your-ip-address:3000
-REACT_APP_FRONTEND_URI=https://your-ip-address:3000
 `,
 					language: 'bash',
 				},

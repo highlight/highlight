@@ -1,0 +1,12 @@
+diff --git a/_root.js b/_root.js
+index 281f81280ec9ea137b644ba60b9f5c6ccede4f88..bb7037a671bdc05d8029ddfaba041c0b17c80474 100644
+--- a/_root.js
++++ b/_root.js
+@@ -4,6 +4,6 @@ import freeGlobal from './_freeGlobal.js';
+ var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+ 
+ /** Used as a reference to the global object. */
+-var root = freeGlobal || freeSelf || Function('return this')();
++var root = freeGlobal || freeSelf || this;
+ 
+ export default root;

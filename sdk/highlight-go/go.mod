@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/highlight-run/highlight/backend v0.0.0-20230726221453-518a9da77e55
+	github.com/labstack/echo/v4 v4.10.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
@@ -35,6 +36,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
+	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -51,6 +53,7 @@ require (
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.44.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.13.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
