@@ -312,9 +312,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 									copyToClipboard(fileName)
 								}}
 							/>
-							<Text cssClass={styles.fileName} wrap="breakWord">
-								{fileName}
-							</Text>
+							<Text cssClass={styles.fileName}>{fileName}</Text>
 						</Box>
 					</Tooltip>
 				)}
