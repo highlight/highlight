@@ -6,7 +6,7 @@ const STANDARD_DELAY = 500
 
 export type TooltipProps = Partial<Ariakit.TooltipStoreProps> &
 	React.PropsWithChildren<{
-		trigger: React.ReactElement
+		trigger: React.ReactNode
 		disabled?: boolean
 		style?: React.CSSProperties
 		delayed?: boolean
@@ -34,9 +34,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
 			<Ariakit.TooltipAnchor
 				store={tooltipStore}
 				style={{ display: 'flex', ...style }}
-				render={trigger}
-			/>
-
+			>
+				{trigger}
+			</Ariakit.TooltipAnchor>
 			{!disabled && (
 				<Ariakit.Tooltip
 					store={tooltipStore}

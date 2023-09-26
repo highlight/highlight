@@ -10480,7 +10480,6 @@ type LogConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
-# TODO: Should this be ` + "`" + `Span` + "`" + ` and use ` + "`" + `Trace` + "`" + ` for a group of spans?
 type Trace {
 	timestamp: Timestamp!
 	traceID: String!

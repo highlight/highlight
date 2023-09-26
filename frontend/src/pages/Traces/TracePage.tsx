@@ -155,39 +155,35 @@ export const TracePage: React.FC<Props> = () => {
 							const marginLeft = (diff / totalDuration) * 100
 
 							return (
-								<Tooltip
+								<Box
 									key={span.spanID}
-									trigger={
-										<Box
-											borderRadius="3"
-											p="4"
-											py="6"
-											mb="2"
-											display="flex"
-											alignItems="center"
-											justifyContent="space-between"
-											overflow="hidden"
-											style={{
-												marginLeft: `${marginLeft}%`,
-												width: `${width}%`,
-											}}
-											cssClass={clsx(styles.span, {
-												[styles.selectedSpan]:
-													span === selectedSpan,
-												[styles.hoveredSpan]:
-													span === hoveredSpan,
-											})}
-											onClick={() =>
-												setSelectedSpan(span)
-											}
-											onMouseOver={() =>
-												setHoveredSpan(span)
-											}
-											onMouseOut={() =>
-												setHoveredSpan(undefined)
-											}
-										>
-											<>
+									onClick={() => setSelectedSpan(span)}
+									onMouseOver={() => setHoveredSpan(span)}
+									onMouseOut={() => setHoveredSpan(undefined)}
+									style={{
+										marginLeft: `${marginLeft}%`,
+										width: `${width}%`,
+									}}
+								>
+									<Tooltip
+										trigger={
+											<Box
+												borderRadius="3"
+												p="4"
+												py="6"
+												mb="2"
+												display="flex"
+												alignItems="center"
+												justifyContent="space-between"
+												overflow="hidden"
+												width="full"
+												cssClass={clsx(styles.span, {
+													[styles.selectedSpan]:
+														span === selectedSpan,
+													[styles.hoveredSpan]:
+														span === hoveredSpan,
+												})}
+											>
 												<Text size="xSmall" lines="1">
 													{span?.spanName}
 												</Text>
@@ -199,28 +195,28 @@ export const TracePage: React.FC<Props> = () => {
 														)}
 													</Text>
 												</Box>
-											</>
-										</Box>
-									}
-								>
-									{highlightedSpan && (
-										<Box
-											display="flex"
-											gap="6"
-											flexDirection="column"
-										>
-											<Text color="moderate">
-												{highlightedSpan.spanName}
-											</Text>
-											<Text weight="bold">
-												{getTraceDurationString(
-													highlightedSpan.duration /
-														1000,
-												)}
-											</Text>
-										</Box>
-									)}
-								</Tooltip>
+											</Box>
+										}
+									>
+										{highlightedSpan && (
+											<Box
+												display="flex"
+												gap="6"
+												flexDirection="column"
+											>
+												<Text color="moderate">
+													{highlightedSpan.spanName}
+												</Text>
+												<Text weight="bold">
+													{getTraceDurationString(
+														highlightedSpan.duration /
+															1000,
+													)}
+												</Text>
+											</Box>
+										)}
+									</Tooltip>
+								</Box>
 							)
 						})}
 					</Box>
