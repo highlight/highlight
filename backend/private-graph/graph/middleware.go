@@ -133,8 +133,8 @@ func authenticateToken(tokenString string) (jwt.MapClaims, error) {
 		return claims, e.Wrap(err, "invalid exp claim")
 	}
 
-	// Check if the current time is after the expiration
-	if time.Now().After(time.Unix(exp.(int64), 0)) {
+	expClaim := int64(exp.(float64))
+	if time.Now().After(time.Unix(expClaim, 0)) {
 		return claims, e.Wrap(err, "token expired")
 	}
 
