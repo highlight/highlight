@@ -29,7 +29,7 @@ REACT_APP_FRONTEND_URI=https://your-ip-address:3000
 			title: 'Password auth mode.',
 			content:
 				'The frontend for hobby deploy now defaults to using password auth. That uses a password set in your deploeyments `docker/.env file to authenticate users`' +
-				'Uodate the following environment variable to your preferred admin password. ',
+				'Update the following environment variable to your preferred admin password. ',
 			code: [
 				{
 					text: `ADMIN_PASSWORD=YOUR_ADMIN_PASSWORD`,
