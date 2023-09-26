@@ -135,6 +135,7 @@ const (
 var customFieldTypes map[string]FieldType = map[string]FieldType{
 	"viewed":          boolean,
 	"viewed_by_me":    viewedByMe,
+	"has_session":     boolean,
 	"has_errors":      boolean,
 	"has_rage_clicks": boolean,
 	"processed":       boolean,

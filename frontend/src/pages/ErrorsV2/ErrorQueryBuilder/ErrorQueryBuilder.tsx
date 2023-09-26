@@ -79,6 +79,14 @@ export const CUSTOM_FIELDS: CustomField[] = [
 			type: 'text',
 		},
 	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'has_session',
+		options: {
+			operators: ['is', 'is_not'],
+			type: 'boolean',
+		},
+	},
 ]
 
 const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
