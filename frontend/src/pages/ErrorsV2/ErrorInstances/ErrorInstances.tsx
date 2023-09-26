@@ -200,7 +200,7 @@ const ErrorInstancesContainer: React.FC<
 		<Stack direction="column">
 			<Box my="8">
 				<Form store={form} onSubmit={onSubmit}>
-					<Box display="flex" alignItems="center" gap="12" px="12">
+					<Box display="flex" alignItems="center" gap="12">
 						<Box
 							position="relative"
 							alignItems="stretch"
@@ -230,7 +230,9 @@ const ErrorInstancesContainer: React.FC<
 									)
 								}}
 							/>
-							<Text size="xSmall">With session</Text>
+							<Text size="xSmall">
+								Only instances with recorded sessions
+							</Text>
 						</Box>
 					</Box>
 				</Form>
