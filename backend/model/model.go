@@ -2886,7 +2886,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 	if input.Workspace.SlackAccessToken != nil {
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
-	log.WithContext(ctx).Printf("Sending Slack Alert for project: %d session: %s", input.Workspace.ID, input.SessionSecureID)
+	log.WithContext(ctx).Printf("Sending Slack Alert for project: %d session: %s", obj.ProjectID, input.SessionSecureID)
 
 	// send message
 	for _, channel := range channels {
@@ -2940,7 +2940,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel"))
+							log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel"))
 							return
 						}
 					}
