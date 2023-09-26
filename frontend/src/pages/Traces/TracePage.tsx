@@ -1,4 +1,5 @@
 import { Box, Heading, Stack, Text, Tooltip } from '@highlight-run/ui'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useState } from 'react'
@@ -18,6 +19,8 @@ import { useParams } from '@/util/react-router/useParams'
 import * as styles from './TracePage.css'
 
 type Props = {}
+
+const MAX_TICKS = 6
 
 export const TracePage: React.FC<Props> = () => {
 	const [selectedSpan, setSelectedSpan] = useState<Trace>()
@@ -65,6 +68,16 @@ export const TracePage: React.FC<Props> = () => {
 	const traceName = firstSpan?.spanName
 	const startTime = moment(firstSpan.timestamp)
 	const durationString = getTraceDurationString(totalDuration)
+	const ticks = Array.from({ length: MAX_TICKS }).map((_, index) => {
+		const percent = index / (MAX_TICKS - 1)
+		const tickDuration = totalDuration * percent
+		const time = getTraceDurationString(tickDuration)
+
+		return {
+			time: time.trim() === '' ? '0ms' : time,
+			percent,
+		}
+	})
 
 	return (
 		<Box overflow="scroll">
@@ -84,77 +97,133 @@ export const TracePage: React.FC<Props> = () => {
 					</Box>
 				</Stack>
 
-				<Box py="10" borderBottom="dividerWeak">
-					{traces.map((span) => {
-						const width =
-							(span.duration / 1000 / totalDuration) * 100
-						const diff = moment(span.timestamp)
-							.diff(startTime, 'ms')
-							.valueOf()
-						const marginLeft = (diff / totalDuration) * 100
+				<Box
+					backgroundColor="raised"
+					borderRadius="6"
+					border="dividerWeak"
+				>
+					<Box
+						borderBottom="dividerWeak"
+						pt="6"
+						px="4"
+						display="flex"
+						alignItems="center"
+						flexDirection="row"
+						justifyContent="space-between"
+						style={{
+							height: 21,
+						}}
+					>
+						{ticks.map((tick) => (
+							<Box key={tick.time} position="relative" pb="8">
+								<Text color="weak" size="xxSmall">
+									{tick.time ?? '0ms'}
+								</Text>
+								<Box
+									backgroundColor="weak"
+									position="absolute"
+									style={{
+										backgroundColor:
+											themeVars.static.divider.weak,
+										bottom: 0,
+										height: 6,
+										left:
+											tick.percent === 0
+												? 0
+												: tick.percent < 1
+												? '50%'
+												: '100%',
+										width: 1,
+									}}
+								/>
+							</Box>
+						))}
+					</Box>
+					<Box
+						p="6"
+						style={{
+							maxHeight: 300,
+							overflowY: 'scroll',
+						}}
+					>
+						{traces.map((span) => {
+							const width =
+								(span.duration / 1000 / totalDuration) * 100
+							const diff = moment(span.timestamp)
+								.diff(startTime, 'ms')
+								.valueOf()
+							const marginLeft = (diff / totalDuration) * 100
 
-						return (
-							<Tooltip
-								key={span.spanID}
-								trigger={
-									<Box
-										borderRadius="4"
-										p="4"
-										py="6"
-										mb="2"
-										display="flex"
-										alignItems="center"
-										justifyContent="space-between"
-										style={{
-											marginLeft,
-											width: `${width}%`,
-										}}
-										cssClass={clsx(styles.span, {
-											[styles.selectedSpan]:
-												span === selectedSpan,
-											[styles.hoveredSpan]:
-												span === hoveredSpan,
-										})}
-										onClick={() => setSelectedSpan(span)}
-										onMouseOver={() => setHoveredSpan(span)}
-										onMouseOut={() =>
-											setHoveredSpan(undefined)
-										}
-									>
-										<>
-											<Text size="xSmall" lines="1">
-												{span?.spanName}
-											</Text>
-											<Box flexShrink={0}>
-												<Text size="xSmall">
-													{getTraceDurationString(
-														span.duration / 1000,
-													)}
+							return (
+								<Tooltip
+									key={span.spanID}
+									trigger={
+										<Box
+											borderRadius="3"
+											p="4"
+											py="6"
+											mb="2"
+											display="flex"
+											alignItems="center"
+											justifyContent="space-between"
+											overflow="hidden"
+											style={{
+												marginLeft: `${marginLeft}%`,
+												width: `${width}%`,
+											}}
+											cssClass={clsx(styles.span, {
+												[styles.selectedSpan]:
+													span === selectedSpan,
+												[styles.hoveredSpan]:
+													span === hoveredSpan,
+											})}
+											onClick={() =>
+												setSelectedSpan(span)
+											}
+											onMouseOver={() =>
+												setHoveredSpan(span)
+											}
+											onMouseOut={() =>
+												setHoveredSpan(undefined)
+											}
+										>
+											<>
+												<Text size="xSmall" lines="1">
+													{span?.spanName}
 												</Text>
-											</Box>
-										</>
-									</Box>
-								}
-							>
-								{highlightedSpan && (
-									<Box
-										display="flex"
-										gap="6"
-										flexDirection="column"
-									>
-										<Text color="moderate">
-											{highlightedSpan.spanName}
-										</Text>
-										<Text weight="bold">
-											{getTraceDurationString(
-												highlightedSpan.duration / 1000,
-											)}
-										</Text>
-									</Box>
-								)}
-							</Tooltip>
-						)
-					})}
+												<Box flexShrink={0}>
+													<Text size="xSmall">
+														{getTraceDurationString(
+															span.duration /
+																1000,
+														)}
+													</Text>
+												</Box>
+											</>
+										</Box>
+									}
+								>
+									{highlightedSpan && (
+										<Box
+											display="flex"
+											gap="6"
+											flexDirection="column"
+										>
+											<Text color="moderate">
+												{highlightedSpan.spanName}
+											</Text>
+											<Text weight="bold">
+												{getTraceDurationString(
+													highlightedSpan.duration /
+														1000,
+												)}
+											</Text>
+										</Box>
+									)}
+								</Tooltip>
+							)
+						})}
+					</Box>
 				</Box>
 
 				{highlightedSpan && (

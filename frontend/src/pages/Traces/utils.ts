@@ -1,3 +1,5 @@
+import { sortBy } from 'lodash'
+
 import { Trace } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
@@ -37,20 +39,20 @@ export const getTraceDurationString = (duration: number) => {
 	const hours = Math.floor(minutes / 60)
 	const days = Math.floor(hours / 24)
 
-	const dayString = days > 0 ? `${days}d ` : ''
-	const hourString = hours > 0 ? `${hours % 24}h ` : ''
-	const minuteString = minutes > 0 ? `${minutes % 60}m ` : ''
-	const secondString = seconds > 0 ? `${seconds % 60}s ` : ''
+	const dayString = days > 0 ? `${days}d` : ''
+	const hourString = hours > 0 ? `${hours % 24}h` : ''
+	const minuteString = minutes > 0 ? `${minutes % 60}m` : ''
+	const secondString = seconds > 0 ? `${seconds % 60}s` : ''
 	const millisecondString = milliseconds > 0 ? `${milliseconds % 1000}ms` : ''
 
 	if (dayString) {
-		return `${dayString}${hourString}${minuteString}${secondString}`
+		return `${dayString} ${hourString} ${minuteString} ${secondString}`
 	} else if (hourString) {
-		return `${hourString}${minuteString}${secondString}`
+		return `${hourString} ${minuteString} ${secondString}`
 	} else if (minuteString) {
-		return `${minuteString}${secondString}`
+		return `${minuteString} ${secondString}`
 	} else if (secondString) {
-		return `${secondString}${millisecondString}`
+		return `${secondString} ${millisecondString}`
 	} else {
 		return `${millisecondString}`
 	}
@@ -58,11 +60,8 @@ export const getTraceDurationString = (duration: number) => {
 
 export const sortTrace = (trace?: Trace[]) => {
 	if (trace && trace.length > 0) {
-		return trace.sort(
-			(a, b) =>
-				new Date(a.timestamp).getTime() -
-				new Date(b.timestamp).getTime(),
-		)
+		// Naive sorting implementation for now. Will need to update in the future.
+		return sortBy(trace, ['duration', 'timestamp']).reverse()
 	} else {
 		return []
 	}
