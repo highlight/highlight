@@ -19,10 +19,11 @@ import {
 	parseSearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
-	useGetLogsKeysQuery,
-	useGetLogsKeyValuesLazyQuery,
+	useGetTracesKeysQuery,
+	useGetTracesKeyValuesLazyQuery,
 	useGetTracesQuery,
 } from '@/graph/generated/hooks'
+import { SortDirection } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { TracesList } from '@/pages/Traces/TracesList'
 
@@ -54,6 +55,7 @@ export const TracesPage: React.FC = () => {
 				},
 				query: serverQuery,
 			},
+			direction: SortDirection.Desc,
 		},
 	})
 
@@ -89,8 +91,8 @@ export const TracesPage: React.FC = () => {
 						hideCreateAlert
 						onFormSubmit={setQuery}
 						onDatesChange={handleDatesChange}
-						fetchKeys={useGetLogsKeysQuery}
-						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
+						fetchKeys={useGetTracesKeysQuery}
+						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
 
 					<TracesList traces={data?.traces} loading={loading} />

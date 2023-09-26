@@ -99,8 +99,8 @@ const usePlayerConfiguration = () => {
 	)
 
 	const [showPlayerMouseTail, setShowPlayerMouseTail] = useLocalStorage(
-		'highlightShowPlayerMouseTail',
-		true,
+		'highlightShowPlayerMouseTail-v2',
+		false,
 	)
 
 	const [showPlayerAbsoluteTime, setShowPlayerAbsoluteTime] = useLocalStorage(

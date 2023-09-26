@@ -48,7 +48,8 @@ func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlert
 	embed.Fields = fields
 
 	sessionLabel := "View Session"
-	if payload.SessionExcluded {
+	displayMissingSessionLabel := payload.SessionSecureID == "" || payload.SessionExcluded
+	if displayMissingSessionLabel {
 		sessionLabel = "No recorded session"
 	}
 
@@ -62,7 +63,7 @@ func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlert
 					discordgo.Button{
 						Label:    sessionLabel,
 						Style:    discordgo.LinkButton,
-						Disabled: payload.SessionExcluded,
+						Disabled: displayMissingSessionLabel,
 						URL:      payload.SessionURL,
 					},
 					discordgo.Button{

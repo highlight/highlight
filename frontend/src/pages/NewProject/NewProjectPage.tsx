@@ -26,6 +26,8 @@ import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import { authRedirect } from '@/pages/Auth/utils'
+
 import Button from '../../components/Button/Button/Button'
 import styles from './NewProject.module.css'
 
@@ -67,8 +69,7 @@ const NewProjectPage = () => {
 	const { data, loading } = useGetWorkspacesCountQuery()
 
 	const { search } = useLocation()
-	const [{ next, promo }] = useQueryParams({
-		next: StringParam,
+	const [{ promo }] = useQueryParams({
 		promo: StringParam,
 	})
 	const [promoCode, setPromoCode] = useState(promo ?? '')
@@ -132,8 +133,9 @@ const NewProjectPage = () => {
 
 	// When a project is created, redirect to the 'project setup' page
 	if (projectData?.createProject?.id) {
-		if (!!next) {
-			return <Navigate replace to={next} />
+		const authRedirectRoute = authRedirect.get()
+		if (!!authRedirectRoute) {
+			return <Navigate replace to={authRedirectRoute} />
 		} else {
 			return (
 				<Navigate

@@ -31,10 +31,6 @@ export const row = style({
 		[`${tableStyles.table}:not(${tableStyles.noBorder}) ${headStyles.head} &:first-of-type`]:
 			{
 				borderTop: BORDER,
-			},
-
-		[`${tableStyles.table}:not(${tableStyles.noBorder}) ${headStyles.head} &:first-of-type`]:
-			{
 				borderTopLeftRadius: 8,
 				borderTopRightRadius: 8,
 			},

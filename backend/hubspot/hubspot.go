@@ -17,10 +17,10 @@ import (
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -48,7 +48,7 @@ var (
 )
 
 func pollHubspot[T any](fn func() (*T, error), timeout time.Duration) (result *T, err error) {
-	span := tracer.StartSpan("pollHubspot", tracer.ResourceName("hubspot"), tracer.Tag("timeout", timeout))
+	span := util.StartSpan("pollHubspot", util.ResourceName("hubspot"), util.Tag("timeout", timeout))
 	defer span.Finish()
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
@@ -76,7 +76,7 @@ func getDomain(adminEmail string) (domain string) {
 }
 
 type Api interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first, last string, phone, referral string) error
+	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first, last string, phone, referral string) error
 	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
 	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
 	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
@@ -322,8 +322,8 @@ func (h *Client) mergeContacts(keepID, mergeID int) error {
 }
 
 func (h *Client) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
-	span := tracer.StartSpan("getAllCompanies", tracer.ResourceName("hubspot"))
-	defer span.Finish(tracer.WithError(err))
+	span := util.StartSpan("getAllCompanies", util.ResourceName("hubspot"))
+	defer span.Finish(err)
 	if h.redisClient != nil {
 		err = h.redisClient.GetHubspotCompanies(ctx, &companies)
 		if err == nil && len(companies) > 0 {
@@ -357,7 +357,7 @@ func (h *Client) getAllCompanies(ctx context.Context) (companies []*CompanyRespo
 }
 
 func (h *Client) getCompany(ctx context.Context, name, domain string) (*int, error) {
-	span := tracer.StartSpan("getCompany", tracer.ResourceName("hubspot"))
+	span := util.StartSpan("getCompany", util.ResourceName("hubspot"))
 	defer span.Finish()
 	return redis.CachedEval(ctx, h.redisClient, fmt.Sprintf("hubspot-company-%s-%s", name, domain), time.Second, ClientSideContactCreationTimeout/4, func() (*int, error) {
 		r := struct {
@@ -406,8 +406,8 @@ func (h *Client) getCompany(ctx context.Context, name, domain string) (*int, err
 }
 
 func (h *Client) getContactForAdmin(ctx context.Context, email string) (contactId *int, err error) {
-	span := tracer.StartSpan("getContactForAdmin", tracer.ResourceName("hubspot"))
-	defer span.Finish(tracer.WithError(err))
+	span := util.StartSpan("getContactForAdmin", util.ResourceName("hubspot"))
+	defer span.Finish(err)
 	return redis.CachedEval(ctx, h.redisClient, fmt.Sprintf("hubspot-email-%s", email), time.Second, ClientSideContactCreationTimeout/4, func() (*int, error) {
 		r := CustomContactsResponse{}
 		if err = h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); err != nil {
@@ -418,7 +418,7 @@ func (h *Client) getContactForAdmin(ctx context.Context, email string) (contactI
 	})
 }
 
-func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
@@ -441,6 +441,11 @@ func (h *Client) createContactForAdmin(ctx context.Context, email string, userDe
 				Property: "user_defined_team_size",
 				Name:     "user_defined_team_size",
 				Value:    userDefinedTeamSize,
+			},
+			{
+				Property: "heard_about",
+				Name:     "heard_about",
+				Value:    heardAbout,
 			},
 			{
 				Property: "firstname",
@@ -589,7 +594,7 @@ func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminI
 	return nil
 }
 
-func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) error {
+func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateContactForAdmin,
 		HubSpotCreateContactForAdmin: &kafka_queue.HubSpotCreateContactForAdminArgs{
@@ -598,6 +603,7 @@ func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email s
 			UserDefinedRole:     userDefinedRole,
 			UserDefinedPersona:  userDefinedPersona,
 			UserDefinedTeamSize: userDefinedTeamSize,
+			HeardAbout:          heardAbout,
 			First:               first,
 			Last:                last,
 			Phone:               phone,
@@ -606,14 +612,14 @@ func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email s
 	})
 }
 
-func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	if contactId, err = pollHubspot(func() (*int, error) {
 		return h.getContactForAdmin(ctx, email)
 	}, ClientSideContactCreationTimeout); contactId == nil {
 		log.WithContext(ctx).
 			WithField("email", email).
 			Warnf("failed to get client-side hubspot contact. creating")
-		contactId, err = h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, userDefinedTeamSize, first, last, phone, referral)
+		contactId, err = h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout, first, last, phone, referral)
 		if err != nil || contactId == nil {
 			return nil, err
 		}

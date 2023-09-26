@@ -116,3 +116,7 @@ export const withLeftPanel = style({
 export const withRightPanel = style({
 	gridTemplateColumns: `1fr ${RIGHT_PANEL_WIDTH}px`,
 })
+
+export const blurBackground = style({
+	filter: 'blur(4px)',
+})

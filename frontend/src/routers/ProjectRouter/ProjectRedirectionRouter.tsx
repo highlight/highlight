@@ -7,11 +7,16 @@ import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
+import { authRedirect } from '@/pages/Auth/utils'
+
 export const ProjectRedirectionRouter = () => {
-	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
+	const { loading, error, data } = useGetProjectsAndWorkspacesQuery({
+		fetchPolicy: 'network-only',
+	})
 	const { admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 	const location = useLocation()
+	const authRedirectRoute = authRedirect.get()
 
 	useEffect(() => {
 		if (loading) {
@@ -31,7 +36,9 @@ export const ProjectRedirectionRouter = () => {
 	}
 
 	let redirectTo
-	if (data?.projects?.length) {
+	if (authRedirectRoute) {
+		redirectTo = authRedirectRoute
+	} else if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else {
 		redirectTo = '/new'
@@ -42,7 +49,11 @@ export const ProjectRedirectionRouter = () => {
 	// redirect the user to /${firstProjectId}/sessions.
 	return (
 		<Navigate
-			to={{ pathname: redirectTo, search: location.search }}
+			to={
+				redirectTo.indexOf('?') > -1
+					? redirectTo
+					: { pathname: redirectTo, search: location.search }
+			}
 			replace
 		/>
 	)

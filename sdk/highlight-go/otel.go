@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
@@ -65,6 +66,7 @@ func StartOTLP() (*OTLP, error) {
 	} else {
 		logger.Errorf("an invalid otlp endpoint was configured %s", conf.otlpEndpoint)
 	}
+	options = append(options, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 	client := otlptracehttp.NewClient(options...)
 	exporter, err := otlptrace.New(context.Background(), client)
 	if err != nil {
@@ -84,7 +86,11 @@ func StartOTLP() (*OTLP, error) {
 	h := &OTLP{
 		tracerProvider: sdktrace.NewTracerProvider(
 			sdktrace.WithSampler(sdktrace.AlwaysSample()),
-			sdktrace.WithBatcher(exporter),
+			sdktrace.WithBatcher(
+				exporter,
+				sdktrace.WithBatchTimeout(1000*time.Millisecond),
+				sdktrace.WithMaxExportBatchSize(128),
+				sdktrace.WithMaxQueueSize(1024)),
 			sdktrace.WithResource(resources),
 		),
 	}
@@ -93,7 +99,11 @@ func StartOTLP() (*OTLP, error) {
 }
 
 func (o *OTLP) shutdown() {
-	err := o.tracerProvider.Shutdown(context.Background())
+	err := o.tracerProvider.ForceFlush(context.Background())
+	if err != nil {
+		logger.Error(err)
+	}
+	err = o.tracerProvider.Shutdown(context.Background())
 	if err != nil {
 		logger.Error(err)
 	}
@@ -144,7 +154,7 @@ func EndTrace(span trace.Span) {
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	span, _ := StartTrace(ctx, "highlight-ctx", tags...)
+	span, _ := StartTrace(ctx, "highlight-ctx")
 	defer EndTrace(span)
 	tags = append(tags, attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value))
 	span.AddEvent(MetricEvent, trace.WithAttributes(tags...))
@@ -167,7 +177,8 @@ func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
 	}
 	span.SetAttributes(tags...)
 	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace
-	if stackErr, ok := err.(ErrorWithStack); ok {
+	var stackErr ErrorWithStack
+	if errors.As(err, &stackErr) {
 		RecordSpanErrorWithStack(span, stackErr)
 	} else {
 		span.RecordError(err, trace.WithStackTrace(true))

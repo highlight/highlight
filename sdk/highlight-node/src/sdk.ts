@@ -3,6 +3,7 @@ import { Highlight } from '.'
 import { NodeOptions } from './types.js'
 import log from './log'
 import type { Attributes } from '@opentelemetry/api'
+import { ResourceAttributes } from '@opentelemetry/resources'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -27,7 +28,20 @@ export interface HighlightInterface {
 		tags?: { name: string; value: string }[],
 	) => void
 	flush: () => Promise<void>
-	log: (message: any, level: string, ...optionalParams: any[]) => void
+	log: (
+		message: any,
+		level: string,
+		secureSessionId?: string | undefined,
+		requestId?: string | undefined,
+		metadata?: Attributes,
+	) => void
+	consumeAndFlush: (
+		error: Error,
+		secureSessionId?: string,
+		requestId?: string,
+		metadata?: Attributes,
+	) => Promise<void>
+	setAttributes: (attributes: ResourceAttributes) => void
 	_debug: (...data: any[]) => void
 }
 
@@ -137,6 +151,18 @@ export const H: HighlightInterface = {
 		}
 		return undefined
 	},
+	consumeAndFlush: async function (...args) {
+		const waitPromise = highlight_obj.waitForFlush()
+
+		this.consumeError(...args)
+		const flushPromise = this.flush()
+
+		await Promise.allSettled([waitPromise, flushPromise])
+	},
+	setAttributes: (attributes: ResourceAttributes) => {
+		return highlight_obj.setAttributes(attributes)
+	},
+
 	_debug: (...data: any[]) => {
 		if (_debug) {
 			log('H', ...data)

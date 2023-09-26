@@ -1,12 +1,11 @@
 import { Series } from '@components/Histogram/Histogram'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
-import { useGetErrorsHistogramQuery } from '@graph/hooks'
+import { useGetErrorsHistogramClickhouseQuery } from '@graph/hooks'
 import { DateHistogramBucketSize } from '@graph/schemas'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
-import { useLocalStorage } from 'react-use'
 
 import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
 
@@ -16,16 +15,9 @@ const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { searchQuery, backendSearchQuery, setSearchQuery } =
 		useErrorSearchContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		false,
-	)
-	const { loading, data } = useGetErrorsHistogramQuery({
+	const { loading, data } = useGetErrorsHistogramClickhouseQuery({
 		variables: {
-			query: backendSearchQuery?.childSearchQuery as string,
-			clickhouse_query: useClickhouse
-				? JSON.parse(searchQuery)
-				: undefined,
+			query: JSON.parse(searchQuery),
 			project_id: project_id!,
 			histogram_options: {
 				bucket_size:
@@ -43,7 +35,7 @@ const ErrorFeedHistogram = React.memo(() => {
 			},
 		},
 		skip: !backendSearchQuery?.childSearchQuery || !project_id,
-		fetchPolicy: 'cache-first',
+		fetchPolicy: 'network-only',
 	})
 
 	const histogram: {
@@ -53,15 +45,16 @@ const ErrorFeedHistogram = React.memo(() => {
 		seriesList: [],
 		bucketTimes: [],
 	}
-	if (data?.errors_histogram) {
-		histogram.bucketTimes = data?.errors_histogram.bucket_times.map(
-			(startTime) => new Date(startTime).valueOf(),
-		)
+	if (data?.errors_histogram_clickhouse) {
+		histogram.bucketTimes =
+			data?.errors_histogram_clickhouse.bucket_times.map((startTime) =>
+				new Date(startTime).valueOf(),
+			)
 		histogram.seriesList = [
 			{
 				label: 'errors',
 				color: 'n9',
-				counts: data?.errors_histogram.error_objects,
+				counts: data?.errors_histogram_clickhouse.error_objects,
 			},
 		]
 	}

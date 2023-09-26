@@ -8,7 +8,10 @@ import {
 	useGetErrorSegmentsQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
-import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
+import {
+	GetFieldTypesClickhouseQuery,
+	namedOperations,
+} from '@graph/operations'
 import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
 import {
 	Box,
@@ -22,6 +25,7 @@ import {
 	IconSolidClock,
 	IconSolidCloudUpload,
 	IconSolidCube,
+	IconSolidCubeTransparent,
 	IconSolidCursorClick,
 	IconSolidDesktopComputer,
 	IconSolidDocumentAdd,
@@ -67,6 +71,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage, useToggle } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import LoadingBox from '@/components/LoadingBox'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -833,6 +838,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	landing_page: 'Landing Page',
 	exit_page: 'Exit Page',
 	has_comments: 'Has Comments',
+	service_name: 'Service',
 }
 
 const getOperator = (
@@ -1018,6 +1024,8 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidCube />
 		case 'error-field_visited_url':
 			return <IconSolidLink />
+		case 'error-field_service_name':
+			return <IconSolidCubeTransparent />
 	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type
@@ -1096,7 +1104,7 @@ interface QueryBuilderProps {
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
-	fieldData?: GetFieldTypesQuery
+	fieldData?: GetFieldTypesClickhouseQuery
 	readonly?: boolean
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
@@ -1142,7 +1150,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	} = props
 
 	const {
-		backendSearchQuery,
 		searchQuery,
 		setSearchQuery,
 		existingQuery,
@@ -1388,9 +1395,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [chLocalStorage] = useLocalStorage(
 		'highlight-clickhouse-errors',
-		false,
+		isHighlightAdmin,
 	)
 
 	const getValueOptionsCallback = useCallback(
@@ -1683,7 +1691,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					{!isOnErrorsPage && (
 						<DropdownMenu
 							sessionCount={searchResultsCount || 0}
-							sessionQuery={backendSearchQuery?.searchQuery || ''}
+							sessionQuery={JSON.parse(searchQuery)}
 						/>
 					)}
 
@@ -1700,12 +1708,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 		)
 	}, [
 		dateRange,
+		isOnErrorsPage,
 		searchResultsCount,
-		backendSearchQuery?.searchQuery,
+		searchQuery,
 		updateRule,
 		timeRangeRule,
 		setShowLeftPanel,
-		isOnErrorsPage,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {

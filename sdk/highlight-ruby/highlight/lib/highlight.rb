@@ -30,7 +30,9 @@ module Highlight
 
       OpenTelemetry::SDK.configure do |c|
         c.add_span_processor(OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
-                               OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: "#{@otlp_endpoint}/v1/traces")
+                               OpenTelemetry::Exporter::OTLP::Exporter.new(
+                                 endpoint: "#{@otlp_endpoint}/v1/traces", compression: 'gzip'
+                               ), schedule_delay: 1000, max_export_batch_size: 128, max_queue_size: 1024
                              ))
         yield c if block_given?
       end

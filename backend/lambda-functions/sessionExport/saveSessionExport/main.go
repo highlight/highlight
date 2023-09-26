@@ -18,10 +18,12 @@ func init() {
 func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
-		highlight.WithServiceName("lambda-functions--sessionExport-getSessionIdsByQuery"),
+		highlight.WithServiceName("lambda-functions--sessionExport-saveSessionExport"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 	)
-	defer highlight.Stop()
 	hlog.Init()
-	lambda.Start(h.SaveSessionExport)
+	lambda.StartWithOptions(
+		h.SaveSessionExport,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

@@ -6,7 +6,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
-	useGetWorkspacesQuery,
+	useGetProjectsAndWorkspacesQuery,
 	useSendAdminWorkspaceInviteMutation,
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
@@ -29,6 +29,8 @@ import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { authRedirect } from '@/pages/Auth/utils'
+
 import * as authRouterStyles from './AuthRouter.css'
 import * as styles from './InviteTeam.css'
 
@@ -47,9 +49,10 @@ export const InviteTeamForm: React.FC = () => {
 	const navigate = useNavigate()
 	const [error, setError] = React.useState<string>()
 
-	const { data: workspacesData, loading: workspacesLoading } =
-		useGetWorkspacesQuery({ fetchPolicy: 'network-only' })
-	const [updateAllowedEmailOrigins, { loading }] =
+	const { data, loading } = useGetProjectsAndWorkspacesQuery({
+		fetchPolicy: 'network-only',
+	})
+	const [updateAllowedEmailOrigins, { loading: formSubmitting }] =
 		useUpdateAllowedEmailOriginsMutation()
 	const [sendInviteEmail] = useSendAdminWorkspaceInviteMutation()
 
@@ -57,7 +60,14 @@ export const InviteTeamForm: React.FC = () => {
 	const isCommonEmailDomain = COMMON_EMAIL_PROVIDERS.some(
 		(p) => adminEmailDomain.indexOf(p) !== -1,
 	)
-	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
+	const projects = data?.projects
+	const setupRoute =
+		projects?.length && projects[0]
+			? `/${projects[0].id}${SETUP_ROUTE}`
+			: SETUP_ROUTE
+	const authRedirectRoute = authRedirect.get()
+	const redirectRoute = authRedirectRoute ?? setupRoute
+	const workspace = data?.workspaces && data.workspaces[0]
 	const inWorkspace = !!workspace
 
 	const formStore = useFormStore({
@@ -70,7 +80,7 @@ export const InviteTeamForm: React.FC = () => {
 	const autoJoinDomain = formStore.useValue(formStore.names.autoJoinDomain)
 	const numTeamEmails = formStore.useValue(formStore.names.numTeamEmails)
 	const submitSucceed = formStore.useState('submitSucceed')
-	const disableForm = loading || submitSucceed > 0
+	const disableForm = formSubmitting || submitSucceed > 0
 
 	formStore.useSubmit(async (formState) => {
 		if (disableForm) {
@@ -122,7 +132,7 @@ export const InviteTeamForm: React.FC = () => {
 					message.error(
 						`An error occurred inviting your team. Please try again later.`,
 					)
-					return navigate(SETUP_ROUTE)
+					return navigate(redirectRoute)
 				}
 
 				if (emails.length) {
@@ -132,7 +142,7 @@ export const InviteTeamForm: React.FC = () => {
 				}
 			}
 
-			navigate(SETUP_ROUTE)
+			navigate(redirectRoute)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
@@ -152,12 +162,12 @@ export const InviteTeamForm: React.FC = () => {
 	})
 
 	useEffect(() => {
-		if (!workspacesLoading) {
+		if (!loading) {
 			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [setLoadingState, workspacesLoading])
+	}, [setLoadingState, loading])
 
-	if (workspacesLoading) {
+	if (loading) {
 		return null
 	}
 

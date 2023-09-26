@@ -3,7 +3,9 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/aws/smithy-go/ptr"
 	github2 "github.com/google/go-github/v50/github"
@@ -110,12 +112,13 @@ func TestExpandedStackTrace(t *testing.T) {
 func TestFetchFileFromGitHub(t *testing.T) {
 	defer teardown(t)
 	var tests = []struct {
-		Trace           *privateModel.ErrorTrace
-		Service         *model.Service
-		FileName        string
-		ServiceVersion  string
-		ExpectedContent *string
-		ExpectedError   bool
+		Trace               *privateModel.ErrorTrace
+		Service             *model.Service
+		FileName            string
+		ServiceVersion      string
+		ExpectedContent     *string
+		ExpectedError       bool
+		ExpectExceededCache bool
 	}{
 		{
 			Trace: &privateModel.ErrorTrace{
@@ -127,10 +130,11 @@ func TestFetchFileFromGitHub(t *testing.T) {
 			Service: &model.Service{
 				GithubRepoPath: ptr.String("highlight/highlight"),
 			},
-			FileName:        "/file.js",
-			ServiceVersion:  "1234567890",
-			ExpectedContent: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
-			ExpectedError:   false,
+			FileName:            "/file.js",
+			ServiceVersion:      "1234567890",
+			ExpectedContent:     ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
+			ExpectedError:       false,
+			ExpectExceededCache: false,
 		},
 		{
 			Trace: &privateModel.ErrorTrace{
@@ -142,10 +146,11 @@ func TestFetchFileFromGitHub(t *testing.T) {
 			Service: &model.Service{
 				GithubRepoPath: ptr.String("highlight/highlight"),
 			},
-			FileName:        "/error.js",
-			ServiceVersion:  "1234567890",
-			ExpectedContent: nil,
-			ExpectedError:   true,
+			FileName:            "/error.js",
+			ServiceVersion:      "1234567890",
+			ExpectedContent:     nil,
+			ExpectedError:       true,
+			ExpectExceededCache: false,
 		},
 		{
 			Trace: &privateModel.ErrorTrace{
@@ -157,10 +162,11 @@ func TestFetchFileFromGitHub(t *testing.T) {
 			Service: &model.Service{
 				GithubRepoPath: ptr.String("highlight/highlight"),
 			},
-			FileName:        "/blob-file.js",
-			ServiceVersion:  "1234567890",
-			ExpectedContent: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIGJpZyB3b3JsZCcp"),
-			ExpectedError:   false,
+			FileName:            "/blob-file.js",
+			ServiceVersion:      "1234567890",
+			ExpectedContent:     ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIGJpZyB3b3JsZCcp"),
+			ExpectedError:       false,
+			ExpectExceededCache: false,
 		},
 		{
 			Trace: &privateModel.ErrorTrace{
@@ -172,10 +178,59 @@ func TestFetchFileFromGitHub(t *testing.T) {
 			Service: &model.Service{
 				GithubRepoPath: ptr.String("highlight/highlight"),
 			},
-			FileName:        "/blob-error.js",
-			ServiceVersion:  "1234567890",
-			ExpectedContent: nil,
-			ExpectedError:   true,
+			FileName:            "/blob-error.js",
+			ServiceVersion:      "1234567890",
+			ExpectedContent:     nil,
+			ExpectedError:       true,
+			ExpectExceededCache: false,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/build/github_rate_limit.js"),
+				LineNumber:   ptr.Int(634),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			FileName:            "/github_rate_limit.js",
+			ServiceVersion:      "1234567890",
+			ExpectedContent:     ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
+			ExpectedError:       false,
+			ExpectExceededCache: true,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/build/github_rate_limit_invalid.js"),
+				LineNumber:   ptr.Int(634),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			FileName:            "/github_rate_limit_invalid.js",
+			ServiceVersion:      "1234567890",
+			ExpectedContent:     ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
+			ExpectedError:       false,
+			ExpectExceededCache: true,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/build/github_rate_limit_future.js"),
+				LineNumber:   ptr.Int(634),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			FileName:            "/github_rate_limit_future.js",
+			ServiceVersion:      "1234567890",
+			ExpectedContent:     ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
+			ExpectedError:       false,
+			ExpectExceededCache: true,
 		},
 	}
 
@@ -189,6 +244,15 @@ func TestFetchFileFromGitHub(t *testing.T) {
 			assert.Error(t, err)
 		} else {
 			assert.Equal(t, *tt.ExpectedContent, *content)
+			assert.NoError(t, err)
+		}
+
+		if tt.ExpectExceededCache {
+			cacheKey := fmt.Sprintf("github-rate-limit-exceeded-%s", *tt.Service.GithubRepoPath)
+			time := store.redis.TTL(ctx, cacheKey)
+			assert.True(t, time.Minutes() > 0)
+
+			err := store.redis.Del(context.TODO(), cacheKey)
 			assert.NoError(t, err)
 		}
 	}
@@ -263,6 +327,48 @@ func (c *MockGithubClient) GetRepoContent(ctx context.Context, githubPath string
 			SHA:     ptr.String("blob-file"),
 		}
 		return &emptyContent, nil, nil, nil
+	}
+	if path == "/github_rate_limit.js" {
+		fileContent := github2.RepositoryContent{
+			// base64 for console.log('hello world')
+			Content: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
+		}
+		rateLimitContent := github2.Response{
+			Rate: github2.Rate{
+				Limit:     5000,
+				Remaining: 0,
+				Reset:     github2.Timestamp{Time: time.Now().Add(2 * time.Hour)},
+			},
+		}
+		return &fileContent, nil, &rateLimitContent, nil
+	}
+	if path == "/github_rate_limit_invalid.js" {
+		fileContent := github2.RepositoryContent{
+			// base64 for console.log('hello world')
+			Content: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
+		}
+		rateLimitContent := github2.Response{
+			Rate: github2.Rate{
+				Limit:     5000,
+				Remaining: 0,
+				Reset:     github2.Timestamp{Time: time.Now().Add(-2 * time.Hour)},
+			},
+		}
+		return &fileContent, nil, &rateLimitContent, nil
+	}
+	if path == "/github_rate_limit_future.js" {
+		fileContent := github2.RepositoryContent{
+			// base64 for console.log('hello world')
+			Content: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
+		}
+		rateLimitContent := github2.Response{
+			Rate: github2.Rate{
+				Limit:     5000,
+				Remaining: 0,
+				Reset:     github2.Timestamp{Time: time.Now().Add(time.Hour * 24 * 7 * 365)},
+			},
+		}
+		return &fileContent, nil, &rateLimitContent, nil
 	}
 	return nil, nil, nil, nil
 }

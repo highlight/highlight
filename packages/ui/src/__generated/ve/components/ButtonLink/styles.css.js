@@ -1,1 +1,1 @@
-import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var t="mquqy90",m=a({defaultClassName:"",variantClassNames:{kind:{primary:"mquqy91",secondary:"mquqy92"}},defaultVariants:{kind:"primary"},compoundVariants:[]});export{t as button,m as variants};
+import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var t="mquqy90",m=a({defaultClassName:"",variantClassNames:{kind:{primary:"mquqy91",secondary:"mquqy92",light:"mquqy93"}},defaultVariants:{kind:"primary"},compoundVariants:[]});export{t as button,m as variants};

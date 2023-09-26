@@ -902,7 +902,7 @@ const MaintenanceBanner = () => {
 
 	return (
 		<Box
-			className={clsx(styles.trialWrapper)}
+			cssClass={styles.trialWrapper}
 			style={{ backgroundColor: vars.color.y9 }}
 		>
 			<Text color="black">

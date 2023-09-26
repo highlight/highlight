@@ -18,11 +18,30 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
+	stats "github.com/highlight-run/highlight/backend/hlog"
+	highlightHubspot "github.com/highlight-run/highlight/backend/hubspot"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -33,29 +52,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	"github.com/highlight-run/highlight/backend/alerts"
-	"github.com/highlight-run/highlight/backend/clickhouse"
-	"github.com/highlight-run/highlight/backend/email"
-	parse "github.com/highlight-run/highlight/backend/event-parse"
-	stats "github.com/highlight-run/highlight/backend/hlog"
-	highlightHubspot "github.com/highlight-run/highlight/backend/hubspot"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
-	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/private-graph/graph"
-	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/storage"
-	"github.com/highlight-run/highlight/backend/timeseries"
-	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight-run/highlight/backend/zapier"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
 // This file will not be regenerated automatically.
@@ -72,7 +70,6 @@ type Resolver struct {
 	TracesQueue      kafka_queue.MessageQueue
 	MailClient       *sendgrid.Client
 	StorageClient    storage.Client
-	OpenSearch       *opensearch.Client
 	HubspotApi       *highlightHubspot.Client
 	EmbeddingsClient embeddings.Client
 	Redis            *redis.Client
@@ -172,12 +169,12 @@ var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
 
 // Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
-		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", sessionID))
+	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		util.ResourceName("go.sessions.AppendProperties"), util.Tag("sessionID", sessionID))
 	defer outerSpan.Finish()
 
-	loadSessionSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
-		tracer.ResourceName("go.sessions.AppendProperties.loadSessions"), tracer.Tag("sessionID", sessionID))
+	loadSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		util.ResourceName("go.sessions.AppendProperties.loadSessions"), util.Tag("sessionID", sessionID))
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&session)
 	if err := res.Error; err != nil {
@@ -185,7 +182,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	}
 	loadSessionSpan.Finish()
 
-	modelFields := []*model.Field{}
+	propsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		util.ResourceName("processProperties"), util.Tag("num_properties", len(properties)))
+	var modelFields []*model.Field
 	projectID := session.ProjectID
 	for k, fv := range properties {
 		if len(fv) > SESSION_FIELD_MAX_LENGTH {
@@ -204,20 +203,22 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 		modelFields = modelFields[:1000]
 		log.WithContext(ctx).WithField("session_id", sessionID).Warnf("attempted to append more than 1000 fields - truncating")
 	}
+	propsSpan.Finish()
 
 	if len(modelFields) > 0 {
-		err := r.AppendFields(outerCtx, modelFields, session)
+		err := r.AppendFields(ctx, modelFields, session)
 		if err != nil {
 			return e.Wrap(err, "error appending fields")
 		}
 	}
 
-	project := &model.Project{}
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).Take(&project).Error; err != nil {
+	project, err := r.Store.GetProject(ctx, session.ProjectID)
+	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
 		return err
 	}
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 		return err
@@ -232,8 +233,8 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 }
 
 func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
-	outerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendFields",
-		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
+	outerSpan, _ := util.StartSpanFromContext(ctx, "public-graph.AppendFields",
+		util.ResourceName("go.sessions.AppendFields"), util.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
 	result := r.DB.
@@ -246,8 +247,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		return e.Wrap(err, "error inserting new fields")
 	}
 
-	updateCount := result.RowsAffected
-
 	var allFields []*model.Field
 	inClause := [][]interface{}{}
 	for _, f := range fields {
@@ -256,32 +255,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).Order("id DESC").
 		Find(&allFields).Error; err != nil {
 		return e.Wrap(err, "error retrieving all fields")
-	}
-
-	// the first N fields ordered by id DESC were added in the prior insert
-	newFields := allFields[:updateCount]
-
-	for _, field := range newFields {
-		if err := r.OpenSearch.IndexSynchronous(ctx,
-			opensearch.IndexParams{
-				Index:  opensearch.IndexFields,
-				ID:     field.ID,
-				Object: field,
-			}); err != nil {
-			return e.Wrap(err, "error indexing new field")
-		}
-	}
-
-	openSearchFields := make([]interface{}, len(allFields))
-	for i, field := range allFields {
-		openSearchFields[i] = opensearch.OpenSearchField{
-			Field:    field,
-			Key:      field.Type + "_" + field.Name,
-			KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
-		}
-	}
-	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", openSearchFields); err != nil {
-		return e.Wrap(err, "error appending session fields")
 	}
 
 	sort.Slice(allFields, func(i, j int) bool {
@@ -446,15 +419,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		}
 	}
 
-	if err := r.OpenSearch.IndexSynchronous(ctx,
-		opensearch.IndexParams{
-			Index:    opensearch.IndexErrorsCombined,
-			ID:       int64(errorGroup.ID),
-			ParentID: pointy.Int(0),
-			Object:   errorGroup}); err != nil {
-		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
-	}
-
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
 		return nil, err
 	}
@@ -463,7 +427,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 }
 
 func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, projectID int, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
+	span, _ := util.StartSpanFromContext(ctx, "public-resolver", util.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
 	result := struct {
@@ -812,22 +776,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
-		Url:         errorObj.URL,
-		Os:          errorObj.OS,
-		Browser:     errorObj.Browser,
-		Timestamp:   errorObj.Timestamp,
-		Environment: errorObj.Environment,
-		ServiceName: errorObj.ServiceName,
-	}
-	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
-		Index:    opensearch.IndexErrorsCombined,
-		ID:       int64(errorObj.ID),
-		ParentID: pointy.Int(errorGroup.ID),
-		Object:   opensearchErrorObject,
-	}); err != nil {
-		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
-	}
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
 		return nil, err
 	}
@@ -902,25 +850,9 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
-				Index:  opensearch.IndexErrorFields,
-				ID:     int64(f.ID),
-				Object: f,
-			}); err != nil {
-				return e.Wrap(err, "error indexing new error field")
-			}
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
 			fieldsToAppend = append(fieldsToAppend, field)
-		}
-	}
-
-	openSearchFields := make([]interface{}, len(fieldsToAppend))
-	for i, field := range fieldsToAppend {
-		openSearchFields[i] = opensearch.OpenSearchErrorField{
-			ErrorField: field,
-			Key:        field.Name,
-			KeyValue:   field.Name + "_" + field.Value,
 		}
 	}
 
@@ -950,8 +882,8 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 }
 
 func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err error) {
-	s, _ := tracer.StartSpanFromContext(ctx, "public-graph.GetLocationFromIP",
-		tracer.ResourceName("getLocationFromIP"))
+	s, _ := util.StartSpanFromContext(ctx, "public-graph.GetLocationFromIP",
+		util.ResourceName("getLocationFromIP"))
 	defer s.Finish()
 	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
 	method := "GET"
@@ -1024,44 +956,14 @@ func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secure
 	return nil, nil
 }
 
-func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Session) error {
-	osSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
-	defer osSpan.Finish()
-	if err := r.OpenSearch.IndexSynchronous(ctx,
-		opensearch.IndexParams{
-			Index:    opensearch.IndexSessions,
-			ID:       int64(session.ID),
-			ParentID: nil,
-			Object:   session,
-		}); err != nil {
-		return e.Wrap(err, "error indexing new session in opensearch")
-	}
-
-	sessionProperties := map[string]string{
-		"os_name":         session.OSName,
-		"os_version":      session.OSVersion,
-		"browser_name":    session.BrowserName,
-		"browser_version": session.BrowserVersion,
-		"environment":     session.Environment,
-		"device_id":       strconv.Itoa(session.Fingerprint),
-		"city":            session.City,
-		"country":         session.Country,
-		"ip":              session.IP,
-	}
-	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
-	}
-	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
-}
-
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
-	initSpan, initCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
-		tracer.ResourceName("go.sessions.InitializeSessionImpl"),
-		tracer.Tag("duplicate", true))
+	initSpan, initCtx := util.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
+		util.ResourceName("go.sessions.InitializeSessionImpl"),
+		util.Tag("duplicate", true))
 	defer initSpan.Finish()
 
 	defer func() {
-		redisSpan, redisCtx := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.setRedis"))
+		redisSpan, redisCtx := util.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", util.ResourceName("go.sessions.setRedis"))
 		defer redisSpan.Finish()
 		err := r.Redis.SetIsPendingSession(redisCtx, input.SessionSecureID, false)
 		if err != nil {
@@ -1081,19 +983,25 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 	if existingSession != nil {
-		if err := r.IndexSessionOpensearch(initCtx, existingSession); err != nil {
+		if err := r.DataSyncQueue.Submit(ctx,
+			strconv.Itoa(existingSession.ID),
+			&kafka_queue.Message{
+				Type: kafka_queue.SessionDataSync,
+				SessionDataSync: &kafka_queue.SessionDataSyncArgs{
+					SessionID: existingSession.ID}}); err != nil {
 			return nil, err
 		}
+
 		return existingSession, nil
 	}
-	initSpan.SetTag("duplicate", false)
+	initSpan.SetAttribute("duplicate", false)
 
-	setupSpan, _ := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.setup"))
+	setupSpan, _ := util.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", util.ResourceName("go.sessions.setup"))
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, e.Wrapf(err, "project doesn't exist project_id:%d", projectID)
 	}
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving workspace")
 	}
@@ -1189,8 +1097,8 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return nil, err
 		}
 		if existingSession != nil {
-			initSpan.SetTag("duplicate", true)
-			initSpan.SetTag("duplicateRace", true)
+			initSpan.SetAttribute("duplicate", true)
+			initSpan.SetAttribute("duplicateRace", true)
 			return existingSession, nil
 		}
 		return nil, e.New("failed to find duplicate session: " + input.SessionSecureID)
@@ -1213,6 +1121,24 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
+	highlight.RecordMetric(
+		ctx, "sessions", float64(session.ID),
+		attribute.String("Bot", fmt.Sprintf("%v", deviceDetails.IsBot)),
+		attribute.String("Browser", deviceDetails.BrowserName),
+		attribute.String("BrowserVersion", deviceDetails.BrowserVersion),
+		attribute.String("IP", session.IP),
+		attribute.String("City", session.City),
+		attribute.String("ClientID", session.ClientID),
+		attribute.String("Country", session.Country),
+		attribute.String("Identifier", session.Identifier),
+		attribute.String("Language", session.Language),
+		attribute.String("OS", session.OSName),
+		attribute.String("OSVersion", session.OSVersion),
+		attribute.String("Postal", session.Postal),
+		attribute.String("State", session.State),
+		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
+		attribute.String(highlight.SessionIDAttribute, session.SecureID),
+	)
 	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
@@ -1240,7 +1166,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.WithContext(ctx).Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	if err := r.IndexSessionOpensearch(initCtx, session); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx,
+		strconv.Itoa(session.ID),
+		&kafka_queue.Message{
+			Type: kafka_queue.SessionDataSync,
+			SessionDataSync: &kafka_queue.SessionDataSyncArgs{
+				SessionID: session.ID}}); err != nil {
 		return nil, err
 	}
 
@@ -1288,7 +1219,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setu
 				return nil, e.Wrap(err, "error querying backend_setup flag")
 			}
 			if backendSetupCount < 1 {
-				project, err := r.getProject(projectID)
+				project, err := r.Store.GetProject(ctx, projectID)
 				if err != nil {
 					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
 				} else {
@@ -1344,7 +1275,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at", "excluded").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at", "excluded", "processed").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
@@ -1396,7 +1327,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			identifier = *input.UserEmail
 		}
 
-		workspace, err := r.getWorkspace(project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
@@ -1406,7 +1337,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
-			SessionExcluded: session.Excluded,
+			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
@@ -1427,8 +1358,8 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	return nil
 }
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}, backfill bool) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionSecureID", sessionSecureID))
+	outerSpan, outerCtx := util.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+		util.ResourceName("go.sessions.IdentifySessionImpl"), util.Tag("sessionSecureID", sessionSecureID))
 	defer outerSpan.Finish()
 
 	obj, ok := userObject.(map[string]interface{})
@@ -1448,8 +1379,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		newUserProperties["email"] = userIdentifier
 	}
 
-	getSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl.getSession"), tracer.Tag("sessionSecureID", sessionSecureID))
+	getSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+		util.ResourceName("go.sessions.IdentifySessionImpl.getSession"), util.Tag("sessionSecureID", sessionSecureID))
 	if sessionSecureID == "" {
 		return e.New("IdentifySessionImpl called without secureID")
 	}
@@ -1460,8 +1391,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	getSessionSpan.Finish()
 	sessionID := session.ID
 
-	setUserPropsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl.SetUserProperties"), tracer.Tag("sessionID", sessionID))
+	setUserPropsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+		util.ResourceName("go.sessions.IdentifySessionImpl.SetUserProperties"), util.Tag("sessionID", sessionID))
 	allUserProperties := make(map[string]string)
 	// get existing session user properties in case of multiple identify calls
 	if existingUserProps, err := session.GetUserProperties(); err == nil {
@@ -1496,8 +1427,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	}
 	setUserPropsSpan.Finish()
 
-	previousSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl.PreviousSession"), tracer.Tag("sessionID", sessionID))
+	previousSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+		util.ResourceName("go.sessions.IdentifySessionImpl.PreviousSession"), util.Tag("sessionID", sessionID))
 	// Check if there is a session created by this user.
 	firstTime := &model.F
 	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, ProjectID: session.ProjectID}).Take(&model.Session{}).Error; err != nil {
@@ -1522,21 +1453,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		session.Identified = true
 	}
 
-	openSearchUpdateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl.OpenSearchUpdate"), tracer.Tag("sessionID", sessionID))
-	openSearchProperties := map[string]interface{}{
-		"user_properties": session.UserProperties,
-		"first_time":      session.FirstTime,
-		"identified":      session.Identified,
-	}
-	if session.Identifier != "" {
-		openSearchProperties["identifier"] = session.Identifier
-	}
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
-	}
-	openSearchUpdateSpan.Finish()
-
 	if err := r.DB.Save(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] failed to update session")
 	}
@@ -1544,6 +1460,18 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionID}}); err != nil {
 		return err
 	}
+
+	hTags := []attribute.KeyValue{
+		attribute.String("Identifier", session.Identifier),
+		attribute.Bool("Identified", session.Identified),
+		attribute.Bool("FirstTime", *session.FirstTime),
+		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
+		attribute.String(highlight.SessionIDAttribute, session.SecureID),
+	}
+	for k, v := range allUserProperties {
+		hTags = append(hTags, attribute.String(k, v))
+	}
+	highlight.RecordMetric(ctx, "users", 1, hTags...)
 
 	tags := []*publicModel.MetricTag{
 		{Name: "Identifier", Value: session.Identifier},
@@ -1569,8 +1497,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if !backfill && len(session.ClientID) > 0 {
 		// Find past unidentified sessions and identify them.
 		backfillSessions := []*model.Session{}
-		getToBackfillSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-			tracer.ResourceName("go.sessions.IdentifySessionImpl.GetToBackfill"), tracer.Tag("sessionID", sessionID))
+		getToBackfillSpan, _ := util.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+			util.ResourceName("go.sessions.IdentifySessionImpl.GetToBackfill"), util.Tag("sessionID", sessionID))
 		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID}).
 			Where("(identifier IS null OR identifier = '') AND (identified IS null OR identified = false)").
 			Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
@@ -1578,8 +1506,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		}
 		getToBackfillSpan.Finish()
 
-		doBackfillSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-			tracer.ResourceName("go.sessions.IdentifySessionImpl.DoBackfill"), tracer.Tag("sessionID", sessionID))
+		doBackfillSpan, _ := util.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+			util.ResourceName("go.sessions.IdentifySessionImpl.DoBackfill"), util.Tag("sessionID", sessionID))
 		for _, session := range backfillSessions {
 			if err := r.IdentifySessionImpl(ctx, session.SecureID, userIdentifier, userObject, true); err != nil {
 				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
@@ -1594,8 +1522,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 }
 
 func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddSessionPropertiesImpl",
-		tracer.ResourceName("go.sessions.AddSessionPropertiesImpl"))
+	outerSpan, outerCtx := util.StartSpanFromContext(ctx, "public-graph.AddSessionPropertiesImpl",
+		util.ResourceName("go.sessions.AddSessionPropertiesImpl"))
 	defer outerSpan.Finish()
 
 	obj, ok := propertiesObject.(map[string]interface{})
@@ -1611,22 +1539,6 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, 
 		return e.Wrap(err, "error adding set of properties to db")
 	}
 	return nil
-}
-
-func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
-	var workspace model.Workspace
-	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).Take(&workspace).Error; err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
-	}
-	return &workspace, nil
-}
-
-func (r *Resolver) getProject(projectID int) (*model.Project, error) {
-	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	return &project, nil
 }
 
 var productTypeToQuotaConfig = map[model.PricingProductType]struct {
@@ -1852,7 +1764,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				continue
 			}
 
-			workspace, err := r.getWorkspace(project.WorkspaceID)
+			workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}
@@ -1881,7 +1793,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 				Workspace:       workspace,
 				SessionSecureID: sessionObj.SecureID,
-				SessionExcluded: sessionObj.Excluded,
+				SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 				UserIdentifier:  sessionObj.Identifier,
 				Group:           group,
 				ErrorObject:     errorObject,
@@ -1934,9 +1846,9 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 }
 
 func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, metrics []*publicModel.MetricInput) error {
-	span, _ := tracer.StartSpanFromContext(ctx, "public-graph.PushMetricsImpl", tracer.ResourceName("go.push-metrics"))
-	span.SetTag("SessionSecureID", sessionSecureID)
-	span.SetTag("NumMetrics", len(metrics))
+	span, _ := util.StartSpanFromContext(ctx, "public-graph.PushMetricsImpl", util.ResourceName("go.push-metrics"))
+	span.SetAttribute("SessionSecureID", sessionSecureID)
+	span.SetAttribute("NumMetrics", len(metrics))
 	defer span.Finish()
 
 	if sessionSecureID == "" {
@@ -2074,13 +1986,14 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 	return errorFields
 }
 
-func (r *Resolver) updateErrorsCount(ctx context.Context, errorsBySession map[string]int64, errors int, errorType string) {
-	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
-	dailyErrorCountSpan.SetTag("numberOfErrors", errors)
-	dailyErrorCountSpan.SetTag("numberOfSessions", len(errorsBySession))
+func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsBySession map[string]int64, errors int, errorType string) {
+	dailyErrorCountSpan, _ := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload", util.ResourceName("db.updateDailyErrorCounts"))
+	dailyErrorCountSpan.SetAttribute("numberOfErrors", errors)
+	dailyErrorCountSpan.SetAttribute("numberOfSessions", len(errorsBySession))
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
+		highlight.RecordMetric(ctx, "errors", float64(count), attribute.Int(highlight.ProjectIDAttribute, projectID), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
@@ -2096,16 +2009,16 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsBySession map[st
 }
 
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID *string, projectVerboseID *string, errorObjects []*publicModel.BackendErrorObjectInput) {
-	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
-	querySessionSpan.SetTag("numberOfErrors", len(errorObjects))
-	querySessionSpan.SetTag("numberOfSessions", 1)
+	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload", util.ResourceName("db.querySessions"))
+	querySessionSpan.SetAttribute("numberOfErrors", len(errorObjects))
+	querySessionSpan.SetAttribute("numberOfSessions", 1)
 
 	var sessionID *int
 	session := &model.Session{}
 	if sessionSecureID != nil {
 		if r.DB.Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Take(&session); session.ID == 0 {
 			retErr := e.New("ProcessBackendPayloadImpl failed to find session " + *sessionSecureID)
-			querySessionSpan.Finish(tracer.WithError(retErr))
+			querySessionSpan.Finish(retErr)
 			log.WithContext(ctx).Error(retErr)
 			return
 		}
@@ -2129,7 +2042,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
@@ -2156,7 +2069,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 
-	r.updateErrorsCount(ctx, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
+	r.updateErrorsCount(ctx, projectID, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
 
 	err = r.MarkBackendSetupImpl(ctx, projectID, model.MarkBackendSetupTypeError)
 	if err != nil {
@@ -2164,8 +2077,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 
 	// put errors in db
-	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
-		tracer.ResourceName("db.errors"))
+	putErrorsToDBSpan, putErrorsToDBCtx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+		util.ResourceName("db.errors"))
 	groupedErrors := make(map[int][]*model.ErrorObject)
 	groups := make(map[int]struct {
 		Group      *model.ErrorGroup
@@ -2244,8 +2157,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 	}
 
-	influxSpan := tracer.StartSpan("public-graph.recordErrorGroupMetrics", tracer.ChildOf(putErrorsToDBSpan.Context()),
-		tracer.ResourceName("influx.errors"))
+	influxSpan, _ := util.StartSpanFromContext(putErrorsToDBCtx, "public-graph.recordErrorGroupMetrics", util.ResourceName("influx.errors"))
 	for groupID, errorObjects := range groupedErrors {
 		errorGroup := groups[groupID].Group
 		if err := r.RecordErrorGroupMetrics(ctx, errorGroup, errorObjects); err != nil {
@@ -2258,12 +2170,12 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	influxSpan.Finish()
 
 	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
-		eSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
-			tracer.ResourceName("BatchGenerateEmbeddings"))
+		eSpan, _ := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+			util.ResourceName("BatchGenerateEmbeddings"))
 		if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to generate embeddings")
 		}
-		eSpan.Finish(tracer.WithError(err))
+		eSpan.Finish(err)
 	}
 	putErrorsToDBSpan.Finish()
 }
@@ -2306,8 +2218,8 @@ func (r *Resolver) RecordErrorGroupMetrics(ctx context.Context, errorGroup *mode
 
 // Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
 func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
-		tracer.ResourceName("go.sessions.AddTrackPropertiesImpl"))
+	outerSpan, outerCtx := util.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
+		util.ResourceName("go.sessions.AddTrackPropertiesImpl"))
 	defer outerSpan.Finish()
 
 	obj, ok := propertiesObject.(map[string]interface{})
@@ -2329,8 +2241,8 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, pr
 }
 
 func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackProperties",
-		tracer.ResourceName("go.sessions.AddTrackProperties"))
+	outerSpan, outerCtx := util.StartSpanFromContext(ctx, "public-graph.AddTrackProperties",
+		util.ResourceName("go.sessions.AddTrackProperties"))
 	defer outerSpan.Finish()
 
 	fields := map[string]string{}
@@ -2389,8 +2301,8 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 }
 
 func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, saveToS3, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
-	redisSpan, redisCtx := tracer.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
-		tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectId), tracer.Tag("payload_type", payloadType))
+	redisSpan, redisCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+		util.ResourceName("go.parseEvents.processWithRedis"), util.Tag("project_id", projectId), util.Tag("payload_type", payloadType))
 	score := float64(payloadId)
 	// A little bit of a hack to encode
 	if isBeacon {
@@ -2398,8 +2310,8 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	}
 
 	if saveToS3 {
-		zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
-			tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectId))
+		zRangeSpan, _ := util.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
+			util.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), util.Tag("project_id", projectId))
 		zRange, err := r.Redis.GetRawZRange(ctx, sessionId, payloadId)
 		if err != nil {
 			return e.Wrap(err, "error retrieving previous event objects")
@@ -2408,8 +2320,8 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 
 		// If there are prior events, push them to S3 and remove them from Redis
 		if len(zRange) != 0 {
-			pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
-				tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectId))
+			pushToS3Span, _ := util.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
+				util.ResourceName("go.parseEvents.processWithRedis.pushToS3"), util.Tag("project_id", projectId))
 			if err := r.StorageClient.PushRawEvents(ctx, sessionId, projectId, payloadType, zRange); err != nil {
 				return e.Wrap(err, "error pushing events to S3")
 			}
@@ -2420,8 +2332,8 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 				values = append(values, z.Member)
 			}
 
-			removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
-				tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectId))
+			removeValuesSpan, _ := util.StartSpanFromContext(redisCtx, "public-graph.SaveSessionData",
+				util.ResourceName("go.parseEvents.processWithRedis.removeValues"), util.Tag("project_id", projectId))
 			if err := r.Redis.RemoveValues(ctx, sessionId, values); err != nil {
 				return e.Wrap(err, "error removing previous values")
 			}
@@ -2444,13 +2356,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if webSocketEvents != nil {
 		webSocketEventsStr = *webSocketEvents
 	}
-	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
-	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
-	querySessionSpan.SetTag("messagesLength", len(messages))
-	querySessionSpan.SetTag("resourcesLength", len(resources))
-	querySessionSpan.SetTag("webSocketEventsLength", len(webSocketEventsStr))
-	querySessionSpan.SetTag("numberOfErrors", len(errors))
-	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
+	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("db.querySession"))
+	querySessionSpan.SetAttribute("sessionSecureID", sessionSecureID)
+	querySessionSpan.SetAttribute("messagesLength", len(messages))
+	querySessionSpan.SetAttribute("resourcesLength", len(resources))
+	querySessionSpan.SetAttribute("webSocketEventsLength", len(webSocketEventsStr))
+	querySessionSpan.SetAttribute("numberOfErrors", len(errors))
+	querySessionSpan.SetAttribute("numberOfEvents", len(events.Events))
 	if highlightLogs != nil {
 		logsArray := strings.Split(*highlightLogs, "\n")
 		for _, clientLog := range logsArray {
@@ -2466,11 +2378,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if err := r.DB.Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
 		log.WithContext(ctx).Error(retErr)
-		querySessionSpan.Finish(tracer.WithError(retErr))
+		querySessionSpan.Finish(retErr)
 		return retErr
 	}
-	querySessionSpan.SetTag("secure_id", sessionObj.SecureID)
-	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
+	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
+	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 	sessionID := sessionObj.ID
 
@@ -2500,8 +2412,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	g.Go(func() error {
 		defer util.Recover()
-		parseEventsSpan, parseEventsCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
+		parseEventsSpan, parseEventsCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
+			util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID))
 		defer parseEventsSpan.Finish()
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
@@ -2529,21 +2441,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						continue
 					}
 
-					jsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-						tracer.ResourceName("go.parseEvents.EscapeJavascript"), tracer.Tag("project_id", projectID))
 					// escape script tags in any javascript
 					err = snapshot.EscapeJavascript(ctx)
-					jsSpan.Finish(tracer.WithError(err))
 					if err != nil {
 						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
 
 					// Replace any static resources with our own, hosted in S3
 					if settings != nil && settings.ReplaceAssets {
-						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
-						assetsSpan.Finish()
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}
@@ -2551,20 +2457,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 					if event.Type == parse.FullSnapshot {
 						hasFullSnapshot = true
-						stylesheetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.InjectStylesheets"), tracer.Tag("project_id", projectID))
+						stylesheetsSpan, _ := util.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+							util.ResourceName("go.parseEvents.InjectStylesheets"), util.Tag("project_id", projectID))
 						// If we see a snapshot event, attempt to inject CORS stylesheets.
 						err := snapshot.InjectStylesheets()
-						stylesheetsSpan.Finish(tracer.WithError(err))
+						stylesheetsSpan.Finish(err)
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
 						}
 					}
 					if event.Type == parse.IncrementalSnapshot {
-						incrementalEventSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.incrementalEvent"), tracer.Tag("project_id", projectID))
 						mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
-						incrementalEventSpan.Finish(tracer.WithError(err))
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
 						}
@@ -2583,8 +2486,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				}
 			}
 
-			remarshalSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-				tracer.ResourceName("go.parseEvents.remarshalEvents"), tracer.Tag("project_id", projectID))
+			remarshalSpan, _ := util.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+				util.ResourceName("go.parseEvents.remarshalEvents"), util.Tag("project_id", projectID))
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
 			if err != nil {
@@ -2610,8 +2513,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal messages
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
+		unmarshalMessagesSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
+			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID))
 		defer unmarshalMessagesSpan.Finish()
 
 		if err := hlog.SubmitFrontendConsoleMessages(ctx, projectID, sessionSecureID, messages); err != nil {
@@ -2624,8 +2527,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal resources
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
+		unmarshalResourcesSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
+			util.ResourceName("go.unmarshal.resources"), util.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
 		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
@@ -2639,8 +2542,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 		if webSocketEventsStr != "" {
-			unmarshalWebSocketEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-				tracer.ResourceName("go.unmarshal.web_socket_events"), tracer.Tag("project_id", projectID))
+			unmarshalWebSocketEventsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
+				util.ResourceName("go.unmarshal.web_socket_events"), util.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
@@ -2662,7 +2565,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 			return e.Wrap(err, "error querying project")
 		}
-		workspace, err := r.getWorkspace(project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying workspace")
 		}
@@ -2680,12 +2583,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// increment daily error table
 		numErrors := int64(len(errors))
 		if numErrors > 0 {
-			r.updateErrorsCount(ctx, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
+			r.updateErrorsCount(ctx, projectID, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
 		}
 
 		// put errors in db
-		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("db.errors"), tracer.Tag("project_id", projectID))
+		putErrorsToDBSpan, putErrorsToDBCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
+			util.ResourceName("db.errors"), util.Tag("project_id", projectID))
 		groupedErrors := make(map[int][]*model.ErrorObject)
 		groups := make(map[int]struct {
 			Group      *model.ErrorGroup
@@ -2758,8 +2661,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 		}
 
-		influxSpan := tracer.StartSpan("public-graph.pushPayload", tracer.ChildOf(putErrorsToDBSpan.Context()),
-			tracer.ResourceName("influx.errors"))
+		influxSpan, _ := util.StartSpanFromContext(putErrorsToDBCtx, "public-graph.pushPayload", util.ResourceName("influx.errors"))
 		for groupID, errorObjects := range groupedErrors {
 			errorGroup := groups[groupID].Group
 			if err := r.RecordErrorGroupMetrics(ctx, errorGroup, errorObjects); err != nil {
@@ -2780,12 +2682,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
-			eSpan := tracer.StartSpan("public-graph.pushPayload", tracer.ChildOf(putErrorsToDBSpan.Context()),
-				tracer.ResourceName("BatchGenerateEmbeddings"))
+			eSpan, _ := util.StartSpanFromContext(putErrorsToDBCtx, "public-graph.pushPayload", util.ResourceName("BatchGenerateEmbeddings"))
 			if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("session_secure_id", sessionObj.SecureID).Error("failed to generate embeddings")
 			}
-			eSpan.Finish(tracer.WithError(err))
+			eSpan.Finish(err)
 		}
 
 		putErrorsToDBSpan.Finish()
@@ -2812,7 +2713,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	updateSpan, updateSpanCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
+	updateSpan, updateSpanCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
 	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
@@ -2866,46 +2767,25 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}).Error; err != nil {
 				return err
 			}
-			if err := r.OpenSearch.UpdateAsync(ctx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-				"Excluded":       excluded,
-				"ExcludedReason": reason,
-			}); err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
-				return err
-			}
 			if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 				return err
 			}
 		}
 	}
 
-	opensearchSpan, osCtx := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
+	opensearchSpan, osCtx := util.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", util.ResourceName("opensearch.update"))
 	defer opensearchSpan.Finish()
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-			"processed":  false,
-			"Excluded":   false,
-			"has_errors": sessionHasErrors,
-		}); err != nil {
-			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
-			return err
-		}
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
 	}
 
 	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
-		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-			"has_errors": true,
-		}); err != nil {
-			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
-			return err
-		}
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
@@ -2922,12 +2802,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 // HandleSessionViewable is called after the first events to a session are written.
 // It handles any alerts that must be sent for this session after it is able to be played.
 func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, session *model.Session) error {
-	project, err := r.getProject(projectID)
+	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
 		return err
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		return err
 	}
@@ -3034,7 +2914,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: sessionObj.SecureID,
-			SessionExcluded: sessionObj.Excluded,
+			SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 			UserIdentifier:  sessionObj.Identifier,
 			UserObject:      sessionObj.UserObject,
 			UserProperties:  userProperties,
@@ -3053,8 +2933,8 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 }
 
 func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session, properties map[string]string) error {
-	alertWorkerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
-		tracer.ResourceName("go.sessions.AppendProperties.alertWorker"), tracer.Tag("sessionID", session.ID))
+	alertWorkerSpan, _ := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		util.ResourceName("go.sessions.AppendProperties.alertWorker"), util.Tag("sessionID", session.ID))
 	defer alertWorkerSpan.Finish()
 	// Sending Track Properties Alert
 	var sessionAlerts []*model.SessionAlert
@@ -3145,7 +3025,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
-			SessionExcluded: session.Excluded,
+			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,
 			MatchedFields:   matchedFields,
 			RelatedFields:   relatedFields,
@@ -3224,7 +3104,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: refetchedSession.SecureID,
-			SessionExcluded: refetchedSession.Excluded,
+			SessionExcluded: refetchedSession.Excluded && *refetchedSession.Processed,
 			UserIdentifier:  refetchedSession.Identifier,
 			UserProperties:  userProperties,
 			UserObject:      refetchedSession.UserObject,
@@ -3242,6 +3122,8 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 }
 
 func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+	alertSpan, _ := util.StartSpanFromContext(ctx, "SendSessionUserPropertiesAlert")
+	defer alertSpan.Finish()
 	// Sending User Properties Alert
 	var sessionAlerts []*model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
@@ -3311,7 +3193,7 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
-			SessionExcluded: session.Excluded,
+			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,
 			MatchedFields:   matchedFields,
 			UserObject:      session.UserObject,

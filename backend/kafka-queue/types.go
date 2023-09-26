@@ -121,6 +121,7 @@ type HubSpotCreateContactForAdminArgs struct {
 	UserDefinedRole     string
 	UserDefinedPersona  string
 	UserDefinedTeamSize string
+	HeardAbout          string
 	First               string
 	Last                string
 	Phone               string

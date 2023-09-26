@@ -4,6 +4,7 @@ import {
 	useCreateLogAlertMutation,
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
+	useGetLogsHistogramQuery,
 	useGetLogsKeysQuery,
 	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
@@ -132,8 +133,9 @@ export const LogAlertPage = () => {
 	const formValues = formStore.useState().values
 
 	const [query, setQuery] = useState(initialQuery)
-	const handleSearchSubmit = (query: string) => {
+	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
+		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
@@ -190,10 +192,7 @@ export const LogAlertPage = () => {
 		],
 	})
 	const [deleteLogAlertMutation] = useDeleteLogAlertMutation({
-		refetchQueries: [
-			namedOperations.Query.GetLogAlert,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
 	const { project_id } = useParams<{
@@ -289,7 +288,8 @@ export const LogAlertPage = () => {
 
 						const nameErr = !input.name
 						const thresholdErr = !input.count_threshold
-						if (nameErr || thresholdErr) {
+						const queryErr = !input.query
+						if (nameErr || thresholdErr || queryErr) {
 							const errs = []
 							if (nameErr) {
 								formStore.setError(
@@ -305,6 +305,14 @@ export const LogAlertPage = () => {
 									'Threshold is required',
 								)
 								errs.push('threshold')
+							}
+
+							if (queryErr) {
+								formStore.setError(
+									formStore.names.query,
+									'Query is required',
+								)
+								errs.push('query')
 							}
 
 							message.error(
@@ -354,6 +362,21 @@ export const LogAlertPage = () => {
 			</Box>
 		</Box>
 	)
+
+	const { data: histogramData, loading: histogramLoading } =
+		useGetLogsHistogramQuery({
+			variables: {
+				project_id: project_id!,
+				params: {
+					query: submittedQuery,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+				},
+			},
+			skip: !projectId,
+		})
 
 	const isLoading = !isCreate && !formValues.loaded
 
@@ -439,10 +462,19 @@ export const LogAlertPage = () => {
 											/>
 										</Box>
 										<AlertTitleField />
-										<Box cssClass={styles.queryContainer}>
+										<Box
+											cssClass={styles.queryContainer}
+											style={{
+												borderColor: formStore.getError(
+													'query',
+												)
+													? 'var(--color-red-500)'
+													: undefined,
+											}}
+										>
 											<Search
 												initialQuery={initialQuery}
-												keys={keysData?.logs_keys ?? []}
+												keys={keysData?.keys ?? []}
 												startDate={startDate}
 												endDate={endDate}
 												hideIcon
@@ -452,7 +484,7 @@ export const LogAlertPage = () => {
 												query={query}
 												setQuery={setQuery}
 												onFormSubmit={
-													handleSearchSubmit
+													handleUpdateInputQuery
 												}
 												fetchValuesLazyQuery={
 													useGetLogsKeyValuesLazyQuery
@@ -460,7 +492,6 @@ export const LogAlertPage = () => {
 											/>
 										</Box>
 										<LogsHistogram
-											query={submittedQuery}
 											startDate={startDate}
 											endDate={endDate}
 											onDatesChange={(
@@ -477,6 +508,8 @@ export const LogAlertPage = () => {
 											threshold={threshold}
 											belowThreshold={belowThreshold}
 											frequencySeconds={frequency}
+											histogramData={histogramData}
+											loading={histogramLoading}
 										/>
 									</Box>
 									<LogAlertForm />
@@ -627,6 +660,9 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -677,6 +713,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.slackChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -711,6 +750,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.discordChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -731,12 +773,13 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(formStore.names.emails)}
 						/>
 					</Form.NamedSection>
 
 					<Form.NamedSection
 						label="Webhooks to notify"
-						name={formStore.names.emails}
+						name={formStore.names.webhookDestinations}
 					>
 						<Select
 							aria-label="Webhooks to notify"
@@ -750,6 +793,9 @@ const LogAlertForm = () => {
 							notFoundContent={null}
 							className={styles.selectContainer}
 							mode="tags"
+							value={formStore.getValue(
+								formStore.names.webhookDestinations,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>

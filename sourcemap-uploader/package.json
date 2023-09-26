@@ -24,6 +24,9 @@
     "typegen": "tsup src/index.ts src/lib.ts --dts-only",
     "build": "tsup src/index.ts src/lib.ts --format cjs,esm --dts"
   },
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
   "devDependencies": {
     "@types/node": "^18.15.5",
     "eslint": "^8.39.0",

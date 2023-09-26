@@ -227,6 +227,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if val, ok := eventAttributes[string(semconv.ExceptionMessageKey)]; ok { // we know that exception.message will be in the event attributes map
 		fields.exceptionMessage = val.(string)
 		delete(fields.attrs, string(semconv.ExceptionMessageKey))
+		// if this is a log that is emitted from an error,
+		// we should use the error text as the log body
+		if fields.logMessage == "" {
+			fields.logMessage = fields.exceptionMessage
+		}
 	}
 
 	if val, ok := eventAttributes[string(semconv.ExceptionStacktraceKey)]; ok { // we know that exception.stacktrace will be in the event attributes map

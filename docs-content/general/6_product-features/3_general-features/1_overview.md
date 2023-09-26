@@ -24,4 +24,7 @@ Below are several highlight.io features that might be worth taking a look at.
     <DocsCard title="Segments."  href="./segments.md">
         {"Create search filters so searching for sessions & errors is easy!"}
     </DocsCard>
+    <DocsCard title="Services."  href="./services.md">
+        {"Create services to better group your errors, logs, and traces."}
+    </DocsCard>
 </DocsCardGroup>

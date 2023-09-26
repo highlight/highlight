@@ -49,6 +49,7 @@ var fieldMap map[string]string = map[string]string{
 	"visited_url":     "VisitedURL",
 	"timestamp":       "Timestamp",
 	"secure_id":       "ErrorGroupSecureID",
+	"service_name":    "ServiceName",
 }
 
 type ClickhouseSession struct {
@@ -256,7 +257,7 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
-	conditions, err := parseGroup(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
+	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
 	if err != nil {
 		return "", nil, err
 	}
@@ -411,4 +412,14 @@ func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count
 	}
 
 	return values, nil
+}
+
+func (client *Client) DeleteSessions(ctx context.Context, projectId int, sessionIds []int) error {
+	sb := sqlbuilder.NewDeleteBuilder()
+	sb.DeleteFrom(SessionsTable).
+		Where(sb.Equal("ProjectID", projectId)).
+		Where(sb.In("ID", sessionIds))
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	return client.conn.Exec(ctx, sql, args...)
 }

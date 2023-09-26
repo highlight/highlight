@@ -1,7 +1,4 @@
-import {
-	ChevronDownIcon,
-	InformationCircleIcon,
-} from '@heroicons/react/20/solid'
+import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
 import Image from 'next/image'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
@@ -28,6 +25,7 @@ import classNames from 'classnames'
 import { useState } from 'react'
 import Collapsible from 'react-collapsible'
 import { Section } from '../../components/common/Section/Section'
+import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 
 const OverageLink = ({
@@ -250,42 +248,106 @@ const retentionMultipliers: Record<Retention, number> = {
 	'2 years': 2.5,
 } as const
 
-const tierOptions = ['Free', 'UsageBased'] as const
+const tierOptions = ['Free', 'UsageBased', 'Enterprise'] as const
 type TierName = typeof tierOptions[number]
 
 type PricingTier = {
 	label: string
-	basePrice: number
-	sessions: number
-	errors: number
-	logs: number
-	isMostPopular: boolean
+	features: {
+		feature: string
+		tooltip?: string
+	}[]
+	badgeText?: string
+	calculateUsage?: boolean
+	buttonLabel: string
+	buttonLink: string
 }
 
 const priceTiers: Record<TierName, PricingTier> = {
 	Free: {
 		label: 'Free forever',
-		basePrice: 0,
-		sessions: 500,
-		errors: 1_000,
-		logs: 1_000_000,
-		isMostPopular: false,
+		features: [
+			{
+				feature: '500 monthly sessions',
+			},
+			{
+				feature: '1,000 monthly errors',
+			},
+			{
+				feature: '1,000,000 monthly logs',
+			},
+			{
+				feature: 'Unlimited seats',
+			},
+		],
+		buttonLabel: 'Start free trial',
+		buttonLink: 'https://app.highlight.io/sign_up',
 	},
 	UsageBased: {
 		label: 'Pay as you go',
-		basePrice: 0,
-		sessions: 500,
-		errors: 1_000,
-		logs: 1_000_000,
-		isMostPopular: true,
+		features: [
+			{
+				feature: '500 monthly sessions',
+			},
+			{
+				feature: '1,000 monthly errors',
+			},
+			{
+				feature: '1,000,000 monthly logs',
+			},
+			{
+				feature: 'Unlimited seats',
+			},
+		],
+		badgeText: 'Most popular',
+		calculateUsage: true,
+		buttonLabel: 'Start free trial',
+		buttonLink: 'https://app.highlight.io/sign_up',
+	},
+	Enterprise: {
+		label: 'Enterprise',
+		features: [
+			{
+				feature: 'Custom pricing',
+				tooltip:
+					'At higher volumes, we can heavily discount usage; reach out to learn more.',
+			},
+			{
+				feature: 'SAML & SSO',
+				tooltip:
+					'Secure user management to ensure you can manage your team with your existing tooling.',
+			},
+			{
+				feature: 'Custom Compliance Contracts',
+				tooltip:
+					'Custom contracts to abide by your compliance requirements; we handle these on a case-by-case basis.',
+			},
+			{
+				feature: 'RBAC & Audit Logs',
+				tooltip:
+					'Infrastructure for auditing and adding fine-grained access controls.',
+			},
+			{
+				feature: 'Data Export',
+				tooltip:
+					'Recurring or one-off exports of your observability data for offline analysis.',
+			},
+			{
+				feature: 'Grafana Integration',
+				tooltip:
+					'Exposure to a Grafana instance for visualization of traces/metrics/logs',
+			},
+		],
+		buttonLabel: 'Contact us',
+		buttonLink: 'mailto:sales@highlight.io',
 	},
 }
 
 const PlanTable = () => {
 	return (
-		<div className="flex flex-col-reverse items-center w-full gap-6 mx-auto mt-16">
+		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="flex flex-col-reverse items-stretch max-w-[600px] w-full sm:flex-row gap-7">
+			<div className="flex flex-col items-stretch w-full sm:flex-row gap-7 justify-center">
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
@@ -296,26 +358,24 @@ const PlanTable = () => {
 }
 
 const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
-	const { sessions, errors, logs, isMostPopular } = tier
+	const { features, badgeText, calculateUsage } = tier
 
 	return (
 		<div
 			className={classNames(
-				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark h-fit',
-				isMostPopular
-					? 'shadow-[-8px_8px_0_0] shadow-purple-primary'
-					: '',
+				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] sm:max-w-[284px] basis-64 border-divider-on-dark h-fit',
+				badgeText ? 'shadow-[-8px_8px_0_0] shadow-purple-primary' : '',
 			)}
 		>
 			<div className="p-5 border-b border-divider-on-dark">
-				{isMostPopular && (
-					<div className="bg-highlight-yellow w-fit py-0.5 px-3 rounded-full">
+				{badgeText && (
+					<div className="bg-highlight-yellow w-fit py-0.5 px-3 mb-1 rounded-full">
 						<Typography
 							type="copy4"
 							emphasis
 							className="text-dark-background"
 						>
-							Most popular
+							{badgeText}
 						</Typography>
 					</div>
 				)}
@@ -326,33 +386,26 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 				</div>
 			</div>
 			<div className="p-5 flex flex-col gap-2.5 flex-grow">
-				<div className="flex items-center gap-1">
-					<Typography type="copy3" emphasis>
-						Included
-					</Typography>
-					<OverageLink className="text-white transition-colors hover:text-blue-cta">
-						<InformationCircleIcon className="inline w-5 h-5" />
-					</OverageLink>
-				</div>
-				<Typography type="copy3">
-					{formatNumber(sessions)} monthly sessions
-				</Typography>
-				<Typography type="copy3">
-					{formatNumber(errors)} monthly errors
-				</Typography>
-				<Typography type="copy3">
-					{formatNumber(logs)} monthly logs
-				</Typography>
-				<Typography type="copy3">Unlimited seats</Typography>
+				{features.map((feature, index) => (
+					<div
+						key={index}
+						className="flex justify-between gap-1 items-start"
+					>
+						<Typography type="copy3">{feature.feature}</Typography>
+						{feature.tooltip && (
+							<HeadlessTooltip tooltip={feature.tooltip} />
+						)}
+					</div>
+				))}
 			</div>
 			<div className="px-5 pb-5 flex flex-col gap-2.5">
 				<PrimaryButton
-					href="https://app.highlight.io/sign_up"
+					href={tier.buttonLink}
 					className={homeStyles.hollowButton}
 				>
-					Start free trial
+					{tier.buttonLabel}
 				</PrimaryButton>
-				{isMostPopular && (
+				{calculateUsage && (
 					<div
 						onClick={(e) => {
 							e.preventDefault()
@@ -364,7 +417,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					>
 						<PrimaryButton
 							href="#overage"
-							className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent"
+							className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent text-center"
 						>
 							Calculate Usage
 						</PrimaryButton>
@@ -390,11 +443,13 @@ const formatPrice = (price: number) =>
 		.replace('+', '+ ')
 
 const PriceCalculator = () => {
-	const tier = priceTiers['UsageBased']
+	const defaultErrors = 1_000
+	const defaultLogs = 1000000
+	const defaultSessions = 500
 
-	const [errorUsage, setErrorUsage] = useState(tier.errors)
-	const [sessionUsage, setSessionUsage] = useState(tier.sessions)
-	const [loggingUsage, setLoggingUsage] = useState(tier.logs)
+	const [errorUsage, setErrorUsage] = useState(defaultErrors)
+	const [sessionUsage, setSessionUsage] = useState(defaultSessions)
+	const [loggingUsage, setLoggingUsage] = useState(defaultLogs)
 
 	const [errorRetention, setErrorRetention] = useState<Retention>('3 months')
 	const [sessionRetention, setSessionRetention] =
@@ -413,19 +468,19 @@ const PriceCalculator = () => {
 		) / 100
 
 	const errorsCost = getUsagePrice(
-		errorUsage - tier.errors,
+		errorUsage - defaultErrors,
 		0.2,
 		1_000,
 		errorRetention,
 	)
 	const sessionsCost = getUsagePrice(
-		sessionUsage - tier.sessions,
+		sessionUsage - defaultSessions,
 		20.0,
 		1_000,
 		sessionRetention,
 	)
 	const loggingCost = getUsagePrice(
-		loggingUsage - tier.logs,
+		loggingUsage - defaultLogs,
 		1.5,
 		1_000_000,
 		'30 days',
@@ -444,7 +499,7 @@ const PriceCalculator = () => {
 						</div>
 						<div className="flex items-center justify-center w-[343px] px-7">
 							<Typography type="copy2" emphasis>
-								Cost breakdown
+								Monthy Cost Breakdown
 							</Typography>
 						</div>
 					</div>
@@ -453,7 +508,7 @@ const PriceCalculator = () => {
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						value={errorUsage}
 						cost={errorsCost}
-						includedRange={tier.errors}
+						includedRange={defaultErrors}
 						retention={errorRetention}
 						onChange={setErrorUsage}
 						onChangeRetention={setErrorRetention}
@@ -463,7 +518,7 @@ const PriceCalculator = () => {
 						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
 						value={sessionUsage}
 						cost={sessionsCost}
-						includedRange={tier.sessions}
+						includedRange={defaultSessions}
 						retention={sessionRetention}
 						onChange={setSessionUsage}
 						onChangeRetention={setSessionRetention}
@@ -473,7 +528,7 @@ const PriceCalculator = () => {
 						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
 						value={loggingUsage}
 						cost={loggingCost}
-						includedRange={tier.logs}
+						includedRange={defaultLogs}
 						rangeMultiplier={100}
 						retention="30 days"
 						onChange={setLoggingUsage}
@@ -489,7 +544,7 @@ const PriceCalculator = () => {
 				</div>
 				<div className="hidden border border-t-0 rounded-b-lg md:block h-52 border-divider-on-dark">
 					<CalculatorCostDisplay
-						heading="Total"
+						heading="Monthly Total"
 						cost={sessionsCost + errorsCost + loggingCost}
 					/>
 				</div>
@@ -562,7 +617,10 @@ const CalculatorRowDesktop = ({
 				</div>
 			</div>
 			<div className="hidden border-l border-divider-on-dark md:inline-block">
-				<CalculatorCostDisplay heading="Base + Usage" cost={cost} />
+				<CalculatorCostDisplay
+					heading="Base + Usage (Monthly)"
+					cost={cost}
+				/>
 			</div>
 		</div>
 	)
@@ -654,7 +712,7 @@ export const RangedInput = ({
 						className="absolute inset-y-0 left-0 h-full bg-blue-cta/30"
 						style={{
 							width: `${
-								Math.pow(normalize(includedRange), 1 / 3) * 100
+								Math.pow(normalize(value), 1 / 3) * 100
 							}%`,
 						}}
 					/>
