@@ -46642,7 +46642,7 @@ __metadata:
 
 "protobufjs@patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch::locator=highlight%40workspace%3A.":
   version: 7.2.2
-  resolution: "protobufjs@patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch::version=7.2.2&hash=0a43d8&locator=highlight%40workspace%3A."
+  resolution: "protobufjs@patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch::version=7.2.2&hash=5db4b2&locator=highlight%40workspace%3A."
   dependencies:
     "@protobufjs/aspromise": ^1.1.2
     "@protobufjs/base64": ^1.1.2
@@ -46656,7 +46656,7 @@ __metadata:
     "@protobufjs/utf8": ^1.1.0
     "@types/node": ">=13.7.0"
     long: ^5.0.0
-  checksum: b03f15381497ac9b6cc753423d7c218a10fcaddce91ae4cd567e2464eb6f8b9e8c16594216b7aee1430ae7fe59ecddd1de956cc1e5a71514b8d3be6f1763a007
+  checksum: 968e76d83b733f876d726fcb4122e77e7111351b9f1bc5bf5b0090f7b8994129706bad532672074551077ba29d212d070c56eb1d6dc2d2804ab5466b9c5943ca
   languageName: node
   linkType: hard
 
