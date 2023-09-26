@@ -3298,7 +3298,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonIgnoredUser
 	}
 
-	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
+	if r.isSessionExcludedForNoError(ctx, s, &project, sessionHasErrors) {
 		excluded = true
 		reason = privateModel.SessionExcludedReasonNoError
 	}
@@ -3315,8 +3315,8 @@ func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *mode
 	return s.LastUserInteractionTime.Unix() == 0
 }
 
-func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(project)
+func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project *model.Project, sessionHasErrors bool) bool {
+	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(ctx, project)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
 		return !sessionHasErrors
