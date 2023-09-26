@@ -34,7 +34,7 @@ type Pagination = {
 
 export interface SearchFormState {
 	email: string
-	withSession: boolean
+	hasSession: boolean
 }
 
 export const ErrorInstances = ({ errorGroup }: Props) => {
@@ -42,11 +42,11 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 	const formStore = useFormStore<SearchFormState>({
 		defaultValues: {
 			email: '',
-			withSession: false,
+			hasSession: false,
 		},
 	})
 	const email = formStore.useValue('email')
-	const withSession = formStore.useValue('withSession')
+	const hasSession = formStore.useValue('hasSession')
 	const [query, setQuery] = useState('')
 
 	const [pagination, setPagination] = useState<Pagination>({
@@ -65,7 +65,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		setQuery(`${withSession ? 'has_session:true ' : ''}email:${email}`)
+		setQuery(`${hasSession ? 'has_session:true ' : ''}email:${email}`)
 		setCurrentSearchEmail(email)
 	}
 
@@ -186,7 +186,7 @@ const ErrorInstancesContainer: React.FC<
 		childrenBoxProps.display = 'flex'
 		childrenBoxProps.alignItems = 'center'
 	}
-	const withSession = form.useValue('withSession')
+	const hasSession = form.useValue('hasSession')
 	return (
 		<Stack direction="column">
 			<Box my="8">
@@ -214,11 +214,11 @@ const ErrorInstancesContainer: React.FC<
 								type="submit"
 								size="xxSmall"
 								iconLeft={<IconSolidCheckCircle size={12} />}
-								checked={withSession}
+								checked={hasSession}
 								onChange={() => {
 									form.setValue(
-										form.names.withSession,
-										!withSession,
+										form.names.hasSession,
+										!hasSession,
 									)
 								}}
 							/>
