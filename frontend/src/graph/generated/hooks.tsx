@@ -13713,6 +13713,75 @@ export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
 	Types.FindSimilarErrorsQuery,
 	Types.FindSimilarErrorsQueryVariables
 >
+export const GetTraceDocument = gql`
+	query GetTrace($project_id: ID!, $trace_id: String!) {
+		trace(project_id: $project_id, trace_id: $trace_id) {
+			timestamp
+			traceID
+			spanID
+			parentSpanID
+			projectID
+			secureSessionID
+			traceState
+			spanName
+			spanKind
+			duration
+			serviceName
+			serviceVersion
+			traceAttributes
+			statusCode
+			statusMessage
+		}
+	}
+`
+
+/**
+ * __useGetTraceQuery__
+ *
+ * To run a query within a React component, call `useGetTraceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTraceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTraceQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      trace_id: // value for 'trace_id'
+ *   },
+ * });
+ */
+export function useGetTraceQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTraceQuery,
+		Types.GetTraceQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetTraceQuery, Types.GetTraceQueryVariables>(
+		GetTraceDocument,
+		baseOptions,
+	)
+}
+export function useGetTraceLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTraceQuery,
+		Types.GetTraceQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTraceQuery,
+		Types.GetTraceQueryVariables
+	>(GetTraceDocument, baseOptions)
+}
+export type GetTraceQueryHookResult = ReturnType<typeof useGetTraceQuery>
+export type GetTraceLazyQueryHookResult = ReturnType<
+	typeof useGetTraceLazyQuery
+>
+export type GetTraceQueryResult = Apollo.QueryResult<
+	Types.GetTraceQuery,
+	Types.GetTraceQueryVariables
+>
 export const GetTracesDocument = gql`
 	query GetTraces(
 		$project_id: ID!

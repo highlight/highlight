@@ -7153,3 +7153,27 @@ body {
 ._1q3ayoh6 {
   height: 20px;
 }
+._1r8lbz42 {
+  background-color: var(--_1pyqka91k);
+  color: var(--_1pyqka9h);
+  cursor: default;
+}
+._1r8lbz41._1r8lbz42 {
+  background-color: var(--_1pyqka91l);
+}
+._1r8lbz43 {
+  background-color: var(--_1pyqka9l);
+  color: white;
+}
+._1r8lbz42._1r8lbz41._1r8lbz43 {
+  background-color: var(--_1pyqka9n);
+}
+._12wekn71 {
+  width: 45%;
+  min-width: 400px;
+  right: 8px;
+  top: 8px;
+  bottom: 8px;
+  z-index: 8;
+  position: absolute;
+}

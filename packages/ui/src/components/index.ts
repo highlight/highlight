@@ -18,6 +18,7 @@ export {
 	getNow,
 } from './DatePicker/PreviousDateRangePicker'
 export type { Preset } from './DatePicker/PreviousDateRangePicker'
+export * from './Dialog/Dialog'
 export * from './Form/Form'
 export { Heading } from './Heading/Heading'
 export { Menu, useMenu } from './Menu/Menu'

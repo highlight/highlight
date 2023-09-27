@@ -7501,6 +7501,16 @@ func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]
 	return r.Resolver.FindSimilarErrors(ctx, query)
 }
 
+// Trace is the resolver for the trace field.
+func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTrace(ctx, project.ID, traceID)
+}
+
 // Traces is the resolver for the traces field.
 func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)

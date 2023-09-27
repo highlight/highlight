@@ -2231,6 +2231,26 @@ query FindSimilarErrors($query: String!) {
 	}
 }
 
+query GetTrace($project_id: ID!, $trace_id: String!) {
+	trace(project_id: $project_id, trace_id: $trace_id) {
+		timestamp
+		traceID
+		spanID
+		parentSpanID
+		projectID
+		secureSessionID
+		traceState
+		spanName
+		spanKind
+		duration
+		serviceName
+		serviceVersion
+		traceAttributes
+		statusCode
+		statusMessage
+	}
+}
+
 query GetTraces(
 	$project_id: ID!
 	$params: QueryInput!

@@ -2,6 +2,7 @@ import { Box, defaultPresets } from '@highlight-run/ui'
 import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
+import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import {
@@ -73,6 +74,8 @@ export const TracesPage: React.FC = () => {
 				display="flex"
 				flexDirection="column"
 				height="full"
+				position="relative"
+				overflow="hidden"
 			>
 				<Box
 					backgroundColor="white"
@@ -98,6 +101,8 @@ export const TracesPage: React.FC = () => {
 					<TracesList traces={data?.traces} loading={loading} />
 				</Box>
 			</Box>
+
+			<Outlet />
 		</>
 	)
 }

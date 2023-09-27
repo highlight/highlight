@@ -4597,6 +4597,36 @@ export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetTraceQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	trace_id: Types.Scalars['String']
+}>
+
+export type GetTraceQuery = { __typename?: 'Query' } & {
+	trace?: Types.Maybe<
+		Array<
+			{ __typename?: 'Trace' } & Pick<
+				Types.Trace,
+				| 'timestamp'
+				| 'traceID'
+				| 'spanID'
+				| 'parentSpanID'
+				| 'projectID'
+				| 'secureSessionID'
+				| 'traceState'
+				| 'spanName'
+				| 'spanKind'
+				| 'duration'
+				| 'serviceName'
+				| 'serviceVersion'
+				| 'traceAttributes'
+				| 'statusCode'
+				| 'statusMessage'
+			>
+		>
+	>
+}
+
 export type GetTracesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
@@ -4796,6 +4826,7 @@ export const namedOperations = {
 		GetErrorTags: 'GetErrorTags' as const,
 		MatchErrorTag: 'MatchErrorTag' as const,
 		FindSimilarErrors: 'FindSimilarErrors' as const,
+		GetTrace: 'GetTrace' as const,
 		GetTraces: 'GetTraces' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
