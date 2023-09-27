@@ -245,7 +245,6 @@ export type EditProjectMutationVariables = Types.Exact<{
 	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
-	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 }>
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
@@ -262,7 +261,6 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 		>
 	>
 }
@@ -278,7 +276,6 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
-	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
 	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
 }>
@@ -297,7 +294,6 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
 		>
@@ -1275,7 +1271,7 @@ export type DeleteDashboardMutation = { __typename?: 'Mutation' } & Pick<
 
 export type DeleteSessionsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
+	query: Types.ClickhouseQuery
 	sessionCount: Types.Scalars['Int']
 }>
 
@@ -2187,19 +2183,6 @@ export type GetWebSocketEventsQuery = { __typename?: 'Query' } & Pick<
 	'websocket_events'
 >
 
-export type GetFieldTypesQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
-	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
-}>
-
-export type GetFieldTypesQuery = { __typename?: 'Query' } & {
-	field_types: Array<
-		{ __typename?: 'Field' } & Pick<Types.Field, 'type' | 'name'>
-	>
-}
-
 export type GetFieldTypesClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	start_date: Types.Scalars['Timestamp']
@@ -2207,7 +2190,7 @@ export type GetFieldTypesClickhouseQueryVariables = Types.Exact<{
 }>
 
 export type GetFieldTypesClickhouseQuery = { __typename?: 'Query' } & {
-	field_types_clickhouse: Array<
+	field_types: Array<
 		{ __typename?: 'Field' } & Pick<Types.Field, 'type' | 'name'>
 	>
 }
@@ -2743,7 +2726,6 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 			| 'secret'
 		>
 	>
@@ -4429,7 +4411,6 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
 		>
@@ -4703,7 +4684,6 @@ export const namedOperations = {
 		GetSessionIntervals: 'GetSessionIntervals' as const,
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
-		GetFieldTypes: 'GetFieldTypes' as const,
 		GetFieldTypesClickhouse: 'GetFieldTypesClickhouse' as const,
 		GetFieldsClickhouse: 'GetFieldsClickhouse' as const,
 		GetErrorFieldsClickhouse: 'GetErrorFieldsClickhouse' as const,

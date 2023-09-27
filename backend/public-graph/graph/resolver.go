@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -28,7 +30,6 @@ import (
 	highlightHubspot "github.com/highlight-run/highlight/backend/hubspot"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -51,7 +52,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -71,7 +71,6 @@ type Resolver struct {
 	TracesQueue      kafka_queue.MessageQueue
 	MailClient       *sendgrid.Client
 	StorageClient    storage.Client
-	OpenSearch       *opensearch.Client
 	HubspotApi       *highlightHubspot.Client
 	EmbeddingsClient embeddings.Client
 	Redis            *redis.Client
@@ -147,13 +146,33 @@ type RequestResponsePairs struct {
 }
 
 type NetworkResource struct {
-	StartTime            float64              `json:"startTime"`
+	// Deprecated, use the absolute version `StartTimeAbs` instead
+	StartTime float64 `json:"startTime"`
+	// Deprecated, use the absolute version `ResponseEndAbs` instead
 	ResponseEnd          float64              `json:"responseEnd"`
+	StartTimeAbs         float64              `json:"startTimeAbs"`
+	ResponseEndAbs       float64              `json:"responseEndAbs"`
 	InitiatorType        string               `json:"initiatorType"`
 	TransferSize         float64              `json:"transferSize"`
 	EncodedBodySize      float64              `json:"encodedBodySize"`
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
+}
+
+func (re *NetworkResource) Start(sessionStart time.Time) time.Time {
+	start := time.UnixMicro(int64(re.StartTimeAbs))
+	if start.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
+		start = sessionStart.Add(time.Millisecond * time.Duration(re.StartTime))
+	}
+	return start
+}
+
+func (re *NetworkResource) End(sessionStart time.Time) time.Time {
+	end := time.UnixMicro(int64(re.ResponseEndAbs))
+	if end.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
+		end = sessionStart.Add(time.Millisecond * time.Duration(re.ResponseEnd))
+	}
+	return end
 }
 
 const ERROR_EVENT_MAX_LENGTH = 10000
@@ -249,8 +268,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		return e.Wrap(err, "error inserting new fields")
 	}
 
-	updateCount := result.RowsAffected
-
 	var allFields []*model.Field
 	inClause := [][]interface{}{}
 	for _, f := range fields {
@@ -259,32 +276,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).Order("id DESC").
 		Find(&allFields).Error; err != nil {
 		return e.Wrap(err, "error retrieving all fields")
-	}
-
-	// the first N fields ordered by id DESC were added in the prior insert
-	newFields := allFields[:updateCount]
-
-	for _, field := range newFields {
-		if err := r.OpenSearch.IndexSynchronous(ctx,
-			opensearch.IndexParams{
-				Index:  opensearch.IndexFields,
-				ID:     field.ID,
-				Object: field,
-			}); err != nil {
-			return e.Wrap(err, "error indexing new field")
-		}
-	}
-
-	openSearchFields := make([]interface{}, len(allFields))
-	for i, field := range allFields {
-		openSearchFields[i] = opensearch.OpenSearchField{
-			Field:    field,
-			Key:      field.Type + "_" + field.Name,
-			KeyValue: field.Type + "_" + field.Name + "_" + field.Value,
-		}
-	}
-	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", openSearchFields); err != nil {
-		return e.Wrap(err, "error appending session fields")
 	}
 
 	sort.Slice(allFields, func(i, j int) bool {
@@ -447,15 +438,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}
-	}
-
-	if err := r.OpenSearch.IndexSynchronous(ctx,
-		opensearch.IndexParams{
-			Index:    opensearch.IndexErrorsCombined,
-			ID:       int64(errorGroup.ID),
-			ParentID: pointy.Int(0),
-			Object:   errorGroup}); err != nil {
-		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
@@ -815,22 +797,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
-		Url:         errorObj.URL,
-		Os:          errorObj.OS,
-		Browser:     errorObj.Browser,
-		Timestamp:   errorObj.Timestamp,
-		Environment: errorObj.Environment,
-		ServiceName: errorObj.ServiceName,
-	}
-	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
-		Index:    opensearch.IndexErrorsCombined,
-		ID:       int64(errorObj.ID),
-		ParentID: pointy.Int(errorGroup.ID),
-		Object:   opensearchErrorObject,
-	}); err != nil {
-		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
-	}
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
 		return nil, err
 	}
@@ -905,25 +871,9 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
-				Index:  opensearch.IndexErrorFields,
-				ID:     int64(f.ID),
-				Object: f,
-			}); err != nil {
-				return e.Wrap(err, "error indexing new error field")
-			}
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
 			fieldsToAppend = append(fieldsToAppend, field)
-		}
-	}
-
-	openSearchFields := make([]interface{}, len(fieldsToAppend))
-	for i, field := range fieldsToAppend {
-		openSearchFields[i] = opensearch.OpenSearchErrorField{
-			ErrorField: field,
-			Key:        field.Name,
-			KeyValue:   field.Name + "_" + field.Value,
 		}
 	}
 
@@ -1027,36 +977,6 @@ func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secure
 	return nil, nil
 }
 
-func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Session) error {
-	osSpan, _ := util.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl", util.ResourceName("go.sessions.OSIndex"))
-	defer osSpan.Finish()
-	if err := r.OpenSearch.IndexSynchronous(ctx,
-		opensearch.IndexParams{
-			Index:    opensearch.IndexSessions,
-			ID:       int64(session.ID),
-			ParentID: nil,
-			Object:   session,
-		}); err != nil {
-		return e.Wrap(err, "error indexing new session in opensearch")
-	}
-
-	sessionProperties := map[string]string{
-		"os_name":         session.OSName,
-		"os_version":      session.OSVersion,
-		"browser_name":    session.BrowserName,
-		"browser_version": session.BrowserVersion,
-		"environment":     session.Environment,
-		"device_id":       strconv.Itoa(session.Fingerprint),
-		"city":            session.City,
-		"country":         session.Country,
-		"ip":              session.IP,
-	}
-	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
-	}
-	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
-}
-
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
 	initSpan, initCtx := util.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
 		util.ResourceName("go.sessions.InitializeSessionImpl"),
@@ -1084,9 +1004,15 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 	if existingSession != nil {
-		if err := r.IndexSessionOpensearch(initCtx, existingSession); err != nil {
+		if err := r.DataSyncQueue.Submit(ctx,
+			strconv.Itoa(existingSession.ID),
+			&kafka_queue.Message{
+				Type: kafka_queue.SessionDataSync,
+				SessionDataSync: &kafka_queue.SessionDataSyncArgs{
+					SessionID: existingSession.ID}}); err != nil {
 			return nil, err
 		}
+
 		return existingSession, nil
 	}
 	initSpan.SetAttribute("duplicate", false)
@@ -1231,6 +1157,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String("OSVersion", session.OSVersion),
 		attribute.String("Postal", session.Postal),
 		attribute.String("State", session.State),
+		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	)
 	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
@@ -1260,15 +1187,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.WithContext(ctx).Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	if err := r.IndexSessionOpensearch(initCtx, session); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx,
+		strconv.Itoa(session.ID),
+		&kafka_queue.Message{
+			Type: kafka_queue.SessionDataSync,
+			SessionDataSync: &kafka_queue.SessionDataSyncArgs{
+				SessionID: session.ID}}); err != nil {
 		return nil, err
-	}
-
-	if len(input.NetworkRecordingDomains) > 0 {
-		project.BackendDomains = input.NetworkRecordingDomains
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{BackendDomains: project.BackendDomains}).Error; err != nil {
-			return nil, e.Wrap(err, "failed to update project backend domains")
-		}
 	}
 
 	go func() {
@@ -1542,21 +1467,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		session.Identified = true
 	}
 
-	openSearchUpdateSpan, _ := util.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		util.ResourceName("go.sessions.IdentifySessionImpl.OpenSearchUpdate"), util.Tag("sessionID", sessionID))
-	openSearchProperties := map[string]interface{}{
-		"user_properties": session.UserProperties,
-		"first_time":      session.FirstTime,
-		"identified":      session.Identified,
-	}
-	if session.Identifier != "" {
-		openSearchProperties["identifier"] = session.Identifier
-	}
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
-	}
-	openSearchUpdateSpan.Finish()
-
 	if err := r.DB.Save(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] failed to update session")
 	}
@@ -1569,6 +1479,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		attribute.String("Identifier", session.Identifier),
 		attribute.Bool("Identified", session.Identified),
 		attribute.Bool("FirstTime", *session.FirstTime),
+		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	}
 	for k, v := range allUserProperties {
@@ -2089,14 +2000,14 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 	return errorFields
 }
 
-func (r *Resolver) updateErrorsCount(ctx context.Context, errorsBySession map[string]int64, errors int, errorType string) {
+func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsBySession map[string]int64, errors int, errorType string) {
 	dailyErrorCountSpan, _ := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload", util.ResourceName("db.updateDailyErrorCounts"))
 	dailyErrorCountSpan.SetAttribute("numberOfErrors", errors)
 	dailyErrorCountSpan.SetAttribute("numberOfSessions", len(errorsBySession))
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
-		highlight.RecordMetric(ctx, "errors", float64(count), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
+		highlight.RecordMetric(ctx, "errors", float64(count), attribute.Int(highlight.ProjectIDAttribute, projectID), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
@@ -2172,7 +2083,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 
-	r.updateErrorsCount(ctx, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
+	r.updateErrorsCount(ctx, projectID, errorsBySession, len(errorObjects), model.ErrorType.BACKEND)
 
 	err = r.MarkBackendSetupImpl(ctx, projectID, model.MarkBackendSetupTypeError)
 	if err != nil {
@@ -2638,6 +2549,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error saving resources data")
 		}
 
+		settings, _ := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+		if settings.EnableNetworkTraces {
+			resourcesParsed := make(map[string][]NetworkResource)
+			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+				return nil
+			}
+			if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 
@@ -2686,7 +2608,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// increment daily error table
 		numErrors := int64(len(errors))
 		if numErrors > 0 {
-			r.updateErrorsCount(ctx, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
+			r.updateErrorsCount(ctx, projectID, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
 		}
 
 		// put errors in db
@@ -2870,13 +2792,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}).Error; err != nil {
 				return err
 			}
-			if err := r.OpenSearch.UpdateAsync(ctx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-				"Excluded":       excluded,
-				"ExcludedReason": reason,
-			}); err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
-				return err
-			}
 			if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 				return err
 			}
@@ -2890,26 +2805,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-			"processed":  false,
-			"Excluded":   false,
-			"has_errors": sessionHasErrors,
-		}); err != nil {
-			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
-			return err
-		}
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
 	}
 
 	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
-		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
-			"has_errors": true,
-		}); err != nil {
-			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
-			return err
-		}
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
@@ -3052,6 +2953,42 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 		}); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
+	}
+	return nil
+}
+
+func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
+	for _, re := range resources {
+		method := re.RequestResponsePairs.Request.Method
+		if method == "" {
+			method = http.MethodGet
+		}
+		start := re.Start(sessionObj.CreatedAt)
+		end := re.End(sessionObj.CreatedAt)
+		attributes := []attribute.KeyValue{
+			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
+			semconv.ServiceNameKey.String(sessionObj.ServiceName),
+			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
+			semconv.HTTPURLKey.String(re.Name),
+			semconv.HTTPRequestContentLengthKey.Int(len(re.RequestResponsePairs.Request.Body)),
+			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
+			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
+			semconv.HTTPMethodKey.String(method),
+			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
+			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
+		}
+		requestBody := make(map[string]interface{})
+		// if the request body is json and contains the graphql key operationName, treat it as an operation
+		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
+			if _, ok := requestBody["operationName"]; ok {
+				attributes = append(attributes, semconv.GraphqlOperationName(requestBody["operationName"].(string)))
+			}
+		}
+
+		span, _ := highlight.StartTraceWithTimestamp(context.Background(), strings.Join([]string{method, re.Name}, " "), start, attributes...)
+		span.End(trace.WithTimestamp(end))
 	}
 	return nil
 }

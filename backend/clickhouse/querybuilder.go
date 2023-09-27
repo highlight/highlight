@@ -195,13 +195,18 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 				}
 				conditions = append(conditions, sb.Equal(mappedName, val))
 			case viewedByMe:
-				switch v {
-				case "true":
-					conditions = append(conditions, fmt.Sprintf(`has("%s", %d)`, mappedName, admin.ID))
-				case "false":
-					conditions = append(conditions, fmt.Sprintf(`NOT has("%s", %d)`, mappedName, admin.ID))
-				default:
-					return "", fmt.Errorf("unsupported value for viewed_by_me: %s", v)
+				// If no current admin, return false for the "viewed by me" filter
+				if admin == nil {
+					conditions = append(conditions, "FALSE")
+				} else {
+					switch v {
+					case "true":
+						conditions = append(conditions, fmt.Sprintf(`has("%s", %d)`, mappedName, admin.ID))
+					case "false":
+						conditions = append(conditions, fmt.Sprintf(`NOT has("%s", %d)`, mappedName, admin.ID))
+					default:
+						return "", fmt.Errorf("unsupported value for viewed_by_me: %s", v)
+					}
 				}
 			default:
 				return "", fmt.Errorf("unsupported custom field type %s", customFieldType)

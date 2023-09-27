@@ -112,8 +112,14 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 			performanceTiming.toJSON = function () {
 				return {
 					initiatorType: this.initiatorType,
+					// deprecated, use the absolute versions instead
 					startTime: this.startTime,
 					responseEnd: this.responseEnd,
+					// offset by `window.performance.timeOrigin` to get absolute timestamps
+					startTimeAbs:
+						window.performance.timeOrigin + this.startTime,
+					responseEndAbs:
+						window.performance.timeOrigin + this.responseEnd,
 					name: this.name,
 					transferSize: this.transferSize,
 					encodedBodySize: this.encodedBodySize,

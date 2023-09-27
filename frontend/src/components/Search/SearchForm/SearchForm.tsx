@@ -121,7 +121,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		},
 	})
 
+	const [dateRange, setDateRange] = useState<Date[]>([startDate, endDate])
+
 	const handleDatesChange = (dates: Date[]) => {
+		setDateRange(dates)
 		if (dates.length == 2) {
 			onDatesChange(dates[0], dates[1])
 		}
@@ -153,7 +156,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					{!hideDatePicker && (
 						<PreviousDateRangePicker
 							emphasis="low"
-							selectedDates={[startDate, endDate]}
+							selectedDates={dateRange}
 							onDatesChange={handleDatesChange}
 							presets={presets}
 							minDate={minDate}

@@ -8,7 +8,10 @@ import {
 	useGetErrorSegmentsQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
-import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
+import {
+	GetFieldTypesClickhouseQuery,
+	namedOperations,
+} from '@graph/operations'
 import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
 import {
 	Box,
@@ -1101,7 +1104,7 @@ interface QueryBuilderProps {
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
-	fieldData?: GetFieldTypesQuery
+	fieldData?: GetFieldTypesClickhouseQuery
 	readonly?: boolean
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
@@ -1147,7 +1150,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	} = props
 
 	const {
-		backendSearchQuery,
 		searchQuery,
 		setSearchQuery,
 		existingQuery,
@@ -1689,7 +1691,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					{!isOnErrorsPage && (
 						<DropdownMenu
 							sessionCount={searchResultsCount || 0}
-							sessionQuery={backendSearchQuery?.searchQuery || ''}
+							sessionQuery={JSON.parse(searchQuery)}
 						/>
 					)}
 
@@ -1706,12 +1708,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 		)
 	}, [
 		dateRange,
+		isOnErrorsPage,
 		searchResultsCount,
-		backendSearchQuery?.searchQuery,
+		searchQuery,
 		updateRule,
 		timeRangeRule,
 		setShowLeftPanel,
-		isOnErrorsPage,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {

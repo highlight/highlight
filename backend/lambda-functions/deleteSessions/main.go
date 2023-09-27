@@ -8,6 +8,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
@@ -32,7 +33,7 @@ func main() {
 		ProjectId:    1,
 		Email:        "zane@highlight.io",
 		FirstName:    "Zane",
-		Query:        "{\"bool\":{\"must\":[{\"bool\":{\"should\":[{\"term\":{\"processed\":\"true\"}}]}},{\"bool\":{\"should\":[{\"range\":{\"created_at\":{\"gte\":\"2022-07-15T23:00:25.525Z\",\"lte\":\"2022-08-01T23:00:25.525Z\"}}}]}}]}}",
+		Query:        model.ClickhouseQuery{IsAnd: true, Rules: [][]string{{"custom_processed", "is", "true"}, {"custom_created_at", "between_date", "2022-07-15T23:00:25.525Z_2023-09-01T23:59:59.999Z"}}},
 		SessionCount: 256,
 		DryRun:       true,
 	}

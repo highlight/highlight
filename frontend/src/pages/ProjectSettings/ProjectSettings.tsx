@@ -5,7 +5,6 @@ import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorF
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
 import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/ExcludedUsersForm'
 import { FilterExtensionForm } from '@pages/ProjectSettings/FilterExtensionForm/FilterExtensionForm'
-import { NetworkRecordingForm } from '@pages/ProjectSettings/NetworkRecordingForm/NetworkRecordingForm'
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm'
 import { ServicesTable } from '@pages/ProjectSettings/ServicesTable/ServicesTable'
 import { SessionExportForm } from '@pages/ProjectSettings/SessionExportForm/SessionExportForm'
@@ -164,7 +163,6 @@ const ProjectSettings = () => {
 											<ExcludedUsersForm />
 											<FilterSessionsWithoutErrorForm />
 											<RageClicksForm />
-											<NetworkRecordingForm />
 											{workspaceSettingsData
 												?.workspaceSettings
 												?.enable_session_export ? (

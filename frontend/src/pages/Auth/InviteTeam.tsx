@@ -29,6 +29,8 @@ import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { authRedirect } from '@/pages/Auth/utils'
+
 import * as authRouterStyles from './AuthRouter.css'
 import * as styles from './InviteTeam.css'
 
@@ -63,6 +65,8 @@ export const InviteTeamForm: React.FC = () => {
 		projects?.length && projects[0]
 			? `/${projects[0].id}${SETUP_ROUTE}`
 			: SETUP_ROUTE
+	const authRedirectRoute = authRedirect.get()
+	const redirectRoute = authRedirectRoute ?? setupRoute
 	const workspace = data?.workspaces && data.workspaces[0]
 	const inWorkspace = !!workspace
 
@@ -128,7 +132,7 @@ export const InviteTeamForm: React.FC = () => {
 					message.error(
 						`An error occurred inviting your team. Please try again later.`,
 					)
-					return navigate(setupRoute)
+					return navigate(redirectRoute)
 				}
 
 				if (emails.length) {
@@ -138,7 +142,7 @@ export const InviteTeamForm: React.FC = () => {
 				}
 			}
 
-			navigate(setupRoute)
+			navigate(redirectRoute)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)

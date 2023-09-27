@@ -7,7 +7,7 @@ $(cat .env | grep -vE '^#' | sed -e 's/^/export /')
 export ENABLE_OBJECT_STORAGE=true
 export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
-export REACT_APP_AUTH_MODE=simple
+export REACT_APP_AUTH_MODE=password
 
 if [[ "$*" == *"--go-docker"* ]]; then
     export IN_DOCKER_GO=true
@@ -30,7 +30,8 @@ export BUILD_ARGS="--build-arg GOARCH=${GOARCH}
 --build-arg REACT_APP_PRIVATE_GRAPH_URI=${REACT_APP_PRIVATE_GRAPH_URI}
 --build-arg REACT_APP_PUBLIC_GRAPH_URI=${REACT_APP_PUBLIC_GRAPH_URI}
 --build-arg TURBO_TOKEN=${TURBO_TOKEN}
---build-arg TURBO_TEAM=${TURBO_TEAM}"
+--build-arg TURBO_TEAM=${TURBO_TEAM}
+--build-arg ADMIN_PASSWORD=${ADMIN_PASSWORD}"
 
 mkdir -p ${OBJECT_STORAGE_FS}
 
