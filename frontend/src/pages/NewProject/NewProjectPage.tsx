@@ -23,9 +23,10 @@ import { Divider, message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import { authRedirect } from '@/pages/Auth/utils'
 import SvgCloseIcon from '@/static/CloseIcon'
 
 import Button from '../../components/Button/Button/Button'
@@ -44,12 +45,18 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 		variables: { id: workspace_id || '-1' },
 	})
 
-	const [createProject, { loading: projectLoading, error: projectError }] =
-		useCreateProjectMutation()
+	const [
+		createProject,
+		{ loading: projectLoading, data: projectData, error: projectError },
+	] = useCreateProjectMutation()
 
 	const [
 		createWorkspace,
-		{ loading: workspaceLoading, error: workspaceError },
+		{
+			loading: workspaceLoading,
+			data: workspaceData,
+			error: workspaceError,
+		},
 	] = useCreateWorkspaceMutation()
 	const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation()
 	const { setLoadingState } = useAppLoadingContext()
@@ -114,6 +121,31 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 			}
 		}
 		await client.cache.reset()
+	}
+
+	// When a workspace is created, redirect to the 'create project' page
+	if (isNewWorkspace && workspaceData?.createWorkspace?.id) {
+		return (
+			<Navigate
+				replace
+				to={`/w/${workspaceData.createWorkspace.id}/new${search}`}
+			/>
+		)
+	}
+
+	// When a project is created, redirect to the 'project setup' page
+	if (projectData?.createProject?.id) {
+		const authRedirectRoute = authRedirect.get()
+		if (!!authRedirectRoute) {
+			return <Navigate replace to={authRedirectRoute} />
+		} else {
+			return (
+				<Navigate
+					replace
+					to={`/${projectData.createProject.id}/setup`}
+				/>
+			)
+		}
 	}
 
 	const pageTypeCaps = isNewWorkspace ? 'Workspace' : 'Project'

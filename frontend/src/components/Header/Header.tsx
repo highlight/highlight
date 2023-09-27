@@ -11,6 +11,7 @@ import {
 	useGetProjectQuery,
 	useGetSubscriptionDetailsQuery,
 	useGetSystemConfigurationQuery,
+	useGetWorkspacesQuery,
 } from '@graph/hooks'
 import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
@@ -23,6 +24,7 @@ import {
 	IconSolidChartBar,
 	IconSolidChartPie,
 	IconSolidChat,
+	IconSolidCheck,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
@@ -65,10 +67,11 @@ import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
+import { generateRandomColor } from '@/util/color'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.css'
@@ -119,6 +122,7 @@ export const useBillingHook = ({
 }
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin, isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
@@ -155,6 +159,65 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	]
 
 	const inProjectOrWorkspace = isLoggedIn && (projectId || workspaceId)
+
+	const { data: workspacesData, loading: workspacesLoading } =
+		useGetWorkspacesQuery()
+
+	const workspaceOptions = (workspacesData?.workspaces || [])
+		?.map((workspace) => ({
+			value: workspace?.id || '',
+			displayValue: workspace?.name || '',
+			id: workspace?.id || '',
+		}))
+		.concat(
+			(workspacesData?.joinable_workspaces || [])?.map((workspace) => ({
+				value: workspace?.id || '',
+				displayValue: workspace?.name || '',
+				id: workspace?.id || '',
+			})),
+		)
+		.map((workspace) => {
+			const isSelected = workspaceId === workspace?.id
+			return (
+				<Menu.Item
+					key={workspace?.id}
+					onClick={() => {
+						navigate(`/w/${workspace?.id}`)
+					}}
+					style={{
+						marginTop: '2px',
+						...(isSelected && { backgroundColor: vars.color.n2 }),
+					}}
+				>
+					<Box display="flex" alignItems="center" gap="4">
+						<Box
+							flexShrink={0}
+							margin="4"
+							style={{
+								height: 8,
+								width: 8,
+								backgroundColor: generateRandomColor(
+									workspace?.displayValue ?? '',
+								),
+								borderRadius: '50%',
+							}}
+						></Box>
+						<Box
+							display="flex"
+							alignItems="center"
+							justifyContent="space-between"
+							width="full"
+							gap="2"
+						>
+							<Text lines="1">
+								{workspace?.displayValue ?? ''}
+							</Text>
+							{isSelected && <IconSolidCheck size={14} />}
+						</Box>
+					</Box>
+				</Menu.Item>
+			)
+		})
 
 	return (
 		<>
@@ -624,7 +687,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 														</Box>
 													</Menu.Button>
 													<Menu.List>
-														<Divider className="m-0 py-1" />
+														{workspacesLoading
+															? null
+															: workspaceOptions}
+														<Divider className="mt-1 mb-0" />
 														<Link
 															to="/new"
 															className={
