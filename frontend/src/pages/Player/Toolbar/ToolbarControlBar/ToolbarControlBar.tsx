@@ -17,7 +17,6 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
-	ButtonLink,
 	IconSolidArrowsExpand,
 	IconSolidChartBar,
 	IconSolidClock,
@@ -470,19 +469,22 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 							gap="2"
 							cssClass={style.toast}
 						>
-							<Text>
-								You will receive an email once the session is
-								ready.
-							</Text>
-							<ButtonLink
-								onClick={() => {
+							<Box
+								display="flex"
+								alignItems="center"
+								width="full"
+								height="full"
+								onClick={() =>
 									navigate(
 										`/${projectId}/settings/sessions#exports`,
 									)
-								}}
+								}
 							>
-								<Text>Click here to check progress.</Text>
-							</ButtonLink>
+								<Text color="white">
+									You will receive an email once the session
+									is ready. Click here to check progress.
+								</Text>
+							</Box>
 						</Box>
 					),
 					duration: 10,

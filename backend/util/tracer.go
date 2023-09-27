@@ -12,6 +12,8 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+const KafkaBatchWorkerOp = "KafkaBatchWorker"
+
 type MultiSpan struct {
 	ddSpan tracer.Span
 	hSpan  trace.Span

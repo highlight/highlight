@@ -2,7 +2,6 @@
 	"compilerOptions": {
 		"experimentalDecorators": true,
 		"types": [
-			"@highlight-run/sourcemap-uploader",
 			"@highlight-run/node",
 			"jest"
 		],
@@ -23,6 +22,5 @@
 	"include": ["src/**/*"],
 	"references": [
 		{ "path": "../highlight-node" },
-		{ "path": "../../sourcemap-uploader" }
 	]
 }

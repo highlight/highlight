@@ -7,7 +7,7 @@ import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
 	useGetAlertsPagePayloadQuery,
-	useGetSessionsOpenSearchQuery,
+	useGetSessionsClickhouseQuery,
 } from '@graph/hooks'
 import {
 	Badge,
@@ -71,10 +71,9 @@ export const SessionLevelBarV2: React.FC<
 		setShowRightPanel,
 	} = usePlayerConfiguration()
 	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
-	const { data } = useGetSessionsOpenSearchQuery({
+	const { data } = useGetSessionsClickhouseQuery({
 		variables: {
-			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: JSON.parse(searchQuery),
+			query: JSON.parse(searchQuery),
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId!,
@@ -101,18 +100,18 @@ export const SessionLevelBarV2: React.FC<
 	useEffect(() => {
 		if (
 			!sessionResults.sessions.length &&
-			data?.sessions_opensearch.sessions.length
+			data?.sessions_clickhouse.sessions.length
 		) {
 			setSessionResults({
-				...data.sessions_opensearch,
-				sessions: data.sessions_opensearch.sessions.map((s) => ({
+				...data.sessions_clickhouse,
+				sessions: data.sessions_clickhouse.sessions.map((s) => ({
 					...s,
 					payload_updated_at: new Date().toISOString(),
 				})),
 			})
 		}
 	}, [
-		data?.sessions_opensearch,
+		data?.sessions_clickhouse,
 		sessionResults.sessions.length,
 		setSessionResults,
 	])

@@ -8,12 +8,12 @@ import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
 import {
-	useGetErrorGroupsOpenSearchLazyQuery,
-	useGetErrorGroupsOpenSearchQuery,
+	useGetErrorGroupsClickhouseLazyQuery,
+	useGetErrorGroupsClickhouseQuery,
 } from '@graph/hooks'
 import {
-	GetErrorGroupsOpenSearchQuery,
-	GetErrorGroupsOpenSearchQueryVariables,
+	GetErrorGroupsClickhouseQuery,
+	GetErrorGroupsClickhouseQueryVariables,
 } from '@graph/operations'
 import { ClickhouseQuery, ErrorGroup, Maybe, ProductType } from '@graph/schemas'
 import { Box, getNow } from '@highlight-run/ui'
@@ -50,10 +50,9 @@ const SearchPanel = () => {
 	} = useErrorSearchContext()
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
-	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
+	const { data: fetchedData, loading } = useGetErrorGroupsClickhouseQuery({
 		variables: {
-			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: JSON.parse(searchQuery),
+			query: JSON.parse(searchQuery),
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId!,
@@ -65,7 +64,7 @@ const SearchPanel = () => {
 		},
 		onCompleted: (r) => {
 			setSearchResultsLoading(false)
-			const results = r?.error_groups_opensearch
+			const results = r?.error_groups_clickhouse
 			setSearchResultsCount(results.totalCount)
 			setSearchResultSecureIds(
 				results.error_groups.map((eg) => eg.secure_id),
@@ -75,16 +74,16 @@ const SearchPanel = () => {
 		fetchPolicy: 'network-only',
 	})
 
-	const [moreDataQuery] = useGetErrorGroupsOpenSearchLazyQuery({
+	const [moreDataQuery] = useGetErrorGroupsClickhouseLazyQuery({
 		fetchPolicy: 'network-only',
 	})
 
 	const { numMore: moreErrors, reset: resetMoreErrors } = usePollQuery<
-		GetErrorGroupsOpenSearchQuery,
-		GetErrorGroupsOpenSearchQueryVariables
+		GetErrorGroupsClickhouseQuery,
+		GetErrorGroupsClickhouseQueryVariables
 	>({
 		variableFn: useCallback(() => {
-			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
+			const query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
 					?.should[0]?.range?.timestamp?.lte
@@ -93,48 +92,6 @@ const SearchPanel = () => {
 			// otherwise, we are using a custom date range and should not poll
 			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
 				return
-			}
-			query = {
-				...query,
-				bool: {
-					...query.bool,
-					must: [
-						...query.bool.must.slice(0, query.bool.must.length - 1),
-						{
-							has_child: {
-								type: 'child',
-								query: {
-									bool: {
-										must: [
-											{
-												bool: {
-													should: [
-														{
-															range: {
-																timestamp: {
-																	gte: new Date(
-																		Date.parse(
-																			lte,
-																		),
-																	).toISOString(),
-																},
-															},
-														},
-													],
-												},
-											},
-											{
-												bool: {
-													must: [],
-												},
-											},
-										],
-									},
-								},
-							},
-						},
-					],
-				},
 			}
 			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
 			const newRules = clickhouseQuery.rules.filter(
@@ -150,16 +107,15 @@ const SearchPanel = () => {
 			clickhouseQuery.rules = newRules
 
 			return {
-				query: JSON.stringify(query),
+				query: clickhouseQuery,
 				count: PAGE_SIZE,
 				page: 1,
 				project_id: projectId!,
-				clickhouse_query: clickhouseQuery,
 			}
 		}, [backendSearchQuery?.searchQuery, projectId, searchQuery]),
 		moreDataQuery,
 		getResultCount: useCallback(
-			(result) => result?.data?.error_groups_opensearch.totalCount,
+			(result) => result?.data?.error_groups_clickhouse.totalCount,
 			[],
 		),
 	})
@@ -189,7 +145,7 @@ const SearchPanel = () => {
 		}
 	}, [loading])
 
-	const errorGroups = fetchedData?.error_groups_opensearch
+	const errorGroups = fetchedData?.error_groups_clickhouse
 	return (
 		<Box
 			display="flex"

@@ -83,7 +83,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		return nil
 	}
 
-	span, _ := util.StartSpanFromContext(ctx, "kafkaBatchWorker", util.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
+	span, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
 	span.SetAttribute("BatchSize", len(traceRows))
 	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) *ClickhouseTraceRow {
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)

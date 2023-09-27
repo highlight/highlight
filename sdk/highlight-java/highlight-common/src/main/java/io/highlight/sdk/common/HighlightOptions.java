@@ -9,7 +9,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
  * Represents the options for highlighting in a project, including project ID,
  * backend URL, environment, version, and default attributes.
  */
-public record HighlightOptions(String projectId, String backendUrl, String enviroment, String version, boolean metric,
+public record HighlightOptions(String projectId, String backendUrl, String enviroment, String version, String serviceName, boolean metric,
 		Attributes defaultAttributes) {
 
 	/**
@@ -30,6 +30,7 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 
 		private static final String DEFAULT_ENVIROMENT = "development";
 		private static final String DEFAULT_VERSION = "unknown";
+		private static final String DEFAULT_SERVICE_NAME = "unknown";
 
 		private final String projectId;
 
@@ -37,6 +38,7 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 
 		private String environment = null;
 		private String version = null;
+		private String serviceName = null;
 
 		private boolean metric = true;
 
@@ -88,6 +90,19 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 			return this;
 		}
 
+
+		/**
+		 * Sets the service name for the highlight options being constructed. <br>
+		 * If not set, the default value is <b>"unknown"</b>.
+		 *
+		 * @param serviceName the service name to set
+		 * @return this builder
+		 */
+		public Builder serviceName(String serviceName) {
+			this.serviceName = serviceName;
+			return this;
+		}
+
 		/**
 		 * Sets whether metric is enabled or not for the highlight options being
 		 * constructed. <br>
@@ -128,7 +143,11 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 				this.version = DEFAULT_VERSION;
 			}
 
-			return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.version, this.metric,
+			if (this.serviceName == null) {
+				this.serviceName = DEFAULT_SERVICE_NAME;
+			}
+
+			return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.version, this.serviceName, this.metric,
 					this.defaultAttributes.build());
 		}
 	}

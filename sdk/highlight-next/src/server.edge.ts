@@ -1,9 +1,24 @@
-import { ApiHandler, HasHeaders, HasStatus } from './util/withHighlight'
+export type { HighlightEnv } from './util/types'
+import type { HighlightEnv } from './util/types'
+export { H } from '@highlight-run/cloudflare' // Imports from server.edge.ts for the edge runtime
+import * as withHighlightEdge from './util/with-highlight-edge'
 
-import { NodeOptions } from '@highlight-run/node'
+export function registerHighlight() {}
 
-export function Highlight(_: NodeOptions) {
-	return <T extends HasHeaders, S extends HasStatus>(
-		origHandler: ApiHandler<T, S>,
-	): ApiHandler<T, S> => origHandler
+export function EdgeHighlight(env: HighlightEnv) {
+	if (process.env.NEXT_RUNTIME === 'edge') {
+		return withHighlightEdge.Highlight(env)
+	} else {
+		throw new Error(
+			`Do not use EdgeHighlight() in the ${process.env.NEXT_RUNTIME} runtime`,
+		)
+	}
+}
+
+export function PageRouterHighlight(_: HighlightEnv) {
+	throw new Error('Do not use PageRouterHighlight() in the edge runtime.')
+}
+
+export function AppRouterHighlight(_: HighlightEnv) {
+	throw new Error('Do not use AppRouterHighlight() in the edge runtime.')
 }

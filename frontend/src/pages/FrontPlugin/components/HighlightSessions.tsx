@@ -4,7 +4,7 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
+import { useGetSessionsClickhouseQuery } from '@graph/hooks'
 import SvgShareIcon from '@icons/ShareIcon'
 import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
@@ -25,13 +25,12 @@ function HighlightSessions() {
 		project_id: string
 	}>()
 
-	const { data, called } = useGetSessionsOpenSearchQuery({
+	const { data, called } = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: project_id!,
 			count: 100,
 			page: 1,
-			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: JSON.parse(searchQuery),
+			query: JSON.parse(searchQuery),
 			sort_desc: true,
 		},
 		skip: !backendSearchQuery || !project_id,
@@ -113,7 +112,7 @@ function HighlightSessions() {
 			<div className="flex w-full flex-col gap-2">
 				<SessionQueryBuilder />
 				<div className="flex w-full flex-col">
-					{data?.sessions_opensearch.sessions.map((s) => (
+					{data?.sessions_clickhouse.sessions.map((s) => (
 						<MinimalSessionCard
 							compact
 							session={{
@@ -132,7 +131,7 @@ function HighlightSessions() {
 							}}
 						/>
 					))}
-					{data?.sessions_opensearch.sessions.length === 0 && (
+					{data?.sessions_clickhouse.sessions.length === 0 && (
 						<Card className="m-0 px-4 py-0">
 							<EmptyCardPlaceholder
 								compact

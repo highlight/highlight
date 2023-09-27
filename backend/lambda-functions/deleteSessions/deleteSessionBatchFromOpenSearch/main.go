@@ -18,10 +18,12 @@ func init() {
 func main() {
 	highlight.SetProjectID("1jdkoe52")
 	highlight.Start(
-		highlight.WithServiceName("lambda-functions--deleteSessionBatchFromOpenSearch"),
+		highlight.WithServiceName("lambda-functions--deleteSession-batchFromOpenSearch"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 	)
-	defer highlight.Stop()
 	hlog.Init()
-	lambda.Start(h.DeleteSessionBatchFromOpenSearch)
+	lambda.StartWithOptions(
+		h.DeleteSessionBatchFromOpenSearch,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

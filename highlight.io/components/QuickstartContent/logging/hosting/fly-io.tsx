@@ -3,7 +3,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets'
 
 export const HostingFlyIOLogContent: QuickStartContent = {
-	title: 'Logging with the Fly.IO Log Shipper',
+	title: 'Logging with the Fly.io Log Shipper',
 	subtitle:
 		'Learn how to setup Highlight log ingestion on [Fly.io](https://fly.io/blog/shipping-logs/). ' +
 		'As a prerequisite, we assume you already have an application ' +
