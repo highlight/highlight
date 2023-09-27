@@ -440,6 +440,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 type WorkerConfig struct {
 	Workers         int
 	FlushSize       int
+	QueueSize       int
 	FlushTimeout    time.Duration
 	Topic           kafkaqueue.TopicType
 	TracingDisabled bool
@@ -471,12 +472,14 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		Topic:        kafkaqueue.TopicTypeBatched,
 		Workers:      sys.LogsWorkers,
 		FlushSize:    sys.LogsFlushSize,
+		QueueSize:    sys.LogsQueueSize,
 		FlushTimeout: sys.LogsFlushTimeout,
 	}
 	tracesConfig := WorkerConfig{
 		Topic:           kafkaqueue.TopicTypeTraces,
 		Workers:         sys.TraceWorkers,
 		FlushSize:       sys.TraceFlushSize,
+		QueueSize:       sys.TraceQueueSize,
 		FlushTimeout:    sys.TraceFlushTimeout,
 		TracingDisabled: true,
 	}
@@ -484,6 +487,7 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		Topic:        kafkaqueue.TopicTypeDataSync,
 		Workers:      sys.DataSyncWorkers,
 		FlushSize:    sys.DataSyncFlushSize,
+		QueueSize:    sys.DataSyncQueueSize,
 		FlushTimeout: sys.DataSyncTimeout,
 	}
 
@@ -495,6 +499,9 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	for _, cfg := range kafkaWorkerConfigs {
 		if cfg.FlushSize == 0 {
 			cfg.FlushSize = DefaultBatchFlushSize
+		}
+		if cfg.QueueSize == 0 {
+			cfg.QueueSize = cfg.FlushSize
 		}
 		if cfg.FlushTimeout == 0 {
 			cfg.FlushTimeout = DefaultBatchedFlushTimeout
@@ -518,7 +525,7 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 						KafkaQueue: kafkaqueue.New(
 							ctx,
 							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: config.Topic}),
-							kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(config.FlushSize)},
+							kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(config.QueueSize)},
 						),
 						Worker:              w,
 						BatchFlushSize:      config.FlushSize,

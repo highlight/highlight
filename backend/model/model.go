@@ -1294,12 +1294,15 @@ type SystemConfiguration struct {
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
 	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
+	LogsQueueSize     int            `gorm:"type:bigint;default:10000"`
 	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
 	DataSyncWorkers   int            `gorm:"default:1"`
 	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
+	DataSyncQueueSize int            `gorm:"type:bigint;default:10000"`
 	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
 	TraceWorkers      int            `gorm:"default:1"`
 	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
+	TraceQueueSize    int            `gorm:"type:bigint;default:10000"`
 	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
 }
 
