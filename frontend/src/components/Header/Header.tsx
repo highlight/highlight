@@ -31,6 +31,7 @@ import {
 	IconSolidLogs,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
+	IconSolidPlusSm,
 	IconSolidSearch,
 	IconSolidSparkles,
 	IconSolidSpeakerphone,
@@ -59,6 +60,7 @@ import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
 import { showIntercomMessage } from '@util/window'
+import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -582,31 +584,104 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Menu.Divider />
-											<Link
-												to="/switch"
-												className={linkStyle}
+											<Menu.Item
+												style={{
+													paddingTop: 0,
+													paddingBottom: 0,
+												}}
 											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
+												<Menu>
+													<Menu.Button
+														style={{
+															paddingLeft: 0,
+														}}
+														size="small"
+														emphasis="low"
+														kind="secondary"
 													>
-														<IconSolidSwitchHorizontal
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
+														<Box
+															gap="4"
+															display="flex"
+															alignItems="center"
+														>
+															<IconSolidSwitchHorizontal
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															<Text
+																color="n11"
+																weight="regular"
+															>
+																Switch workspace
+															</Text>
+														</Box>
+													</Menu.Button>
+													<Menu.List>
+														<Divider className="m-0 py-1" />
+														<Link
+															to="/new"
+															className={
+																linkStyle
 															}
-														/>
-														Switch workspace
-													</Box>
-												</Menu.Item>
-											</Link>
+														>
+															<Menu.Item>
+																<Box
+																	display="flex"
+																	alignItems="center"
+																	gap="4"
+																>
+																	<IconSolidPlusSm
+																		size={
+																			14
+																		}
+																		color={
+																			vars
+																				.color
+																				.n9
+																		}
+																	/>
+																	Create new
+																	workspace
+																</Box>
+															</Menu.Item>
+														</Link>
+														<Link
+															to={`/${workspaceId}/settings`}
+															className={
+																linkStyle
+															}
+														>
+															<Menu.Item>
+																<Box
+																	display="flex"
+																	alignItems="center"
+																	gap="4"
+																>
+																	<IconSolidCog
+																		size={
+																			14
+																		}
+																		color={
+																			vars
+																				.color
+																				.n9
+																		}
+																	/>
+																	Workspace
+																	settings
+																</Box>
+															</Menu.Item>
+														</Link>
+													</Menu.List>
+												</Menu>
+											</Menu.Item>
 											<Menu.Item
 												onClick={() => {
 													showIntercomMessage()
