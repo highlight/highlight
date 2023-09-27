@@ -67,6 +67,10 @@ func GithubRateLimitKey(gitHubRepo string) string {
 	return fmt.Sprintf("github-rate-limit-exceeded-%s", gitHubRepo)
 }
 
+func GitHubFileErrorKey(gitHubRepo string, version string, fileName string) string {
+	return fmt.Sprintf("github-file-error-%s-%s-%s", gitHubRepo, version, fileName)
+}
+
 func NewClient() *Client {
 	var lfu cache.LocalCache
 	// disable lfu cache locally to allow flushing cache between test-cases
@@ -517,6 +521,14 @@ func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) 
 func (r *Client) ResetServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
 	serviceKey := ServiceGithubErrorCountKey(projectId)
 	return r.redisClient.Del(ctx, serviceKey).Result()
+}
+
+func (r *Client) SetGitHubFileError(ctx context.Context, gitHubRepo string, version string, fileName string) error {
+	return r.setFlag(ctx, GitHubFileErrorKey(gitHubRepo, version, fileName), true, 1*time.Hour)
+}
+
+func (r *Client) GetGitHubFileError(ctx context.Context, repo string, version string, fileName string) (bool, error) {
+	return r.getFlag(ctx, GitHubFileErrorKey(repo, version, fileName))
 }
 
 func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {
