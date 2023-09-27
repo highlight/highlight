@@ -45,7 +45,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		}
 		if val, ok := filters.Attributes["has_session"]; ok {
 			if len(val) > 0 && val[0] == "true" {
-				query.Where("COALESCE(error_objects.session_id) > 0")
+				query.Where("COALESCE(error_objects.session_id, 0) > 0")
 			}
 		}
 	}
