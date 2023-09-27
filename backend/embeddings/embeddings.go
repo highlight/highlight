@@ -156,7 +156,10 @@ type HuggingfaceModelInputs struct {
 }
 
 func (c *HuggingfaceModelClient) makeRequest(ctx context.Context, b []byte) ([]byte, error) {
-	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Add("Authorization", "Bearer "+c.token)
 	req.Header.Add("Content-Type", "application/json")
 	response, err := c.client.Do(req)
