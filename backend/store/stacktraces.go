@@ -22,8 +22,7 @@ import (
 )
 
 const GITHUB_ERROR_CONTEXT_LINES = 5
-const MAX_ERROR_KILLSWITCH = 20
-const MAX_ENHANCED_DEPTH = 5
+const MAX_ERROR_KILLSWITCH = 5
 
 func (store *Store) GitHubFilePath(ctx context.Context, fileName string, buildPrefix *string, gitHubPrefix *string) string {
 	if buildPrefix != nil && gitHubPrefix != nil {
@@ -73,16 +72,7 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 		log.WithContext(ctx).WithField("GitHub Repo", *service.GithubRepoPath).Warn("GitHub rate limit hit")
 		_ = store.redis.SetGithubRateLimitExceeded(ctx, *service.GithubRepoPath, resp.Rate.Reset.Time)
 	}
-
 	if err != nil {
-		// put service in error state if too many errors occur within timeframe
-		errorCount, _ := store.redis.IncrementServiceErrorCount(ctx, service.ID)
-		if errorCount >= MAX_ERROR_KILLSWITCH {
-			err = store.UpdateServiceErrorState(ctx, service.ID, []string{"Too many errors enhancing errors - Check service configuration."})
-			if err != nil {
-				return nil, err
-			}
-		}
 		return nil, err
 	}
 
@@ -201,20 +191,17 @@ func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*
 	}
 
 	newMappedStackTrace := []*privateModel.ErrorTrace{}
-	filesEnhanced := 0
+	enhanceable := false
+	failedAllEnhancements := true
 
 	for _, trace := range stackTrace {
-		if filesEnhanced >= MAX_ENHANCED_DEPTH {
-			newMappedStackTrace = append(newMappedStackTrace, trace)
-			continue
-		}
-
 		if trace.FileName == nil || trace.LineNumber == nil {
 			log.WithContext(ctx).WithField("frame", trace).Info(fmt.Errorf("Cannot enhance trace frame with GitHub with invalid values"))
 			newMappedStackTrace = append(newMappedStackTrace, trace)
 			continue
 		}
 
+		// check if in list of files we should never fetch from GitHub
 		fileName := store.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
 		shouldIgnoreFile := false
 		for _, fileExpr := range cfg.IgnoredFiles {
@@ -228,16 +215,34 @@ func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*
 			continue
 		}
 
-		filesEnhanced += 1
+		// check if we've previously errored on this file
+		previousError, _ := store.redis.GetGitHubFileError(ctx, *service.GithubRepoPath, *validServiceVersion, fileName)
+		if previousError {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
+		}
+
+		enhanceable = true
 		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, fileName, client)
 		if err != nil {
 			log.WithContext(ctx).WithField("frame", trace).Error(errors.Wrap(err, "Error enhancing stacktrace frame from GitHub"))
+			_ = store.redis.SetGitHubFileError(ctx, *service.GithubRepoPath, *validServiceVersion, fileName)
 		}
 
 		if enhancedTrace == nil {
 			newMappedStackTrace = append(newMappedStackTrace, trace)
 		} else {
+			failedAllEnhancements = false
 			newMappedStackTrace = append(newMappedStackTrace, enhancedTrace)
+		}
+	}
+
+	if enhanceable && failedAllEnhancements {
+		errorCount, _ := store.redis.IncrementServiceErrorCount(ctx, service.ID)
+		if errorCount >= MAX_ERROR_KILLSWITCH {
+			_ = store.UpdateServiceErrorState(ctx, service.ID, []string{"Too many errors enhancing errors - Check service configuration."})
+		} else {
+			_, _ = store.redis.ResetServiceErrorCount(ctx, service.ID)
 		}
 	}
 
