@@ -1582,8 +1582,13 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error selecting max project id")
 	}
 
+	var lastCreatedPart int
+	if err := DB.Raw("select split_part(relname, '_', 5) from pg_stat_all_tables where relname like 'error_object_embeddings_partitioned%' order by relid desc limit 1").Scan(&lastCreatedPart).Error; err != nil {
+		return false, e.Wrap(err, "Error selecting max created partition")
+	}
+
 	// Make sure partitions are created for the next 1k projects
-	for i := 0; i < lastVal+1000; i++ {
+	for i := lastCreatedPart + 1; i < lastVal+1000; i++ {
 		sql := fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
 			PARTITION OF error_object_embeddings_partitioned
