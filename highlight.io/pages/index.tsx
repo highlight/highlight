@@ -216,6 +216,9 @@ const Home: NextPage = () => {
 					</div>
 				</Section>
 				<Section>
+					<CompaniesReel />
+				</Section>
+				<Section>
 					<div className={styles.anchorFeature} id="features">
 						<div className={styles.anchorTitle}>
 							<h2>
@@ -265,9 +268,6 @@ const Home: NextPage = () => {
 				</div>
 				<BigHeroArt />
 				<OSSCallToAction />
-				<Section>
-					<CompaniesReel />
-				</Section>
 				<Section>
 					<div className={styles.anchorFeature}>
 						<div className={styles.anchorHead}>
