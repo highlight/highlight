@@ -74,9 +74,15 @@ export const comboboxTagClose = style({
 	cursor: 'pointer',
 	position: 'absolute',
 	pointerEvents: 'auto',
+	opacity: 0,
 	right: -8,
 	top: 1,
 	zIndex: 1,
+	selectors: {
+		'&:hover': {
+			opacity: 1,
+		},
+	},
 })
 
 export const comboboxPopover = style({

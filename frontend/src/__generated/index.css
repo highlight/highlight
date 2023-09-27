@@ -5808,9 +5808,13 @@ body {
   cursor: pointer;
   position: absolute;
   pointer-events: auto;
+  opacity: 0;
   right: -8px;
   top: 1px;
   z-index: 1;
+}
+._10xh0c26:hover {
+  opacity: 1;
 }
 ._10xh0c27 {
   background: var(--_1pyqka91);

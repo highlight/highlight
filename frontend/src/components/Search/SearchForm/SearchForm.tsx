@@ -293,7 +293,7 @@ export const Search: React.FC<{
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
-		setQuery(initialQuery.trim())
+		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialQuery])
 
@@ -314,6 +314,7 @@ export const Search: React.FC<{
 	const handleItemSelect = (key: Keys[0] | string, noQuotes?: boolean) => {
 		const isValueSelect = typeof key === 'string'
 		const activeTermKey = queryTerms[activeTermIndex].key
+		const isLastTerm = activeTermIndex === queryTerms.length - 1
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
@@ -337,7 +338,11 @@ export const Search: React.FC<{
 			}
 		}
 
-		const newQuery = stringifySearchQuery(queryTerms)
+		let newQuery = stringifySearchQuery(queryTerms)
+		// Add space if it's the last term and a value is selected so people can
+		// start entering the next term.
+		isLastTerm && isValueSelect ? (newQuery += ' ') : null
+
 		setQuery(newQuery)
 
 		if (isValueSelect) {
@@ -414,10 +419,8 @@ export const Search: React.FC<{
 						// after a delay or blurring the input.
 						setQuery(e.target.value)
 					}}
-					onBlur={(e) => {
-						const newQuery = e.target.value.replace(/\s\s+/g, ' ')
-						setQuery(newQuery)
-						submitQuery(newQuery)
+					onBlur={() => {
+						submitQuery(query)
 						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
@@ -581,8 +584,6 @@ const TermTag: React.FC<{
 	term: string
 	onRemoveItem: (index: number) => void
 }> = ({ index, term, onRemoveItem }) => {
-	const [showClose, setShowClose] = useState(false)
-
 	return (
 		<>
 			<Box
@@ -590,21 +591,13 @@ const TermTag: React.FC<{
 				py="6"
 				position="relative"
 				whiteSpace="nowrap"
-				onMouseEnter={() => {
-					setShowClose(true)
-				}}
-				onMouseLeave={() => {
-					setShowClose(false)
-				}}
 			>
 				<Box
 					cssClass={styles.comboboxTagBackground}
 					shadow="innerSecondary"
 				/>
-				{/* TODO: See if we can get this to show again */}
 				<IconSolidXCircle
 					className={styles.comboboxTagClose}
-					display={showClose ? 'block' : 'none'}
 					size={13}
 					onClick={() => onRemoveItem(index)}
 				/>
