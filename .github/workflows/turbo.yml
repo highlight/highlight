@@ -98,7 +98,7 @@ jobs:
 
             - name: Validate project is ready to be published
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
-              run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed }}
+              run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed == 'true' }}
 
             - name: Publish client bundle (preview)
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main'
