@@ -44,18 +44,12 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 		variables: { id: workspace_id || '-1' },
 	})
 
-	const [
-		createProject,
-		{ loading: projectLoading, data: projectData, error: projectError },
-	] = useCreateProjectMutation()
+	const [createProject, { loading: projectLoading, error: projectError }] =
+		useCreateProjectMutation()
 
 	const [
 		createWorkspace,
-		{
-			loading: workspaceLoading,
-			data: workspaceData,
-			error: workspaceError,
-		},
+		{ loading: workspaceLoading, error: workspaceError },
 	] = useCreateWorkspaceMutation()
 	const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation()
 	const { setLoadingState } = useAppLoadingContext()
