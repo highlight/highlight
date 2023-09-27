@@ -5,15 +5,18 @@ import {
 	Box,
 	IconSolidCheckCircle,
 	IconSolidGithub,
+	IconSolidInformationCircle,
 	IconSolidX,
 	Stack,
 	Text,
+	Tooltip,
+	vars,
 } from '@highlight-run/ui'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -42,7 +45,11 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 	const [integrationModalVisible, setIntegrationModalVisible] =
 		useState(false)
 
-	const { data: serviceData, loading } = useGetServiceByNameQuery({
+	const {
+		data: serviceData,
+		loading,
+		refetch,
+	} = useGetServiceByNameQuery({
 		variables: {
 			project_id: String(errorObject.project_id),
 			name: errorObject.serviceName!,
@@ -50,10 +57,18 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 		skip: !errorObject.serviceName,
 	})
 
+	useEffect(() => {
+		refetch({
+			project_id: String(errorObject.project_id),
+			name: errorObject.serviceName!,
+		})
+	}, [errorObject.serviceName, errorObject.project_id, refetch])
+
 	const steps = [
 		{
 			step: 'A',
 			title: 'Report services',
+			description: 'Start linking your errors to a service via the SDK.',
 			completed: !!errorObject.serviceName,
 			action: {
 				title: 'Read docs',
@@ -67,6 +82,8 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 		{
 			step: 'B',
 			title: 'Connect to GitHub',
+			description:
+				'Integrate your workspace to GitHub to link your repos to services.',
 			completed: isIntegrated,
 			action: isIntegrated
 				? {
@@ -133,7 +150,26 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 								justifyContent="space-between"
 								width="full"
 							>
-								<Text color="strong">{step.title}</Text>
+								<Stack
+									direction="row"
+									justifyContent="center"
+									gap="4"
+								>
+									<Text color="strong">{step.title}</Text>
+									<Tooltip
+										trigger={
+											<IconSolidInformationCircle
+												color={
+													vars.theme.interactive.fill
+														.secondary.content.text
+												}
+												size={12}
+											/>
+										}
+									>
+										{step.description}
+									</Tooltip>
+								</Stack>
 								<Button
 									trackingId={`error-github-enhancement-step-${step.step}`}
 									kind="secondary"

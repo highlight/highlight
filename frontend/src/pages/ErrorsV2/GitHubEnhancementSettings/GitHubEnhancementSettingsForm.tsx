@@ -14,7 +14,7 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import { Select } from 'antd'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import {
@@ -47,6 +47,17 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const [testedError, setTestedError] =
 		useState<ErrorObjectFragment>(errorObject)
 	const [testLoading, setTestLoading] = useState(false)
+	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
+	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
+
+	const formStore = Form.useFormStore<GithubSettingsFormValues>({
+		defaultValues: {
+			githubRepo: null,
+			buildPrefix: '',
+			githubPrefix: '',
+		},
+	})
+	const formState = formStore.useState()
 
 	const githubOptions = useMemo(
 		() =>
@@ -61,17 +72,14 @@ export const GitHubEnhancementSettingsForm: React.FC<
 		[githubRepos],
 	)
 
-	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
-	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
-
-	const formStore = Form.useFormStore<GithubSettingsFormValues>({
-		defaultValues: {
-			githubRepo: service?.githubRepoPath || null,
-			buildPrefix: service?.buildPrefix || null,
-			githubPrefix: service?.githubPrefix || null,
-		},
-	})
-	const formState = formStore.useState()
+	useEffect(() => {
+		formStore.setValues({
+			githubRepo: service?.githubRepoPath ?? null,
+			buildPrefix: service?.buildPrefix ?? '',
+			githubPrefix: service?.githubPrefix ?? '',
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [service])
 
 	const handleSave = () => {
 		const formValues = formState.values
@@ -116,7 +124,6 @@ export const GitHubEnhancementSettingsForm: React.FC<
 		})
 	}
 
-	// TODO(spenny): changing between errors - state remains the same
 	return (
 		<Form store={formStore}>
 			<Stack
@@ -256,7 +263,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 								trigger={
 									<IconSolidQuestionMarkCircle
 										color={vars.theme.static.content.weak}
-										size={12}
+										size={14}
 									/>
 								}
 								renderInLine
@@ -295,11 +302,11 @@ export const GitHubEnhancementSettingsForm: React.FC<
 				</Stack>
 			</Stack>
 			{!disabled && (
-				<Box pt="8">
+				<Box pt="12">
 					{testLoading ? (
-						<LoadingBox height={200} />
+						<LoadingBox height={600} />
 					) : (
-						<ErrorStackTrace errorObject={errorObject} />
+						<ErrorStackTrace errorObject={testedError} />
 					)}
 				</Box>
 			)}
