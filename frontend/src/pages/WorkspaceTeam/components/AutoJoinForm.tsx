@@ -1,14 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import Select from '@components/Select/Select'
 import Tooltip from '@components/Tooltip/Tooltip'
-import {
-	useGetWorkspaceAdminsQuery,
-	useUpdateAllowedEmailOriginsMutation,
-} from '@graph/hooks'
+import { useUpdateAllowedEmailOriginsMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Box, Text } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
+import { Divider, message } from 'antd'
 import Checkbox from 'antd/es/checkbox'
 import React, { useEffect, useState } from 'react'
 
@@ -31,28 +27,6 @@ function AutoJoinForm({
 	}>({ emailOrigins: [], allowedEmailOrigins: [] })
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { admin } = useAuthContext()
-	const { loading } = useGetWorkspaceAdminsQuery({
-		variables: { workspace_id: workspace_id! },
-		skip: !workspace_id,
-		onCompleted: (d) => {
-			let emailOrigins: string[] = []
-			if (d.workspace?.allowed_auto_join_email_origins) {
-				emailOrigins = JSON.parse(
-					d.workspace.allowed_auto_join_email_origins,
-				)
-			}
-			const allowedDomains: string[] = []
-			d.admins.forEach((wa) => {
-				const adminDomain = getEmailDomain(wa.admin?.email)
-				if (
-					adminDomain.length > 0 &&
-					!allowedDomains.includes(adminDomain)
-				)
-					allowedDomains.push(adminDomain)
-			})
-			setOrigins({ emailOrigins, allowedEmailOrigins: allowedDomains })
-		},
-	})
 
 	const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation()
 	const onChangeMsg = (domains: string[], msg: string) => {
@@ -73,9 +47,6 @@ function AutoJoinForm({
 				message.success(msg)
 			})
 		}
-	}
-	const onChange = (domains: string[]) => {
-		onChangeMsg(domains, 'Successfully updated auto-join email domains!')
 	}
 
 	const adminsEmailDomain = getEmailDomain(admin?.email)
@@ -124,30 +95,12 @@ function AutoJoinForm({
 					/>
 					<Text>Allowed email domains</Text>
 				</Box>
+				<Divider className="m-0 border-none pt-1" />
 				<Text color="n11">
-					Allow everyone with a '@
-					<Select
-						placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-						className={styles.select}
-						loading={loading}
-						value={
-							newWorkspace
-								? [adminsEmailDomain]
-								: origins.emailOrigins
-						}
-						mode="tags"
-						disabled={newWorkspace}
-						onChange={onChange}
-						options={origins.allowedEmailOrigins.map(
-							(emailOrigin) => ({
-								displayValue: emailOrigin,
-								id: emailOrigin,
-								value: emailOrigin,
-							}),
-						)}
-					/>
-					' email domain to join your workspace
+					Allow everyone with a <b>{getEmailDomain(admin?.email)}</b>{' '}
+					email to join your workspace.
 				</Text>
+				<Divider className="m-0 border-none pt-1" />
 			</div>
 		</Tooltip>
 	)

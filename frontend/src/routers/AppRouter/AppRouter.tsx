@@ -234,6 +234,14 @@ export const AppRouter = () => {
 							))}
 						<Routes>
 							<Route
+								path="/new"
+								element={
+									<Landing>
+										<SwitchWorkspace />
+									</Landing>
+								}
+							/>
+							<Route
 								path="/error-tags"
 								element={<ErrorTagsContainer />}
 							>
