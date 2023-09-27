@@ -760,7 +760,9 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if settings != nil && settings.ErrorEmbeddingsGroup {
 		// keep the classic match as the alternative error group
 		errorGroup, errorGroupAlt = nil, errorGroup
-		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
+		// timeout to generate embeddings in case endpoint is slow
+		eCtx, _ := context.WithTimeout(ctx, time.Second)
+		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
 			errorObj.ErrorGroupID = errorGroupAlt.ID
