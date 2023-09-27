@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -50,7 +52,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -145,13 +146,33 @@ type RequestResponsePairs struct {
 }
 
 type NetworkResource struct {
-	StartTime            float64              `json:"startTime"`
+	// Deprecated, use the absolute version `StartTimeAbs` instead
+	StartTime float64 `json:"startTime"`
+	// Deprecated, use the absolute version `ResponseEndAbs` instead
 	ResponseEnd          float64              `json:"responseEnd"`
+	StartTimeAbs         float64              `json:"startTimeAbs"`
+	ResponseEndAbs       float64              `json:"responseEndAbs"`
 	InitiatorType        string               `json:"initiatorType"`
 	TransferSize         float64              `json:"transferSize"`
 	EncodedBodySize      float64              `json:"encodedBodySize"`
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
+}
+
+func (re *NetworkResource) Start(sessionStart time.Time) time.Time {
+	start := time.UnixMicro(int64(re.StartTimeAbs))
+	if start.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
+		start = sessionStart.Add(time.Millisecond * time.Duration(re.StartTime))
+	}
+	return start
+}
+
+func (re *NetworkResource) End(sessionStart time.Time) time.Time {
+	end := time.UnixMicro(int64(re.ResponseEndAbs))
+	if end.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
+		end = sessionStart.Add(time.Millisecond * time.Duration(re.ResponseEnd))
+	}
+	return end
 }
 
 const ERROR_EVENT_MAX_LENGTH = 10000
@@ -1173,13 +1194,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			SessionDataSync: &kafka_queue.SessionDataSyncArgs{
 				SessionID: session.ID}}); err != nil {
 		return nil, err
-	}
-
-	if len(input.NetworkRecordingDomains) > 0 {
-		project.BackendDomains = input.NetworkRecordingDomains
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{BackendDomains: project.BackendDomains}).Error; err != nil {
-			return nil, e.Wrap(err, "failed to update project backend domains")
-		}
 	}
 
 	go func() {
@@ -2535,6 +2549,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error saving resources data")
 		}
 
+		settings, _ := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+		if settings.EnableNetworkTraces {
+			resourcesParsed := make(map[string][]NetworkResource)
+			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+				return nil
+			}
+			if err := r.submitFrontendNetworkMetric(sessionObj, resourcesParsed["resources"]); err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 
@@ -2928,6 +2953,42 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 		}); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
+	}
+	return nil
+}
+
+func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resources []NetworkResource) error {
+	for _, re := range resources {
+		method := re.RequestResponsePairs.Request.Method
+		if method == "" {
+			method = http.MethodGet
+		}
+		start := re.Start(sessionObj.CreatedAt)
+		end := re.End(sessionObj.CreatedAt)
+		attributes := []attribute.KeyValue{
+			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
+			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
+			semconv.ServiceNameKey.String(sessionObj.ServiceName),
+			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
+			semconv.HTTPURLKey.String(re.Name),
+			semconv.HTTPRequestContentLengthKey.Int(len(re.RequestResponsePairs.Request.Body)),
+			semconv.HTTPResponseContentLengthKey.Float64(re.RequestResponsePairs.Response.Size),
+			semconv.HTTPStatusCodeKey.Float64(re.RequestResponsePairs.Response.Status),
+			semconv.HTTPMethodKey.String(method),
+			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
+			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
+		}
+		requestBody := make(map[string]interface{})
+		// if the request body is json and contains the graphql key operationName, treat it as an operation
+		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
+			if _, ok := requestBody["operationName"]; ok {
+				attributes = append(attributes, semconv.GraphqlOperationName(requestBody["operationName"].(string)))
+			}
+		}
+
+		span, _ := highlight.StartTraceWithTimestamp(context.Background(), strings.Join([]string{method, re.Name}, " "), start, attributes...)
+		span.End(trace.WithTimestamp(end))
 	}
 	return nil
 }

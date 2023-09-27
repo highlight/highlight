@@ -245,7 +245,6 @@ export type EditProjectMutationVariables = Types.Exact<{
 	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
-	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 }>
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
@@ -262,7 +261,6 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 		>
 	>
 }
@@ -278,7 +276,6 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
-	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
 	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
 }>
@@ -297,7 +294,6 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
 		>
@@ -2730,7 +2726,6 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 			| 'secret'
 		>
 	>
@@ -4416,7 +4411,6 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_window_seconds'
 			| 'rage_click_radius_pixels'
 			| 'rage_click_count'
-			| 'backend_domains'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
 		>

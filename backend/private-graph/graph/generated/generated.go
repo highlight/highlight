@@ -119,7 +119,6 @@ type ComplexityRoot struct {
 
 	AllProjectSettings struct {
 		AutoResolveStaleErrorsDayInterval func(childComplexity int) int
-		BackendDomains                    func(childComplexity int) int
 		BillingEmail                      func(childComplexity int) int
 		ErrorFilters                      func(childComplexity int) int
 		ErrorJSONPaths                    func(childComplexity int) int
@@ -730,8 +729,8 @@ type ComplexityRoot struct {
 		DeleteSessionComment             func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
-		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
-		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
+		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
+		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
@@ -811,7 +810,6 @@ type ComplexityRoot struct {
 	}
 
 	Project struct {
-		BackendDomains         func(childComplexity int) int
 		BillingEmail           func(childComplexity int) int
 		ErrorFilters           func(childComplexity int) int
 		ErrorJsonPaths         func(childComplexity int) int
@@ -1483,8 +1481,8 @@ type MutationResolver interface {
 	CreateAdmin(ctx context.Context) (*model1.Admin, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model1.Project, error)
-	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*model.AllProjectSettings, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) (*model1.Project, error)
+	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model1.AllWorkspaceSettings, error)
 	ExportSession(ctx context.Context, sessionSecureID string) (bool, error)
@@ -2055,13 +2053,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllProjectSettings.AutoResolveStaleErrorsDayInterval(childComplexity), true
-
-	case "AllProjectSettings.backend_domains":
-		if e.complexity.AllProjectSettings.BackendDomains == nil {
-			break
-		}
-
-		return e.complexity.AllProjectSettings.BackendDomains(childComplexity), true
 
 	case "AllProjectSettings.billing_email":
 		if e.complexity.AllProjectSettings.BillingEmail == nil {
@@ -5059,7 +5050,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray), args["filter_chrome_extension"].(*bool)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool)), true
 
 	case "Mutation.editProjectSettings":
 		if e.complexity.Mutation.EditProjectSettings == nil {
@@ -5071,7 +5062,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int)), true
+		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -5724,13 +5715,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Type(childComplexity), true
-
-	case "Project.backend_domains":
-		if e.complexity.Project.BackendDomains == nil {
-			break
-		}
-
-		return e.complexity.Project.BackendDomains(childComplexity), true
 
 	case "Project.billing_email":
 		if e.complexity.Project.BillingEmail == nil {
@@ -10076,7 +10060,6 @@ type Project {
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
-	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 }
 
@@ -10093,7 +10076,6 @@ type AllProjectSettings {
 	rage_click_window_seconds: Int
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
-	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
@@ -11641,7 +11623,6 @@ type Mutation {
 		rage_click_window_seconds: Int
 		rage_click_radius_pixels: Int
 		rage_click_count: Int
-		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
 	editProjectSettings(
@@ -11654,7 +11635,6 @@ type Mutation {
 		rage_click_window_seconds: Int
 		rage_click_radius_pixels: Int
 		rage_click_count: Int
-		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
 		autoResolveStaleErrorsDayInterval: Int
@@ -13464,42 +13444,33 @@ func (ec *executionContext) field_Mutation_editProjectSettings_args(ctx context.
 		}
 	}
 	args["rage_click_count"] = arg8
-	var arg9 pq.StringArray
-	if tmp, ok := rawArgs["backend_domains"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("backend_domains"))
-		arg9, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
+	var arg9 *bool
+	if tmp, ok := rawArgs["filter_chrome_extension"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter_chrome_extension"))
+		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["backend_domains"] = arg9
+	args["filter_chrome_extension"] = arg9
 	var arg10 *bool
-	if tmp, ok := rawArgs["filter_chrome_extension"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter_chrome_extension"))
+	if tmp, ok := rawArgs["filterSessionsWithoutError"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterSessionsWithoutError"))
 		arg10, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filter_chrome_extension"] = arg10
-	var arg11 *bool
-	if tmp, ok := rawArgs["filterSessionsWithoutError"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterSessionsWithoutError"))
-		arg11, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filterSessionsWithoutError"] = arg11
-	var arg12 *int
+	args["filterSessionsWithoutError"] = arg10
+	var arg11 *int
 	if tmp, ok := rawArgs["autoResolveStaleErrorsDayInterval"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoResolveStaleErrorsDayInterval"))
-		arg12, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg11, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["autoResolveStaleErrorsDayInterval"] = arg12
+	args["autoResolveStaleErrorsDayInterval"] = arg11
 	return args, nil
 }
 
@@ -13587,24 +13558,15 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["rage_click_count"] = arg8
-	var arg9 pq.StringArray
-	if tmp, ok := rawArgs["backend_domains"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("backend_domains"))
-		arg9, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["backend_domains"] = arg9
-	var arg10 *bool
+	var arg9 *bool
 	if tmp, ok := rawArgs["filter_chrome_extension"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter_chrome_extension"))
-		arg10, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filter_chrome_extension"] = arg10
+	args["filter_chrome_extension"] = arg9
 	return args, nil
 }
 
@@ -20354,47 +20316,6 @@ func (ec *executionContext) fieldContext_AllProjectSettings_rage_click_count(ctx
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AllProjectSettings_backend_domains(ctx context.Context, field graphql.CollectedField, obj *model.AllProjectSettings) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AllProjectSettings_backend_domains(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BackendDomains, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(pq.StringArray)
-	fc.Result = res
-	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AllProjectSettings_backend_domains(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AllProjectSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type StringArray does not have child fields")
 		},
 	}
 	return fc, nil
@@ -36509,8 +36430,6 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(
 				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_Project_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
@@ -36717,8 +36636,6 @@ func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Cont
 				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_Project_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
@@ -36848,7 +36765,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, fc.Args["id"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["backend_domains"].(pq.StringArray), fc.Args["filter_chrome_extension"].(*bool))
+		return ec.resolvers.Mutation().EditProject(rctx, fc.Args["id"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["filter_chrome_extension"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -36893,8 +36810,6 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_Project_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
@@ -36929,7 +36844,7 @@ func (ec *executionContext) _Mutation_editProjectSettings(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["backend_domains"].(pq.StringArray), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool), fc.Args["autoResolveStaleErrorsDayInterval"].(*int))
+		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool), fc.Args["autoResolveStaleErrorsDayInterval"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -36974,8 +36889,6 @@ func (ec *executionContext) fieldContext_Mutation_editProjectSettings(ctx contex
 				return ec.fieldContext_AllProjectSettings_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_AllProjectSettings_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_AllProjectSettings_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_AllProjectSettings_filter_chrome_extension(ctx, field)
 			case "filterSessionsWithoutError":
@@ -43250,47 +43163,6 @@ func (ec *executionContext) fieldContext_Project_rage_click_count(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _Project_backend_domains(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Project_backend_domains(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BackendDomains, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(pq.StringArray)
-	fc.Result = res
-	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Project_backend_domains(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Project",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type StringArray does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Project_filter_chrome_extension(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 	if err != nil {
@@ -47479,8 +47351,6 @@ func (ec *executionContext) fieldContext_Query_projects(ctx context.Context, fie
 				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_Project_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
@@ -48490,8 +48360,6 @@ func (ec *executionContext) fieldContext_Query_projectSuggestion(ctx context.Con
 				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_Project_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
@@ -49800,8 +49668,6 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_Project_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
@@ -49881,8 +49747,6 @@ func (ec *executionContext) fieldContext_Query_projectSettings(ctx context.Conte
 				return ec.fieldContext_AllProjectSettings_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_AllProjectSettings_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_AllProjectSettings_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_AllProjectSettings_filter_chrome_extension(ctx, field)
 			case "filterSessionsWithoutError":
@@ -65143,8 +65007,6 @@ func (ec *executionContext) fieldContext_Workspace_projects(ctx context.Context,
 				return ec.fieldContext_Project_rage_click_radius_pixels(ctx, field)
 			case "rage_click_count":
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
-			case "backend_domains":
-				return ec.fieldContext_Project_backend_domains(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
 			}
@@ -70455,10 +70317,6 @@ func (ec *executionContext) _AllProjectSettings(ctx context.Context, sel ast.Sel
 
 			out.Values[i] = ec._AllProjectSettings_rage_click_count(ctx, field, obj)
 
-		case "backend_domains":
-
-			out.Values[i] = ec._AllProjectSettings_backend_domains(ctx, field, obj)
-
 		case "filter_chrome_extension":
 
 			out.Values[i] = ec._AllProjectSettings_filter_chrome_extension(ctx, field, obj)
@@ -75222,10 +75080,6 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "rage_click_count":
 
 			out.Values[i] = ec._Project_rage_click_count(ctx, field, obj)
-
-		case "backend_domains":
-
-			out.Values[i] = ec._Project_backend_domains(ctx, field, obj)
 
 		case "filter_chrome_extension":
 

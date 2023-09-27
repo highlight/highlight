@@ -1384,7 +1384,6 @@ export const EditProjectDocument = gql`
 		$rage_click_window_seconds: Int
 		$rage_click_radius_pixels: Int
 		$rage_click_count: Int
-		$backend_domains: StringArray
 	) {
 		editProject(
 			id: $id
@@ -1397,7 +1396,6 @@ export const EditProjectDocument = gql`
 			rage_click_window_seconds: $rage_click_window_seconds
 			rage_click_radius_pixels: $rage_click_radius_pixels
 			rage_click_count: $rage_click_count
-			backend_domains: $backend_domains
 		) {
 			id
 			name
@@ -1409,7 +1407,6 @@ export const EditProjectDocument = gql`
 			rage_click_window_seconds
 			rage_click_radius_pixels
 			rage_click_count
-			backend_domains
 		}
 	}
 `
@@ -1441,7 +1438,6 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
  *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
  *      rage_click_count: // value for 'rage_click_count'
- *      backend_domains: // value for 'backend_domains'
  *   },
  * });
  */
@@ -1477,7 +1473,6 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_window_seconds: Int
 		$rage_click_radius_pixels: Int
 		$rage_click_count: Int
-		$backend_domains: StringArray
 		$filterSessionsWithoutError: Boolean
 		$autoResolveStaleErrorsDayInterval: Int
 	) {
@@ -1492,7 +1487,6 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_window_seconds: $rage_click_window_seconds
 			rage_click_radius_pixels: $rage_click_radius_pixels
 			rage_click_count: $rage_click_count
-			backend_domains: $backend_domains
 			filterSessionsWithoutError: $filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
 		) {
@@ -1506,7 +1500,6 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_window_seconds
 			rage_click_radius_pixels
 			rage_click_count
-			backend_domains
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
 		}
@@ -1540,7 +1533,6 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
  *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
  *      rage_click_count: // value for 'rage_click_count'
- *      backend_domains: // value for 'backend_domains'
  *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
  *      autoResolveStaleErrorsDayInterval: // value for 'autoResolveStaleErrorsDayInterval'
  *   },
@@ -8202,7 +8194,6 @@ export const GetProjectDocument = gql`
 			rage_click_window_seconds
 			rage_click_radius_pixels
 			rage_click_count
-			backend_domains
 			secret
 		}
 		workspace: workspace_for_project(project_id: $id) {
@@ -13089,7 +13080,6 @@ export const GetProjectSettingsDocument = gql`
 			rage_click_window_seconds
 			rage_click_radius_pixels
 			rage_click_count
-			backend_domains
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
 		}

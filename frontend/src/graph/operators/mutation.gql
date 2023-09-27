@@ -209,7 +209,6 @@ mutation EditProject(
 	$rage_click_window_seconds: Int
 	$rage_click_radius_pixels: Int
 	$rage_click_count: Int
-	$backend_domains: StringArray
 ) {
 	editProject(
 		id: $id
@@ -222,7 +221,6 @@ mutation EditProject(
 		rage_click_window_seconds: $rage_click_window_seconds
 		rage_click_radius_pixels: $rage_click_radius_pixels
 		rage_click_count: $rage_click_count
-		backend_domains: $backend_domains
 	) {
 		id
 		name
@@ -234,7 +232,6 @@ mutation EditProject(
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 	}
 }
 
@@ -249,7 +246,6 @@ mutation EditProjectSettings(
 	$rage_click_window_seconds: Int
 	$rage_click_radius_pixels: Int
 	$rage_click_count: Int
-	$backend_domains: StringArray
 	$filterSessionsWithoutError: Boolean
 	$autoResolveStaleErrorsDayInterval: Int
 ) {
@@ -264,7 +260,6 @@ mutation EditProjectSettings(
 		rage_click_window_seconds: $rage_click_window_seconds
 		rage_click_radius_pixels: $rage_click_radius_pixels
 		rage_click_count: $rage_click_count
-		backend_domains: $backend_domains
 		filterSessionsWithoutError: $filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
 	) {
@@ -278,7 +273,6 @@ mutation EditProjectSettings(
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 		filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval
 	}

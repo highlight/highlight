@@ -31,6 +31,7 @@ const ProjectIDAttribute = "highlight.project_id"
 const SessionIDAttribute = "highlight.session_id"
 const RequestIDAttribute = "highlight.trace_id"
 const SourceAttribute = "highlight.source"
+const TraceTypeAttribute = "highlight.type"
 
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
@@ -39,6 +40,10 @@ const LogMessageAttribute = "log.message"
 const MetricEvent = "metric"
 const MetricEventName = "metric.name"
 const MetricEventValue = "metric.value"
+
+type TraceType string
+
+const TraceTypeNetworkRequest TraceType = "http.request"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
@@ -109,9 +114,9 @@ func (o *OTLP) shutdown() {
 	}
 }
 
-func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	sessionID, requestID, _ := validateRequest(ctx)
-	ctx, span := tracer.Start(ctx, name)
+	ctx, span := tracer.Start(ctx, name, trace.WithTimestamp(t))
 	attrs := []attribute.KeyValue{
 		attribute.String(ProjectIDAttribute, conf.projectID),
 		attribute.String(SessionIDAttribute, sessionID),
@@ -120,6 +125,10 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 	attrs = append(attrs, tags...)
 	span.SetAttributes(attrs...)
 	return span, ctx
+}
+
+func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	return StartTraceWithTimestamp(ctx, name, time.Now(), tags...)
 }
 
 func StartTraceWithoutResourceAttributes(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
