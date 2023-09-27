@@ -47,7 +47,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 
 	if t.serverType == PrivateGraph {
 		fields := log.Fields{
-			"duration":        time.Since(start),
+			"duration":        time.Since(start).Seconds(),
 			"operation.field": fc.Field.Name,
 			"graph":           t.serverType,
 		}
@@ -86,7 +86,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	}
 	if t.serverType == PrivateGraph {
 		fields := log.Fields{
-			"duration":          time.Since(start),
+			"duration":          time.Since(start).Seconds(),
 			"graphql.operation": opName,
 			"graph":             t.serverType,
 		}

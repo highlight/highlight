@@ -26,14 +26,14 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.M
 	log.WithContext(ctx).
 		WithError(err).
 		WithField("type", task.Type).
-		WithField("duration", time.Since(start)).
+		WithField("duration", time.Since(start).Seconds()).
 		Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
 		log.WithContext(ctx).
 			WithError(err).
 			WithField("type", task.Type).
 			WithField("failures", task.Failures).
-			WithField("duration", time.Since(start)).
+			WithField("duration", time.Since(start).Seconds()).
 			Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
@@ -137,7 +137,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	}
 	k.messages = []*kafkaqueue.Message{}
 
-	readSpan.SetAttribute("MaxIngestDelay", time.Since(oldestMsg))
+	readSpan.SetAttribute("MaxIngestDelay", time.Since(oldestMsg).Seconds())
 	readSpan.Finish()
 
 	workSpan, wCtx := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.work", k.Name)))
@@ -482,7 +482,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			k.messages = append(k.messages, task)
 
 			if time.Since(k.lastFlush) > k.BatchedFlushTimeout || len(k.messages) >= k.BatchFlushSize {
-				s.SetAttribute("FlushDelay", time.Since(k.lastFlush))
+				s.SetAttribute("FlushDelay", time.Since(k.lastFlush).Seconds())
 
 				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
 					if err := k.flush(ctx); err != nil {
