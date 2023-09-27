@@ -25,13 +25,11 @@ import {
 	useGetTracesQuery,
 } from '@/graph/generated/hooks'
 import { SortDirection } from '@/graph/generated/schemas'
+import { useProjectId } from '@/hooks/useProjectId'
 import { TracesList } from '@/pages/Traces/TracesList'
-import { useParams } from '@/util/react-router/useParams'
 
 export const TracesPage: React.FC = () => {
-	const { project_id: projectId } = useParams<{
-		project_id: string
-	}>()
+	const { projectId } = useProjectId()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
@@ -50,7 +48,7 @@ export const TracesPage: React.FC = () => {
 
 	const { data, loading } = useGetTracesQuery({
 		variables: {
-			project_id: projectId!,
+			project_id: projectId,
 			params: {
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
