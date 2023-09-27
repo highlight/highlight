@@ -28,7 +28,6 @@ export const combobox = style([
 		display: 'flex',
 		pointerEvents: 'auto',
 		width: '100%',
-		// zIndex: 1,
 		selectors: {
 			'&:focus': {
 				outline: 0,
