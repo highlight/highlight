@@ -12,6 +12,8 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+const KafkaBatchWorkerOp = "KafkaBatchWorker"
+
 type MultiSpan struct {
 	ddSpan tracer.Span
 	hSpan  trace.Span
@@ -55,7 +57,6 @@ const (
 
 func StartSpanFromContext(ctx context.Context, operationName string, options ...SpanOption) (MultiSpan, context.Context) {
 	var cfg SpanConfig
-	var ddOptions []tracer.StartSpanOption
 	for _, opt := range options {
 		opt(&cfg)
 	}
@@ -64,8 +65,9 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 	hTracingDisabled = hTracingDisabled || cfg.HighlightTracingDisabled
 	ctx = context.WithValue(ctx, ContextKeyHighlightTracingDisabled, hTracingDisabled)
 
+	var ddOptions []tracer.StartSpanOption
 	for _, tag := range cfg.Tags {
-		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
+		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value.AsString()))
 	}
 
 	ddSpan, mergedCtx := tracer.StartSpanFromContext(ctx, operationName, ddOptions...)
@@ -83,12 +85,13 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 
 func StartSpan(operationName string, options ...SpanOption) MultiSpan {
 	var cfg SpanConfig
-	var ddOptions []tracer.StartSpanOption
 	for _, opt := range options {
 		opt(&cfg)
 	}
+
+	var ddOptions []tracer.StartSpanOption
 	for _, tag := range cfg.Tags {
-		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
+		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value.AsString()))
 	}
 
 	ddSpan := tracer.StartSpan(operationName, ddOptions...)

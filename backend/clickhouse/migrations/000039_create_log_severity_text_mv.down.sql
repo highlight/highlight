@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS log_severity_text_mv;

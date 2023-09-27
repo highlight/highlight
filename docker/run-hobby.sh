@@ -2,6 +2,12 @@
 
 ./telemetry.sh
 source env.sh --go-docker
+
+if [ -f $ADMIN_PASSWORD ]; then
+  echo 'Exiting because no ADMIN_PASSWORD_FOUND'
+  exit 0
+fi
+
 ./start-infra.sh --go-docker --hobby
 
 docker compose -f compose.yml -f compose.hobby.yml pull

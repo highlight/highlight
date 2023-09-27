@@ -6,3 +6,4 @@ export const PUBLIC_GRAPH_URI =
 export const FRONTEND_URI =
 	import.meta.env.REACT_APP_FRONTEND_URI ||
 	window.location.protocol + '//' + window.location.host
+export const AUTH_MODE = import.meta.env.REACT_APP_AUTH_MODE

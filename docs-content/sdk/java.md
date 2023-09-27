@@ -44,6 +44,10 @@ slug: java
           <p>The current version of your application</p>
         </aside>
         <aside className="parameter">
+          <h5>serviceName <code>string</code> <code>optional</code></h5>
+          <p>The service name of your application</p>
+        </aside>
+        <aside className="parameter">
           <h5>metric <code>boolean</code> <code>optional</code></h5>
           <p>Should certain metrics, such as the Java version and architecture being used, be logged?</p>
         </aside>

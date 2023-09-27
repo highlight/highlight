@@ -115,7 +115,6 @@ export enum AdminRole {
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
 	autoResolveStaleErrorsDayInterval: Scalars['Int']
-	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
 	error_filters?: Maybe<Scalars['StringArray']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
@@ -1275,7 +1274,7 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
-	query: Scalars['String']
+	query: ClickhouseQuery
 	sessionCount: Scalars['Int']
 }
 
@@ -1287,7 +1286,6 @@ export type MutationEditErrorSegmentArgs = {
 }
 
 export type MutationEditProjectArgs = {
-	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
@@ -1302,7 +1300,6 @@ export type MutationEditProjectArgs = {
 
 export type MutationEditProjectSettingsArgs = {
 	autoResolveStaleErrorsDayInterval?: InputMaybe<Scalars['Int']>
-	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
@@ -1673,7 +1670,6 @@ export enum ProductType {
 
 export type Project = {
 	__typename?: 'Project'
-	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
 	error_filters?: Maybe<Scalars['StringArray']>
 	error_json_paths?: Maybe<Scalars['StringArray']>
@@ -1724,10 +1720,8 @@ export type Query = {
 	error_comments_for_project: Array<Maybe<ErrorComment>>
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_fields_clickhouse: Array<Scalars['String']>
-	error_fields_opensearch: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
 	error_groups_clickhouse: ErrorResults
-	error_groups_opensearch: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
@@ -1737,16 +1731,13 @@ export type Query = {
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
-	errors_histogram: ErrorsHistogram
 	errors_histogram_clickhouse: ErrorsHistogram
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
-	field_types: Array<Field>
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
-	fields_opensearch: Array<Scalars['String']>
 	find_similar_errors?: Maybe<Array<Maybe<MatchedErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
@@ -1809,9 +1800,7 @@ export type Query = {
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
-	sessions_histogram: SessionsHistogram
 	sessions_histogram_clickhouse: SessionsHistogram
-	sessions_opensearch: SessionResults
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
@@ -1982,17 +1971,6 @@ export type QueryError_Fields_ClickhouseArgs = {
 	start_date: Scalars['Timestamp']
 }
 
-export type QueryError_Fields_OpensearchArgs = {
-	count: Scalars['Int']
-	end_date?: InputMaybe<Scalars['Timestamp']>
-	field_name: Scalars['String']
-	field_type: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date?: InputMaybe<Scalars['Timestamp']>
-	use_clickhouse?: InputMaybe<Scalars['Boolean']>
-}
-
 export type QueryError_GroupArgs = {
 	secure_id: Scalars['String']
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
@@ -2003,14 +1981,6 @@ export type QueryError_Groups_ClickhouseArgs = {
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
-}
-
-export type QueryError_Groups_OpensearchArgs = {
-	clickhouse_query?: InputMaybe<ClickhouseQuery>
-	count: Scalars['Int']
-	page?: InputMaybe<Scalars['Int']>
-	project_id: Scalars['ID']
-	query: Scalars['String']
 }
 
 export type QueryError_InstanceArgs = {
@@ -2049,13 +2019,6 @@ export type QueryErrorsArgs = {
 	session_secure_id: Scalars['String']
 }
 
-export type QueryErrors_HistogramArgs = {
-	clickhouse_query?: InputMaybe<ClickhouseQuery>
-	histogram_options: DateHistogramOptions
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
 export type QueryErrors_Histogram_ClickhouseArgs = {
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
@@ -2081,13 +2044,6 @@ export type QueryField_SuggestionArgs = {
 	query: Scalars['String']
 }
 
-export type QueryField_TypesArgs = {
-	end_date?: InputMaybe<Scalars['Timestamp']>
-	project_id: Scalars['ID']
-	start_date?: InputMaybe<Scalars['Timestamp']>
-	use_clickhouse?: InputMaybe<Scalars['Boolean']>
-}
-
 export type QueryField_Types_ClickhouseArgs = {
 	end_date: Scalars['Timestamp']
 	project_id: Scalars['ID']
@@ -2102,17 +2058,6 @@ export type QueryFields_ClickhouseArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	start_date: Scalars['Timestamp']
-}
-
-export type QueryFields_OpensearchArgs = {
-	count: Scalars['Int']
-	end_date?: InputMaybe<Scalars['Timestamp']>
-	field_name: Scalars['String']
-	field_type: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	start_date?: InputMaybe<Scalars['Timestamp']>
-	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryFind_Similar_ErrorsArgs = {
@@ -2391,27 +2336,10 @@ export type QuerySessions_ClickhouseArgs = {
 	sort_field?: InputMaybe<Scalars['String']>
 }
 
-export type QuerySessions_HistogramArgs = {
-	clickhouse_query?: InputMaybe<ClickhouseQuery>
-	histogram_options: DateHistogramOptions
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
 export type QuerySessions_Histogram_ClickhouseArgs = {
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
-}
-
-export type QuerySessions_OpensearchArgs = {
-	clickhouse_query?: InputMaybe<ClickhouseQuery>
-	count: Scalars['Int']
-	page?: InputMaybe<Scalars['Int']>
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	sort_desc: Scalars['Boolean']
-	sort_field?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySlack_Channel_SuggestionArgs = {

@@ -2,17 +2,18 @@ package utils
 
 import (
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
 type QuerySessionsInput struct {
-	ProjectId    int    `json:"projectId"`
-	Query        string `json:"query"`
-	Email        string `json:"email"`
-	FirstName    string `json:"firstName"`
-	SessionCount int    `json:"sessionCount"`
-	DryRun       bool   `json:"dryRun"`
+	ProjectId    int                         `json:"projectId"`
+	Query        modelInputs.ClickhouseQuery `json:"clickhouseQuery"`
+	Email        string                      `json:"email"`
+	FirstName    string                      `json:"firstName"`
+	SessionCount int                         `json:"sessionCount"`
+	DryRun       bool                        `json:"dryRun"`
 }
 
 type BatchIdResponse struct {

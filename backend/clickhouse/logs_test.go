@@ -30,6 +30,12 @@ func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 	return client, func(tb testing.TB) {
 		err := client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogsTable))
 		assert.NoError(tb, err)
+
+		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogKeysTable))
+		assert.NoError(tb, err)
+
+		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogKeyValuesTable))
+		assert.NoError(tb, err)
 	}
 }
 
@@ -1034,43 +1040,16 @@ func TestLogsKeys(t *testing.T) {
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
-
 	keys, err := client.LogsKeys(ctx, 1, now, now)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.QueryKey{
 		{
-			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
-			Type: modelInputs.KeyTypeString,
-		},
-		{
-			Name: "user_id",
-			Type: modelInputs.KeyTypeString,
-		},
-
-		// Non-custom keys ranked lower
-		{
 			Name: "level",
 			Type: modelInputs.KeyTypeString,
 		},
 		{
-			Name: "message",
-			Type: modelInputs.KeyTypeString,
-		},
-		{
-			Name: "secure_session_id",
-			Type: modelInputs.KeyTypeString,
-		},
-		{
-			Name: "span_id",
-			Type: modelInputs.KeyTypeString,
-		},
-		{
-			Name: "trace_id",
-			Type: modelInputs.KeyTypeString,
-		},
-		{
-			Name: "source",
+			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
 			Type: modelInputs.KeyTypeString,
 		},
 		{
@@ -1078,7 +1057,11 @@ func TestLogsKeys(t *testing.T) {
 			Type: modelInputs.KeyTypeString,
 		},
 		{
-			Name: "service_version",
+			Name: "source",
+			Type: modelInputs.KeyTypeString,
+		},
+		{
+			Name: "user_id",
 			Type: modelInputs.KeyTypeString,
 		},
 	}
@@ -1123,7 +1106,7 @@ func TestLogKeyValues(t *testing.T) {
 				"workspace_id": "4",
 			}),
 		),
-		NewLogRow(now.Add(-time.Second*1), 1, // out of range, should not be included
+		NewLogRow(now.Add(-48*time.Hour), 1, // out of range, should not be included
 			WithLogAttributes(map[string]string{
 				"workspace_id": "5",
 			}),

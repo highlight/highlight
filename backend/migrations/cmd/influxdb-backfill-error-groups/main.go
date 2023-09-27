@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
-	private "github.com/highlight-run/highlight/backend/private-graph/graph"
-	"github.com/highlight-run/highlight/backend/timeseries"
-	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/model"
+	private "github.com/highlight-run/highlight/backend/private-graph/graph"
+	"github.com/highlight-run/highlight/backend/timeseries"
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 const LookbackDays = 30
@@ -24,15 +25,15 @@ func main() {
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating db: %v", err)
 	}
-	opensearchClient, err := opensearch.NewOpensearchClient(nil)
+	clickhouseClient, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
 	if err != nil {
-		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
+		log.WithContext(ctx).Fatalf("error creating clickhouse client: %v", err)
 	}
 	tdb := timeseries.New(ctx)
 	pri := private.Resolver{
-		DB:         db,
-		TDB:        tdb,
-		OpenSearch: opensearchClient,
+		DB:               db,
+		TDB:              tdb,
+		ClickhouseClient: clickhouseClient,
 	}
 	log.WithContext(ctx).Info("done setting up infra")
 
@@ -47,7 +48,7 @@ func main() {
 		go func(projectID int) {
 			errorGroups := &[]*model.ErrorGroup{}
 			inner := func(tx *gorm.DB, batch int) error {
-				err = pri.SetErrorFrequencies(ctx, projectID, *errorGroups, LookbackDays)
+				err = pri.SetErrorFrequenciesClickhouse(ctx, projectID, *errorGroups, LookbackDays)
 				if err != nil {
 					return err
 				}
@@ -80,6 +81,5 @@ func main() {
 	}
 	wg.Wait()
 
-	_ = opensearchClient.Close()
 	tdb.Stop()
 }

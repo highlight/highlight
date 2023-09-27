@@ -74,8 +74,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	const { data, loading } = useGetWorkspacesCountQuery()
 
 	const { search } = useLocation()
-	const [{ next, promo }] = useQueryParams({
-		next: StringParam,
+	const [{ promo }] = useQueryParams({
 		promo: StringParam,
 	})
 	const [promoCode, setPromoCode] = useState(promo ?? '')

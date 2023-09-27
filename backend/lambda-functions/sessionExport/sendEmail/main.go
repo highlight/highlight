@@ -21,7 +21,9 @@ func main() {
 		highlight.WithServiceName("lambda-functions--sessionExport-sendEmail"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 	)
-	defer highlight.Stop()
 	hlog.Init()
-	lambda.Start(h.SendEmail)
+	lambda.StartWithOptions(
+		h.SendEmail,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

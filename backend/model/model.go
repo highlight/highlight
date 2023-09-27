@@ -336,9 +336,6 @@ type Project struct {
 	ErrorFilters        pq.StringArray `gorm:"type:text[]"`
 	ErrorJsonPaths      pq.StringArray `gorm:"type:text[]"`
 
-	// During metrics querying for network requests, only keep these relevant URLs
-	BackendDomains pq.StringArray `gorm:"type:text[]"`
-
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool         `json:"backend_setup"`
 	SetupEvent   []*SetupEvent `gorm:"foreignKey:ProjectID"`
@@ -393,6 +390,7 @@ type AllWorkspaceSettings struct {
 	ReplaceAssets            bool    `gorm:"default:false"`
 	StoreIP                  bool    `gorm:"default:false"`
 	EnableSessionExport      bool    `gorm:"default:false"`
+	EnableNetworkTraces      bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -2439,7 +2437,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+							log.WithContext(ctx).WithFields(log.Fields{"project_id": input.Project.ID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2505,7 +2503,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2580,7 +2578,7 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2887,7 +2885,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 	if input.Workspace.SlackAccessToken != nil {
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
-	log.WithContext(ctx).Printf("Sending Slack Alert for project: %d session: %s", input.Workspace.ID, input.SessionSecureID)
+	log.WithContext(ctx).Printf("Sending Slack Alert for project: %d session: %s", obj.ProjectID, input.SessionSecureID)
 
 	// send message
 	for _, channel := range channels {
@@ -2941,8 +2939,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel"))
-							return
+							log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel"))
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),

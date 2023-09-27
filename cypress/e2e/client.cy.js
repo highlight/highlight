@@ -26,7 +26,9 @@ describe('client recording spec', () => {
 						'initiatorType',
 						'name',
 						'responseEnd',
+						'responseEndAbs',
 						'startTime',
+						'startTimeAbs',
 						'transferSize',
 					])
 

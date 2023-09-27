@@ -126,7 +126,7 @@ const DevToolsWindowV2: React.FC<
 					<Box
 						ref={handleRef}
 						p="4"
-						style={{ cursor: 'grab', width: 'auto' }}
+						style={{ cursor: 'ns-resize', width: 'auto' }}
 					>
 						<Box
 							style={{
