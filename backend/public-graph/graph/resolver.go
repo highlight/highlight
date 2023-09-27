@@ -766,7 +766,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
-			errorObj.ErrorGroupID = errorGroupAlt.ID
+			errorGroup, errorGroupAlt = errorGroupAlt, nil
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
@@ -780,14 +780,13 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			errorObj.ErrorGroupID = errorGroup.ID
 			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
 	} else {
-		errorObj.ErrorGroupID = errorGroup.ID
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 	}
+	errorObj.ErrorGroupID = errorGroup.ID
 
 	if err := r.DB.Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
