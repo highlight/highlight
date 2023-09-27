@@ -415,19 +415,61 @@ jobs:
                   task-definition: ${{ steps.image-log-alerts.outputs.task-definition }}
                   service: log-alerts-service
                   cluster: highlight-production-cluster
-            # Edit and deploy public worker
-            - name: Replace image label for public worker service
-              id: image-public-worker
+            # Edit and deploy public worker (main topic)
+            - name: Replace image label for public worker (main topic) service
+              id: image-public-worker-main
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
-                  task-definition: deploy/public-worker-service.json
+                  task-definition: deploy/public-worker-main-service.json
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS public worker service
+            - name: Deploy to Amazon ECS public worker (main topic) service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
-                  task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
-                  service: public-worker-service
+                  task-definition: ${{ steps.image-public-worker-main.outputs.task-definition }}
+                  service: public-worker-main-service
+                  cluster: highlight-production-cluster
+            # Edit and deploy public worker (batched topic)
+            - name: Replace image label for public worker (batched topic) service
+              id: image-public-worker-batched
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/public-worker-batched-service.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker (batched topic) service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-public-worker-batched.outputs.task-definition }}
+                  service: public-worker-batched-service
+                  cluster: highlight-production-cluster
+            # Edit and deploy public worker (datasync topic)
+            - name: Replace image label for public worker (datasync topic) service
+              id: image-public-worker-datasync
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/public-worker-datasync-service.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker (datasync topic) service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-public-worker-datasync.outputs.task-definition }}
+                  service: public-worker-datasync-service
+                  cluster: highlight-production-cluster
+            # Edit and deploy public worker (traces topic)
+            - name: Replace image label for public worker (traces topic) service
+              id: image-public-worker-traces
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/public-worker-traces-service.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker (traces topic) service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-public-worker-traces.outputs.task-definition }}
+                  service: public-worker-traces-service
                   cluster: highlight-production-cluster
 
     deploy_opentelemetry_collector:
