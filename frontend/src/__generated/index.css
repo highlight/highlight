@@ -5730,20 +5730,93 @@ body {
   left: 14px;
 }
 ._10xh0c22 {
+  font-family:
+    IBM Plex Mono,
+    Menlo,
+    DejaVu Sans Mono,
+    Bitstream Vera Sans Mono,
+    Courier,
+    monospace;
+  font-size: 13px;
+  line-height: 20px;
   background: transparent;
   border: 0;
-  color: var(--_1pyqka9b);
+  caret-color: var(--_1pyqka9b);
   display: flex;
-  font-size: 13px;
+  pointer-events: auto;
   width: 100%;
+}
+._10xh0c22::before {
+  content: "";
+  margin-bottom: -0.4462em;
+  display: table;
+}
+._10xh0c22::after {
+  content: "";
+  margin-top: -0.3942em;
+  display: table;
 }
 ._10xh0c22:focus {
   outline: 0;
 }
-._10xh0c22::placeholder {
-  color: var(--_1pyqka9x);
-}
 ._10xh0c23 {
+  font-family:
+    IBM Plex Mono,
+    Menlo,
+    DejaVu Sans Mono,
+    Bitstream Vera Sans Mono,
+    Courier,
+    monospace;
+  font-size: 13px;
+  line-height: 20px;
+  align-items: center;
+  display: inline-block;
+  pointer-events: none;
+  position: absolute;
+}
+._10xh0c23::before {
+  content: "";
+  margin-bottom: -0.4462em;
+  display: table;
+}
+._10xh0c23::after {
+  content: "";
+  margin-top: -0.3942em;
+  display: table;
+}
+._10xh0c24 {
+  color: transparent;
+  display: inline-flex;
+  font-feature-settings: normal;
+  position: relative;
+  text-overflow: ellipsis;
+}
+._10xh0c25 {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  height: 20px;
+  letter-spacing: normal;
+  position: absolute;
+  top: 7px;
+  left: -2px;
+  bottom: 0;
+  right: -2px;
+  width: calc(100% + 4px);
+}
+._10xh0c26 {
+  color: var(--_1pyqka9b);
+  cursor: pointer;
+  position: absolute;
+  pointer-events: auto;
+  opacity: 0;
+  right: -8px;
+  top: 1px;
+  z-index: 1;
+}
+._10xh0c26:hover {
+  opacity: 1;
+}
+._10xh0c27 {
   background: var(--_1pyqka91);
   border: var(--_1pyqka9k) solid 1px;
   border-radius: 8px;
@@ -5755,17 +5828,17 @@ body {
   max-height: min(var(--popover-available-height,300px), 300px);
   z-index: 1;
 }
-._10xh0c24 {
+._10xh0c28 {
   cursor: pointer;
   padding: 12px 10px;
 }
-._10xh0c24:hover {
+._10xh0c28:hover {
   background-color: var(--_1pyqka9t);
 }
-._10xh0c24[data-active-item] {
+._10xh0c28[data-active-item] {
   background-color: var(--_1pyqka9u);
 }
-._10xh0c26 + ._10xh0c26 {
+._10xh0c2a + ._10xh0c2a {
   border-top: var(--_1pyqka91o) solid 1px;
 }
 ._1tecd1u0 {

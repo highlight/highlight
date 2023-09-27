@@ -2,6 +2,7 @@ import {
 	BODY_KEY,
 	buildSearchQueryForServer,
 	parseSearchQuery,
+	queryAsStringParams,
 	quoteQueryValue,
 	stringifySearchQuery,
 	validateSearchQuery,
@@ -216,5 +217,32 @@ describe('quoteQueryValue', () => {
 
 	it('handles numbers', () => {
 		expect(quoteQueryValue(1234)).toEqual('1234')
+	})
+})
+
+describe('queryAsStringParams', () => {
+	it('parses a simple query correctly', () => {
+		const query = 'body-a source:backend body-b source:frontend body-c '
+		expect(queryAsStringParams(query)).toEqual([
+			'body-a',
+			'source:backend',
+			'body-b',
+			'source:frontend',
+			'body-c',
+		])
+	})
+
+	// TODO: Get this test working someday, unless we decide to build a
+	// non-text-based query builder.
+	it.skip('handles extra whitespace appropriately', () => {
+		const query = 'body-a source:backend    body-b source:frontend body-c '
+		expect(queryAsStringParams(query)).toEqual([
+			'body-a',
+			'source:backend',
+			'   ',
+			'body-b',
+			'source:frontend',
+			'body-c',
+		])
 	})
 })
