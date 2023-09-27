@@ -14,12 +14,12 @@ export const Landing = ({ children }: { children: ReactNode }) => {
 
 	return (
 		<Box
-			p="32"
-			display="flex"
-			minWidth="screen"
-			minHeight="screen"
-			overflowY="scroll"
 			alignItems="center"
+			display="flex"
+			minHeight="screen"
+			minWidth="screen"
+			overflowY="scroll"
+			p="32"
 		>
 			<Box cssClass="fixed right-5 top-5">
 				{isLoggedIn && <UserDropdown border />}
