@@ -1157,7 +1157,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String("OSVersion", session.OSVersion),
 		attribute.String("Postal", session.Postal),
 		attribute.String("State", session.State),
-		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
+		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(session.ProjectID)),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	)
 	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
@@ -1479,7 +1479,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		attribute.String("Identifier", session.Identifier),
 		attribute.Bool("Identified", session.Identified),
 		attribute.Bool("FirstTime", *session.FirstTime),
-		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
+		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(session.ProjectID)),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	}
 	for k, v := range allUserProperties {
@@ -2007,7 +2007,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsB
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
-		highlight.RecordMetric(ctx, "errors", float64(count), attribute.Int(highlight.ProjectIDAttribute, projectID), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
+		highlight.RecordMetric(ctx, "errors", float64(count), attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
@@ -2967,6 +2967,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		end := re.End(sessionObj.CreatedAt)
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+			attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(sessionObj.ProjectID)),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
