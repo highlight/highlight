@@ -33,6 +33,16 @@ all-in-one.
 | Client       | `<HighlightInit />`   | `<HighlightInit />`  |
 | Edge runtime | `EdgeHighlight`       | `EdgeHighlight`      |
 
+### How Highlight captures Next.js logs
+
+`<HighlightInit />` captures front-end logs.
+
+`PageRouterHighlight` and `AppRouterHighlight` capture server-side logs in traditional server runtimes. These wrappers typically fail in serverless runtimes (including Vercel), because we cannot guarantee that the serverless process will stay alive long enough to send all log data to Highlight.
+
+Configure logging for your serverless cloud provider using one of our [cloud provider logging guides](https://www.highlight.io/docs/getting-started/backend-logging/hosting/overview), including [Vercel Log Drain for Highlight](https://vercel.com/integrations/highlight).
+
+
+
 ## Installation
 
 ```shell
