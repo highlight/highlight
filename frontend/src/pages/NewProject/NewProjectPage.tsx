@@ -15,7 +15,7 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Callout, IconOutlineX, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
@@ -23,20 +23,25 @@ import { Divider, message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Navigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
+
+import SvgCloseIcon from '@/static/CloseIcon'
 
 import Button from '../../components/Button/Button/Button'
 import styles from './NewProject.module.css'
 
 const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
-	const [visible, setVisible] = useState<boolean>(true)
+	// User is creating a new workspace if workspace_id is not specified in props
+	const isNewWorkspace = !workspace_id
+	if (workspace_id) analytics.page('/new', { workspace_id })
 	const [name, setName] = useState<string>('')
+	const [visible, setVisible] = useState<boolean>(true)
 	const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>()
 
 	const { data: currentWorkspaceData } = useGetWorkspaceQuery({
-		variables: { id: workspace_id! },
-		skip: !workspace_id,
+		skip: isNewWorkspace,
+		variables: { id: workspace_id || '-1' },
 	})
 
 	const [
@@ -76,14 +81,9 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	const [promoCode, setPromoCode] = useState(promo ?? '')
 	const [showPromoCode, setShowPromoCode] = useState(!!promoCode)
 
-	// User is creating a workspace if workspace is not specified in the URL
-	const isWorkspace = !workspace_id
-
-	analytics.page('/new', { workspace_id })
-
 	const onSubmit = async (e: { preventDefault: () => void }) => {
 		e.preventDefault()
-		if (isWorkspace) {
+		if (isNewWorkspace) {
 			const result = await createWorkspace({
 				variables: {
 					name: name,
@@ -123,36 +123,12 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 		await client.cache.reset()
 	}
 
-	// When a workspace is created, redirect to the 'create project' page
-	if (isWorkspace && workspaceData?.createWorkspace?.id) {
-		return (
-			<Navigate
-				replace
-				to={`/w/${workspaceData.createWorkspace.id}/new${search}`}
-			/>
-		)
-	}
-
-	// When a project is created, redirect to the 'project setup' page
-	if (projectData?.createProject?.id) {
-		if (!!next) {
-			return <Navigate replace to={next} />
-		} else {
-			return (
-				<Navigate
-					replace
-					to={`/${projectData.createProject.id}/setup`}
-				/>
-			)
-		}
-	}
-
-	const pageTypeCaps = isWorkspace ? 'Workspace' : 'Project'
+	const pageTypeCaps = isNewWorkspace ? 'Workspace' : 'Project'
 
 	return visible ? (
 		<>
 			<Helmet>
-				<title>{isWorkspace ? 'New Workspace' : 'New Project'}</title>
+				<title>New {pageTypeCaps}</title>
 			</Helmet>
 			<Box
 				width="screen"
@@ -191,15 +167,15 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 							>
 								Create new {pageTypeCaps.toLowerCase()}
 							</Text>
-							<IconOutlineX
+							<SvgCloseIcon
+								width="18px"
+								height="18px"
+								strokeWidth="8"
+								color="#6F6E77"
+								cursor="pointer"
 								onClick={() => {
 									setVisible(false)
 									history.back()
-								}}
-								strokeWidth="8"
-								style={{
-									cursor: 'pointer',
-									color: '#6F6E77',
 								}}
 							/>
 						</Box>
@@ -220,9 +196,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 									setName(e.target.value)
 								}}
 								className={styles.inputField}
-								placeholder={`${
-									isWorkspace ? 'Workspace' : 'Project'
-								} name`}
+								placeholder={`${pageTypeCaps} name`}
 							/>
 							<Callout
 								style={{
@@ -238,13 +212,13 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 								)}
 							>
 								<Text color="n11">
-									{isWorkspace
+									{isNewWorkspace
 										? `This is usually your company name (e.g. Pied Piper), and can contain multiple projects.`
 										: `This is usually a single application (e.g. web front end, landing page, etc.).`}
 								</Text>
 							</Callout>
 						</Box>
-						{isWorkspace &&
+						{isNewWorkspace &&
 							(showPromoCode ? (
 								<Box
 									py="8"
@@ -282,7 +256,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 									</span>
 								</Box>
 							))}
-						{isWorkspace && (
+						{isNewWorkspace && (
 							<Box p="8" backgroundColor="raised">
 								<Box border="secondary" borderRadius="8" p="8">
 									<AutoJoinForm
@@ -304,9 +278,9 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 							alignItems="center"
 							backgroundColor="raised"
 							justifyContent="flex-end"
-							mt={isWorkspace ? '0' : '8'}
+							mt={isNewWorkspace ? '0' : '8'}
 						>
-							{isWorkspace && (
+							{isNewWorkspace && (
 								<ButtonLink
 									type="text"
 									to={`/switch${search}`}
@@ -337,7 +311,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 										)}
 								</ButtonLink>
 							)}
-							{!isWorkspace &&
+							{!isNewWorkspace &&
 								currentWorkspaceData?.workspace &&
 								currentWorkspaceData.workspace.projects.length >
 									0 && (
