@@ -2967,6 +2967,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		end := re.End(sessionObj.CreatedAt)
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
