@@ -29,6 +29,7 @@ type ClickhouseErrorObject struct {
 	ProjectID      int32
 	Timestamp      time.Time
 	ErrorGroupID   int64
+	HasSession     bool
 	ID             int64
 	Browser        string
 	Environment    string
@@ -104,6 +105,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			ProjectID:      int32(object.ProjectID),
 			Timestamp:      object.Timestamp,
 			ErrorGroupID:   int64(object.ErrorGroupID),
+			HasSession:     object.SessionID != nil,
 			ID:             int64(object.ID),
 			Browser:        object.Browser,
 			Environment:    object.Environment,

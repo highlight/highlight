@@ -834,6 +834,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
+	has_session: 'Has Sessions',
 	pages_visited: 'Pages Visited',
 	landing_page: 'Landing Page',
 	exit_page: 'Exit Page',
@@ -1026,6 +1027,8 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidLink />
 		case 'error-field_service_name':
 			return <IconSolidCubeTransparent />
+		case 'error-field_has_session':
+			return <IconSolidDesktopComputer />
 	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type
