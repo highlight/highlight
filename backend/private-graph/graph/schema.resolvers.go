@@ -7533,17 +7533,12 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 
 // ServiceByName is the resolver for the serviceByName field.
 func (r *queryResolver) ServiceByName(ctx context.Context, projectID int, name string) (*model.Service, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	service := &model.Service{}
-	if err := r.DB.Model(&model.Service{}).Where(&model.Service{ProjectID: project.ID, Name: name}).Take(&service).Error; err != nil {
-		return nil, err
-	}
-
-	return service, nil
+	return r.Store.FindService(ctx, projectID, name)
 }
 
 // ErrorTags is the resolver for the error_tags field.
