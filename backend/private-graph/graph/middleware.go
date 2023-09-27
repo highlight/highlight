@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
@@ -39,11 +41,15 @@ type AuthMode = string
 const (
 	Simple   AuthMode = "Simple"
 	Firebase AuthMode = "Firebase"
+	Password AuthMode = "Password"
 )
 
 func GetEnvAuthMode() AuthMode {
 	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Simple) {
 		return Simple
+	}
+	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Password) {
+		return Password
 	}
 	return Firebase
 }
@@ -54,6 +60,8 @@ type Client interface {
 }
 
 type SimpleAuthClient struct{}
+
+type PasswordAuthClient struct{}
 
 type FirebaseAuthClient struct {
 	AuthClient *auth.Client
@@ -90,6 +98,8 @@ func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.
 		AuthClient = &FirebaseAuthClient{AuthClient: client}
 	} else if authMode == Simple {
 		AuthClient = &SimpleAuthClient{}
+	} else if authMode == Password {
+		AuthClient = &PasswordAuthClient{}
 	} else {
 		log.WithContext(ctx).Fatalf("private graph auth client configured with unknown auth mode")
 	}
@@ -107,6 +117,55 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecor
 		},
 		EmailVerified: true,
 	}, nil
+}
+
+func authenticateToken(tokenString string) (jwt.MapClaims, error) {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtAccessSecret), nil
+	})
+	if err != nil {
+		return claims, e.Wrap(err, "invalid id token")
+	}
+
+	exp, ok := claims["exp"]
+	if !ok {
+		return claims, e.Wrap(err, "invalid exp claim")
+	}
+
+	expClaim := int64(exp.(float64))
+	if time.Now().After(time.Unix(expClaim, 0)) {
+		return claims, e.Wrap(err, "token expired")
+	}
+
+	return claims, nil
+}
+
+func (c *PasswordAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
+	return &auth.UserRecord{
+		UserInfo:      GetPasswordAuthUser("demo@example.com"),
+		EmailVerified: true,
+	}, nil
+}
+
+func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+	var uid string
+	email := ""
+
+	if token != "" {
+		claims, err := authenticateToken(token)
+
+		if err != nil {
+			return ctx, err
+		}
+
+		email = claims["email"].(string)
+		uid = claims["uid"].(string)
+	}
+
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, uid)
+	ctx = context.WithValue(ctx, model.ContextKeys.Email, email)
+	return ctx, nil
 }
 
 func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {

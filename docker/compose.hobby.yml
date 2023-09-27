@@ -57,6 +57,7 @@ x-backend-env: &backend-env
         - REDIS_EVENTS_STAGING_ENDPOINT
         - SESSION_FILE_PATH_PREFIX
         - TZ
+        - ADMIN_PASSWORD
 
 services:
     kafka:
