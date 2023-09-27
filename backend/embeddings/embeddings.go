@@ -88,7 +88,7 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 		}
 		log.WithContext(ctx).
 			WithField("num_inputs", len(inputs.inputs)).
-			WithField("time", time.Since(start)).
+			WithField("time", time.Since(start).Seconds()).
 			WithField("embedding", inputs.embedding).
 			Info("AI embedding generated.")
 
@@ -219,7 +219,7 @@ func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*mo
 	}
 
 	log.WithContext(ctx).
-		WithField("time", time.Since(start)).
+		WithField("time", time.Since(start).Seconds()).
 		WithField("errors", len(errors)).
 		WithField("type", "huggingface").
 		Info("AI embedding generated.")
