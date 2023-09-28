@@ -19,19 +19,29 @@ all-in-one.
 
 1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
 2. On the backend, the `PageRouterHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from Page Router API endpoints.
-3. On the backend, the `AppRouterHighlight` wrapper exported from `@highlight-run/next/app-router` captures error and logs from App Router API endpoints.
-3. On the backend, `instrumentation.ts` and `registerHighlight` capture Page Router SSR errors.
-4. The `withHighlightConfig` configuration wrapper automatically proxies Highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
-5. The `EdgeHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from both Page and App Router endpoints using Vercel's Edge runtime.
+3. On the backend, the `AppRouterHighlight` wrapper exported from `@highlight-run/next/app-router` captures errors and logs from App Router API endpoints.
+3. The `EdgeHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from both Page and App Router endpoints using Vercel's Edge runtime.
+4. Use `pages/_error.tsx` and `app/error.tsx` to forward Page Router and App Router SSR errors from the client to Highlight.
+5. The `withHighlightConfig` configuration wrapper automatically proxies Highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
 
 ### How Highlight captures Next.js errors
 
 |              | Page Router           | App Router           |
 |--------------|-----------------------|----------------------|
 | API Errors   | `PageRouterHighlight` | `AppRouterHighlight` |
-| SSR Errors   | `instrumentation.ts`  | `error.tsx`          |
+| SSR Errors   | `pages/_error.tsx`    | `app/error.tsx`      |
 | Client       | `<HighlightInit />`   | `<HighlightInit />`  |
 | Edge runtime | `EdgeHighlight`       | `EdgeHighlight`      |
+
+### How Highlight captures Next.js logs
+
+`<HighlightInit />` captures front-end logs.
+
+`PageRouterHighlight` and `AppRouterHighlight` capture server-side logs in traditional server runtimes. These wrappers typically fail in serverless runtimes (including Vercel), because we cannot guarantee that the serverless process will stay alive long enough to send all log data to Highlight.
+
+Configure logging for your serverless cloud provider using one of our [cloud provider logging guides](https://www.highlight.io/docs/getting-started/backend-logging/hosting/overview), including [Vercel Log Drain for Highlight](https://vercel.com/integrations/highlight).
+
+
 
 ## Installation
 
@@ -162,7 +172,7 @@ export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 We do not recommend enabling this while integrating Highlight for the first time because it will prevent you from validating that your local build can send data to Highlight.
 ```
 
-In the case that you don't want local sessions being shipped to Highlight The `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
+In the case that you don't want local sessions being shipped to Highlight, the `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
 
 Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
 
@@ -214,7 +224,7 @@ export const withPageRouterHighlight = PageRouterHighlight({
 })
  ```
 
-2. Wrap your `/pages/api` functions with `withHighlight`:
+2. Wrap your `/pages/api` functions with `withPageRouterHighlight`:
 
 ```typescript
 // pages/api/test.ts
@@ -274,7 +284,7 @@ export const GET = withAppRouterHighlight(async function GET(request: NextReques
 
 ## Vercel Edge Runtime Instrumentation
 
-1. Create a file to export you `EdgeHighlight` wrapper function:
+1. Create a file to export your `EdgeHighlight` wrapper function:
 
 ```typescript
 // src/app/utils/edge-highlight.config.ts:
@@ -285,7 +295,7 @@ export const withEdgeHighlight = EdgeHighlight({
 })
 ```
 
-2. Wrap you edge function with `withEdgeHighlight`
+2. Wrap your edge function with `withEdgeHighlight`
 
 ```typescript
 import type {  NextRequest } from 'next/server'
@@ -305,63 +315,39 @@ export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
 
 export const runtime = 'edge'
 ```
-## Server Instrumentation
 
-```hint
-We recommend configuring [Vercel Log Drain](../backend-logging/5_hosting/vercel.md) to capture Vercel logs.
-```
-`instrumentation.ts` can be used to capture Page Router SSR errors. It may capture other errors as well if you are NOT using Vercel or serverless functions.
+## `pages/_error.tsx` (Page Router)
 
-If you use Next.js with Vercel, all of your API functions are serverless, and must be wrapped with `with*Highlight` wrappers as described above. OpenTelemetry does not block serverless functions from shutting down before all of their errors have been sent to Highlight's servers. Our `with*Highlight` wrappers keep serverless functions alive until OpenTelemetry has sent all of its messages to Highlight's servers.
+Page Router uses [pages/_error.tsx](https://nextjs.org/docs/pages/building-your-application/routing/custom-error#more-advanced-error-page-customizing) to send server-side render errors to the client. We can catch and consume those error with a custom error page.
 
-Next.js is instrumented for Open Telemetry out of the box. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server.
-
-1. Set `experimental.instrumentationHook` to `true` in your `next.config.js`:
-
-```typescript
-// next.config.mjs
-const nextConfig = {
-	experimental: {
-		appDir: true,
-		instrumentationHook: true,
-	},
-	productionBrowserSourceMaps: true,
-	images: { domains: ['i.travelapi.com'] },
-}
-
-export default nextConfig
-```
-
-
-2. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function.
+These errors will display as client errors, even though we know that they're server errors.
 
 ```javascript
-// instrumentation.ts
+// pages/_error.tsx
+import NextError from 'next/error'
+import {
+	H,
+	getHighlightErrorInitialProps,
+	HighlightErrorProps,
+} from '@highlight-run/next/client'
 import CONSTANTS from '@/app/constants'
 
-export async function register() {
-	if (process.env.NEXT_RUNTIME === 'nodejs') {
-		/** Conditional import required for use with Next middleware to avoid a webpack error 
-         * https://nextjs.org/docs/pages/building-your-application/routing/middleware */
-		const { registerHighlight } = await import('@highlight-run/next/server')
+export default function CustomError({
+	errorMessage,
+	statusCode,
+}: HighlightErrorProps) {
+	H.init(CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID)
+	H.consumeError(new Error(errorMessage))
 
-		registerHighlight({
-			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-		})
-	}
+	return <NextError statusCode={statusCode} /> // Render default Next error page
 }
+
+CustomError.getInitialProps = getHighlightErrorInitialProps
 ```
 
-3. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
+## `app/error.tsx` (App Router)
 
-```javascript
-// src/instrumentation.ts:
-export { register } from '../instrumentation'
-```
-
-## `error.tsx` (App Router)
-
-`instrumentation.ts` does not catch SSR errors from the App Router. App Router instead uses [error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side rendering errors to the client. We can catch and consume those error with a custom error page.
+App Router uses [app/error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side render errors to the client. We can catch and consume those error with a custom error page.
 
 These errors will display as client errors, even though we know that they're server errors.
 
@@ -380,8 +366,7 @@ export default function Error({
 	reset: () => void
 }) {
 	useEffect(() => {
-		// Log the error to Highlight
-		H.consumeError(error)
+		H.consumeError(error) // Log the error to Highlight
 	}, [error])
 
 	return (
@@ -389,8 +374,7 @@ export default function Error({
 			<h2>Something went wrong!</h2>
 			<button
 				onClick={
-					// Attempt to recover by trying to re-render the segment
-					() => reset()
+					() => reset() // Attempt to recover by trying to re-render the segment
 				}
 			>
 				Try again
@@ -401,10 +385,9 @@ export default function Error({
 ```
 ## Private Sourcemaps and Request Proxying (optional)
 
-Adding the `withHighlightConfig` to your next config will configure highlight frontend proxying. This means that frontend session recording and error capture data will be piped through your domain on `/highlight-events` to avoid ad-blockers from stopping this traffic.
+Proxy your front end Highlight calls by adding `withHighlightConfig` to your next config. Frontend session recording and error capture data will be piped through your domain on `/highlight-events` to sneak Highlight network traffic past ad-blockers.
 
-1. Turn on `instrumentationHook`.
-2. Wrap the config with `withHighlightConfig`.
+1. Wrap the config with `withHighlightConfig`.
 
 If you use a `next.config.js` file:
 
@@ -416,7 +399,6 @@ const { withHighlightConfig } = require('@highlight-run/next/server')
 const nextConfig = {
 	experimental: {
 		appDir: true,
-		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
 }
@@ -439,7 +421,6 @@ const __dirname = dirname(__filename)
 const nextConfig = withHighlightConfig({
 	experimental: {
 		appDir: true,
-		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
 })
@@ -452,13 +433,11 @@ export default nextConfig
 
 We use a package called [rrweb](https://www.rrweb.io/) to record web sessions. rrweb supports inlining images into sessions to improve replay accuracy, so that images that are only available from your local network can be saved; however, the inlined images can cause CORS issues in some situations.
 
-We currently default `inlineImages` to `true` on `localhost`. Explicitly set `inlineImages={false}` if you run into trouble loading images on your page while Highlight is running. This will degrade tracking on localhost and other domains that are inaccessible to `app.highlight.io`.
+We currently default `inlineImages` to `true` on `localhost`. Explicitly set `inlineImages={false}` if you run into trouble loading images on your page while Highlight is running. This will degrade tracking on `localhost` and other domains that are inaccessible to `app.highlight.io`.
 
 ## Configure `tracingOrigins` and `networkRecording`
 
-See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
-
-You likely want to associate your back-end errors to client sessions.
+See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details on how to associate your back-end errors to client sessions.
 
 ## Source Map Validation
 
@@ -479,7 +458,6 @@ const { withHighlightConfig } = require('@highlight-run/next/server')
 const nextConfig = {
 	experimental: {
 		appDir: true,
-		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: false
 }
