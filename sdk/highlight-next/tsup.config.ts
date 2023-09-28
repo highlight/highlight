@@ -5,4 +5,5 @@ export default defineConfig({
 	format: ['cjs', 'esm'],
 	dts: true,
 	sourcemap: true,
+	noExternal: ['@highlight-run/sourcemap-uploader'],
 })
