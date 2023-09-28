@@ -65,7 +65,7 @@ import { showIntercomMessage } from '@util/window'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
@@ -163,61 +163,16 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { data: workspacesData, loading: workspacesLoading } =
 		useGetWorkspacesQuery()
 
-	const workspaceOptions = (workspacesData?.workspaces || [])
-		?.map((workspace) => ({
-			value: workspace?.id || '',
-			displayValue: workspace?.name || '',
-			id: workspace?.id || '',
+	const workspaceOptions = useMemo(() => {
+		const currentWorkspaces = workspacesData?.workspaces || []
+		const joinableWorkspaces = workspacesData?.joinable_workspaces || []
+		const all = [...currentWorkspaces, ...joinableWorkspaces]
+		return all.map((workspace) => ({
+			id: workspace?.id,
+			value: workspace?.id,
+			displayValue: workspace?.name,
 		}))
-		.concat(
-			(workspacesData?.joinable_workspaces || [])?.map((workspace) => ({
-				value: workspace?.id || '',
-				displayValue: workspace?.name || '',
-				id: workspace?.id || '',
-			})),
-		)
-		.map((workspace) => {
-			const isSelected = workspaceId === workspace?.id
-			return (
-				<Menu.Item
-					key={workspace?.id}
-					onClick={() => {
-						navigate(`/w/${workspace?.id}`)
-					}}
-					style={{
-						marginTop: '2px',
-						...(isSelected && { backgroundColor: vars.color.n2 }),
-					}}
-				>
-					<Box display="flex" alignItems="center" gap="4">
-						<Box
-							flexShrink={0}
-							margin="4"
-							style={{
-								height: 8,
-								width: 8,
-								backgroundColor: generateRandomColor(
-									workspace?.displayValue ?? '',
-								),
-								borderRadius: '50%',
-							}}
-						></Box>
-						<Box
-							display="flex"
-							alignItems="center"
-							justifyContent="space-between"
-							width="full"
-							gap="2"
-						>
-							<Text lines="1">
-								{workspace?.displayValue ?? ''}
-							</Text>
-							{isSelected && <IconSolidCheck size={14} />}
-						</Box>
-					</Box>
-				</Menu.Item>
-			)
-		})
+	}, [workspacesData?.workspaces, workspacesData?.joinable_workspaces])
 
 	return (
 		<>
@@ -689,7 +644,80 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													<Menu.List>
 														{workspacesLoading
 															? null
-															: workspaceOptions}
+															: workspaceOptions.map(
+																	(
+																		workspace,
+																	) => {
+																		const isSelected =
+																			workspaceId ===
+																			workspace?.id
+																		return (
+																			<Menu.Item
+																				key={
+																					workspace?.id
+																				}
+																				onClick={() => {
+																					navigate(
+																						`/w/${workspace?.id}`,
+																					)
+																				}}
+																				style={{
+																					marginTop:
+																						'2px',
+																					...(isSelected && {
+																						backgroundColor:
+																							vars
+																								.color
+																								.n2,
+																					}),
+																				}}
+																			>
+																				<Box
+																					display="flex"
+																					alignItems="center"
+																					gap="4"
+																				>
+																					<Box
+																						flexShrink={
+																							0
+																						}
+																						margin="4"
+																						style={{
+																							height: 8,
+																							width: 8,
+																							backgroundColor:
+																								generateRandomColor(
+																									workspace?.displayValue ??
+																										'',
+																								),
+																							borderRadius:
+																								'50%',
+																						}}
+																					></Box>
+																					<Box
+																						display="flex"
+																						alignItems="center"
+																						justifyContent="space-between"
+																						width="full"
+																						gap="2"
+																					>
+																						<Text lines="1">
+																							{workspace?.displayValue ??
+																								''}
+																						</Text>
+																						{isSelected && (
+																							<IconSolidCheck
+																								size={
+																									14
+																								}
+																							/>
+																						)}
+																					</Box>
+																				</Box>
+																			</Menu.Item>
+																		)
+																	},
+															  )}
 														<Divider className="mt-1 mb-0" />
 														<Link
 															to="/new"
