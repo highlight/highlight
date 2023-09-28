@@ -761,7 +761,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		// keep the classic match as the alternative error group
 		errorGroup, errorGroupAlt = nil, errorGroup
 		// timeout to generate embeddings in case endpoint is slow. p95 ~ 0.3s
-		eCtx, cancel := context.WithTimeout(ctx, time.Second)
+		eCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
