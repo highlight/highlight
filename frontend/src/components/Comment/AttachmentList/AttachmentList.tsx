@@ -4,6 +4,7 @@ import {
 	IconSolidExternalLink,
 	IconSolidGithub,
 	IconSolidHeight,
+	IconSolidJira,
 	IconSolidLinear,
 	Tag,
 	Text,
@@ -24,6 +25,8 @@ const getIcon = (a: Maybe<ExternalAttachment>) => {
 			return <IconSolidHeight />
 		case IntegrationType.GitHub:
 			return <IconSolidGithub />
+		case IntegrationType.Jira:
+			return <IconSolidJira />
 	}
 	return <></>
 }

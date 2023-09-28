@@ -436,6 +436,12 @@ type Invoice struct {
 	Status       *string    `json:"status"`
 }
 
+type JiraTeam struct {
+	TeamID string `json:"team_id"`
+	Name   string `json:"name"`
+	Key    string `json:"key"`
+}
+
 type LengthRangeInput struct {
 	Min *float64 `json:"min"`
 	Max *float64 `json:"max"`
@@ -1045,6 +1051,7 @@ const (
 	IntegrationTypeClickUp IntegrationType = "ClickUp"
 	IntegrationTypeHeight  IntegrationType = "Height"
 	IntegrationTypeGitHub  IntegrationType = "GitHub"
+	IntegrationTypeJira    IntegrationType = "Jira"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1057,11 +1064,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeClickUp,
 	IntegrationTypeHeight,
 	IntegrationTypeGitHub,
+	IntegrationTypeJira,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira:
 		return true
 	}
 	return false

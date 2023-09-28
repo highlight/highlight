@@ -1508,6 +1508,13 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 	}
 }
 
+query GetWorkspaceIsIntegratedWithJira($project_id: ID!) {
+	is_integrated_with_jira: is_integrated_with(
+		integration_type: Jira
+		project_id: $project_id
+	)
+}
+
 query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 	is_integrated_with_linear: is_integrated_with(
 		integration_type: Zapier
@@ -1542,6 +1549,13 @@ query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 		vercel_project_id
 		project_id
 	}
+}
+
+query GetJiraIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: Jira
+		workspace_id: $workspace_id
+	)
 }
 
 query GetClickUpIntegrationSettings($workspace_id: ID!) {

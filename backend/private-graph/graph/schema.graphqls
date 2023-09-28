@@ -213,6 +213,12 @@ type LinearTeam {
 	key: String!
 }
 
+type JiraTeam {
+	team_id: String!
+	name: String!
+	key: String!
+}
+
 type GitHubRepo {
 	repo_id: String!
 	name: String!
@@ -298,6 +304,7 @@ enum IntegrationType {
 	ClickUp
 	Height
 	GitHub
+	Jira
 }
 
 enum ErrorState {
@@ -1809,6 +1816,7 @@ type Query {
 		integration_type: IntegrationType
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
+	# jira_teams(project_id: ID!): [JiraTeam!]
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project

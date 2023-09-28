@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"golang.org/x/oauth2"
@@ -33,6 +34,10 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 		return height.GetOAuthConfig()
 	}
 
+	if integrationType == modelInputs.IntegrationTypeJira {
+		return jira.GetOAuthConfig()
+	}
+
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
 }
 
@@ -52,6 +57,8 @@ func (c *Client) setWorkspaceToken(workspace *model.Workspace, integrationType m
 		RefreshToken:    token.RefreshToken,
 		Expiry:          token.Expiry,
 	}
+
+	fmt.Println("SETTING TOKEN", integrationWorkspaceMapping)
 
 	if err := c.db.Clauses(clause.OnConflict{
 		UpdateAll: true,
@@ -116,6 +123,7 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 }
 
 func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project, integrationType modelInputs.IntegrationType) (bool, error) {
+	fmt.Println("IsProjectIntegrated")
 	if integrationType == modelInputs.IntegrationTypeClickUp {
 		var projectMapping *model.IntegrationProjectMapping
 		if err := c.db.Where(&model.IntegrationProjectMapping{

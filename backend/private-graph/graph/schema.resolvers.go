@@ -2320,6 +2320,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddLinearToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
@@ -2359,6 +2363,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+			return false, err
+		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.RemoveSlackFromWorkspace(workspace, projectID); err != nil {
 			return false, err
@@ -2392,6 +2400,7 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 
 // AddIntegrationToWorkspace is the resolver for the addIntegrationToWorkspace field.
 func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integrationType *modelInputs.IntegrationType, workspaceID int, code string) (bool, error) {
+	fmt.Println("INSIDE ADD INTEGRATION TO WORKSPACE MUTATION 2")
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err
@@ -2407,6 +2416,10 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
 		if err := r.AddGitHubToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
 	} else {
@@ -2429,6 +2442,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitHub {
 		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
+			return false, err
+		}
+	} else if integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -5949,6 +5966,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.SlackAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeZapier {
 		return project.ZapierAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeJira {
+		return project.JiraAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeFront {
 		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
 			return false, nil
@@ -6286,6 +6305,11 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 	})
 
 	return ret, nil
+}
+
+// JiraTeams is the resolver for the jira_teams field.
+func (r *queryResolver) JiraTeams(ctx context.Context, projectID int) ([]*modelInputs.JiraTeam, error) {
+	panic(fmt.Errorf("not implemented: JiraTeams - jira_teams"))
 }
 
 // GithubRepos is the resolver for the github_repos field.

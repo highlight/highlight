@@ -10581,6 +10581,63 @@ export type GetWorkspaceIsIntegratedWithLinearQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithLinearQuery,
 	Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithJiraDocument = gql`
+	query GetWorkspaceIsIntegratedWithJira($project_id: ID!) {
+		is_integrated_with_jira: is_integrated_with(
+			integration_type: Jira
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithJiraQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithJiraQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithJiraQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithJiraQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithJiraQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithJiraQuery,
+		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithJiraQuery,
+		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
+	>(GetWorkspaceIsIntegratedWithJiraDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithJiraLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithJiraQuery,
+		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithJiraQuery,
+		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
+	>(GetWorkspaceIsIntegratedWithJiraDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithJiraQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithJiraQuery
+>
+export type GetWorkspaceIsIntegratedWithJiraLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithJiraLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithJiraQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithJiraQuery,
+	Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
+>
 export const GetWorkspaceIsIntegratedWithZapierDocument = gql`
 	query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(
@@ -10816,6 +10873,63 @@ export type GetWorkspaceIsIntegratedWithVercelLazyQueryHookResult = ReturnType<
 export type GetWorkspaceIsIntegratedWithVercelQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithVercelQuery,
 	Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+>
+export const GetJiraIntegrationSettingsDocument = gql`
+	query GetJiraIntegrationSettings($workspace_id: ID!) {
+		is_integrated: is_workspace_integrated_with(
+			integration_type: Jira
+			workspace_id: $workspace_id
+		)
+	}
+`
+
+/**
+ * __useGetJiraIntegrationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetJiraIntegrationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetJiraIntegrationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetJiraIntegrationSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetJiraIntegrationSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>(GetJiraIntegrationSettingsDocument, baseOptions)
+}
+export function useGetJiraIntegrationSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>(GetJiraIntegrationSettingsDocument, baseOptions)
+}
+export type GetJiraIntegrationSettingsQueryHookResult = ReturnType<
+	typeof useGetJiraIntegrationSettingsQuery
+>
+export type GetJiraIntegrationSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetJiraIntegrationSettingsLazyQuery
+>
+export type GetJiraIntegrationSettingsQueryResult = Apollo.QueryResult<
+	Types.GetJiraIntegrationSettingsQuery,
+	Types.GetJiraIntegrationSettingsQueryVariables
 >
 export const GetClickUpIntegrationSettingsDocument = gql`
 	query GetClickUpIntegrationSettings($workspace_id: ID!) {

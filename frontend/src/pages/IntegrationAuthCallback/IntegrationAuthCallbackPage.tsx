@@ -25,6 +25,7 @@ import { StringParam, useQueryParams } from 'use-query-params'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 interface Props {
 	code: string
@@ -34,7 +35,12 @@ interface Props {
 
 export const VercelSettingsModalWidth = 672
 
-const WorkspaceIntegrations = new Set<string>(['clickup', 'github', 'height'])
+const WorkspaceIntegrations = new Set<string>([
+	'clickup',
+	'github',
+	'height',
+	'jira',
+])
 
 const logError = (e: any) => {
 	H.consumeError(e)
@@ -359,6 +365,19 @@ const GitHubIntegrationCallback = ({
 	)
 }
 
+const JiraIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useJiraIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="Jira"
+			type="jira"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -393,6 +412,13 @@ const IntegrationAuthCallbackPage = () => {
 				next = parsedState['next']
 				workspaceId = parsedState['workspace_id']
 			}
+			console.log({
+				code,
+				projectId,
+				next,
+				workspaceId,
+				installationId,
+			})
 			return {
 				code,
 				projectId,
@@ -411,6 +437,15 @@ const IntegrationAuthCallbackPage = () => {
 			case 'clickup':
 				cb = (
 					<ClickUpIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'jira':
+				console.log('JIRA MATCHED', new Date())
+				cb = (
+					<JiraIntegrationCallback
 						code={code}
 						projectId={projectId}
 					/>

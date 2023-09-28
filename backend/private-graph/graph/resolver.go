@@ -1965,6 +1965,20 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 	return nil
 }
 
+func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	// res, err := jira.GetAccessToken(ctx, code)
+	// if err != nil {
+	// 	return e.Wrap(err, "error getting Jira oauth access token")
+	// }
+
+	// if err := r.DB.Where(&workspace).Select("jira_access_token").Updates(&model.Workspace{JiraAccessToken: &res.AccessToken}).Error; err != nil {
+	// 	return e.Wrap(err, "error updating Jira access token in workspace")
+	// }
+
+	// return nil
+	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
+}
+
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
@@ -2114,6 +2128,22 @@ func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeJira,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "workspace does not have a Jira integration")
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "error deleting workspace Jira integration")
 	}
 
 	return nil

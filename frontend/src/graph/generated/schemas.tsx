@@ -748,6 +748,7 @@ export enum IntegrationType {
 	Front = 'Front',
 	GitHub = 'GitHub',
 	Height = 'Height',
+	Jira = 'Jira',
 	Linear = 'Linear',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
@@ -762,6 +763,13 @@ export type Invoice = {
 	date?: Maybe<Scalars['Timestamp']>
 	status?: Maybe<Scalars['String']>
 	url?: Maybe<Scalars['String']>
+}
+
+export type JiraTeam = {
+	__typename?: 'JiraTeam'
+	key: Scalars['String']
+	name: Scalars['String']
+	team_id: Scalars['String']
 }
 
 export enum KeyType {

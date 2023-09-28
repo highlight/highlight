@@ -249,6 +249,7 @@ type Workspace struct {
 	Secret                      *string // Needed for workspace-level team
 	Admins                      []Admin `gorm:"many2many:workspace_admins;"`
 	SlackAccessToken            *string
+	JiraAccessToken             *string
 	SlackWebhookURL             *string
 	SlackWebhookChannel         *string
 	SlackWebhookChannelID       *string
@@ -321,6 +322,7 @@ type Project struct {
 	StripeCustomerID    *string
 	StripePriceID       *string
 	ZapierAccessToken   *string
+	JiraAccessToken     *string
 	FrontAccessToken    *string
 	FrontRefreshToken   *string
 	FrontTokenExpiresAt *time.Time

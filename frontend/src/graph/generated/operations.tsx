@@ -3595,6 +3595,14 @@ export type GetWorkspaceIsIntegratedWithLinearQuery = {
 	>
 }
 
+export type GetWorkspaceIsIntegratedWithJiraQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithJiraQuery = { __typename?: 'Query' } & {
+	is_integrated_with_jira: Types.Query['is_integrated_with']
+}
+
 export type GetWorkspaceIsIntegratedWithZapierQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3638,6 +3646,14 @@ export type GetWorkspaceIsIntegratedWithVercelQuery = {
 			'vercel_project_id' | 'project_id'
 		>
 	>
+}
+
+export type GetJiraIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
 }
 
 export type GetClickUpIntegrationSettingsQueryVariables = Types.Exact<{
@@ -4744,6 +4760,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithSlack' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
+		GetWorkspaceIsIntegratedWithJira:
+			'GetWorkspaceIsIntegratedWithJira' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
 		GetWorkspaceIsIntegratedWithFront:
@@ -4752,6 +4770,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
+		GetJiraIntegrationSettings: 'GetJiraIntegrationSettings' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,

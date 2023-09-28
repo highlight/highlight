@@ -26,6 +26,7 @@ import {
 	IconSolidClickUp,
 	IconSolidGithub,
 	IconSolidHeight,
+	IconSolidJira,
 	IconSolidLinear,
 	IconSolidPaperAirplane,
 	IconSolidPlus,
@@ -53,6 +54,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
@@ -337,6 +339,7 @@ export const NewCommentForm = ({
 	)
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
+	const { settings: jiraSettings } = useJiraIntegration()
 
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
@@ -360,6 +363,18 @@ export const NewCommentForm = ({
 				),
 				id: 'linear',
 				value: IntegrationType.Linear,
+			})
+		}
+		if (jiraSettings.isIntegrated) {
+			integrations.push({
+				displayValue: (
+					<Stack direction="row" gap="4" align="center">
+						<IconSolidJira />
+						Create a Jira issue
+					</Stack>
+				),
+				id: 'jira',
+				value: IntegrationType.Jira,
 			})
 		}
 		if (isClickupIntegrated) {
@@ -401,6 +416,7 @@ export const NewCommentForm = ({
 		return integrations
 	}, [
 		isLinearIntegratedWithProject,
+		jiraSettings.isIntegrated,
 		isClickupIntegrated,
 		isHeightIntegrated,
 		githubSettings.isIntegrated,
