@@ -283,7 +283,7 @@ const SectionRow = ({
 				lines="1"
 				cssClass={styles.query}
 			>
-				{formStore.getValue(formStore.names.search).trim()}
+				{formStore.useValue(formStore.names.search).trim()}
 			</Text>
 			{selected ? (
 				<Badge
