@@ -223,8 +223,11 @@ const ErrorInstancesContainer: React.FC<
 								size="xxSmall"
 								iconLeft={<IconSolidCheckCircle size={12} />}
 								checked={hasSession}
-								onChange={(state) => {
-									form.setValue(form.names.hasSession, state)
+								onChange={() => {
+									form.setValue(
+										form.names.hasSession,
+										!hasSession,
+									)
 								}}
 							/>
 							<Text size="xSmall">
