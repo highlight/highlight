@@ -205,6 +205,7 @@ const ErrorInstancesContainer: React.FC<
 							position="relative"
 							alignItems="stretch"
 							display="flex"
+							flexGrow={1}
 							color="weak"
 						>
 							<IconSolidSearch
@@ -214,25 +215,35 @@ const ErrorInstancesContainer: React.FC<
 							<Form.Input
 								name={form.names.email}
 								placeholder="Search for email"
-								style={{ paddingLeft: 28, width: 310 }}
+								style={{ paddingLeft: 28, width: '100%' }}
 							/>
-						</Box>
-						<Box display="flex" alignItems="center" gap="6">
-							<SwitchButton
-								type="submit"
-								size="xxSmall"
-								iconLeft={<IconSolidCheckCircle size={12} />}
-								checked={hasSession}
-								onChange={() => {
-									form.setValue(
-										form.names.hasSession,
-										!hasSession,
-									)
-								}}
-							/>
-							<Text size="xSmall">
-								Only instances with recorded sessions
-							</Text>
+							<Box
+								position="absolute"
+								display="flex"
+								justifyContent="flex-end"
+								alignItems="center"
+								gap="6"
+								height="full"
+								style={{ right: 8 }}
+							>
+								<SwitchButton
+									type="submit"
+									size="xxSmall"
+									iconLeft={
+										<IconSolidCheckCircle size={12} />
+									}
+									checked={hasSession}
+									onChange={() => {
+										form.setValue(
+											form.names.hasSession,
+											!hasSession,
+										)
+									}}
+								/>
+								<Text size="xSmall">
+									Only instances with recorded sessions
+								</Text>
+							</Box>
 						</Box>
 					</Box>
 				</Form>
