@@ -3,7 +3,6 @@ import {
 	BoxProps,
 	Callout,
 	Form,
-	FormState,
 	IconSolidCheckCircle,
 	IconSolidSearch,
 	Stack,
@@ -44,14 +43,10 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 		false,
 	)
 	const [currentSearchEmail, setCurrentSearchEmail] = React.useState('')
-	const formStore = useFormStore<SearchFormState>({
-		defaultValues: {
-			email: '',
-			hasSession: hasSessionDefault,
-		},
+	const [args, setArgs] = useState<SearchFormState>({
+		email: '',
+		hasSession: hasSessionDefault,
 	})
-	const email = formStore.useValue('email')
-	const hasSession = formStore.useValue('hasSession')
 	const [query, setQuery] = useState('')
 
 	const [pagination, setPagination] = useState<Pagination>({
@@ -68,22 +63,22 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 		skip: !errorGroup?.secure_id,
 	})
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
+	const handleSubmit = ({ email, hasSession }: SearchFormState) => {
+		setArgs({ hasSession, email })
 		setQuery(`${hasSession ? 'has_session:true ' : ''}email:${email}`)
 		setCurrentSearchEmail(email)
 	}
 
 	React.useEffect(() => {
-		setHasSessionDefault(hasSession)
-	}, [hasSession, setHasSessionDefault])
+		setHasSessionDefault(args.hasSession)
+	}, [args.hasSession, setHasSessionDefault])
 
 	if (loading) {
 		return (
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
-				form={formStore}
+				args={args}
 				onSubmit={handleSubmit}
 				verticallyAlign
 			>
@@ -96,7 +91,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
-				form={formStore}
+				args={args}
 				onSubmit={handleSubmit}
 			>
 				<Box m="auto" style={{ maxWidth: 300 }}>
@@ -136,7 +131,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
-				form={formStore}
+				args={args}
 				onSubmit={handleSubmit}
 			>
 				<NoErrorInstancesFound />
@@ -152,7 +147,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			canMoveForward={pageInfo?.hasNextPage ?? false}
 			onPrevious={handlePreviousPage}
 			onNext={handleNextPage}
-			form={formStore}
+			args={args}
 			onSubmit={handleSubmit}
 		>
 			<ErrorInstancesTable
@@ -166,8 +161,8 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 type ErrorInstancesContainerProps = {
 	canMoveBackward: boolean
 	canMoveForward: boolean
-	form: FormState<SearchFormState>
-	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+	args: SearchFormState
+	onSubmit: ({ email, hasSession }: SearchFormState) => void
 	onPrevious?: () => void
 	onNext?: () => void
 	verticallyAlign?: boolean
@@ -181,10 +176,15 @@ const ErrorInstancesContainer: React.FC<
 	onPrevious,
 	onNext,
 	onSubmit,
-	form,
+	args,
 	children,
 	verticallyAlign = false,
 }) => {
+	const form = useFormStore<{ email: string }>({
+		defaultValues: {
+			email: '',
+		},
+	})
 	const childrenBoxProps: BoxProps = {
 		mb: '20',
 		borderBottom: 'secondary',
@@ -195,39 +195,56 @@ const ErrorInstancesContainer: React.FC<
 		childrenBoxProps.display = 'flex'
 		childrenBoxProps.alignItems = 'center'
 	}
-	const hasSession = form.useValue('hasSession')
 	return (
 		<Stack direction="column">
 			<Box my="8">
-				<Form store={form} onSubmit={onSubmit}>
-					<Box display="flex" alignItems="center" gap="12">
-						<Box
-							position="relative"
-							alignItems="stretch"
-							display="flex"
-							color="weak"
+				<Box display="flex" alignItems="center" gap="12">
+					<Box
+						position="relative"
+						alignItems="stretch"
+						display="flex"
+						flexGrow={1}
+						color="weak"
+					>
+						<IconSolidSearch
+							size={16}
+							className={styles.searchIcon}
+						/>
+						<Form
+							style={{ width: '100%' }}
+							store={form}
+							onChange={() => {
+								onSubmit({
+									email: form.getValue('email'),
+									hasSession: args.hasSession,
+								})
+							}}
 						>
-							<IconSolidSearch
-								size={16}
-								className={styles.searchIcon}
-							/>
 							<Form.Input
 								name={form.names.email}
 								placeholder="Search for email"
-								style={{ paddingLeft: 28, width: 310 }}
+								style={{ paddingLeft: 28, width: '100%' }}
 							/>
-						</Box>
-						<Box display="flex" alignItems="center" gap="6">
+						</Form>
+						<Box
+							position="absolute"
+							display="flex"
+							justifyContent="flex-end"
+							alignItems="center"
+							gap="6"
+							height="full"
+							style={{ right: 8 }}
+						>
 							<SwitchButton
-								type="submit"
+								type="button"
 								size="xxSmall"
 								iconLeft={<IconSolidCheckCircle size={12} />}
-								checked={hasSession}
+								checked={args.hasSession}
 								onChange={() => {
-									form.setValue(
-										form.names.hasSession,
-										!hasSession,
-									)
+									onSubmit({
+										email: args.email,
+										hasSession: !args.hasSession,
+									})
 								}}
 							/>
 							<Text size="xSmall">
@@ -235,7 +252,7 @@ const ErrorInstancesContainer: React.FC<
 							</Text>
 						</Box>
 					</Box>
-				</Form>
+				</Box>
 			</Box>
 			<Box {...childrenBoxProps}>{children}</Box>
 			<Stack direction="row" justifyContent="flex-end">
