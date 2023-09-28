@@ -3847,6 +3847,45 @@ func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID i
 	return r.Resolver.UpsertDiscordChannel(project.WorkspaceID, name)
 }
 
+// TestErrorEnhancement is the resolver for the testErrorEnhancement field.
+func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string) (*model.ErrorObject, error) {
+	errorObject := model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
+		Preload("ErrorGroup").
+		Take(&errorObject).Error; err != nil {
+		return nil, err
+	}
+
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorObject.ProjectID}}).Take(&project).Error; err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	testService := &model.Service{
+		Name:           errorObject.ServiceName,
+		Status:         modelInputs.ServiceStatusHealthy,
+		ProjectID:      project.ID,
+		GithubRepoPath: &githubRepoPath,
+		BuildPrefix:    buildPrefix,
+		GithubPrefix:   githubPrefix,
+	}
+
+	mappedStackTrace, _, err := r.Store.EnhancedStackTrace(ctx, *errorObject.StackTrace, workspace, &project, &errorObject, testService)
+	if err != nil {
+		return nil, err
+	}
+	if mappedStackTrace != nil {
+		errorObject.MappedStackTrace = mappedStackTrace
+	}
+
+	return &errorObject, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -7484,6 +7523,16 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	})
 
 	return &connection, err
+}
+
+// ServiceByName is the resolver for the serviceByName field.
+func (r *queryResolver) ServiceByName(ctx context.Context, projectID int, name string) (*model.Service, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Store.FindService(ctx, projectID, name)
 }
 
 // ErrorTags is the resolver for the error_tags field.

@@ -5074,6 +5074,85 @@ export type UpsertDiscordChannelMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpsertDiscordChannelMutation,
 	Types.UpsertDiscordChannelMutationVariables
 >
+export const TestErrorEnhancementDocument = gql`
+	mutation testErrorEnhancement(
+		$error_object_id: ID!
+		$github_repo_path: String!
+		$github_prefix: String
+		$build_prefix: String
+	) {
+		testErrorEnhancement(
+			error_object_id: $error_object_id
+			github_repo_path: $github_repo_path
+			github_prefix: $github_prefix
+			build_prefix: $build_prefix
+		) {
+			id
+			type
+			serviceName
+			serviceVersion
+			stack_trace
+			structured_stack_trace {
+				columnNumber
+				enhancementSource
+				enhancementVersion
+				error
+				externalLink
+				fileName
+				functionName
+				lineContent
+				lineNumber
+				linesAfter
+				linesBefore
+			}
+		}
+	}
+`
+export type TestErrorEnhancementMutationFn = Apollo.MutationFunction<
+	Types.TestErrorEnhancementMutation,
+	Types.TestErrorEnhancementMutationVariables
+>
+
+/**
+ * __useTestErrorEnhancementMutation__
+ *
+ * To run a mutation, you first call `useTestErrorEnhancementMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTestErrorEnhancementMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [testErrorEnhancementMutation, { data, loading, error }] = useTestErrorEnhancementMutation({
+ *   variables: {
+ *      error_object_id: // value for 'error_object_id'
+ *      github_repo_path: // value for 'github_repo_path'
+ *      github_prefix: // value for 'github_prefix'
+ *      build_prefix: // value for 'build_prefix'
+ *   },
+ * });
+ */
+export function useTestErrorEnhancementMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.TestErrorEnhancementMutation,
+		Types.TestErrorEnhancementMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.TestErrorEnhancementMutation,
+		Types.TestErrorEnhancementMutationVariables
+	>(TestErrorEnhancementDocument, baseOptions)
+}
+export type TestErrorEnhancementMutationHookResult = ReturnType<
+	typeof useTestErrorEnhancementMutation
+>
+export type TestErrorEnhancementMutationResult =
+	Apollo.MutationResult<Types.TestErrorEnhancementMutation>
+export type TestErrorEnhancementMutationOptions = Apollo.BaseMutationOptions<
+	Types.TestErrorEnhancementMutation,
+	Types.TestErrorEnhancementMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -13537,6 +13616,70 @@ export type GetServicesLazyQueryHookResult = ReturnType<
 export type GetServicesQueryResult = Apollo.QueryResult<
 	Types.GetServicesQuery,
 	Types.GetServicesQueryVariables
+>
+export const GetServiceByNameDocument = gql`
+	query GetServiceByName($project_id: ID!, $name: String!) {
+		serviceByName(project_id: $project_id, name: $name) {
+			id
+			projectID
+			name
+			status
+			githubRepoPath
+			buildPrefix
+			githubPrefix
+			errorDetails
+		}
+	}
+`
+
+/**
+ * __useGetServiceByNameQuery__
+ *
+ * To run a query within a React component, call `useGetServiceByNameQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServiceByNameQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServiceByNameQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useGetServiceByNameQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>(GetServiceByNameDocument, baseOptions)
+}
+export function useGetServiceByNameLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>(GetServiceByNameDocument, baseOptions)
+}
+export type GetServiceByNameQueryHookResult = ReturnType<
+	typeof useGetServiceByNameQuery
+>
+export type GetServiceByNameLazyQueryHookResult = ReturnType<
+	typeof useGetServiceByNameLazyQuery
+>
+export type GetServiceByNameQueryResult = Apollo.QueryResult<
+	Types.GetServiceByNameQuery,
+	Types.GetServiceByNameQueryVariables
 >
 export const GetErrorTagsDocument = gql`
 	query GetErrorTags {

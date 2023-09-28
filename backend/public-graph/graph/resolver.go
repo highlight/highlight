@@ -2133,7 +2133,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
-		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
+		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
 
 		if err != nil {
 			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)

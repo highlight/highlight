@@ -2199,6 +2199,19 @@ query GetServices(
 	}
 }
 
+query GetServiceByName($project_id: ID!, $name: String!) {
+	serviceByName(project_id: $project_id, name: $name) {
+		id
+		projectID
+		name
+		status
+		githubRepoPath
+		buildPrefix
+		githubPrefix
+		errorDetails
+	}
+}
+
 fragment ErrorTag on ErrorTag {
 	id
 	created_at

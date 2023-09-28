@@ -170,14 +170,20 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 	return &newStackTraceInput, nil
 }
 
-func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject) ([]*privateModel.ErrorTrace, error) {
+func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, validateService *model.Service) ([]*privateModel.ErrorTrace, error) {
 	if errorObj.ServiceName == "" {
 		return nil, nil
 	}
 
-	service, err := store.FindService(ctx, project.ID, errorObj.ServiceName)
-	if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
-		return nil, err
+	var service *model.Service
+	var err error
+	if validateService == nil {
+		service, err = store.FindService(ctx, project.ID, errorObj.ServiceName)
+		if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
+			return nil, err
+		}
+	} else {
+		service = validateService
 	}
 
 	gitHubAccessToken, err := store.integrationsClient.GetWorkspaceAccessToken(ctx, workspace, privateModel.IntegrationTypeGitHub)
@@ -256,14 +262,14 @@ func (store *Store) StructuredStackTrace(ctx context.Context, stackTrace string)
 }
 
 // should always return error stacktrace, returned error will be logged, return enhanced stacktrace string when successfully enhanced
-func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
+func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, validateService *model.Service) (*string, []*privateModel.ErrorTrace, error) {
 	structuredStackTrace, err := store.StructuredStackTrace(ctx, stackTrace)
 	if err != nil {
 		return nil, structuredStackTrace, errors.Wrap(err, "Error parsing stacktrace to enhance")
 	}
 
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := store.GitHubEnhancedStackTrace(ctx, structuredStackTrace, workspace, project, errorObj)
+	mappedStackTrace, err := store.GitHubEnhancedStackTrace(ctx, structuredStackTrace, workspace, project, errorObj, validateService)
 	if err != nil {
 		return nil, structuredStackTrace, errors.Wrap(err, "Error enhancing stacktrace")
 	}

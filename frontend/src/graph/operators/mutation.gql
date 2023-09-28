@@ -1197,3 +1197,36 @@ mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
 		name
 	}
 }
+
+mutation testErrorEnhancement(
+	$error_object_id: ID!
+	$github_repo_path: String!
+	$github_prefix: String
+	$build_prefix: String
+) {
+	testErrorEnhancement(
+		error_object_id: $error_object_id
+		github_repo_path: $github_repo_path
+		github_prefix: $github_prefix
+		build_prefix: $build_prefix
+	) {
+		id
+		type
+		serviceName
+		serviceVersion
+		stack_trace
+		structured_stack_trace {
+			columnNumber
+			enhancementSource
+			enhancementVersion
+			error
+			externalLink
+			fileName
+			functionName
+			lineContent
+			lineNumber
+			linesAfter
+			linesBefore
+		}
+	}
+}
