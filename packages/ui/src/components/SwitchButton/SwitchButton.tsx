@@ -6,9 +6,8 @@ import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
 
-type Props = Omit<CheckboxProps, 'size' | 'onChange'> &
+type Props = Omit<CheckboxProps, 'size'> &
 	styles.Variants & {
-		onChange?: (checked: boolean) => void
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
 	}
@@ -33,11 +32,7 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 			render={<button />}
 			className={className}
 			store={checkbox}
-			onChange={() => {
-				if (onChange) {
-					onChange(!checkbox.getState().value)
-				}
-			}}
+			onChange={onChange}
 			checked={checked}
 			{...rest}
 		>
