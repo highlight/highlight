@@ -12332,7 +12332,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/cloudflare@workspace:*, @highlight-run/cloudflare@workspace:^, @highlight-run/cloudflare@workspace:sdk/highlight-cloudflare":
+"@highlight-run/cloudflare@workspace:*, @highlight-run/cloudflare@workspace:sdk/highlight-cloudflare":
   version: 0.0.0-use.local
   resolution: "@highlight-run/cloudflare@workspace:sdk/highlight-cloudflare"
   dependencies:
@@ -12524,7 +12524,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/next@workspace:sdk/highlight-next"
   dependencies:
-    "@highlight-run/cloudflare": "workspace:^"
+    "@highlight-run/cloudflare": "workspace:*"
     "@highlight-run/node": "workspace:*"
     "@highlight-run/opentelemetry-sdk-workers": "workspace:*"
     "@highlight-run/react": "workspace:*"
