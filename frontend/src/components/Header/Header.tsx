@@ -11,6 +11,7 @@ import {
 	useGetProjectQuery,
 	useGetSubscriptionDetailsQuery,
 	useGetSystemConfigurationQuery,
+	useGetWorkspacesQuery,
 } from '@graph/hooks'
 import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
@@ -23,6 +24,7 @@ import {
 	IconSolidChartBar,
 	IconSolidChartPie,
 	IconSolidChat,
+	IconSolidCheck,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
@@ -31,6 +33,7 @@ import {
 	IconSolidLogs,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
+	IconSolidPlusSm,
 	IconSolidSearch,
 	IconSolidSparkles,
 	IconSolidSpeakerphone,
@@ -59,14 +62,16 @@ import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
 import { showIntercomMessage } from '@util/window'
+import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
+import { generateRandomColor } from '@/util/color'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.css'
@@ -117,6 +122,7 @@ export const useBillingHook = ({
 }
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
+	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin, isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
@@ -153,6 +159,20 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	]
 
 	const inProjectOrWorkspace = isLoggedIn && (projectId || workspaceId)
+
+	const { data: workspacesData, loading: workspacesLoading } =
+		useGetWorkspacesQuery()
+
+	const workspaceOptions = useMemo(() => {
+		const currentWorkspaces = workspacesData?.workspaces || []
+		const joinableWorkspaces = workspacesData?.joinable_workspaces || []
+		const all = [...currentWorkspaces, ...joinableWorkspaces]
+		return all.map((workspace) => ({
+			id: workspace?.id,
+			value: workspace?.id,
+			displayValue: workspace?.name,
+		}))
+	}, [workspacesData?.workspaces, workspacesData?.joinable_workspaces])
 
 	return (
 		<>
@@ -582,31 +602,180 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Menu.Divider />
-											<Link
-												to="/switch"
-												className={linkStyle}
+											<Menu.Item
+												style={{
+													paddingTop: 0,
+													paddingBottom: 0,
+												}}
 											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
+												<Menu>
+													<Menu.Button
+														style={{
+															paddingLeft: 0,
+														}}
+														size="small"
+														emphasis="low"
+														kind="secondary"
 													>
-														<IconSolidSwitchHorizontal
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
+														<Box
+															gap="4"
+															display="flex"
+															alignItems="center"
+														>
+															<IconSolidSwitchHorizontal
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															<Text
+																color="n11"
+																weight="regular"
+															>
+																Switch workspace
+															</Text>
+														</Box>
+													</Menu.Button>
+													<Menu.List>
+														{workspacesLoading
+															? null
+															: workspaceOptions.map(
+																	(
+																		workspace,
+																	) => {
+																		const isSelected =
+																			workspaceId ===
+																			workspace?.id
+																		return (
+																			<Menu.Item
+																				key={
+																					workspace?.id
+																				}
+																				onClick={() => {
+																					navigate(
+																						`/w/${workspace?.id}`,
+																					)
+																				}}
+																				style={{
+																					marginTop:
+																						'2px',
+																					...(isSelected && {
+																						backgroundColor:
+																							vars
+																								.color
+																								.n2,
+																					}),
+																				}}
+																			>
+																				<Box
+																					display="flex"
+																					alignItems="center"
+																					gap="4"
+																				>
+																					<Box
+																						flexShrink={
+																							0
+																						}
+																						margin="4"
+																						style={{
+																							height: 8,
+																							width: 8,
+																							backgroundColor:
+																								generateRandomColor(
+																									workspace?.displayValue ??
+																										'',
+																								),
+																							borderRadius:
+																								'50%',
+																						}}
+																					></Box>
+																					<Box
+																						display="flex"
+																						alignItems="center"
+																						justifyContent="space-between"
+																						width="full"
+																						gap="2"
+																					>
+																						<Text lines="1">
+																							{workspace?.displayValue ??
+																								''}
+																						</Text>
+																						{isSelected && (
+																							<IconSolidCheck
+																								size={
+																									14
+																								}
+																							/>
+																						)}
+																					</Box>
+																				</Box>
+																			</Menu.Item>
+																		)
+																	},
+															  )}
+														<Divider className="mt-1 mb-0" />
+														<Link
+															to="/new"
+															className={
+																linkStyle
 															}
-														/>
-														Switch workspace
-													</Box>
-												</Menu.Item>
-											</Link>
+														>
+															<Menu.Item>
+																<Box
+																	display="flex"
+																	alignItems="center"
+																	gap="4"
+																>
+																	<IconSolidPlusSm
+																		size={
+																			14
+																		}
+																		color={
+																			vars
+																				.color
+																				.n9
+																		}
+																	/>
+																	Create new
+																	workspace
+																</Box>
+															</Menu.Item>
+														</Link>
+														<Link
+															to={`/${workspaceId}/settings`}
+															className={
+																linkStyle
+															}
+														>
+															<Menu.Item>
+																<Box
+																	display="flex"
+																	alignItems="center"
+																	gap="4"
+																>
+																	<IconSolidCog
+																		size={
+																			14
+																		}
+																		color={
+																			vars
+																				.color
+																				.n9
+																		}
+																	/>
+																	Workspace
+																	settings
+																</Box>
+															</Menu.Item>
+														</Link>
+													</Menu.List>
+												</Menu>
+											</Menu.Item>
 											<Menu.Item
 												onClick={() => {
 													showIntercomMessage()

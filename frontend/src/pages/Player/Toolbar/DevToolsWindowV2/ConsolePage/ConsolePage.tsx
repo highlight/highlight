@@ -43,7 +43,8 @@ export const ConsolePage = ({
 }) => {
 	const { projectId } = useProjectId()
 	const [selectedCursor, setSelectedCursor] = useState(logCursor)
-	const { session, time, isPlayerReady } = useReplayerContext()
+	const { session, time, setTime, sessionMetadata, isPlayerReady } =
+		useReplayerContext()
 
 	const params = buildSessionParams({ session, levels, sources })
 
@@ -158,6 +159,11 @@ export const ConsolePage = ({
 							current={selectedCursor === logEdge.cursor}
 							onSelect={() => {
 								setSelectedCursor(logEdge.cursor)
+								const timestamp =
+									new Date(
+										messagesToRender[_index].node.timestamp,
+									).getTime() - sessionMetadata.startTime
+								setTime(timestamp)
 							}}
 						/>
 					)}

@@ -76,7 +76,7 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 			return item
 		})
 		resp, err := c.client.CreateEmbeddings(
-			context.Background(),
+			ctx,
 			openai.EmbeddingRequest{
 				Input: inputs.inputs,
 				Model: openai.AdaEmbeddingV2,
@@ -132,7 +132,7 @@ func (c *HuggingfaceModelClient) GetStringEmbedding(ctx context.Context, input s
 		return nil, err
 	}
 
-	body, err := c.makeRequest(b)
+	body, err := c.makeRequest(ctx, b)
 	if err != nil {
 		return nil, err
 	}
@@ -155,8 +155,11 @@ type HuggingfaceModelInputs struct {
 	Inputs string `json:"inputs"`
 }
 
-func (c *HuggingfaceModelClient) makeRequest(b []byte) ([]byte, error) {
-	req, _ := http.NewRequest(http.MethodPost, c.url, bytes.NewReader(b))
+func (c *HuggingfaceModelClient) makeRequest(ctx context.Context, b []byte) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Add("Authorization", "Bearer "+c.token)
 	req.Header.Add("Content-Type", "application/json")
 	response, err := c.client.Do(req)
@@ -201,7 +204,7 @@ func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*mo
 		if err != nil {
 			return nil, err
 		}
-		body, err := c.makeRequest(b)
+		body, err := c.makeRequest(ctx, b)
 		if err != nil {
 			return nil, err
 		}
