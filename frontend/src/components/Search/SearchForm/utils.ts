@@ -67,6 +67,21 @@ export const parseSearchQuery = (query = ''): SearchParam[] => {
 	return terms
 }
 
+export const queryAsStringParams = (query: string): string[] => {
+	const terms = []
+	let match
+
+	while ((match = PARSE_REGEX.exec(query)) !== null) {
+		const term = match[0]
+
+		if (term.trim() !== '') {
+			terms.push(term)
+		}
+	}
+
+	return terms
+}
+
 export const stringifySearchQuery = (params: SearchParam[]) => {
 	const querySegments: string[] = []
 

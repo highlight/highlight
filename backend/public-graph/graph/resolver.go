@@ -2133,7 +2133,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
-		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
+		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
 
 		if err != nil {
 			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
@@ -2967,6 +2967,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		end := re.End(sessionObj.CreatedAt)
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),

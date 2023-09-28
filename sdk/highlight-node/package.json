@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "3.4.0",
+	"version": "3.4.1",
 	"license": "Apache-2.0",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -15,7 +15,7 @@
 	"scripts": {
 		"typegen": "tsup src/index.ts --dts-only",
 		"dev": "yarn build --watch",
-		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"build": "tsup",
 		"test": "jest"
 	},
 	"installConfig": {

@@ -83,3 +83,10 @@
 - Repaired `Highlight` export from `@highlight-run/next/server` to keep serverless functions alive while flushing OTEL errors
 - Added `H` and `Highlight` exports from `@highlight-run/next/edge` to wrap Vercel's Edge Runtime API endpoints
 - Added `H` and `Highlight` exports from `@highlight-run/next/app-router` to wrap App Router API endpoints
+
+### 4.4.1
+
+### Patch changes
+
+- Excised `@protobufjs/inquire` from the build to eliminate console warnings and repair the Edge runtime wrapper
+- Exported `getHighlightErrorInitialProps` to streamline configuring `pages/_error.tsx`

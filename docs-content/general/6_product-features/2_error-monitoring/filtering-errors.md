@@ -13,6 +13,16 @@ Filtered errors do not count towards your billing quota.
 
 There are several options for filtering errors, all of which can be found in the "Error Monitoring" tab of your [project settings](https://app.highlight.io/settings). Details on each option are below.
 
+## Show errors that have an associated frontend session recorded.
+You can use the `disableSessionRecording` setting to record frontend errors without recording a session. 
+
+To find errors that have a session associated, you can use the `Has Sessions` filter in the errors query builder
+
+![](/images/docs/filtering-errors/has-sessions.png)
+
+Once you open an error group instance view, check the `Only instances with recorded sessions` box to filter the instances.
+![](/images/docs/filtering-errors/error-object-with-session.png)
+
 ## Filter errors emitted by browser extensions
 If your users are using browser extensions, you may see errors that are not relevant to your application. You can filter these errors by checking the "Filter errors thrown by browser extensions" box in your [project settings](https://app.highlight.io/settings).
 

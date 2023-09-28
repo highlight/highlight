@@ -110,3 +110,10 @@
 ### Minor Changes
 
 - Added `Highlight.waitForFlush` and `H.consumeAndFlush` to keep serverless functions alive while flushing
+
+## 3.4.1
+
+### Patch Changes
+
+- Excised `@protobufjs/inquire` from the build to eliminate console warnings
+- Included `@opentelemetry/*` packages in build to bundle the `ansi-color` patch and create a more deterministic build.

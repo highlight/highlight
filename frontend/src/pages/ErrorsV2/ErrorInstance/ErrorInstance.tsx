@@ -14,6 +14,7 @@ import {
 	Box,
 	Callout,
 	IconSolidCode,
+	IconSolidCog,
 	IconSolidExternalLink,
 	Stack,
 	Tag,
@@ -21,6 +22,7 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
+import { GitHubEnhancementSettings } from '@pages/ErrorsV2/GitHubEnhancementSettings/GitHubEnhancementSettings'
 import {
 	getDisplayName,
 	getDisplayNameAndField,
@@ -67,6 +69,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
 	const { currentWorkspace } = useApplicationContext()
+	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
@@ -209,16 +212,42 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			{(errorInstance.error_object.stack_trace !== '' &&
 				errorInstance.error_object.stack_trace !== 'null') ||
 			errorInstance.error_object.structured_stack_trace?.length ? (
-				<>
-					<Text size="large" weight="bold" color="strong">
-						Stacktrace
-					</Text>
-					<Box mt="12">
-						<ErrorStackTrace
-							errorObject={errorInstance.error_object}
-						/>
-					</Box>
-				</>
+				displayGitHubSettings ? (
+					<GitHubEnhancementSettings
+						onClose={() => setDisplayGitHubSettings(false)}
+						errorObject={errorInstance.error_object}
+					/>
+				) : (
+					<>
+						<Stack
+							direction="row"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text size="large" weight="bold" color="strong">
+								Stacktrace
+							</Text>
+							{errorInstance.error_object?.type === 'Backend' && (
+								<Button
+									kind="secondary"
+									emphasis="medium"
+									trackingId="errorInstanceGithubEnhancementSetup"
+									iconLeft={<IconSolidCog size={12} />}
+									onClick={() =>
+										setDisplayGitHubSettings(true)
+									}
+								>
+									Setup GitHub-enhanced stacktraces
+								</Button>
+							)}
+						</Stack>
+						<Box mt="12">
+							<ErrorStackTrace
+								errorObject={errorInstance.error_object}
+							/>
+						</Box>
+					</>
+				)
 			) : null}
 		</Box>
 	)

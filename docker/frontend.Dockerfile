@@ -6,12 +6,12 @@ WORKDIR /highlight
 COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json .yarnrc.yml package.json yarn.lock ./
 COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
+COPY ../.yarn/patches ./.yarn/patches
 COPY ../backend/private-graph ./backend/private-graph
 COPY ../backend/public-graph ./backend/public-graph
 COPY ../backend/localhostssl ./backend/localhostssl
 COPY ../blog-content ./blog-content
 COPY ../docs-content ./docs-content
-COPY ../forks ./forks
 COPY ../frontend ./frontend
 COPY ../highlight.io ./highlight.io
 COPY ../packages ./packages

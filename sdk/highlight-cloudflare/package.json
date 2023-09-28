@@ -1,13 +1,13 @@
 {
 	"name": "@highlight-run/cloudflare",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"packageManager": "yarn@3.2.3",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"dev": "yarn build --watch",
-		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"build": "tsup",
 		"typegen": "tsup src/index.ts --dts-only"
 	},
 	"type": "module",
@@ -24,11 +24,11 @@
 		"hoistingLimits": "workspaces"
 	},
 	"dependencies": {
+		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"@opentelemetry/resources": "1.17.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230518.0",
-		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"tsup": "^6.7.0"
 	}
 }

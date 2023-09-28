@@ -35,6 +35,7 @@ var fieldMap map[string]string = map[string]string{
 	"processed":       "Processed",
 	"has_rage_clicks": "HasRageClicks",
 	"has_errors":      "HasErrors",
+	"has_session":     "HasSession",
 	"length":          "Length",
 	"active_length":   "ActiveLength",
 	"environment":     "Environment",

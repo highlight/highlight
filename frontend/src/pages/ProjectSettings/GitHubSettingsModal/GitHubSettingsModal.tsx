@@ -15,13 +15,10 @@ import {
 	Tooltip,
 	vars,
 } from '@highlight-run/ui'
-import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
-import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
 import { Select } from 'antd'
 import React, { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
-import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 
 import * as styles from './GitHubSettingsModal.css'
 
@@ -29,7 +26,6 @@ type Props = {
 	service: Service
 	githubRepos: GitHubRepo[]
 	handleSave: (service: Service, formValues: GithubSettingsFormValues) => void
-	githubIntegrated: boolean
 	closeModal: () => void
 }
 
@@ -43,10 +39,8 @@ export const GitHubSettingsModal = ({
 	service,
 	githubRepos,
 	handleSave,
-	githubIntegrated,
 	closeModal,
 }: Props) => {
-	const { configurationPage } = GITHUB_INTEGRATION
 	const handleSubmit = (formValues: GithubSettingsFormValues) => {
 		const submittedValues = formValues.githubRepo
 			? formValues
@@ -58,23 +52,6 @@ export const GitHubSettingsModal = ({
 
 	if (!service) {
 		return null
-	}
-
-	if (!githubIntegrated) {
-		return (
-			<IntegrationModal
-				title="Configuring GitHub Integration"
-				visible={!!service}
-				onCancel={closeModal}
-				configurationPage={() =>
-					configurationPage({
-						setModalOpen: closeModal,
-						setIntegrationEnabled: () => {},
-						action: IntegrationAction.Setup,
-					})
-				}
-			/>
-		)
 	}
 
 	return (
