@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -372,6 +373,12 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		log.WithContext(ctx).WithError(err).Error("invalid log protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	j, _ := req.MarshalJSON()
+	s := string(j)
+	if strings.Contains(s, "systemd") {
+		fmt.Printf("%s\n", s)
 	}
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
