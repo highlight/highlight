@@ -1,12 +1,12 @@
 {
 	"name": "@highlight-run/next",
-	"version": "4.4.1",
+	"version": "4.4.2",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
-		"next-client.d.ts",
+		"client.d.ts",
 		"server.d.ts",
-		"client.d.ts"
+		"types.d.ts"
 	],
 	"exports": {
 		"./server": {
@@ -52,11 +52,11 @@
 		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
-		"@opentelemetry/api": "^1.6.0",
-		"@opentelemetry/resources": "1.17.0",
 		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
+		"@opentelemetry/api": "1.4.1",
+		"@opentelemetry/resources": "1.17.0",
 		"@trpc/server": "^9.27.4",
 		"@types/jest": "27.4.1",
 		"chokidar-cli": "^3.0.0",
