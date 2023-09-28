@@ -249,7 +249,7 @@ const SectionRow = ({
 				searchAttribute(attribute, {
 					withDate:
 						formStore
-							.useValue(formStore.names.selectedDates)[0]
+							.getValue(formStore.names.selectedDates)[0]
 							.getTime() !== last30Days.startDate.getTime(),
 					newTab: e.metaKey || e.ctrlKey,
 				})
@@ -283,7 +283,7 @@ const SectionRow = ({
 				lines="1"
 				cssClass={styles.query}
 			>
-				{formStore.useValue(formStore.names.search).trim()}
+				{formStore.getValue(formStore.names.search).trim()}
 			</Text>
 			{selected ? (
 				<Badge
