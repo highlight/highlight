@@ -237,22 +237,6 @@ export const quickStartContent = {
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
-		http: {
-			title: 'HTTPS curl',
-			subtitle:
-				'Get started with logging in your application via HTTP or OTLP.',
-			[QuickStartType.HTTPOTLP]: HTTPContent,
-		},
-		syslog: {
-			title: 'Syslog RFC5424',
-			subtitle: 'Send syslog RFC5424 logs to highlight.io.',
-			[QuickStartType.Syslog]: SyslogContent,
-		},
-		systemd: {
-			title: 'Systemd / Journald',
-			subtitle: 'Send systemd(ctl) / journald(ctl) logs to highlight.io.',
-			[QuickStartType.Systemd]: SystemdContent,
-		},
 		other: {
 			title: 'Infrastructure / Other',
 			subtitle:
@@ -260,6 +244,9 @@ export const quickStartContent = {
 			[QuickStartType.FluentForward]: FluentForwardContent,
 			[QuickStartType.File]: FileContent,
 			[QuickStartType.Docker]: DockerContent,
+			[QuickStartType.HTTPOTLP]: HTTPContent,
+			[QuickStartType.Syslog]: SyslogContent,
+			[QuickStartType.Systemd]: SystemdContent,
 		},
 		ruby: {
 			title: 'Ruby',
