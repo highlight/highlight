@@ -19,6 +19,39 @@ export const FluentForwardContent: QuickStartContent = {
 			],
 		},
 		{
+			title: 'Running the fluent agent.',
+			content:
+				'You may be running a fluent agent locally or [in docker](https://hub.docker.com/r/fluent/fluent-bit/). In that case, you would use the fluent-bit.conf',
+			code: [
+				{
+					text: `[INPUT]
+    name                tail
+    tag                 <YOUR_PROJECT_ID>
+    path                /var/log/your_log_file.log
+    path_key            file_path
+
+[INPUT]
+    name                tail
+    tag                 <YOUR_PROJECT_ID>
+    path                /var/log/nginx/another_log_file.txt
+    path_key            file_path
+
+[FILTER]
+    Name                record_modifier
+    Match               *
+    Record              hostname my-hostname
+
+[OUTPUT]
+    Name                forward
+    Match               *
+    Host                otel.highlight.io
+    Port                24224
+`,
+					language: 'yaml',
+				},
+			],
+		},
+		{
 			title: 'Setting up for AWS ECS?',
 			content:
 				'If you are setting up for AWS Elastic Container Services, check out our dedicated [docs for AWS ECS.](/docs/getting-started/backend-logging/hosting/aws#aws-ecs-containers) .',
