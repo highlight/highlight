@@ -52,9 +52,14 @@ interface HighlightWindow extends Window {
 	Intercom?: any
 }
 
+const READY_WAIT_LOOP_MS = 100
+
 declare var window: HighlightWindow
 
-let onHighlightReadyQueue: (() => void | Promise<void>)[] = []
+let onHighlightReadyQueue: {
+	options?: OnHighlightReadyOptions
+	func: () => void | Promise<void>
+}[] = []
 let onHighlightReadyInterval: number | undefined = undefined
 
 let script: HTMLScriptElement
@@ -167,7 +172,7 @@ const H: HighlightPublicInterface = {
 							startFunction()
 							clearInterval(interval)
 						}
-					}, 500)
+					}, READY_WAIT_LOOP_MS)
 				}
 			})
 
@@ -286,9 +291,9 @@ const H: HighlightPublicInterface = {
 				)
 			}
 		} else {
+			first_load_listeners.startListening()
 			H.onHighlightReady(
 				async () => {
-					first_load_listeners.startListening()
 					await highlight_obj.initialize(options)
 				},
 				{ waitForReady: false },
@@ -408,22 +413,30 @@ const H: HighlightPublicInterface = {
 			) {
 				await func()
 			} else {
-				onHighlightReadyQueue.push(func)
+				onHighlightReadyQueue.push({ options, func })
 				if (onHighlightReadyInterval === undefined) {
 					onHighlightReadyInterval = setInterval(async () => {
-						if (
-							highlight_obj &&
-							(options?.waitForReady === false ||
-								highlight_obj.ready)
-						) {
-							for (const f of onHighlightReadyQueue) {
-								await f()
+						const newOnHighlightReadyQueue: {
+							options?: OnHighlightReadyOptions
+							func: () => void | Promise<void>
+						}[] = []
+						for (const f of onHighlightReadyQueue) {
+							if (
+								highlight_obj &&
+								(f.options?.waitForReady === false ||
+									highlight_obj.ready)
+							) {
+								await f.func()
+							} else {
+								newOnHighlightReadyQueue.push(f)
 							}
-							onHighlightReadyQueue = []
+						}
+						onHighlightReadyQueue = newOnHighlightReadyQueue
+						if (onHighlightReadyQueue.length == 0) {
 							clearInterval(onHighlightReadyInterval)
 							onHighlightReadyInterval = undefined
 						}
-					}, 200) as unknown as number
+					}, READY_WAIT_LOOP_MS) as unknown as number
 				}
 			}
 		} catch (e) {
