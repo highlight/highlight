@@ -39,7 +39,7 @@ export const FluentForwardContent: QuickStartContent = {
 [FILTER]
     Name                record_modifier
     Match               *
-    Record              hostname ${HOSTNAME}
+    Record              hostname my-hostname
 
 [OUTPUT]
     Name                forward
