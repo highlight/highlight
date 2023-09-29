@@ -272,6 +272,8 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 			project := fluentProjectPattern.FindStringSubmatch(tag)
 			if project != nil {
 				fields.projectID = project[1]
+			} else {
+				fields.projectID = tag
 			}
 			delete(fields.attrs, "fluent.tag")
 		}
