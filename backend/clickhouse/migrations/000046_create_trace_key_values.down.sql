@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS trace_key_values;
