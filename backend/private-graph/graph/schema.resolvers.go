@@ -45,7 +45,6 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
@@ -6969,31 +6968,8 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-
-	filter := ""
-	if len(prefix) > 0 {
-		filter = fmt.Sprintf(`|> filter(fn: (r) => r["_field"] =~ /%s/)`, prefix)
-	}
-	query := fmt.Sprintf(`
-		from(bucket: "%s")
-		  |> range(start: -1d)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  %s
-		  |> group(columns: ["_field"])
-		  |> distinct(column: "_field")
-		  |> yield(name: "distinct")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
-	tdbQuerySpan, ctx := util.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
-	tdbQuerySpan.SetAttribute("projectID", projectID)
-	results, err := r.TDB.Query(ctx, query)
-	tdbQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	return lo.Map(results, func(t *timeseries.Result, _ int) string {
-		return t.Value.(string)
-	}), nil
+	// TODO(vkorolik) implement via clickhouse
+	panic("not implemented")
 }
 
 // MetricTags is the resolver for the metric_tags field.
@@ -7002,28 +6978,8 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		return nil, err
 	}
 
-	query := fmt.Sprintf(`
-		import "influxdata/influxdb/schema"
-		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
-	tdbQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryMetricTags")
-	tdbQuerySpan.SetAttribute("projectID", projectID)
-	tdbQuerySpan.SetAttribute("metricName", metricName)
-	results, err := r.TDB.Query(spanCtx, query)
-	tdbQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	metrics, _ := r.SuggestedMetrics(ctx, projectID, "")
-
-	return lo.Filter(lo.Map(results, func(t *timeseries.Result, _ int) string {
-		return t.Value.(string)
-	}), func(t string, _ int) bool {
-		// filter out metrics from possible metric tags
-		_, isMetric := lo.Find(metrics, func(m string) bool { return t == m })
-		return !strings.HasPrefix(t, "_") && !isMetric
-	}), nil
+	// TODO(vkorolik) implement via clickhouse
+	panic("not implemented")
 }
 
 // MetricTagValues is the resolver for the metric_tag_values field.
@@ -7032,23 +6988,8 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 		return nil, err
 	}
 
-	query := fmt.Sprintf(`
-		import "influxdata/influxdb/schema"
-		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
-	tdbQuerySpan, ctx := util.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
-	tdbQuerySpan.SetAttribute("projectID", projectID)
-	tdbQuerySpan.SetAttribute("metricName", metricName)
-	tdbQuerySpan.SetAttribute("tagName", tagName)
-	results, err := r.TDB.Query(ctx, query)
-	tdbQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	return lo.Map(results, func(t *timeseries.Result, _ int) string {
-		return t.Value.(string)
-	}), nil
+	// TODO(vkorolik) implement via clickhouse
+	panic("not implemented")
 }
 
 // MetricsTimeline is the resolver for the metrics_timeline field.
@@ -7056,7 +6997,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	return GetMetricTimeline(ctx, r.TDB, projectID, metricName, params)
+	return GetMetricTimeline(ctx, r.ClickhouseClient, projectID, metricName, params)
 }
 
 // MetricsHistogram is the resolver for the metrics_histogram field.
@@ -7065,111 +7006,8 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
-	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	tagFilters := GetTagFilters(ctx, params.Filters)
-	if params.MinValue == nil || params.MaxValue == nil {
-		minPercentile := 0.01
-		if params.MinPercentile != nil {
-			minPercentile = *params.MinPercentile
-		}
-		maxPercentile := 0.99
-		if params.MaxPercentile != nil {
-			maxPercentile = *params.MaxPercentile
-		}
-		query := fmt.Sprintf(`
-	  do = (q) =>
-		from(bucket: "%s")
-		  |> range(start: %s, stop: %s)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  |> filter(fn: (r) => r["_field"] == "%s")
-		  %s|> group()
-		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
-		  |> map(fn: (r) => ({r with _value: r._value / %f}))
-      union(tables: [
-		do(q:%f),
-		do(q:%f)
-	  ])
-		  |> sort()
-  `, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, div, minPercentile, maxPercentile)
-		histogramRangeQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
-		histogramRangeQuerySpan.SetAttribute("projectID", projectID)
-		histogramRangeQuerySpan.SetAttribute("metricName", metricName)
-		results, err := r.TDB.Query(spanCtx, query)
-		histogramRangeQuerySpan.Finish()
-		if err != nil {
-			return nil, err
-		}
-		if len(results) < 1 {
-			return nil, nil
-		}
-
-		HistogramPercentileOffset := 0.1
-		// offset min and max to include min and max values and pad the distribution a bit
-		if params.MinValue == nil {
-			f := results[0].Value.(float64) * (1 - HistogramPercentileOffset)
-			params.MinValue = &f
-		}
-		if params.MaxValue == nil {
-			f := results[1].Value.(float64) * (1 + HistogramPercentileOffset)
-			params.MaxValue = &f
-		}
-	}
-	histogramPayload := &modelInputs.HistogramPayload{
-		Min: *params.MinValue,
-		Max: *params.MaxValue,
-	}
-
-	numBuckets := 10
-	if params.Buckets != nil {
-		numBuckets = *params.Buckets
-	}
-	bucketSize := (histogramPayload.Max - histogramPayload.Min) / float64(numBuckets)
-	if bucketSize == 0. {
-		bucketSize = 1
-	}
-
-	query := fmt.Sprintf(`
-		from(bucket: "%s")
-		  |> range(start: %s, stop: %s)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  |> filter(fn: (r) => r["_field"] == "%s")
-          %s|> group()
-		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
-          |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
-	histogramQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
-	histogramQuerySpan.SetAttribute("projectID", projectID)
-	histogramQuerySpan.SetAttribute("metricName", metricName)
-	histogramQuerySpan.SetAttribute("buckets", params.Buckets)
-	results, err := r.TDB.Query(spanCtx, query)
-	histogramQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	var payloadBuckets []*modelInputs.HistogramBucket
-	var previousCount = -1
-	for i, r := range results {
-		// the first bucket LE bound is actually the start value so use it to offset the histogram
-		if previousCount == -1 {
-			previousCount = int(r.Value.(float64))
-			continue
-		}
-		le := r.Values["le"].(float64)
-		b := &modelInputs.HistogramBucket{
-			Bucket:     float64(i),
-			RangeStart: le - bucketSize,
-			RangeEnd:   le,
-			Count:      int(r.Value.(float64)) - previousCount,
-		}
-		previousCount += b.Count
-		if !math.IsInf(b.RangeStart, 1) {
-			payloadBuckets = append(payloadBuckets, b)
-		}
-	}
-	histogramPayload.Buckets = payloadBuckets
-	return histogramPayload, nil
+	// TODO(vkorolik) implement via clickhouse
+	panic("not implemented")
 }
 
 // NetworkHistogram is the resolver for the network_histogram field.
@@ -7179,49 +7017,8 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		return nil, err
 	}
 
-	var extraFilters []string
-	extraFiltersStr := ""
-	if len(extraFilters) > 0 {
-		extraFiltersStr = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(extraFilters, " or "))
-	}
-	days := 1
-	if params.LookbackDays != nil {
-		days = *params.LookbackDays
-	}
-	query := fmt.Sprintf(`
-		from(bucket: "%s")
-		  |> range(start: -%dd)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-          %s
-		  |> group(columns: ["%s"])
-		  |> count()
-          |> group()
-		  |> sort(desc: true)
-          |> limit(n: 10)
-		  |> yield(name: "count")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
-	networkHistogramSpan, ctx := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
-	networkHistogramSpan.SetAttribute("projectID", projectID)
-	networkHistogramSpan.SetAttribute("attribute", params.Attribute.String())
-	networkHistogramSpan.SetAttribute("lookbackDays", params.LookbackDays)
-	results, err := r.TDB.Query(ctx, query)
-	networkHistogramSpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	var buckets []*modelInputs.CategoryHistogramBucket
-	for _, r := range results {
-		v, ok := r.Values[params.Attribute.String()].(string)
-		if ok {
-			buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
-				Category: v,
-				Count:    int(r.Value.(int64)),
-			})
-		}
-	}
-
-	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
+	// TODO(vkorolik) implement via clickhouse
+	panic("not implemented")
 }
 
 // MetricMonitors is the resolver for the metric_monitors field.

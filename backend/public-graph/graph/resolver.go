@@ -32,14 +32,12 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/private-graph/graph"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -63,7 +61,6 @@ import (
 
 type Resolver struct {
 	DB               *gorm.DB
-	TDB              timeseries.DB
 	ProducerQueue    kafka_queue.MessageQueue
 	BatchedQueue     kafka_queue.MessageQueue
 	DataSyncQueue    kafka_queue.MessageQueue
@@ -1962,12 +1959,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
-	var points []timeseries.Point
-	var aggregatePoints []timeseries.Point
 	for groupName, metricInputs := range metricsByGroup {
 		var mg *model.MetricGroup
 		var newMetrics []*model.Metric
-		downsampledMetric := false
 		firstTime := time.Time{}
 		fields := map[string]interface{}{}
 		tags := map[string]string{
@@ -2027,38 +2021,14 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			for _, t := range m.Tags {
 				tags[t.Name] = t.Value
 			}
-			// the SessionActiveMetricName metric has a ts of the session creation but is
-			// written when the session is processed which may be a long time after
-			// the session is created. this would mean that the downsample task does not
-			// see the metric, causing it to be lost. instead, write it directly to the
-			// downsampled bucket.
-			downsampledMetric = downsampledMetric || m.Name == graph.SessionActiveMetricName
 		}
 		if len(newMetrics) > 0 {
 			if err := r.DB.Create(&newMetrics).Error; err != nil {
 				return err
 			}
 		}
-		if downsampledMetric {
-			aggregatePoints = append(aggregatePoints, timeseries.Point{
-				Time:   firstTime,
-				Tags:   tags,
-				Fields: fields,
-			})
-		} else {
-			points = append(points, timeseries.Point{
-				Time:   firstTime,
-				Tags:   tags,
-				Fields: fields,
-			})
-		}
 	}
-	if len(points) > 0 {
-		r.TDB.Write(ctx, strconv.Itoa(projectID), timeseries.Metrics, points)
-	}
-	if len(aggregatePoints) > 0 {
-		r.TDB.Write(ctx, strconv.Itoa(projectID), timeseries.Metric.AggName, aggregatePoints)
-	}
+	// TODO(vkorolik) write to clickhouse metrics
 	return nil
 }
 
@@ -2252,18 +2222,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 	}
 
-	influxSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.recordErrorGroupMetrics", util.ResourceName("influx.errors"))
-	for groupID, errorObjects := range groupedErrors {
-		errorGroup := groups[groupID].Group
-		if err := r.RecordErrorGroupMetrics(spanCtx, errorGroup, errorObjects); err != nil {
-			log.WithContext(spanCtx).WithFields(log.Fields{
-				"project_id":     projectID,
-				"error_group_id": groupID,
-			}).Error(err)
-		}
-	}
-	influxSpan.Finish()
-
 	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
 		eSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
 			util.ResourceName("BatchGenerateEmbeddings"))
@@ -2273,42 +2231,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		eSpan.Finish(err)
 	}
 	putErrorsToDBSpan.Finish()
-}
-
-func (r *Resolver) RecordErrorGroupMetrics(ctx context.Context, errorGroup *model.ErrorGroup, errors []*model.ErrorObject) error {
-	var points []timeseries.Point
-	sessions := make(map[int]*model.Session)
-	for _, e := range errors {
-		if e.SessionID == nil {
-			continue
-		}
-		if _, ok := sessions[*e.SessionID]; !ok {
-			sess, err := r.Store.GetSession(ctx, *e.SessionID)
-			if err != nil {
-				return err
-			}
-			sessions[*e.SessionID] = sess
-		}
-		tags := map[string]string{
-			"ErrorGroupID": strconv.Itoa(errorGroup.ID),
-			"SessionID":    strconv.Itoa(*e.SessionID),
-		}
-		identifier := sessions[*e.SessionID].Identifier
-		if identifier == "" {
-			identifier = sessions[*e.SessionID].ClientID
-		}
-		fields := map[string]interface{}{
-			"Environment": e.Environment,
-			"Identifier":  identifier,
-		}
-		points = append(points, timeseries.Point{
-			Time:   e.Timestamp,
-			Tags:   tags,
-			Fields: fields,
-		})
-	}
-	r.TDB.Write(ctx, strconv.Itoa(errorGroup.ProjectID), timeseries.Errors, points)
-	return nil
 }
 
 // Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
@@ -2769,18 +2691,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
 			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 		}
-
-		influxSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("influx.errors"))
-		for groupID, errorObjects := range groupedErrors {
-			errorGroup := groups[groupID].Group
-			if err := r.RecordErrorGroupMetrics(spanCtx, errorGroup, errorObjects); err != nil {
-				log.WithContext(spanCtx).WithFields(log.Fields{
-					"project_id":     projectID,
-					"error_group_id": groupID,
-				}).Error(err)
-			}
-		}
-		influxSpan.Finish()
 
 		var newInstances []*model.ErrorObject
 		for _, errorInstances := range groupedErrors {

@@ -67,7 +67,6 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 )
@@ -128,7 +127,6 @@ func isAuthError(err error) bool {
 
 type Resolver struct {
 	DB                     *gorm.DB
-	TDB                    timeseries.DB
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	StorageClient          storage.Client
@@ -509,92 +507,6 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 		}
 	}
 	return nil, AuthorizationError
-}
-
-func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(eg.ProjectID), timeseries.Errors), timeseries.Errors, time.Since(eg.CreatedAt))
-	var filter string
-	if measurement == timeseries.Error.AggName {
-		filter = `|> filter(fn: (r) => r._value > 0)`
-	}
-	query := fmt.Sprintf(`
-      query = () => from(bucket: "%[1]s")
-		|> range(start: 0, stop: now())
-		|> filter(fn: (r) => r._measurement == "%[2]s")
-		|> filter(fn: (r) => r.ErrorGroupID == "%[3]d")
-    	%[4]s
-		|> group(columns: ["ErrorGroupID"])
-
-      union(tables:[query() |> first(), query() |> last()])
-        |> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, measurement, eg.ID, filter)
-	span, ctx := util.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
-	defer span.Finish()
-	span.SetAttribute("projectID", eg.ProjectID)
-	span.SetAttribute("errorGroupID", eg.ID)
-	results, err := r.TDB.Query(ctx, query)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to perform tdb query for error group occurrences")
-	}
-	if len(results) < 2 {
-		return &eg.CreatedAt, &eg.UpdatedAt, nil
-	}
-	return &results[0].Time, &results[1].Time, nil
-}
-
-func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(params.DateRange.StartDate))
-	var errorGroupFilters []string
-	for _, errorGroupID := range errorGroupIDs {
-		errorGroupFilters = append(errorGroupFilters, fmt.Sprintf(`r.ErrorGroupID == "%d"`, errorGroupID))
-	}
-	var errorGroupFilter string
-	if len(errorGroupFilters) > 0 {
-		errorGroupFilter = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
-	}
-	extraFilter := ""
-	if metric != "" {
-		extraFilter = fmt.Sprintf(`|> filter(fn: (r) => r._field == "%s")`, metric)
-	}
-	query := fmt.Sprintf(`
-      from(bucket: "%[1]s")
-		|> range(start: %[2]s, stop: %[3]s)
-		|> filter(fn: (r) => r._measurement == "%[4]s")
-		%[5]s
-		%[6]s
-		|> aggregateWindow(every: %[7]dm, fn: sum, createEmpty: true)
-		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionMinutes)
-	span, ctx := util.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
-	defer span.Finish()
-	span.SetAttribute("projectID", projectID)
-	span.SetAttribute("errorGroupIDs", errorGroupIDs)
-	results, err := r.TDB.Query(ctx, query)
-	if err != nil {
-		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
-	}
-	var response []*modelInputs.ErrorDistributionItem
-	for _, r := range results {
-		field := r.Values["_field"]
-		if field != nil {
-			var value int64
-			if r.Value != nil {
-				value = r.Value.(int64)
-			}
-			var id string
-			if r.Values["ErrorGroupID"] != nil {
-				id = r.Values["ErrorGroupID"].(string)
-			}
-			idInt, _ := strconv.Atoi(id)
-			response = append(response, &modelInputs.ErrorDistributionItem{
-				ErrorGroupID: idInt,
-				Date:         r.Time,
-				Name:         field.(string),
-				Value:        value,
-			})
-		}
-	}
-	return response, nil
 }
 
 func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
@@ -3354,110 +3266,9 @@ func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	return
 }
 
-// GetTagFilters returns the influxdb filter for a particular set of tag filters
-func GetTagFilters(ctx context.Context, filters []*modelInputs.MetricTagFilterInput) (result string) {
-	for _, f := range filters {
-		if f != nil {
-			var op, val string
-			if f.Op != "" {
-				switch f.Op {
-				case modelInputs.MetricTagFilterOpEquals:
-					op = "=="
-					val = fmt.Sprintf(`"%s"`, f.Value)
-				case modelInputs.MetricTagFilterOpContains:
-					op = "=~"
-					val = fmt.Sprintf("/.*%s.*/", f.Value)
-				default:
-					log.WithContext(ctx).Errorf("received an unsupported tag operator: %+v", f.Op)
-				}
-			}
-			result += fmt.Sprintf(`|> filter(fn: (r) => r["%s"] %s %s)`, f.Tag, op, val) + "\n"
-		}
-	}
-	return
-}
-
-// GetTagGroups returns the influxdb group columns for a particular set of tag groups
-func GetTagGroups(groups []string) (result string) {
-	result += "["
-	for _, g := range groups {
-		result += fmt.Sprintf(`"%s",`, g)
-	}
-	result += "]"
-	return result
-}
-
-func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
-	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	tagFilters := GetTagFilters(ctx, params.Filters)
-	tagGroups := GetTagGroups(params.Groups)
-	resMins := 60
-	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
-		resMins = *params.ResolutionMinutes
-	}
-
-	bucket, measurement := tdb.GetSampledMeasurement(tdb.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
-	query := fmt.Sprintf(`
-      query = () =>
-		from(bucket: "%[1]s")
-		  |> range(start: %[2]s, stop: %[3]s)
-		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
-		  |> filter(fn: (r) => r["_field"] == "%[5]s")
-		  %[6]s|> group(columns: %[8]s)
-      do = (q) =>
-        query()
-		  |> aggregateWindow(
-               every: %[7]dm,
-               fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
-               createEmpty: true)
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, resMins, tagGroups)
-	agg := modelInputs.MetricAggregatorAvg
-	if params.Aggregator != nil {
-		agg = *params.Aggregator
-	}
-	query += GetAggregateFluxStatement(ctx, agg, resMins)
-	timelineQuerySpan, ctx := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
-	timelineQuerySpan.SetAttribute("projectID", projectID)
-	timelineQuerySpan.SetAttribute("metricName", metricName)
-	timelineQuerySpan.SetAttribute("resMins", resMins)
-	results, err := tdb.Query(ctx, query)
-	timelineQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, r := range results {
-		v := 0.
-		if r.Value != nil {
-			x, ok := r.Value.(float64)
-			if !ok {
-				v = float64(r.Value.(int64)) / div
-			} else {
-				v = x / div
-			}
-		}
-		if len(params.Groups) > 0 {
-			for _, g := range params.Groups {
-				gVal := r.Values[g]
-				if gVal == nil {
-					continue
-				}
-				payload = append(payload, &modelInputs.DashboardPayload{
-					Date:       r.Time.Format(time.RFC3339Nano),
-					Value:      v,
-					Aggregator: &agg,
-					Group:      pointy.String(gVal.(string)),
-				})
-			}
-		} else {
-			payload = append(payload, &modelInputs.DashboardPayload{
-				Date:       r.Time.Format(time.RFC3339Nano),
-				Value:      v,
-				Aggregator: &agg,
-			})
-		}
-	}
-	return
+func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
+	// TODO(vkorolik) query clickhouse
+	panic("not implemented")
 }
 
 func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
