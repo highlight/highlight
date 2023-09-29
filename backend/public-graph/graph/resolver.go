@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/trace"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -958,6 +959,24 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
+func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Session) error {
+	sessionProperties := map[string]string{
+		"os_name":         session.OSName,
+		"os_version":      session.OSVersion,
+		"browser_name":    session.BrowserName,
+		"browser_version": session.BrowserVersion,
+		"environment":     session.Environment,
+		"device_id":       strconv.Itoa(session.Fingerprint),
+		"city":            session.City,
+		"country":         session.Country,
+		"ip":              session.IP,
+	}
+	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
+	}
+	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
+}
+
 func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secureID string) (*model.Session, error) {
 	existingSessionObj := &model.Session{}
 	if err := r.DB.Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Take(&existingSessionObj).Error; err != nil {
@@ -1006,12 +1025,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 	if existingSession != nil {
-		if err := r.DataSyncQueue.Submit(ctx,
-			strconv.Itoa(existingSession.ID),
-			&kafka_queue.Message{
-				Type: kafka_queue.SessionDataSync,
-				SessionDataSync: &kafka_queue.SessionDataSyncArgs{
-					SessionID: existingSession.ID}}); err != nil {
+		if err := r.IndexSessionClickhouse(ctx, existingSession); err != nil {
 			return nil, err
 		}
 
@@ -1189,12 +1203,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.WithContext(ctx).Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx,
-		strconv.Itoa(session.ID),
-		&kafka_queue.Message{
-			Type: kafka_queue.SessionDataSync,
-			SessionDataSync: &kafka_queue.SessionDataSyncArgs{
-				SessionID: session.ID}}); err != nil {
+	if err := r.IndexSessionClickhouse(ctx, session); err != nil {
 		return nil, err
 	}
 
