@@ -373,7 +373,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	
+
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
 
 	resourceLogs := req.Logs().ResourceLogs()
