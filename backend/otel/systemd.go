@@ -14,17 +14,11 @@ func extractSystemd(fields *extractedFields, m map[string]any) {
 	fields.logBody = m[Message].(string)
 	if priority, err := strconv.ParseInt(m[Priority].(string), 10, 4); err == nil {
 		switch priority {
-		case 0:
+		case 0, 1:
 			fields.logSeverity = plog.SeverityNumberFatal.String()
-		case 1:
-			fields.logSeverity = plog.SeverityNumberFatal.String()
-		case 2:
+		case 2, 3:
 			fields.logSeverity = plog.SeverityNumberError.String()
-		case 3:
-			fields.logSeverity = plog.SeverityNumberError.String()
-		case 4:
-			fields.logSeverity = plog.SeverityNumberWarn.String()
-		case 5:
+		case 4, 5:
 			fields.logSeverity = plog.SeverityNumberWarn.String()
 		case 6:
 			fields.logSeverity = plog.SeverityNumberInfo.String()
