@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS traces_sampling_mv;

@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS trace_service_name_mv;

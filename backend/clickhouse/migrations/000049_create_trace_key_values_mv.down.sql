@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS trace_key_values_mv;
