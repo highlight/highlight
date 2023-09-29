@@ -58,6 +58,9 @@
     "https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
     "/public.css",
   ],
+  "storybookCompatibility": {
+    "testStories": true,
+  },
   "nodejsCompatibility": {
     "omitModuleExtension": true,
     "mapIndexToDirectory": true,
