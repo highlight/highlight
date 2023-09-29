@@ -1,19 +1,10 @@
 receivers:
     journald:
         directory: /var/log/journal
-        units:
-            - stratopi-battery
-            - stratopi-location
-            - stratopi-environmental
-        priority: info
 exporters:
     logging:
         sampling_initial: 10
         sampling_thereafter: 1000
-    otlp:
-        endpoint: 'http://host.docker.internal:4317'
-        tls:
-            insecure: true
     otlp/highlight:
         endpoint: 'https://otel.highlight.io:4317'
 processors:
@@ -28,4 +19,4 @@ service:
         logs:
             receivers: [journald]
             processors: [attributes/highlight-project, batch]
-            exporters: [otlp, otlp/highlight, logging]
+            exporters: [otlp/highlight, logging]
