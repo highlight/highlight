@@ -203,7 +203,7 @@ jobs:
 
                   # run opentelemetry file watcher
                   pushd e2e/opentelemetry/filelog;
-                  EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d collector;
+                  EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d file-collector;
                   popd;
 
                   # wait for highlight to be ready
