@@ -51,6 +51,7 @@ import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { HostingRenderLogContent } from './logging/hosting/render'
 import { SyslogContent } from './logging/syslog'
+import { SystemdContent } from './logging/systemd'
 import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
 
 export type QuickStartOptions = {
@@ -121,6 +122,7 @@ export enum QuickStartType {
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
 	Syslog = 'syslog',
+	Systemd = 'systemd',
 	FluentForward = 'fluent-forward',
 	Docker = 'docker',
 	File = 'file',
@@ -235,17 +237,6 @@ export const quickStartContent = {
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
-		http: {
-			title: 'HTTPS curl',
-			subtitle:
-				'Get started with logging in your application via HTTP or OTLP.',
-			[QuickStartType.HTTPOTLP]: HTTPContent,
-		},
-		syslog: {
-			title: 'Syslog RFC5424',
-			subtitle: 'Send syslog RFC5424 logs to highlight.io.',
-			[QuickStartType.Syslog]: SyslogContent,
-		},
 		other: {
 			title: 'Infrastructure / Other',
 			subtitle:
@@ -253,6 +244,9 @@ export const quickStartContent = {
 			[QuickStartType.FluentForward]: FluentForwardContent,
 			[QuickStartType.File]: FileContent,
 			[QuickStartType.Docker]: DockerContent,
+			[QuickStartType.HTTPOTLP]: HTTPContent,
+			[QuickStartType.Syslog]: SyslogContent,
+			[QuickStartType.Systemd]: SystemdContent,
 		},
 		ruby: {
 			title: 'Ruby',

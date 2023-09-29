@@ -173,6 +173,12 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if len(fields.logBody) > 0 && fields.logBody[0] == '<' {
 		extractSyslog(fields)
 	}
+	// process potential systemd message
+	if params.logRecord != nil && params.logRecord.Body().Type().String() == "Map" {
+		if m := params.logRecord.Body().Map().AsRaw(); len(m) > 0 {
+			extractSystemd(fields, m)
+		}
+	}
 
 	if val, ok := fields.attrs[highlight.DeprecatedProjectIDAttribute]; ok {
 		fields.projectID = val
