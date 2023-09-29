@@ -11,11 +11,11 @@ func Test_extractSystemd(t *testing.T) {
 		"MESSAGE":               "msg king of flavor",
 		"__CURSOR":              "abc123",
 		"__MONOTONIC_TIMESTAMP": "2353958120941",
-		"PRIORITY":              "Info",
+		"PRIORITY":              "6",
 	}
 	extractSystemd(fields, m)
 	assert.Equal(t, "msg king of flavor", fields.logBody)
-	assert.Equal(t, "priority", fields.logSeverity)
+	assert.Equal(t, "Info", fields.logSeverity)
 	assert.Equal(t, "abc123", fields.attrs["__CURSOR"])
 	assert.Equal(t, "2353958120941", fields.attrs["__MONOTONIC_TIMESTAMP"])
 }
