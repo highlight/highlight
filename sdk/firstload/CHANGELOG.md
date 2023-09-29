@@ -402,3 +402,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Record network request payloads with absolute timestamps.
+
+## 7.5.5
+
+### Patch Changes
+
+- Ensure `H.start()` and `H.stop()` behavior is async-race-safe to avoid inconsistent behavior when `H.stop()` or `H.start()` is called before recording is started.

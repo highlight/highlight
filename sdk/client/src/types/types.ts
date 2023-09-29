@@ -252,8 +252,11 @@ export declare interface HighlightPublicInterface {
 	getSessionDetails: () => Promise<SessionDetails>
 	start: (options?: StartOptions) => void
 	/** Stops the session and error recording. */
-	stop: () => void
-	onHighlightReady: (func: () => void) => void
+	stop: (options?: StartOptions) => void
+	onHighlightReady: (
+		func: () => void | Promise<void>,
+		options?: OnHighlightReadyOptions,
+	) => Promise<void>
 	options: HighlightOptions | undefined
 	/**
 	 * Calling this will add a feedback comment to the session.
@@ -287,4 +290,11 @@ export interface StartOptions {
 	 * Starts a new recording session even if one was stopped recently.
 	 */
 	forceNew?: boolean
+}
+
+export interface OnHighlightReadyOptions {
+	/**
+	 * Specifies whether to wait for recording to start
+	 */
+	waitForReady?: boolean
 }
