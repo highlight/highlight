@@ -20,6 +20,7 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/google/uuid"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -1948,6 +1949,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 	sessionID := session.ID
 	projectID := session.ProjectID
 
+	var traceRows []*clickhouse.TraceRow
 	metricsByGroup := make(map[string][]*publicModel.MetricInput)
 	for _, m := range metrics {
 		group := ""
@@ -1958,6 +1960,30 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			metricsByGroup[group] = []*publicModel.MetricInput{}
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
+
+		attributes := map[string]string{}
+		for _, t := range m.Tags {
+			attributes[t.Name] = t.Value
+		}
+		if m.Category != nil {
+			attributes["category"] = *m.Category
+		}
+		if m.Group != nil {
+			attributes["group"] = *m.Group
+		}
+
+		event := map[string]any{
+			"name":  "metric",
+			"value": m.Value,
+		}
+		traceRows = append(traceRows, clickhouse.NewTraceRow(m.Timestamp, projectID).
+			WithSecureSessionId(session.SecureID).
+			WithTraceId(uuid.New().String()).
+			WithSpanName("highlight-metric").
+			WithServiceName(session.ServiceName).
+			WithServiceVersion(ptr.ToString(session.AppVersion)).
+			WithTraceAttributes(attributes).
+			WithEvents([]map[string]any{event}))
 	}
 	for groupName, metricInputs := range metricsByGroup {
 		var mg *model.MetricGroup
@@ -2022,14 +2048,25 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 				tags[t.Name] = t.Value
 			}
 		}
+		// TODO(vkorolik) we should query session metrics from CH as well
 		if len(newMetrics) > 0 {
 			if err := r.DB.Create(&newMetrics).Error; err != nil {
 				return err
 			}
 		}
 	}
-	// TODO(vkorolik) write to clickhouse metrics
-	return nil
+
+	// TODO(vkorolik) write to an actual metrics table
+	var messages []*kafka_queue.Message
+	for _, traceRow := range traceRows {
+		messages = append(messages, &kafka_queue.Message{
+			Type: kafka_queue.PushTraces,
+			PushTraces: &kafka_queue.PushTracesArgs{
+				TraceRow: traceRow,
+			},
+		})
+	}
+	return r.TracesQueue.Submit(ctx, "", messages...)
 }
 
 func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorObject) []*model.ErrorField {
