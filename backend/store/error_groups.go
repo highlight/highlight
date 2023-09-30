@@ -36,17 +36,26 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	if params.Query != "" {
 		filters := queryparser.Parse(params.Query)
 
+		emailFilter, sessionFilter := "", false
 		if val, ok := filters.Attributes["email"]; ok {
 			if len(val) > 0 && val[0] != "" {
-				query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
-					Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
-					Where("sessions.email ILIKE ?", "%"+val[0]+"%")
+				emailFilter = val[0]
 			}
 		}
 		if val, ok := filters.Attributes["has_session"]; ok {
 			if len(val) > 0 && val[0] == "true" {
-				query.Where("COALESCE(error_objects.session_id, 0) > 0")
+				sessionFilter = true
 			}
+		}
+		if emailFilter != "" || sessionFilter {
+			query = query.
+				Joins("INNER JOIN sessions ON error_objects.session_id = sessions.id").
+				Where("sessions.excluded is false")
+		}
+		if emailFilter != "" {
+			query = query.
+				Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
+				Where("sessions.email ILIKE ?", "%"+emailFilter+"%")
 		}
 	}
 

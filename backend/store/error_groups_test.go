@@ -166,6 +166,77 @@ func TestListErrorObjectsSearchByEmail(t *testing.T) {
 	assert.Len(t, connection.Edges, 1)
 }
 
+func TestListErrorObjectsSearchBySessionAndEmail(t *testing.T) {
+	defer teardown(t)
+	errorGroup := model.ErrorGroup{
+		State:     privateModel.ErrorStateOpen,
+		Event:     "something broke!",
+		ProjectID: 1,
+	}
+	store.db.Create(&errorGroup)
+
+	session1 := model.Session{
+		Email:     ptr.String("foo@example.com"),
+		ProjectID: 1,
+		Excluded:  false,
+	}
+
+	session2 := model.Session{
+		Email:     ptr.String("bar@example.com"),
+		ProjectID: 1,
+		Excluded:  true,
+	}
+
+	store.db.Create(&session1)
+	store.db.Create(&session2)
+
+	store.db.Create(&model.ErrorObject{
+		ErrorGroupID: errorGroup.ID,
+		SessionID:    &session1.ID,
+	})
+
+	store.db.Create(&model.ErrorObject{
+		ErrorGroupID: errorGroup.ID,
+		SessionID:    &session2.ID,
+	})
+
+	connection, err := store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+		Query: "has_session:false email:",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, connection.Edges, 2)
+
+	connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+		Query: "has_session:true email:",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, connection.Edges, 1)
+
+	connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+		Query: "email:foo has_session:false",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, connection.Edges, 1)
+
+	connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+		Query: "email:foo has_session:true",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, connection.Edges, 1)
+
+	connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+		Query: "email:bar has_session:false",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, connection.Edges, 0)
+
+	connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+		Query: "email:bar has_session:true",
+	})
+	assert.NoError(t, err)
+	assert.Len(t, connection.Edges, 0)
+}
+
 func TestListErrorObjectsTraversing(t *testing.T) {
 	defer teardown(t)
 
