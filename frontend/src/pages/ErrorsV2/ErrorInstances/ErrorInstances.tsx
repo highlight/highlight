@@ -47,25 +47,36 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 		email: '',
 		hasSession: hasSessionDefault,
 	})
-	const [query, setQuery] = useState('')
-
-	const [pagination, setPagination] = useState<Pagination>({
-		after: null,
-		before: null,
+	const [query, setQuery] = useState<{
+		query: string
+		pagination: Pagination
+	}>({
+		query: hasSessionDefault ? 'has_session:true ' : '',
+		pagination: {
+			after: null,
+			before: null,
+		},
 	})
+
 	const { data, loading, error } = useGetErrorObjectsQuery({
 		variables: {
 			errorGroupSecureID: errorGroup?.secure_id ?? '',
-			after: pagination.after,
-			before: pagination.before,
-			query,
+			after: query.pagination.after,
+			before: query.pagination.before,
+			query: query.query,
 		},
 		skip: !errorGroup?.secure_id,
 	})
 
 	const handleSubmit = ({ email, hasSession }: SearchFormState) => {
 		setArgs({ hasSession, email })
-		setQuery(`${hasSession ? 'has_session:true ' : ''}email:${email}`)
+		setQuery({
+			query: `${hasSession ? 'has_session:true ' : ''}email:${email}`,
+			pagination: {
+				after: null,
+				before: null,
+			},
+		})
 		setCurrentSearchEmail(email)
 	}
 
@@ -110,17 +121,23 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 		)
 
 	const handlePreviousPage = () => {
-		setPagination({
-			after: null,
-			before: data.error_objects.pageInfo.startCursor,
-		})
+		setQuery((q) => ({
+			query: q.query,
+			pagination: {
+				after: null,
+				before: data.error_objects.pageInfo.startCursor,
+			},
+		}))
 	}
 
 	const handleNextPage = () => {
-		setPagination({
-			after: data.error_objects.pageInfo.endCursor,
-			before: null,
-		})
+		setQuery((q) => ({
+			query: q.query,
+			pagination: {
+				after: data.error_objects.pageInfo.endCursor,
+				before: null,
+			},
+		}))
 	}
 
 	const edges: ErrorObjectEdge[] =
