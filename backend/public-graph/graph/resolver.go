@@ -1973,8 +1973,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 
 		event := map[string]any{
-			"name":  "metric",
-			"value": m.Value,
+			"Name":       "metric",
+			"Timestamp":  m.Timestamp,
+			"Attributes": map[string]any{"metric.name": m.Name, "metric.value": m.Value},
 		}
 		traceRows = append(traceRows, clickhouse.NewTraceRow(m.Timestamp, projectID).
 			WithSecureSessionId(session.SecureID).
