@@ -12,7 +12,7 @@ import {
 import { useIntegration } from '@/pages/IntegrationsPage/components/common/useIntegration'
 import { GetBaseURL } from '@/util/window'
 
-const JIRA_SCOPES = ['read:jira-work', 'write:jira-work']
+const JIRA_SCOPES = ['read:jira-work', 'write:jira-work', 'offline_access']
 const JIRA_CLIENT_ID =
 	import.meta.env.JIRA_CLIENT_ID || 'BN9x3nr2Qt8fToxMWwZqMS7KmL4hU6Lv'
 

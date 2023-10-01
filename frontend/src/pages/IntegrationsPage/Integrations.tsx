@@ -24,7 +24,7 @@ import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerInt
 import React from 'react'
 
 import JiraIntegrationConfig from '@/pages/IntegrationsPage/components/JiraIntegration/JiraIntegrationConfig'
-import JiraTeamSelector from '@/pages/IntegrationsPage/components/JiraIntegration/JiraTeamSelector'
+import JiraProjectAndIssueTypeSelector from '@/pages/IntegrationsPage/components/JiraIntegration/JiraProjectAndIssueTypeSelector'
 
 import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
 import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
@@ -85,7 +85,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 	hasSettings: false,
 	containerLabel: 'team',
 	issueLabel: 'issue',
-	containerSelection: (opts) => <JiraTeamSelector {...opts} />,
+	containerSelection: (opts) => <JiraProjectAndIssueTypeSelector {...opts} />,
 	Icon: IconSolidJira,
 }
 

@@ -2413,7 +2413,6 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 
 // AddIntegrationToWorkspace is the resolver for the addIntegrationToWorkspace field.
 func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integrationType *modelInputs.IntegrationType, workspaceID int, code string) (bool, error) {
-	fmt.Println("INSIDE ADD INTEGRATION TO WORKSPACE MUTATION 2")
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return false, err

@@ -1967,16 +1967,6 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 }
 
 func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	// res, err := jira.GetAccessToken(ctx, code)
-	// if err != nil {
-	// 	return e.Wrap(err, "error getting Jira oauth access token")
-	// }
-
-	// if err := r.DB.Where(&workspace).Select("jira_access_token").Updates(&model.Workspace{JiraAccessToken: &res.AccessToken}).Error; err != nil {
-	// 	return e.Wrap(err, "error updating Jira access token in workspace")
-	// }
-
-	// return nil
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
 }
 
@@ -2637,8 +2627,6 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 	projectId string,
 	issueTypeId string,
 ) error {
-	fmt.Println("RUNNING - CreateJiraTaskAndAttachment")
-
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
 
 	if err != nil {
@@ -2648,7 +2636,6 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 	if accessToken == nil {
 		return errors.New("No Jira integration access token found.")
 	}
-	var task *jira.JiraIssue
 
 	jiraIssuePayload := jira.JiraCreateIssueFields{
 		Description: issueDescription,
@@ -2661,24 +2648,11 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 		Fields: jiraIssuePayload,
 	}
 
-	task, err = jira.CreateJiraTask(*accessToken, jiraCreateIssueData)
+	task, err := jira.CreateJiraTask(*accessToken, jiraCreateIssueData)
 
 	if err != nil {
 		return err
 	}
-
-	// if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
-	// 	task, err = c.CreateIssue(ctx, *repo, &github2.IssueRequest{
-	// 		Title:  pointy.String(issueTitle),
-	// 		Body:   pointy.String(issueDescription),
-	// 		Labels: &labels,
-	// 	})
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	return e.Wrap(err, "failed to create github client")
-	// }
 
 	attachment.ExternalID = task.Self
 	attachment.Title = issueTitle

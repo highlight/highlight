@@ -24,12 +24,8 @@ var (
 
 var jiraEndpoint = oauth2.Endpoint{
 	AuthURL:   fmt.Sprintf("%s/oauth/authorize", JiraAuthBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth/token?grant_type=client_credentials", JiraAuthBaseUrl),
+	TokenURL:  fmt.Sprintf("%s/oauth/token", JiraAuthBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
-}
-
-type JiraAccessTokenResponse struct {
-	AccessToken string `json:"access_token"`
 }
 
 type JiraIssue struct {
@@ -74,17 +70,12 @@ func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
-	option := oauth2.SetAuthURLParam("grant_type", "client_credentials")
-	options := []oauth2.AuthCodeOption{
-		option,
-	}
-
 	return &oauth2.Config{
 		ClientID:     jiraClientID,
 		ClientSecret: jiraClientSecret,
 		Endpoint:     jiraEndpoint,
 		RedirectURL:  fmt.Sprintf("%s/callback/jira", frontendUri),
-	}, options, nil
+	}, []oauth2.AuthCodeOption{}, nil
 }
 
 func GetAccessToken(ctx context.Context, code string) (*oauth2.Token, error) {
@@ -159,7 +150,6 @@ func GetJiraSitesID(responses []*model.AccessibleJiraResources) (string, error) 
 		}
 		return "", errors.New("No jira site found")
 	}
-	fmt.Println("JIRA SITE RESOURCE", JiraSite)
 	return JiraSite.ID, nil
 }
 
@@ -187,10 +177,7 @@ func GetJiraIssueCreateMeta(accessToken string, cloudID string) ([]*model.JiraPr
 }
 
 func GetJiraProjects(accessToken string) ([]*model.JiraProject, error) {
-	fmt.Println("ACCESS_TOKEN", accessToken)
 	cloudID, err := GetJiraSiteCloudID(accessToken)
-
-	fmt.Println("JIRA CLOUD ID", cloudID, err)
 
 	if err != nil {
 		return nil, err
@@ -205,10 +192,7 @@ func CreateJiraTask(accessToken string, payload JiraCreateIssuePayload) (*JiraIs
 	if err != nil {
 		return nil, err
 	}
-	// input := struct {
-	// 	Name        string `json:"name"`
-	// 	Description string `json:"description"`
-	// }{Name: name, Description: description}
+
 	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue", cloudID)
 	res, err := doJiraPostRequest[*JiraIssue](accessToken, url, payload)
 	if err != nil {

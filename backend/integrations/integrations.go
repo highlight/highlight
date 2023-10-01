@@ -58,8 +58,6 @@ func (c *Client) setWorkspaceToken(workspace *model.Workspace, integrationType m
 		Expiry:          token.Expiry,
 	}
 
-	fmt.Println("SETTING TOKEN", integrationWorkspaceMapping)
-
 	if err := c.db.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(integrationWorkspaceMapping).Error; err != nil {

@@ -4,16 +4,13 @@ import { useJiraIntegration } from '@pages/IntegrationsPage/components/JiraInteg
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { useEffect, useMemo, useState } from 'react'
-// TODO: Figure out what to do with this
-const JiraTeamSelector: React.FC<ContainerSelectionProps> = ({
+
+const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	setIssueTypeId,
 	setIssueProjectId,
 	disabled,
 }) => {
 	const { data } = useJiraIntegration()
-
-	// const jira_projects = data?.jira_projects || []
-	// const jiraIssueTypeOptions: OptionType[] = []
 
 	const jiraProjectsOptions = useMemo(() => {
 		return (
@@ -30,10 +27,8 @@ const JiraTeamSelector: React.FC<ContainerSelectionProps> = ({
 	}, [data?.jira_projects])
 
 	const [selectedJiraProjectId, setJiraProjectId] = useState('')
-	// useLocalStorage('highlight-jira-default-team', '')
 
 	const [selectedJiraIssueTypeId, setJiraIssueTypeId] = useState('')
-	// useLocalStorage('highlight-jira-default-issue-type', '')
 
 	const selectedJiraProject = selectedJiraProjectId
 		? (data?.jira_projects || []).find(
@@ -54,29 +49,15 @@ const JiraTeamSelector: React.FC<ContainerSelectionProps> = ({
 	}))
 
 	useEffect(() => {
-		console.log('SETTING ISSUE Project ID', selectedJiraProjectId)
 		setIssueProjectId && setIssueProjectId(selectedJiraProjectId)
 	}, [selectedJiraProjectId, setIssueProjectId])
 
 	useEffect(() => {
-		console.log('SETTING ISSUE Project ID', selectedJiraIssueTypeId)
 		setIssueTypeId && setIssueTypeId(selectedJiraIssueTypeId)
 	}, [selectedJiraIssueTypeId, setIssueTypeId])
 
-	// useEffect(() => {
-	// 	if (jiraProjectsOptions.length > 0) {
-	// 		if (selectedJiraProjectId === '') {
-	// 			setJiraProjectId(jiraProjectsOptions[0].value)
-	// 		}
-	// 	} else {
-	// 		removeJiraProjectId()
-	// 	}
-	// }, [
-	// 	selectedJiraProjectId,
-	// 	jiraProjectsOptions,
-	// 	setJiraProjectId,
-	// 	removeJiraProjectId,
-	// ])
+	// TODO: decide whether to use localStorage to store a default project and issueTypeID
+	// probably doesn't make sense for an issue type
 
 	return (
 		<>
@@ -108,4 +89,4 @@ const JiraTeamSelector: React.FC<ContainerSelectionProps> = ({
 	)
 }
 
-export default JiraTeamSelector
+export default JiraProjectAndIssueTypeSelector

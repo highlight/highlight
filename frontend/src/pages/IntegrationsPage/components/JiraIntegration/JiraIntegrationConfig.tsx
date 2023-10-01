@@ -60,7 +60,6 @@ const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 const JiraIntegrationDisconnect: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
 > = ({ setModalOpen: setModalOpen, setIntegrationEnabled }) => {
-	// const { project_id } = useParams<{ project_id: string }>()
 	const { removeIntegration } = useJiraIntegration()
 
 	return (
