@@ -21,6 +21,14 @@ type Edge interface {
 	GetCursor() string
 }
 
+type AccessibleJiraResources struct {
+	ID        string   `json:"id"`
+	URL       string   `json:"url"`
+	Name      string   `json:"name"`
+	Scopes    []string `json:"scopes"`
+	AvatarURL string   `json:"avatarUrl"`
+}
+
 type Account struct {
 	ID                   int        `json:"id"`
 	Name                 string     `json:"name"`
@@ -434,6 +442,34 @@ type Invoice struct {
 	Date         *time.Time `json:"date"`
 	URL          *string    `json:"url"`
 	Status       *string    `json:"status"`
+}
+
+type JiraIssueType struct {
+	Self             string              `json:"self"`
+	ID               string              `json:"id"`
+	Description      string              `json:"description"`
+	IconURL          string              `json:"iconUrl"`
+	Name             string              `json:"name"`
+	UntranslatedName string              `json:"untranslatedName"`
+	Subtask          bool                `json:"subtask"`
+	Scope            *JiraIssueTypeScope `json:"scope"`
+}
+
+type JiraIssueTypeScope struct {
+	Type    string                 `json:"type"`
+	Project *JiraProjectIdentifier `json:"project"`
+}
+
+type JiraProject struct {
+	Name       string           `json:"name"`
+	Key        string           `json:"key"`
+	ID         string           `json:"id"`
+	Self       string           `json:"self"`
+	IssueTypes []*JiraIssueType `json:"issueTypes"`
+}
+
+type JiraProjectIdentifier struct {
+	ID string `json:"id"`
 }
 
 type JiraTeam struct {

@@ -1,22 +1,25 @@
-import Select from '@components/Select/Select'
+import Select, { OptionType } from '@components/Select/Select'
 import { Form, Text } from '@highlight-run/ui'
 import { useJiraIntegration } from '@pages/IntegrationsPage/components/JiraIntegration/utils'
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
-import useLocalStorage from '@rehooks/local-storage'
-import { useEffect, useMemo } from 'react'
-
+import { useEffect, useMemo, useState } from 'react'
+// TODO: Figure out what to do with this
 const JiraTeamSelector: React.FC<ContainerSelectionProps> = ({
-	setSelectionId,
+	setIssueTypeId,
+	setIssueProjectId,
 	disabled,
 }) => {
-	const { teams } = useJiraIntegration()
+	const { data } = useJiraIntegration()
 
-	const jiraTeamsOptions = useMemo(() => {
+	// const jira_projects = data?.jira_projects || []
+	// const jiraIssueTypeOptions: OptionType[] = []
+
+	const jiraProjectsOptions = useMemo(() => {
 		return (
-			teams?.map((team: any) => ({
-				value: team.team_id,
-				id: team.team_id,
+			(data?.jira_projects || []).map((team: any) => ({
+				value: team.id,
+				id: team.id,
 				displayValue: (
 					<Text size="small" weight="medium">
 						{team.name} ({team.key})
@@ -24,38 +27,84 @@ const JiraTeamSelector: React.FC<ContainerSelectionProps> = ({
 				),
 			})) || []
 		)
-	}, [teams])
+	}, [data?.jira_projects])
 
-	const [selectedJiraTeamId, setJiraTeamId, removeJiraTeamId] =
-		useLocalStorage('highlight-linear-default-team', '')
+	const [selectedJiraProjectId, setJiraProjectId] = useState('')
+	// useLocalStorage('highlight-jira-default-team', '')
+
+	const [selectedJiraIssueTypeId, setJiraIssueTypeId] = useState('')
+	// useLocalStorage('highlight-jira-default-issue-type', '')
+
+	const selectedJiraProject = selectedJiraProjectId
+		? (data?.jira_projects || []).find(
+				(p) => p.id === selectedJiraProjectId,
+		  )
+		: null
+
+	const jiraIssueTypeOptions: OptionType[] = (
+		selectedJiraProject?.issueTypes || []
+	).map((issueType: any) => ({
+		value: issueType.id,
+		id: issueType.id,
+		displayValue: (
+			<Text size="small" weight="medium">
+				{issueType.name} - ({issueType.description})
+			</Text>
+		),
+	}))
 
 	useEffect(() => {
-		setSelectionId(selectedJiraTeamId)
-	}, [selectedJiraTeamId, setSelectionId])
+		console.log('SETTING ISSUE Project ID', selectedJiraProjectId)
+		setIssueProjectId && setIssueProjectId(selectedJiraProjectId)
+	}, [selectedJiraProjectId, setIssueProjectId])
 
 	useEffect(() => {
-		if (jiraTeamsOptions.length > 0) {
-			if (selectedJiraTeamId === '') {
-				setJiraTeamId(jiraTeamsOptions[0].value)
-			}
-		} else {
-			removeJiraTeamId()
-		}
-	}, [selectedJiraTeamId, jiraTeamsOptions, setJiraTeamId, removeJiraTeamId])
+		console.log('SETTING ISSUE Project ID', selectedJiraIssueTypeId)
+		setIssueTypeId && setIssueTypeId(selectedJiraIssueTypeId)
+	}, [selectedJiraIssueTypeId, setIssueTypeId])
+
+	// useEffect(() => {
+	// 	if (jiraProjectsOptions.length > 0) {
+	// 		if (selectedJiraProjectId === '') {
+	// 			setJiraProjectId(jiraProjectsOptions[0].value)
+	// 		}
+	// 	} else {
+	// 		removeJiraProjectId()
+	// 	}
+	// }, [
+	// 	selectedJiraProjectId,
+	// 	jiraProjectsOptions,
+	// 	setJiraProjectId,
+	// 	removeJiraProjectId,
+	// ])
 
 	return (
-		<Form.NamedSection label="Jira Team" name="linearTeam">
-			<Select
-				aria-label="Jira Team"
-				placeholder="Choose a team to create the issue in"
-				options={jiraTeamsOptions}
-				onChange={setJiraTeamId}
-				value={selectedJiraTeamId}
-				notFoundContent={<p>No teams found</p>}
-				className={style.selectContainer}
-				disabled={disabled}
-			/>
-		</Form.NamedSection>
+		<>
+			<Form.NamedSection label="Jira Project" name="jiraProject">
+				<Select
+					aria-label="Jira Project"
+					placeholder="Choose a project to create the issue in"
+					options={jiraProjectsOptions}
+					onChange={setJiraProjectId}
+					value={selectedJiraProjectId}
+					notFoundContent={<p>No projects found</p>}
+					className={style.selectContainer}
+					disabled={disabled}
+				/>
+			</Form.NamedSection>
+			<Form.NamedSection label="Jira Issue" name="jiraIssue">
+				<Select
+					aria-label="Issue Type"
+					placeholder="Choose an issue type"
+					options={jiraIssueTypeOptions}
+					onChange={setJiraIssueTypeId}
+					value={selectedJiraIssueTypeId}
+					notFoundContent={<p>No issue types found</p>}
+					className={style.selectContainer}
+					disabled={disabled}
+				/>
+			</Form.NamedSection>
+		</>
 	)
 }
 

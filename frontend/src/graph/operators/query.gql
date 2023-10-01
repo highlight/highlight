@@ -1508,13 +1508,6 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 	}
 }
 
-query GetWorkspaceIsIntegratedWithJira($project_id: ID!) {
-	is_integrated_with_jira: is_integrated_with(
-		integration_type: Jira
-		project_id: $project_id
-	)
-}
-
 query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 	is_integrated_with_linear: is_integrated_with(
 		integration_type: Zapier
@@ -1556,6 +1549,16 @@ query GetJiraIntegrationSettings($workspace_id: ID!) {
 		integration_type: Jira
 		workspace_id: $workspace_id
 	)
+	jira_projects(workspace_id: $workspace_id) {
+		id
+		name
+		key
+		issueTypes {
+			id
+			name
+			description
+		}
+	}
 }
 
 query GetClickUpIntegrationSettings($workspace_id: ID!) {

@@ -373,6 +373,8 @@ mutation CreateSessionComment(
 	$issue_team_id: String
 	$issue_description: String
 	$additional_context: String
+	$issue_type_id: String
+	$issue_project_id: String
 ) {
 	createSessionComment(
 		project_id: $project_id
@@ -394,6 +396,8 @@ mutation CreateSessionComment(
 		issue_team_id: $issue_team_id
 		issue_description: $issue_description
 		additional_context: $additional_context
+		issue_type_id: $issue_type_id
+		issue_project_id: $issue_project_id
 	) {
 		id
 		timestamp
@@ -427,6 +431,8 @@ mutation CreateIssueForSessionComment(
 	$issue_title: String
 	$issue_team_id: String
 	$issue_description: String
+	$issue_project_id: String
+	$issue_type_id: String
 ) {
 	createIssueForSessionComment(
 		project_id: $project_id
@@ -439,6 +445,8 @@ mutation CreateIssueForSessionComment(
 		issue_description: $issue_description
 		issue_team_id: $issue_team_id
 		integrations: $integrations
+		issue_project_id: $issue_project_id
+		issue_type_id: $issue_type_id
 	) {
 		id
 		timestamp
@@ -506,6 +514,8 @@ mutation CreateErrorComment(
 	$integrations: [IntegrationType]!
 	$issue_title: String
 	$issue_team_id: String
+	$issue_project_id: String
+	$issue_type_id: String
 	$issue_description: String
 ) {
 	createErrorComment(
@@ -520,6 +530,8 @@ mutation CreateErrorComment(
 		integrations: $integrations
 		issue_title: $issue_title
 		issue_team_id: $issue_team_id
+		issue_project_id: $issue_project_id
+		issue_type_id: $issue_type_id
 		issue_description: $issue_description
 	) {
 		id
@@ -543,6 +555,8 @@ mutation CreateIssueForErrorComment(
 	$issue_title: String
 	$issue_team_id: String
 	$issue_description: String
+	$issue_project_id: String
+	$issue_type_id: String
 ) {
 	createIssueForErrorComment(
 		project_id: $project_id
@@ -554,6 +568,8 @@ mutation CreateIssueForErrorComment(
 		issue_team_id: $issue_team_id
 		issue_description: $issue_description
 		integrations: $integrations
+		issue_project_id: $issue_project_id
+		issue_type_id: $issue_type_id
 	) {
 		id
 		created_at

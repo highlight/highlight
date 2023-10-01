@@ -437,6 +437,8 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
 	additional_context?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
+	issue_project_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -482,6 +484,8 @@ export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_project_id?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForSessionCommentMutation = {
@@ -570,6 +574,8 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
 		| Types.Maybe<Types.IntegrationType>
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
+	issue_project_id?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
 }>
 
@@ -599,6 +605,8 @@ export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_project_id?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -3595,14 +3603,6 @@ export type GetWorkspaceIsIntegratedWithLinearQuery = {
 	>
 }
 
-export type GetWorkspaceIsIntegratedWithJiraQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetWorkspaceIsIntegratedWithJiraQuery = { __typename?: 'Query' } & {
-	is_integrated_with_jira: Types.Query['is_integrated_with']
-}
-
 export type GetWorkspaceIsIntegratedWithZapierQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3654,6 +3654,26 @@ export type GetJiraIntegrationSettingsQueryVariables = Types.Exact<{
 
 export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	jira_projects?: Types.Maybe<
+		Array<
+			{ __typename?: 'JiraProject' } & Pick<
+				Types.JiraProject,
+				'id' | 'name' | 'key'
+			> & {
+					issueTypes?: Types.Maybe<
+						Array<
+							Types.Maybe<
+								{ __typename?: 'JiraIssueType' } & Pick<
+									Types.JiraIssueType,
+									'id' | 'name' | 'description'
+								>
+							>
+						>
+					>
+				}
+		>
+	>
 }
 
 export type GetClickUpIntegrationSettingsQueryVariables = Types.Exact<{
@@ -4760,8 +4780,6 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithSlack' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
-		GetWorkspaceIsIntegratedWithJira:
-			'GetWorkspaceIsIntegratedWithJira' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
 		GetWorkspaceIsIntegratedWithFront:

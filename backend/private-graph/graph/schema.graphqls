@@ -219,6 +219,57 @@ type JiraTeam {
 	key: String!
 }
 
+# "self": "https://api.atlassian.com/ex/jira/c8726009-4f24-472b-ad79-86a87dd0c893/rest/api/2/issuetype/10001",
+# "id": "10001",
+# "description": "A small, distinct piece of work.",
+# "iconUrl": "https://api.atlassian.com/ex/jira/c8726009-4f24-472b-ad79-86a87dd0c893/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+# "name": "Task",
+# "untranslatedName": "Task",
+# "subtask": false,
+# "scope": {
+#     "type": "PROJECT",
+#     "project": {
+#         "id": "10000"
+#     }
+# }
+
+type JiraProjectIdentifier {
+	id: String!
+}
+
+type JiraIssueTypeScope {
+	type: String!
+	project: JiraProjectIdentifier
+}
+
+type AccessibleJiraResources {
+	id: String!
+	url: String!
+	name: String!
+	scopes: [String!]
+	avatarUrl: String!
+}
+
+type JiraIssueType {
+	self: String!
+	id: String!
+	description: String!
+	iconUrl: String!
+	name: String!
+	untranslatedName: String!
+	subtask: Boolean!
+	scope: JiraIssueTypeScope
+}
+
+type JiraProject {
+	# avatarUrls: String!
+	name: String!
+	key: String!
+	id: String!
+	self: String!
+	issueTypes: [JiraIssueType]
+}
+
 type GitHubRepo {
 	repo_id: String!
 	name: String!
@@ -1816,7 +1867,7 @@ type Query {
 		integration_type: IntegrationType
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
-	# jira_teams(project_id: ID!): [JiraTeam!]
+	jira_projects(workspace_id: ID!): [JiraProject!]
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
@@ -2054,6 +2105,8 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_project_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 		tags: [SessionCommentTagInput]!
 		additional_context: String
@@ -2068,6 +2121,8 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_project_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
@@ -2092,6 +2147,8 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_project_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	removeErrorIssue(error_issue_id: ID!): Boolean
@@ -2105,6 +2162,8 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_project_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	deleteErrorComment(id: ID!): Boolean

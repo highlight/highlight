@@ -9,24 +9,52 @@ import (
 	"os"
 	"strings"
 
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
+	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2"
 )
 
 var (
 	JiraClientId     = os.Getenv("JIRA_CLIENT_ID")
 	JiraClientSecret = os.Getenv("JIRA_CLIENT_SECRET")
-	JiraApiBaseUrl   = "https://auth.atlassian.com"
+	JiraAuthBaseUrl  = "https://auth.atlassian.com"
+	JiraApiBaseUrl   = "https://api.atlassian.com"
 )
 
 var jiraEndpoint = oauth2.Endpoint{
-	AuthURL:   fmt.Sprintf("%s/oauth/authorize", JiraApiBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth/token?grant_type=client_credentials", JiraApiBaseUrl),
+	AuthURL:   fmt.Sprintf("%s/oauth/authorize", JiraAuthBaseUrl),
+	TokenURL:  fmt.Sprintf("%s/oauth/token?grant_type=client_credentials", JiraAuthBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
 }
 
 type JiraAccessTokenResponse struct {
 	AccessToken string `json:"access_token"`
+}
+
+type JiraIssue struct {
+	Id   string `json:"id"`
+	Key  string `json:"key"`
+	Self string `json:"self"`
+}
+
+type JiraIssueProjectData struct {
+	Id string `json:"id"`
+}
+
+type JiraIssueTypeData struct {
+	Id string `json:"id"`
+}
+
+type JiraCreateIssueFields struct {
+	Description string               `json:"description"`
+	Summary     string               `json:"summary"`
+	Project     JiraIssueProjectData `json:"project"`
+	IssueType   JiraIssueTypeData    `json:"issuetype"`
+}
+
+type JiraCreateIssuePayload struct {
+	Fields JiraCreateIssueFields `json:"fields"`
 }
 
 func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
@@ -88,6 +116,8 @@ func doJiraRequest[T any](method string, accessToken string, relativeUrl string,
 	var unmarshalled T
 	client := &http.Client{}
 
+	fmt.Println("REACHING", fmt.Sprintf("%s%s", JiraApiBaseUrl, relativeUrl))
+
 	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", JiraApiBaseUrl, relativeUrl), strings.NewReader(body))
 	if err != nil {
 		return unmarshalled, errors.Wrap(err, "error creating api request to Jira")
@@ -103,7 +133,7 @@ func doJiraRequest[T any](method string, accessToken string, relativeUrl string,
 	}
 
 	b, err := io.ReadAll(res.Body)
-	if res.StatusCode != 200 {
+	if res.StatusCode != 200 && res.StatusCode != 201 {
 		return unmarshalled, errors.New("Jira API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
@@ -117,4 +147,73 @@ func doJiraRequest[T any](method string, accessToken string, relativeUrl string,
 	}
 
 	return unmarshalled, nil
+}
+
+func GetJiraSitesID(responses []*model.AccessibleJiraResources) (string, error) {
+	var JiraSite *model.AccessibleJiraResources
+	jiraIdentifier := "write:jira-work"
+	for _, site := range responses {
+		if slices.Contains(site.Scopes, jiraIdentifier) {
+			JiraSite = site
+			break
+		}
+		return "", errors.New("No jira site found")
+	}
+	fmt.Println("JIRA SITE RESOURCE", JiraSite)
+	return JiraSite.ID, nil
+}
+
+func GetJiraSiteCloudID(accessToken string) (string, error) {
+	url := "/oauth/token/accessible-resources"
+	res, err := doJiraGetRequest[[]*model.AccessibleJiraResources](accessToken, url)
+	fmt.Println("GetJiraSiteCloudID RESPONSE", res, err)
+	if err != nil {
+		return "", err
+	}
+	return GetJiraSitesID(res)
+}
+
+func GetJiraIssueCreateMeta(accessToken string, cloudID string) ([]*model.JiraProject, error) {
+	type listsResponse struct {
+		Projects []*model.JiraProject `json:"projects"`
+	}
+	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue/createmeta", cloudID)
+	res, err := doJiraGetRequest[listsResponse](accessToken, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Projects, nil
+}
+
+func GetJiraProjects(accessToken string) ([]*model.JiraProject, error) {
+	fmt.Println("ACCESS_TOKEN", accessToken)
+	cloudID, err := GetJiraSiteCloudID(accessToken)
+
+	fmt.Println("JIRA CLOUD ID", cloudID, err)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return GetJiraIssueCreateMeta(accessToken, cloudID)
+}
+
+func CreateJiraTask(accessToken string, payload JiraCreateIssuePayload) (*JiraIssue, error) {
+	cloudID, err := GetJiraSiteCloudID(accessToken)
+
+	if err != nil {
+		return nil, err
+	}
+	// input := struct {
+	// 	Name        string `json:"name"`
+	// 	Description string `json:"description"`
+	// }{Name: name, Description: description}
+	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue", cloudID)
+	res, err := doJiraPostRequest[*JiraIssue](accessToken, url, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

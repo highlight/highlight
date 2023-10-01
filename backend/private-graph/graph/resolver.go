@@ -22,6 +22,7 @@ import (
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
@@ -2627,6 +2628,66 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 	return nil
 }
 
+func (r *Resolver) CreateJiraTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	projectId string,
+	issueTypeId string,
+) error {
+	fmt.Println("RUNNING - CreateJiraTaskAndAttachment")
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No Jira integration access token found.")
+	}
+	var task *jira.JiraIssue
+
+	jiraIssuePayload := jira.JiraCreateIssueFields{
+		Description: issueDescription,
+		Summary:     issueTitle,
+		Project:     jira.JiraIssueProjectData{Id: projectId},
+		IssueType:   jira.JiraIssueTypeData{Id: issueTypeId},
+	}
+
+	jiraCreateIssueData := jira.JiraCreateIssuePayload{
+		Fields: jiraIssuePayload,
+	}
+
+	task, err = jira.CreateJiraTask(*accessToken, jiraCreateIssueData)
+
+	if err != nil {
+		return err
+	}
+
+	// if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
+	// 	task, err = c.CreateIssue(ctx, *repo, &github2.IssueRequest{
+	// 		Title:  pointy.String(issueTitle),
+	// 		Body:   pointy.String(issueDescription),
+	// 		Labels: &labels,
+	// 	})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	return e.Wrap(err, "failed to create github client")
+	// }
+
+	attachment.ExternalID = task.Self
+	attachment.Title = issueTitle
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
 func (r *Resolver) CreateGitHubTaskAndAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -3568,4 +3629,20 @@ func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*mode
 	}
 
 	return matchedErrorObjects, nil
+}
+
+func (r *Resolver) GetJiraProjects(
+	ctx context.Context,
+	workspace *model.Workspace,
+) ([]*modelInputs.JiraProject, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, nil
+	}
+
+	return jira.GetJiraProjects(*accessToken)
 }

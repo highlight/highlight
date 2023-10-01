@@ -1925,6 +1925,8 @@ export const CreateSessionCommentDocument = gql`
 		$issue_team_id: String
 		$issue_description: String
 		$additional_context: String
+		$issue_type_id: String
+		$issue_project_id: String
 	) {
 		createSessionComment(
 			project_id: $project_id
@@ -1946,6 +1948,8 @@ export const CreateSessionCommentDocument = gql`
 			issue_team_id: $issue_team_id
 			issue_description: $issue_description
 			additional_context: $additional_context
+			issue_type_id: $issue_type_id
+			issue_project_id: $issue_project_id
 		) {
 			id
 			timestamp
@@ -2005,6 +2009,8 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *      additional_context: // value for 'additional_context'
+ *      issue_type_id: // value for 'issue_type_id'
+ *      issue_project_id: // value for 'issue_project_id'
  *   },
  * });
  */
@@ -2040,6 +2046,8 @@ export const CreateIssueForSessionCommentDocument = gql`
 		$issue_title: String
 		$issue_team_id: String
 		$issue_description: String
+		$issue_project_id: String
+		$issue_type_id: String
 	) {
 		createIssueForSessionComment(
 			project_id: $project_id
@@ -2052,6 +2060,8 @@ export const CreateIssueForSessionCommentDocument = gql`
 			issue_description: $issue_description
 			issue_team_id: $issue_team_id
 			integrations: $integrations
+			issue_project_id: $issue_project_id
+			issue_type_id: $issue_type_id
 		) {
 			id
 			timestamp
@@ -2102,6 +2112,8 @@ export type CreateIssueForSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
+ *      issue_project_id: // value for 'issue_project_id'
+ *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -2263,6 +2275,8 @@ export const CreateErrorCommentDocument = gql`
 		$integrations: [IntegrationType]!
 		$issue_title: String
 		$issue_team_id: String
+		$issue_project_id: String
+		$issue_type_id: String
 		$issue_description: String
 	) {
 		createErrorComment(
@@ -2277,6 +2291,8 @@ export const CreateErrorCommentDocument = gql`
 			integrations: $integrations
 			issue_title: $issue_title
 			issue_team_id: $issue_team_id
+			issue_project_id: $issue_project_id
+			issue_type_id: $issue_type_id
 			issue_description: $issue_description
 		) {
 			id
@@ -2320,6 +2336,8 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
+ *      issue_project_id: // value for 'issue_project_id'
+ *      issue_type_id: // value for 'issue_type_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -2355,6 +2373,8 @@ export const CreateIssueForErrorCommentDocument = gql`
 		$issue_title: String
 		$issue_team_id: String
 		$issue_description: String
+		$issue_project_id: String
+		$issue_type_id: String
 	) {
 		createIssueForErrorComment(
 			project_id: $project_id
@@ -2366,6 +2386,8 @@ export const CreateIssueForErrorCommentDocument = gql`
 			issue_team_id: $issue_team_id
 			issue_description: $issue_description
 			integrations: $integrations
+			issue_project_id: $issue_project_id
+			issue_type_id: $issue_type_id
 		) {
 			id
 			created_at
@@ -2412,6 +2434,8 @@ export type CreateIssueForErrorCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
+ *      issue_project_id: // value for 'issue_project_id'
+ *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -10581,63 +10605,6 @@ export type GetWorkspaceIsIntegratedWithLinearQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithLinearQuery,
 	Types.GetWorkspaceIsIntegratedWithLinearQueryVariables
 >
-export const GetWorkspaceIsIntegratedWithJiraDocument = gql`
-	query GetWorkspaceIsIntegratedWithJira($project_id: ID!) {
-		is_integrated_with_jira: is_integrated_with(
-			integration_type: Jira
-			project_id: $project_id
-		)
-	}
-`
-
-/**
- * __useGetWorkspaceIsIntegratedWithJiraQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithJiraQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceIsIntegratedWithJiraQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceIsIntegratedWithJiraQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetWorkspaceIsIntegratedWithJiraQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetWorkspaceIsIntegratedWithJiraQuery,
-		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetWorkspaceIsIntegratedWithJiraQuery,
-		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
-	>(GetWorkspaceIsIntegratedWithJiraDocument, baseOptions)
-}
-export function useGetWorkspaceIsIntegratedWithJiraLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetWorkspaceIsIntegratedWithJiraQuery,
-		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetWorkspaceIsIntegratedWithJiraQuery,
-		Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
-	>(GetWorkspaceIsIntegratedWithJiraDocument, baseOptions)
-}
-export type GetWorkspaceIsIntegratedWithJiraQueryHookResult = ReturnType<
-	typeof useGetWorkspaceIsIntegratedWithJiraQuery
->
-export type GetWorkspaceIsIntegratedWithJiraLazyQueryHookResult = ReturnType<
-	typeof useGetWorkspaceIsIntegratedWithJiraLazyQuery
->
-export type GetWorkspaceIsIntegratedWithJiraQueryResult = Apollo.QueryResult<
-	Types.GetWorkspaceIsIntegratedWithJiraQuery,
-	Types.GetWorkspaceIsIntegratedWithJiraQueryVariables
->
 export const GetWorkspaceIsIntegratedWithZapierDocument = gql`
 	query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(
@@ -10880,6 +10847,16 @@ export const GetJiraIntegrationSettingsDocument = gql`
 			integration_type: Jira
 			workspace_id: $workspace_id
 		)
+		jira_projects(workspace_id: $workspace_id) {
+			id
+			name
+			key
+			issueTypes {
+				id
+				name
+				description
+			}
+		}
 	}
 `
 

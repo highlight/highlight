@@ -1393,7 +1393,7 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 }
 
 // CreateSessionComment is the resolver for the createSessionComment field.
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput, additionalContext *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueProjectID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput, additionalContext *string) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1635,7 +1635,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 }
 
 // CreateIssueForSessionComment is the resolver for the createIssueForSessionComment field.
-func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueProjectID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
 	if err := r.DB.Where("id = ?", projectID).Take(&project).Error; err != nil {
 		return nil, err
@@ -1867,7 +1867,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 }
 
 // CreateErrorComment is the resolver for the createErrorComment field.
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueProjectID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
@@ -2002,6 +2002,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueProjectID, *issueTypeID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2102,7 +2108,7 @@ func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, h
 }
 
 // CreateIssueForErrorComment is the resolver for the createIssueForErrorComment field.
-func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueProjectID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, err
@@ -2170,6 +2176,13 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 		} else if *s == modelInputs.IntegrationTypeGitHub {
 			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			// TODO: JIRA_INTEGRATION create external task
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -6307,9 +6320,14 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 	return ret, nil
 }
 
-// JiraTeams is the resolver for the jira_teams field.
-func (r *queryResolver) JiraTeams(ctx context.Context, projectID int) ([]*modelInputs.JiraTeam, error) {
-	panic(fmt.Errorf("not implemented: JiraTeams - jira_teams"))
+// JiraProjects is the resolver for the jira_projects field.
+func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*modelInputs.JiraProject, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetJiraProjects(ctx, workspace)
 }
 
 // GithubRepos is the resolver for the github_repos field.

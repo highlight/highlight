@@ -89,6 +89,7 @@ export const NewCommentForm = ({
 	modalHeader,
 	currentUrl,
 }: Props) => {
+	alert('HELLOOOOO!!!')
 	const [createComment] = useCreateSessionCommentMutation({
 		refetchQueries: [
 			namedOperations.Query.GetSessionComments,
@@ -113,6 +114,14 @@ export const NewCommentForm = ({
 	const [selectedIssueService, setSelectedIssueService] =
 		useState<IntegrationType>()
 	const [containerId, setContainerId] = useState('')
+	const [issueTypeId, setIssueTypeId] = useState('')
+	const [issueProjectId, setIssueProjectId] = useState('')
+	/*
+		should we pass the formStore down and use it to update
+		stuff just like is done here? It will ultimately act like
+		and extension of the form here which makes more sense to me
+		that whatever
+	*/
 	const formStore = useFormStore({
 		defaultValues: {
 			commentText: '',
@@ -168,6 +177,18 @@ export const NewCommentForm = ({
 		return `Issue with this Highlight session`
 	}, [session, errorTitle])
 
+	const otherIssueVariables = () => {
+		const variables: { issue_type_id?: string; issue_project_id?: string } =
+			{}
+		if (issueTypeId) {
+			variables.issue_type_id = issueTypeId
+		}
+		if (issueProjectId) {
+			variables.issue_project_id = issueProjectId
+		}
+		return variables
+	}
+
 	const onCreateErrorComment = async () => {
 		analytics.track('Create Error Comment', {
 			numHighlightAdminMentions: mentionedAdmins.length,
@@ -196,6 +217,7 @@ export const NewCommentForm = ({
 					issue_description: selectedIssueService
 						? issueDescription
 						: null,
+					...otherIssueVariables(),
 				},
 				refetchQueries: [namedOperations.Query.GetErrorComments],
 			})
@@ -222,6 +244,7 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
+			// TODO: add jira specific issue variables
 			await createComment({
 				variables: {
 					project_id: project_id!,
@@ -248,6 +271,7 @@ export const NewCommentForm = ({
 					additional_context: currentUrl
 						? `*User\'s URL:* <${currentUrl}|${currentUrl}>`
 						: null,
+					...otherIssueVariables(),
 				},
 				refetchQueries: [namedOperations.Query.GetSessionComments],
 			})
@@ -484,6 +508,8 @@ export const NewCommentForm = ({
 							{issueServiceDetail?.containerSelection({
 								disabled: isCreatingComment,
 								setSelectionId: setContainerId,
+								setIssueTypeId,
+								setIssueProjectId,
 							})}
 							<Form.Input
 								name="issueTitle"
