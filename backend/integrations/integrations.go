@@ -46,6 +46,10 @@ func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrati
 		return height.GetRefreshToken(ctx, oldToken)
 	}
 
+	if integrationType == modelInputs.IntegrationTypeJira {
+		return jira.GetRefreshToken(ctx, oldToken)
+	}
+
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)
 }
 

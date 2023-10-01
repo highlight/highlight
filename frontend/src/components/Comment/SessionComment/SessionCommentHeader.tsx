@@ -38,6 +38,7 @@ import {
 	useDeleteComment,
 	useNavigateToComment,
 } from '@/components/Comment/utils/utils'
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 interface Props {
 	comment: ParsedSessionComment
@@ -50,11 +51,12 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const deleteComment = useDeleteComment(comment)
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
+
+	const { data } = useJiraIntegration()
+	const isJiraIntegrated = data?.is_integrated
+
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
-	)
-	const { isIntegrated: isJiraIntegrated } = useIsProjectIntegratedWith(
-		IntegrationType.Jira,
 	)
 	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.Height,

@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	nUrl "net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
@@ -26,6 +28,14 @@ var jiraEndpoint = oauth2.Endpoint{
 	AuthURL:   fmt.Sprintf("%s/oauth/authorize", JiraAuthBaseUrl),
 	TokenURL:  fmt.Sprintf("%s/oauth/token", JiraAuthBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
+}
+
+type JiraTokenResponse struct {
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresIn    time.Time `json:"expires_in"`
+	Scope        string    `json:"scope"`
+	TokenType    string    `json:"token_type"`
 }
 
 type JiraIssue struct {
@@ -85,35 +95,47 @@ func GetAccessToken(ctx context.Context, code string) (*oauth2.Token, error) {
 		return nil, err
 	}
 
-	// grantType := oauth2.SetAuthURLParam("grant_type", "client_credentials")
 	return conf.Exchange(ctx, code, opts...)
 }
 
-func doJiraPostRequest[TOut any, TIn any](accessToken string, relativeUrl string, input TIn) (TOut, error) {
+func doJiraPostRequest[TOut any, TIn any](accessToken string, url string, input TIn) (TOut, error) {
 	var zero TOut
 	b, err := json.Marshal(input)
 	if err != nil {
 		return zero, err
 	}
 
-	return doJiraRequest[TOut]("POST", accessToken, relativeUrl, string(b))
+	return doJiraRequest[TOut]("POST", accessToken, url, string(b))
 }
 
-func doJiraGetRequest[T any](accessToken string, relativeUrl string) (T, error) {
-	return doJiraRequest[T]("GET", accessToken, relativeUrl, "")
+func doJiraGetRequest[T any](accessToken string, url string) (T, error) {
+	return doJiraRequest[T]("GET", accessToken, url, "")
 }
 
-func doJiraRequest[T any](method string, accessToken string, relativeUrl string, body string) (T, error) {
+func doJiraRequest[T any](method string, accessToken string, url string, body string) (T, error) {
 	var unmarshalled T
 	client := &http.Client{}
 
-	fmt.Println("REACHING", fmt.Sprintf("%s%s", JiraApiBaseUrl, relativeUrl))
+	// code to tell whether we are using absoluteUrl or relative url
+	var finalUrl = fmt.Sprintf("%s%s", JiraApiBaseUrl, url)
+	parsedUrl, err := nUrl.Parse(url)
 
-	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", JiraApiBaseUrl, relativeUrl), strings.NewReader(body))
+	if err != nil {
+		return unmarshalled, errors.Wrap(err, "error parsing url") // this really should not happen
+	}
+
+	if parsedUrl.IsAbs() {
+		finalUrl = url
+	}
+
+	req, err := http.NewRequest(method, finalUrl, strings.NewReader(body))
 	if err != nil {
 		return unmarshalled, errors.Wrap(err, "error creating api request to Jira")
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	if accessToken != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	}
 	if method != "GET" {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -134,7 +156,7 @@ func doJiraRequest[T any](method string, accessToken string, relativeUrl string,
 
 	err = json.Unmarshal(b, &unmarshalled)
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error unmarshaling jira api response")
+		return unmarshalled, errors.Wrap(err, "error unmarshaling jira api response"+string(b))
 	}
 
 	return unmarshalled, nil
@@ -200,4 +222,38 @@ func CreateJiraTask(accessToken string, payload JiraCreateIssuePayload) (*JiraIs
 	}
 
 	return res, nil
+}
+
+func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token, error) {
+	conf, _, err := GetOAuthConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	payload := struct {
+		GrantType    string `json:"grant_type"`
+		ClientId     string `json:"client_id"`
+		ClientSecret string `json:"client_secret"`
+		RefreshToken string `json:"refresh_token"`
+	}{
+		GrantType:    "refresh_token",
+		ClientId:     conf.ClientID,
+		ClientSecret: conf.ClientSecret,
+		RefreshToken: oldToken.RefreshToken,
+	}
+
+	response, err := doJiraPostRequest[*JiraTokenResponse]("", jiraEndpoint.TokenURL, payload)
+	if err != nil {
+		fmt.Println("JIRA_REFRESH_ERROR", err)
+		return nil, err
+	}
+
+	newToken := oauth2.Token{
+		AccessToken:  response.AccessToken,
+		RefreshToken: response.RefreshToken,
+		Expiry:       response.ExpiresIn,
+	}
+
+	return &newToken, nil
+
 }

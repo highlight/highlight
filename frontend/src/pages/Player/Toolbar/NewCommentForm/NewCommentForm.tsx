@@ -89,7 +89,6 @@ export const NewCommentForm = ({
 	modalHeader,
 	currentUrl,
 }: Props) => {
-	alert('HELLOOOOO!!!')
 	const [createComment] = useCreateSessionCommentMutation({
 		refetchQueries: [
 			namedOperations.Query.GetSessionComments,
@@ -244,7 +243,6 @@ export const NewCommentForm = ({
 		const { issueTitle, issueDescription } = formValues
 
 		try {
-			// TODO: add jira specific issue variables
 			await createComment({
 				variables: {
 					project_id: project_id!,
