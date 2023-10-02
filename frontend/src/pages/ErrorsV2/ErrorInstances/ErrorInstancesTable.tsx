@@ -55,6 +55,20 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 				</Tag>
 			),
 		}),
+		columnHelper.accessor('node.serviceName', {
+			cell: ({ getValue }) => {
+				const serviceVersion = getValue()
+				if (!serviceVersion) {
+					return null
+				}
+
+				return (
+					<Tag shape="basic" kind="secondary">
+						{serviceVersion}
+					</Tag>
+				)
+			},
+		}),
 		columnHelper.accessor('node.serviceVersion', {
 			cell: ({ getValue }) => {
 				const serviceVersion = getValue()

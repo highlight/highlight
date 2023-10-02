@@ -13463,6 +13463,7 @@ export const GetErrorObjectsDocument = gql`
 					timestamp
 					errorGroupSecureID
 					serviceVersion
+					serviceName
 					session {
 						secureID
 						email

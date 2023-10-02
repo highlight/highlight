@@ -560,6 +560,7 @@ export type ErrorObjectNode = {
 	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
+	serviceName: Scalars['String']
 	serviceVersion: Scalars['String']
 	session?: Maybe<ErrorObjectNodeSession>
 	timestamp: Scalars['Timestamp']

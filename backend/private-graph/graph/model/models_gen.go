@@ -333,6 +333,7 @@ type ErrorObjectNode struct {
 	Session            *ErrorObjectNodeSession `json:"session"`
 	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 	ServiceVersion     string                  `json:"serviceVersion"`
+	ServiceName        string                  `json:"serviceName"`
 }
 
 type ErrorObjectNodeSession struct {

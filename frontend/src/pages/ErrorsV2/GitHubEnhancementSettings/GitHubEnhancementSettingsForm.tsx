@@ -138,6 +138,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 					<Button
 						trackingId="error-github-enhancement-test-configuration"
 						kind="secondary"
+						emphasis="low"
 						size="xSmall"
 						iconLeft={
 							testLoading ? (
@@ -161,11 +162,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						trackingId="error-github-enhancement-step-save-configuration"
 						kind="primary"
 						size="xSmall"
-						disabled={
-							disabled ||
-							testLoading ||
-							!formStore.getValue(formStore.names.githubRepo)
-						}
+						disabled={disabled || testLoading}
 						onClick={handleSave}
 					>
 						Save changes

@@ -3792,6 +3792,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 		return nil, updateErr
 	}
 
+	_ = r.Store.DeleteServiceCache(ctx, service.Name, service.ProjectID)
 	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
 }
