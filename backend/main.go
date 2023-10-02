@@ -596,7 +596,7 @@ func main() {
 			}
 			if handlerFlag != nil && *handlerFlag != "" {
 				func() {
-					defer util.RecoverWithError()
+					defer util.RecoverAndCrash()
 					w.GetHandler(ctx, *handlerFlag)(ctx)
 				}()
 			} else {
