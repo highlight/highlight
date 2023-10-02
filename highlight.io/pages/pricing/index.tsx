@@ -7,6 +7,7 @@ import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 import homeStyles from '../../components/Home/Home.module.scss'
+import WideCard from '../../components/Integrations/WideCard'
 import pricingStyles from '../../components/Pricing/Pricing.module.scss'
 
 import CreditCard from '../../public/images/credit-card.svg'
@@ -230,7 +231,7 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 ]
 
 const billingPeriodOptions = ['Monthly', 'Annual'] as const
-type BillingPeriod = typeof billingPeriodOptions[number]
+type BillingPeriod = (typeof billingPeriodOptions)[number]
 
 const retentionOptions = [
 	'30 days',
@@ -239,7 +240,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -249,7 +250,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'UsageBased', 'Enterprise'] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -351,6 +352,14 @@ const PlanTable = () => {
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
+			</div>
+			<div className="max-w-[908px] w-full mt-4">
+				<WideCard
+					title="Self-hosting"
+					desc="Learn how to host Highlight on your own infrastructure."
+					primaryLink="/docs/general/company/open-source/hosting/self-host-enterprise"
+					primaryLinkText="Learn More"
+				/>
 			</div>
 			<div className="flex-shrink w-48" />
 		</div>
