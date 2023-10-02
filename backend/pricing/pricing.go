@@ -705,7 +705,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	}
 	logsLimit := TypeToLogsLimit(backend.PlanType(workspace.PlanTier))
 	if workspace.MonthlyLogsLimit != nil {
-		errorsLimit = *workspace.MonthlyErrorsLimit
+		logsLimit = *workspace.MonthlyLogsLimit
 	}
 	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeLogs], invoiceLines[model.PricingProductTypeLogs], c, subscription, &logsLimit, logsMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
