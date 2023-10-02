@@ -46,12 +46,6 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 
 // InterceptField instruments timing of individual fields resolved.
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
-	// if we don't have a highlight session in the context, no point trying to
-	// instrument since we won't be able to store the metric
-	if _, _, err := validateRequest(ctx); err != nil {
-		return next(ctx)
-	}
-
 	fc := graphql.GetFieldContext(ctx)
 	fieldName := fc.Field.Name
 	name := fmt.Sprintf("graphql.field.%s", fieldName)
@@ -79,12 +73,6 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 // InterceptResponse instruments timing, payload size, and error information
 // of the response handler. The metric is grouped by the corresponding operation name.
 func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
-	// if we don't have a highlight session in the context, no point trying to
-	// instrument since we won't be able to store the metric
-	if _, _, err := validateRequest(ctx); err != nil {
-		return next(ctx)
-	}
-
 	var oc *graphql.OperationContext
 	if graphql.HasOperationContext(ctx) {
 		oc = graphql.GetOperationContext(ctx)
