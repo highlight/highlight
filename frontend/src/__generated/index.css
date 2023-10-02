@@ -6196,6 +6196,10 @@ body {
   width: 100%;
 }
 ._75g8nf1 {
+  position: relative;
+  z-index: 98;
+}
+._75g8nf2 {
   background-color: #f9f8f9;
   display: flex;
   flex-direction: column;
@@ -6203,7 +6207,7 @@ body {
   height: 100%;
   padding: 8px;
 }
-._75g8nf2 {
+._75g8nf3 {
   background: white;
   border-radius: 4px;
   display: flex;
@@ -6212,15 +6216,15 @@ body {
   overflow-y: scroll;
   width: 100%;
 }
-._75g8nf3 {
+._75g8nf4 {
   display: flex;
   gap: var(--size-medium);
   margin-top: var(--size-medium);
 }
-._75g8nf4 {
+._75g8nf5 {
   margin-left: 340px;
 }
-._75g8nf5 {
+._75g8nf6 {
   border: 0 !important;
   border-radius: 0;
 }

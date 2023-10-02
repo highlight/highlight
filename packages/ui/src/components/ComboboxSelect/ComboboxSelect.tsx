@@ -10,7 +10,6 @@ import {
 	SelectLabel,
 	SelectPopover,
 	PopoverArrow,
-	Portal,
 } from '@ariakit/react'
 
 import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
@@ -113,82 +112,75 @@ export const ComboboxSelect = <T extends string | string[]>({
 					</Text>
 				)}
 			</Select>
-			<Portal>
-				<SelectPopover
-					store={select}
-					className={styles.selectPopover}
-					gutter={4}
-					autoFocusOnHide={false}
+			<SelectPopover
+				store={select}
+				className={styles.selectPopover}
+				gutter={4}
+				autoFocusOnHide={false}
+			>
+				<PopoverArrow size={0} />
+				<div
+					className={clsx(styles.comboboxWrapper, {
+						[styles.comboboxHasResults]:
+							allOptions.length > 0 || isLoading,
+					})}
 				>
-					<PopoverArrow size={0} />
-					<div
-						className={clsx(styles.comboboxWrapper, {
-							[styles.comboboxHasResults]:
-								allOptions.length > 0 || isLoading,
-						})}
-					>
-						<IconSolidSearch />
-						<Combobox
-							store={combobox}
-							type="text"
-							autoSelect
-							autoComplete="none"
-							placeholder={queryPlaceholder}
-							className={styles.combobox}
-						></Combobox>
-					</div>
-					<ComboboxList
+					<IconSolidSearch />
+					<Combobox
 						store={combobox}
-						className={clsx([
-							styles.comboboxList,
-							'hide-scrollbar',
-						])}
-					>
-						{isLoading && (
-							<div
-								className={clsx([
-									styles.selectItem,
-									styles.loadingPlaceholder,
-								])}
-							>
-								{loadingRender}
-							</div>
-						)}
-						{select.useState('open') &&
-							allOptions.map((option: Option) => (
-								<ComboboxItem
-									focusOnHover
-									key={option.key}
-									className={styles.selectItem}
-									render={
-										<SelectItem value={option.key}>
-											{isMultiselect && (
-												<div
-													className={styles.checkbox}
-													style={{
-														backgroundColor:
-															valueSet.has(
-																option.key,
-															)
-																? vars.theme
-																		.interactive
-																		.fill
-																		.primary
-																		.enabled
-																: 'white',
-													}}
-												>
-													<IconSolidCheckCircle color="white" />
-												</div>
-											)}
-											{option.render}
-										</SelectItem>
-									}
-								></ComboboxItem>
-							))}
-					</ComboboxList>
-				</SelectPopover>
-			</Portal>
+						type="text"
+						autoSelect
+						autoComplete="none"
+						placeholder={queryPlaceholder}
+						className={styles.combobox}
+					></Combobox>
+				</div>
+				<ComboboxList
+					store={combobox}
+					className={clsx([styles.comboboxList, 'hide-scrollbar'])}
+				>
+					{isLoading && (
+						<div
+							className={clsx([
+								styles.selectItem,
+								styles.loadingPlaceholder,
+							])}
+						>
+							{loadingRender}
+						</div>
+					)}
+					{select.useState('open') &&
+						allOptions.map((option: Option) => (
+							<ComboboxItem
+								focusOnHover
+								key={option.key}
+								className={styles.selectItem}
+								render={
+									<SelectItem value={option.key}>
+										{isMultiselect && (
+											<div
+												className={styles.checkbox}
+												style={{
+													backgroundColor:
+														valueSet.has(option.key)
+															? vars.theme
+																	.interactive
+																	.fill
+																	.primary
+																	.enabled
+															: 'white',
+												}}
+											>
+												<IconSolidCheckCircle color="white" />
+											</div>
+										)}
+										{option.render}
+									</SelectItem>
+								}
+							></ComboboxItem>
+						))}
+				</ComboboxList>
+			</SelectPopover>
 		</div>
 	)
 }
