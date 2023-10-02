@@ -169,12 +169,13 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 				}}
 			>
 				<Box
-					marginTop="16"
 					display="flex"
 					borderRadius="8"
 					border="secondary"
 					key={workspace_id}
 					style={{
+						marginTop: 'auto',
+						marginBottom: 'auto',
 						maxWidth: '324px',
 					}}
 					backgroundColor="white"

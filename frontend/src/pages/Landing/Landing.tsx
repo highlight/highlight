@@ -14,6 +14,7 @@ export const Landing = ({ children }: { children: ReactNode }) => {
 
 	return (
 		<Box
+			backgroundColor="p12"
 			alignItems="center"
 			display="flex"
 			minHeight="screen"

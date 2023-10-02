@@ -221,24 +221,17 @@ export const AppRouter = () => {
 				<WithSessionSearchContext>
 					<WithErrorSearchContext>
 						{(isNewWorkspacePage || isNewProjectPage) &&
-							(isLoggedIn ? (
-								<NewProjectPage
-									workspace_id={
-										isNewProjectPage
-											? workspaceId
-											: undefined
-									}
-								/>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							))}
+						!isLoggedIn ? (
+							<Navigate to={SIGN_IN_ROUTE} />
+						) : null}
 						<Routes>
+							<Route path="/new" element={<NewProjectPage />} />
 							<Route
-								path="/new"
+								path="/w/:workspace_id/new"
 								element={
-									<Landing>
-										<SwitchWorkspace />
-									</Landing>
+									<NewProjectPage
+										workspace_id={workspaceId}
+									/>
 								}
 							/>
 							<Route
