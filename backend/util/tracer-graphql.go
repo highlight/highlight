@@ -9,6 +9,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type Tracer struct {
@@ -32,18 +33,18 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 }
 
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
-	start := time.Now()
 	// taken from: https://docs.datadoghq.com/tracing/setup_overview/custom_instrumentation/go/#manually-creating-a-new-span
 	fc := graphql.GetFieldContext(ctx)
-	fieldSpan, ctx := StartSpanFromContext(ctx, "operation.field", ResourceName(fc.Field.Name))
-	fieldSpan.SetAttribute("field.type", fc.Field.Definition.Type.String())
+	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
+	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
 	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
 		if bs := string(b); len(bs) <= 1000 {
-			fieldSpan.SetAttribute("field.arguments", bs)
+			fieldSpan.SetTag("field.arguments", bs)
 		}
 	}
+	start := time.Now()
 	res, err := next(ctx)
-	fieldSpan.Finish(err)
+	fieldSpan.Finish(tracer.WithError(err))
 
 	if t.serverType == PrivateGraph {
 		fields := log.Fields{
@@ -73,17 +74,10 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	if oc != nil {
 		opName = oc.OperationName
 	}
-	span, ctx := StartSpanFromContext(ctx, "graphql.operation", ResourceName(opName))
-	span.SetAttribute("backend", t.serverType)
-	defer span.Finish()
+	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(opName))
+	span.SetTag("backend", t.serverType)
 	resp := next(ctx)
-	if resp != nil {
-		var errs []error
-		for _, err := range resp.Errors {
-			errs = append(errs, err)
-		}
-		span.Finish(errs...)
-	}
+	span.Finish()
 	if t.serverType == PrivateGraph {
 		fields := log.Fields{
 			"duration":          time.Since(start).Seconds(),

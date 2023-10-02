@@ -741,33 +741,21 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	var errorGroup, errorGroupAlt *model.ErrorGroup
-	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-		match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting top error group match")
-		}
-		return match, err
-	})
-	if err != nil {
-		return nil, e.Wrap(err, "Error getting or creating error group")
-	}
+	var errorGroup *model.ErrorGroup
 
 	var settings *model.AllWorkspaceSettings
 	if workspace != nil {
 		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
 	}
+
 	var embedding *model.ErrorObjectEmbeddings
 	if settings != nil && settings.ErrorEmbeddingsGroup {
-		// keep the classic match as the alternative error group
-		errorGroup, errorGroupAlt = nil, errorGroup
 		// timeout to generate embeddings in case endpoint is slow. p95 ~ 0.3s
 		eCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
-			errorGroup, errorGroupAlt = errorGroupAlt, nil
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
@@ -781,11 +769,23 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
 	} else {
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
+	}
+	if errorGroup == nil {
+		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to create error group by embedding; using classic match")
+		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+			match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
+			if err != nil {
+				return nil, e.Wrap(err, "Error getting top error group match")
+			}
+			return match, err
+		})
+		if err != nil {
+			return nil, e.Wrap(err, "Error getting or creating error group")
+		}
 	}
 	errorObj.ErrorGroupID = errorGroup.ID
 
