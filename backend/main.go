@@ -595,7 +595,10 @@ func main() {
 				defer profiler.Stop()
 			}
 			if handlerFlag != nil && *handlerFlag != "" {
-				w.GetHandler(ctx, *handlerFlag)(ctx)
+				func() {
+					defer util.RecoverAndCrash()
+					w.GetHandler(ctx, *handlerFlag)(ctx)
+				}()
 			} else {
 				go func() {
 					w.Start(ctx)
