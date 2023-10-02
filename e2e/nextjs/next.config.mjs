@@ -1,4 +1,6 @@
 // next.config.mjs
+import { withHighlightConfig } from '@highlight-run/next/config'
+
 const nextConfig = {
 	experimental: {
 		appDir: true,
@@ -8,4 +10,4 @@ const nextConfig = {
 	images: { domains: ['i.travelapi.com'] },
 }
 
-export default nextConfig
+export default withHighlightConfig(nextConfig)

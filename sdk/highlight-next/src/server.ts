@@ -4,7 +4,6 @@ import * as withHighlightNodeJsAppRouter from './util/with-highlight-nodejs-app-
 import type { HighlightEnv } from './util/types'
 
 export { registerHighlight } from './util/registerHighlight'
-export { withHighlightConfig } from './util/withHighlightConfig'
 export type { HighlightEnv } from './util/types'
 import type {
 	EdgeHandler,

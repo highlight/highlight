@@ -12534,6 +12534,7 @@ __metadata:
     "@trpc/server": ^9.27.4
     "@types/jest": 27.4.1
     chokidar-cli: ^3.0.0
+    cross-fetch: ^3.1.5
     eslint: 8.39.0
     highlight.run: "workspace:*"
     jest: ^29.2.0
