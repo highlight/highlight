@@ -141,7 +141,11 @@ export default function ErrorsV2() {
 			</Helmet>
 
 			<Box cssClass={styles.container}>
-				{!isBlocked && <SearchPanel />}
+				{!isBlocked && (
+					<Box cssClass={styles.searchPanelContainer}>
+						<SearchPanel />
+					</Box>
+				)}
 
 				<div
 					className={clsx(styles.detailsContainer, {

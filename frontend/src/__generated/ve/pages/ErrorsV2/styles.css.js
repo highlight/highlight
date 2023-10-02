@@ -1,1 +1,1 @@
-var r="_75g8nf0",e="_75g8nf1",t="_75g8nf2",o="_75g8nf3",n="_75g8nf4",a="_75g8nf5";export{r as container,e as detailsContainer,t as errorDetails,o as errorMetrics,n as moveDetailsRight,a as sessionSwitchButton};
+var r="_75g8nf0",e="_75g8nf2",t="_75g8nf3",n="_75g8nf4",a="_75g8nf5",o="_75g8nf1",i="_75g8nf6";export{r as container,e as detailsContainer,t as errorDetails,n as errorMetrics,a as moveDetailsRight,o as searchPanelContainer,i as sessionSwitchButton};
