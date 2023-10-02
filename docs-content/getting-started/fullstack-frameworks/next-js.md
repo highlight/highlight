@@ -393,7 +393,7 @@ If you use a `next.config.js` file:
 
 ```javascript
 // next.config.js
-const { withHighlightConfig } = require('@highlight-run/next/server')
+const { withHighlightConfig } = require('@highlight-run/next/config')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

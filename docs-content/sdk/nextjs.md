@@ -44,18 +44,18 @@ quickstart: true
   </div>
   <div className="right">
     <code>
-      import { Highlight } from "@highlight-run/next";
+      import { PageRouterHighlight } from "@highlight-run/next/server";
  
-      export const withHighlight = Highlight({projectID: '<YOUR_PROJECT_ID>'});
+      export const withPageRouterHighlight = PageRouterHighlight({projectID: '<YOUR_PROJECT_ID>'});
     </code>
     <code>
-      import { withHighlight } from "../highlight.config";
+      import { withPageRouterHighlight } from "../highlight.config";
  
       const handler = async (req, res) => {
         res.status(200).json({ name: "Jay" });
       };
  
-      export default withHighlight(handler);
+      export default withPageRouterHighlight(handler);
     </code>
   </div>
 </section>
@@ -97,7 +97,7 @@ quickstart: true
   <div className="right">
     <code>
       
-      import { withHighlightConfig } from "@highlight-run/next";
+      import { withHighlightConfig } from "@highlight-run/next/config";
       export default withHighlightConfig({
         // your next.config.js options here
 
