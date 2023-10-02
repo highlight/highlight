@@ -31,11 +31,11 @@ var jiraEndpoint = oauth2.Endpoint{
 }
 
 type JiraTokenResponse struct {
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
-	ExpiresIn    time.Time `json:"expires_in"`
-	Scope        string    `json:"scope"`
-	TokenType    string    `json:"token_type"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+	Scope        string `json:"scope"`
+	TokenType    string `json:"token_type"`
 }
 
 type JiraIssue struct {
@@ -244,16 +244,14 @@ func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token
 
 	response, err := doJiraPostRequest[*JiraTokenResponse]("", jiraEndpoint.TokenURL, payload)
 	if err != nil {
-		fmt.Println("JIRA_REFRESH_ERROR", err)
 		return nil, err
 	}
 
-	newToken := oauth2.Token{
+	newToken := &oauth2.Token{
 		AccessToken:  response.AccessToken,
 		RefreshToken: response.RefreshToken,
-		Expiry:       response.ExpiresIn,
+		Expiry:       time.Now().Add(time.Duration(response.ExpiresIn) * time.Second),
 	}
 
-	return &newToken, nil
-
+	return newToken, nil
 }

@@ -41,6 +41,8 @@ export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 			return `https://height.app/${a.external_id}`
 		case IntegrationType.GitHub:
 			return a.external_id
+		case IntegrationType.Jira:
+			return a.external_id
 	}
 	return ''
 }
