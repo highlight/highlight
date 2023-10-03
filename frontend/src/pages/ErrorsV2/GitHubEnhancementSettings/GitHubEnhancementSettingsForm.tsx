@@ -8,6 +8,7 @@ import {
 	IconSolidLoading,
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
+	IconSolidXCircle,
 	Stack,
 	Text,
 	Tooltip,
@@ -47,6 +48,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const [testedError, setTestedError] =
 		useState<ErrorObjectFragment>(errorObject)
 	const [testLoading, setTestLoading] = useState(false)
+	const [failedEnhancement, setFailedEnhancement] = useState(false)
 	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
 	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
@@ -146,7 +148,17 @@ export const GitHubEnhancementSettingsForm: React.FC<
 					...data.testErrorEnhancement,
 				}
 
+				// check if at least one file was enhanced
+				let latestFailedEnhancement = true
+				for (const trace of updatedError.structured_stack_trace) {
+					if (trace?.enhancementSource === 'github') {
+						latestFailedEnhancement = false
+						break
+					}
+				}
+
 				setTestedError(updatedError)
+				setFailedEnhancement(latestFailedEnhancement)
 			}
 			setTestLoading(false)
 		})
@@ -331,7 +343,28 @@ export const GitHubEnhancementSettingsForm: React.FC<
 					{testLoading ? (
 						<LoadingBox height={600} />
 					) : (
-						<ErrorStackTrace errorObject={testedError} />
+						<>
+							{failedEnhancement && (
+								<Box
+									display="flex"
+									alignItems="center"
+									gap="2"
+									pb="8"
+								>
+									<IconSolidXCircle
+										size={14}
+										color={
+											vars.theme.static.content.sentiment
+												.bad
+										}
+									/>
+									<Text color="bad">
+										Error: no traces successfully enhanced
+									</Text>
+								</Box>
+							)}
+							<ErrorStackTrace errorObject={testedError} />
+						</>
 					)}
 				</Box>
 			)}

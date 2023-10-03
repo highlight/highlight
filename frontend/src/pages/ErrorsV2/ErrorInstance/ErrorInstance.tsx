@@ -125,9 +125,11 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				data.error_instance.error_object.type === 'Backend'
 
 			const urlParams = new URLSearchParams(location.search)
-			const editGithubSettings = urlParams.get('editGithubSettings')
+			const editGithubSettings = Boolean(
+				urlParams.get('editGithubSettings'),
+			)
 
-			setDisplayGitHubSettings(!!backendError && !!editGithubSettings)
+			setDisplayGitHubSettings(backendError && editGithubSettings)
 		}
 	}, [data?.error_instance])
 
