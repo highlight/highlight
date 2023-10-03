@@ -1701,6 +1701,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueProjectID, *issueTypeID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
