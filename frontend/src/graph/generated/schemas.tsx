@@ -1676,6 +1676,7 @@ export enum ProductType {
 	Errors = 'Errors',
 	Logs = 'Logs',
 	Sessions = 'Sessions',
+	Traces = 'Traces',
 }
 
 export type Project = {
@@ -2823,6 +2824,7 @@ export enum SessionCommentType {
 
 export enum SessionExcludedReason {
 	BillingQuotaExceeded = 'BillingQuotaExceeded',
+	ExclusionFilter = 'ExclusionFilter',
 	IgnoredUser = 'IgnoredUser',
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
@@ -2831,6 +2833,7 @@ export enum SessionExcludedReason {
 	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
+	Sampled = 'Sampled',
 }
 
 export type SessionExportWithSession = {

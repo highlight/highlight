@@ -47,7 +47,7 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './UpdatePlanPage.css'
 
-type ProductType = 'Sessions' | 'Errors' | 'Logs'
+type ProductType = 'Sessions' | 'Errors' | 'Logs' | 'Traces'
 
 const RETENTION_OPTIONS: {
 	readonly [k in ProductType]: readonly RetentionPeriod[]
@@ -65,6 +65,7 @@ const RETENTION_OPTIONS: {
 		RetentionPeriod.TwoYears,
 	],
 	Logs: [RetentionPeriod.ThirtyDays],
+	Traces: [RetentionPeriod.ThirtyDays],
 }
 
 const RETENTION_MULTIPLIER: { readonly [k in RetentionPeriod]: number } = {
@@ -79,18 +80,21 @@ const BASE_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
 	Sessions: 2000,
 	Errors: 20,
 	Logs: 150,
+	Traces: 750,
 }
 
 const COMMITTED_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
 	Sessions: 500,
 	Errors: 20,
 	Logs: 150,
+	Traces: 750,
 }
 
 const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
 	Sessions: 1_000,
 	Errors: 1_000,
 	Logs: 1_000_000,
+	Traces: 1_000_000,
 }
 
 const EXISTING_PLANS: PlanType[] = [
