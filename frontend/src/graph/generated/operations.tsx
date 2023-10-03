@@ -4729,14 +4729,14 @@ export type GetTracesHistogramQueryVariables = Types.Exact<{
 }>
 
 export type GetTracesHistogramQuery = { __typename?: 'Query' } & {
-	traces_histogram: { __typename?: 'TracesHistogram' } & Pick<
-		Types.TracesHistogram,
-		'totalCount' | 'objectCount' | 'sampleFactor'
+	traces_histogram: { __typename?: 'TracesMetrics' } & Pick<
+		Types.TracesMetrics,
+		'bucket_count' | 'sample_factor'
 	> & {
 			buckets: Array<
-				{ __typename?: 'TracesHistogramBucket' } & Pick<
-					Types.TracesHistogramBucket,
-					'bucketId' | 'count'
+				{ __typename?: 'TracesMetricBucket' } & Pick<
+					Types.TracesMetricBucket,
+					'bucket_id' | 'metric_value'
 				>
 			>
 		}
@@ -4751,12 +4751,12 @@ export type GetTracesMetricsQueryVariables = Types.Exact<{
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 	traces_metrics: { __typename?: 'TracesMetrics' } & Pick<
 		Types.TracesMetrics,
-		'sampleFactor'
+		'bucket_count' | 'sample_factor'
 	> & {
 			buckets: Array<
 				{ __typename?: 'TracesMetricBucket' } & Pick<
 					Types.TracesMetricBucket,
-					'bucketId' | 'metric_type' | 'metric_value'
+					'bucket_id' | 'metric_type' | 'metric_value'
 				>
 			>
 		}

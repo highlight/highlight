@@ -286,115 +286,20 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	return traces, rows.Err()
 }
 
-func (client *Client) ReadTracesHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, nBuckets int) (*modelInputs.TracesHistogram, error) {
-	startTimestamp := uint64(params.DateRange.StartDate.Unix())
-	endTimestamp := uint64(params.DateRange.EndDate.Unix())
-
-	// If the queried time range is >= 1 hour, query the sampling table.
-	// Else, query the traces table directly.
-	var fromSb *sqlbuilder.SelectBuilder
-	var err error
-	if params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour {
-		fromSb, err = makeSelectBuilder(
-			tracesSamplingTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), toUInt64(round(count() * any(_sample_factor))), any(_sample_factor)",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-			),
-			projectID,
-			params,
-			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
-		)
-	} else {
-		fromSb, err = makeSelectBuilder(
-			tracesTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), count(), 1.0",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-			),
-			projectID,
-			params,
-			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
-		)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	fromSb.GroupBy("1")
-
-	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	histogram := &modelInputs.TracesHistogram{
-		Buckets:    make([]*modelInputs.TracesHistogramBucket, 0, nBuckets),
-		TotalCount: uint64(nBuckets),
-	}
-
-	rows, err := client.conn.Query(
-		ctx,
-		sql,
-		args...,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		groupKey     uint64
-		count        uint64
-		sampleFactor float64
-	)
-
-	buckets := make(map[uint64]uint64)
-
-	for rows.Next() {
-		if err := rows.Scan(&groupKey, &count, &sampleFactor); err != nil {
-			return nil, err
-		}
-
-		bucketId := groupKey
-
-		// clamp bucket to [0, nBuckets)
-		if bucketId >= uint64(nBuckets) {
-			bucketId = uint64(nBuckets - 1)
-		}
-
-		// add count to bucket
-		buckets[bucketId] = count
-	}
-
-	var objectCount uint64
-	for bucketId := uint64(0); bucketId < uint64(nBuckets); bucketId++ {
-		histogram.Buckets = append(histogram.Buckets, &modelInputs.TracesHistogramBucket{
-			BucketID: bucketId,
-			Count:    buckets[bucketId],
-		})
-	}
-
-	histogram.ObjectCount = objectCount
-	histogram.SampleFactor = sampleFactor
-
-	return histogram, err
-}
-
 func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, nBuckets int) (*modelInputs.TracesMetrics, error) {
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
+	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
 
 	fnStr := ""
 	for _, metricType := range metricTypes {
 		switch metricType {
+		case modelInputs.TracesMetricTypeCount:
+			if useSampling {
+				fnStr += ", round(count() * any(_sample_factor))"
+			} else {
+				fnStr += ", toFloat64(count())"
+			}
 		case modelInputs.TracesMetricTypeP50:
 			fnStr += ", quantile(.5)(Duration)"
 		case modelInputs.TracesMetricTypeP90:
@@ -402,11 +307,9 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		}
 	}
 
-	// If the queried time range is >= 1 hour, query the sampling table.
-	// Else, query the traces table directly.
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
-	if params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour {
+	if useSampling {
 		fromSb, err = makeSelectBuilder(
 			tracesSamplingTableConfig,
 			fmt.Sprintf(
@@ -496,6 +399,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	}
 
 	metrics.SampleFactor = sampleFactor
+	metrics.BucketCount = uint64(nBuckets)
 
 	return metrics, err
 }

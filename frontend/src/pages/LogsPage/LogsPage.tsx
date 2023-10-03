@@ -173,8 +173,9 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
-						histogramData={histogramData}
 						loading={histogramLoading}
+						histogramBuckets={histogramData?.logs_histogram.buckets}
+						bucketCount={histogramData?.logs_histogram.totalCount}
 					/>
 					<Box width="full">
 						<AdditionalFeedResults

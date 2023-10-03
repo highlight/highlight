@@ -1328,18 +1328,6 @@ type ComplexityRoot struct {
 		TraceState func(childComplexity int) int
 	}
 
-	TracesHistogram struct {
-		Buckets      func(childComplexity int) int
-		ObjectCount  func(childComplexity int) int
-		SampleFactor func(childComplexity int) int
-		TotalCount   func(childComplexity int) int
-	}
-
-	TracesHistogramBucket struct {
-		BucketID func(childComplexity int) int
-		Count    func(childComplexity int) int
-	}
-
 	TracesMetricBucket struct {
 		BucketID    func(childComplexity int) int
 		MetricType  func(childComplexity int) int
@@ -1347,6 +1335,7 @@ type ComplexityRoot struct {
 	}
 
 	TracesMetrics struct {
+		BucketCount  func(childComplexity int) int
 		Buckets      func(childComplexity int) int
 		SampleFactor func(childComplexity int) int
 	}
@@ -1731,7 +1720,7 @@ type QueryResolver interface {
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string) ([]*model.Trace, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
-	TracesHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.TracesHistogram, error)
+	TracesHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.TracesMetrics, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType) (*model.TracesMetrics, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
@@ -9258,49 +9247,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TraceLink.TraceState(childComplexity), true
 
-	case "TracesHistogram.buckets":
-		if e.complexity.TracesHistogram.Buckets == nil {
-			break
-		}
-
-		return e.complexity.TracesHistogram.Buckets(childComplexity), true
-
-	case "TracesHistogram.objectCount":
-		if e.complexity.TracesHistogram.ObjectCount == nil {
-			break
-		}
-
-		return e.complexity.TracesHistogram.ObjectCount(childComplexity), true
-
-	case "TracesHistogram.sampleFactor":
-		if e.complexity.TracesHistogram.SampleFactor == nil {
-			break
-		}
-
-		return e.complexity.TracesHistogram.SampleFactor(childComplexity), true
-
-	case "TracesHistogram.totalCount":
-		if e.complexity.TracesHistogram.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.TracesHistogram.TotalCount(childComplexity), true
-
-	case "TracesHistogramBucket.bucketId":
-		if e.complexity.TracesHistogramBucket.BucketID == nil {
-			break
-		}
-
-		return e.complexity.TracesHistogramBucket.BucketID(childComplexity), true
-
-	case "TracesHistogramBucket.count":
-		if e.complexity.TracesHistogramBucket.Count == nil {
-			break
-		}
-
-		return e.complexity.TracesHistogramBucket.Count(childComplexity), true
-
-	case "TracesMetricBucket.bucketId":
+	case "TracesMetricBucket.bucket_id":
 		if e.complexity.TracesMetricBucket.BucketID == nil {
 			break
 		}
@@ -9321,6 +9268,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TracesMetricBucket.MetricValue(childComplexity), true
 
+	case "TracesMetrics.bucket_count":
+		if e.complexity.TracesMetrics.BucketCount == nil {
+			break
+		}
+
+		return e.complexity.TracesMetrics.BucketCount(childComplexity), true
+
 	case "TracesMetrics.buckets":
 		if e.complexity.TracesMetrics.Buckets == nil {
 			break
@@ -9328,7 +9282,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TracesMetrics.Buckets(childComplexity), true
 
-	case "TracesMetrics.sampleFactor":
+	case "TracesMetrics.sample_factor":
 		if e.complexity.TracesMetrics.SampleFactor == nil {
 			break
 		}
@@ -10683,32 +10637,22 @@ type LogsHistogram {
 	sampleFactor: Float!
 }
 
-type TracesHistogramBucket {
-	bucketId: UInt64!
-	count: UInt64!
-}
-
-type TracesHistogram {
-	buckets: [TracesHistogramBucket!]!
-	totalCount: UInt64!
-	objectCount: UInt64!
-	sampleFactor: Float!
-}
-
 enum TracesMetricType {
+	count
 	p50
 	p90
 }
 
 type TracesMetricBucket {
-	bucketId: UInt64!
+	bucket_id: UInt64!
 	metric_type: TracesMetricType!
 	metric_value: Float!
 }
 
 type TracesMetrics {
 	buckets: [TracesMetricBucket!]!
-	sampleFactor: Float!
+	bucket_count: UInt64!
+	sample_factor: Float!
 }
 
 type QueryKey {
@@ -11794,7 +11738,7 @@ type Query {
 		at: String
 		direction: SortDirection!
 	): TraceConnection!
-	traces_histogram(project_id: ID!, params: QueryInput!): TracesHistogram!
+	traces_histogram(project_id: ID!, params: QueryInput!): TracesMetrics!
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
@@ -53226,9 +53170,9 @@ func (ec *executionContext) _Query_traces_histogram(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.TracesHistogram)
+	res := resTmp.(*model.TracesMetrics)
 	fc.Result = res
-	return ec.marshalNTracesHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesHistogram(ctx, field.Selections, res)
+	return ec.marshalNTracesMetrics2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetrics(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_traces_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -53240,15 +53184,13 @@ func (ec *executionContext) fieldContext_Query_traces_histogram(ctx context.Cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "buckets":
-				return ec.fieldContext_TracesHistogram_buckets(ctx, field)
-			case "totalCount":
-				return ec.fieldContext_TracesHistogram_totalCount(ctx, field)
-			case "objectCount":
-				return ec.fieldContext_TracesHistogram_objectCount(ctx, field)
-			case "sampleFactor":
-				return ec.fieldContext_TracesHistogram_sampleFactor(ctx, field)
+				return ec.fieldContext_TracesMetrics_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_TracesMetrics_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_TracesMetrics_sample_factor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TracesHistogram", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type TracesMetrics", field.Name)
 		},
 	}
 	defer func() {
@@ -53305,8 +53247,10 @@ func (ec *executionContext) fieldContext_Query_traces_metrics(ctx context.Contex
 			switch field.Name {
 			case "buckets":
 				return ec.fieldContext_TracesMetrics_buckets(ctx, field)
-			case "sampleFactor":
-				return ec.fieldContext_TracesMetrics_sampleFactor(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_TracesMetrics_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_TracesMetrics_sample_factor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TracesMetrics", field.Name)
 		},
@@ -64418,190 +64362,8 @@ func (ec *executionContext) fieldContext_TraceLink_attributes(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _TracesHistogram_buckets(ctx context.Context, field graphql.CollectedField, obj *model.TracesHistogram) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesHistogram_buckets(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Buckets, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.TracesHistogramBucket)
-	fc.Result = res
-	return ec.marshalNTracesHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesHistogramBucketᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesHistogram_buckets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesHistogram",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "bucketId":
-				return ec.fieldContext_TracesHistogramBucket_bucketId(ctx, field)
-			case "count":
-				return ec.fieldContext_TracesHistogramBucket_count(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TracesHistogramBucket", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesHistogram_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.TracesHistogram) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesHistogram_totalCount(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesHistogram_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesHistogram",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt64 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesHistogram_objectCount(ctx context.Context, field graphql.CollectedField, obj *model.TracesHistogram) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesHistogram_objectCount(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ObjectCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesHistogram_objectCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesHistogram",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt64 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesHistogram_sampleFactor(ctx context.Context, field graphql.CollectedField, obj *model.TracesHistogram) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesHistogram_sampleFactor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SampleFactor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesHistogram_sampleFactor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesHistogram",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesHistogramBucket_bucketId(ctx context.Context, field graphql.CollectedField, obj *model.TracesHistogramBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesHistogramBucket_bucketId(ctx, field)
+func (ec *executionContext) _TracesMetricBucket_bucket_id(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracesMetricBucket_bucket_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -64631,95 +64393,7 @@ func (ec *executionContext) _TracesHistogramBucket_bucketId(ctx context.Context,
 	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_TracesHistogramBucket_bucketId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesHistogramBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt64 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesHistogramBucket_count(ctx context.Context, field graphql.CollectedField, obj *model.TracesHistogramBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesHistogramBucket_count(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Count, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesHistogramBucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesHistogramBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt64 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetricBucket_bucketId(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetricBucket_bucketId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BucketID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetricBucket_bucketId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_TracesMetricBucket_bucket_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TracesMetricBucket",
 		Field:      field,
@@ -64859,8 +64533,8 @@ func (ec *executionContext) fieldContext_TracesMetrics_buckets(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "bucketId":
-				return ec.fieldContext_TracesMetricBucket_bucketId(ctx, field)
+			case "bucket_id":
+				return ec.fieldContext_TracesMetricBucket_bucket_id(ctx, field)
 			case "metric_type":
 				return ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
 			case "metric_value":
@@ -64872,8 +64546,52 @@ func (ec *executionContext) fieldContext_TracesMetrics_buckets(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _TracesMetrics_sampleFactor(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetrics) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetrics_sampleFactor(ctx, field)
+func (ec *executionContext) _TracesMetrics_bucket_count(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetrics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracesMetrics_bucket_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TracesMetrics_bucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TracesMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TracesMetrics_sample_factor(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetrics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracesMetrics_sample_factor(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -64903,7 +64621,7 @@ func (ec *executionContext) _TracesMetrics_sampleFactor(ctx context.Context, fie
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_TracesMetrics_sampleFactor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_TracesMetrics_sample_factor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TracesMetrics",
 		Field:      field,
@@ -81793,90 +81511,6 @@ func (ec *executionContext) _TraceLink(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var tracesHistogramImplementors = []string{"TracesHistogram"}
-
-func (ec *executionContext) _TracesHistogram(ctx context.Context, sel ast.SelectionSet, obj *model.TracesHistogram) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, tracesHistogramImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TracesHistogram")
-		case "buckets":
-
-			out.Values[i] = ec._TracesHistogram_buckets(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "totalCount":
-
-			out.Values[i] = ec._TracesHistogram_totalCount(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "objectCount":
-
-			out.Values[i] = ec._TracesHistogram_objectCount(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "sampleFactor":
-
-			out.Values[i] = ec._TracesHistogram_sampleFactor(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var tracesHistogramBucketImplementors = []string{"TracesHistogramBucket"}
-
-func (ec *executionContext) _TracesHistogramBucket(ctx context.Context, sel ast.SelectionSet, obj *model.TracesHistogramBucket) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, tracesHistogramBucketImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TracesHistogramBucket")
-		case "bucketId":
-
-			out.Values[i] = ec._TracesHistogramBucket_bucketId(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "count":
-
-			out.Values[i] = ec._TracesHistogramBucket_count(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var tracesMetricBucketImplementors = []string{"TracesMetricBucket"}
 
 func (ec *executionContext) _TracesMetricBucket(ctx context.Context, sel ast.SelectionSet, obj *model.TracesMetricBucket) graphql.Marshaler {
@@ -81887,9 +81521,9 @@ func (ec *executionContext) _TracesMetricBucket(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TracesMetricBucket")
-		case "bucketId":
+		case "bucket_id":
 
-			out.Values[i] = ec._TracesMetricBucket_bucketId(ctx, field, obj)
+			out.Values[i] = ec._TracesMetricBucket_bucket_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -81936,9 +81570,16 @@ func (ec *executionContext) _TracesMetrics(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "sampleFactor":
+		case "bucket_count":
 
-			out.Values[i] = ec._TracesMetrics_sampleFactor(ctx, field, obj)
+			out.Values[i] = ec._TracesMetrics_bucket_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sample_factor":
+
+			out.Values[i] = ec._TracesMetrics_sample_factor(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -87113,74 +86754,6 @@ func (ec *executionContext) marshalNTraceEdge2ᚖgithubᚗcomᚋhighlightᚑrun�
 		return graphql.Null
 	}
 	return ec._TraceEdge(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNTracesHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesHistogram(ctx context.Context, sel ast.SelectionSet, v model.TracesHistogram) graphql.Marshaler {
-	return ec._TracesHistogram(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTracesHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesHistogram(ctx context.Context, sel ast.SelectionSet, v *model.TracesHistogram) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._TracesHistogram(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNTracesHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesHistogramBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TracesHistogramBucket) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTracesHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesHistogramBucket(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNTracesHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesHistogramBucket(ctx context.Context, sel ast.SelectionSet, v *model.TracesHistogramBucket) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._TracesHistogramBucket(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTracesMetricBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TracesMetricBucket) graphql.Marshaler {

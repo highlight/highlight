@@ -14026,13 +14026,12 @@ export type GetTracesQueryResult = Apollo.QueryResult<
 export const GetTracesHistogramDocument = gql`
 	query GetTracesHistogram($project_id: ID!, $params: QueryInput!) {
 		traces_histogram(project_id: $project_id, params: $params) {
-			totalCount
 			buckets {
-				bucketId
-				count
+				bucket_id
+				metric_value
 			}
-			objectCount
-			sampleFactor
+			bucket_count
+			sample_factor
 		}
 	}
 `
@@ -14098,11 +14097,12 @@ export const GetTracesMetricsDocument = gql`
 			metric_types: $metric_types
 		) {
 			buckets {
-				bucketId
+				bucket_id
 				metric_type
 				metric_value
 			}
-			sampleFactor
+			bucket_count
+			sample_factor
 		}
 	}
 `
