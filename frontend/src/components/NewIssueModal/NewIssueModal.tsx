@@ -122,11 +122,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		setLoading(true)
 		try {
 			const otherVariables = otherIssueVariables()
-			console.log(
-				'Other variables',
-				otherVariables,
-				otherIssueVariables(),
-			)
 			const issueTitle = form.getValue(form.names.issueTitle)
 			const issueDescription =
 				form.getValue(form.names.issueDescription) ?? ''

@@ -294,7 +294,6 @@ const WorkspaceIntegrationCallback = ({
 		const redirectUrl = next || `/${projectId}/integrations/${type}`
 		;(async () => {
 			try {
-				// TODO: this is called twice. In the case of the jira integration, this shows a false error because the auth code can only be used once. So one request succeeds and invalidates the access token for the next.
 				await addIntegration(code)
 				message.success(`Highlight is now synced with ${name}!`, 5)
 			} catch (e: any) {

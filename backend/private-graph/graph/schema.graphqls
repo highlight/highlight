@@ -248,7 +248,6 @@ type JiraIssueType {
 }
 
 type JiraProject {
-	# avatarUrls: String!
 	name: String!
 	key: String!
 	id: String!
