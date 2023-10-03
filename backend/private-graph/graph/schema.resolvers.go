@@ -606,7 +606,7 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 		RageClickCount:         &project.RageClickCount,
 	}
 
-	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(ctx, project, store.UpdateProjectFilterSettingsParams{
+	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(ctx, project.ID, store.UpdateProjectFilterSettingsParams{
 		FilterSessionsWithoutError:        filterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: autoResolveStaleErrorsDayInterval,
 	})
@@ -6378,7 +6378,7 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID)
 	if err != nil {
 		return nil, err
 	}

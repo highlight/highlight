@@ -386,12 +386,20 @@ type SetupEvent struct {
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
 
+// TODO(vkorolik) project filter setting updates should invalidate cache
 type ProjectFilterSettings struct {
 	Model
 	Project                           *Project
 	ProjectID                         int
-	FilterSessionsWithoutError        bool `gorm:"default:false"`
-	AutoResolveStaleErrorsDayInterval int  `gorm:"default:0"`
+	FilterSessionsWithoutError        bool    `gorm:"default:false"`
+	AutoResolveStaleErrorsDayInterval int     `gorm:"default:0"`
+	SessionSamplingRate               float64 `gorm:"default:1"`
+	ErrorSamplingRate                 float64 `gorm:"default:1"`
+	LogSamplingRate                   float64 `gorm:"default:1"`
+	TraceSamplingRate                 float64 `gorm:"default:1"`
+	SessionExclusionQuery             *string
+	ErrorExclusionQuery               *string
+	LogExclusionQuery                 *string
 }
 
 type AllWorkspaceSettings struct {

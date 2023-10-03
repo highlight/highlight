@@ -89,14 +89,16 @@ type AddSessionPropertiesArgs struct {
 type PushBackendPayloadArgs struct {
 	ProjectVerboseID *string
 	SessionSecureID  *string
-	Errors           []*customModels.BackendErrorObjectInput
+	Errors           []*customModels.BackendErrorObjectInput // Deprecated: send multiple messages with single error
+	Error            *customModels.BackendErrorObjectInput
 }
 
 type PushMetricsArgs struct {
 	SessionSecureID string
 	SessionID       int
 	ProjectID       int
-	Metrics         []*customModels.MetricInput
+	Metrics         []*customModels.MetricInput // Deprecated: send multiple messages with single error
+	Metric          *customModels.MetricInput
 }
 
 type AddSessionFeedbackArgs struct {

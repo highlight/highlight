@@ -1843,12 +1843,16 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 	}
 
 	for secureID, metrics := range sessionMetrics {
-		err := r.ProducerQueue.Submit(ctx, secureID, &kafka_queue.Message{
-			Type: kafka_queue.PushMetrics,
-			PushMetrics: &kafka_queue.PushMetricsArgs{
-				SessionSecureID: secureID,
-				Metrics:         metrics,
-			}})
+		var messages []*kafka_queue.Message
+		for _, metric := range metrics {
+			messages = append(messages, &kafka_queue.Message{
+				Type: kafka_queue.PushMetrics,
+				PushMetrics: &kafka_queue.PushMetricsArgs{
+					SessionSecureID: secureID,
+					Metric:          metric,
+				}})
+		}
+		err := r.ProducerQueue.Submit(ctx, secureID, messages...)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
@@ -3316,7 +3320,7 @@ func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *mode
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project *model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(ctx, project)
+	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(ctx, project.ID)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
 		return !sessionHasErrors

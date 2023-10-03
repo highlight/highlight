@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/sampling"
 	"io"
 	"net/http"
 	"strings"
@@ -145,8 +146,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
-	var traceSpans = make(map[string][]*clickhouse.TraceRow)
 
+	var traceSpans = make(map[string][]*clickhouse.TraceRow)
 	var traceMetrics = make(map[string][]*model.MetricInput)
 
 	spans := req.Traces().ResourceSpans()
@@ -287,12 +288,22 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				SessionSecureID: &sessionID,
-				Errors:          errors,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, errorObject := range errors {
+			if !sampling.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
+				continue
+			}
+			if !sampling.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
+				continue
+			}
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					SessionSecureID: &sessionID,
+					Error:           errorObject,
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel session errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -301,12 +312,22 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, errors := range projectErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, "", &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				ProjectVerboseID: &projectID,
-				Errors:           errors,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, errorObject := range errors {
+			if !sampling.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
+				continue
+			}
+			if !sampling.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
+				continue
+			}
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					ProjectVerboseID: &projectID,
+					Error:            errorObject,
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, "", messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -315,12 +336,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, metrics := range traceMetrics {
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
-			Type: kafkaqueue.PushMetrics,
-			PushMetrics: &kafkaqueue.PushMetricsArgs{
-				SessionSecureID: sessionID,
-				Metrics:         metrics,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, metric := range metrics {
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushMetrics,
+				PushMetrics: &kafkaqueue.PushMetricsArgs{
+					SessionSecureID: sessionID,
+					Metric:          metric,
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -434,6 +459,12 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for _, logRows := range projectLogs {
 		var messages []*kafkaqueue.Message
 		for _, logRow := range logRows {
+			if !sampling.IsLogIngestedBySample(ctx, o.resolver.Store, logRow) {
+				continue
+			}
+			if !sampling.IsLogIngestedByFilter(ctx, o.resolver.Store, logRow) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushLogs,
 				PushLogs: &kafkaqueue.PushLogsArgs{
@@ -452,6 +483,12 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	for traceID, traceRows := range traceRows {
 		var messages []*kafkaqueue.Message
 		for _, traceRow := range traceRows {
+			if !sampling.IsTraceIngestedBySample(ctx, o.resolver.Store, traceRow) {
+				continue
+			}
+			if !sampling.IsTraceIngestedByFilter(ctx, o.resolver.Store, traceRow) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushTraces,
 				PushTraces: &kafkaqueue.PushTracesArgs{
