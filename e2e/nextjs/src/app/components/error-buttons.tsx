@@ -45,7 +45,7 @@ export function ErrorButtons() {
 
 				<Button
 					onClick={() =>
-						fetch('/api/test?success=true')
+						fetch('/api/page-router-test?success=true')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}
@@ -55,7 +55,7 @@ export function ErrorButtons() {
 
 				<Button
 					onClick={() =>
-						fetch('/api/test?success=false')
+						fetch('/api/page-router-test?success=false')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}
@@ -87,7 +87,7 @@ export function ErrorButtons() {
 
 				<Button
 					onClick={() =>
-						fetch('/api/app-directory-test?success=true')
+						fetch('/api/app-router-test?success=true')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}
@@ -97,7 +97,7 @@ export function ErrorButtons() {
 
 				<Button
 					onClick={() =>
-						fetch('/api/app-directory-test?success=false')
+						fetch('/api/app-router-test?success=false')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}

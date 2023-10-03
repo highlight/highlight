@@ -105,21 +105,17 @@ export default withHighlight(function handler(
 
 ## Instrument the server
 
-Next.js comes out of the box instrumented for Open Telemetry. This example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configue Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next... but this is our favorite.
+Next.js comes out of the box instrumented for Open Telemetry. This example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next... but this is our favorite.
 
 
-1. Install `next-build-id` with `npm install next-build-id`.
-2.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with sourcemaps. Notice that we're transpiling the `@highlight-run/next/client` package.
+1.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with sourcemaps. Notice that we're transpiling the `@highlight-run/next/client` package.
 
 ```javascript
 // next.config.js
-const nextBuildId = require('next-build-id')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
-		appDir: true,
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
@@ -221,9 +217,9 @@ We recommend shipping your sourcemaps to your production server. Your client-sid
 
 Shipping sourcemaps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`.
 
-Alternatively, you can upload sourcemaps directly to Highlight using our `withHighlightConfig` function. See [Next.js Overview](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js.md) for more details.
+Alternatively, you can upload sourcemaps directly to Highlight using our `withHighlightConfig` function. See [Next.js Overview](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/index.md) for more details.
 
-Make sure to implement `nextConfig.generateBuildId` so that our sourcemap uploader can version your sourcemaps correctly. Make sure to omit `productionBrowserSourceMaps` or set it to false to enable the sourcemap uploader.
+Make sure to implement `nextConfig.generateBuildId` so that our source map uploader can version your sourcemaps correctly. Make sure to omit `productionBrowserSourceMaps` or set it to false to enable the source map uploader.
 
 ```javascript
 // next.config.js
@@ -234,7 +230,6 @@ const { withHighlightConfig } = require('@highlight-run/next/config')
 const nextConfig = {
 	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
-		appDir: true,
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: false,
