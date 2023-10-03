@@ -3,11 +3,11 @@ title: Changelog 25 (10/03)
 slug: changelog-25
 ---
 
-## GitHub-enhanced Stacktraces
+## GitHub Settings
 
-We recently released GitHub-enhanced stacktraces, which enhances your stacktraces based on the actual content in your github account. It's a quality-of-life enhancement that unearths the actual code from an error.
+We recently released GitHub-enhanced stack traces, and now we've surfaced your GitHub settings right next to your stack traces. It's a quality-of-life enhancement that unearths your buried settings and puts them right where you need them.
 
-![GitHub Stacktrace Settings](/images/changelog/25/github-stacktrace-settings.png)
+![GitHub stack trace settings](/images/changelog/25/github-stacktrace-settings.jpg)
 
 ## Edge-compatible Next.js
 
