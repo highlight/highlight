@@ -21,19 +21,20 @@ const LogsTable = "logs"
 const LogsSamplingTable = "logs_sampling"
 const LogKeysTable = "log_keys"
 const LogKeyValuesTable = "log_key_values"
-const SamplingRows = 20_000_000
+
+var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
+	modelInputs.ReservedLogKeyLevel:           "SeverityText",
+	modelInputs.ReservedLogKeySecureSessionID: "SecureSessionId",
+	modelInputs.ReservedLogKeySpanID:          "SpanId",
+	modelInputs.ReservedLogKeyTraceID:         "TraceId",
+	modelInputs.ReservedLogKeySource:          "Source",
+	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
+	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
+}
 
 var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
-	tableName: LogsTable,
-	keysToColumns: map[modelInputs.ReservedLogKey]string{
-		modelInputs.ReservedLogKeyLevel:           "SeverityText",
-		modelInputs.ReservedLogKeySecureSessionID: "SecureSessionId",
-		modelInputs.ReservedLogKeySpanID:          "SpanId",
-		modelInputs.ReservedLogKeyTraceID:         "TraceId",
-		modelInputs.ReservedLogKeySource:          "Source",
-		modelInputs.ReservedLogKeyServiceName:     "ServiceName",
-		modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
-	},
+	tableName:        LogsTable,
+	keysToColumns:    logKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedLogKey,
 	attributesColumn: "LogAttributes",
 	selectColumns: []string{
@@ -52,16 +53,8 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 }
 
 var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
-	tableName: fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
-	keysToColumns: map[modelInputs.ReservedLogKey]string{
-		modelInputs.ReservedLogKeyLevel:           "SeverityText",
-		modelInputs.ReservedLogKeySecureSessionID: "SecureSessionId",
-		modelInputs.ReservedLogKeySpanID:          "SpanId",
-		modelInputs.ReservedLogKeyTraceID:         "TraceId",
-		modelInputs.ReservedLogKeySource:          "Source",
-		modelInputs.ReservedLogKeyServiceName:     "ServiceName",
-		modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
-	},
+	tableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
+	keysToColumns:    logKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedLogKey,
 	attributesColumn: "LogAttributes",
 }

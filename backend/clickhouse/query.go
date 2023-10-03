@@ -16,6 +16,10 @@ import (
 	"github.com/samber/lo"
 )
 
+const SamplingRows = 20_000_000
+const KeysMaxRows = 1_000_000
+const KeyValuesMaxRows = 1_000_000
+
 type tableConfig[TReservedKey ~string] struct {
 	tableName        string
 	attributesColumn string
@@ -300,112 +304,9 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	return out
 }
 
-func Keys[T ~string](ctx context.Context, client *Client, config tableConfig[T], projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(fmt.Sprintf("arrayJoin(%s.keys) as key, count() as cnt", config.attributesColumn)).
-		From(config.tableName).
-		Where(sb.Equal("ProjectId", projectID)).
-		GroupBy("key").
-		OrderBy("cnt DESC").
-		Where(sb.LessEqualThan("Timestamp", endDate)).
-		Where(sb.GreaterEqualThan("Timestamp", startDate))
-
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	span, _ := util.StartSpanFromContext(ctx, "tableName", util.ResourceName("Keys"))
-	span.SetAttribute("Query", sql)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-
-	if err != nil {
-		return nil, err
-	}
-
-	keys := []*modelInputs.QueryKey{}
-	for rows.Next() {
-		var (
-			Key   string
-			Count uint64
-		)
-		if err := rows.Scan(&Key, &Count); err != nil {
-			return nil, err
-		}
-
-		keys = append(keys, &modelInputs.QueryKey{
-			Name: Key,
-			Type: modelInputs.KeyTypeString, // For now, assume everything is a string
-		})
-	}
-
-	reservedKeys := config.reservedKeys
-	for _, key := range reservedKeys {
-		keys = append(keys, &modelInputs.QueryKey{
-			Name: string(key),
-			Type: modelInputs.KeyTypeString,
-		})
-	}
-
-	rows.Close()
-
-	span.Finish(rows.Err())
-	return keys, rows.Err()
-}
-
-func KeyValues[T ~string](ctx context.Context, client *Client, config tableConfig[T], projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-
-	col := config.attributesColumn
-	for key, c := range config.keysToColumns {
-		if string(key) == keyName {
-			col = c
-			break
-		}
-	}
-
-	if col == config.attributesColumn {
-		sb.Select("DISTINCT " + col + " [" + sb.Var(keyName) + "] as value").
-			From(config.tableName).
-			Where(sb.Equal("ProjectId", projectID)).
-			Where("mapContains(" + col + ", " + sb.Var(keyName) + ")").
-			Limit(KeyValuesLimit)
-	} else {
-		sb.Select("DISTINCT " + col + " value").
-			From(config.tableName).
-			Where(sb.Equal("ProjectId", projectID)).
-			Where(sb.NotEqual("value", "")).
-			Limit(KeyValuesLimit)
-	}
-
-	sb.Where(sb.LessEqualThan("Timestamp", endDate)).
-		Where(sb.GreaterEqualThan("Timestamp", startDate))
-
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	values := []string{}
-	for rows.Next() {
-		var (
-			Value string
-		)
-		if err := rows.Scan(&Value); err != nil {
-			return nil, err
-		}
-
-		values = append(values, Value)
-	}
-
-	rows.Close()
-
-	return values, rows.Err()
-}
-
 func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"max_rows_to_read": 1_000_000,
+		"max_rows_to_read": KeysMaxRows,
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
@@ -453,7 +354,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"max_rows_to_read": 1_000_000,
+		"max_rows_to_read": KeyValuesMaxRows,
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()

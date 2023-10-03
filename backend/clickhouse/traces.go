@@ -16,21 +16,26 @@ import (
 )
 
 const TracesTable = "traces"
+const TracesSamplingTable = "traces_sampling"
+const TraceKeysTable = "trace_keys"
+const TraceKeyValuesTable = "trace_key_values"
+
+var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
+	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
+	modelInputs.ReservedTraceKeySpanID:          "SpanId",
+	modelInputs.ReservedTraceKeyTraceID:         "TraceId",
+	modelInputs.ReservedTraceKeyParentSpanID:    "ParentSpanId",
+	modelInputs.ReservedTraceKeyTraceState:      "TraceState",
+	modelInputs.ReservedTraceKeySpanName:        "SpanName",
+	modelInputs.ReservedTraceKeySpanKind:        "SpanKind",
+	modelInputs.ReservedTraceKeyDuration:        "Duration",
+	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
+	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
+}
 
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
-	tableName: TracesTable,
-	keysToColumns: map[modelInputs.ReservedTraceKey]string{
-		modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
-		modelInputs.ReservedTraceKeySpanID:          "SpanId",
-		modelInputs.ReservedTraceKeyTraceID:         "TraceId",
-		modelInputs.ReservedTraceKeyParentSpanID:    "ParentSpanId",
-		modelInputs.ReservedTraceKeyTraceState:      "TraceState",
-		modelInputs.ReservedTraceKeySpanName:        "SpanName",
-		modelInputs.ReservedTraceKeySpanKind:        "SpanKind",
-		modelInputs.ReservedTraceKeyDuration:        "Duration",
-		modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
-		modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
-	},
+	tableName:        TracesTable,
+	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	attributesColumn: "TraceAttributes",
 	selectColumns: []string{
@@ -51,6 +56,13 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 		"StatusCode",
 		"StatusMessage",
 	},
+}
+
+var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
+	tableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	keysToColumns:    traceKeysToColumns,
+	reservedKeys:     modelInputs.AllReservedTraceKey,
+	attributesColumn: "TraceAttributes",
 }
 
 type ClickhouseTraceRow struct {
@@ -274,10 +286,224 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	return traces, rows.Err()
 }
 
+func (client *Client) ReadTracesHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, nBuckets int) (*modelInputs.TracesHistogram, error) {
+	startTimestamp := uint64(params.DateRange.StartDate.Unix())
+	endTimestamp := uint64(params.DateRange.EndDate.Unix())
+
+	// If the queried time range is >= 1 hour, query the sampling table.
+	// Else, query the traces table directly.
+	var fromSb *sqlbuilder.SelectBuilder
+	var err error
+	if params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour {
+		fromSb, err = makeSelectBuilder(
+			tracesSamplingTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), toUInt64(round(count() * any(_sample_factor))), any(_sample_factor)",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	} else {
+		fromSb, err = makeSelectBuilder(
+			tracesTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), count(), 1.0",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	fromSb.GroupBy("1")
+
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	histogram := &modelInputs.TracesHistogram{
+		Buckets:    make([]*modelInputs.TracesHistogramBucket, 0, nBuckets),
+		TotalCount: uint64(nBuckets),
+	}
+
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		groupKey     uint64
+		count        uint64
+		sampleFactor float64
+	)
+
+	buckets := make(map[uint64]uint64)
+
+	for rows.Next() {
+		if err := rows.Scan(&groupKey, &count, &sampleFactor); err != nil {
+			return nil, err
+		}
+
+		bucketId := groupKey
+
+		// clamp bucket to [0, nBuckets)
+		if bucketId >= uint64(nBuckets) {
+			bucketId = uint64(nBuckets - 1)
+		}
+
+		// add count to bucket
+		buckets[bucketId] = count
+	}
+
+	var objectCount uint64
+	for bucketId := uint64(0); bucketId < uint64(nBuckets); bucketId++ {
+		histogram.Buckets = append(histogram.Buckets, &modelInputs.TracesHistogramBucket{
+			BucketID: bucketId,
+			Count:    buckets[bucketId],
+		})
+	}
+
+	histogram.ObjectCount = objectCount
+	histogram.SampleFactor = sampleFactor
+
+	return histogram, err
+}
+
+func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, nBuckets int) (*modelInputs.TracesMetrics, error) {
+	startTimestamp := uint64(params.DateRange.StartDate.Unix())
+	endTimestamp := uint64(params.DateRange.EndDate.Unix())
+
+	fnStr := ""
+	for _, metricType := range metricTypes {
+		switch metricType {
+		case modelInputs.TracesMetricTypeP50:
+			fnStr += ", quantile(.5)(Duration)"
+		case modelInputs.TracesMetricTypeP90:
+			fnStr += ", quantile(.9)(Duration)"
+		}
+	}
+
+	// If the queried time range is >= 1 hour, query the sampling table.
+	// Else, query the traces table directly.
+	var fromSb *sqlbuilder.SelectBuilder
+	var err error
+	if params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour {
+		fromSb, err = makeSelectBuilder(
+			tracesSamplingTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+				fnStr,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	} else {
+		fromSb, err = makeSelectBuilder(
+			tracesTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+				fnStr,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	fromSb.GroupBy("1")
+
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	metrics := &modelInputs.TracesMetrics{
+		Buckets: []*modelInputs.TracesMetricBucket{},
+	}
+
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		groupKey     uint64
+		sampleFactor float64
+	)
+
+	metricResults := make([]float64, len(metricTypes))
+	scanResults := make([]interface{}, 2+len(metricTypes))
+	scanResults[0] = &groupKey
+	scanResults[1] = &sampleFactor
+	for idx := range metricTypes {
+		scanResults[2+idx] = &metricResults[idx]
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(scanResults...); err != nil {
+			return nil, err
+		}
+
+		bucketId := groupKey
+		if bucketId >= uint64(nBuckets) {
+			continue
+		}
+
+		for idx, metricType := range metricTypes {
+			metrics.Buckets = append(metrics.Buckets, &modelInputs.TracesMetricBucket{
+				BucketID:    bucketId,
+				MetricType:  metricType,
+				MetricValue: metricResults[idx],
+			})
+		}
+	}
+
+	metrics.SampleFactor = sampleFactor
+
+	return metrics, err
+}
+
 func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return Keys(ctx, client, tracesTableConfig, projectID, startDate, endDate)
+	return KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
 }
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValues(ctx, client, tracesTableConfig, projectID, keyName, startDate, endDate)
+	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
 }

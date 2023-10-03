@@ -819,6 +819,34 @@ type LogsHistogram {
 	sampleFactor: Float!
 }
 
+type TracesHistogramBucket {
+	bucketId: UInt64!
+	count: UInt64!
+}
+
+type TracesHistogram {
+	buckets: [TracesHistogramBucket!]!
+	totalCount: UInt64!
+	objectCount: UInt64!
+	sampleFactor: Float!
+}
+
+enum TracesMetricType {
+	p50
+	p90
+}
+
+type TracesMetricBucket {
+	bucketId: UInt64!
+	metric_type: TracesMetricType!
+	metric_value: Float!
+}
+
+type TracesMetrics {
+	buckets: [TracesMetricBucket!]!
+	sampleFactor: Float!
+}
+
 type QueryKey {
 	name: String!
 	type: KeyType!
@@ -1902,6 +1930,12 @@ type Query {
 		at: String
 		direction: SortDirection!
 	): TraceConnection!
+	traces_histogram(project_id: ID!, params: QueryInput!): TracesHistogram!
+	traces_metrics(
+		project_id: ID!
+		params: QueryInput!
+		metric_types: [TracesMetricType!]!
+	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!

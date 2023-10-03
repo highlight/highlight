@@ -1820,8 +1820,10 @@ export type Query = {
 	topUsers: Array<Maybe<TopUsersPayload>>
 	trace?: Maybe<Array<Trace>>
 	traces: TraceConnection
+	traces_histogram: TracesHistogram
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
+	traces_metrics: TracesMetrics
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
@@ -2402,6 +2404,11 @@ export type QueryTracesArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryTraces_HistogramArgs = {
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
 export type QueryTraces_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
@@ -2410,6 +2417,12 @@ export type QueryTraces_Key_ValuesArgs = {
 
 export type QueryTraces_KeysArgs = {
 	date_range: DateRangeRequiredInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTraces_MetricsArgs = {
+	metric_types: Array<TracesMetricType>
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -3035,6 +3048,38 @@ export type TraceLink = {
 	spanID: Scalars['String']
 	traceID: Scalars['String']
 	traceState: Scalars['String']
+}
+
+export type TracesHistogram = {
+	__typename?: 'TracesHistogram'
+	buckets: Array<TracesHistogramBucket>
+	objectCount: Scalars['UInt64']
+	sampleFactor: Scalars['Float']
+	totalCount: Scalars['UInt64']
+}
+
+export type TracesHistogramBucket = {
+	__typename?: 'TracesHistogramBucket'
+	bucketId: Scalars['UInt64']
+	count: Scalars['UInt64']
+}
+
+export type TracesMetricBucket = {
+	__typename?: 'TracesMetricBucket'
+	bucketId: Scalars['UInt64']
+	metric_type: TracesMetricType
+	metric_value: Scalars['Float']
+}
+
+export enum TracesMetricType {
+	P50 = 'p50',
+	P90 = 'p90',
+}
+
+export type TracesMetrics = {
+	__typename?: 'TracesMetrics'
+	buckets: Array<TracesMetricBucket>
+	sampleFactor: Scalars['Float']
 }
 
 export type TrackProperty = {

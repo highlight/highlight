@@ -7575,6 +7575,26 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 	})
 }
 
+// TracesHistogram is the resolver for the traces_histogram field.
+func (r *queryResolver) TracesHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.TracesHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTracesHistogram(ctx, project.ID, params, 48)
+}
+
+// TracesMetrics is the resolver for the traces_metrics field.
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType) (*modelInputs.TracesMetrics, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, 48)
+}
+
 // TracesKeys is the resolver for the traces_keys field.
 func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)

@@ -14023,6 +14023,140 @@ export type GetTracesQueryResult = Apollo.QueryResult<
 	Types.GetTracesQuery,
 	Types.GetTracesQueryVariables
 >
+export const GetTracesHistogramDocument = gql`
+	query GetTracesHistogram($project_id: ID!, $params: QueryInput!) {
+		traces_histogram(project_id: $project_id, params: $params) {
+			totalCount
+			buckets {
+				bucketId
+				count
+			}
+			objectCount
+			sampleFactor
+		}
+	}
+`
+
+/**
+ * __useGetTracesHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetTracesHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetTracesHistogramQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesHistogramQuery,
+		Types.GetTracesHistogramQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesHistogramQuery,
+		Types.GetTracesHistogramQueryVariables
+	>(GetTracesHistogramDocument, baseOptions)
+}
+export function useGetTracesHistogramLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesHistogramQuery,
+		Types.GetTracesHistogramQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesHistogramQuery,
+		Types.GetTracesHistogramQueryVariables
+	>(GetTracesHistogramDocument, baseOptions)
+}
+export type GetTracesHistogramQueryHookResult = ReturnType<
+	typeof useGetTracesHistogramQuery
+>
+export type GetTracesHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetTracesHistogramLazyQuery
+>
+export type GetTracesHistogramQueryResult = Apollo.QueryResult<
+	Types.GetTracesHistogramQuery,
+	Types.GetTracesHistogramQueryVariables
+>
+export const GetTracesMetricsDocument = gql`
+	query GetTracesMetrics(
+		$project_id: ID!
+		$params: QueryInput!
+		$metric_types: [TracesMetricType!]!
+	) {
+		traces_metrics(
+			project_id: $project_id
+			params: $params
+			metric_types: $metric_types
+		) {
+			buckets {
+				bucketId
+				metric_type
+				metric_value
+			}
+			sampleFactor
+		}
+	}
+`
+
+/**
+ * __useGetTracesMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetTracesMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesMetricsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      metric_types: // value for 'metric_types'
+ *   },
+ * });
+ */
+export function useGetTracesMetricsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>(GetTracesMetricsDocument, baseOptions)
+}
+export function useGetTracesMetricsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>(GetTracesMetricsDocument, baseOptions)
+}
+export type GetTracesMetricsQueryHookResult = ReturnType<
+	typeof useGetTracesMetricsQuery
+>
+export type GetTracesMetricsLazyQueryHookResult = ReturnType<
+	typeof useGetTracesMetricsLazyQuery
+>
+export type GetTracesMetricsQueryResult = Apollo.QueryResult<
+	Types.GetTracesMetricsQuery,
+	Types.GetTracesMetricsQueryVariables
+>
 export const GetTracesKeysDocument = gql`
 	query GetTracesKeys(
 		$project_id: ID!
