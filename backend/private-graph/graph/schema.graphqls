@@ -1920,7 +1920,6 @@ type Query {
 		at: String
 		direction: SortDirection!
 	): TraceConnection!
-	traces_histogram(project_id: ID!, params: QueryInput!): TracesMetrics!
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!

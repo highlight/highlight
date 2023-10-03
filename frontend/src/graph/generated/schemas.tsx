@@ -1820,7 +1820,6 @@ export type Query = {
 	topUsers: Array<Maybe<TopUsersPayload>>
 	trace?: Maybe<Array<Trace>>
 	traces: TraceConnection
-	traces_histogram: TracesMetrics
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
 	traces_metrics: TracesMetrics
@@ -2400,11 +2399,6 @@ export type QueryTracesArgs = {
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
 	direction: SortDirection
-	params: QueryInput
-	project_id: Scalars['ID']
-}
-
-export type QueryTraces_HistogramArgs = {
 	params: QueryInput
 	project_id: Scalars['ID']
 }
