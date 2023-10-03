@@ -3,7 +3,7 @@ title: Changelog 25 (10/03)
 slug: changelog-25
 ---
 
-## GitHub Settings
+## GitHub-enhanced Stacktraces
 
 We recently released GitHub-enhanced stacktraces, which enhances your stacktraces based on the actual content in your github account. It's a quality-of-life enhancement that unearths the actual code from an error.
 
