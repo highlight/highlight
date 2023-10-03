@@ -286,14 +286,19 @@ const WorkspaceIntegrationCallback = ({
 	type: string
 	addIntegration: (code: string) => Promise<unknown>
 }) => {
+	const codeSessionStorageKey = 'integration-callback-code'
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
 		if (!addIntegration || !code) return
+		const usedCode = sessionStorage.getItem(codeSessionStorageKey) === code
+		if (!!code && usedCode) return
+
 		const redirectUrl = next || `/${projectId}/integrations/${type}`
 		;(async () => {
 			try {
+				sessionStorage.setItem(codeSessionStorageKey, code)
 				await addIntegration(code)
 				message.success(`Highlight is now synced with ${name}!`, 5)
 			} catch (e: any) {
@@ -305,6 +310,7 @@ const WorkspaceIntegrationCallback = ({
 			} finally {
 				navigate(redirectUrl)
 				setLoadingState(AppLoadingState.LOADED)
+				sessionStorage.removeItem(codeSessionStorageKey)
 			}
 		})()
 	}, [
