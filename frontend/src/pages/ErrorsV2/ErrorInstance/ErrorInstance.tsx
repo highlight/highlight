@@ -69,7 +69,12 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
 	const { currentWorkspace } = useApplicationContext()
-	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
+
+	const navigate = useNavigate()
+	const urlParams = new URLSearchParams(location.search)
+	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(
+		urlParams.get('editGithubSettings') ?? false,
+	)
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
@@ -116,6 +121,20 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	})
 
 	useEffect(() => analytics.page(), [])
+
+	useEffect(() => {
+		const urlSearchParams = new URLSearchParams(location.search)
+
+		if (displayGitHubSettings) {
+			urlSearchParams.set('editGithubSettings', 'true')
+		} else {
+			urlSearchParams.delete('editGithubSettings')
+		}
+
+		navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
+			replace: true,
+		})
+	}, [displayGitHubSettings, navigate])
 
 	if (loading) {
 		return (
