@@ -90,7 +90,7 @@
 				"--",
 				"/bin/backend",
 				"-runtime=worker",
-				"-worker-handler=public-worker"
+				"-worker-handler=public-worker-main"
 			],
 			"linuxParameters": null,
 			"cpu": 0,
@@ -134,8 +134,8 @@
 	"placementConstraints": [],
 	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
 	"compatibilities": ["EC2", "FARGATE"],
-	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/public-worker-service:1",
-	"family": "public-worker-service",
+	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/public-worker-main-service:1",
+	"family": "public-worker-main-service",
 	"requiresAttributes": [
 		{
 			"targetId": null,

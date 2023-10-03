@@ -2216,6 +2216,19 @@ query GetServices(
 	}
 }
 
+query GetServiceByName($project_id: ID!, $name: String!) {
+	serviceByName(project_id: $project_id, name: $name) {
+		id
+		projectID
+		name
+		status
+		githubRepoPath
+		buildPrefix
+		githubPrefix
+		errorDetails
+	}
+}
+
 fragment ErrorTag on ErrorTag {
 	id
 	created_at
@@ -2245,6 +2258,26 @@ query FindSimilarErrors($query: String!) {
 		event
 		stack_trace
 		score
+	}
+}
+
+query GetTrace($project_id: ID!, $trace_id: String!) {
+	trace(project_id: $project_id, trace_id: $trace_id) {
+		timestamp
+		traceID
+		spanID
+		parentSpanID
+		projectID
+		secureSessionID
+		traceState
+		spanName
+		spanKind
+		duration
+		serviceName
+		serviceVersion
+		traceAttributes
+		statusCode
+		statusMessage
 	}
 }
 

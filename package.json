@@ -67,7 +67,7 @@
 		"publish:ai": "yarn workspace ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
-		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
+		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish && yarn workspace @highlight-run/opentelemetry-sdk-workers npm publish --access public --tolerate-republish",
 		"test:all": "yarn turbo run test --filter=!render --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs --filter=!nextjs",
 		"test:render": "yarn turbo run test --filter=render",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
@@ -94,16 +94,13 @@
 	"resolutions": {
 		"@opentelemetry/api": "1.4.1",
 		"@opentelemetry/auto-instrumentations-node": "0.38.0",
-		"@opentelemetry/core": "1.15.2",
 		"@opentelemetry/exporter-trace-otlp-http": "0.41.2",
-		"@opentelemetry/instrumentation": "0.41.2",
 		"@opentelemetry/resources": "1.15.2",
 		"@opentelemetry/sdk-node": "0.41.2",
 		"@opentelemetry/sdk-trace-base": "1.15.2",
 		"@opentelemetry/semantic-conventions": "1.15.2",
 		"@sideway/formula": "3.0.1",
 		"@types/dom-webcodecs": "0.1.4",
-		"ansi-color": "file:./forks/ansi-color",
 		"ansi-regex": "3.0.1",
 		"cross-fetch": "3.1.5",
 		"deep-object-diff": "1.1.9",
@@ -140,6 +137,16 @@
 		"undici": "5.19.1",
 		"webpack": "5.76.0",
 		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",
-		"@protobufjs/inquire@^1.1.0": "patch:@protobufjs/inquire@npm%3A1.1.0#./.yarn/patches/@protobufjs-inquire-npm-1.1.0-3c7759e9ce.patch"
+		"@opentelemetry/instrumentation@0.43.0": "patch:@opentelemetry/instrumentation@npm%3A0.41.2#./.yarn/patches/@opentelemetry-instrumentation-npm-0.41.2-fffbd54e4e.patch",
+		"@opentelemetry/instrumentation@^0.43.0": "patch:@opentelemetry/instrumentation@npm%3A0.41.2#./.yarn/patches/@opentelemetry-instrumentation-npm-0.41.2-fffbd54e4e.patch",
+		"@opentelemetry/instrumentation@0.41.2": "patch:@opentelemetry/instrumentation@npm%3A0.41.2#./.yarn/patches/@opentelemetry-instrumentation-npm-0.41.2-fffbd54e4e.patch",
+		"@opentelemetry/instrumentation@^0.41.0": "patch:@opentelemetry/instrumentation@npm%3A0.41.2#./.yarn/patches/@opentelemetry-instrumentation-npm-0.41.2-fffbd54e4e.patch",
+		"@opentelemetry/instrumentation@0.41.0": "patch:@opentelemetry/instrumentation@npm%3A0.41.2#./.yarn/patches/@opentelemetry-instrumentation-npm-0.41.2-fffbd54e4e.patch",
+		"ansi-color@^0.2.1": "patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch",
+		"protobufjs@^7.2.1": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@^7.0.0": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@7.2.2": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@^7.2.3": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch",
+		"protobufjs@^6.11.3": "patch:protobufjs@npm%3A7.2.2#./.yarn/patches/protobufjs-npm-7.2.2-09f46988fc.patch"
 	}
 }

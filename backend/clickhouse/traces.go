@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -213,6 +214,64 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		Edges:    mappedEdges,
 		PageInfo: conn.PageInfo,
 	}, nil
+}
+
+func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	var err error
+	var args []interface{}
+
+	sb.From("traces").
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(sb.Equal("TraceId", traceID)).
+		OrderBy("Timestamp ASC")
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTrace"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	rows, err := client.conn.Query(ctx, query)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	var traces []*modelInputs.Trace
+	for rows.Next() {
+		var result ClickhouseTraceRow
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		traces = append(traces, &modelInputs.Trace{
+			Timestamp:       result.Timestamp,
+			TraceID:         result.TraceId,
+			SpanID:          result.SpanId,
+			ParentSpanID:    result.ParentSpanId,
+			ProjectID:       int(result.ProjectId),
+			SecureSessionID: result.SecureSessionId,
+			TraceState:      result.TraceState,
+			SpanName:        result.SpanName,
+			SpanKind:        result.SpanKind,
+			Duration:        int(result.Duration),
+			ServiceName:     result.ServiceName,
+			ServiceVersion:  result.ServiceVersion,
+			TraceAttributes: expandJSON(result.TraceAttributes),
+			StatusCode:      result.StatusCode,
+			StatusMessage:   result.StatusMessage,
+		})
+	}
+
+	rows.Close()
+	span.Finish(rows.Err())
+
+	return traces, rows.Err()
 }
 
 func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {

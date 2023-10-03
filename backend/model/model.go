@@ -1296,12 +1296,15 @@ type SystemConfiguration struct {
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
 	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
+	LogsQueueSize     int            `gorm:"type:bigint;default:10000"`
 	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
 	DataSyncWorkers   int            `gorm:"default:1"`
 	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
+	DataSyncQueueSize int            `gorm:"type:bigint;default:10000"`
 	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
 	TraceWorkers      int            `gorm:"default:1"`
 	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
+	TraceQueueSize    int            `gorm:"type:bigint;default:10000"`
 	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
 }
 
@@ -1584,8 +1587,12 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error selecting max project id")
 	}
 
+	var lastCreatedPart int
+	// ignore errors - an error means that there are no partitions, so we can safely use the zero-value.
+	DB.Raw("select split_part(relname, '_', 5) from pg_stat_all_tables where relname like 'error_object_embeddings_partitioned%' order by relid desc limit 1").Scan(&lastCreatedPart)
+
 	// Make sure partitions are created for the next 1k projects
-	for i := 0; i < lastVal+1000; i++ {
+	for i := lastCreatedPart; i < lastVal+1000; i++ {
 		sql := fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
 			PARTITION OF error_object_embeddings_partitioned
@@ -2439,7 +2446,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+							log.WithContext(ctx).WithFields(log.Fields{"project_id": input.Project.ID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2505,7 +2512,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2580,7 +2587,7 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2942,7 +2949,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
 							log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel"))
-							return
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),

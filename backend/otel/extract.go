@@ -85,26 +85,29 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if params.span != nil {
 		spanAttributes = params.span.Attributes().AsRaw()
 
-		spanEvents := params.span.Events()
-		fields.events = make([]map[string]any, spanEvents.Len())
-		for i := 0; i < spanEvents.Len(); i++ {
-			event := spanEvents.At(i)
-			fields.events[i] = map[string]any{
-				"Timestamp":  event.Timestamp().AsTime(),
-				"Name":       event.Name(),
-				"Attributes": event.Attributes().AsRaw(),
+		// for a specific event, do not aggregate span events / links
+		if params.event == nil {
+			spanEvents := params.span.Events()
+			fields.events = make([]map[string]any, spanEvents.Len())
+			for i := 0; i < spanEvents.Len(); i++ {
+				event := spanEvents.At(i)
+				fields.events[i] = map[string]any{
+					"Timestamp":  event.Timestamp().AsTime(),
+					"Name":       event.Name(),
+					"Attributes": event.Attributes().AsRaw(),
+				}
 			}
-		}
 
-		spanLinks := params.span.Links()
-		fields.links = make([]map[string]any, spanLinks.Len())
-		for i := 0; i < spanLinks.Len(); i++ {
-			link := spanLinks.At(i)
-			fields.links[i] = map[string]any{
-				"TraceId":    link.TraceID().String(),
-				"SpanId":     link.SpanID().String(),
-				"TraceState": link.TraceState().AsRaw(),
-				"Attributes": link.Attributes().AsRaw(),
+			spanLinks := params.span.Links()
+			fields.links = make([]map[string]any, spanLinks.Len())
+			for i := 0; i < spanLinks.Len(); i++ {
+				link := spanLinks.At(i)
+				fields.links[i] = map[string]any{
+					"TraceId":    link.TraceID().String(),
+					"SpanId":     link.SpanID().String(),
+					"TraceState": link.TraceState().AsRaw(),
+					"Attributes": link.Attributes().AsRaw(),
+				}
 			}
 		}
 	}
@@ -169,6 +172,12 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	// process potential syslog message
 	if len(fields.logBody) > 0 && fields.logBody[0] == '<' {
 		extractSyslog(fields)
+	}
+	// process potential systemd message
+	if params.logRecord != nil && params.logRecord.Body().Type().String() == "Map" {
+		if m := params.logRecord.Body().Map().AsRaw(); len(m) > 0 {
+			extractSystemd(fields, m)
+		}
 	}
 
 	if val, ok := fields.attrs[highlight.DeprecatedProjectIDAttribute]; ok {
@@ -263,6 +272,8 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 			project := fluentProjectPattern.FindStringSubmatch(tag)
 			if project != nil {
 				fields.projectID = project[1]
+			} else {
+				fields.projectID = tag
 			}
 			delete(fields.attrs, "fluent.tag")
 		}

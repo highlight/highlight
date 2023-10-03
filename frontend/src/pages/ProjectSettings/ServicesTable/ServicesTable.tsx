@@ -8,7 +8,7 @@ import { namedOperations } from '@graph/operations'
 import {
 	Badge,
 	Box,
-	Combobox,
+	IconSolidCheveronDown,
 	IconSolidCubeTransparent,
 	IconSolidExternalLink,
 	IconSolidGithub,
@@ -16,10 +16,12 @@ import {
 	Table,
 	Text,
 	Tooltip,
-	useComboboxStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
+import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
+import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
+import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
 import { capitalize } from 'lodash'
 import { debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -37,6 +39,8 @@ type Pagination = {
 	before?: string
 }
 
+const SERVICES_PER_PAGE = 10
+
 export const ServicesTable: React.FC = () => {
 	const { projectId } = useProjectId()
 	const {
@@ -53,11 +57,14 @@ export const ServicesTable: React.FC = () => {
 	const [query, setQuery] = useState<string>('')
 	const [pagination, setPagination] = useState<Pagination>({})
 	const [selectedService, setService] = useState<Service | null>(null)
+	const [integrationModalVisible, setIntegrationModalVisible] =
+		useState<boolean>(false)
 
 	const {
 		settings: { isIntegrated },
 		data: githubData,
 	} = useGitHubIntegration()
+	const { configurationPage } = GITHUB_INTEGRATION
 
 	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
@@ -70,7 +77,6 @@ export const ServicesTable: React.FC = () => {
 		})
 	}, [refetchServices, projectId, query, pagination])
 
-	const comboboxStore = useComboboxStore()
 	const handleQueryChange = useMemo(
 		() =>
 			debounce((e) => {
@@ -79,6 +85,19 @@ export const ServicesTable: React.FC = () => {
 			}, 300),
 		[],
 	)
+
+	const handleServiceSelection = (service: Service) => {
+		if (!isIntegrated) {
+			setIntegrationModalVisible(true)
+		} else {
+			setService(service)
+		}
+	}
+
+	const closeModal = () => {
+		setService(null)
+		setIntegrationModalVisible(false)
+	}
 
 	const handlePreviousPage = () => {
 		setPagination({
@@ -162,13 +181,15 @@ export const ServicesTable: React.FC = () => {
 						kind="secondary"
 						size="small"
 						emphasis="low"
-						onClick={() => setService(service)}
+						onClick={() => handleServiceSelection(service)}
+						className={styles.repoButton}
 					>
 						<Badge
 							variant="outlineGray"
 							iconStart={
 								repoName && <IconSolidGithub size={12} />
 							}
+							iconEnd={<IconSolidCheveronDown size={12} />}
 							label={repoName || 'None'}
 							gap="4"
 							size="medium"
@@ -261,55 +282,115 @@ export const ServicesTable: React.FC = () => {
 		})
 	}
 
+	const resultLength = data?.services?.pageInfo?.hasPreviousPage
+		? SERVICES_PER_PAGE
+		: data?.services?.edges?.length || 0
+	const estimatedResults =
+		data?.services?.pageInfo?.hasPreviousPage ||
+		data?.services?.pageInfo?.hasNextPage
+
 	return (
-		<Stack direction="column" gap="4" align="center" paddingRight="4">
-			<Combobox
-				store={comboboxStore}
-				name="search"
-				placeholder="Search services..."
-				className={styles.combobox}
-				onChange={handleQueryChange}
-			/>
-			<Table>
-				<Table.Head>
-					<Table.Row gridColumns={gridColumns}>
-						{columns.map((column) => (
-							<Table.Header key={column.name}>
-								{column.name}
-							</Table.Header>
-						))}
-					</Table.Row>
-				</Table.Head>
-				<Table.Body>{renderTableContent()}</Table.Body>
-			</Table>
-			<Stack direction="row" justifyContent="flex-end">
-				<Button
-					kind="secondary"
-					trackingId="services-previous-page"
-					disabled={!data?.services?.pageInfo?.hasPreviousPage}
-					onClick={handlePreviousPage}
-				>
-					Previous
-				</Button>
-				<Button
-					kind="secondary"
-					trackingId="services-next-page"
-					disabled={!data?.services?.pageInfo?.hasNextPage}
-					onClick={handleNextPage}
-				>
-					Next
-				</Button>
+		<Box>
+			<Stack
+				mb="16"
+				direction="row"
+				justifyContent="space-between"
+				alignItems="center"
+			>
+				<Text size="medium" weight="medium" color="default">
+					Services
+				</Text>
+				{!isIntegrated && (
+					<Button
+						kind="secondary"
+						emphasis="medium"
+						trackingId="services-integrate-github"
+						onClick={() => setIntegrationModalVisible(true)}
+					>
+						Configure GitHub integration
+					</Button>
+				)}
 			</Stack>
-			{selectedService && (
-				<GitHubSettingsModal
-					githubIntegrated={!!isIntegrated}
-					githubRepos={githubData?.github_repos || []}
-					service={selectedService}
-					closeModal={() => setService(null)}
-					handleSave={updateServiceSettings}
-				/>
-			)}
-		</Stack>
+			<Stack direction="column" gap="4" align="center" paddingRight="4">
+				<Table withSearch>
+					<Table.Search handleChange={handleQueryChange} />
+					<Table.Head>
+						<Table.Row gridColumns={gridColumns}>
+							{columns.map((column) => (
+								<Table.Header key={column.name}>
+									{column.name}
+								</Table.Header>
+							))}
+						</Table.Row>
+					</Table.Head>
+					<Table.Body>{renderTableContent()}</Table.Body>
+				</Table>
+				<Stack
+					direction="row"
+					justifyContent="space-between"
+					alignItems="center"
+					width="full"
+					mt="8"
+				>
+					<Box display="flex" width="full">
+						<Text size="small" color="weak" weight="regular">
+							{resultLength}
+							{estimatedResults && '+'}
+							{resultLength === 1 ? ' result' : ' results'}
+						</Text>
+					</Box>
+					<Stack
+						direction="row"
+						justifyContent="flex-end"
+						width="full"
+						gap="6"
+					>
+						<Button
+							kind="secondary"
+							emphasis="medium"
+							trackingId="services-previous-page"
+							disabled={
+								!data?.services?.pageInfo?.hasPreviousPage
+							}
+							onClick={handlePreviousPage}
+						>
+							Previous
+						</Button>
+						<Button
+							kind="secondary"
+							emphasis="medium"
+							trackingId="services-next-page"
+							disabled={!data?.services?.pageInfo?.hasNextPage}
+							onClick={handleNextPage}
+						>
+							Next
+						</Button>
+					</Stack>
+				</Stack>
+				{!isIntegrated && (
+					<IntegrationModal
+						title="Configuring GitHub Integration"
+						visible={integrationModalVisible}
+						onCancel={closeModal}
+						configurationPage={() =>
+							configurationPage({
+								setModalOpen: closeModal,
+								setIntegrationEnabled: () => {},
+								action: IntegrationAction.Setup,
+							})
+						}
+					/>
+				)}
+				{selectedService && (
+					<GitHubSettingsModal
+						githubRepos={githubData?.github_repos || []}
+						service={selectedService}
+						closeModal={closeModal}
+						handleSave={updateServiceSettings}
+					/>
+				)}
+			</Stack>
+		</Box>
 	)
 }
 

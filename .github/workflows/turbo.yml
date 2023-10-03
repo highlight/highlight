@@ -98,7 +98,7 @@ jobs:
 
             - name: Validate project is ready to be published
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
-              run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed }}
+              run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed == 'true' }}
 
             - name: Publish client bundle (preview)
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main'
@@ -203,7 +203,7 @@ jobs:
 
                   # run opentelemetry file watcher
                   pushd e2e/opentelemetry/filelog;
-                  EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d collector;
+                  EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d file-collector;
                   popd;
 
                   # wait for highlight to be ready

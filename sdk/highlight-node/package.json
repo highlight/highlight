@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "3.4.0",
+	"version": "3.4.2",
 	"license": "Apache-2.0",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -15,7 +15,7 @@
 	"scripts": {
 		"typegen": "tsup src/index.ts --dts-only",
 		"dev": "yarn build --watch",
-		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"build": "tsup",
 		"test": "jest"
 	},
 	"installConfig": {
@@ -25,7 +25,7 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@opentelemetry/api": "1.6.0",
+		"@opentelemetry/api": "1.4.1",
 		"@opentelemetry/auto-instrumentations-node": "0.39.2",
 		"@opentelemetry/core": "1.17.0",
 		"@opentelemetry/exporter-trace-otlp-http": "0.43.0",

@@ -1080,6 +1080,7 @@ export type Mutation = {
 	sendAdminWorkspaceInvite?: Maybe<Scalars['String']>
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
+	testErrorEnhancement?: Maybe<ErrorObject>
 	updateAdminAboutYouDetails: Scalars['Boolean']
 	updateAdminAndCreateWorkspace?: Maybe<Project>
 	updateAllowMeterOverage?: Maybe<Workspace>
@@ -1499,6 +1500,13 @@ export type MutationSyncSlackIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationTestErrorEnhancementArgs = {
+	build_prefix?: InputMaybe<Scalars['String']>
+	error_object_id: Scalars['ID']
+	github_prefix?: InputMaybe<Scalars['String']>
+	github_repo_path: Scalars['String']
+}
+
 export type MutationUpdateAdminAboutYouDetailsArgs = {
 	adminDetails: AdminAboutYouDetails
 }
@@ -1847,6 +1855,7 @@ export type Query = {
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
+	serviceByName?: Maybe<Service>
 	services?: Maybe<ServiceConnection>
 	session?: Maybe<Session>
 	sessionLogs: Array<LogEdge>
@@ -1867,6 +1876,7 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
+	trace?: Maybe<Array<Trace>>
 	traces: TraceConnection
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
@@ -2349,6 +2359,11 @@ export type QueryServerIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryServiceByNameArgs = {
+	name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
 export type QueryServicesArgs = {
 	after?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
@@ -2433,6 +2448,11 @@ export type QueryTimeline_Indicator_EventsArgs = {
 export type QueryTopUsersArgs = {
 	lookBackPeriod: Scalars['Int']
 	project_id: Scalars['ID']
+}
+
+export type QueryTraceArgs = {
+	project_id: Scalars['ID']
+	trace_id: Scalars['String']
 }
 
 export type QueryTracesArgs = {

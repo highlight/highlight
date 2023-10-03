@@ -310,6 +310,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		to := &mail.Email{Address: toAddr.Email}
 		subject := fmt.Sprintf("[Highlight] Session Insights - %s", input.ProjectName)
 		m := mail.NewV3MailInit(from, subject, to, mail.NewContent("text/html", html))
+		m.AddCategories("session-insights")
 
 		for imageId, img := range images {
 			log.WithContext(ctx).Infof("attaching image %s", imageId)

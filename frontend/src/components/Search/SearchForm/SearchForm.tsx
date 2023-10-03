@@ -41,7 +41,9 @@ import {
 } from '@/components/Search/SearchForm/constants'
 import {
 	BODY_KEY,
+	DEFAULT_OPERATOR,
 	parseSearchQuery,
+	queryAsStringParams,
 	quoteQueryValue,
 	SearchParam,
 	stringifySearchQuery,
@@ -238,6 +240,7 @@ export const Search: React.FC<{
 		fetchValuesLazyQuery()
 
 	const queryTerms = parseSearchQuery(query)
+	const queryAsStringParts = queryAsStringParams(query)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
@@ -290,7 +293,7 @@ export const Search: React.FC<{
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
-		setQuery(initialQuery.trim())
+		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialQuery])
 
@@ -305,8 +308,13 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
+	// TODO: Fix squashing body when selecting key. To repro, type "asdf " and
+	// note how the dropdown opens. If you select a key from the list it
+	// ends up removing the body term.
 	const handleItemSelect = (key: Keys[0] | string, noQuotes?: boolean) => {
 		const isValueSelect = typeof key === 'string'
+		const activeTermKey = queryTerms[activeTermIndex].key
+		const isLastTerm = activeTermIndex === queryTerms.length - 1
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
@@ -314,11 +322,27 @@ export const Search: React.FC<{
 				? key
 				: quoteQueryValue(key)
 		} else {
-			queryTerms[activeTermIndex].key = key.name
-			queryTerms[activeTermIndex].value = ''
+			if (activeTermKey === BODY_KEY && activeTerm.value.endsWith(' ')) {
+				queryTerms[activeTermIndex].value =
+					queryTerms[activeTermIndex].value.trim()
+
+				queryTerms.push({
+					key: key.name,
+					value: '',
+					operator: DEFAULT_OPERATOR,
+					offsetStart: query.length,
+				})
+			} else {
+				queryTerms[activeTermIndex].key = key.name
+				queryTerms[activeTermIndex].value = ''
+			}
 		}
 
-		const newQuery = stringifySearchQuery(queryTerms)
+		let newQuery = stringifySearchQuery(queryTerms)
+		// Add space if it's the last term and a value is selected so people can
+		// start entering the next term.
+		isLastTerm && isValueSelect ? (newQuery += ' ') : null
+
 		setQuery(newQuery)
 
 		if (isValueSelect) {
@@ -328,6 +352,14 @@ export const Search: React.FC<{
 
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
+	}
+
+	const handleRemoveItem = (index: number) => {
+		const parts = [...queryAsStringParts]
+		parts.splice(index, 1)
+		const newQuery = parts.join(' ')
+		setQuery(newQuery)
+		submitQuery(newQuery)
 	}
 
 	return (
@@ -348,7 +380,30 @@ export const Search: React.FC<{
 				gap="6"
 				width="full"
 				color="weak"
+				position="relative"
 			>
+				<Box
+					cssClass={styles.comboboxTagsContainer}
+					style={{
+						left: 2,
+						paddingLeft: hideIcon ? undefined : 38,
+					}}
+				>
+					{queryAsStringParts.map((term, index) => {
+						if (!term.length) {
+							return null
+						}
+
+						return (
+							<TermTag
+								key={index}
+								term={term}
+								index={index}
+								onRemoveItem={handleRemoveItem}
+							/>
+						)
+					})}
+				</Box>
 				<Combobox
 					ref={inputRef}
 					disabled={disableSearch}
@@ -358,9 +413,6 @@ export const Search: React.FC<{
 					placeholder={placeholder ?? 'Search...'}
 					className={className ?? styles.combobox}
 					value={query}
-					style={{
-						paddingLeft: hideIcon ? undefined : 40,
-					}}
 					onChange={(e) => {
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
@@ -377,6 +429,9 @@ export const Search: React.FC<{
 							submitQuery(query)
 							comboboxStore.setOpen(false)
 						}
+					}}
+					style={{
+						paddingLeft: hideIcon ? undefined : 40,
 					}}
 				/>
 
@@ -521,6 +576,35 @@ export const Search: React.FC<{
 				</Combobox.Popover>
 			)}
 		</Box>
+	)
+}
+
+const TermTag: React.FC<{
+	index: number
+	term: string
+	onRemoveItem: (index: number) => void
+}> = ({ index, term, onRemoveItem }) => {
+	return (
+		<>
+			<Box
+				cssClass={styles.comboboxTag}
+				py="6"
+				position="relative"
+				whiteSpace="nowrap"
+			>
+				<Box
+					cssClass={styles.comboboxTagBackground}
+					shadow="innerSecondary"
+				/>
+				<IconSolidXCircle
+					className={styles.comboboxTagClose}
+					size={13}
+					onClick={() => onRemoveItem(index)}
+				/>
+				<Box>{term}</Box>
+			</Box>
+			&nbsp;
+		</>
 	)
 }
 

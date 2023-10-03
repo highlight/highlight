@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import LoadingBox from '@/components/LoadingBox'
 import { GetTracesQuery } from '@/graph/generated/operations'
+import { Trace } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 
 type Props = {
@@ -11,9 +12,15 @@ type Props = {
 	traces?: GetTracesQuery['traces']
 }
 
+const gridColumns = ['1fr', '70px', '1fr', '1fr', '1fr', '1fr']
+
 export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
+
+	const viewTrace = (trace: Trace) => {
+		navigate(`/${projectId}/traces/${trace.traceID}`)
+	}
 
 	return (
 		<>
@@ -22,11 +29,10 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 			) : traces ? (
 				<Table height="full" noBorder>
 					<Table.Head>
-						<Table.Row>
+						<Table.Row gridColumns={gridColumns}>
 							<Table.Header>Span</Table.Header>
 							<Table.Header>Service</Table.Header>
-							<Table.Header>Resource Name</Table.Header>
-							<Table.Header>Span ID</Table.Header>
+							<Table.Header>Trace ID</Table.Header>
 							<Table.Header>Parent Span ID</Table.Header>
 							<Table.Header>Secure Session ID</Table.Header>
 							<Table.Header>Timestamp</Table.Header>
@@ -43,26 +49,22 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 						{traces.edges
 							.map((edge) => edge.node)
 							.map((trace, index) => (
-								<Table.Row key={index}>
-									<Table.Cell>{trace.spanName}</Table.Cell>
-									<Table.Cell>{trace.serviceName}</Table.Cell>
-									<Table.Cell>
-										{trace.traceAttributes?.resource_name}
-									</Table.Cell>
-									<Table.Cell>{trace.spanID}</Table.Cell>
+								<Table.Row
+									key={index}
+									gridColumns={gridColumns}
+								>
 									<Table.Cell
-										onClick={
-											trace.parentSpanID
-												? () => {
-														navigate(
-															`/${projectId}/traces?query=${window.encodeURIComponent(
-																`ParentSpanId:${trace.parentSpanID}`,
-															)}`,
-														)
-												  }
-												: undefined
-										}
+										onClick={() => viewTrace(trace)}
 									>
+										{trace.spanName}
+									</Table.Cell>
+									<Table.Cell>{trace.serviceName}</Table.Cell>
+									<Table.Cell
+										onClick={() => viewTrace(trace)}
+									>
+										{trace.traceID}
+									</Table.Cell>
+									<Table.Cell>
 										{trace.parentSpanID}
 									</Table.Cell>
 									<Table.Cell

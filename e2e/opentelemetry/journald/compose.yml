@@ -1,0 +1,6 @@
+services:
+    journal-collector:
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        container_name: filelog-collector
+        build: .

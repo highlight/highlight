@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/trace"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -740,30 +741,21 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	var errorGroup, errorGroupAlt *model.ErrorGroup
-	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-		match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting top error group match")
-		}
-		return match, err
-	})
-	if err != nil {
-		return nil, e.Wrap(err, "Error getting or creating error group")
-	}
+	var errorGroup *model.ErrorGroup
 
 	var settings *model.AllWorkspaceSettings
 	if workspace != nil {
 		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
 	}
+
 	var embedding *model.ErrorObjectEmbeddings
 	if settings != nil && settings.ErrorEmbeddingsGroup {
-		// keep the classic match as the alternative error group
-		errorGroup, errorGroupAlt = nil, errorGroup
-		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
+		// timeout to generate embeddings in case endpoint is slow. p95 ~ 0.3s
+		eCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
-			errorObj.ErrorGroupID = errorGroupAlt.ID
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
@@ -777,14 +769,25 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			errorObj.ErrorGroupID = errorGroup.ID
-			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
 	} else {
-		errorObj.ErrorGroupID = errorGroup.ID
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 	}
+	if errorGroup == nil {
+		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to create error group by embedding; using classic match")
+		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+			match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
+			if err != nil {
+				return nil, e.Wrap(err, "Error getting top error group match")
+			}
+			return match, err
+		})
+		if err != nil {
+			return nil, e.Wrap(err, "Error getting or creating error group")
+		}
+	}
+	errorObj.ErrorGroupID = errorGroup.ID
 
 	if err := r.DB.Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
@@ -956,6 +959,24 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
+func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Session) error {
+	sessionProperties := map[string]string{
+		"os_name":         session.OSName,
+		"os_version":      session.OSVersion,
+		"browser_name":    session.BrowserName,
+		"browser_version": session.BrowserVersion,
+		"environment":     session.Environment,
+		"device_id":       strconv.Itoa(session.Fingerprint),
+		"city":            session.City,
+		"country":         session.Country,
+		"ip":              session.IP,
+	}
+	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
+	}
+	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
+}
+
 func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secureID string) (*model.Session, error) {
 	existingSessionObj := &model.Session{}
 	if err := r.DB.Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Take(&existingSessionObj).Error; err != nil {
@@ -1004,12 +1025,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 	if existingSession != nil {
-		if err := r.DataSyncQueue.Submit(ctx,
-			strconv.Itoa(existingSession.ID),
-			&kafka_queue.Message{
-				Type: kafka_queue.SessionDataSync,
-				SessionDataSync: &kafka_queue.SessionDataSyncArgs{
-					SessionID: existingSession.ID}}); err != nil {
+		if err := r.IndexSessionClickhouse(ctx, existingSession); err != nil {
 			return nil, err
 		}
 
@@ -1187,12 +1203,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.WithContext(ctx).Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx,
-		strconv.Itoa(session.ID),
-		&kafka_queue.Message{
-			Type: kafka_queue.SessionDataSync,
-			SessionDataSync: &kafka_queue.SessionDataSyncArgs{
-				SessionID: session.ID}}); err != nil {
+	if err := r.IndexSessionClickhouse(ctx, session); err != nil {
 		return nil, err
 	}
 
@@ -2133,7 +2144,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
-		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
+		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
 
 		if err != nil {
 			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
@@ -2549,8 +2560,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error saving resources data")
 		}
 
-		settings, _ := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
-		if settings.EnableNetworkTraces {
+		settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+		if err == nil && settings.EnableNetworkTraces {
 			resourcesParsed := make(map[string][]NetworkResource)
 			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 				return nil
@@ -2967,6 +2978,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		end := re.End(sessionObj.CreatedAt)
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
