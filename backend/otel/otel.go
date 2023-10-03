@@ -290,10 +290,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for sessionID, errors := range traceErrors {
 		var messages []*kafkaqueue.Message
 		for _, errorObject := range errors {
-			if !graph.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
+			if !o.resolver.IsErrorIngestedBySample(ctx, errorObject) {
 				continue
 			}
-			if !graph.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
+			if !o.resolver.IsErrorIngestedByFilter(ctx, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -314,10 +314,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for projectID, errors := range projectErrors {
 		var messages []*kafkaqueue.Message
 		for _, errorObject := range errors {
-			if !graph.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
+			if !o.resolver.IsErrorIngestedBySample(ctx, errorObject) {
 				continue
 			}
-			if !graph.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
+			if !o.resolver.IsErrorIngestedByFilter(ctx, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -459,10 +459,10 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for _, logRows := range projectLogs {
 		var messages []*kafkaqueue.Message
 		for _, logRow := range logRows {
-			if !graph.IsLogIngestedBySample(ctx, o.resolver.Store, logRow) {
+			if !o.resolver.IsLogIngestedBySample(ctx, logRow) {
 				continue
 			}
-			if !graph.IsLogIngestedByFilter(ctx, o.resolver.Store, logRow) {
+			if !o.resolver.IsLogIngestedByFilter(ctx, logRow) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -483,10 +483,10 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	for traceID, traceRows := range traceRows {
 		var messages []*kafkaqueue.Message
 		for _, traceRow := range traceRows {
-			if !graph.IsTraceIngestedBySample(ctx, o.resolver.Store, traceRow) {
+			if !o.resolver.IsTraceIngestedBySample(ctx, traceRow) {
 				continue
 			}
-			if !graph.IsTraceIngestedByFilter(ctx, o.resolver.Store, traceRow) {
+			if !o.resolver.IsTraceIngestedByFilter(ctx, traceRow) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{

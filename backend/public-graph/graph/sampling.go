@@ -9,7 +9,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/store"
 	log "github.com/sirupsen/logrus"
 	"hash/fnv"
 	"math/rand"
@@ -17,7 +16,6 @@ import (
 )
 
 func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
-	// TODO(vkorolik) benchmark perf
 	if rate >= 1 {
 		return true
 	}
@@ -35,10 +33,9 @@ func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 	return r.Float64() < rate
 }
 
-// TODO(vkorolik) make a resolver method?
-func IsTraceIngestedBySample(ctx context.Context, store *store.Store, trace *clickhouse.TraceRow) bool {
+func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	projectID := int(trace.ProjectId)
-	settings, err := store.GetProjectFilterSettings(ctx, projectID)
+	settings, err := r.Store.GetProjectFilterSettings(ctx, projectID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
 		return true
@@ -47,14 +44,14 @@ func IsTraceIngestedBySample(ctx context.Context, store *store.Store, trace *cli
 	return isIngestedBySample(ctx, trace.TraceId, settings.TraceSamplingRate)
 }
 
-func IsTraceIngestedByFilter(ctx context.Context, store *store.Store, trace *clickhouse.TraceRow) bool {
+func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	// TODO(vkorolik) implement
 	return true
 }
 
-func IsLogIngestedBySample(ctx context.Context, store *store.Store, logRow *clickhouse.LogRow) bool {
+func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse.LogRow) bool {
 	projectID := int(logRow.ProjectId)
-	settings, err := store.GetProjectFilterSettings(ctx, projectID)
+	settings, err := r.Store.GetProjectFilterSettings(ctx, projectID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
 		return true
@@ -63,23 +60,23 @@ func IsLogIngestedBySample(ctx context.Context, store *store.Store, logRow *clic
 	return isIngestedBySample(ctx, logRow.UUID, settings.LogSamplingRate)
 }
 
-func IsLogIngestedByFilter(ctx context.Context, store *store.Store, trace *clickhouse.LogRow) bool {
+func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, trace *clickhouse.LogRow) bool {
 	// TODO(vkorolik) implement
 	return true
 }
 
-func IsErrorIngestedBySample(ctx context.Context, store *store.Store, errorObject *modelInputs.BackendErrorObjectInput) bool {
+func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, errorObject *modelInputs.BackendErrorObjectInput) bool {
 	if errorObject.SessionSecureID == nil {
 		return true
 	}
 
-	session, err := store.GetSessionFromSecureID(ctx, *errorObject.SessionSecureID)
+	session, err := r.Store.GetSessionFromSecureID(ctx, *errorObject.SessionSecureID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get session")
 		return true
 	}
 
-	settings, err := store.GetProjectFilterSettings(ctx, session.ProjectID)
+	settings, err := r.Store.GetProjectFilterSettings(ctx, session.ProjectID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
 		return true
@@ -96,7 +93,7 @@ func IsErrorIngestedBySample(ctx context.Context, store *store.Store, errorObjec
 	return isIngestedBySample(ctx, id, settings.LogSamplingRate)
 }
 
-func IsErrorIngestedByFilter(ctx context.Context, store *store.Store, errorObject *modelInputs.BackendErrorObjectInput) bool {
+func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, errorObject *modelInputs.BackendErrorObjectInput) bool {
 	// TODO(vkorolik) implement
 	return true
 }
