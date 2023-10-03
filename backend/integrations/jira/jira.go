@@ -168,12 +168,10 @@ func GetJiraSiteFromAccessibleResources(responses []*modelInputs.AccessibleJiraR
 	jiraIdentifier := "write:jira-work"
 	for _, site := range responses {
 		if slices.Contains(site.Scopes, jiraIdentifier) {
-			JiraSite = site
-			break
+			return site, nil
 		}
-		return JiraSite, errors.New("No jira site found")
 	}
-	return JiraSite, nil
+	return JiraSite, errors.New("No jira site found")
 }
 
 func GetJiraSite(accessToken string) (*modelInputs.AccessibleJiraResources, error) {

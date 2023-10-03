@@ -1968,6 +1968,9 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 
 func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	err := r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
+	if err != nil {
+		return err
+	}
 
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
 	if err != nil {
