@@ -1885,6 +1885,8 @@ const (
 	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 	SessionExcludedReasonBillingQuotaExceeded      SessionExcludedReason = "BillingQuotaExceeded"
 	SessionExcludedReasonRetentionPeriodExceeded   SessionExcludedReason = "RetentionPeriodExceeded"
+	SessionExcludedReasonSampled                   SessionExcludedReason = "Sampled"
+	SessionExcludedReasonExclusionFilter           SessionExcludedReason = "ExclusionFilter"
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
@@ -1897,11 +1899,13 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonIgnoredUser,
 	SessionExcludedReasonBillingQuotaExceeded,
 	SessionExcludedReasonRetentionPeriodExceeded,
+	SessionExcludedReasonSampled,
+	SessionExcludedReasonExclusionFilter,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser, SessionExcludedReasonBillingQuotaExceeded, SessionExcludedReasonRetentionPeriodExceeded:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser, SessionExcludedReasonBillingQuotaExceeded, SessionExcludedReasonRetentionPeriodExceeded, SessionExcludedReasonSampled, SessionExcludedReasonExclusionFilter:
 		return true
 	}
 	return false

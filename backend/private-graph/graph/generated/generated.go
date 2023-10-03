@@ -9844,6 +9844,8 @@ enum SessionExcludedReason {
 	IgnoredUser
 	BillingQuotaExceeded
 	RetentionPeriodExceeded
+	Sampled
+	ExclusionFilter
 }
 
 type Session {

@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/sampling"
 	"io"
 	"net/http"
 	"strings"
@@ -290,10 +289,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for sessionID, errors := range traceErrors {
 		var messages []*kafkaqueue.Message
 		for _, errorObject := range errors {
-			if !sampling.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
+			if !graph.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
 				continue
 			}
-			if !sampling.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
+			if !graph.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -314,10 +313,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for projectID, errors := range projectErrors {
 		var messages []*kafkaqueue.Message
 		for _, errorObject := range errors {
-			if !sampling.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
+			if !graph.IsErrorIngestedBySample(ctx, o.resolver.Store, errorObject) {
 				continue
 			}
-			if !sampling.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
+			if !graph.IsErrorIngestedByFilter(ctx, o.resolver.Store, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -459,10 +458,10 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for _, logRows := range projectLogs {
 		var messages []*kafkaqueue.Message
 		for _, logRow := range logRows {
-			if !sampling.IsLogIngestedBySample(ctx, o.resolver.Store, logRow) {
+			if !graph.IsLogIngestedBySample(ctx, o.resolver.Store, logRow) {
 				continue
 			}
-			if !sampling.IsLogIngestedByFilter(ctx, o.resolver.Store, logRow) {
+			if !graph.IsLogIngestedByFilter(ctx, o.resolver.Store, logRow) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -483,10 +482,10 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	for traceID, traceRows := range traceRows {
 		var messages []*kafkaqueue.Message
 		for _, traceRow := range traceRows {
-			if !sampling.IsTraceIngestedBySample(ctx, o.resolver.Store, traceRow) {
+			if !graph.IsTraceIngestedBySample(ctx, o.resolver.Store, traceRow) {
 				continue
 			}
-			if !sampling.IsTraceIngestedByFilter(ctx, o.resolver.Store, traceRow) {
+			if !graph.IsTraceIngestedByFilter(ctx, o.resolver.Store, traceRow) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
