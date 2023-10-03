@@ -129,7 +129,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 			setDisplayGitHubSettings(!!backendError && !!editGithubSettings)
 		}
-	}, [data?.error_instance?.error_object])
+	}, [data?.error_instance])
 
 	// add editGithubSettings to url if form is open for redirects
 	useEffect(() => {
