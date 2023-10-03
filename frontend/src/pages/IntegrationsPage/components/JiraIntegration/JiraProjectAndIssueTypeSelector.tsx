@@ -56,9 +56,6 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 		setIssueTypeId && setIssueTypeId(selectedJiraIssueTypeId)
 	}, [selectedJiraIssueTypeId, setIssueTypeId])
 
-	// TODO: decide whether to use localStorage to store a default project and issueTypeID
-	// probably doesn't make sense for an issue type
-
 	return (
 		<>
 			<Form.NamedSection label="Jira Project" name="jiraProject">

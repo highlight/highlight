@@ -13,8 +13,7 @@ import { useIntegration } from '@/pages/IntegrationsPage/components/common/useIn
 import { GetBaseURL } from '@/util/window'
 
 const JIRA_SCOPES = ['read:jira-work', 'write:jira-work', 'offline_access']
-const JIRA_CLIENT_ID =
-	import.meta.env.JIRA_CLIENT_ID || 'BN9x3nr2Qt8fToxMWwZqMS7KmL4hU6Lv'
+const JIRA_CLIENT_ID = import.meta.env.JIRA_CLIENT_ID
 
 export const useJiraIntegration = () =>
 	useIntegration<
@@ -30,7 +29,6 @@ export const useJiraIntegration = () =>
 export const getJiraOAuthUrl = (projectId: string, workspaceId: string) => {
 	let redirectPath = window.location.pathname
 	if (redirectPath.length > 3) {
-		// remove project_id and prepended slash
 		redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1)
 	}
 

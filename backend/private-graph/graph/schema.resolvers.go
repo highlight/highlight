@@ -2200,8 +2200,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeJira {
-			// TODO: JIRA_INTEGRATION create external task
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueProjectID, *issueTypeID); err != nil {
 				return nil, e.Wrap(err, "error creating Jira task")
 			}
 

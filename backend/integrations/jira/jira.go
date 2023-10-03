@@ -163,7 +163,7 @@ func doJiraRequest[T any](method string, accessToken string, url string, body st
 	return unmarshalled, nil
 }
 
-func GetJiraSiteFromAccessibleResources(responses []*modelInputs.AccessibleJiraResources) (*modelInputs.AccessibleJiraResources, error) {
+func getJiraSiteFromAccessibleResources(responses []*modelInputs.AccessibleJiraResources) (*modelInputs.AccessibleJiraResources, error) {
 	var JiraSite *modelInputs.AccessibleJiraResources
 	jiraIdentifier := "write:jira-work"
 	for _, site := range responses {
@@ -182,7 +182,7 @@ func GetJiraSite(accessToken string) (*modelInputs.AccessibleJiraResources, erro
 		return nil, err
 	}
 
-	return GetJiraSiteFromAccessibleResources(res)
+	return getJiraSiteFromAccessibleResources(res)
 }
 
 func GetJiraIssueCreateMeta(accessToken string, cloudID string) ([]*modelInputs.JiraProject, error) {
@@ -202,7 +202,7 @@ func GetJiraProjects(workspace *model.Workspace, accessToken string) ([]*modelIn
 	return GetJiraIssueCreateMeta(accessToken, *workspace.JiraCloudID)
 }
 
-func GetProjectPrefixFromJiraIssue(issue *JiraIssue) string {
+func getProjectPrefixFromJiraIssue(issue *JiraIssue) string {
 	components := strings.Split(issue.Key, "-")
 	if len(components) > 0 {
 		return components[0]
@@ -211,7 +211,7 @@ func GetProjectPrefixFromJiraIssue(issue *JiraIssue) string {
 }
 
 func MakeExternalIdForJiraTask(workspace *model.Workspace, issue *JiraIssue) string {
-	project := GetProjectPrefixFromJiraIssue(issue)
+	project := getProjectPrefixFromJiraIssue(issue)
 	url := fmt.Sprintf("%s/jira/core/projects/%s/board?selectedIssue=%s", *workspace.JiraDomain, project, issue.Key)
 	return url
 }

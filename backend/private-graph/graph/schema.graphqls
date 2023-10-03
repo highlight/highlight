@@ -219,20 +219,6 @@ type JiraTeam {
 	key: String!
 }
 
-# "self": "https://api.atlassian.com/ex/jira/c8726009-4f24-472b-ad79-86a87dd0c893/rest/api/2/issuetype/10001",
-# "id": "10001",
-# "description": "A small, distinct piece of work.",
-# "iconUrl": "https://api.atlassian.com/ex/jira/c8726009-4f24-472b-ad79-86a87dd0c893/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
-# "name": "Task",
-# "untranslatedName": "Task",
-# "subtask": false,
-# "scope": {
-#     "type": "PROJECT",
-#     "project": {
-#         "id": "10000"
-#     }
-# }
-
 type JiraProjectIdentifier {
 	id: String!
 }

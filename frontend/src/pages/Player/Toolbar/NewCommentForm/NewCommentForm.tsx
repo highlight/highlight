@@ -115,12 +115,6 @@ export const NewCommentForm = ({
 	const [containerId, setContainerId] = useState('')
 	const [issueTypeId, setIssueTypeId] = useState('')
 	const [issueProjectId, setIssueProjectId] = useState('')
-	/*
-		should we pass the formStore down and use it to update
-		stuff just like is done here? It will ultimately act like
-		and extension of the form here which makes more sense to me
-		that whatever
-	*/
 	const formStore = useFormStore({
 		defaultValues: {
 			commentText: '',

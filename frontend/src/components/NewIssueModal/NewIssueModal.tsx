@@ -105,7 +105,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			namedOperations.Query.GetErrorIssues,
 		],
 	})
-	// alert('HULLOOOOO!!!')
 
 	const otherIssueVariables = () => {
 		const variables: { issue_type_id?: string; issue_project_id?: string } =
