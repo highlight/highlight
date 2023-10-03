@@ -68,13 +68,9 @@ const METADATA_LABELS: { [key: string]: string } = {
 export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
-	const { currentWorkspace } = useApplicationContext()
-
 	const navigate = useNavigate()
-	const urlParams = new URLSearchParams(location.search)
-	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(
-		urlParams.get('editGithubSettings') ?? false,
-	)
+	const { currentWorkspace } = useApplicationContext()
+	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
@@ -122,19 +118,37 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	useEffect(() => analytics.page(), [])
 
+	// open the form if url is set and error is a backend error
 	useEffect(() => {
-		const urlSearchParams = new URLSearchParams(location.search)
+		if (data?.error_instance?.error_object) {
+			const backendError =
+				data.error_instance.error_object.type === 'Backend'
 
-		if (displayGitHubSettings) {
-			urlSearchParams.set('editGithubSettings', 'true')
-		} else {
-			urlSearchParams.delete('editGithubSettings')
+			const urlParams = new URLSearchParams(location.search)
+			const editGithubSettings = urlParams.get('editGithubSettings')
+
+			setDisplayGitHubSettings(!!backendError && !!editGithubSettings)
+		}
+	}, [data?.error_instance?.error_object])
+
+	// add editGithubSettings to url if form is open for redirects
+	useEffect(() => {
+		if (data?.error_instance?.error_object) {
+			const urlSearchParams = new URLSearchParams(location.search)
+
+			if (displayGitHubSettings) {
+				urlSearchParams.set('editGithubSettings', 'true')
+			} else {
+				urlSearchParams.delete('editGithubSettings')
+			}
+
+			navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
+				replace: true,
+			})
 		}
 
-		navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
-			replace: true,
-		})
-	}, [displayGitHubSettings, navigate])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [displayGitHubSettings])
 
 	if (loading) {
 		return (
