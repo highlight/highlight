@@ -161,17 +161,17 @@ type NetworkResource struct {
 }
 
 func (re *NetworkResource) Start(sessionStart time.Time) time.Time {
-	start := time.UnixMicro(int64(re.StartTimeAbs))
+	start := time.UnixMicro(int64(1000. * re.StartTimeAbs))
 	if start.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
-		start = sessionStart.Add(time.Millisecond * time.Duration(re.StartTime))
+		start = sessionStart.Add(time.Microsecond * time.Duration(1000.*re.StartTime))
 	}
 	return start
 }
 
 func (re *NetworkResource) End(sessionStart time.Time) time.Time {
-	end := time.UnixMicro(int64(re.ResponseEndAbs))
+	end := time.UnixMicro(int64(1000. * re.ResponseEndAbs))
 	if end.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
-		end = sessionStart.Add(time.Millisecond * time.Duration(re.ResponseEnd))
+		end = sessionStart.Add(time.Microsecond * time.Duration(1000.*re.ResponseEnd))
 	}
 	return end
 }

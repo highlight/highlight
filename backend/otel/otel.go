@@ -46,8 +46,9 @@ func lg(ctx context.Context, fields *extractedFields) *log.Entry {
 }
 
 func cast[T string | int64 | float64](v interface{}, fallback T) T {
+	var empty T
 	c, ok := v.(T)
-	if !ok {
+	if !ok || c == empty {
 		return fallback
 	}
 	return c

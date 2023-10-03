@@ -16,7 +16,7 @@ import (
 	"regexp"
 )
 
-func isTraceIngestedBySample(ctx context.Context, key string, rate float64) bool {
+func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 	// TODO(vkorolik) benchmark perf
 	if rate >= 1 {
 		return true
@@ -44,7 +44,7 @@ func IsTraceIngestedBySample(ctx context.Context, store *store.Store, trace *cli
 		return true
 	}
 
-	return isTraceIngestedBySample(ctx, trace.TraceId, settings.TraceSamplingRate)
+	return isIngestedBySample(ctx, trace.TraceId, settings.TraceSamplingRate)
 }
 
 func IsTraceIngestedByFilter(ctx context.Context, store *store.Store, trace *clickhouse.TraceRow) bool {
@@ -60,7 +60,7 @@ func IsLogIngestedBySample(ctx context.Context, store *store.Store, logRow *clic
 		return true
 	}
 
-	return isTraceIngestedBySample(ctx, logRow.UUID, settings.LogSamplingRate)
+	return isIngestedBySample(ctx, logRow.UUID, settings.LogSamplingRate)
 }
 
 func IsLogIngestedByFilter(ctx context.Context, store *store.Store, trace *clickhouse.LogRow) bool {
@@ -93,7 +93,7 @@ func IsErrorIngestedBySample(ctx context.Context, store *store.Store, errorObjec
 		id = ptr.ToString(errorObject.SpanID)
 	}
 
-	return isTraceIngestedBySample(ctx, id, settings.LogSamplingRate)
+	return isIngestedBySample(ctx, id, settings.LogSamplingRate)
 }
 
 func IsErrorIngestedByFilter(ctx context.Context, store *store.Store, errorObject *modelInputs.BackendErrorObjectInput) bool {
@@ -146,7 +146,7 @@ func (r *Resolver) isSessionExcludedBySample(ctx context.Context, session *model
 		return true
 	}
 
-	return !isTraceIngestedBySample(ctx, session.SecureID, settings.LogSamplingRate)
+	return !isIngestedBySample(ctx, session.SecureID, settings.LogSamplingRate)
 }
 
 func (r *Resolver) isSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
