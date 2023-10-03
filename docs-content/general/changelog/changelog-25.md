@@ -5,7 +5,7 @@ slug: changelog-25
 
 ## GitHub Settings
 
-We recently released GitHub-enhanced stack traces, and now we've surfaced your GitHub settings right next to your stack traces. It's a quality-of-life enhancement that unearths your buried settings and puts them right where you need them.
+We recently released GitHub-enhanced stack traces, and now we've surfaced your enhancement settings right next to your stack traces. It's a quality-of-life enhancement that unearths your buried settings and puts them right where you need them.
 
 ![GitHub stack trace settings](/images/changelog/25/github-stacktrace-settings.jpg)
 
