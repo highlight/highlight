@@ -228,7 +228,7 @@ Make sure to implement `nextConfig.generateBuildId` so that our sourcemap upload
 ```javascript
 // next.config.js
 const nextBuildId = require('next-build-id')
-const { withHighlightConfig } = require('@highlight-run/next/server')
+const { withHighlightConfig } = require('@highlight-run/next/config')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

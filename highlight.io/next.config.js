@@ -1,5 +1,5 @@
 const { withAxiom } = require('next-axiom')
-const { withHighlightConfig } = require('@highlight-run/next/server')
+const { withHighlightConfig } = require('@highlight-run/next/config')
 const getStaticPages = require('./scripts/get-static-pages')
 
 /** @type {import('next').NextConfig} */

@@ -100,3 +100,9 @@
 - Move `@opentelemetry/api` and `@opentelemetry/resources` to `devDependencies`
 - Repair `use-client` declaration
 - Bundle `@highlight-run/sourcemap-uploader`
+
+### 5.0.0
+
+### Major changes
+
+-Moved `withHighlightConfig` to `@highlight-run/next/config` to repair bundle issues
