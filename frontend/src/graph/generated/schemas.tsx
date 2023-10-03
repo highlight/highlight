@@ -1449,6 +1449,7 @@ export type MutationTestErrorEnhancementArgs = {
 	error_object_id: Scalars['ID']
 	github_prefix?: InputMaybe<Scalars['String']>
 	github_repo_path: Scalars['String']
+	save_error?: InputMaybe<Scalars['Boolean']>
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {

@@ -87,6 +87,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 			? formValues
 			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
 
+		setTestLoading(true)
 		editServiceGithubSettings({
 			variables: {
 				id: String(service?.id),
@@ -96,8 +97,34 @@ export const GitHubEnhancementSettingsForm: React.FC<
 				github_prefix: submittedValues.githubPrefix,
 			},
 		})
-
-		onSave()
+			.then(() => {
+				if (formValues?.githubRepo) {
+					testErrorEnhancement({
+						variables: {
+							error_object_id: testedError.id,
+							github_repo_path: String(
+								submittedValues?.githubRepo,
+							),
+							build_prefix: submittedValues?.buildPrefix,
+							github_prefix: submittedValues?.githubPrefix,
+							save_error: true,
+						},
+					})
+						.then(() => {
+							setTestLoading(false)
+							onSave()
+						})
+						.catch(() => {
+							setTestLoading(false)
+						})
+				} else {
+					setTestLoading(false)
+					onSave()
+				}
+			})
+			.catch(() => {
+				setTestLoading(false)
+			})
 	}
 
 	const handleTestConfiguration = () => {
@@ -110,6 +137,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 				github_repo_path: String(formValues?.githubRepo),
 				build_prefix: formValues?.buildPrefix,
 				github_prefix: formValues?.githubPrefix,
+				save_error: false,
 			},
 		}).then(({ data }) => {
 			if (data?.testErrorEnhancement) {
