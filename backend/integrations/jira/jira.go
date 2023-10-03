@@ -11,7 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2"
@@ -162,32 +163,33 @@ func doJiraRequest[T any](method string, accessToken string, url string, body st
 	return unmarshalled, nil
 }
 
-func GetJiraSitesID(responses []*model.AccessibleJiraResources) (string, error) {
-	var JiraSite *model.AccessibleJiraResources
+func GetJiraSiteFromAccessibleResources(responses []*modelInputs.AccessibleJiraResources) (*modelInputs.AccessibleJiraResources, error) {
+	var JiraSite *modelInputs.AccessibleJiraResources
 	jiraIdentifier := "write:jira-work"
 	for _, site := range responses {
 		if slices.Contains(site.Scopes, jiraIdentifier) {
 			JiraSite = site
 			break
 		}
-		return "", errors.New("No jira site found")
+		return JiraSite, errors.New("No jira site found")
 	}
-	return JiraSite.ID, nil
+	return JiraSite, nil
 }
 
-func GetJiraSiteCloudID(accessToken string) (string, error) {
+func GetJiraSite(accessToken string) (*modelInputs.AccessibleJiraResources, error) {
 	url := "/oauth/token/accessible-resources"
-	res, err := doJiraGetRequest[[]*model.AccessibleJiraResources](accessToken, url)
-	fmt.Println("GetJiraSiteCloudID RESPONSE", res, err)
+	res, err := doJiraGetRequest[[]*modelInputs.AccessibleJiraResources](accessToken, url)
+
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return GetJiraSitesID(res)
+
+	return GetJiraSiteFromAccessibleResources(res)
 }
 
-func GetJiraIssueCreateMeta(accessToken string, cloudID string) ([]*model.JiraProject, error) {
+func GetJiraIssueCreateMeta(accessToken string, cloudID string) ([]*modelInputs.JiraProject, error) {
 	type listsResponse struct {
-		Projects []*model.JiraProject `json:"projects"`
+		Projects []*modelInputs.JiraProject `json:"projects"`
 	}
 	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue/createmeta", cloudID)
 	res, err := doJiraGetRequest[listsResponse](accessToken, url)
@@ -198,24 +200,26 @@ func GetJiraIssueCreateMeta(accessToken string, cloudID string) ([]*model.JiraPr
 	return res.Projects, nil
 }
 
-func GetJiraProjects(accessToken string) ([]*model.JiraProject, error) {
-	cloudID, err := GetJiraSiteCloudID(accessToken)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return GetJiraIssueCreateMeta(accessToken, cloudID)
+func GetJiraProjects(workspace *model.Workspace, accessToken string) ([]*modelInputs.JiraProject, error) {
+	return GetJiraIssueCreateMeta(accessToken, *workspace.JiraCloudID)
 }
 
-func CreateJiraTask(accessToken string, payload JiraCreateIssuePayload) (*JiraIssue, error) {
-	cloudID, err := GetJiraSiteCloudID(accessToken)
-
-	if err != nil {
-		return nil, err
+func GetProjectPrefixFromJiraIssue(issue *JiraIssue) string {
+	components := strings.Split(issue.Key, "-")
+	if len(components) > 0 {
+		return components[0]
 	}
+	return ""
+}
 
-	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue", cloudID)
+func MakeExternalIdForJiraTask(workspace *model.Workspace, issue *JiraIssue) string {
+	project := GetProjectPrefixFromJiraIssue(issue)
+	url := fmt.Sprintf("%s/jira/core/projects/%s/board?selectedIssue=%s", *workspace.JiraDomain, project, issue.Key)
+	return url
+}
+
+func CreateJiraTask(workspace *model.Workspace, accessToken string, payload JiraCreateIssuePayload) (*JiraIssue, error) {
+	url := fmt.Sprintf("/ex/jira/%s/rest/api/2/issue", *workspace.JiraCloudID)
 	res, err := doJiraPostRequest[*JiraIssue](accessToken, url, payload)
 	if err != nil {
 		return nil, err

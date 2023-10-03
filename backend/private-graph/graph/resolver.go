@@ -1967,7 +1967,29 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 }
 
 func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
+	err := r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return err
+	}
+
+	jiraSite, err := jira.GetJiraSite(*accessToken)
+
+	if err != nil {
+		return err
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  &jiraSite.URL,
+		JiraCloudID: &jiraSite.ID,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
@@ -2135,6 +2157,15 @@ func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
 
 	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
 		return e.Wrap(err, "error deleting workspace Jira integration")
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  nil,
+		JiraCloudID: nil,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
 	}
 
 	return nil
@@ -2648,13 +2679,13 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 		Fields: jiraIssuePayload,
 	}
 
-	task, err := jira.CreateJiraTask(*accessToken, jiraCreateIssueData)
+	task, err := jira.CreateJiraTask(workspace, *accessToken, jiraCreateIssueData)
 
 	if err != nil {
 		return err
 	}
 
-	attachment.ExternalID = task.Self
+	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task)
 	attachment.Title = issueTitle
 	if err := r.DB.Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
@@ -3618,5 +3649,5 @@ func (r *Resolver) GetJiraProjects(
 		return nil, nil
 	}
 
-	return jira.GetJiraProjects(*accessToken)
+	return jira.GetJiraProjects(workspace, *accessToken)
 }

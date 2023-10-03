@@ -125,7 +125,6 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 }
 
 func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project, integrationType modelInputs.IntegrationType) (bool, error) {
-	fmt.Println("IsProjectIntegrated")
 	if integrationType == modelInputs.IntegrationTypeClickUp {
 		var projectMapping *model.IntegrationProjectMapping
 		if err := c.db.Where(&model.IntegrationProjectMapping{
