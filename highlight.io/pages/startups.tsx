@@ -21,13 +21,7 @@ const StartupsPage = () => {
 							<Typography type="copy3" emphasis>
 								Highlight for Startups
 							</Typography>
-							<h2 className="m-0">
-								One app for all your{' '}
-								<span className="text-color-selected-light">
-									app monitoring
-								</span>{' '}
-								needs.
-							</h2>
+							<h2 className="m-0">Highlight for Startups</h2>
 							<Typography
 								type="copy1"
 								className="text-darker-copy-on-dark"
@@ -36,7 +30,7 @@ const StartupsPage = () => {
 								your developers together in Highlight&apos;s
 								full-stack monitoring tool.
 							</Typography>
-							<div className="flex items-center flex-grow gap-1 p-2 mt-4 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light">
+							<div className="flex items-center flex-grow gap-1 p-2 pl-4 mt-4 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light">
 								<input
 									type="text"
 									placeholder={'Enter your email'}
@@ -79,7 +73,7 @@ const StartupsPage = () => {
 						<div className="flex justify-center ">
 							<Typography
 								type="copy1"
-								className="max-w-[800px] mt-4"
+								className="max-w-[800px] mt-4 text-darker-copy-on-dark"
 							>
 								Monitor your app more efficiently by bringing
 								your developers together in Highlight&apos;s
@@ -106,12 +100,71 @@ const StartupsPage = () => {
 								target="_blank"
 								className="bg-white hover:bg-opacity-70 rounded-lg"
 							>
-								Get Started
+								Get Started Today
 							</PrimaryButton>
 						</div>
 					</div>
 				</Section>
 				<CustomerReviewTrack />
+				<Section>
+					<div className="flex flex-col items-center text-center w-full">
+						<h3>We cover all your observability needs.</h3>
+						<div className="flex justify-center ">
+							<Typography
+								type="copy1"
+								className="max-w-[800px] mt-4 text-darker-copy-on-dark"
+							>
+								Monitor your app more efficiently by bringing
+								your developers together in Highlight&apos;s
+								full-stack monitoring tool.
+							</Typography>
+						</div>
+						<div className="flex flex-col md:flex-row justify-center gap-8 mt-8">
+							<div className="text-start max-w-[300px]">
+								<div className="aspect-square w-full border border-divider-on-dark rounded-md"></div>
+								<h5 className="text-darker-copy-on-dark">
+									Error Monitoring
+								</h5>
+								<Typography
+									type="copy2"
+									className="mt-4 text-darker-copy-on-dark"
+								>
+									Monitor your app more efficiently by
+									bringing your developers together in
+									Highlight&apos;s full-stack monitoring tool.
+								</Typography>
+							</div>{' '}
+							<div className="text-start max-w-[300px]">
+								<div className="aspect-square w-full border border-divider-on-dark rounded-md"></div>
+								<h5 className="text-darker-copy-on-dark">
+									Session Replay
+								</h5>
+								<Typography
+									type="copy2"
+									className="mt-4 text-darker-copy-on-dark"
+								>
+									Monitor your app more efficiently by
+									bringing your developers together in
+									Highlight&apos;s full-stack monitoring tool.
+								</Typography>
+							</div>{' '}
+							<div className="text-start max-w-[300px]">
+								<div className="aspect-square w-full border border-divider-on-dark rounded-md"></div>
+								<h5 className="text-darker-copy-on-dark">
+									Logging
+								</h5>
+								<Typography
+									type="copy2"
+									className="mt-4 text-darker-copy-on-dark"
+								>
+									Monitor your app more efficiently by
+									bringing your developers together in
+									Highlight&apos;s full-stack monitoring tool.
+								</Typography>
+							</div>{' '}
+						</div>
+					</div>
+				</Section>
 				<FooterCallToAction />
 			</main>
 			<Footer />
