@@ -39,7 +39,7 @@ const StartupsPage = () => {
 										setEmail(ev.currentTarget.value)
 									}
 									className={
-										'h-full flex-1 leading-none bg-transparent outline-none text-copy-on-dark text-[17px] w-0'
+										'h-full flex-1 leading-none bg-transparent outline-none text-copy-on-dark text-[14px] md:text-[17px] w-0'
 									}
 								/>
 								<PrimaryButton
@@ -81,7 +81,7 @@ const StartupsPage = () => {
 							</Typography>
 						</div>
 
-						<div className="flex w-full items-center justify-center max-w-[800px] flex-grow gap-1 p-2 mt-8 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light">
+						<div className="flex w-full items-center justify-center max-w-[800px] flex-grow gap-1 p-2 pl-4 mt-8 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light">
 							<input
 								type="text"
 								placeholder={'Enter your email'}
@@ -90,7 +90,7 @@ const StartupsPage = () => {
 									setEmail(ev.currentTarget.value)
 								}
 								className={
-									'h-full flex-1 leading-none bg-transparent outline-none text-copy-on-dark text-[17px] w-0'
+									'h-full flex-1 leading-none bg-transparent outline-none text-copy-on-dark text-[14px] md:text-[17px] w-0'
 								}
 							/>
 							<PrimaryButton
@@ -100,7 +100,7 @@ const StartupsPage = () => {
 								target="_blank"
 								className="bg-white hover:bg-opacity-70 rounded-lg"
 							>
-								Get Started Today
+								Get Started
 							</PrimaryButton>
 						</div>
 					</div>
@@ -127,7 +127,7 @@ const StartupsPage = () => {
 								</h5>
 								<Typography
 									type="copy2"
-									className="mt-4 text-darker-copy-on-dark"
+									className="mt-6 text-darker-copy-on-dark"
 								>
 									Monitor your app more efficiently by
 									bringing your developers together in
@@ -141,7 +141,7 @@ const StartupsPage = () => {
 								</h5>
 								<Typography
 									type="copy2"
-									className="mt-4 text-darker-copy-on-dark"
+									className="mt-6 text-darker-copy-on-dark"
 								>
 									Monitor your app more efficiently by
 									bringing your developers together in
@@ -155,7 +155,7 @@ const StartupsPage = () => {
 								</h5>
 								<Typography
 									type="copy2"
-									className="mt-4 text-darker-copy-on-dark"
+									className="mt-6 text-darker-copy-on-dark"
 								>
 									Monitor your app more efficiently by
 									bringing your developers together in
