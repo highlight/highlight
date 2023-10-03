@@ -400,6 +400,7 @@ type ProjectFilterSettings struct {
 	SessionExclusionQuery             *string
 	ErrorExclusionQuery               *string
 	LogExclusionQuery                 *string
+	TraceExclusionQuery               *string
 }
 
 type AllWorkspaceSettings struct {

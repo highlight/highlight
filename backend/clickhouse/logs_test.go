@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"os"
 	"reflect"
 	"sort"
@@ -1227,4 +1228,27 @@ func FuzzReadLogs(f *testing.F) {
 		}, Pagination{})
 		assert.NoError(t, err)
 	})
+}
+
+func Test_LogMatchesQuery(t *testing.T) {
+	logRow := LogRow{}
+	filters := queryparser.Parse("hello world os.type:linux resource_name:worker.* service_name:all")
+	matches := LogMatchesQuery(&logRow, &filters)
+	assert.False(t, matches)
+
+	logRow = LogRow{
+		Body:        "this is a hello world message",
+		ServiceName: "all",
+		LogAttributes: map[string]string{
+			"os.type":       "linux",
+			"resource_name": "worker.kafka.process",
+		},
+	}
+	filters = queryparser.Parse("hello world os.type:linux resource_name:worker.* service_name:all")
+	matches = LogMatchesQuery(&logRow, &filters)
+	assert.True(t, matches)
+
+	filters = queryparser.Parse("not this one os.type:linux resource_name:worker.* service_name:all")
+	matches = LogMatchesQuery(&logRow, &filters)
+	assert.False(t, matches)
 }

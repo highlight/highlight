@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"math"
 	"time"
 
@@ -413,4 +414,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate)
+}
+
+func LogMatchesQuery(logRow *LogRow, filters *queryparser.Filters) bool {
+	return matchesQuery(logRow, logsTableConfig, filters)
 }

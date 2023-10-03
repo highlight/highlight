@@ -9,6 +9,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	log "github.com/sirupsen/logrus"
 	"hash/fnv"
 	"math/rand"
@@ -30,7 +31,7 @@ func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 		return true
 	}
 	r := rand.New(rand.NewSource(int64(h.Sum32())))
-	return r.Float64() < rate
+	return r.Float64() <= rate
 }
 
 func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhouse.TraceRow) bool {
@@ -45,8 +46,19 @@ func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhouse.TraceRow) bool {
-	// TODO(vkorolik) implement
-	return true
+	projectID := int(trace.ProjectId)
+	settings, err := r.Store.GetProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
+		return true
+	}
+
+	if settings.TraceExclusionQuery == nil {
+		return true
+	}
+
+	filters := queryparser.Parse(*settings.TraceExclusionQuery)
+	return !clickhouse.TraceMatchesQuery(trace, &filters)
 }
 
 func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse.LogRow) bool {
@@ -60,9 +72,20 @@ func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse
 	return isIngestedBySample(ctx, logRow.UUID, settings.LogSamplingRate)
 }
 
-func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, trace *clickhouse.LogRow) bool {
-	// TODO(vkorolik) implement
-	return true
+func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse.LogRow) bool {
+	projectID := int(logRow.ProjectId)
+	settings, err := r.Store.GetProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
+		return true
+	}
+
+	if settings.LogExclusionQuery == nil {
+		return true
+	}
+
+	filters := queryparser.Parse(*settings.LogExclusionQuery)
+	return !clickhouse.LogMatchesQuery(logRow, &filters)
 }
 
 func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, errorObject *modelInputs.BackendErrorObjectInput) bool {

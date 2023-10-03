@@ -3,6 +3,8 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -395,4 +397,39 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 
 	span.Finish(rows.Err())
 	return values, rows.Err()
+}
+
+func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tableConfig[TReservedKey], filters *queryparser.Filters) bool {
+	v := reflect.ValueOf(*row)
+
+	rowBodyTerms := map[string]bool{}
+	if len(filters.Body) > 0 {
+		for _, field := range strings.Fields(v.FieldByName("Body").String()) {
+			rowBodyTerms[field] = true
+		}
+	}
+	for _, body := range filters.Body {
+		if !rowBodyTerms[body] {
+			return false
+		}
+	}
+	for key, values := range filters.Attributes {
+		var rowValue string
+		if chKey, ok := config.keysToColumns[TReservedKey(key)]; ok {
+			rowValue = v.FieldByName(chKey).String()
+		} else {
+			rowValue = v.FieldByName(config.attributesColumn).MapIndex(reflect.ValueOf(key)).String()
+		}
+		for _, v := range values {
+			if strings.Contains(v, "%") {
+				if matched, _ := regexp.Match(strings.ReplaceAll(v, "%", ".*"), []byte(rowValue)); !matched {
+					return false
+				}
+			} else if v != rowValue {
+				return false
+			}
+
+		}
+	}
+	return true
 }

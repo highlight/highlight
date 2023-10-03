@@ -16,3 +16,14 @@ func Benchmark_isIngestedBySample(b *testing.B) {
 		assert.Less(b, b.Elapsed()/time.Duration(b.N), time.Millisecond, "benchmarked fn is too slow")
 	}
 }
+
+func Fuzz_isIngestedBySample(f *testing.F) {
+	ctx := context.TODO()
+	f.Add("", 0.5)
+	f.Add("key", 0.5)
+	f.Add("hello, world!", 1.)
+	f.Add("", 0.)
+	f.Fuzz(func(t *testing.T, key string, rate float64) {
+		isIngestedBySample(ctx, key, rate)
+	})
+}
