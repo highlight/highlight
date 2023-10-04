@@ -120,7 +120,11 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	// open the form if url is set and error is a backend error
 	useEffect(() => {
-		if (data?.error_instance?.error_object) {
+		console.log(
+			'UPDATING display settings',
+			data?.error_instance?.error_object?.type,
+		)
+		if (data?.error_instance?.error_object?.type) {
 			const backendError =
 				data.error_instance.error_object.type === 'Backend'
 
@@ -131,11 +135,12 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 			setDisplayGitHubSettings(backendError && editGithubSettings)
 		}
-	}, [data?.error_instance])
+	}, [data?.error_instance?.error_object?.type])
 
 	// add editGithubSettings to url if form is open for redirects
 	useEffect(() => {
-		if (data?.error_instance?.error_object) {
+		console.log('UPDATING url', data?.error_instance?.error_object?.type)
+		if (data?.error_instance?.error_object?.type) {
 			const urlSearchParams = new URLSearchParams(location.search)
 
 			if (displayGitHubSettings) {
@@ -151,6 +156,8 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [displayGitHubSettings])
+
+	console.log('DISPLAY SETTINGS', displayGitHubSettings)
 
 	if (loading) {
 		return (
