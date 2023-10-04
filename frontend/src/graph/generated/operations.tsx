@@ -298,18 +298,16 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
 		> & {
-				sampling?: Types.Maybe<
-					{ __typename?: 'Sampling' } & Pick<
-						Types.Sampling,
-						| 'session_sampling_rate'
-						| 'error_sampling_rate'
-						| 'log_sampling_rate'
-						| 'trace_sampling_rate'
-						| 'session_exclusion_query'
-						| 'error_exclusion_query'
-						| 'log_exclusion_query'
-						| 'trace_exclusion_query'
-					>
+				sampling: { __typename?: 'Sampling' } & Pick<
+					Types.Sampling,
+					| 'session_sampling_rate'
+					| 'error_sampling_rate'
+					| 'log_sampling_rate'
+					| 'trace_sampling_rate'
+					| 'session_exclusion_query'
+					| 'error_exclusion_query'
+					| 'log_exclusion_query'
+					| 'trace_exclusion_query'
 				>
 			}
 	>
@@ -4465,18 +4463,16 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
 		> & {
-				sampling?: Types.Maybe<
-					{ __typename?: 'Sampling' } & Pick<
-						Types.Sampling,
-						| 'session_sampling_rate'
-						| 'error_sampling_rate'
-						| 'log_sampling_rate'
-						| 'trace_sampling_rate'
-						| 'session_exclusion_query'
-						| 'error_exclusion_query'
-						| 'log_exclusion_query'
-						| 'trace_exclusion_query'
-					>
+				sampling: { __typename?: 'Sampling' } & Pick<
+					Types.Sampling,
+					| 'session_sampling_rate'
+					| 'error_sampling_rate'
+					| 'log_sampling_rate'
+					| 'trace_sampling_rate'
+					| 'session_exclusion_query'
+					| 'error_exclusion_query'
+					| 'log_exclusion_query'
+					| 'trace_exclusion_query'
 				>
 			}
 	>

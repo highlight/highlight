@@ -411,7 +411,7 @@ type AllProjectSettings {
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
-	sampling: Sampling
+	sampling: Sampling!
 }
 
 type AllWorkspaceSettings {

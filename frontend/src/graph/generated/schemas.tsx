@@ -126,7 +126,7 @@ export type AllProjectSettings = {
 	rage_click_count?: Maybe<Scalars['Int']>
 	rage_click_radius_pixels?: Maybe<Scalars['Int']>
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
-	sampling?: Maybe<Sampling>
+	sampling: Sampling
 	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
 	workspace_id: Scalars['ID']
