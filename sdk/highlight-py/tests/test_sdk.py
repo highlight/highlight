@@ -68,4 +68,4 @@ def test_log_no_trace(mocker):
     logger.info(f"hey there!")
     h.flush()
 
-    assert mock_trace.call_args_list[0].args[1:] == ()
+    assert mock_trace.call_args_list[0].args[1:] == ((), {})
