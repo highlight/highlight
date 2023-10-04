@@ -70,6 +70,8 @@ export const ABOUT_YOU_ROUTE = '/about_you'
 export const INVITE_TEAM_ROUTE = '/invite_team'
 export const SETUP_ROUTE = '/setup'
 
+// DebugRoutes is a helper for debugging react router navigation.
+// Enable debug logging by setting the localStorage variable `highlight-verbose-logging-enabled` to true.
 const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 	const location = useLocation()
 	const action = useNavigationType()
@@ -261,8 +263,6 @@ export const AppRouter = () => {
 						) : null}
 						<DebugRoutes>
 							<Routes location={previousLocation ?? location}>
-								<Route path="/new" />
-								<Route path="/w/:workspace_id/new" />
 								<Route
 									path="/error-tags"
 									element={<ErrorTagsContainer />}
