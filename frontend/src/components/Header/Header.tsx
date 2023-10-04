@@ -901,11 +901,12 @@ const BillingBanner: React.FC = () => {
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
-	const { loading, subscriptionData } = useBillingHook({
+	const { loading: subscriptionLoading, subscriptionData } = useBillingHook({
 		project_id: projectId,
 	})
 	const billingIssues =
-		!loading && subscriptionData.subscription_details?.billingIssue
+		!subscriptionLoading &&
+		subscriptionData?.subscription_details.billingIssue
 
 	useEffect(() => {
 		if (
