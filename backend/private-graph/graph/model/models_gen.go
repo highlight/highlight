@@ -1578,6 +1578,71 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ReservedErrorObjectKey string
+
+const (
+	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
+	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
+	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
+	ReservedErrorObjectKeyRequestID       ReservedErrorObjectKey = "request_id"
+	ReservedErrorObjectKeyServiceName     ReservedErrorObjectKey = "service_name"
+	ReservedErrorObjectKeyServiceVersion  ReservedErrorObjectKey = "service_version"
+	ReservedErrorObjectKeySessionSecureID ReservedErrorObjectKey = "session_secure_id"
+	ReservedErrorObjectKeySource          ReservedErrorObjectKey = "source"
+	ReservedErrorObjectKeySpanID          ReservedErrorObjectKey = "span_id"
+	ReservedErrorObjectKeyStackTrace      ReservedErrorObjectKey = "stackTrace"
+	ReservedErrorObjectKeyTimestamp       ReservedErrorObjectKey = "timestamp"
+	ReservedErrorObjectKeyTraceID         ReservedErrorObjectKey = "trace_id"
+	ReservedErrorObjectKeyType            ReservedErrorObjectKey = "type"
+	ReservedErrorObjectKeyURL             ReservedErrorObjectKey = "url"
+)
+
+var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyEvent,
+	ReservedErrorObjectKeyLogCursor,
+	ReservedErrorObjectKeyPayload,
+	ReservedErrorObjectKeyRequestID,
+	ReservedErrorObjectKeyServiceName,
+	ReservedErrorObjectKeyServiceVersion,
+	ReservedErrorObjectKeySessionSecureID,
+	ReservedErrorObjectKeySource,
+	ReservedErrorObjectKeySpanID,
+	ReservedErrorObjectKeyStackTrace,
+	ReservedErrorObjectKeyTimestamp,
+	ReservedErrorObjectKeyTraceID,
+	ReservedErrorObjectKeyType,
+	ReservedErrorObjectKeyURL,
+}
+
+func (e ReservedErrorObjectKey) IsValid() bool {
+	switch e {
+	case ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+		return true
+	}
+	return false
+}
+
+func (e ReservedErrorObjectKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedErrorObjectKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedErrorObjectKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedErrorObjectKey", str)
+	}
+	return nil
+}
+
+func (e ReservedErrorObjectKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ReservedLogKey string
 
 const (

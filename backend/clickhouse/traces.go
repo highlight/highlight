@@ -38,6 +38,7 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
+	bodyColumn:       "Body",
 	attributesColumn: "TraceAttributes",
 	selectColumns: []string{
 		"Timestamp",

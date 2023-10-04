@@ -10618,6 +10618,23 @@ enum ReservedTraceKey {
 	service_version
 }
 
+enum ReservedErrorObjectKey {
+	event
+	log_cursor
+	payload
+	request_id
+	service_name
+	service_version
+	session_secure_id
+	source
+	span_id
+	stackTrace
+	timestamp
+	trace_id
+	type
+	url
+}
+
 enum LogSource {
 	frontend
 	backend

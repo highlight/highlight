@@ -24,6 +24,7 @@ const KeyValuesMaxRows = 1_000_000
 
 type tableConfig[TReservedKey ~string] struct {
 	tableName        string
+	bodyColumn       string
 	attributesColumn string
 	keysToColumns    map[TReservedKey]string
 	reservedKeys     []TReservedKey
@@ -403,8 +404,8 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 	v := reflect.ValueOf(*row)
 
 	rowBodyTerms := map[string]bool{}
-	if len(filters.Body) > 0 {
-		for _, field := range strings.Fields(v.FieldByName("Body").String()) {
+	if config.bodyColumn != "" && len(filters.Body) > 0 {
+		for _, field := range strings.Fields(v.FieldByName(config.bodyColumn).String()) {
 			rowBodyTerms[field] = true
 		}
 	}
@@ -416,9 +417,22 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 	for key, values := range filters.Attributes {
 		var rowValue string
 		if chKey, ok := config.keysToColumns[TReservedKey(key)]; ok {
-			rowValue = v.FieldByName(chKey).String()
-		} else {
+			if strings.Contains(chKey, ".") {
+				var value = v
+				for _, part := range strings.Split(chKey, ".") {
+					value = value.FieldByName(part)
+					if value.Kind() == reflect.Pointer {
+						value = value.Elem()
+					}
+				}
+				rowValue = value.String()
+			} else {
+				rowValue = v.FieldByName(chKey).String()
+			}
+		} else if config.attributesColumn != "" {
 			rowValue = v.FieldByName(config.attributesColumn).MapIndex(reflect.ValueOf(key)).String()
+		} else {
+			continue
 		}
 		for _, v := range values {
 			if strings.Contains(v, "%") {

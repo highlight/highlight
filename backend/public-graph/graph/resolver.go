@@ -2076,13 +2076,12 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
-	// Filter out empty errors
+	// Filter out ignored errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
-			continue
+		if r.IsErrorIngestedByFilter(ctx, project.ID, errorObject) {
+			filteredErrors = append(filteredErrors, errorObject)
 		}
-		filteredErrors = append(filteredErrors, errorObject)
 	}
 	errorObjects = filteredErrors
 
@@ -3285,37 +3284,4 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 		}
 	}
 	return nil
-}
-
-func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
-	if errorEvent == "[{}]" {
-		log.WithContext(ctx).
-			WithField("project_id", projectID).
-			Warn("ignoring empty error")
-		return true
-	}
-
-	if cfg, err := r.Store.GetSystemConfiguration(ctx); err == nil {
-		errorFilters = append(errorFilters, cfg.ErrorFilters...)
-	}
-
-	// Filter out by project.ErrorFilters, aka regexp filters
-	var err error
-	matchedRegexp := false
-	for _, errorFilter := range errorFilters {
-		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
-		if err != nil {
-			log.WithContext(ctx).
-				WithField("project_id", projectID).
-				WithField("regex", errorFilter).
-				WithError(err).
-				Error("invalid regex: failed to parse backend error filter")
-			continue
-		}
-
-		if matchedRegexp {
-			return true
-		}
-	}
-	return false
 }

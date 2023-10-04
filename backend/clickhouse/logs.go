@@ -37,6 +37,7 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	tableName:        LogsTable,
 	keysToColumns:    logKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedLogKey,
+	bodyColumn:       "Body",
 	attributesColumn: "LogAttributes",
 	selectColumns: []string{
 		"Timestamp",
@@ -57,6 +58,7 @@ var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	tableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
 	keysToColumns:    logKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedLogKey,
+	bodyColumn:       "Body",
 	attributesColumn: "LogAttributes",
 }
 

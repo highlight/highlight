@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	model2 "github.com/highlight-run/highlight/backend/model"
 	"io"
 	"net/http"
 	"strings"
@@ -290,10 +291,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for sessionID, errors := range traceErrors {
 		var messages []*kafkaqueue.Message
 		for _, errorObject := range errors {
-			if !o.resolver.IsErrorIngestedBySample(ctx, errorObject) {
+			if !o.resolver.IsErrorIngestedBySample(ctx, 0, errorObject) {
 				continue
 			}
-			if !o.resolver.IsErrorIngestedByFilter(ctx, errorObject) {
+			if !o.resolver.IsErrorIngestedByFilter(ctx, 0, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -314,10 +315,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for projectID, errors := range projectErrors {
 		var messages []*kafkaqueue.Message
 		for _, errorObject := range errors {
-			if !o.resolver.IsErrorIngestedBySample(ctx, errorObject) {
+			// cannot return error since we already perform this check for all project errors in `extractFields`
+			projectIDInt, _ := model2.FromVerboseID(projectID)
+			if !o.resolver.IsErrorIngestedBySample(ctx, projectIDInt, errorObject) {
 				continue
 			}
-			if !o.resolver.IsErrorIngestedByFilter(ctx, errorObject) {
+			if !o.resolver.IsErrorIngestedByFilter(ctx, projectIDInt, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
