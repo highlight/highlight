@@ -6803,7 +6803,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		if err != nil {
 			return nil, err
 		}
-		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
+		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
 	}
 
 	return details, nil
