@@ -736,6 +736,7 @@ type SubscriptionDetails struct {
 	DiscountPercent float64  `json:"discountPercent"`
 	DiscountAmount  int64    `json:"discountAmount"`
 	LastInvoice     *Invoice `json:"lastInvoice"`
+	BillingIssue    bool     `json:"billingIssue"`
 }
 
 type TopUsersPayload struct {

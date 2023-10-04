@@ -1042,6 +1042,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			url
 			status
 		}
+		billingIssue
 	}
 }
 

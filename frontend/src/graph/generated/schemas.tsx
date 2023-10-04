@@ -2955,6 +2955,7 @@ export type SubscriptionSession_Payload_AppendedArgs = {
 export type SubscriptionDetails = {
 	__typename?: 'SubscriptionDetails'
 	baseAmount: Scalars['Int64']
+	billingIssue: Scalars['Boolean']
 	discountAmount: Scalars['Int64']
 	discountPercent: Scalars['Float']
 	lastInvoice?: Maybe<Invoice>

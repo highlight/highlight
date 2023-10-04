@@ -2882,7 +2882,7 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'discountAmount' | 'discountPercent'
+		'baseAmount' | 'discountAmount' | 'discountPercent' | 'billingIssue'
 	> & {
 			lastInvoice?: Types.Maybe<
 				{ __typename?: 'Invoice' } & Pick<
