@@ -1822,6 +1822,7 @@ export type Query = {
 	traces: TraceConnection
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
+	traces_metrics: TracesMetrics
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
@@ -2410,6 +2411,12 @@ export type QueryTraces_Key_ValuesArgs = {
 
 export type QueryTraces_KeysArgs = {
 	date_range: DateRangeRequiredInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTraces_MetricsArgs = {
+	metric_types: Array<TracesMetricType>
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -3036,6 +3043,26 @@ export type TraceLink = {
 	spanID: Scalars['String']
 	traceID: Scalars['String']
 	traceState: Scalars['String']
+}
+
+export type TracesMetricBucket = {
+	__typename?: 'TracesMetricBucket'
+	bucket_id: Scalars['UInt64']
+	metric_type: TracesMetricType
+	metric_value: Scalars['Float']
+}
+
+export enum TracesMetricType {
+	Count = 'count',
+	P50 = 'p50',
+	P90 = 'p90',
+}
+
+export type TracesMetrics = {
+	__typename?: 'TracesMetrics'
+	bucket_count: Scalars['UInt64']
+	buckets: Array<TracesMetricBucket>
+	sample_factor: Scalars['Float']
 }
 
 export type TrackProperty = {

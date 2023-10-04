@@ -2310,6 +2310,26 @@ query GetTraces(
 	}
 }
 
+query GetTracesMetrics(
+	$project_id: ID!
+	$params: QueryInput!
+	$metric_types: [TracesMetricType!]!
+) {
+	traces_metrics(
+		project_id: $project_id
+		params: $params
+		metric_types: $metric_types
+	) {
+		buckets {
+			bucket_id
+			metric_type
+			metric_value
+		}
+		bucket_count
+		sample_factor
+	}
+}
+
 query GetTracesKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
 	keys: traces_keys(project_id: $project_id, date_range: $date_range) {
 		name

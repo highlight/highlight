@@ -796,6 +796,18 @@ type TraceLink struct {
 	Attributes map[string]interface{} `json:"attributes"`
 }
 
+type TracesMetricBucket struct {
+	BucketID    uint64           `json:"bucket_id"`
+	MetricType  TracesMetricType `json:"metric_type"`
+	MetricValue float64          `json:"metric_value"`
+}
+
+type TracesMetrics struct {
+	Buckets      []*TracesMetricBucket `json:"buckets"`
+	BucketCount  uint64                `json:"bucket_count"`
+	SampleFactor float64               `json:"sample_factor"`
+}
+
 type TrackPropertyInput struct {
 	ID    *int   `json:"id"`
 	Name  string `json:"name"`
@@ -2141,5 +2153,48 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TracesMetricType string
+
+const (
+	TracesMetricTypeCount TracesMetricType = "count"
+	TracesMetricTypeP50   TracesMetricType = "p50"
+	TracesMetricTypeP90   TracesMetricType = "p90"
+)
+
+var AllTracesMetricType = []TracesMetricType{
+	TracesMetricTypeCount,
+	TracesMetricTypeP50,
+	TracesMetricTypeP90,
+}
+
+func (e TracesMetricType) IsValid() bool {
+	switch e {
+	case TracesMetricTypeCount, TracesMetricTypeP50, TracesMetricTypeP90:
+		return true
+	}
+	return false
+}
+
+func (e TracesMetricType) String() string {
+	return string(e)
+}
+
+func (e *TracesMetricType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TracesMetricType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TracesMetricType", str)
+	}
+	return nil
+}
+
+func (e TracesMetricType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

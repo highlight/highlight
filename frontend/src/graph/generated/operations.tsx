@@ -4723,6 +4723,26 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetTracesMetricsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.QueryInput
+	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+}>
+
+export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
+	traces_metrics: { __typename?: 'TracesMetrics' } & Pick<
+		Types.TracesMetrics,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'TracesMetricBucket' } & Pick<
+					Types.TracesMetricBucket,
+					'bucket_id' | 'metric_type' | 'metric_value'
+				>
+			>
+		}
+}
+
 export type GetTracesKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
@@ -4885,6 +4905,7 @@ export const namedOperations = {
 		FindSimilarErrors: 'FindSimilarErrors' as const,
 		GetTrace: 'GetTrace' as const,
 		GetTraces: 'GetTraces' as const,
+		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
 	},
