@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"strings"
 	"time"
 
@@ -423,4 +424,19 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	return client.conn.Exec(ctx, sql, args...)
+}
+
+var sessionsTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
+	tableName: SessionsTable,
+	keysToColumns: map[modelInputs.ReservedSessionKey]string{
+		modelInputs.ReservedSessionKeyEnvironment: "Environment",
+		modelInputs.ReservedSessionKeyServiceName: "ServiceName",
+		modelInputs.ReservedSessionKeyAppVersion:  "AppVersion",
+	},
+	attributesColumn: "Fields",
+	reservedKeys:     modelInputs.AllReservedSessionKey,
+}
+
+func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) bool {
+	return matchesQuery(session, sessionsTableConfig, filters)
 }

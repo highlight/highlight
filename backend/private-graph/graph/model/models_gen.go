@@ -1720,6 +1720,49 @@ func (e ReservedLogKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ReservedSessionKey string
+
+const (
+	ReservedSessionKeyEnvironment ReservedSessionKey = "environment"
+	ReservedSessionKeyServiceName ReservedSessionKey = "service_name"
+	ReservedSessionKeyAppVersion  ReservedSessionKey = "app_version"
+)
+
+var AllReservedSessionKey = []ReservedSessionKey{
+	ReservedSessionKeyEnvironment,
+	ReservedSessionKeyServiceName,
+	ReservedSessionKeyAppVersion,
+}
+
+func (e ReservedSessionKey) IsValid() bool {
+	switch e {
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion:
+		return true
+	}
+	return false
+}
+
+func (e ReservedSessionKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedSessionKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedSessionKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedSessionKey", str)
+	}
+	return nil
+}
+
+func (e ReservedSessionKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ReservedTraceKey string
 
 const (

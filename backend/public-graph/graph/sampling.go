@@ -3,13 +3,16 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"hash/fnv"
@@ -17,39 +20,25 @@ import (
 	"regexp"
 )
 
-func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecureID *string) (*model.ProjectFilterSettings, int, error) {
-	if projectID == 0 {
-		if sessionSecureID == nil {
-			return nil, projectID, e.New("no project nor session secure id provided for sampling settings")
-		}
-
-		session, err := r.Store.GetSessionFromSecureID(ctx, *sessionSecureID)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to get session")
-			return nil, projectID, err
-		}
-
-		projectID = session.ProjectID
-	}
-	settings, err := r.Store.GetProjectFilterSettings(ctx, projectID)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
-		return nil, projectID, err
-	}
-
-	return settings, projectID, nil
-}
-
 func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	settings, _, err := r.getSettings(ctx, int(trace.ProjectId), nil)
 	if err != nil {
 		return true
 	}
 
-	return isIngestedBySample(ctx, trace.TraceId, settings.TraceSamplingRate)
+	ret := isIngestedBySample(ctx, trace.TraceId, settings.TraceSamplingRate)
+	if ret {
+		hlog.Incr("sampling.trace.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.trace.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhouse.TraceRow) bool {
+	span := util.StartSpan("IsTraceIngestedByFilter", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(true), util.Tag("project", trace.ProjectId))
+	defer span.Finish()
+
 	settings, _, err := r.getSettings(ctx, int(trace.ProjectId), nil)
 	if err != nil {
 		return true
@@ -69,10 +58,19 @@ func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse
 		return true
 	}
 
-	return isIngestedBySample(ctx, logRow.UUID, settings.LogSamplingRate)
+	ret := isIngestedBySample(ctx, logRow.UUID, settings.LogSamplingRate)
+	if ret {
+		hlog.Incr("sampling.log.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.log.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse.LogRow) bool {
+	span := util.StartSpan("IsLogIngestedByFilter", util.ResourceName("sampling"), util.Tag("project", logRow.ProjectId))
+	defer span.Finish()
+
 	settings, _, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
 	if err != nil {
 		return true
@@ -100,7 +98,13 @@ func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, projectID int, e
 		id = ptr.ToString(errorObject.SpanID)
 	}
 
-	return isIngestedBySample(ctx, id, settings.LogSamplingRate)
+	ret := isIngestedBySample(ctx, id, settings.LogSamplingRate)
+	if ret {
+		hlog.Incr("sampling.error.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.error.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
@@ -108,6 +112,9 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 	if err != nil {
 		return true
 	}
+
+	span := util.StartSpan("IsErrorIngestedByFilter", util.ResourceName("sampling"), util.Tag("project", projectID))
+	defer span.Finish()
 
 	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
@@ -126,6 +133,39 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 	return !clickhouse.ErrorMatchesQuery(errorObject, &filters)
 }
 
+func (r *Resolver) IsSessionExcludedBySample(ctx context.Context, session *model.Session) bool {
+	settings, err := r.Store.GetProjectFilterSettings(ctx, session.ProjectID)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
+		return true
+	}
+
+	ret := !isIngestedBySample(ctx, session.SecureID, settings.LogSamplingRate)
+	if ret {
+		hlog.Incr("sampling.session.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.session.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
+}
+
+func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
+	span := util.StartSpan("IsSessionExcludedByFilter", util.ResourceName("sampling"), util.Tag("project", session.ProjectID))
+	defer span.Finish()
+
+	settings, _, err := r.getSettings(ctx, session.ProjectID, nil)
+	if err != nil {
+		return true
+	}
+
+	if settings.SessionExclusionQuery == nil {
+		return true
+	}
+
+	filters := queryparser.Parse(*settings.SessionExclusionQuery)
+	return !clickhouse.SessionMatchesQuery(session, &filters)
+}
+
 func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 	if rate >= 1 {
 		return true
@@ -142,6 +182,29 @@ func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 	}
 	r := rand.New(rand.NewSource(int64(h.Sum32())))
 	return r.Float64() <= rate
+}
+
+func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecureID *string) (*model.ProjectFilterSettings, int, error) {
+	if projectID == 0 {
+		if sessionSecureID == nil {
+			return nil, projectID, e.New("no project nor session secure id provided for sampling settings")
+		}
+
+		session, err := r.Store.GetSessionFromSecureID(ctx, *sessionSecureID)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to get session")
+			return nil, projectID, err
+		}
+
+		projectID = session.ProjectID
+	}
+	settings, err := r.Store.GetProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
+		return nil, projectID, err
+	}
+
+	return settings, projectID, nil
 }
 
 func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
@@ -202,32 +265,17 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonNoUserEvents
 	}
 
-	if r.isSessionExcludedBySample(ctx, s) {
+	if r.IsSessionExcludedBySample(ctx, s) {
 		excluded = true
 		reason = privateModel.SessionExcludedReasonSampled
 	}
 
-	if r.isSessionExcludedByFilter(ctx, s) {
+	if r.IsSessionExcludedByFilter(ctx, s) {
 		excluded = true
 		reason = privateModel.SessionExcludedReasonExclusionFilter
 	}
 
 	return excluded, &reason
-}
-
-func (r *Resolver) isSessionExcludedBySample(ctx context.Context, session *model.Session) bool {
-	settings, err := r.Store.GetProjectFilterSettings(ctx, session.ProjectID)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
-		return true
-	}
-
-	return !isIngestedBySample(ctx, session.SecureID, settings.LogSamplingRate)
-}
-
-func (r *Resolver) isSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
-	// TODO(vkorolik) implement
-	return false
 }
 
 func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {

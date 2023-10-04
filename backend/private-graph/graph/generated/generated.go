@@ -10734,6 +10734,12 @@ enum ReservedErrorObjectKey {
 	url
 }
 
+enum ReservedSessionKey {
+	environment
+	service_name
+	app_version
+}
+
 enum LogSource {
 	frontend
 	backend

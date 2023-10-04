@@ -408,10 +408,10 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 		for _, field := range strings.Fields(v.FieldByName(config.bodyColumn).String()) {
 			rowBodyTerms[field] = true
 		}
-	}
-	for _, body := range filters.Body {
-		if !rowBodyTerms[body] {
-			return false
+		for _, body := range filters.Body {
+			if !rowBodyTerms[body] {
+				return false
+			}
 		}
 	}
 	for key, values := range filters.Attributes {
@@ -430,7 +430,21 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 				rowValue = v.FieldByName(chKey).String()
 			}
 		} else if config.attributesColumn != "" {
-			rowValue = v.FieldByName(config.attributesColumn).MapIndex(reflect.ValueOf(key)).String()
+			value := v.FieldByName(config.attributesColumn)
+			if value.Kind() == reflect.Map {
+				rowValue = value.MapIndex(reflect.ValueOf(key)).String()
+			} else if value.Kind() == reflect.Slice {
+				// assume that the key is a 'field' in `type_name` format
+				fieldParts := strings.SplitN(key, "_", 2)
+				for i := 0; i < value.Len(); i++ {
+					fieldType := value.Index(i).Elem().FieldByName("Type").String()
+					name := value.Index(i).Elem().FieldByName("Name").String()
+					if fieldType == fieldParts[0] && name == fieldParts[1] {
+						rowValue = value.Index(i).Elem().FieldByName("Value").String()
+						break
+					}
+				}
+			}
 		} else {
 			continue
 		}

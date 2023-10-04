@@ -2555,6 +2555,12 @@ export enum ReservedLogKey {
 	TraceId = 'trace_id',
 }
 
+export enum ReservedSessionKey {
+	AppVersion = 'app_version',
+	Environment = 'environment',
+	ServiceName = 'service_name',
+}
+
 export enum ReservedTraceKey {
 	Duration = 'duration',
 	Level = 'level',
