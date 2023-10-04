@@ -16,7 +16,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"hash/fnv"
-	"math/rand"
 	"regexp"
 )
 
@@ -180,8 +179,9 @@ func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 		log.WithContext(ctx).WithError(err).Error("failed to calculate hash")
 		return true
 	}
-	r := rand.New(rand.NewSource(int64(h.Sum32())))
-	return r.Float64() <= rate
+	sum := h.Sum32()
+	threshold := uint32(rate * float64(1<<32-1))
+	return sum < threshold
 }
 
 func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecureID *string) (*model.ProjectFilterSettings, int, error) {
