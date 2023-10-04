@@ -68,7 +68,6 @@ const METADATA_LABELS: { [key: string]: string } = {
 export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
-	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
 
@@ -117,40 +116,6 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	})
 
 	useEffect(() => analytics.page(), [])
-
-	// open the form if url is set and error is a backend error
-	useEffect(() => {
-		if (data?.error_instance?.error_object?.type) {
-			const backendError =
-				data.error_instance.error_object.type === 'Backend'
-
-			const urlParams = new URLSearchParams(location.search)
-			const editGithubSettings = Boolean(
-				urlParams.get('editGithubSettings'),
-			)
-
-			setDisplayGitHubSettings(backendError && editGithubSettings)
-		}
-	}, [data?.error_instance?.error_object?.type])
-
-	// add editGithubSettings to url if form is open for redirects
-	useEffect(() => {
-		if (data?.error_instance?.error_object?.type) {
-			const urlSearchParams = new URLSearchParams(location.search)
-
-			if (displayGitHubSettings) {
-				urlSearchParams.set('editGithubSettings', 'true')
-			} else {
-				urlSearchParams.delete('editGithubSettings')
-			}
-
-			navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
-				replace: true,
-			})
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [displayGitHubSettings])
 
 	if (loading) {
 		return (

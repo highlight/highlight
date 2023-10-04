@@ -38,14 +38,8 @@ export const getGitHubInstallationOAuthUrl = (
 	projectId: string,
 	workspaceId: string,
 ) => {
-	let redirectLink = window.location.pathname
-	const urlParams = new URLSearchParams(location.search).toString()
-	if (urlParams) {
-		redirectLink += '?' + urlParams
-	}
-
 	const state = {
-		next: redirectLink,
+		next: window.location.pathname,
 		project_id: projectId,
 		workspace_id: workspaceId,
 	}
