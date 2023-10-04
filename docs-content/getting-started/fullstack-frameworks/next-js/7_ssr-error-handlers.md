@@ -9,13 +9,13 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ## Installation
 
 ```shell
-# with yarn
+# with npm
 npm install @highlight-run/next
 ```
 
 ## `pages/_error.tsx` (Page Router)
 
-Page Router uses [pages/_error.tsx](https://nextjs.org/docs/pages/building-your-application/routing/custom-error#more-advanced-error-page-customizing) to send server-side render errors to the client. We can catch and consume those error with a custom error page.
+Page Router uses [pages/_error.tsx](https://nextjs.org/docs/pages/building-your-application/routing/custom-error#more-advanced-error-page-customizing) to send server-side render errors to the client. We can catch and consume those errors with a custom error page.
 
 These errors will display as client errors, even though we know that they're server errors.
 
@@ -44,7 +44,7 @@ CustomError.getInitialProps = getHighlightErrorInitialProps
 
 ## `app/error.tsx` (App Router)
 
-App Router uses [app/error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side render errors to the client. We can catch and consume those error with a custom error page.
+App Router uses [app/error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side render errors to the client. We can catch and consume those errors with a custom error page.
 
 These errors will display as client errors, even though we know that they're server errors.
 
@@ -85,7 +85,7 @@ export default function Error({
 
 ### Page Router Validation
 
-Copy the following code into `pages/isr.tsx` and visit `http://localhost:3000/page-router-isr?error=true` to trigger the error.
+Copy the following code into `pages/page-router-isr.tsx` and visit `http://localhost:3000/page-router-isr?error=true` to trigger the error.
 
 ```jsx
 // pages/page-router-isr.tsx

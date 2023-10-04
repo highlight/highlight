@@ -9,11 +9,11 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ## Installation
 
 ```shell
-# with yarn
+# with npm
 npm install @highlight-run/next
 ```
 
-## API Route Instrumentation (Page Router)
+## API Route Instrumentation
 
 ```hint
 This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
@@ -36,7 +36,7 @@ export const withPageRouterHighlight = PageRouterHighlight({
 2. Wrap your `/pages/api` functions with `withPageRouterHighlight`:
 
 ```typescript
-// pages/api/test.ts
+// pages/api/page-router-test.ts
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { withPageRouterHighlight } from '../../src/app/_utils/page-router-highlight.config'
@@ -45,22 +45,22 @@ export default withPageRouterHighlight(function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
-	console.info('Here: pages/api/test.ts')
+	console.info('Here: pages/api/page-router-test.ts')
 
 	if (Math.random() < 0.8) {
-		res.send('Success: pages/api/test.ts')
+		res.send('Success: pages/api/page-router-test.ts')
 	} else {
-		throw new Error('Error: pages/api/test.ts')
+		throw new Error('Error: pages/api/page-router-test.ts')
 	}
 })
 ```
 
 ## Validation
 
-Copy/paste the above code snippet into `/pages/api/test.ts` and hit the endpoint with `curl` to watch it work.
+Copy/paste the above code snippet into `/pages/api/page-router-test.ts` and hit the endpoint with `curl` to watch it work.
 
 ```bash
-curl http://localhost:3000/api/test
+curl http://localhost:3000/api/page-router-test
 ```
 
 ## Next Steps

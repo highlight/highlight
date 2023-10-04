@@ -6,7 +6,7 @@ createdAt: 2023-10-03T00:00:00.000Z
 updatedAt: 2023-10-03T00:00:00.000Z
 ---
 
-> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing and replace our imports (`import CONSTANTS from '@/app/constants'`) with your own!
+> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing and replace our imports (`import CONSTANTS from 'src/app/constants'`) with your own!
 
 1. Install Zod: `npm install zod`
 2. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`

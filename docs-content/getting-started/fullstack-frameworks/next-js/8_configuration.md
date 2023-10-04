@@ -14,7 +14,7 @@ Our API wrappers automatically send logs to Highlight in all runtime environment
 
 Vercel Log Drain is a reliable way to capture those logs.
 
-## Private Source maps and Request Proxying (optional)
+## Private source maps and Request proxying (optional)
 
 Proxy your front end Highlight calls by adding `withHighlightConfig` to your next config. Frontend session recording and error capture data will be piped through your domain on `/highlight-events` to sneak Highlight network traffic past ad-blockers.
 
@@ -66,10 +66,10 @@ See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-b
 ## Source map validation
 
 ```hint
-Source maps work differently in development mode than in production. Run `yarn build && yarn start` to test compiled source maps in Highlight.
+Source maps work differently in development mode than in production. Run `npm run build && npm run start` to test compiled source maps in Highlight.
 ```
 
-We recommend shipping your source maps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
+We recommend shipping source maps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
 
 Shipping source maps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`. Alternatively, you can upload source maps directly to Highlight using our `withHighlightConfig` function.
 
@@ -94,7 +94,7 @@ You must export your `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` to your build process.
 
 Next.js comes out of the box instrumented for Open Telemetry, but support can be spotty depending on your runtime. This example Highlight implementation uses Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on a Next.js server.
 
-1.  Turn on `experimental.instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with source maps. Notice that we're transpiling the `@highlight-run/next/client` package.
+1.  Turn on `experimental.instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with source maps.
 
 ```javascript
 // next.config.js
@@ -115,14 +115,20 @@ module.exports = nextConfig
 ```javascript
 // instrumentation.ts
 import CONSTANTS from '@/app/constants'
-import { registerHighlight } from '@highlight-run/next/server'
 
 export async function register() {
-	registerHighlight({
-		projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-		otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	})
+	// importing @highlight-run/next/server in the Edge runtime throws errors.
+	if (process.env.NEXT_RUNTIME === 'nodejs') {
+		const { registerHighlight } = await import('@highlight-run/next/server')
+
+		registerHighlight({
+			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+			otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+			serviceName: 'my-nextjs-backend',
+		})
+	}
 }
+
 ```
 
 4. If you're using App Router, re-export `/instrumentation.ts` from `src/instrumentation.ts` to enable for App Router.

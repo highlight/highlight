@@ -9,11 +9,11 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ## Installation
 
 ```shell
-# with yarn
+# with npm
 npm install @highlight-run/next
 ```
 
-## API Route Instrumentation (App Router)
+## API Route Instrumentation
 
 ```hint
 This section applies to Next.js App Router routes only. Each App Router route must be wrapped individually.

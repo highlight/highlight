@@ -9,7 +9,7 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ## Installation
 
 ```shell
-# with yarn
+# with npm
 npm install @highlight-run/next
 ```
 
@@ -17,7 +17,7 @@ npm install @highlight-run/next
 
 This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../../3_client-sdk/1_reactjs.md)
 
-1. For the `/pages` directory, you'll want to add `HighlightInit` to `_app.tsx`.
+1. If you're using Page Router, you'll want to add `HighlightInit` to `_app.tsx`.
 
 ```jsx
 // pages/_app.tsx
@@ -102,7 +102,7 @@ export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 We do not recommend enabling this while integrating Highlight for the first time because it will prevent you from validating that your local build can send data to Highlight.
 ```
 
-In the case that you don't want local sessions being shipped to Highlight, the `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
+In the case that you don't want local sessions sent to Highlight, the `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
 
 Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
 
@@ -140,7 +140,7 @@ export function CustomHighlightStart() {
 
 ## Validation
 
-Drop this example component somewhere in your client application to see it in action.
+Render this example component somewhere in your client application to see it in action.
 
 ```jsx
 'use client'
@@ -203,7 +203,6 @@ function ThrowerOfErrors({
 
 	return null
 }
-
 ```
 
 ## Next Steps

@@ -9,7 +9,7 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ## Installation
 
 ```shell
-# with yarn
+# with npm
 npm install @highlight-run/next
 ```
 
