@@ -386,7 +386,6 @@ type SetupEvent struct {
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
 
-// TODO(vkorolik) project filter setting updates should invalidate cache
 type ProjectFilterSettings struct {
 	Model
 	Project                           *Project

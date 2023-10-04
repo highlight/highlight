@@ -41,6 +41,7 @@ import styles from './ProjectSettings.module.css'
 const ProjectSettings = () => {
 	const navigate = useNavigate()
 	const { project_id, ...params } = useParams()
+	// TODO(vkorolik) set sampling settings
 	const [allProjectSettings, setAllProjectSettings] =
 		useState<GetProjectSettingsQuery>()
 	const { currentWorkspace } = useApplicationContext()

@@ -98,6 +98,7 @@ type AllProjectSettings struct {
 	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
 	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
 	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
+	Sampling                          *Sampling      `json:"sampling"`
 }
 
 type AverageSessionLength struct {
@@ -595,6 +596,28 @@ type ReferrerTablePayload struct {
 
 type S3File struct {
 	Key *string `json:"key"`
+}
+
+type Sampling struct {
+	SessionSamplingRate   float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate     float64 `json:"error_sampling_rate"`
+	LogSamplingRate       float64 `json:"log_sampling_rate"`
+	TraceSamplingRate     float64 `json:"trace_sampling_rate"`
+	SessionExclusionQuery *string `json:"session_exclusion_query"`
+	ErrorExclusionQuery   *string `json:"error_exclusion_query"`
+	LogExclusionQuery     *string `json:"log_exclusion_query"`
+	TraceExclusionQuery   *string `json:"trace_exclusion_query"`
+}
+
+type SamplingInput struct {
+	SessionSamplingRate   *float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate     *float64 `json:"error_sampling_rate"`
+	LogSamplingRate       *float64 `json:"log_sampling_rate"`
+	TraceSamplingRate     *float64 `json:"trace_sampling_rate"`
+	SessionExclusionQuery *string  `json:"session_exclusion_query"`
+	ErrorExclusionQuery   *string  `json:"error_exclusion_query"`
+	LogExclusionQuery     *string  `json:"log_exclusion_query"`
+	TraceExclusionQuery   *string  `json:"trace_exclusion_query"`
 }
 
 type SanitizedAdmin struct {

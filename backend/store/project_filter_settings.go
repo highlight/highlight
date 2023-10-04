@@ -3,14 +3,19 @@ package store
 import (
 	"context"
 	"fmt"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 )
 
+func getKey(projectID int) string {
+	return fmt.Sprintf("project-filter-settings-%d", projectID)
+}
+
 func (store *Store) GetProjectFilterSettings(ctx context.Context, projectID int) (*model.ProjectFilterSettings, error) {
-	return redis.CachedEval(ctx, store.redis, fmt.Sprintf("project-filter-settings-%d", projectID), 250*time.Millisecond, time.Minute, func() (*model.ProjectFilterSettings, error) {
+	return redis.CachedEval(ctx, store.redis, getKey(projectID), 250*time.Millisecond, time.Minute, func() (*model.ProjectFilterSettings, error) {
 		var projectFilterSettings model.ProjectFilterSettings
 		if err := store.db.Where(&model.ProjectFilterSettings{ProjectID: projectID}).FirstOrCreate(&projectFilterSettings).Error; err != nil {
 			return nil, err
@@ -22,6 +27,7 @@ func (store *Store) GetProjectFilterSettings(ctx context.Context, projectID int)
 type UpdateProjectFilterSettingsParams struct {
 	AutoResolveStaleErrorsDayInterval *int
 	FilterSessionsWithoutError        *bool
+	Sampling                          *modelInputs.SamplingInput
 }
 
 func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID int, updates UpdateProjectFilterSettingsParams) (*model.ProjectFilterSettings, error) {
@@ -39,9 +45,30 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
 	}
 
-	result := store.db.Save(&projectFilterSettings)
+	if updates.Sampling.SessionSamplingRate != nil {
+		projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
+	}
+	if updates.Sampling.ErrorSamplingRate != nil {
+		projectFilterSettings.ErrorSamplingRate = *updates.Sampling.ErrorSamplingRate
+	}
+	if updates.Sampling.LogSamplingRate != nil {
+		projectFilterSettings.LogSamplingRate = *updates.Sampling.LogSamplingRate
+	}
+	if updates.Sampling.TraceSamplingRate != nil {
+		projectFilterSettings.TraceSamplingRate = *updates.Sampling.TraceSamplingRate
+	}
 
-	return projectFilterSettings, result.Error
+	projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery
+	projectFilterSettings.ErrorExclusionQuery = updates.Sampling.ErrorExclusionQuery
+	projectFilterSettings.LogExclusionQuery = updates.Sampling.LogExclusionQuery
+	projectFilterSettings.TraceExclusionQuery = updates.Sampling.TraceExclusionQuery
+
+	result := store.db.Save(&projectFilterSettings)
+	if result.Error != nil {
+		return nil, err
+	}
+
+	return projectFilterSettings, store.redis.Del(ctx, getKey(projectID))
 }
 
 func (store *Store) FindProjectsWithAutoResolveSetting() ([]*model.ProjectFilterSettings, error) {

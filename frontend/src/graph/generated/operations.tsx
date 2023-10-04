@@ -278,6 +278,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
 	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
+	sampling: Types.SamplingInput
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
@@ -296,7 +297,21 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
-		>
+		> & {
+				sampling?: Types.Maybe<
+					{ __typename?: 'Sampling' } & Pick<
+						Types.Sampling,
+						| 'session_sampling_rate'
+						| 'error_sampling_rate'
+						| 'log_sampling_rate'
+						| 'trace_sampling_rate'
+						| 'session_exclusion_query'
+						| 'error_exclusion_query'
+						| 'log_exclusion_query'
+						| 'trace_exclusion_query'
+					>
+				>
+			}
 	>
 }
 
@@ -4449,7 +4464,21 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_count'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
-		>
+		> & {
+				sampling?: Types.Maybe<
+					{ __typename?: 'Sampling' } & Pick<
+						Types.Sampling,
+						| 'session_sampling_rate'
+						| 'error_sampling_rate'
+						| 'log_sampling_rate'
+						| 'trace_sampling_rate'
+						| 'session_exclusion_query'
+						| 'error_exclusion_query'
+						| 'log_exclusion_query'
+						| 'trace_exclusion_query'
+					>
+				>
+			}
 	>
 }
 

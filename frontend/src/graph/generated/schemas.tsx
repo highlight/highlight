@@ -126,6 +126,7 @@ export type AllProjectSettings = {
 	rage_click_count?: Maybe<Scalars['Int']>
 	rage_click_radius_pixels?: Maybe<Scalars['Int']>
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
+	sampling?: Maybe<Sampling>
 	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
 	workspace_id: Scalars['ID']
@@ -1313,6 +1314,7 @@ export type MutationEditProjectSettingsArgs = {
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
+	sampling: SamplingInput
 }
 
 export type MutationEditSegmentArgs = {
@@ -2524,6 +2526,23 @@ export type ReferrerTablePayload = {
 	percent: Scalars['Float']
 }
 
+export enum ReservedErrorObjectKey {
+	Event = 'event',
+	LogCursor = 'log_cursor',
+	Payload = 'payload',
+	RequestId = 'request_id',
+	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
+	SessionSecureId = 'session_secure_id',
+	Source = 'source',
+	SpanId = 'span_id',
+	StackTrace = 'stackTrace',
+	Timestamp = 'timestamp',
+	TraceId = 'trace_id',
+	Type = 'type',
+	Url = 'url',
+}
+
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
 	Level = 'level',
@@ -2562,6 +2581,29 @@ export enum RetentionPeriod {
 export type S3File = {
 	__typename?: 'S3File'
 	key?: Maybe<Scalars['String']>
+}
+
+export type Sampling = {
+	__typename?: 'Sampling'
+	error_exclusion_query?: Maybe<Scalars['String']>
+	error_sampling_rate: Scalars['Float']
+	log_exclusion_query?: Maybe<Scalars['String']>
+	log_sampling_rate: Scalars['Float']
+	session_exclusion_query?: Maybe<Scalars['String']>
+	session_sampling_rate: Scalars['Float']
+	trace_exclusion_query?: Maybe<Scalars['String']>
+	trace_sampling_rate: Scalars['Float']
+}
+
+export type SamplingInput = {
+	error_exclusion_query?: InputMaybe<Scalars['String']>
+	error_sampling_rate?: InputMaybe<Scalars['Float']>
+	log_exclusion_query?: InputMaybe<Scalars['String']>
+	log_sampling_rate?: InputMaybe<Scalars['Float']>
+	session_exclusion_query?: InputMaybe<Scalars['String']>
+	session_sampling_rate?: InputMaybe<Scalars['Float']>
+	trace_exclusion_query?: InputMaybe<Scalars['String']>
+	trace_sampling_rate?: InputMaybe<Scalars['Float']>
 }
 
 export type SanitizedAdmin = {
