@@ -8520,6 +8520,7 @@ export const GetSubscriptionDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
 		}
 	}
 `

@@ -6799,6 +6799,11 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
+		settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+		if err != nil {
+			return nil, err
+		}
+		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
 	}
 
 	return details, nil

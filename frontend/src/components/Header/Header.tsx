@@ -111,13 +111,6 @@ export const useBillingHook = ({
 		loading: subscriptionLoading,
 		subscriptionData: subscriptionData,
 		refetchSubscription: refetchSubscription,
-		issues:
-			!subscriptionLoading &&
-			subscriptionData?.subscription_details.lastInvoice?.status
-				?.length &&
-			!['paid', 'void', 'draft'].includes(
-				subscriptionData.subscription_details.lastInvoice.status,
-			),
 	}
 }
 
@@ -908,7 +901,12 @@ const BillingBanner: React.FC = () => {
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
-	const { issues: billingIssues } = useBillingHook({ project_id: projectId })
+	const { loading: subscriptionLoading, subscriptionData } = useBillingHook({
+		project_id: projectId,
+	})
+	const billingIssues =
+		!subscriptionLoading &&
+		subscriptionData?.subscription_details.billingIssue
 
 	useEffect(() => {
 		if (
