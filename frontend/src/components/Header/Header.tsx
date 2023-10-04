@@ -116,15 +116,15 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
+	const location = useLocation()
 	const { projectId } = useProjectId()
 	const { isHighlightAdmin, isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
-	const { pathname, state } = useLocation()
-	const goBackPath = state?.previousPath ?? `/${projectId}/sessions`
-	const parts = pathname.split('/')
+	const goBackPath = location.state?.previousPath ?? `/${projectId}/sessions`
+	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
 	const { isSettings } = useIsSettingsPath()
@@ -714,6 +714,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 														<Divider className="mt-1 mb-0" />
 														<Link
 															to="/new"
+															state={{
+																previousLocation:
+																	location,
+															}}
 															className={
 																linkStyle
 															}
