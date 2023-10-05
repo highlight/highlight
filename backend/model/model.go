@@ -1593,7 +1593,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	// Make sure partitions are created for the next 1k projects, starting with the next partition needed
 	for i := lastCreatedPart + 1; i < lastVal+1000; i++ {
 		if err := DB.Exec(fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d 
+			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
 			PARTITION OF error_object_embeddings_partitioned
 			FOR VALUES IN ('%d');
 		`, i, i)).Error; err != nil {
