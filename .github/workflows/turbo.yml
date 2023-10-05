@@ -7,6 +7,7 @@ on:
         types: [opened, synchronize]
     merge_group:
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     yarn-monorepo:
         name: Build Yarn Turborepo
@@ -22,6 +23,7 @@ jobs:
               uses: actions/checkout@v3
               with:
                   submodules: recursive
+                  fetch-depth: 0
 
             - uses: dorny/paths-filter@v2
               id: filter
@@ -48,6 +50,9 @@ jobs:
 
             - name: Install js dependencies
               run: yarn
+
+            - name: Check for necessary changesets
+              run: yarn changeset status --since origin/main
 
             - name: Check generated files for Reflame
               run: yarn reflame-check
@@ -96,10 +101,6 @@ jobs:
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn workspace render zip && yarn workspace render check
 
-            - name: Validate project is ready to be published
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
-              run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed == 'true' }}
-
             - name: Publish client bundle (preview)
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main'
               run: yarn publish:client --preview ${GIT_SHA} --replace
@@ -107,10 +108,6 @@ jobs:
                   # this cannot use ${{ github.sha }} as that commit will be a merge ref
                   # that is not consistent with the frontend PR preview value
                   GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-
-            - name: Publish client bundle
-              if: github.ref == 'refs/heads/main'
-              run: yarn publish:client
 
             - name: Upload frontend sourcemaps
               if: github.ref == 'refs/heads/main'
@@ -127,20 +124,30 @@ jobs:
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - name: Publish npm packages
+            - name: Publish ai lambda
               if: github.ref == 'refs/heads/main'
-              run: yarn publish:turbo
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: yarn publish:ai
 
             - name: Publish render lambda
               if: github.ref == 'refs/heads/main'
               run: yarn publish:render
 
-            - name: Publish ai lambda
+            - name: Publish client bundle
               if: github.ref == 'refs/heads/main'
-              run: yarn publish:ai
+              run: yarn publish:client
+
+            - name: Publish changesets
+              if: github.ref == 'refs/heads/main'
+              id: changesets
+              uses: changesets/action@v1
+              with:
+                  # This expects you to have a script called release which does a build for your packages and calls changeset publish
+                  version: yarn changeset version
+                  publish: yarn changeset publish
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     e2e-frontend-backend-client:
         # needs the client build to be uploaded

@@ -63,16 +63,15 @@
 		"validate": "yarn workspace scripts validate:client",
 		"private-gen": "cd backend && make private-gen",
 		"public-gen": "cd backend && make public-gen",
-		"publish:all": "run-p --print-label publish:ai publish:client publish:turbo publish:render",
 		"publish:ai": "yarn workspace ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
-		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish && yarn workspace @highlight-run/opentelemetry-sdk-workers npm publish --access public --tolerate-republish",
 		"test:all": "yarn turbo run test --filter=!render --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs --filter=!nextjs",
 		"test:render": "yarn turbo run test --filter=render",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.26.2",
 		"@typescript-eslint/eslint-plugin": "^6.1.0",
 		"all-contributors-cli": "^6.26.0",
 		"chalk": "^5.0.1",
