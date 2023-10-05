@@ -1255,16 +1255,28 @@ func Test_LogMatchesQuery(t *testing.T) {
 	assert.False(t, matches)
 }
 
-func Fuzz_LogMatchesQuery_Body(f *testing.F) {
-	f.Add("this, is.a ; hello; 123 there6 world:message,.:;	\nbe\xe2\x80\x83me")
-	f.Fuzz(func(t *testing.T, body string) {
+func Test_LogMatchesQuery_Body(t *testing.T) {
+	for _, body := range []string{
+		"hello world a test",
+		"hello, world this is a test",
+		"this, is.a ; hello; 123 there6 world:message,.:;	\nbe\xe2\x80\x83me",
+		"0!0!  0*000000 000000000",
+		"0! 000\\\"0000000000000",
+		"(*",
+		"*!",
+		"*\\x80",
+	} {
 		logRow := LogRow{Body: body}
 		filters := queryparser.Parse(body)
 		// : represents a special case since our query parser treats it as an attribute. don't search on attrs
 		filters.Attributes = map[string][]string{}
 		matches := LogMatchesQuery(&logRow, &filters)
 		assert.True(t, matches, "failed on body %s", body)
-	})
+
+		filters = queryparser.Parse("no")
+		matches = LogMatchesQuery(&logRow, &filters)
+		assert.False(t, matches, "failed on body %s", body)
+	}
 }
 
 func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
@@ -1319,9 +1331,18 @@ func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
 	}
 }
 
-func Fuzz_LogMatchesQuery_ClickHouse_Body(f *testing.F) {
-	f.Add("this, is.a ; hello; world:message,.:;	\nbe\xe2\x80\x83me")
-	f.Fuzz(func(t *testing.T, body string) {
+func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
+	for _, body := range []string{
+		"hello world",
+		"this, is.a ; hello; \nbe  me",
+		"hello world a test",
+		"hello, world this is a test",
+		"foo*bar",
+		"0! 000\\\"0000000000000",
+		"(*",
+		"*!",
+		"*\\x80",
+	} {
 		ctx := context.Background()
 		client, teardown := setupTest(t)
 		defer teardown(t)
@@ -1352,5 +1373,5 @@ func Fuzz_LogMatchesQuery_ClickHouse_Body(f *testing.F) {
 			return *edge.Node.TraceID == logRow.TraceId
 		})
 		assert.True(t, found)
-	})
+	}
 }
