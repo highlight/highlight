@@ -92,7 +92,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory (Node.js): Success
+					App Router (Node.js): Success
 				</Button>
 
 				<Button
@@ -102,7 +102,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory (Node.js): Error&nbsp;&nbsp;&nbsp;
+					App Router (Node.js): Error&nbsp;&nbsp;&nbsp;
 				</Button>
 
 				<Button
@@ -112,7 +112,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory (Edge): Success
+					App Router (Edge): Success
 				</Button>
 
 				<Button
@@ -122,7 +122,7 @@ export function ErrorButtons() {
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory (Edge): Error&nbsp;&nbsp;&nbsp;
+					App Router (Edge): Error&nbsp;&nbsp;&nbsp;
 				</Button>
 			</ErrorBoundary>
 		</div>

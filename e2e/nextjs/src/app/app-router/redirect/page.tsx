@@ -11,7 +11,7 @@ export default function RedirectPage({ searchParams }: Props) {
 
 	return (
 		<div>
-			<h1>App Directory: No Redirect</h1>
+			<h1>App Router: No Redirect</h1>
 		</div>
 	)
 }

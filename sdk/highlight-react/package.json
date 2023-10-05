@@ -20,8 +20,8 @@
 	},
 	"devDependencies": {
 		"@types/node": "^18.7.16",
-		"@types/react": "^18.0.28",
-		"@types/react-dom": "^18.0.11",
+		"@types/react": "^18.2.25",
+		"@types/react-dom": "^18.2.10",
 		"classnames": "^2.3.2",
 		"css-tree": "^2.3.1",
 		"esbuild-css-modules-plugin": "^2.7.1",
