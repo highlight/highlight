@@ -1,6 +1,7 @@
 {
 	"name": "ai",
 	"packageManager": "yarn@3.5.0",
+	"private": true,
 	"scripts": {
 		"build": "tsc --build ./",
 		"dev": "DEV=true nodemon",
