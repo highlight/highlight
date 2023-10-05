@@ -1475,7 +1475,7 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_count: Int
 		$filterSessionsWithoutError: Boolean
 		$autoResolveStaleErrorsDayInterval: Int
-		$sampling: SamplingInput!
+		$sampling: SamplingInput
 	) {
 		editProjectSettings(
 			projectId: $projectId

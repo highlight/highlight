@@ -1314,7 +1314,7 @@ export type MutationEditProjectSettingsArgs = {
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
-	sampling: SamplingInput
+	sampling?: InputMaybe<SamplingInput>
 }
 
 export type MutationEditSegmentArgs = {

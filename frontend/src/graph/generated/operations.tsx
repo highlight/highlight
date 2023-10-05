@@ -278,7 +278,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
 	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
-	sampling: Types.SamplingInput
+	sampling?: Types.Maybe<Types.SamplingInput>
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {

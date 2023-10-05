@@ -45,17 +45,19 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
 	}
 
-	if updates.Sampling.SessionSamplingRate != nil {
-		projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
-	}
-	if updates.Sampling.ErrorSamplingRate != nil {
-		projectFilterSettings.ErrorSamplingRate = *updates.Sampling.ErrorSamplingRate
-	}
-	if updates.Sampling.LogSamplingRate != nil {
-		projectFilterSettings.LogSamplingRate = *updates.Sampling.LogSamplingRate
-	}
-	if updates.Sampling.TraceSamplingRate != nil {
-		projectFilterSettings.TraceSamplingRate = *updates.Sampling.TraceSamplingRate
+	if updates.Sampling != nil {
+		if updates.Sampling.SessionSamplingRate != nil {
+			projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
+		}
+		if updates.Sampling.ErrorSamplingRate != nil {
+			projectFilterSettings.ErrorSamplingRate = *updates.Sampling.ErrorSamplingRate
+		}
+		if updates.Sampling.LogSamplingRate != nil {
+			projectFilterSettings.LogSamplingRate = *updates.Sampling.LogSamplingRate
+		}
+		if updates.Sampling.TraceSamplingRate != nil {
+			projectFilterSettings.TraceSamplingRate = *updates.Sampling.TraceSamplingRate
+		}
 	}
 
 	projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery

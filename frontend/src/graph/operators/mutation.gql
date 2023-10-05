@@ -248,7 +248,7 @@ mutation EditProjectSettings(
 	$rage_click_count: Int
 	$filterSessionsWithoutError: Boolean
 	$autoResolveStaleErrorsDayInterval: Int
-	$sampling: SamplingInput!
+	$sampling: SamplingInput
 ) {
 	editProjectSettings(
 		projectId: $projectId
