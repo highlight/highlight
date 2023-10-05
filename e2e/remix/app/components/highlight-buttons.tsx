@@ -19,6 +19,14 @@ export function HighlightButtons() {
 				Throw client-side error
 			</button>
 
+			<button
+				onClick={() => {
+					console.log('Remix console.log test')
+				}}
+			>
+				Test console.log
+			</button>
+
 			<ThrowerOfErrors />
 
 			<hr />
