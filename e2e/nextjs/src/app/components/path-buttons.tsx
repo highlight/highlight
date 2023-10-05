@@ -35,18 +35,18 @@ export function PathButtons() {
 					<Button>Standard ISR: Error</Button>
 				</Link>
 				<hr />
-				<Link href="/app-directory/isr">
+				<Link href="/app-router/isr">
 					<Button>App Directory: Success</Button>
 				</Link>
 				<hr />
-				<Link href="/app-directory/isr?error=true">
+				<Link href="/app-router/isr?error=true">
 					<Button>App Directory: Error</Button>
 				</Link>
 				<hr />
 				<Link href="/redirect?shouldRedirect=true">
 					<Button>Redirect (link)</Button>
 				</Link>
-				<Link href="/app-directory/redirect?shouldRedirect=true">
+				<Link href="/app-router/redirect?shouldRedirect=true">
 					<Button>App Directory: Redirect (link)</Button>
 				</Link>
 				<Button

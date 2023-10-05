@@ -8,7 +8,7 @@ export function FetchTests() {
 }
 
 function fireKy() {
-	ky.post('/api/app-directory-test?success=true', {
+	ky.post('/api/app-router-test?success=true', {
 		headers: {
 			Accept: 'application/json',
 			'Content-type': 'application/json',
