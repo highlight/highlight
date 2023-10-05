@@ -1595,7 +1595,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		if err := DB.Exec(fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d 
 			PARTITION OF error_object_embeddings_partitioned
-    		FOR VALUES IN ('%d');
+			FOR VALUES IN ('%d');
 		`, i, i)).Error; err != nil {
 			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
 		}
