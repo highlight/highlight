@@ -401,7 +401,7 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 }
 
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
-var nonAlphaNumericChars = regexp.MustCompile("[^\\w:*]")
+var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 
 func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tableConfig[TReservedKey], filters *queryparser.Filters) bool {
 	v := reflect.ValueOf(*row)
