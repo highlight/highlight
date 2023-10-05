@@ -603,25 +603,33 @@ type S3File struct {
 }
 
 type Sampling struct {
-	SessionSamplingRate   float64 `json:"session_sampling_rate"`
-	ErrorSamplingRate     float64 `json:"error_sampling_rate"`
-	LogSamplingRate       float64 `json:"log_sampling_rate"`
-	TraceSamplingRate     float64 `json:"trace_sampling_rate"`
-	SessionExclusionQuery *string `json:"session_exclusion_query"`
-	ErrorExclusionQuery   *string `json:"error_exclusion_query"`
-	LogExclusionQuery     *string `json:"log_exclusion_query"`
-	TraceExclusionQuery   *string `json:"trace_exclusion_query"`
+	SessionSamplingRate    float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
+	LogSamplingRate        float64 `json:"log_sampling_rate"`
+	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
+	SessionMinuteRateLimit int64   `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   int64   `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     int64   `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   int64   `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string `json:"error_exclusion_query"`
+	LogExclusionQuery      *string `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string `json:"trace_exclusion_query"`
 }
 
 type SamplingInput struct {
-	SessionSamplingRate   *float64 `json:"session_sampling_rate"`
-	ErrorSamplingRate     *float64 `json:"error_sampling_rate"`
-	LogSamplingRate       *float64 `json:"log_sampling_rate"`
-	TraceSamplingRate     *float64 `json:"trace_sampling_rate"`
-	SessionExclusionQuery *string  `json:"session_exclusion_query"`
-	ErrorExclusionQuery   *string  `json:"error_exclusion_query"`
-	LogExclusionQuery     *string  `json:"log_exclusion_query"`
-	TraceExclusionQuery   *string  `json:"trace_exclusion_query"`
+	SessionSamplingRate    *float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate      *float64 `json:"error_sampling_rate"`
+	LogSamplingRate        *float64 `json:"log_sampling_rate"`
+	TraceSamplingRate      *float64 `json:"trace_sampling_rate"`
+	SessionMinuteRateLimit *int64   `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64   `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64   `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64   `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string  `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string  `json:"error_exclusion_query"`
+	LogExclusionQuery      *string  `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string  `json:"trace_exclusion_query"`
 }
 
 type SanitizedAdmin struct {

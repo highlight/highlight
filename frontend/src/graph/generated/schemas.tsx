@@ -2596,23 +2596,31 @@ export type S3File = {
 export type Sampling = {
 	__typename?: 'Sampling'
 	error_exclusion_query?: Maybe<Scalars['String']>
+	error_minute_rate_limit: Scalars['Int64']
 	error_sampling_rate: Scalars['Float']
 	log_exclusion_query?: Maybe<Scalars['String']>
+	log_minute_rate_limit: Scalars['Int64']
 	log_sampling_rate: Scalars['Float']
 	session_exclusion_query?: Maybe<Scalars['String']>
+	session_minute_rate_limit: Scalars['Int64']
 	session_sampling_rate: Scalars['Float']
 	trace_exclusion_query?: Maybe<Scalars['String']>
+	trace_minute_rate_limit: Scalars['Int64']
 	trace_sampling_rate: Scalars['Float']
 }
 
 export type SamplingInput = {
 	error_exclusion_query?: InputMaybe<Scalars['String']>
+	error_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	error_sampling_rate?: InputMaybe<Scalars['Float']>
 	log_exclusion_query?: InputMaybe<Scalars['String']>
+	log_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	log_sampling_rate?: InputMaybe<Scalars['Float']>
 	session_exclusion_query?: InputMaybe<Scalars['String']>
+	session_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	session_sampling_rate?: InputMaybe<Scalars['Float']>
 	trace_exclusion_query?: InputMaybe<Scalars['String']>
+	trace_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	trace_sampling_rate?: InputMaybe<Scalars['Float']>
 }
 
