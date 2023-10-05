@@ -3,8 +3,8 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "rm -rf .next && next dev -p 3005",
-		"build": "rm -rf .next && next build",
+		"dev": "next dev -p 3005",
+		"build": "next build",
 		"deploy": "yarn build && vercel build && vercel deploy --prebuilt",
 		"start": "next start",
 		"lint": "next lint"
@@ -14,29 +14,29 @@
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:^",
-		"@next/env": "^13.4.12",
-		"@tanstack/react-query": "^4.29.7",
-		"@trpc/client": "^10.26.0",
-		"@trpc/next": "^10.26.0",
-		"@trpc/react-query": "^10.26.0",
-		"@trpc/server": "^10.26.0",
-		"@types/node": "18.15.11",
-		"@types/react": "18.0.35",
-		"@types/react-dom": "18.0.11",
-		"babylonjs": "^6.11.2",
+		"@next/env": "^13.5.4",
+		"@tanstack/react-query": "^4.35.7",
+		"@trpc/client": "^10.38.5",
+		"@trpc/next": "^10.38.5",
+		"@trpc/react-query": "^10.38.5",
+		"@trpc/server": "^10.38.5",
+		"@types/node": "20.8.2",
+		"@types/react": "18.2.25",
+		"@types/react-dom": "18.2.10",
+		"babylonjs": "^6.23.0",
 		"classnames": "^2.3.2",
-		"eslint": "8.39.0",
-		"eslint-config-next": "13.4.12",
-		"ky": "^0.33.3",
-		"next": "13.4.12",
+		"eslint": "8.50.0",
+		"eslint-config-next": "13.5.4",
+		"ky": "^1.0.1",
+		"next": "13.5.4",
 		"next-build-id": "^3.0.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"typescript": "5.0.4",
-		"winston": "^3.8.2",
-		"zod": "^3.21.4"
+		"typescript": "5.2.2",
+		"winston": "^3.10.0",
+		"zod": "^3.22.4"
 	},
 	"devDependencies": {
-		"vercel": "^31.0.2"
+		"vercel": "^32.4.1"
 	}
 }

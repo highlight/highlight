@@ -38,7 +38,7 @@ export default function RootLayout({
 				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}
 			/>
 
-			<html lang="en">
+			<html lang="en" data-layout>
 				<body>
 					<div>{children}</div>
 				</body>

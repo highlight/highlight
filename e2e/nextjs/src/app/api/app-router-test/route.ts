@@ -1,6 +1,7 @@
+// app/api/app-router-test/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { withAppRouterHighlight } from '@/app/utils/app-router-highlight.config'
+import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
 
 export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,
@@ -8,12 +9,12 @@ export const GET = withAppRouterHighlight(async function GET(
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 
-	console.info('Here: /api/app-directory-test/route.ts 💘💘💘', { success })
+	console.info('Here: /api/app-router-test/route.ts 💘💘💘', { success })
 
 	if (success === 'true') {
-		return new Response('Success: /api/app-directory-test')
+		return new Response('Success: /api/app-router-test')
 	} else {
-		throw new Error('Error: /api/app-directory-test (App Router)')
+		throw new Error('Error: /api/app-router-test (App Router)')
 	}
 })
 

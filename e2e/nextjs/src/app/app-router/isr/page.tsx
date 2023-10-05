@@ -4,7 +4,7 @@ type Props = {
 
 export default function IsrPage({ searchParams }: Props) {
 	if (searchParams.error) {
-		throw new Error('ISR Error: src/app-directory/isr/page.tsx')
+		throw new Error('ISR Error: src/app-router/isr/page.tsx')
 	}
 
 	return (
