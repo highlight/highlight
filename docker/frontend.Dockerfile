@@ -14,6 +14,7 @@ COPY ../blog-content ./blog-content
 COPY ../docs-content ./docs-content
 COPY ../frontend ./frontend
 COPY ../highlight.io ./highlight.io
+COPY ../opentelemetry-sdk-workers ./opentelemetry-sdk-workers
 COPY ../packages ./packages
 COPY ../render ./render
 COPY ../rrweb ./rrweb
