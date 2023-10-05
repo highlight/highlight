@@ -36,6 +36,8 @@ func TestLock(t *testing.T) {
 		return nil
 	})
 	time.Sleep(time.Second)
+	mutex, _ := r.AcquireLock(context.Background(), "test-lock", time.Minute)
+	defer mutex.Unlock()
 	assert.Equal(t, count, 1)
 	_ = g.Wait()
 	assert.Equal(t, count, 2)

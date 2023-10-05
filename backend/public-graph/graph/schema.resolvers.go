@@ -149,7 +149,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 					ProjectVerboseID: projectID,
 					SessionSecureID:  secureID,
-					Error:            backendError,
+					Errors:           []*customModels.BackendErrorObjectInput{backendError},
 				}})
 		}
 		err := r.ProducerQueue.Submit(ctx, partitionKey, messages...)

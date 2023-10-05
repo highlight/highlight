@@ -1850,7 +1850,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 				Type: kafka_queue.PushMetrics,
 				PushMetrics: &kafka_queue.PushMetricsArgs{
 					SessionSecureID: secureID,
-					Metric:          metric,
+					Metrics:         []*publicModel.MetricInput{metric},
 				}})
 		}
 		err := r.ProducerQueue.Submit(ctx, secureID, messages...)

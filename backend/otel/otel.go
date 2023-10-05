@@ -304,7 +304,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				Type: kafkaqueue.PushBackendPayload,
 				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 					SessionSecureID: &sessionID,
-					Error:           errorObject,
+					Errors:          []*model.BackendErrorObjectInput{errorObject},
 				}})
 		}
 		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
@@ -333,7 +333,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				Type: kafkaqueue.PushBackendPayload,
 				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 					ProjectVerboseID: &projectID,
-					Error:            errorObject,
+					Errors:           []*model.BackendErrorObjectInput{errorObject},
 				}})
 		}
 		err = o.resolver.ProducerQueue.Submit(ctx, "", messages...)
@@ -351,7 +351,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				Type: kafkaqueue.PushMetrics,
 				PushMetrics: &kafkaqueue.PushMetricsArgs{
 					SessionSecureID: sessionID,
-					Metric:          metric,
+					Metrics:         []*model.MetricInput{metric},
 				}})
 		}
 		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
