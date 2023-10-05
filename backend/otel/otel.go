@@ -297,6 +297,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			if !o.resolver.IsErrorIngestedByFilter(ctx, 0, errorObject) {
 				continue
 			}
+			if !o.resolver.IsErrorIngestedByRateLimit(ctx, 0, errorObject) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushBackendPayload,
 				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
@@ -321,6 +324,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			if !o.resolver.IsErrorIngestedByFilter(ctx, projectIDInt, errorObject) {
+				continue
+			}
+			if !o.resolver.IsErrorIngestedByRateLimit(ctx, projectIDInt, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -468,6 +474,9 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			if !o.resolver.IsLogIngestedByFilter(ctx, logRow) {
 				continue
 			}
+			if !o.resolver.IsLogIngestedByRateLimit(ctx, logRow) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushLogs,
 				PushLogs: &kafkaqueue.PushLogsArgs{
@@ -490,6 +499,9 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 				continue
 			}
 			if !o.resolver.IsTraceIngestedByFilter(ctx, traceRow) {
+				continue
+			}
+			if !o.resolver.IsTraceIngestedByRateLimit(ctx, traceRow) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{

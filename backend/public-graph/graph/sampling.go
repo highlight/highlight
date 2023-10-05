@@ -17,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"hash/fnv"
 	"regexp"
+	"time"
 )
 
 func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhouse.TraceRow) bool {
@@ -32,6 +33,15 @@ func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhous
 		hlog.Incr("sampling.trace.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
 	}
 	return ret
+}
+
+func (r *Resolver) IsTraceIngestedByRateLimit(ctx context.Context, trace *clickhouse.TraceRow) bool {
+	settings, _, err := r.getSettings(ctx, int(trace.ProjectId), nil)
+	if err != nil {
+		return true
+	}
+
+	return r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-trace-%d", trace.ProjectId), settings.TraceMinuteRateLimit)
 }
 
 func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhouse.TraceRow) bool {
@@ -64,6 +74,15 @@ func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse
 		hlog.Incr("sampling.log.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
 	}
 	return ret
+}
+
+func (r *Resolver) IsLogIngestedByRateLimit(ctx context.Context, logRow *clickhouse.LogRow) bool {
+	settings, _, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
+	if err != nil {
+		return true
+	}
+
+	return r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-log-%d", logRow.ProjectId), settings.LogMinuteRateLimit)
 }
 
 func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse.LogRow) bool {
@@ -104,6 +123,15 @@ func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, projectID int, e
 		hlog.Incr("sampling.error.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
 	}
 	return ret
+}
+
+func (r *Resolver) IsErrorIngestedByRateLimit(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
+	settings, _, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
+	if err != nil {
+		return true
+	}
+
+	return r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-error-%d", projectID), settings.ErrorMinuteRateLimit)
 }
 
 func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
@@ -148,6 +176,15 @@ func (r *Resolver) IsSessionExcludedBySample(ctx context.Context, session *model
 	return ret
 }
 
+func (r *Resolver) IsSessionExcludedByRateLimit(ctx context.Context, session *model.Session) bool {
+	settings, _, err := r.getSettings(ctx, session.ProjectID, nil)
+	if err != nil {
+		return true
+	}
+
+	return !r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-session-%d", session.ProjectID), settings.SessionMinuteRateLimit)
+}
+
 func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
 	span := util.StartSpan("IsSessionExcludedByFilter", util.ResourceName("sampling"), util.Tag("project", session.ProjectID))
 	defer span.Finish()
@@ -162,7 +199,7 @@ func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model
 	}
 
 	filters := queryparser.Parse(*settings.SessionExclusionQuery)
-	return !clickhouse.SessionMatchesQuery(session, &filters)
+	return clickhouse.SessionMatchesQuery(session, &filters)
 }
 
 func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
@@ -182,6 +219,23 @@ func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 	sum := h.Sum32()
 	threshold := uint32(rate * float64(1<<32-1))
 	return sum < threshold
+}
+
+// isIngestedByRateLimit limits ingestion for a key at a max items per minute
+func (r *Resolver) isIngestedByRateLimit(ctx context.Context, key string, max int64) bool {
+	key = fmt.Sprintf("%s-%d", key, time.Now().Minute())
+
+	// based on https://redis.com/glossary/rate-limiting/
+	count, _ := r.Redis.Client.Get(ctx, key).Int64()
+
+	if count >= max {
+		return false
+	}
+
+	r.Redis.Client.Incr(ctx, key)
+	r.Redis.Client.Expire(ctx, key, 59*time.Second)
+
+	return true
 }
 
 func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecureID *string) (*model.ProjectFilterSettings, int, error) {
@@ -271,6 +325,11 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 	}
 
 	if r.IsSessionExcludedByFilter(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonExclusionFilter
+	}
+
+	if r.IsSessionExcludedByRateLimit(ctx, s) {
 		excluded = true
 		reason = privateModel.SessionExcludedReasonExclusionFilter
 	}

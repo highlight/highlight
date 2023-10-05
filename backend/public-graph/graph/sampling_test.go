@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
@@ -54,5 +55,21 @@ func Test_isIngestedBySample(t *testing.T) {
 		}
 		actualRate := float64(ingested) / N
 		assert.Lessf(t, math.Abs(rate-actualRate), 0.01, "expected rate delta within 1%%; rate %+v", rate)
+	}
+}
+
+func Test_isIngestedByRate(t *testing.T) {
+	r := Resolver{Redis: redis.NewClient()}
+	const N = 10_000
+	ctx := context.TODO()
+	for max := int64(0); max < N; max += N / 10 {
+		_ = r.Redis.FlushDB(ctx)
+		var ingested int64 = 0
+		for i := 0; i < N; i++ {
+			if r.isIngestedByRateLimit(ctx, "test-project-1", max) {
+				ingested += 1
+			}
+		}
+		assert.LessOrEqualf(t, ingested, max, "expected ingested lte max, max %+v", max)
 	}
 }

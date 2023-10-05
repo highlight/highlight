@@ -396,6 +396,10 @@ type ProjectFilterSettings struct {
 	ErrorSamplingRate                 float64 `gorm:"default:1"`
 	LogSamplingRate                   float64 `gorm:"default:1"`
 	TraceSamplingRate                 float64 `gorm:"default:1"`
+	SessionMinuteRateLimit            int64   `gorm:"default:1000"`
+	ErrorMinuteRateLimit              int64   `gorm:"default:10000"`
+	LogMinuteRateLimit                int64   `gorm:"default:100000"`
+	TraceMinuteRateLimit              int64   `gorm:"default:1000000"`
 	SessionExclusionQuery             *string
 	ErrorExclusionQuery               *string
 	LogExclusionQuery                 *string
