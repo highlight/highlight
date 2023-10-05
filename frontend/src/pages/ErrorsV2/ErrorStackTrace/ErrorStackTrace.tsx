@@ -274,21 +274,6 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			alignItems="center"
 		>
 			<Box display="flex" gap="4" alignItems="center">
-				{enhancementSource == 'github' && (
-					<Tooltip
-						trigger={
-							<Badge
-								iconStart={<IconSolidGithub size={16} />}
-								label={versionString}
-							/>
-						}
-					>
-						This stacktrace was enhanced using GitHub
-						{enhancementVersion &&
-							` with commit version, ${versionString}`}
-						.
-					</Tooltip>
-				)}
 				{fileName && (
 					<Tooltip
 						trigger={
@@ -346,6 +331,21 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			</Box>
 
 			<Box display="flex" gap="4" alignItems="center">
+				{enhancementSource == 'github' && (
+					<Tooltip
+						trigger={
+							<Badge
+								iconStart={<IconSolidGithub size={16} />}
+								label={versionString}
+							/>
+						}
+					>
+						This stacktrace was enhanced using GitHub
+						{enhancementVersion &&
+							` with commit version, ${versionString}`}
+						.
+					</Tooltip>
+				)}
 				<SourcemapError
 					errorObjectId={errorObjectId}
 					metadata={sourceMappingErrorMetadata}

@@ -3792,6 +3792,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 		return nil, updateErr
 	}
 
+	_ = r.Store.DeleteServiceCache(ctx, service.Name, service.ProjectID)
 	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
 }
@@ -3848,7 +3849,7 @@ func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID i
 }
 
 // TestErrorEnhancement is the resolver for the testErrorEnhancement field.
-func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string) (*model.ErrorObject, error) {
+func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model.ErrorObject, error) {
 	errorObject := model.ErrorObject{}
 	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
 		Preload("ErrorGroup").
@@ -3881,6 +3882,12 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	}
 	if mappedStackTrace != nil {
 		errorObject.MappedStackTrace = mappedStackTrace
+	}
+
+	if saveError != nil && *saveError {
+		if err := r.DB.Save(&errorObject).Error; err != nil {
+			return nil, err
+		}
 	}
 
 	return &errorObject, nil

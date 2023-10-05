@@ -715,6 +715,7 @@ type ErrorObjectNode {
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
 	serviceVersion: String!
+	serviceName: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -2313,6 +2314,7 @@ type Mutation {
 		github_repo_path: String!
 		github_prefix: String
 		build_prefix: String
+		save_error: Boolean
 	): ErrorObject
 }
 

@@ -434,6 +434,7 @@ type ComplexityRoot struct {
 		ErrorGroupSecureID func(childComplexity int) int
 		Event              func(childComplexity int) int
 		ID                 func(childComplexity int) int
+		ServiceName        func(childComplexity int) int
 		ServiceVersion     func(childComplexity int) int
 		Session            func(childComplexity int) int
 		Timestamp          func(childComplexity int) int
@@ -753,7 +754,7 @@ type ComplexityRoot struct {
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration             func(childComplexity int, projectID int) int
-		TestErrorEnhancement             func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string) int
+		TestErrorEnhancement             func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
 		UpdateAdminAboutYouDetails       func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
 		UpdateAdminAndCreateWorkspace    func(childComplexity int, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) int
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
@@ -1574,7 +1575,7 @@ type MutationResolver interface {
 	CreateErrorTag(ctx context.Context, title string, description string) (*model1.ErrorTag, error)
 	UpsertSlackChannel(ctx context.Context, projectID int, name string) (*model.SanitizedSlackChannel, error)
 	UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model1.DiscordChannel, error)
-	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string) (*model1.ErrorObject, error)
+	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model1.ErrorObject, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -3566,6 +3567,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObjectNode.ID(childComplexity), true
 
+	case "ErrorObjectNode.serviceName":
+		if e.complexity.ErrorObjectNode.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.ErrorObjectNode.ServiceName(childComplexity), true
+
 	case "ErrorObjectNode.serviceVersion":
 		if e.complexity.ErrorObjectNode.ServiceVersion == nil {
 			break
@@ -5359,7 +5367,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.TestErrorEnhancement(childComplexity, args["error_object_id"].(int), args["github_repo_path"].(string), args["github_prefix"].(*string), args["build_prefix"].(*string)), true
+		return e.complexity.Mutation.TestErrorEnhancement(childComplexity, args["error_object_id"].(int), args["github_repo_path"].(string), args["github_prefix"].(*string), args["build_prefix"].(*string), args["save_error"].(*bool)), true
 
 	case "Mutation.updateAdminAboutYouDetails":
 		if e.complexity.Mutation.UpdateAdminAboutYouDetails == nil {
@@ -10527,6 +10535,7 @@ type ErrorObjectNode {
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
 	serviceVersion: String!
+	serviceName: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -12125,6 +12134,7 @@ type Mutation {
 		github_repo_path: String!
 		github_prefix: String
 		build_prefix: String
+		save_error: Boolean
 	): ErrorObject
 }
 
@@ -14458,6 +14468,15 @@ func (ec *executionContext) field_Mutation_testErrorEnhancement_args(ctx context
 		}
 	}
 	args["build_prefix"] = arg3
+	var arg4 *bool
+	if tmp, ok := rawArgs["save_error"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("save_error"))
+		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["save_error"] = arg4
 	return args, nil
 }
 
@@ -29528,6 +29547,8 @@ func (ec *executionContext) fieldContext_ErrorObjectEdge_node(ctx context.Contex
 				return ec.fieldContext_ErrorObjectNode_errorGroupSecureID(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObjectNode_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObjectNode_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectNode", field.Name)
 		},
@@ -29838,6 +29859,50 @@ func (ec *executionContext) _ErrorObjectNode_serviceVersion(ctx context.Context,
 }
 
 func (ec *executionContext) fieldContext_ErrorObjectNode_serviceVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObjectNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObjectNode_serviceName(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObjectNode_serviceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObjectNode_serviceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorObjectNode",
 		Field:      field,
@@ -42245,7 +42310,7 @@ func (ec *executionContext) _Mutation_testErrorEnhancement(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().TestErrorEnhancement(rctx, fc.Args["error_object_id"].(int), fc.Args["github_repo_path"].(string), fc.Args["github_prefix"].(*string), fc.Args["build_prefix"].(*string))
+		return ec.resolvers.Mutation().TestErrorEnhancement(rctx, fc.Args["error_object_id"].(int), fc.Args["github_repo_path"].(string), fc.Args["github_prefix"].(*string), fc.Args["build_prefix"].(*string), fc.Args["save_error"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -73370,6 +73435,13 @@ func (ec *executionContext) _ErrorObjectNode(ctx context.Context, sel ast.Select
 		case "serviceVersion":
 
 			out.Values[i] = ec._ErrorObjectNode_serviceVersion(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "serviceName":
+
+			out.Values[i] = ec._ErrorObjectNode_serviceName(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

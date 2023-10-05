@@ -1411,6 +1411,7 @@ export type TestErrorEnhancementMutationVariables = Types.Exact<{
 	github_repo_path: Types.Scalars['String']
 	github_prefix?: Types.Maybe<Types.Scalars['String']>
 	build_prefix?: Types.Maybe<Types.Scalars['String']>
+	save_error?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
@@ -4525,6 +4526,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 						| 'timestamp'
 						| 'errorGroupSecureID'
 						| 'serviceVersion'
+						| 'serviceName'
 					> & {
 							session?: Types.Maybe<
 								{

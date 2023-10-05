@@ -560,6 +560,7 @@ export type ErrorObjectNode = {
 	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
+	serviceName: Scalars['String']
 	serviceVersion: Scalars['String']
 	session?: Maybe<ErrorObjectNodeSession>
 	timestamp: Scalars['Timestamp']
@@ -1448,6 +1449,7 @@ export type MutationTestErrorEnhancementArgs = {
 	error_object_id: Scalars['ID']
 	github_prefix?: InputMaybe<Scalars['String']>
 	github_repo_path: Scalars['String']
+	save_error?: InputMaybe<Scalars['Boolean']>
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {

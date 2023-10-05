@@ -5080,12 +5080,14 @@ export const TestErrorEnhancementDocument = gql`
 		$github_repo_path: String!
 		$github_prefix: String
 		$build_prefix: String
+		$save_error: Boolean
 	) {
 		testErrorEnhancement(
 			error_object_id: $error_object_id
 			github_repo_path: $github_repo_path
 			github_prefix: $github_prefix
 			build_prefix: $build_prefix
+			save_error: $save_error
 		) {
 			id
 			type
@@ -5130,6 +5132,7 @@ export type TestErrorEnhancementMutationFn = Apollo.MutationFunction<
  *      github_repo_path: // value for 'github_repo_path'
  *      github_prefix: // value for 'github_prefix'
  *      build_prefix: // value for 'build_prefix'
+ *      save_error: // value for 'save_error'
  *   },
  * });
  */
@@ -13464,6 +13467,7 @@ export const GetErrorObjectsDocument = gql`
 					timestamp
 					errorGroupSecureID
 					serviceVersion
+					serviceName
 					session {
 						secureID
 						email

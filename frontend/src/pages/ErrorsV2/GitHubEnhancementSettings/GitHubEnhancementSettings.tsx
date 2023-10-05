@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
+import { LinkButton } from '@components/LinkButton'
 import {
 	Badge,
 	Box,
@@ -16,8 +17,8 @@ import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubI
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
+import { camelCase } from 'lodash'
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useGetServiceByNameQuery } from '@/graph/generated/hooks'
@@ -31,11 +32,18 @@ type Props = {
 	errorObject: ErrorObjectFragment
 }
 
+type StepAction = {
+	title: string
+	to?: string
+	onClick?: () => void
+	iconLeft?: React.ReactElement
+	emphasis?: 'low' | 'medium' | 'high'
+}
+
 export const GitHubEnhancementSettings: React.FC<Props> = ({
 	errorObject,
 	onClose,
 }) => {
-	const navigate = useNavigate()
 	const { configurationPage } = GITHUB_INTEGRATION
 	const {
 		settings: { isIntegrated },
@@ -70,14 +78,17 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 			title: 'Report services',
 			description: 'Start linking your errors to a service via the SDK.',
 			completed: !!errorObject.serviceName,
-			action: {
-				title: 'Read docs',
-				onClick: () =>
-					window.open(
-						'https://www.highlight.io/docs/general/product-features/general-features/services',
-						'_blank',
-					),
-			},
+			actions: [
+				{
+					title: 'Go to services',
+					to: `/${errorObject.project_id}/settings/services`,
+					emphasis: 'medium',
+				},
+				{
+					title: 'Read docs',
+					to: 'https://www.highlight.io/docs/general/product-features/general-features/services',
+				},
+			] as StepAction[],
 		},
 		{
 			step: 'B',
@@ -85,17 +96,18 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 			description:
 				'Integrate your workspace to GitHub to link your repos to services.',
 			completed: isIntegrated,
-			action: isIntegrated
-				? {
-						title: 'Manage Integration',
-						onClick: () =>
-							navigate(`/${errorObject.project_id}/integrations`),
-				  }
-				: {
-						title: 'Connect to GitHub',
-						iconLeft: <IconSolidGithub />,
-						onClick: () => setIntegrationModalVisible(true),
-				  },
+			actions: [
+				isIntegrated
+					? {
+							title: 'Manage Integration',
+							to: `/${errorObject.project_id}/integrations`,
+					  }
+					: {
+							title: 'Connect to GitHub',
+							iconLeft: <IconSolidGithub />,
+							onClick: () => setIntegrationModalVisible(true),
+					  },
+			] as StepAction[],
 		},
 	]
 
@@ -170,15 +182,39 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 										{step.description}
 									</Tooltip>
 								</Stack>
-								<Button
-									trackingId={`error-github-enhancement-step-${step.step}`}
-									kind="secondary"
-									size="xSmall"
-									iconLeft={step.action.iconLeft}
-									onClick={step.action.onClick}
-								>
-									{step.action.title}
-								</Button>
+								<Stack direction="row" gap="4">
+									{step.actions.map((action: StepAction) => {
+										const actionKey = `${
+											step.step
+										}-${camelCase(action.title)}`
+										const trackingId = `error-github-enhancement-step-${actionKey}`
+										return action.to ? (
+											<LinkButton
+												key={actionKey}
+												trackingId={trackingId}
+												kind="secondary"
+												emphasis={action.emphasis}
+												size="xSmall"
+												iconLeft={action.iconLeft}
+												to={action.to}
+											>
+												{action.title}
+											</LinkButton>
+										) : (
+											<Button
+												key={actionKey}
+												trackingId={trackingId}
+												kind="secondary"
+												emphasis={action.emphasis}
+												size="xSmall"
+												iconLeft={action.iconLeft}
+												onClick={action.onClick}
+											>
+												{action.title}
+											</Button>
+										)
+									})}
+								</Stack>
 							</Stack>
 						</Stack>
 					</Card>
@@ -186,7 +222,7 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 			</Stack>
 
 			{loading ? (
-				<LoadingBox />
+				<LoadingBox height={600} />
 			) : (
 				<Box borderTop="dividerWeak" paddingTop="12">
 					<GitHubEnhancementSettingsForm

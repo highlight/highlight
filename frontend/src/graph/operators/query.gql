@@ -2149,6 +2149,7 @@ query GetErrorObjects(
 				timestamp
 				errorGroupSecureID
 				serviceVersion
+				serviceName
 				session {
 					secureID
 					email
