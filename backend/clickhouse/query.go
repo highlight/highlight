@@ -400,16 +400,30 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	return values, rows.Err()
 }
 
+// clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
+var nonAlphaNumericChars = regexp.MustCompile("[^\\w:*]")
+
 func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tableConfig[TReservedKey], filters *queryparser.Filters) bool {
 	v := reflect.ValueOf(*row)
 
 	rowBodyTerms := map[string]bool{}
 	if config.bodyColumn != "" && len(filters.Body) > 0 {
-		for _, field := range strings.Fields(v.FieldByName(config.bodyColumn).String()) {
-			rowBodyTerms[field] = true
+		body := v.FieldByName(config.bodyColumn).String()
+		for _, field := range nonAlphaNumericChars.Split(body, -1) {
+			if field != "" {
+				rowBodyTerms[field] = true
+			}
 		}
 		for _, body := range filters.Body {
-			if !rowBodyTerms[body] {
+			if strings.Contains(body, "%") {
+				pat, err := regexp.Compile(strings.ReplaceAll(body, "%", ".*"))
+				if err != nil {
+					return false
+				}
+				if !pat.MatchString(body) {
+					return false
+				}
+			} else if !rowBodyTerms[body] {
 				return false
 			}
 		}

@@ -1239,20 +1239,32 @@ func Test_LogMatchesQuery(t *testing.T) {
 	assert.False(t, matches)
 
 	logRow = LogRow{
-		Body:        "this is a hello world message",
+		Body:        "this, is.a ; hello; world:message,.:;	\nbe\xe2\x80\x83me",
 		ServiceName: "all",
 		LogAttributes: map[string]string{
 			"os.type":       "linux",
 			"resource_name": "worker.kafka.process",
 		},
 	}
-	filters = queryparser.Parse("hello world os.type:linux resource_name:worker.* service_name:all")
+	filters = queryparser.Parse("hello world be me os.type:linux resource_name:worker.* service_name:all")
 	matches = LogMatchesQuery(&logRow, &filters)
 	assert.True(t, matches)
 
 	filters = queryparser.Parse("not this one os.type:linux resource_name:worker.* service_name:all")
 	matches = LogMatchesQuery(&logRow, &filters)
 	assert.False(t, matches)
+}
+
+func Fuzz_LogMatchesQuery_Body(f *testing.F) {
+	f.Add("this, is.a ; hello; 123 there6 world:message,.:;	\nbe\xe2\x80\x83me")
+	f.Fuzz(func(t *testing.T, body string) {
+		logRow := LogRow{Body: body}
+		filters := queryparser.Parse(body)
+		// : represents a special case since our query parser treats it as an attribute. don't search on attrs
+		filters.Attributes = map[string][]string{}
+		matches := LogMatchesQuery(&logRow, &filters)
+		assert.True(t, matches, "failed on body %s", body)
+	})
 }
 
 func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
@@ -1305,4 +1317,40 @@ func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
 		})
 		assert.True(t, found)
 	}
+}
+
+func Fuzz_LogMatchesQuery_ClickHouse_Body(f *testing.F) {
+	f.Add("this, is.a ; hello; world:message,.:;	\nbe\xe2\x80\x83me")
+	f.Fuzz(func(t *testing.T, body string) {
+		ctx := context.Background()
+		client, teardown := setupTest(t)
+		defer teardown(t)
+
+		now := time.Now()
+		oneSecondAgo := now.Add(-time.Second * 1)
+		logRow := NewLogRow(oneSecondAgo, 1, WithBody(ctx, body))
+		assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{logRow}))
+
+		result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+			DateRange: makeDateWithinRange(now),
+			Query:     body,
+		}, Pagination{})
+		assert.NoError(t, err)
+
+		var filtered []*LogRow
+		filters := queryparser.Parse(body)
+		if LogMatchesQuery(logRow, &filters) {
+			filtered = append(filtered, logRow)
+		}
+
+		assert.Equal(t, 1, len(result.Edges))
+		assert.Equal(t, len(filtered), len(result.Edges))
+		_, found := lo.Find(result.Edges, func(edge *modelInputs.LogEdge) bool {
+			if edge.Node.TraceID == nil {
+				return false
+			}
+			return *edge.Node.TraceID == logRow.TraceId
+		})
+		assert.True(t, found)
+	})
 }
