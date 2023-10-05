@@ -1591,7 +1591,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	DB.Raw("select split_part(relname, '_', 5) from pg_stat_all_tables where relname like 'error_object_embeddings_partitioned%' order by relid desc limit 1").Scan(&lastCreatedPart)
 
 	// Make sure partitions are created for the next 1k projects, starting with the next partition needed
-	for i := lastCreatedPart + 1; i < lastVal+1002; i++ {
+	for i := lastCreatedPart + 1; i < lastVal+1000; i++ {
 		if err := DB.Exec(fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d 
 			PARTITION OF error_object_embeddings_partitioned
