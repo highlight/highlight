@@ -77,9 +77,9 @@ export const getMeterAmounts = (
 	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
 	const logsQuota =
 		data.billingDetailsForProject?.logsBillingLimit ?? undefined
-	// TODO(vkorolik)
-	const tracesMeter = 0
-	const tracesQuota = undefined
+	const tracesMeter = data.billingDetailsForProject?.tracesMeter ?? 0
+	const tracesQuota =
+		data.billingDetailsForProject?.tracesBillingLimit ?? undefined
 	return {
 		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
 		[ProductType.Errors]: [errorsMeter, errorsQuota],

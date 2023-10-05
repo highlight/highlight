@@ -8354,14 +8354,17 @@ export const GetBillingDetailsForProjectDocument = gql`
 				membersLimit
 				errorsLimit
 				logsLimit
+				tracesLimit
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
+			tracesMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
+			tracesBillingLimit
 		}
 		workspace_for_project(project_id: $project_id) {
 			id

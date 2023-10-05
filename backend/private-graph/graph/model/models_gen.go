@@ -111,12 +111,15 @@ type BillingDetails struct {
 	MembersMeter         int64   `json:"membersMeter"`
 	ErrorsMeter          int64   `json:"errorsMeter"`
 	LogsMeter            int64   `json:"logsMeter"`
+	TracesMeter          int64   `json:"tracesMeter"`
 	SessionsDailyAverage float64 `json:"sessionsDailyAverage"`
 	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
 	LogsDailyAverage     float64 `json:"logsDailyAverage"`
+	TracesDailyAverage   float64 `json:"tracesDailyAverage"`
 	SessionsBillingLimit *int64  `json:"sessionsBillingLimit"`
 	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit"`
 	LogsBillingLimit     *int64  `json:"logsBillingLimit"`
+	TracesBillingLimit   *int64  `json:"tracesBillingLimit"`
 }
 
 type CategoryHistogramBucket struct {
@@ -569,6 +572,7 @@ type Plan struct {
 	MembersLimit *int                 `json:"membersLimit"`
 	ErrorsLimit  int                  `json:"errorsLimit"`
 	LogsLimit    int                  `json:"logsLimit"`
+	TracesLimit  int                  `json:"tracesLimit"`
 }
 
 type QueryInput struct {

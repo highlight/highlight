@@ -5533,6 +5533,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		logsIncluded = *workspace.MonthlyLogsLimit
 	}
 
+	// TODO(vkorolik) include trace pricing once we have that in place
+
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	if workspace.RetentionPeriod != nil {
 		retentionPeriod = *workspace.RetentionPeriod

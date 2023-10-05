@@ -2798,9 +2798,11 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'membersMeter'
 			| 'errorsMeter'
 			| 'logsMeter'
+			| 'tracesMeter'
 			| 'sessionsBillingLimit'
 			| 'errorsBillingLimit'
 			| 'logsBillingLimit'
+			| 'tracesBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2810,6 +2812,7 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'membersLimit'
 					| 'errorsLimit'
 					| 'logsLimit'
+					| 'tracesLimit'
 				>
 			}
 	>

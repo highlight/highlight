@@ -158,6 +158,9 @@ export type BillingDetails = {
 	plan: Plan
 	sessionsBillingLimit?: Maybe<Scalars['Int64']>
 	sessionsDailyAverage: Scalars['Float']
+	tracesBillingLimit?: Maybe<Scalars['Int64']>
+	tracesDailyAverage: Scalars['Float']
+	tracesMeter: Scalars['Int64']
 }
 
 export type CategoryHistogramBucket = {
@@ -1662,6 +1665,7 @@ export type Plan = {
 	logsLimit: Scalars['Int']
 	membersLimit?: Maybe<Scalars['Int']>
 	quota: Scalars['Int']
+	tracesLimit: Scalars['Int']
 	type: PlanType
 }
 

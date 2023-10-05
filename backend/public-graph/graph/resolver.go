@@ -1620,6 +1620,7 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return int64(limit)
 		},
 	},
+	// TODO(vkorolik) include trace pricing once we have that in place
 }
 
 func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
