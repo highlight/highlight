@@ -1575,7 +1575,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 
 	if err := DB.Exec(`
 		CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned
-		(LIKE error_object_embeddings INCLUDING DEFAULTS INCLUDING IDENTITY)
+		(LIKE error_object_embeddings INCLUDING ALL)
 		PARTITION BY LIST (project_id);
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating error_object_embeddings_partitioned")
@@ -1594,9 +1594,8 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	for i := lastCreatedPart + 1; i < lastVal+1000; i++ {
 		if err := DB.Exec(fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
-			PARTITION OF error_object_embeddings_partitioned
-			FOR VALUES IN ('%d');
-		`, i, i)).Error; err != nil {
+			(LIKE error_object_embeddings_partitioned INCLUDING ALL);
+		`, i)).Error; err != nil {
 			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
 		}
 
@@ -1607,21 +1606,13 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			return false, e.Wrapf(err, "Error creating index error_object_embeddings for index %d", i)
 		}
 
-		// in case this partition was already attached by a previous failed migration, try detach first
-		if err := DB.Exec(fmt.Sprintf(`
-			ALTER TABLE error_object_embeddings_partitioned 
-			DETACH PARTITION error_object_embeddings_partitioned_%d;
-		`, i)).Error; err != nil {
-			return false, e.Wrapf(err, "Error detaching partitioned error_object_embeddings for index %d", i)
-		}
-
-		if err := DB.Exec(fmt.Sprintf(`
+		// in case this partition was already attached by a previous failed migration, this will fail.
+		// ignore errors
+		DB.Exec(fmt.Sprintf(`
 			ALTER TABLE error_object_embeddings_partitioned 
 			ATTACH PARTITION error_object_embeddings_partitioned_%d
 			FOR VALUES IN ('%d');
-		`, i, i)).Error; err != nil {
-			return false, e.Wrapf(err, "Error attaching partitioned error_object_embeddings for index %d", i)
-		}
+		`, i, i))
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
