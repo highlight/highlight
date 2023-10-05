@@ -129,14 +129,4 @@ jobs:
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
             - name: Run fuzz tests
-              run: |
-                  for file in $(grep -r --include='**_test.go' --files-with-matches 'func Fuzz' .)
-                  do
-                      funcs=$(grep -oP 'func \K(Fuzz\w*)' $file)
-                      for func in ${funcs}
-                      do
-                          echo "Fuzzing $func in $file"
-                          parentDir=$(dirname $file)
-                          go test $parentDir -run=$func -fuzz=$func -fuzztime=5s
-                      done
-                  done
+              run: cd backend && make fuzz
