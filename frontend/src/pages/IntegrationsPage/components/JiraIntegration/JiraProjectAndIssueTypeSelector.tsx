@@ -70,9 +70,9 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 					disabled={disabled}
 				/>
 			</Form.NamedSection>
-			<Form.NamedSection label="Jira Issue" name="jiraIssue">
+			<Form.NamedSection label="Jira Issue Type" name="jiraIssue">
 				<Select
-					aria-label="Issue Type"
+					aria-label="Jira Issue Type"
 					placeholder="Choose an issue type"
 					options={jiraIssueTypeOptions}
 					onChange={setJiraIssueTypeId}
