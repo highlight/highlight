@@ -97,7 +97,7 @@ func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, projectID int, e
 		id = ptr.ToString(errorObject.SpanID)
 	}
 
-	ret := isIngestedBySample(ctx, id, settings.LogSamplingRate)
+	ret := isIngestedBySample(ctx, id, settings.ErrorSamplingRate)
 	if ret {
 		hlog.Incr("sampling.error.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
 	} else {
@@ -139,7 +139,7 @@ func (r *Resolver) IsSessionExcludedBySample(ctx context.Context, session *model
 		return true
 	}
 
-	ret := !isIngestedBySample(ctx, session.SecureID, settings.LogSamplingRate)
+	ret := !isIngestedBySample(ctx, session.SecureID, settings.SessionSamplingRate)
 	if ret {
 		hlog.Incr("sampling.session.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
 	} else {
