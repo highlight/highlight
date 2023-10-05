@@ -401,7 +401,7 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 }
 
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
-var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
+var nonAlphaNumericChars = regexp.MustCompile(`[^\p{L}\p{Nd}\p{Common}\w:*]`)
 
 func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tableConfig[TReservedKey], filters *queryparser.Filters) bool {
 	v := reflect.ValueOf(*row)
@@ -416,12 +416,13 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 		}
 		for _, body := range filters.Body {
 			if strings.Contains(body, "%") {
-				pat, err := regexp.Compile(strings.ReplaceAll(body, "%", ".*"))
-				if err != nil {
-					return false
-				}
-				if !pat.MatchString(body) {
-					return false
+				pat, err := regexp.Compile(strings.ReplaceAll(regexp.QuoteMeta(body), "%", ".*"))
+				// this may over match if the expression cannot be compiled,
+				// but we'd prefer to over match as this fn is used to determine sampling
+				if err == nil {
+					if !pat.MatchString(body) {
+						return false
+					}
 				}
 			} else if !rowBodyTerms[body] {
 				return false

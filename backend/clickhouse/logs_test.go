@@ -1239,7 +1239,7 @@ func Test_LogMatchesQuery(t *testing.T) {
 	assert.False(t, matches)
 
 	logRow = LogRow{
-		Body:        "this, is.a ; hello; world:message,.:;	\nbe\xe2\x80\x83me",
+		Body:        "this, is.a ; hello; world \nbe\xe2\x80\x83me",
 		ServiceName: "all",
 		LogAttributes: map[string]string{
 			"os.type":       "linux",
