@@ -9,7 +9,7 @@ export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 
 	return (
 		<HighlightErrorBoundary showDialog={!isLocalhost}>
-			{children}
+			<>{children}</>
 		</HighlightErrorBoundary>
 	)
 }

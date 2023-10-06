@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/next",
-	"version": "5.0.0",
+	"version": "5.0.1",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
@@ -69,7 +69,7 @@
 		"chokidar-cli": "^3.0.0",
 		"eslint": "8.39.0",
 		"jest": "^29.2.0",
-		"next": "^13.3.4",
+		"next": "^13.5.4",
 		"ts-jest": "^29.0.3",
 		"tsup": "^6.7.0",
 		"typescript": "^5.0.4"
