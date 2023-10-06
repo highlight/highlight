@@ -92,7 +92,7 @@ func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model
 }
 
 func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateModel.ProductType, projectID int, key string) bool {
-	span := util.StartSpan("IsIngestedBySample", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
+	span := util.StartSpan("IsIngestedBySample", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", "sample"), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
@@ -124,7 +124,7 @@ func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateMo
 }
 
 func (r *Resolver) isItemIngestedByRate(ctx context.Context, product privateModel.ProductType, projectID int) bool {
-	span := util.StartSpan("IsIngestedByRate", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
+	span := util.StartSpan("IsIngestedByRate", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", "rate"), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
@@ -156,7 +156,7 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, product privateMode
 }
 
 func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateModel.ProductType, projectID int, object interface{}) bool {
-	span := util.StartSpan("IsIngestedByFilter", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
+	span := util.StartSpan("IsIngestedByFilter", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", "filter"), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
