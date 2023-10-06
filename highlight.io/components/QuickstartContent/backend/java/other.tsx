@@ -20,10 +20,12 @@ export const JavaOtherContent: QuickStartContent = {
 			title: 'Add Highlight logger.',
 			content:
 				'errors will automatically record raised exceptions and send them to Highlight.',
-			code: [{
-				text: `Coming soon`,
-				language: 'java',
-			}],
+			code: [
+				{
+					text: `Coming soon`,
+					language: 'java',
+				},
+			],
 		},
 		verifyErrors,
 		customError,
