@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -39,9 +40,25 @@ import (
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
+
+var (
+	env     = os.Getenv("ENVIRONMENT")
+	DevEnv  = "dev"
+	TestEnv = "test"
+)
+
+func IsDevEnv() bool {
+	return env == DevEnv
+}
+
+func IsTestEnv() bool {
+	return env == TestEnv
+}
+
+func IsDevOrTestEnv() bool {
+	return IsTestEnv() || IsDevEnv()
+}
 
 var (
 	DB                *gorm.DB
@@ -1590,8 +1607,14 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	// ignore errors - an error means that there are no partitions, so we can safely use the zero-value.
 	DB.Raw("select split_part(relname, '_', 5) from pg_stat_all_tables where relname like 'error_object_embeddings_partitioned%' order by relid desc limit 1").Scan(&lastCreatedPart)
 
-	// Make sure partitions are created for the next 1k projects, starting with the next partition needed
-	for i := lastCreatedPart + 1; i < lastVal+1000; i++ {
+	endPart := lastVal + 1000
+	if IsDevOrTestEnv() {
+		// limit the number of partitions created in dev or test to limit disk usage
+		endPart = lastVal + 10
+	}
+
+	// Make sure partitions are created for the next N projects, starting with the next partition needed
+	for i := lastCreatedPart + 1; i < endPart; i++ {
 		if err := DB.Exec(fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
 			(LIKE error_object_embeddings_partitioned INCLUDING DEFAULTS INCLUDING IDENTITY);
