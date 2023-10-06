@@ -21,6 +21,18 @@
 		"nextjs#lint": {
 			"dependsOn": ["^build"]
 		},
+		"@highlight-run/cloudflare#typegen": {
+			"dependsOn": ["@highlight-run/opentelemetry-sdk-workers#typegen"]
+		},
+		"@highlight-run/next#typegen": {
+			"dependsOn": ["@highlight-run/opentelemetry-sdk-workers#typegen"]
+		},
+		"@highlight-run/cloudflare#build": {
+			"dependsOn": ["@highlight-run/opentelemetry-sdk-workers#build"]
+		},
+		"@highlight-run/next#build": {
+			"dependsOn": ["@highlight-run/opentelemetry-sdk-workers#build"]
+		},
 		"codegen": {
 			"inputs": ["../**/*.gql", "../**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
