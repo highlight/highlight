@@ -21,7 +21,7 @@ import (
 )
 
 func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhouse.TraceRow) bool {
-	settings, _, err := r.getSettings(ctx, int(trace.ProjectId), nil)
+	settings, err := r.getSettings(ctx, int(trace.ProjectId), nil)
 	if err != nil {
 		return true
 	}
@@ -36,19 +36,25 @@ func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsTraceIngestedByRateLimit(ctx context.Context, trace *clickhouse.TraceRow) bool {
-	settings, _, err := r.getSettings(ctx, int(trace.ProjectId), nil)
+	settings, err := r.getSettings(ctx, int(trace.ProjectId), nil)
 	if err != nil {
 		return true
 	}
 
-	return r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-trace-%d", trace.ProjectId), settings.TraceMinuteRateLimit)
+	ret := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-trace-%d", trace.ProjectId), settings.TraceMinuteRateLimit)
+	if ret {
+		hlog.Incr("sampling.rate.trace.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.rate.trace.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	span := util.StartSpan("IsTraceIngestedByFilter", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(true), util.Tag("project", trace.ProjectId))
 	defer span.Finish()
 
-	settings, _, err := r.getSettings(ctx, int(trace.ProjectId), nil)
+	settings, err := r.getSettings(ctx, int(trace.ProjectId), nil)
 	if err != nil {
 		return true
 	}
@@ -58,11 +64,17 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 	}
 
 	filters := queryparser.Parse(*settings.TraceExclusionQuery)
-	return !clickhouse.TraceMatchesQuery(trace, &filters)
+	ret := !clickhouse.TraceMatchesQuery(trace, &filters)
+	if ret {
+		hlog.Incr("sampling.filter.trace.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.filter.trace.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse.LogRow) bool {
-	settings, _, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
+	settings, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
 	if err != nil {
 		return true
 	}
@@ -77,19 +89,25 @@ func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse
 }
 
 func (r *Resolver) IsLogIngestedByRateLimit(ctx context.Context, logRow *clickhouse.LogRow) bool {
-	settings, _, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
+	settings, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
 	if err != nil {
 		return true
 	}
 
-	return r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-log-%d", logRow.ProjectId), settings.LogMinuteRateLimit)
+	ret := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-log-%d", logRow.ProjectId), settings.LogMinuteRateLimit)
+	if ret {
+		hlog.Incr("sampling.rate.log.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.rate.log.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse.LogRow) bool {
 	span := util.StartSpan("IsLogIngestedByFilter", util.ResourceName("sampling"), util.Tag("project", logRow.ProjectId))
 	defer span.Finish()
 
-	settings, _, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
+	settings, err := r.getSettings(ctx, int(logRow.ProjectId), nil)
 	if err != nil {
 		return true
 	}
@@ -99,11 +117,17 @@ func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse
 	}
 
 	filters := queryparser.Parse(*settings.LogExclusionQuery)
-	return !clickhouse.LogMatchesQuery(logRow, &filters)
+	ret := !clickhouse.LogMatchesQuery(logRow, &filters)
+	if ret {
+		hlog.Incr("sampling.filter.log.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.filter.log.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
-	settings, _, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
+	settings, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
 	if err != nil {
 		return true
 	}
@@ -126,28 +150,34 @@ func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, projectID int, e
 }
 
 func (r *Resolver) IsErrorIngestedByRateLimit(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
-	settings, _, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
+	settings, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
 	if err != nil {
 		return true
 	}
 
-	return r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-error-%d", projectID), settings.ErrorMinuteRateLimit)
+	ret := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-error-%d", projectID), settings.ErrorMinuteRateLimit)
+	if ret {
+		hlog.Incr("sampling.rate.error.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.rate.error.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
-	settings, projectID, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
+	settings, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
 	if err != nil {
 		return true
 	}
 
-	span := util.StartSpan("IsErrorIngestedByFilter", util.ResourceName("sampling"), util.Tag("project", projectID))
+	span := util.StartSpan("IsErrorIngestedByFilter", util.ResourceName("sampling"), util.Tag("project", settings.ProjectID))
 	defer span.Finish()
 
-	project, err := r.Store.GetProject(ctx, projectID)
+	project, err := r.Store.GetProject(ctx, settings.ProjectID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get project")
 	} else {
-		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, projectID) {
+		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, settings.ProjectID) {
 			return false
 		}
 	}
@@ -157,7 +187,13 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 	}
 
 	filters := queryparser.Parse(*settings.ErrorExclusionQuery)
-	return !clickhouse.ErrorMatchesQuery(errorObject, &filters)
+	ret := !clickhouse.ErrorMatchesQuery(errorObject, &filters)
+	if ret {
+		hlog.Incr("sampling.filter.error.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.filter.error.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return ret
 }
 
 func (r *Resolver) IsSessionExcludedBySample(ctx context.Context, session *model.Session) bool {
@@ -167,29 +203,35 @@ func (r *Resolver) IsSessionExcludedBySample(ctx context.Context, session *model
 		return true
 	}
 
-	ret := !isIngestedBySample(ctx, session.SecureID, settings.SessionSamplingRate)
-	if ret {
+	ingest := isIngestedBySample(ctx, session.SecureID, settings.SessionSamplingRate)
+	if ingest {
 		hlog.Incr("sampling.session.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
 	} else {
 		hlog.Incr("sampling.session.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
 	}
-	return ret
+	return !ingest
 }
 
 func (r *Resolver) IsSessionExcludedByRateLimit(ctx context.Context, session *model.Session) bool {
-	settings, _, err := r.getSettings(ctx, session.ProjectID, nil)
+	settings, err := r.getSettings(ctx, session.ProjectID, nil)
 	if err != nil {
 		return true
 	}
 
-	return !r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-session-%d", session.ProjectID), settings.SessionMinuteRateLimit)
+	ingest := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-session-%d", session.ProjectID), settings.SessionMinuteRateLimit)
+	if ingest {
+		hlog.Incr("sampling.rate.session.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.rate.session.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return !ingest
 }
 
 func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
 	span := util.StartSpan("IsSessionExcludedByFilter", util.ResourceName("sampling"), util.Tag("project", session.ProjectID))
 	defer span.Finish()
 
-	settings, _, err := r.getSettings(ctx, session.ProjectID, nil)
+	settings, err := r.getSettings(ctx, session.ProjectID, nil)
 	if err != nil {
 		return true
 	}
@@ -199,7 +241,13 @@ func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model
 	}
 
 	filters := queryparser.Parse(*settings.SessionExclusionQuery)
-	return clickhouse.SessionMatchesQuery(session, &filters)
+	exclude := clickhouse.SessionMatchesQuery(session, &filters)
+	if !exclude {
+		hlog.Incr("sampling.filter.session.ingested", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	} else {
+		hlog.Incr("sampling.filter.session.dropped", []string{fmt.Sprintf("project-%d", settings.ProjectID)}, 1)
+	}
+	return exclude
 }
 
 func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
@@ -238,16 +286,16 @@ func (r *Resolver) isIngestedByRateLimit(ctx context.Context, key string, max in
 	return true
 }
 
-func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecureID *string) (*model.ProjectFilterSettings, int, error) {
+func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecureID *string) (*model.ProjectFilterSettings, error) {
 	if projectID == 0 {
 		if sessionSecureID == nil {
-			return nil, projectID, e.New("no project nor session secure id provided for sampling settings")
+			return nil, e.New("no project nor session secure id provided for sampling settings")
 		}
 
 		session, err := r.Store.GetSessionFromSecureID(ctx, *sessionSecureID)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to get session")
-			return nil, projectID, err
+			return nil, err
 		}
 
 		projectID = session.ProjectID
@@ -255,10 +303,10 @@ func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecure
 	settings, err := r.Store.GetProjectFilterSettings(ctx, projectID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get project filter settings")
-		return nil, projectID, err
+		return nil, err
 	}
 
-	return settings, projectID, nil
+	return settings, nil
 }
 
 func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
