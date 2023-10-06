@@ -32,7 +32,7 @@
 				"@highlight-run/opentelemetry-sdk-workers#build",
 				"@highlight-run/react#build",
 				"@highlight-run/sourcemap-uploader#build",
-				"highlight.run"
+				"highlight.run#build"
 			],
 			"outputs": ["dist/**"]
 		},
