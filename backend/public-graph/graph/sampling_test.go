@@ -2,7 +2,11 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/store"
+	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
@@ -73,5 +77,37 @@ func Test_isIngestedByRate(t *testing.T) {
 			}
 		}
 		assert.LessOrEqualf(t, ingested, max, "expected ingested lte max, max %+v", max)
+	}
+}
+
+func Test_IsSessionExcluded(t *testing.T) {
+	ctx := context.TODO()
+	_, err := resolver.Store.UpdateProjectFilterSettings(ctx, 1, store.UpdateProjectFilterSettingsParams{
+		Sampling: &modelInputs.SamplingInput{
+			SessionSamplingRate:    pointy.Float64(0.5),
+			SessionMinuteRateLimit: pointy.Int64(1),
+			SessionExclusionQuery:  pointy.String("environment:prod"),
+		},
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	err = resolver.Redis.FlushDB(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+
+	s := model.Session{ProjectID: 1}
+	excluded, reason := resolver.IsSessionExcluded(ctx, &s, false)
+	assert.False(t, excluded)
+	assert.Equal(t, "", reason.String())
+	for i := 0; i < 100; i++ {
+		for _, hasErrors := range []bool{false, true} {
+			// "abc123" is always included by sampling with 50% rate
+			s := model.Session{ProjectID: 1, SecureID: "abc123"}
+			excluded, reason := resolver.IsSessionExcluded(ctx, &s, hasErrors)
+			assert.True(t, excluded)
+			assert.Equal(t, modelInputs.SessionExcludedReasonRateLimitMinute, *reason)
+		}
 	}
 }

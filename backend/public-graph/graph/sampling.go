@@ -79,12 +79,12 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeErrors, settings.ProjectID, errorObject)
 }
 
-func (r *Resolver) IsSessionExcludedBySample(ctx context.Context, session *model.Session) bool {
+func (r *Resolver) isSessionExcludedBySample(ctx context.Context, session *model.Session) bool {
 	return !r.isItemIngestedBySample(ctx, privateModel.ProductTypeSessions, session.ProjectID, session.SecureID)
 }
 
-func (r *Resolver) IsSessionExcludedByRateLimit(ctx context.Context, session *model.Session) bool {
-	return r.isItemIngestedByRate(ctx, privateModel.ProductTypeSessions, session.ProjectID)
+func (r *Resolver) isSessionExcludedByRateLimit(ctx context.Context, session *model.Session) bool {
+	return !r.isItemIngestedByRate(ctx, privateModel.ProductTypeSessions, session.ProjectID)
 }
 
 func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
@@ -92,7 +92,7 @@ func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model
 }
 
 func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateModel.ProductType, projectID int, key string) bool {
-	span := util.StartSpan("IsIngestedByFilter", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("project", projectID), util.Tag("product", product))
+	span := util.StartSpan("IsIngestedBySample", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("project", projectID), util.Tag("product", product))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
@@ -124,7 +124,7 @@ func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateMo
 }
 
 func (r *Resolver) isItemIngestedByRate(ctx context.Context, product privateModel.ProductType, projectID int) bool {
-	span := util.StartSpan("IsIngestedByFilter", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("project", projectID), util.Tag("product", product))
+	span := util.StartSpan("IsIngestedByRate", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("project", projectID), util.Tag("product", product))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
@@ -297,7 +297,7 @@ func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, e
 	return false
 }
 
-func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
+func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
 	var excluded bool
 	var reason privateModel.SessionExcludedReason
 
@@ -322,7 +322,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonNoUserEvents
 	}
 
-	if r.IsSessionExcludedBySample(ctx, s) {
+	if r.isSessionExcludedBySample(ctx, s) {
 		excluded = true
 		reason = privateModel.SessionExcludedReasonSampled
 	}
@@ -332,9 +332,9 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonExclusionFilter
 	}
 
-	if r.IsSessionExcludedByRateLimit(ctx, s) {
+	if r.isSessionExcludedByRateLimit(ctx, s) {
 		excluded = true
-		reason = privateModel.SessionExcludedReasonExclusionFilter
+		reason = privateModel.SessionExcludedReasonRateLimitMinute
 	}
 
 	return excluded, &reason

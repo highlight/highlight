@@ -2892,6 +2892,7 @@ export enum SessionExcludedReason {
 	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
 	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
+	RateLimitMinute = 'RateLimitMinute',
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
 	Sampled = 'Sampled',
 }

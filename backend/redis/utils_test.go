@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"github.com/go-redsync/redsync/v4"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -36,7 +37,12 @@ func TestLock(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	defer mutex.Unlock()
+	defer func(mutex *redsync.Mutex) {
+		_, err := mutex.Unlock()
+		if err != nil {
+			t.Error(err)
+		}
+	}(mutex)
 	t.Logf("acquired")
 	assert.Equal(t, count, 2)
 }

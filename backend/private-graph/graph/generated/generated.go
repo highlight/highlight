@@ -9985,6 +9985,7 @@ enum SessionExcludedReason {
 	BillingQuotaExceeded
 	RetentionPeriodExceeded
 	Sampled
+	RateLimitMinute
 	ExclusionFilter
 }
 
