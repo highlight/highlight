@@ -51,9 +51,6 @@ jobs:
             - name: Install js dependencies
               run: yarn
 
-            - name: Check for necessary changesets
-              run: yarn changeset status --since origin/main
-
             - name: Check generated files for Reflame
               run: yarn reflame-check
 

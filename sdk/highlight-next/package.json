@@ -61,6 +61,7 @@
 		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20230115.0",
 		"@opentelemetry/api": "1.4.1",
 		"@opentelemetry/resources": "1.17.0",
 		"@trpc/server": "^9.27.4",
