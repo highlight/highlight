@@ -63,10 +63,12 @@ func Test_isIngestedByRate(t *testing.T) {
 	const N = 10_000
 	ctx := context.TODO()
 	for max := int64(0); max < N; max += N / 10 {
+		// pin a consistent minute throughout the test to avoid hitting multiple different minute buckets
+		minute := time.Now().Minute()
 		_ = r.Redis.FlushDB(ctx)
 		var ingested int64 = 0
 		for i := 0; i < N; i++ {
-			if r.isIngestedByRateLimit(ctx, "test-project-1", max) {
+			if r.isIngestedByRateLimit(ctx, "test-project-1", max, minute) {
 				ingested += 1
 			}
 		}

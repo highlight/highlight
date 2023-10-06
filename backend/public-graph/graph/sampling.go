@@ -145,7 +145,7 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, product privateMode
 		}
 		return 1.
 	}()
-	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), max)
+	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), max, time.Now().Minute())
 	span.SetAttribute("ingested", ingested)
 	if ingested {
 		hlog.Incr("sampling.ingested", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:rate", fmt.Sprintf("product:%s", product)}, 1)
@@ -225,8 +225,8 @@ func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
 }
 
 // isIngestedByRateLimit limits ingestion for a key at a max items per minute
-func (r *Resolver) isIngestedByRateLimit(ctx context.Context, key string, max int64) bool {
-	key = fmt.Sprintf("%s-%d", key, time.Now().Minute())
+func (r *Resolver) isIngestedByRateLimit(ctx context.Context, key string, max int64, minute int) bool {
+	key = fmt.Sprintf("%s-%d", key, minute)
 
 	// based on https://redis.com/glossary/rate-limiting/
 	count, _ := r.Redis.Client.Get(ctx, key).Int64()
