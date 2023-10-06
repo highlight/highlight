@@ -28,7 +28,9 @@
 		"@highlight-run/next#build": {
 			"dependsOn": [
 				"@highlight-run/node#build",
-				"@highlight-run/opentelemetry-sdk-workers#build"
+				"@highlight-run/opentelemetry-sdk-workers#build",
+				"@highlight-run/react#build",
+				"@highlight-run/sourcemap-uploader#build"
 			],
 			"outputs": ["dist/**"]
 		},
