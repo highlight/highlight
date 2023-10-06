@@ -21,6 +21,7 @@ import { PythonGCPContext } from './backend/python/gcp'
 import { PythonOtherContext } from './backend/python/other'
 import { RubyOtherContent } from './backend/ruby/other'
 import { RubyRailsContent } from './backend/ruby/rails'
+import { JavaOtherContent } from './backend/java/other'
 import { AngularContent } from './frontend/angular'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
@@ -47,6 +48,7 @@ import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
+import { JavaOtherLogContent } from './logging/java/other'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { HostingRenderLogContent } from './logging/hosting/render'
@@ -128,6 +130,7 @@ export enum QuickStartType {
 	File = 'file',
 	RubyOther = 'other',
 	RubyRails = 'rails',
+	JavaOther = 'other',
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
 	HostingRender = 'render',
@@ -204,6 +207,13 @@ export const quickStartContent = {
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
 		},
+		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install error monitoring for your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			[QuickStartType.JavaOther]: JavaOtherContent,
+		},
 	},
 	'backend-logging': {
 		title: 'Select your language',
@@ -255,6 +265,13 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
+		},
+		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			[QuickStartType.JavaOther]: JavaOtherLogContent,
 		},
 		hosting: {
 			title: 'Cloud Hosting Provider',
