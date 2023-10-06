@@ -27,10 +27,12 @@
 		},
 		"@highlight-run/next#build": {
 			"dependsOn": [
+				"@highlight-run/cloudflare#build",
 				"@highlight-run/node#build",
 				"@highlight-run/opentelemetry-sdk-workers#build",
 				"@highlight-run/react#build",
-				"@highlight-run/sourcemap-uploader#build"
+				"@highlight-run/sourcemap-uploader#build",
+				"highlight.run"
 			],
 			"outputs": ["dist/**"]
 		},
