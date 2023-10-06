@@ -74,8 +74,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	}, [defaultIssueTitle, commentText])
 
 	const [containerId, setContainerId] = useState('')
-	const [issueTypeId, setIssueTypeId] = useState('')
-	const [issueProjectId, setIssueProjectId] = useState('')
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -106,22 +104,9 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		],
 	})
 
-	const otherIssueVariables = () => {
-		const variables: { issue_type_id?: string; issue_project_id?: string } =
-			{}
-		if (issueTypeId) {
-			variables.issue_type_id = issueTypeId
-		}
-		if (issueProjectId) {
-			variables.issue_project_id = issueProjectId
-		}
-		return variables
-	}
-
 	const onFinish = async () => {
 		setLoading(true)
 		try {
-			const otherVariables = otherIssueVariables()
 			const issueTitle = form.getValue(form.names.issueTitle)
 			const issueDescription =
 				form.getValue(form.names.issueDescription) ?? ''
@@ -143,7 +128,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						integrations,
 						author_name: author,
 						time: timestamp || 0,
-						...otherVariables,
 					},
 				})
 			} else if (commentType === 'ErrorComment') {
@@ -159,7 +143,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							issue_description: issueDescription,
 							integrations,
 							author_name: author,
-							...otherVariables,
 						},
 					})
 				} else if (errorSecureId) {
@@ -177,7 +160,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							issue_title: issueTitle,
 							issue_team_id: issueTeamId,
 							issue_description: issueDescription,
-							...otherVariables,
 						},
 						refetchQueries: [namedOperations.Query.GetErrorIssues],
 						awaitRefetchQueries: true,
@@ -265,8 +247,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					>
 						{selectedIntegration.containerSelection({
 							setSelectionId: setContainerId,
-							setIssueTypeId,
-							setIssueProjectId,
 							disabled: loading,
 						})}
 						<Form.Input

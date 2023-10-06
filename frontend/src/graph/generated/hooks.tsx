@@ -1925,8 +1925,6 @@ export const CreateSessionCommentDocument = gql`
 		$issue_team_id: String
 		$issue_description: String
 		$additional_context: String
-		$issue_type_id: String
-		$issue_project_id: String
 	) {
 		createSessionComment(
 			project_id: $project_id
@@ -1948,8 +1946,6 @@ export const CreateSessionCommentDocument = gql`
 			issue_team_id: $issue_team_id
 			issue_description: $issue_description
 			additional_context: $additional_context
-			issue_type_id: $issue_type_id
-			issue_project_id: $issue_project_id
 		) {
 			id
 			timestamp
@@ -2009,8 +2005,6 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *      additional_context: // value for 'additional_context'
- *      issue_type_id: // value for 'issue_type_id'
- *      issue_project_id: // value for 'issue_project_id'
  *   },
  * });
  */
@@ -2046,8 +2040,6 @@ export const CreateIssueForSessionCommentDocument = gql`
 		$issue_title: String
 		$issue_team_id: String
 		$issue_description: String
-		$issue_project_id: String
-		$issue_type_id: String
 	) {
 		createIssueForSessionComment(
 			project_id: $project_id
@@ -2060,8 +2052,6 @@ export const CreateIssueForSessionCommentDocument = gql`
 			issue_description: $issue_description
 			issue_team_id: $issue_team_id
 			integrations: $integrations
-			issue_project_id: $issue_project_id
-			issue_type_id: $issue_type_id
 		) {
 			id
 			timestamp
@@ -2112,8 +2102,6 @@ export type CreateIssueForSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
- *      issue_project_id: // value for 'issue_project_id'
- *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -2275,8 +2263,6 @@ export const CreateErrorCommentDocument = gql`
 		$integrations: [IntegrationType]!
 		$issue_title: String
 		$issue_team_id: String
-		$issue_project_id: String
-		$issue_type_id: String
 		$issue_description: String
 	) {
 		createErrorComment(
@@ -2291,8 +2277,6 @@ export const CreateErrorCommentDocument = gql`
 			integrations: $integrations
 			issue_title: $issue_title
 			issue_team_id: $issue_team_id
-			issue_project_id: $issue_project_id
-			issue_type_id: $issue_type_id
 			issue_description: $issue_description
 		) {
 			id
@@ -2336,8 +2320,6 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      integrations: // value for 'integrations'
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
- *      issue_project_id: // value for 'issue_project_id'
- *      issue_type_id: // value for 'issue_type_id'
  *      issue_description: // value for 'issue_description'
  *   },
  * });
@@ -2373,8 +2355,6 @@ export const CreateIssueForErrorCommentDocument = gql`
 		$issue_title: String
 		$issue_team_id: String
 		$issue_description: String
-		$issue_project_id: String
-		$issue_type_id: String
 	) {
 		createIssueForErrorComment(
 			project_id: $project_id
@@ -2386,8 +2366,6 @@ export const CreateIssueForErrorCommentDocument = gql`
 			issue_team_id: $issue_team_id
 			issue_description: $issue_description
 			integrations: $integrations
-			issue_project_id: $issue_project_id
-			issue_type_id: $issue_type_id
 		) {
 			id
 			created_at
@@ -2434,8 +2412,6 @@ export type CreateIssueForErrorCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
- *      issue_project_id: // value for 'issue_project_id'
- *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -10930,11 +10906,6 @@ export const GetJiraIntegrationSettingsDocument = gql`
 			id
 			name
 			key
-			issueTypes {
-				id
-				name
-				description
-			}
 		}
 	}
 `

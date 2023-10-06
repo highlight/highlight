@@ -113,8 +113,6 @@ export const NewCommentForm = ({
 	const [selectedIssueService, setSelectedIssueService] =
 		useState<IntegrationType>()
 	const [containerId, setContainerId] = useState('')
-	const [issueTypeId, setIssueTypeId] = useState('')
-	const [issueProjectId, setIssueProjectId] = useState('')
 	const formStore = useFormStore({
 		defaultValues: {
 			commentText: '',
@@ -170,18 +168,6 @@ export const NewCommentForm = ({
 		return `Issue with this Highlight session`
 	}, [session, errorTitle])
 
-	const otherIssueVariables = () => {
-		const variables: { issue_type_id?: string; issue_project_id?: string } =
-			{}
-		if (issueTypeId) {
-			variables.issue_type_id = issueTypeId
-		}
-		if (issueProjectId) {
-			variables.issue_project_id = issueProjectId
-		}
-		return variables
-	}
-
 	const onCreateErrorComment = async () => {
 		analytics.track('Create Error Comment', {
 			numHighlightAdminMentions: mentionedAdmins.length,
@@ -210,7 +196,6 @@ export const NewCommentForm = ({
 					issue_description: selectedIssueService
 						? issueDescription
 						: null,
-					...otherIssueVariables(),
 				},
 				refetchQueries: [namedOperations.Query.GetErrorComments],
 			})
@@ -263,7 +248,6 @@ export const NewCommentForm = ({
 					additional_context: currentUrl
 						? `*User\'s URL:* <${currentUrl}|${currentUrl}>`
 						: null,
-					...otherIssueVariables(),
 				},
 				refetchQueries: [namedOperations.Query.GetSessionComments],
 			})
@@ -500,8 +484,6 @@ export const NewCommentForm = ({
 							{issueServiceDetail?.containerSelection({
 								disabled: isCreatingComment,
 								setSelectionId: setContainerId,
-								setIssueTypeId,
-								setIssueProjectId,
 							})}
 							<Form.Input
 								name="issueTitle"

@@ -202,17 +202,8 @@ func GetJiraProjects(workspace *model.Workspace, accessToken string) ([]*modelIn
 	return GetJiraIssueCreateMeta(accessToken, *workspace.JiraCloudID)
 }
 
-func getProjectPrefixFromJiraIssue(issue *JiraIssue) string {
-	components := strings.Split(issue.Key, "-")
-	if len(components) > 0 {
-		return components[0]
-	}
-	return ""
-}
-
 func MakeExternalIdForJiraTask(workspace *model.Workspace, issue *JiraIssue) string {
-	project := getProjectPrefixFromJiraIssue(issue)
-	url := fmt.Sprintf("%s/jira/core/projects/%s/board?selectedIssue=%s", *workspace.JiraDomain, project, issue.Key)
+	url := fmt.Sprintf("%s/browse/%s", *workspace.JiraDomain, issue.Key)
 	return url
 }
 

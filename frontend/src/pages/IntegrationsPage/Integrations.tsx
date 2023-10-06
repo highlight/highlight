@@ -24,7 +24,7 @@ import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerInt
 import React from 'react'
 
 import JiraIntegrationConfig from '@/pages/IntegrationsPage/components/JiraIntegration/JiraIntegrationConfig'
-import JiraProjectAndIssueTypeSelector from '@/pages/IntegrationsPage/components/JiraIntegration/JiraProjectAndIssueTypeSelector'
+import JiraProjectAndIssueTypeSelector from '@/pages/IntegrationsPage/components/JiraIntegration/JiraProjectSelector'
 
 import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
 import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
