@@ -26,7 +26,10 @@
 			"outputs": ["dist/**"]
 		},
 		"@highlight-run/next#build": {
-			"dependsOn": ["@highlight-run/opentelemetry-sdk-workers#build"],
+			"dependsOn": [
+				"@highlight-run/node#build",
+				"@highlight-run/opentelemetry-sdk-workers#build"
+			],
 			"outputs": ["dist/**"]
 		},
 		"codegen": {
