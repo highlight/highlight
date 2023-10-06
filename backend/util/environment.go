@@ -1,14 +1,12 @@
 package util
 
 import (
+	"github.com/highlight-run/highlight/backend/model"
 	"os"
 	"strings"
 )
 
 var (
-	env           = os.Getenv("ENVIRONMENT")
-	DevEnv        = "dev"
-	TestEnv       = "test"
 	OnPrem        = os.Getenv("ON_PREM")
 	DopplerConfig = os.Getenv("DOPPLER_CONFIG")
 	InDocker      = os.Getenv("IN_DOCKER")
@@ -16,20 +14,20 @@ var (
 	Version       = os.Getenv("REACT_APP_COMMIT_SHA")
 )
 
-func IsHubspotEnabled() bool {
-	return !IsDevEnv() && !IsTestEnv()
-}
-
 func IsDevEnv() bool {
-	return env == DevEnv
+	return model.IsDevEnv()
 }
 
 func IsTestEnv() bool {
-	return env == TestEnv
+	return model.IsTestEnv()
 }
 
 func IsDevOrTestEnv() bool {
-	return IsTestEnv() || IsDevEnv()
+	return model.IsDevOrTestEnv()
+}
+
+func IsHubspotEnabled() bool {
+	return !IsDevOrTestEnv()
 }
 
 func IsOnPrem() bool {
