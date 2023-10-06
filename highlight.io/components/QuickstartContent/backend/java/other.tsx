@@ -16,15 +16,15 @@ export const JavaOtherContent: QuickStartContent = {
 	entries: [
 		installSdk,
 		initializeSdk,
-/*		{
+		{
 			title: 'Add Highlight logger.',
 			content:
 				'errors will automatically record raised exceptions and send them to Highlight.',
-			code: {
+			code: [{
 				text: `Coming soon`,
 				language: 'java',
-			},
-		},*/
+			}],
+		},
 		verifyErrors,
 		customError,
 		sessionUsage,

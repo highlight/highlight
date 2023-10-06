@@ -4,20 +4,20 @@ import { QuickStartStep } from '../../QuickstartContent'
 export const installSdk: QuickStartStep = {
 	title: 'Install the Highlight Java SDK.',
 	content: 'Add Highlight to your maven pom file.',
-	code: {
+	code: [{
 		text: `<dependency>
 	<groupId>io.highlight</groupId>
 	<artifactId>highlight-sdk</artifactId>
 	<version>latest</version>
 </dependency>`,
-		language: 'xml',
-	},
+		language: 'text',
+	}],
 }
 
 export const initializeSdk: QuickStartStep = {
 	title: 'Initialize the Highlight Java SDK.',
 	content: '`Highlight.init()` initializes the Highlight backend SDK.',
-	code: {
+	code: [{
 		text: `HighlightOptions options = HighlightOptions.builder("<YOUR_PROJECT_ID>")
 	.version("1.0.0")
 	.environment("development")
@@ -25,20 +25,20 @@ export const initializeSdk: QuickStartStep = {
 	
 	Highlight.init(options);`,
 		language: 'java',
-	},
+	}],
 }
 
 export const customError: QuickStartStep = {
 	title: 'Record custom errors. (optional)',
 	content:
 		'If you want to explicitly send an error to Highlight, you can use the `Highlight.captureException()` method.',
-	code: {
+	code: [{
 		text: `try {
 } catch (Exception ex) {
 	Highlight.captureException(exception);
 }`,
 		language: 'java',
-	},
+	}],
 }
 
 export const verifyErrors: QuickStartStep = {
@@ -51,7 +51,7 @@ export const sessionUsage: QuickStartStep = {
 	title: 'Using sessions',
 	content:
 		'When everything is finished and working, you can try to use sessions. You can find more information about the `SESSION_ID` here [parseHeaders](https://www.highlight.io/docs/sdk/nodejs#HparseHeaders)',
-	code: {
+	code: [{
 		text: `HighlightSession session = new HighlightSession("SESSION_ID");
 	session.captureException(new NullPointerException("This shouldn't happen"));
 	session.captureLog(Severity.INFO, "Just another message");
@@ -62,7 +62,7 @@ export const sessionUsage: QuickStartStep = {
 		.attributes(attributes -> attributes.put("application.user.name", "NgLoader"))
 		.build());`,
 		language: 'java',
-	},
+	}],
 }
 
 export const setUpLogging: (slug: string) => QuickStartStep = (slug) => ({
