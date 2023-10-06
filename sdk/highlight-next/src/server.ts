@@ -20,7 +20,7 @@ export const Highlight = PageRouterHighlight
 export function PageRouterHighlight(
 	env: HighlightEnv,
 ): PageRouterHighlightHandler {
-	if (process.env.NEXT_RUNTIME === 'nodejs') {
+	if (isNodeJs()) {
 		return withHighlightNodeJsPageRouter.Highlight(env)
 	} else {
 		throw new Error(
@@ -30,7 +30,7 @@ export function PageRouterHighlight(
 }
 
 export function AppRouterHighlight(env: HighlightEnv) {
-	if (process.env.NEXT_RUNTIME === 'nodejs') {
+	if (isNodeJs()) {
 		return withHighlightNodeJsAppRouter.Highlight(env)
 	} else {
 		throw new Error(
@@ -48,4 +48,11 @@ export function EdgeHighlight(
 	event: NextFetchEvent & ExtendedExecutionContext,
 ) => Promise<Response> {
 	throw new Error(`unsupported NEXT_RUNTIME: ${process.env.NEXT_RUNTIME}`)
+}
+
+function isNodeJs() {
+	return (
+		typeof process.env.NEXT_RUNTIME === 'undefined' ||
+		process.env.NEXT_RUNTIME === 'nodejs'
+	)
 }
