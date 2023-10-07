@@ -128,3 +128,5 @@ jobs:
                   go-version-file: 'backend/go.mod'
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
+            - name: Run fuzz tests
+              run: cd backend && make fuzz

@@ -130,6 +130,7 @@ type ComplexityRoot struct {
 		RageClickCount                    func(childComplexity int) int
 		RageClickRadiusPixels             func(childComplexity int) int
 		RageClickWindowSeconds            func(childComplexity int) int
+		Sampling                          func(childComplexity int) int
 		Secret                            func(childComplexity int) int
 		VerboseID                         func(childComplexity int) int
 		WorkspaceID                       func(childComplexity int) int
@@ -158,6 +159,9 @@ type ComplexityRoot struct {
 		Plan                 func(childComplexity int) int
 		SessionsBillingLimit func(childComplexity int) int
 		SessionsDailyAverage func(childComplexity int) int
+		TracesBillingLimit   func(childComplexity int) int
+		TracesDailyAverage   func(childComplexity int) int
+		TracesMeter          func(childComplexity int) int
 	}
 
 	CategoryHistogramBucket struct {
@@ -731,7 +735,7 @@ type ComplexityRoot struct {
 		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
-		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
+		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
@@ -808,6 +812,7 @@ type ComplexityRoot struct {
 		LogsLimit    func(childComplexity int) int
 		MembersLimit func(childComplexity int) int
 		Quota        func(childComplexity int) int
+		TracesLimit  func(childComplexity int) int
 		Type         func(childComplexity int) int
 	}
 
@@ -1005,6 +1010,21 @@ type ComplexityRoot struct {
 
 	S3File struct {
 		Key func(childComplexity int) int
+	}
+
+	Sampling struct {
+		ErrorExclusionQuery    func(childComplexity int) int
+		ErrorMinuteRateLimit   func(childComplexity int) int
+		ErrorSamplingRate      func(childComplexity int) int
+		LogExclusionQuery      func(childComplexity int) int
+		LogMinuteRateLimit     func(childComplexity int) int
+		LogSamplingRate        func(childComplexity int) int
+		SessionExclusionQuery  func(childComplexity int) int
+		SessionMinuteRateLimit func(childComplexity int) int
+		SessionSamplingRate    func(childComplexity int) int
+		TraceExclusionQuery    func(childComplexity int) int
+		TraceMinuteRateLimit   func(childComplexity int) int
+		TraceSamplingRate      func(childComplexity int) int
 	}
 
 	SanitizedAdmin struct {
@@ -1500,7 +1520,7 @@ type MutationResolver interface {
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) (*model1.Project, error)
-	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*model.AllProjectSettings, error)
+	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model1.AllWorkspaceSettings, error)
 	ExportSession(ctx context.Context, sessionSecureID string) (bool, error)
@@ -2153,6 +2173,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AllProjectSettings.RageClickWindowSeconds(childComplexity), true
 
+	case "AllProjectSettings.sampling":
+		if e.complexity.AllProjectSettings.Sampling == nil {
+			break
+		}
+
+		return e.complexity.AllProjectSettings.Sampling(childComplexity), true
+
 	case "AllProjectSettings.secret":
 		if e.complexity.AllProjectSettings.Secret == nil {
 			break
@@ -2285,6 +2312,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.SessionsDailyAverage(childComplexity), true
+
+	case "BillingDetails.tracesBillingLimit":
+		if e.complexity.BillingDetails.TracesBillingLimit == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.TracesBillingLimit(childComplexity), true
+
+	case "BillingDetails.tracesDailyAverage":
+		if e.complexity.BillingDetails.TracesDailyAverage == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.TracesDailyAverage(childComplexity), true
+
+	case "BillingDetails.tracesMeter":
+		if e.complexity.BillingDetails.TracesMeter == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.TracesMeter(childComplexity), true
 
 	case "CategoryHistogramBucket.category":
 		if e.complexity.CategoryHistogramBucket.Category == nil {
@@ -5091,7 +5139,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int)), true
+		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int), args["sampling"].(*model.SamplingInput)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -5749,6 +5797,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Quota(childComplexity), true
+
+	case "Plan.tracesLimit":
+		if e.complexity.Plan.TracesLimit == nil {
+			break
+		}
+
+		return e.complexity.Plan.TracesLimit(childComplexity), true
 
 	case "Plan.type":
 		if e.complexity.Plan.Type == nil {
@@ -7661,6 +7716,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.S3File.Key(childComplexity), true
+
+	case "Sampling.error_exclusion_query":
+		if e.complexity.Sampling.ErrorExclusionQuery == nil {
+			break
+		}
+
+		return e.complexity.Sampling.ErrorExclusionQuery(childComplexity), true
+
+	case "Sampling.error_minute_rate_limit":
+		if e.complexity.Sampling.ErrorMinuteRateLimit == nil {
+			break
+		}
+
+		return e.complexity.Sampling.ErrorMinuteRateLimit(childComplexity), true
+
+	case "Sampling.error_sampling_rate":
+		if e.complexity.Sampling.ErrorSamplingRate == nil {
+			break
+		}
+
+		return e.complexity.Sampling.ErrorSamplingRate(childComplexity), true
+
+	case "Sampling.log_exclusion_query":
+		if e.complexity.Sampling.LogExclusionQuery == nil {
+			break
+		}
+
+		return e.complexity.Sampling.LogExclusionQuery(childComplexity), true
+
+	case "Sampling.log_minute_rate_limit":
+		if e.complexity.Sampling.LogMinuteRateLimit == nil {
+			break
+		}
+
+		return e.complexity.Sampling.LogMinuteRateLimit(childComplexity), true
+
+	case "Sampling.log_sampling_rate":
+		if e.complexity.Sampling.LogSamplingRate == nil {
+			break
+		}
+
+		return e.complexity.Sampling.LogSamplingRate(childComplexity), true
+
+	case "Sampling.session_exclusion_query":
+		if e.complexity.Sampling.SessionExclusionQuery == nil {
+			break
+		}
+
+		return e.complexity.Sampling.SessionExclusionQuery(childComplexity), true
+
+	case "Sampling.session_minute_rate_limit":
+		if e.complexity.Sampling.SessionMinuteRateLimit == nil {
+			break
+		}
+
+		return e.complexity.Sampling.SessionMinuteRateLimit(childComplexity), true
+
+	case "Sampling.session_sampling_rate":
+		if e.complexity.Sampling.SessionSamplingRate == nil {
+			break
+		}
+
+		return e.complexity.Sampling.SessionSamplingRate(childComplexity), true
+
+	case "Sampling.trace_exclusion_query":
+		if e.complexity.Sampling.TraceExclusionQuery == nil {
+			break
+		}
+
+		return e.complexity.Sampling.TraceExclusionQuery(childComplexity), true
+
+	case "Sampling.trace_minute_rate_limit":
+		if e.complexity.Sampling.TraceMinuteRateLimit == nil {
+			break
+		}
+
+		return e.complexity.Sampling.TraceMinuteRateLimit(childComplexity), true
+
+	case "Sampling.trace_sampling_rate":
+		if e.complexity.Sampling.TraceSamplingRate == nil {
+			break
+		}
+
+		return e.complexity.Sampling.TraceSamplingRate(childComplexity), true
 
 	case "SanitizedAdmin.email":
 		if e.complexity.SanitizedAdmin.Email == nil {
@@ -9732,6 +9871,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputMetricTagFilterInput,
 		ec.unmarshalInputNetworkHistogramParamsInput,
 		ec.unmarshalInputQueryInput,
+		ec.unmarshalInputSamplingInput,
 		ec.unmarshalInputSanitizedAdminInput,
 		ec.unmarshalInputSanitizedSlackChannelInput,
 		ec.unmarshalInputSearchParamsInput,
@@ -9844,6 +9984,9 @@ enum SessionExcludedReason {
 	IgnoredUser
 	BillingQuotaExceeded
 	RetentionPeriodExceeded
+	Sampled
+	RateLimitMinute
+	ExclusionFilter
 }
 
 type Session {
@@ -9947,12 +10090,15 @@ type BillingDetails {
 	membersMeter: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	tracesMeter: Int64!
 	sessionsDailyAverage: Float!
 	errorsDailyAverage: Float!
 	logsDailyAverage: Float!
+	tracesDailyAverage: Float!
 	sessionsBillingLimit: Int64
 	errorsBillingLimit: Int64
 	logsBillingLimit: Int64
+	tracesBillingLimit: Int64
 }
 
 type Invoice {
@@ -9979,6 +10125,7 @@ type Plan {
 	membersLimit: Int
 	errorsLimit: Int!
 	logsLimit: Int!
+	tracesLimit: Int!
 }
 
 enum PlanType {
@@ -9994,6 +10141,7 @@ enum ProductType {
 	Sessions
 	Errors
 	Logs
+	Traces
 }
 
 enum SubscriptionInterval {
@@ -10094,6 +10242,36 @@ type ClickUpTask {
 type HeightTask {
 	id: String!
 	name: String!
+}
+
+type Sampling {
+	session_sampling_rate: Float!
+	error_sampling_rate: Float!
+	log_sampling_rate: Float!
+	trace_sampling_rate: Float!
+	session_minute_rate_limit: Int64!
+	error_minute_rate_limit: Int64!
+	log_minute_rate_limit: Int64!
+	trace_minute_rate_limit: Int64!
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
+}
+
+input SamplingInput {
+	session_sampling_rate: Float
+	error_sampling_rate: Float
+	log_sampling_rate: Float
+	trace_sampling_rate: Float
+	session_minute_rate_limit: Int64
+	error_minute_rate_limit: Int64
+	log_minute_rate_limit: Int64
+	trace_minute_rate_limit: Int64
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
 }
 
 type SocialLink {
@@ -10206,6 +10384,7 @@ type AllProjectSettings {
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
+	sampling: Sampling!
 }
 
 type AllWorkspaceSettings {
@@ -10613,6 +10792,29 @@ enum ReservedTraceKey {
 	duration
 	service_name
 	service_version
+}
+
+enum ReservedErrorObjectKey {
+	event
+	log_cursor
+	payload
+	request_id
+	service_name
+	service_version
+	session_secure_id
+	source
+	span_id
+	stackTrace
+	timestamp
+	trace_id
+	type
+	url
+}
+
+enum ReservedSessionKey {
+	environment
+	service_name
+	app_version
 }
 
 enum LogSource {
@@ -11791,6 +11993,7 @@ type Mutation {
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
 		autoResolveStaleErrorsDayInterval: Int
+		sampling: SamplingInput
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(
@@ -13631,6 +13834,15 @@ func (ec *executionContext) field_Mutation_editProjectSettings_args(ctx context.
 		}
 	}
 	args["autoResolveStaleErrorsDayInterval"] = arg11
+	var arg12 *model.SamplingInput
+	if tmp, ok := rawArgs["sampling"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sampling"))
+		arg12, err = ec.unmarshalOSamplingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSamplingInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sampling"] = arg12
 	return args, nil
 }
 
@@ -20742,6 +20954,76 @@ func (ec *executionContext) fieldContext_AllProjectSettings_autoResolveStaleErro
 	return fc, nil
 }
 
+func (ec *executionContext) _AllProjectSettings_sampling(ctx context.Context, field graphql.CollectedField, obj *model.AllProjectSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllProjectSettings_sampling(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sampling, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Sampling)
+	fc.Result = res
+	return ec.marshalNSampling2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSampling(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllProjectSettings_sampling(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllProjectSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "session_sampling_rate":
+				return ec.fieldContext_Sampling_session_sampling_rate(ctx, field)
+			case "error_sampling_rate":
+				return ec.fieldContext_Sampling_error_sampling_rate(ctx, field)
+			case "log_sampling_rate":
+				return ec.fieldContext_Sampling_log_sampling_rate(ctx, field)
+			case "trace_sampling_rate":
+				return ec.fieldContext_Sampling_trace_sampling_rate(ctx, field)
+			case "session_minute_rate_limit":
+				return ec.fieldContext_Sampling_session_minute_rate_limit(ctx, field)
+			case "error_minute_rate_limit":
+				return ec.fieldContext_Sampling_error_minute_rate_limit(ctx, field)
+			case "log_minute_rate_limit":
+				return ec.fieldContext_Sampling_log_minute_rate_limit(ctx, field)
+			case "trace_minute_rate_limit":
+				return ec.fieldContext_Sampling_trace_minute_rate_limit(ctx, field)
+			case "session_exclusion_query":
+				return ec.fieldContext_Sampling_session_exclusion_query(ctx, field)
+			case "error_exclusion_query":
+				return ec.fieldContext_Sampling_error_exclusion_query(ctx, field)
+			case "log_exclusion_query":
+				return ec.fieldContext_Sampling_log_exclusion_query(ctx, field)
+			case "trace_exclusion_query":
+				return ec.fieldContext_Sampling_trace_exclusion_query(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Sampling", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AllWorkspaceSettings_workspace_id(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AllWorkspaceSettings_workspace_id(ctx, field)
 	if err != nil {
@@ -21013,6 +21295,8 @@ func (ec *executionContext) fieldContext_BillingDetails_plan(ctx context.Context
 				return ec.fieldContext_Plan_errorsLimit(ctx, field)
 			case "logsLimit":
 				return ec.fieldContext_Plan_logsLimit(ctx, field)
+			case "tracesLimit":
+				return ec.fieldContext_Plan_tracesLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -21196,6 +21480,50 @@ func (ec *executionContext) fieldContext_BillingDetails_logsMeter(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _BillingDetails_tracesMeter(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_tracesMeter(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesMeter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_tracesMeter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BillingDetails_sessionsDailyAverage(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
 	if err != nil {
@@ -21328,6 +21656,50 @@ func (ec *executionContext) fieldContext_BillingDetails_logsDailyAverage(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _BillingDetails_tracesDailyAverage(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_tracesDailyAverage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesDailyAverage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_tracesDailyAverage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BillingDetails_sessionsBillingLimit(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BillingDetails_sessionsBillingLimit(ctx, field)
 	if err != nil {
@@ -21439,6 +21811,47 @@ func (ec *executionContext) _BillingDetails_logsBillingLimit(ctx context.Context
 }
 
 func (ec *executionContext) fieldContext_BillingDetails_logsBillingLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillingDetails_tracesBillingLimit(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_tracesBillingLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesBillingLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_tracesBillingLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BillingDetails",
 		Field:      field,
@@ -37182,7 +37595,7 @@ func (ec *executionContext) _Mutation_editProjectSettings(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool), fc.Args["autoResolveStaleErrorsDayInterval"].(*int))
+		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool), fc.Args["autoResolveStaleErrorsDayInterval"].(*int), fc.Args["sampling"].(*model.SamplingInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37233,6 +37646,8 @@ func (ec *executionContext) fieldContext_Mutation_editProjectSettings(ctx contex
 				return ec.fieldContext_AllProjectSettings_filterSessionsWithoutError(ctx, field)
 			case "autoResolveStaleErrorsDayInterval":
 				return ec.fieldContext_AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx, field)
+			case "sampling":
+				return ec.fieldContext_AllProjectSettings_sampling(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllProjectSettings", field.Name)
 		},
@@ -43104,6 +43519,50 @@ func (ec *executionContext) fieldContext_Plan_logsLimit(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Plan_tracesLimit(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_tracesLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_tracesLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Project_id(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Project_id(ctx, field)
 	if err != nil {
@@ -47448,18 +47907,24 @@ func (ec *executionContext) fieldContext_Query_billingDetailsForProject(ctx cont
 				return ec.fieldContext_BillingDetails_errorsMeter(ctx, field)
 			case "logsMeter":
 				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
+			case "tracesMeter":
+				return ec.fieldContext_BillingDetails_tracesMeter(ctx, field)
 			case "sessionsDailyAverage":
 				return ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
 			case "errorsDailyAverage":
 				return ec.fieldContext_BillingDetails_errorsDailyAverage(ctx, field)
 			case "logsDailyAverage":
 				return ec.fieldContext_BillingDetails_logsDailyAverage(ctx, field)
+			case "tracesDailyAverage":
+				return ec.fieldContext_BillingDetails_tracesDailyAverage(ctx, field)
 			case "sessionsBillingLimit":
 				return ec.fieldContext_BillingDetails_sessionsBillingLimit(ctx, field)
 			case "errorsBillingLimit":
 				return ec.fieldContext_BillingDetails_errorsBillingLimit(ctx, field)
 			case "logsBillingLimit":
 				return ec.fieldContext_BillingDetails_logsBillingLimit(ctx, field)
+			case "tracesBillingLimit":
+				return ec.fieldContext_BillingDetails_tracesBillingLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -47526,18 +47991,24 @@ func (ec *executionContext) fieldContext_Query_billingDetails(ctx context.Contex
 				return ec.fieldContext_BillingDetails_errorsMeter(ctx, field)
 			case "logsMeter":
 				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
+			case "tracesMeter":
+				return ec.fieldContext_BillingDetails_tracesMeter(ctx, field)
 			case "sessionsDailyAverage":
 				return ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
 			case "errorsDailyAverage":
 				return ec.fieldContext_BillingDetails_errorsDailyAverage(ctx, field)
 			case "logsDailyAverage":
 				return ec.fieldContext_BillingDetails_logsDailyAverage(ctx, field)
+			case "tracesDailyAverage":
+				return ec.fieldContext_BillingDetails_tracesDailyAverage(ctx, field)
 			case "sessionsBillingLimit":
 				return ec.fieldContext_BillingDetails_sessionsBillingLimit(ctx, field)
 			case "errorsBillingLimit":
 				return ec.fieldContext_BillingDetails_errorsBillingLimit(ctx, field)
 			case "logsBillingLimit":
 				return ec.fieldContext_BillingDetails_logsBillingLimit(ctx, field)
+			case "tracesBillingLimit":
+				return ec.fieldContext_BillingDetails_tracesBillingLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -50198,6 +50669,8 @@ func (ec *executionContext) fieldContext_Query_projectSettings(ctx context.Conte
 				return ec.fieldContext_AllProjectSettings_filterSessionsWithoutError(ctx, field)
 			case "autoResolveStaleErrorsDayInterval":
 				return ec.fieldContext_AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx, field)
+			case "sampling":
+				return ec.fieldContext_AllProjectSettings_sampling(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllProjectSettings", field.Name)
 		},
@@ -54176,6 +54649,522 @@ func (ec *executionContext) _S3File_key(ctx context.Context, field graphql.Colle
 func (ec *executionContext) fieldContext_S3File_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "S3File",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_session_sampling_rate(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_session_sampling_rate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionSamplingRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_session_sampling_rate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_error_sampling_rate(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_error_sampling_rate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorSamplingRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_error_sampling_rate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_log_sampling_rate(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_log_sampling_rate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogSamplingRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_log_sampling_rate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_trace_sampling_rate(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_trace_sampling_rate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TraceSamplingRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_trace_sampling_rate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_session_minute_rate_limit(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_session_minute_rate_limit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionMinuteRateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_session_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_error_minute_rate_limit(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_error_minute_rate_limit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorMinuteRateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_error_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_log_minute_rate_limit(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_log_minute_rate_limit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogMinuteRateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_log_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_trace_minute_rate_limit(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_trace_minute_rate_limit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TraceMinuteRateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_trace_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_session_exclusion_query(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_session_exclusion_query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionExclusionQuery, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_session_exclusion_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_error_exclusion_query(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_error_exclusion_query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorExclusionQuery, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_error_exclusion_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_log_exclusion_query(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_log_exclusion_query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogExclusionQuery, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_log_exclusion_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_trace_exclusion_query(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_trace_exclusion_query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TraceExclusionQuery, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_trace_exclusion_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -70232,6 +71221,122 @@ func (ec *executionContext) unmarshalInputQueryInput(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj interface{}) (model.SamplingInput, error) {
+	var it model.SamplingInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"session_sampling_rate", "error_sampling_rate", "log_sampling_rate", "trace_sampling_rate", "session_minute_rate_limit", "error_minute_rate_limit", "log_minute_rate_limit", "trace_minute_rate_limit", "session_exclusion_query", "error_exclusion_query", "log_exclusion_query", "trace_exclusion_query"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "session_sampling_rate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_sampling_rate"))
+			it.SessionSamplingRate, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "error_sampling_rate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_sampling_rate"))
+			it.ErrorSamplingRate, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "log_sampling_rate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_sampling_rate"))
+			it.LogSamplingRate, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "trace_sampling_rate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace_sampling_rate"))
+			it.TraceSamplingRate, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "session_minute_rate_limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_minute_rate_limit"))
+			it.SessionMinuteRateLimit, err = ec.unmarshalOInt642ᚖint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "error_minute_rate_limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_minute_rate_limit"))
+			it.ErrorMinuteRateLimit, err = ec.unmarshalOInt642ᚖint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "log_minute_rate_limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_minute_rate_limit"))
+			it.LogMinuteRateLimit, err = ec.unmarshalOInt642ᚖint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "trace_minute_rate_limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace_minute_rate_limit"))
+			it.TraceMinuteRateLimit, err = ec.unmarshalOInt642ᚖint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "session_exclusion_query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_exclusion_query"))
+			it.SessionExclusionQuery, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "error_exclusion_query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_exclusion_query"))
+			it.ErrorExclusionQuery, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "log_exclusion_query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("log_exclusion_query"))
+			it.LogExclusionQuery, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "trace_exclusion_query":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace_exclusion_query"))
+			it.TraceExclusionQuery, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSanitizedAdminInput(ctx context.Context, obj interface{}) (model.SanitizedAdminInput, error) {
 	var it model.SanitizedAdminInput
 	asMap := map[string]interface{}{}
@@ -71316,6 +72421,13 @@ func (ec *executionContext) _AllProjectSettings(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "sampling":
+
+			out.Values[i] = ec._AllProjectSettings_sampling(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -71449,6 +72561,13 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "tracesMeter":
+
+			out.Values[i] = ec._BillingDetails_tracesMeter(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "sessionsDailyAverage":
 
 			out.Values[i] = ec._BillingDetails_sessionsDailyAverage(ctx, field, obj)
@@ -71470,6 +72589,13 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "tracesDailyAverage":
+
+			out.Values[i] = ec._BillingDetails_tracesDailyAverage(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "sessionsBillingLimit":
 
 			out.Values[i] = ec._BillingDetails_sessionsBillingLimit(ctx, field, obj)
@@ -71481,6 +72607,10 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 		case "logsBillingLimit":
 
 			out.Values[i] = ec._BillingDetails_logsBillingLimit(ctx, field, obj)
+
+		case "tracesBillingLimit":
+
+			out.Values[i] = ec._BillingDetails_tracesBillingLimit(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -75994,6 +77124,13 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "tracesLimit":
+
+			out.Values[i] = ec._Plan_tracesLimit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -79250,6 +80387,99 @@ func (ec *executionContext) _S3File(ctx context.Context, sel ast.SelectionSet, o
 		case "key":
 
 			out.Values[i] = ec._S3File_key(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var samplingImplementors = []string{"Sampling"}
+
+func (ec *executionContext) _Sampling(ctx context.Context, sel ast.SelectionSet, obj *model.Sampling) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, samplingImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Sampling")
+		case "session_sampling_rate":
+
+			out.Values[i] = ec._Sampling_session_sampling_rate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "error_sampling_rate":
+
+			out.Values[i] = ec._Sampling_error_sampling_rate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "log_sampling_rate":
+
+			out.Values[i] = ec._Sampling_log_sampling_rate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "trace_sampling_rate":
+
+			out.Values[i] = ec._Sampling_trace_sampling_rate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_minute_rate_limit":
+
+			out.Values[i] = ec._Sampling_session_minute_rate_limit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "error_minute_rate_limit":
+
+			out.Values[i] = ec._Sampling_error_minute_rate_limit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "log_minute_rate_limit":
+
+			out.Values[i] = ec._Sampling_log_minute_rate_limit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "trace_minute_rate_limit":
+
+			out.Values[i] = ec._Sampling_trace_minute_rate_limit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_exclusion_query":
+
+			out.Values[i] = ec._Sampling_session_exclusion_query(ctx, field, obj)
+
+		case "error_exclusion_query":
+
+			out.Values[i] = ec._Sampling_error_exclusion_query(ctx, field, obj)
+
+		case "log_exclusion_query":
+
+			out.Values[i] = ec._Sampling_log_exclusion_query(ctx, field, obj)
+
+		case "trace_exclusion_query":
+
+			out.Values[i] = ec._Sampling_trace_exclusion_query(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -85696,6 +86926,16 @@ func (ec *executionContext) marshalNS3File2ᚖgithubᚗcomᚋhighlightᚑrunᚋh
 	return ec._S3File(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSampling2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSampling(ctx context.Context, sel ast.SelectionSet, v *model.Sampling) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Sampling(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNSanitizedAdmin2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v model.SanitizedAdmin) graphql.Marshaler {
 	return ec._SanitizedAdmin(ctx, sel, &v)
 }
@@ -88855,6 +90095,14 @@ func (ec *executionContext) marshalORetentionPeriod2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOSamplingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSamplingInput(ctx context.Context, v interface{}) (*model.SamplingInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSamplingInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedAdmin) graphql.Marshaler {

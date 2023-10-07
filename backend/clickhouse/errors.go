@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"strings"
 	"time"
 
@@ -544,4 +546,30 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 	}
 
 	return bucketTimes, totals, nil
+}
+
+var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
+	tableName: ErrorObjectsTable,
+	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+		modelInputs.ReservedErrorObjectKeySessionSecureID: "SessionSecureID",
+		modelInputs.ReservedErrorObjectKeyRequestID:       "RequestID",
+		modelInputs.ReservedErrorObjectKeyTraceID:         "TraceID",
+		modelInputs.ReservedErrorObjectKeySpanID:          "SpanID",
+		modelInputs.ReservedErrorObjectKeyLogCursor:       "LogCursor",
+		modelInputs.ReservedErrorObjectKeyEvent:           "Event",
+		modelInputs.ReservedErrorObjectKeyType:            "Type",
+		modelInputs.ReservedErrorObjectKeyURL:             "URL",
+		modelInputs.ReservedErrorObjectKeySource:          "Source",
+		modelInputs.ReservedErrorObjectKeyStackTrace:      "StackTrace",
+		modelInputs.ReservedErrorObjectKeyTimestamp:       "Timestamp",
+		modelInputs.ReservedErrorObjectKeyPayload:         "Payload",
+		modelInputs.ReservedErrorObjectKeyServiceName:     "Service.Name",
+		modelInputs.ReservedErrorObjectKeyServiceVersion:  "Service.Version",
+	},
+	bodyColumn:   "Event",
+	reservedKeys: modelInputs.AllReservedErrorObjectKey,
+}
+
+func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters *queryparser.Filters) bool {
+	return matchesQuery(errorObject, errorObjectsTableConfig, filters)
 }

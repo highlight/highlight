@@ -98,6 +98,7 @@ type AllProjectSettings struct {
 	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
 	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
 	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
+	Sampling                          *Sampling      `json:"sampling"`
 }
 
 type AverageSessionLength struct {
@@ -110,12 +111,15 @@ type BillingDetails struct {
 	MembersMeter         int64   `json:"membersMeter"`
 	ErrorsMeter          int64   `json:"errorsMeter"`
 	LogsMeter            int64   `json:"logsMeter"`
+	TracesMeter          int64   `json:"tracesMeter"`
 	SessionsDailyAverage float64 `json:"sessionsDailyAverage"`
 	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
 	LogsDailyAverage     float64 `json:"logsDailyAverage"`
+	TracesDailyAverage   float64 `json:"tracesDailyAverage"`
 	SessionsBillingLimit *int64  `json:"sessionsBillingLimit"`
 	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit"`
 	LogsBillingLimit     *int64  `json:"logsBillingLimit"`
+	TracesBillingLimit   *int64  `json:"tracesBillingLimit"`
 }
 
 type CategoryHistogramBucket struct {
@@ -568,6 +572,7 @@ type Plan struct {
 	MembersLimit *int                 `json:"membersLimit"`
 	ErrorsLimit  int                  `json:"errorsLimit"`
 	LogsLimit    int                  `json:"logsLimit"`
+	TracesLimit  int                  `json:"tracesLimit"`
 }
 
 type QueryInput struct {
@@ -595,6 +600,36 @@ type ReferrerTablePayload struct {
 
 type S3File struct {
 	Key *string `json:"key"`
+}
+
+type Sampling struct {
+	SessionSamplingRate    float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
+	LogSamplingRate        float64 `json:"log_sampling_rate"`
+	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
+	SessionMinuteRateLimit int64   `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   int64   `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     int64   `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   int64   `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string `json:"error_exclusion_query"`
+	LogExclusionQuery      *string `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string `json:"trace_exclusion_query"`
+}
+
+type SamplingInput struct {
+	SessionSamplingRate    *float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate      *float64 `json:"error_sampling_rate"`
+	LogSamplingRate        *float64 `json:"log_sampling_rate"`
+	TraceSamplingRate      *float64 `json:"trace_sampling_rate"`
+	SessionMinuteRateLimit *int64   `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64   `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64   `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64   `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string  `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string  `json:"error_exclusion_query"`
+	LogExclusionQuery      *string  `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string  `json:"trace_exclusion_query"`
 }
 
 type SanitizedAdmin struct {
@@ -1539,17 +1574,19 @@ const (
 	ProductTypeSessions ProductType = "Sessions"
 	ProductTypeErrors   ProductType = "Errors"
 	ProductTypeLogs     ProductType = "Logs"
+	ProductTypeTraces   ProductType = "Traces"
 )
 
 var AllProductType = []ProductType{
 	ProductTypeSessions,
 	ProductTypeErrors,
 	ProductTypeLogs,
+	ProductTypeTraces,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces:
 		return true
 	}
 	return false
@@ -1573,6 +1610,71 @@ func (e *ProductType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ProductType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedErrorObjectKey string
+
+const (
+	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
+	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
+	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
+	ReservedErrorObjectKeyRequestID       ReservedErrorObjectKey = "request_id"
+	ReservedErrorObjectKeyServiceName     ReservedErrorObjectKey = "service_name"
+	ReservedErrorObjectKeyServiceVersion  ReservedErrorObjectKey = "service_version"
+	ReservedErrorObjectKeySessionSecureID ReservedErrorObjectKey = "session_secure_id"
+	ReservedErrorObjectKeySource          ReservedErrorObjectKey = "source"
+	ReservedErrorObjectKeySpanID          ReservedErrorObjectKey = "span_id"
+	ReservedErrorObjectKeyStackTrace      ReservedErrorObjectKey = "stackTrace"
+	ReservedErrorObjectKeyTimestamp       ReservedErrorObjectKey = "timestamp"
+	ReservedErrorObjectKeyTraceID         ReservedErrorObjectKey = "trace_id"
+	ReservedErrorObjectKeyType            ReservedErrorObjectKey = "type"
+	ReservedErrorObjectKeyURL             ReservedErrorObjectKey = "url"
+)
+
+var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyEvent,
+	ReservedErrorObjectKeyLogCursor,
+	ReservedErrorObjectKeyPayload,
+	ReservedErrorObjectKeyRequestID,
+	ReservedErrorObjectKeyServiceName,
+	ReservedErrorObjectKeyServiceVersion,
+	ReservedErrorObjectKeySessionSecureID,
+	ReservedErrorObjectKeySource,
+	ReservedErrorObjectKeySpanID,
+	ReservedErrorObjectKeyStackTrace,
+	ReservedErrorObjectKeyTimestamp,
+	ReservedErrorObjectKeyTraceID,
+	ReservedErrorObjectKeyType,
+	ReservedErrorObjectKeyURL,
+}
+
+func (e ReservedErrorObjectKey) IsValid() bool {
+	switch e {
+	case ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+		return true
+	}
+	return false
+}
+
+func (e ReservedErrorObjectKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedErrorObjectKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedErrorObjectKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedErrorObjectKey", str)
+	}
+	return nil
+}
+
+func (e ReservedErrorObjectKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1627,6 +1729,49 @@ func (e *ReservedLogKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReservedLogKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedSessionKey string
+
+const (
+	ReservedSessionKeyEnvironment ReservedSessionKey = "environment"
+	ReservedSessionKeyServiceName ReservedSessionKey = "service_name"
+	ReservedSessionKeyAppVersion  ReservedSessionKey = "app_version"
+)
+
+var AllReservedSessionKey = []ReservedSessionKey{
+	ReservedSessionKeyEnvironment,
+	ReservedSessionKeyServiceName,
+	ReservedSessionKeyAppVersion,
+}
+
+func (e ReservedSessionKey) IsValid() bool {
+	switch e {
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion:
+		return true
+	}
+	return false
+}
+
+func (e ReservedSessionKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedSessionKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedSessionKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedSessionKey", str)
+	}
+	return nil
+}
+
+func (e ReservedSessionKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1883,6 +2028,9 @@ const (
 	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 	SessionExcludedReasonBillingQuotaExceeded      SessionExcludedReason = "BillingQuotaExceeded"
 	SessionExcludedReasonRetentionPeriodExceeded   SessionExcludedReason = "RetentionPeriodExceeded"
+	SessionExcludedReasonSampled                   SessionExcludedReason = "Sampled"
+	SessionExcludedReasonRateLimitMinute           SessionExcludedReason = "RateLimitMinute"
+	SessionExcludedReasonExclusionFilter           SessionExcludedReason = "ExclusionFilter"
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
@@ -1895,11 +2043,14 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonIgnoredUser,
 	SessionExcludedReasonBillingQuotaExceeded,
 	SessionExcludedReasonRetentionPeriodExceeded,
+	SessionExcludedReasonSampled,
+	SessionExcludedReasonRateLimitMinute,
+	SessionExcludedReasonExclusionFilter,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser, SessionExcludedReasonBillingQuotaExceeded, SessionExcludedReasonRetentionPeriodExceeded:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser, SessionExcludedReasonBillingQuotaExceeded, SessionExcludedReasonRetentionPeriodExceeded, SessionExcludedReasonSampled, SessionExcludedReasonRateLimitMinute, SessionExcludedReasonExclusionFilter:
 		return true
 	}
 	return false

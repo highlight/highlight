@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	model2 "github.com/highlight-run/highlight/backend/model"
 	"io"
 	"net/http"
 	"strings"
@@ -46,8 +47,9 @@ func lg(ctx context.Context, fields *extractedFields) *log.Entry {
 }
 
 func cast[T string | int64 | float64](v interface{}, fallback T) T {
+	var empty T
 	c, ok := v.(T)
-	if !ok {
+	if !ok || c == empty {
 		return fallback
 	}
 	return c
@@ -145,8 +147,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
-	var traceSpans = make(map[string][]*clickhouse.TraceRow)
 
+	var traceSpans = make(map[string][]*clickhouse.TraceRow)
 	var traceMetrics = make(map[string][]*model.MetricInput)
 
 	spans := req.Traces().ResourceSpans()
@@ -287,12 +289,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				SessionSecureID: &sessionID,
-				Errors:          errors,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, errorObject := range errors {
+			if !o.resolver.IsErrorIngested(ctx, 0, errorObject) {
+				continue
+			}
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					SessionSecureID: &sessionID,
+					Errors:          []*model.BackendErrorObjectInput{errorObject},
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel session errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -301,12 +310,21 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, errors := range projectErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, "", &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				ProjectVerboseID: &projectID,
-				Errors:           errors,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, errorObject := range errors {
+			// cannot return error since we already perform this check for all project errors in `extractFields`
+			projectIDInt, _ := model2.FromVerboseID(projectID)
+			if !o.resolver.IsErrorIngested(ctx, projectIDInt, errorObject) {
+				continue
+			}
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					ProjectVerboseID: &projectID,
+					Errors:           []*model.BackendErrorObjectInput{errorObject},
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, "", messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -315,12 +333,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, metrics := range traceMetrics {
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
-			Type: kafkaqueue.PushMetrics,
-			PushMetrics: &kafkaqueue.PushMetricsArgs{
-				SessionSecureID: sessionID,
-				Metrics:         metrics,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, metric := range metrics {
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushMetrics,
+				PushMetrics: &kafkaqueue.PushMetricsArgs{
+					SessionSecureID: sessionID,
+					Metrics:         []*model.MetricInput{metric},
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -434,6 +456,9 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for _, logRows := range projectLogs {
 		var messages []*kafkaqueue.Message
 		for _, logRow := range logRows {
+			if !o.resolver.IsLogIngested(ctx, logRow) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushLogs,
 				PushLogs: &kafkaqueue.PushLogsArgs{
@@ -452,6 +477,9 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	for traceID, traceRows := range traceRows {
 		var messages []*kafkaqueue.Message
 		for _, traceRow := range traceRows {
+			if !o.resolver.IsTraceIngested(ctx, traceRow) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushTraces,
 				PushTraces: &kafkaqueue.PushTracesArgs{

@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"time"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -37,6 +38,7 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
+	bodyColumn:       "Body",
 	attributesColumn: "TraceAttributes",
 	selectColumns: []string{
 		"Timestamp",
@@ -410,4 +412,8 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+}
+
+func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {
+	return matchesQuery(trace, tracesTableConfig, filters)
 }

@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"math"
 	"time"
 
@@ -36,6 +37,7 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	tableName:        LogsTable,
 	keysToColumns:    logKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedLogKey,
+	bodyColumn:       "Body",
 	attributesColumn: "LogAttributes",
 	selectColumns: []string{
 		"Timestamp",
@@ -56,6 +58,7 @@ var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	tableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
 	keysToColumns:    logKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedLogKey,
+	bodyColumn:       "Body",
 	attributesColumn: "LogAttributes",
 }
 
@@ -413,4 +416,8 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate)
+}
+
+func LogMatchesQuery(logRow *LogRow, filters *queryparser.Filters) bool {
+	return matchesQuery(logRow, logsTableConfig, filters)
 }

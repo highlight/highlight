@@ -24,6 +24,9 @@ enum SessionExcludedReason {
 	IgnoredUser
 	BillingQuotaExceeded
 	RetentionPeriodExceeded
+	Sampled
+	RateLimitMinute
+	ExclusionFilter
 }
 
 type Session {
@@ -127,12 +130,15 @@ type BillingDetails {
 	membersMeter: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	tracesMeter: Int64!
 	sessionsDailyAverage: Float!
 	errorsDailyAverage: Float!
 	logsDailyAverage: Float!
+	tracesDailyAverage: Float!
 	sessionsBillingLimit: Int64
 	errorsBillingLimit: Int64
 	logsBillingLimit: Int64
+	tracesBillingLimit: Int64
 }
 
 type Invoice {
@@ -159,6 +165,7 @@ type Plan {
 	membersLimit: Int
 	errorsLimit: Int!
 	logsLimit: Int!
+	tracesLimit: Int!
 }
 
 enum PlanType {
@@ -174,6 +181,7 @@ enum ProductType {
 	Sessions
 	Errors
 	Logs
+	Traces
 }
 
 enum SubscriptionInterval {
@@ -274,6 +282,36 @@ type ClickUpTask {
 type HeightTask {
 	id: String!
 	name: String!
+}
+
+type Sampling {
+	session_sampling_rate: Float!
+	error_sampling_rate: Float!
+	log_sampling_rate: Float!
+	trace_sampling_rate: Float!
+	session_minute_rate_limit: Int64!
+	error_minute_rate_limit: Int64!
+	log_minute_rate_limit: Int64!
+	trace_minute_rate_limit: Int64!
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
+}
+
+input SamplingInput {
+	session_sampling_rate: Float
+	error_sampling_rate: Float
+	log_sampling_rate: Float
+	trace_sampling_rate: Float
+	session_minute_rate_limit: Int64
+	error_minute_rate_limit: Int64
+	log_minute_rate_limit: Int64
+	trace_minute_rate_limit: Int64
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
 }
 
 type SocialLink {
@@ -386,6 +424,7 @@ type AllProjectSettings {
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
+	sampling: Sampling!
 }
 
 type AllWorkspaceSettings {
@@ -793,6 +832,29 @@ enum ReservedTraceKey {
 	duration
 	service_name
 	service_version
+}
+
+enum ReservedErrorObjectKey {
+	event
+	log_cursor
+	payload
+	request_id
+	service_name
+	service_version
+	session_secure_id
+	source
+	span_id
+	stackTrace
+	timestamp
+	trace_id
+	type
+	url
+}
+
+enum ReservedSessionKey {
+	environment
+	service_name
+	app_version
 }
 
 enum LogSource {
@@ -1971,6 +2033,7 @@ type Mutation {
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
 		autoResolveStaleErrorsDayInterval: Int
+		sampling: SamplingInput
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(

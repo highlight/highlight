@@ -587,7 +587,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectSettings is the resolver for the editProjectSettings field.
-func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*modelInputs.AllProjectSettings, error) {
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *modelInputs.SamplingInput) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, filterChromeExtension)
 	if err != nil {
 		return nil, err
@@ -606,9 +606,10 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 		RageClickCount:         &project.RageClickCount,
 	}
 
-	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, store.UpdateProjectFilterSettingsParams{
+	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(ctx, project.ID, store.UpdateProjectFilterSettingsParams{
 		FilterSessionsWithoutError:        filterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: autoResolveStaleErrorsDayInterval,
+		Sampling:                          sampling,
 	})
 	if err != nil {
 		return nil, err
@@ -5532,6 +5533,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		logsIncluded = *workspace.MonthlyLogsLimit
 	}
 
+	// TODO(vkorolik) include trace pricing once we have that in place
+
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	if workspace.RetentionPeriod != nil {
 		retentionPeriod = *workspace.RetentionPeriod
@@ -6378,7 +6381,7 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID)
 	if err != nil {
 		return nil, err
 	}

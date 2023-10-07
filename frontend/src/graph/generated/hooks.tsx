@@ -1475,6 +1475,7 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_count: Int
 		$filterSessionsWithoutError: Boolean
 		$autoResolveStaleErrorsDayInterval: Int
+		$sampling: SamplingInput
 	) {
 		editProjectSettings(
 			projectId: $projectId
@@ -1489,6 +1490,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count: $rage_click_count
 			filterSessionsWithoutError: $filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
+			sampling: $sampling
 		) {
 			id
 			name
@@ -1502,6 +1504,16 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
+			sampling {
+				session_sampling_rate
+				error_sampling_rate
+				log_sampling_rate
+				trace_sampling_rate
+				session_exclusion_query
+				error_exclusion_query
+				log_exclusion_query
+				trace_exclusion_query
+			}
 		}
 	}
 `
@@ -1535,6 +1547,7 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  *      rage_click_count: // value for 'rage_click_count'
  *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
  *      autoResolveStaleErrorsDayInterval: // value for 'autoResolveStaleErrorsDayInterval'
+ *      sampling: // value for 'sampling'
  *   },
  * });
  */
@@ -8341,14 +8354,17 @@ export const GetBillingDetailsForProjectDocument = gql`
 				membersLimit
 				errorsLimit
 				logsLimit
+				tracesLimit
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
+			tracesMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
+			tracesBillingLimit
 		}
 		workspace_for_project(project_id: $project_id) {
 			id
@@ -13165,6 +13181,16 @@ export const GetProjectSettingsDocument = gql`
 			rage_click_count
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
+			sampling {
+				session_sampling_rate
+				error_sampling_rate
+				log_sampling_rate
+				trace_sampling_rate
+				session_exclusion_query
+				error_exclusion_query
+				log_exclusion_query
+				trace_exclusion_query
+			}
 		}
 	}
 `

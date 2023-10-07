@@ -77,10 +77,14 @@ export const getMeterAmounts = (
 	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
 	const logsQuota =
 		data.billingDetailsForProject?.logsBillingLimit ?? undefined
+	const tracesMeter = data.billingDetailsForProject?.tracesMeter ?? 0
+	const tracesQuota =
+		data.billingDetailsForProject?.tracesBillingLimit ?? undefined
 	return {
 		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
 		[ProductType.Errors]: [errorsMeter, errorsQuota],
 		[ProductType.Logs]: [logsMeter, logsQuota],
+		[ProductType.Traces]: [tracesMeter, tracesQuota],
 	}
 }
 

@@ -925,7 +925,9 @@ export const getEvents = (
 		(a, b) => a[0] - b[0],
 	)) {
 		for (const val of v) {
-			events.push(val)
+			if (val) {
+				events.push(val)
+			}
 		}
 	}
 

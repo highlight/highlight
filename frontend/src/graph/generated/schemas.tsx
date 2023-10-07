@@ -126,6 +126,7 @@ export type AllProjectSettings = {
 	rage_click_count?: Maybe<Scalars['Int']>
 	rage_click_radius_pixels?: Maybe<Scalars['Int']>
 	rage_click_window_seconds?: Maybe<Scalars['Int']>
+	sampling: Sampling
 	secret?: Maybe<Scalars['String']>
 	verbose_id: Scalars['String']
 	workspace_id: Scalars['ID']
@@ -157,6 +158,9 @@ export type BillingDetails = {
 	plan: Plan
 	sessionsBillingLimit?: Maybe<Scalars['Int64']>
 	sessionsDailyAverage: Scalars['Float']
+	tracesBillingLimit?: Maybe<Scalars['Int64']>
+	tracesDailyAverage: Scalars['Float']
+	tracesMeter: Scalars['Int64']
 }
 
 export type CategoryHistogramBucket = {
@@ -1313,6 +1317,7 @@ export type MutationEditProjectSettingsArgs = {
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
+	sampling?: InputMaybe<SamplingInput>
 }
 
 export type MutationEditSegmentArgs = {
@@ -1660,6 +1665,7 @@ export type Plan = {
 	logsLimit: Scalars['Int']
 	membersLimit?: Maybe<Scalars['Int']>
 	quota: Scalars['Int']
+	tracesLimit: Scalars['Int']
 	type: PlanType
 }
 
@@ -1676,6 +1682,7 @@ export enum ProductType {
 	Errors = 'Errors',
 	Logs = 'Logs',
 	Sessions = 'Sessions',
+	Traces = 'Traces',
 }
 
 export type Project = {
@@ -2523,6 +2530,23 @@ export type ReferrerTablePayload = {
 	percent: Scalars['Float']
 }
 
+export enum ReservedErrorObjectKey {
+	Event = 'event',
+	LogCursor = 'log_cursor',
+	Payload = 'payload',
+	RequestId = 'request_id',
+	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
+	SessionSecureId = 'session_secure_id',
+	Source = 'source',
+	SpanId = 'span_id',
+	StackTrace = 'stackTrace',
+	Timestamp = 'timestamp',
+	TraceId = 'trace_id',
+	Type = 'type',
+	Url = 'url',
+}
+
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
 	Level = 'level',
@@ -2533,6 +2557,12 @@ export enum ReservedLogKey {
 	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
+}
+
+export enum ReservedSessionKey {
+	AppVersion = 'app_version',
+	Environment = 'environment',
+	ServiceName = 'service_name',
 }
 
 export enum ReservedTraceKey {
@@ -2561,6 +2591,37 @@ export enum RetentionPeriod {
 export type S3File = {
 	__typename?: 'S3File'
 	key?: Maybe<Scalars['String']>
+}
+
+export type Sampling = {
+	__typename?: 'Sampling'
+	error_exclusion_query?: Maybe<Scalars['String']>
+	error_minute_rate_limit: Scalars['Int64']
+	error_sampling_rate: Scalars['Float']
+	log_exclusion_query?: Maybe<Scalars['String']>
+	log_minute_rate_limit: Scalars['Int64']
+	log_sampling_rate: Scalars['Float']
+	session_exclusion_query?: Maybe<Scalars['String']>
+	session_minute_rate_limit: Scalars['Int64']
+	session_sampling_rate: Scalars['Float']
+	trace_exclusion_query?: Maybe<Scalars['String']>
+	trace_minute_rate_limit: Scalars['Int64']
+	trace_sampling_rate: Scalars['Float']
+}
+
+export type SamplingInput = {
+	error_exclusion_query?: InputMaybe<Scalars['String']>
+	error_minute_rate_limit?: InputMaybe<Scalars['Int64']>
+	error_sampling_rate?: InputMaybe<Scalars['Float']>
+	log_exclusion_query?: InputMaybe<Scalars['String']>
+	log_minute_rate_limit?: InputMaybe<Scalars['Int64']>
+	log_sampling_rate?: InputMaybe<Scalars['Float']>
+	session_exclusion_query?: InputMaybe<Scalars['String']>
+	session_minute_rate_limit?: InputMaybe<Scalars['Int64']>
+	session_sampling_rate?: InputMaybe<Scalars['Float']>
+	trace_exclusion_query?: InputMaybe<Scalars['String']>
+	trace_minute_rate_limit?: InputMaybe<Scalars['Int64']>
+	trace_sampling_rate?: InputMaybe<Scalars['Float']>
 }
 
 export type SanitizedAdmin = {
@@ -2823,6 +2884,7 @@ export enum SessionCommentType {
 
 export enum SessionExcludedReason {
 	BillingQuotaExceeded = 'BillingQuotaExceeded',
+	ExclusionFilter = 'ExclusionFilter',
 	IgnoredUser = 'IgnoredUser',
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
@@ -2830,7 +2892,9 @@ export enum SessionExcludedReason {
 	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
 	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
+	RateLimitMinute = 'RateLimitMinute',
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
+	Sampled = 'Sampled',
 }
 
 export type SessionExportWithSession = {

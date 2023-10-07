@@ -2,23 +2,36 @@ package store
 
 import (
 	"context"
+	"fmt"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 )
 
-func (store *Store) GetProjectFilterSettings(project model.Project) (model.ProjectFilterSettings, error) {
-	projectFilterSettings := model.ProjectFilterSettings{}
-	result := store.db.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
-	return projectFilterSettings, result.Error
+func getKey(projectID int) string {
+	return fmt.Sprintf("project-filter-settings-%d", projectID)
+}
+
+func (store *Store) GetProjectFilterSettings(ctx context.Context, projectID int) (*model.ProjectFilterSettings, error) {
+	return redis.CachedEval(ctx, store.redis, getKey(projectID), 250*time.Millisecond, time.Minute, func() (*model.ProjectFilterSettings, error) {
+		var projectFilterSettings model.ProjectFilterSettings
+		if err := store.db.Where(&model.ProjectFilterSettings{ProjectID: projectID}).FirstOrCreate(&projectFilterSettings).Error; err != nil {
+			return nil, err
+		}
+		return &projectFilterSettings, nil
+	})
 }
 
 type UpdateProjectFilterSettingsParams struct {
 	AutoResolveStaleErrorsDayInterval *int
 	FilterSessionsWithoutError        *bool
+	Sampling                          *modelInputs.SamplingInput
 }
 
-func (store *Store) UpdateProjectFilterSettings(project model.Project, updates UpdateProjectFilterSettingsParams) (model.ProjectFilterSettings, error) {
-	projectFilterSettings, err := store.GetProjectFilterSettings(project)
+func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID int, updates UpdateProjectFilterSettingsParams) (*model.ProjectFilterSettings, error) {
+	projectFilterSettings, err := store.GetProjectFilterSettings(ctx, projectID)
 
 	if err != nil {
 		return projectFilterSettings, err
@@ -32,13 +45,49 @@ func (store *Store) UpdateProjectFilterSettings(project model.Project, updates U
 		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
 	}
 
-	result := store.db.Save(&projectFilterSettings)
+	if updates.Sampling != nil {
+		if updates.Sampling.SessionSamplingRate != nil {
+			projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
+		}
+		if updates.Sampling.ErrorSamplingRate != nil {
+			projectFilterSettings.ErrorSamplingRate = *updates.Sampling.ErrorSamplingRate
+		}
+		if updates.Sampling.LogSamplingRate != nil {
+			projectFilterSettings.LogSamplingRate = *updates.Sampling.LogSamplingRate
+		}
+		if updates.Sampling.TraceSamplingRate != nil {
+			projectFilterSettings.TraceSamplingRate = *updates.Sampling.TraceSamplingRate
+		}
+		if updates.Sampling.SessionMinuteRateLimit != nil {
+			projectFilterSettings.SessionMinuteRateLimit = *updates.Sampling.SessionMinuteRateLimit
+		}
+		if updates.Sampling.ErrorMinuteRateLimit != nil {
+			projectFilterSettings.ErrorMinuteRateLimit = *updates.Sampling.ErrorMinuteRateLimit
+		}
+		if updates.Sampling.LogMinuteRateLimit != nil {
+			projectFilterSettings.LogMinuteRateLimit = *updates.Sampling.LogMinuteRateLimit
+		}
+		if updates.Sampling.TraceMinuteRateLimit != nil {
+			projectFilterSettings.TraceMinuteRateLimit = *updates.Sampling.TraceMinuteRateLimit
+		}
+		projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery
+		projectFilterSettings.ErrorExclusionQuery = updates.Sampling.ErrorExclusionQuery
+		projectFilterSettings.LogExclusionQuery = updates.Sampling.LogExclusionQuery
+		projectFilterSettings.TraceExclusionQuery = updates.Sampling.TraceExclusionQuery
+	}
 
-	return projectFilterSettings, result.Error
+	result := store.db.Save(&projectFilterSettings)
+	if result.Error != nil {
+		return nil, err
+	}
+
+	return projectFilterSettings, store.redis.Del(ctx, getKey(projectID))
 }
 
-func (store *Store) FindProjectsWithAutoResolveSetting(ctx context.Context) []model.ProjectFilterSettings {
-	projectFilterSettings := []model.ProjectFilterSettings{}
-	store.db.Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings)
-	return projectFilterSettings
+func (store *Store) FindProjectsWithAutoResolveSetting() ([]*model.ProjectFilterSettings, error) {
+	var projectFilterSettings []*model.ProjectFilterSettings
+	if err := store.db.Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings).Error; err != nil {
+		return nil, err
+	}
+	return projectFilterSettings, nil
 }
