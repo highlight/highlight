@@ -314,13 +314,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		for _, errorObject := range errors {
 			// cannot return error since we already perform this check for all project errors in `extractFields`
 			projectIDInt, _ := model2.FromVerboseID(projectID)
-			if !o.resolver.IsErrorIngestedBySample(ctx, projectIDInt, errorObject) {
-				continue
-			}
-			if !o.resolver.IsErrorIngestedByFilter(ctx, projectIDInt, errorObject) {
-				continue
-			}
-			if !o.resolver.IsErrorIngestedByRateLimit(ctx, projectIDInt, errorObject) {
+			if !o.resolver.IsErrorIngested(ctx, projectIDInt, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -462,13 +456,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for _, logRows := range projectLogs {
 		var messages []*kafkaqueue.Message
 		for _, logRow := range logRows {
-			if !o.resolver.IsLogIngestedBySample(ctx, logRow) {
-				continue
-			}
-			if !o.resolver.IsLogIngestedByFilter(ctx, logRow) {
-				continue
-			}
-			if !o.resolver.IsLogIngestedByRateLimit(ctx, logRow) {
+			if !o.resolver.IsLogIngested(ctx, logRow) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{
@@ -489,13 +477,7 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	for traceID, traceRows := range traceRows {
 		var messages []*kafkaqueue.Message
 		for _, traceRow := range traceRows {
-			if !o.resolver.IsTraceIngestedBySample(ctx, traceRow) {
-				continue
-			}
-			if !o.resolver.IsTraceIngestedByFilter(ctx, traceRow) {
-				continue
-			}
-			if !o.resolver.IsTraceIngestedByRateLimit(ctx, traceRow) {
+			if !o.resolver.IsTraceIngested(ctx, traceRow) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{

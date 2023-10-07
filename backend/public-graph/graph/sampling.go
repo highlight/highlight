@@ -146,6 +146,49 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeErrors, settings.ProjectID, errorObject)
 }
 
+func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
+	var excluded bool
+	var reason privateModel.SessionExcludedReason
+
+	var project model.Project
+	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
+		return false, nil
+	}
+
+	if r.isSessionUserExcluded(ctx, s, project) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonIgnoredUser
+	}
+
+	if r.isSessionExcludedForNoError(ctx, s, &project, sessionHasErrors) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonNoError
+	}
+
+	if r.isSessionExcludedForNoUserEvents(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonNoUserEvents
+	}
+
+	if r.isSessionExcludedBySample(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonSampled
+	}
+
+	if r.IsSessionExcludedByFilter(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonExclusionFilter
+	}
+
+	if r.isSessionExcludedByRateLimit(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonRateLimitMinute
+	}
+
+	return excluded, &reason
+}
+
 func (r *Resolver) isSessionExcludedBySample(ctx context.Context, session *model.Session) bool {
 	return !r.isItemIngestedBySample(ctx, privateModel.ProductTypeSessions, session.ProjectID, session.SecureID)
 }
@@ -156,6 +199,52 @@ func (r *Resolver) isSessionExcludedByRateLimit(ctx context.Context, session *mo
 
 func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
 	return !r.isItemIngestedByFilter(ctx, privateModel.ProductTypeSessions, session.ProjectID, session)
+}
+
+func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
+	return s.LastUserInteractionTime.Unix() == 0
+}
+
+func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project *model.Project, sessionHasErrors bool) bool {
+	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(ctx, project.ID)
+
+	if projectFilterSettings.FilterSessionsWithoutError {
+		return !sessionHasErrors
+	}
+
+	return false
+}
+
+func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project model.Project) bool {
+	if project.ExcludedUsers == nil {
+		return false
+	}
+	var email string
+	if s.UserProperties != "" {
+		encodedProperties := []byte(s.UserProperties)
+		decodedProperties := map[string]string{}
+		err := json.Unmarshal(encodedProperties, &decodedProperties)
+		if err != nil {
+			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
+			return false
+		}
+		email = decodedProperties["email"]
+	}
+	for _, value := range []string{s.Identifier, email} {
+		if value == "" {
+			continue
+		}
+		for _, excludedExpr := range project.ExcludedUsers {
+			matched, err := regexp.MatchString(excludedExpr, value)
+			if err != nil {
+				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
+				return false
+			} else if matched {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateModel.ProductType, projectID int, key string) bool {
@@ -366,95 +455,6 @@ func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorEven
 
 		if matchedRegexp {
 			return true
-		}
-	}
-	return false
-}
-
-func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
-	var excluded bool
-	var reason privateModel.SessionExcludedReason
-
-	var project model.Project
-	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false, nil
-	}
-
-	if r.isSessionUserExcluded(ctx, s, project) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonIgnoredUser
-	}
-
-	if r.isSessionExcludedForNoError(ctx, s, &project, sessionHasErrors) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonNoError
-	}
-
-	if r.isSessionExcludedForNoUserEvents(ctx, s) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonNoUserEvents
-	}
-
-	if r.isSessionExcludedBySample(ctx, s) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonSampled
-	}
-
-	if r.IsSessionExcludedByFilter(ctx, s) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonExclusionFilter
-	}
-
-	if r.isSessionExcludedByRateLimit(ctx, s) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonRateLimitMinute
-	}
-
-	return excluded, &reason
-}
-
-func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
-	return s.LastUserInteractionTime.Unix() == 0
-}
-
-func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project *model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(ctx, project.ID)
-
-	if projectFilterSettings.FilterSessionsWithoutError {
-		return !sessionHasErrors
-	}
-
-	return false
-}
-
-func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project model.Project) bool {
-	if project.ExcludedUsers == nil {
-		return false
-	}
-	var email string
-	if s.UserProperties != "" {
-		encodedProperties := []byte(s.UserProperties)
-		decodedProperties := map[string]string{}
-		err := json.Unmarshal(encodedProperties, &decodedProperties)
-		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
-			return false
-		}
-		email = decodedProperties["email"]
-	}
-	for _, value := range []string{s.Identifier, email} {
-		if value == "" {
-			continue
-		}
-		for _, excludedExpr := range project.ExcludedUsers {
-			matched, err := regexp.MatchString(excludedExpr, value)
-			if err != nil {
-				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
-				return false
-			} else if matched {
-				return true
-			}
 		}
 	}
 	return false
