@@ -9,6 +9,7 @@ export default {
 } as ComponentMeta<typeof Dialog>
 
 export const Basic = ({ rootRef }: { rootRef: React.Ref<HTMLDivElement> }) => {
+	console.log({ rootRef })
 	const store = Dialog.useStore({ defaultOpen: true })
 	return (
 		<Dialog store={store}>
