@@ -344,7 +344,11 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		case privateModel.ProductTypeSessions:
 			return clickhouse.SessionMatchesQuery(object.(*model.Session), &filters)
 		case privateModel.ProductTypeErrors:
-			if r.isExcludedError(ctx, projectID, object.(*modelInputs.BackendErrorObjectInput).Event) {
+			var errorFilters []string
+			if project, err := r.Store.GetProject(ctx, projectID); err == nil {
+				errorFilters = append(errorFilters, project.ErrorFilters...)
+			}
+			if r.isExcludedError(ctx, projectID, errorFilters, object.(*modelInputs.BackendErrorObjectInput).Event) {
 				return true
 			}
 			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), &filters)
@@ -423,7 +427,7 @@ func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecure
 	return settings, nil
 }
 
-func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorEvent string) bool {
+func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorFilters []string, errorEvent string) bool {
 	if errorEvent == "[{}]" {
 		log.WithContext(ctx).
 			WithField("project_id", projectID).
@@ -431,10 +435,6 @@ func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorEven
 		return true
 	}
 
-	var errorFilters []string
-	if project, err := r.Store.GetProject(ctx, projectID); err == nil {
-		errorFilters = append(errorFilters, project.ErrorFilters...)
-	}
 	if cfg, err := r.Store.GetSystemConfiguration(ctx); err == nil {
 		errorFilters = append(errorFilters, cfg.ErrorFilters...)
 	}
