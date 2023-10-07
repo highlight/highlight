@@ -291,13 +291,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for sessionID, errors := range traceErrors {
 		var messages []*kafkaqueue.Message
 		for _, errorObject := range errors {
-			if !o.resolver.IsErrorIngestedBySample(ctx, 0, errorObject) {
-				continue
-			}
-			if !o.resolver.IsErrorIngestedByFilter(ctx, 0, errorObject) {
-				continue
-			}
-			if !o.resolver.IsErrorIngestedByRateLimit(ctx, 0, errorObject) {
+			if !o.resolver.IsErrorIngested(ctx, 0, errorObject) {
 				continue
 			}
 			messages = append(messages, &kafkaqueue.Message{

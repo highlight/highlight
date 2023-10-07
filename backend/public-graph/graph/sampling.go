@@ -20,6 +20,19 @@ import (
 	"time"
 )
 
+func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
+	if !r.IsTraceIngestedBySample(ctx, trace) {
+		return false
+	}
+	if !r.IsTraceIngestedByFilter(ctx, trace) {
+		return false
+	}
+	if !r.IsTraceIngestedByRateLimit(ctx, trace) {
+		return false
+	}
+	return true
+}
+
 func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	return r.isItemIngestedBySample(ctx, privateModel.ProductTypeTraces, int(trace.ProjectId), trace.TraceId)
 }
@@ -32,6 +45,19 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeTraces, int(trace.ProjectId), trace)
 }
 
+func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow) bool {
+	if !r.IsLogIngestedBySample(ctx, logRow) {
+		return false
+	}
+	if !r.IsLogIngestedByFilter(ctx, logRow) {
+		return false
+	}
+	if !r.IsLogIngestedByRateLimit(ctx, logRow) {
+		return false
+	}
+	return true
+}
+
 func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse.LogRow) bool {
 	return r.isItemIngestedBySample(ctx, privateModel.ProductTypeLogs, int(logRow.ProjectId), logRow.UUID)
 }
@@ -42,6 +68,47 @@ func (r *Resolver) IsLogIngestedByRateLimit(ctx context.Context, logRow *clickho
 
 func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse.LogRow) bool {
 	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeLogs, int(logRow.ProjectId), logRow)
+}
+
+func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, session *model.Session, frontendError *modelInputs.ErrorObjectInput) bool {
+	stack, _ := json.Marshal(frontendError.StackTrace)
+	errorObject := &modelInputs.BackendErrorObjectInput{
+		SessionSecureID: &session.SecureID,
+		Event:           frontendError.Event,
+		Type:            frontendError.Type,
+		URL:             frontendError.URL,
+		Source:          frontendError.Source,
+		Timestamp:       frontendError.Timestamp,
+		Payload:         frontendError.Payload,
+		StackTrace:      string(stack),
+		Service: &modelInputs.ServiceInput{
+			Name:    session.ServiceName,
+			Version: ptr.ToString(session.AppVersion),
+		},
+	}
+	if !r.IsErrorIngestedBySample(ctx, projectID, errorObject) {
+		return false
+	}
+	if !r.IsErrorIngestedByFilter(ctx, projectID, errorObject) {
+		return false
+	}
+	if !r.IsErrorIngestedByRateLimit(ctx, projectID, errorObject) {
+		return false
+	}
+	return true
+}
+
+func (r *Resolver) IsErrorIngested(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
+	if !r.IsErrorIngestedBySample(ctx, projectID, errorObject) {
+		return false
+	}
+	if !r.IsErrorIngestedByFilter(ctx, projectID, errorObject) {
+		return false
+	}
+	if !r.IsErrorIngestedByRateLimit(ctx, projectID, errorObject) {
+		return false
+	}
+	return true
 }
 
 func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
@@ -188,6 +255,9 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		case privateModel.ProductTypeSessions:
 			return clickhouse.SessionMatchesQuery(object.(*model.Session), &filters)
 		case privateModel.ProductTypeErrors:
+			if r.isExcludedError(ctx, projectID, object.(*modelInputs.BackendErrorObjectInput).Event) {
+				return true
+			}
 			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), &filters)
 		case privateModel.ProductTypeLogs:
 			return clickhouse.LogMatchesQuery(object.(*clickhouse.LogRow), &filters)
@@ -264,7 +334,7 @@ func (r *Resolver) getSettings(ctx context.Context, projectID int, sessionSecure
 	return settings, nil
 }
 
-func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
+func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorEvent string) bool {
 	if errorEvent == "[{}]" {
 		log.WithContext(ctx).
 			WithField("project_id", projectID).
@@ -272,6 +342,10 @@ func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, e
 		return true
 	}
 
+	var errorFilters []string
+	if project, err := r.Store.GetProject(ctx, projectID); err == nil {
+		errorFilters = append(errorFilters, project.ErrorFilters...)
+	}
 	if cfg, err := r.Store.GetSystemConfiguration(ctx); err == nil {
 		errorFilters = append(errorFilters, cfg.ErrorFilters...)
 	}

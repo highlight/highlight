@@ -2080,7 +2080,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	// Filter out ignored errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if r.IsErrorIngestedByFilter(ctx, project.ID, errorObject) {
+		if r.IsErrorIngested(ctx, project.ID, errorObject) {
 			filteredErrors = append(filteredErrors, errorObject)
 		}
 	}
@@ -2613,7 +2613,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			if !r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, errorObject) {
 				continue
 			}
 			seenEvents[errorObject.Event] = errorObject
