@@ -9,6 +9,10 @@ export default {
 } as ComponentMeta<typeof Dialog>
 
 export const Basic = () => {
-	const store = Dialog.useStore()
-	return <Dialog store={store}>Hello!! 👋</Dialog>
+	const store = Dialog.useStore({ defaultOpen: true })
+	return (
+		<Dialog store={store}>
+			<div>Hello!! 👋</div>
+		</Dialog>
+	)
 }
