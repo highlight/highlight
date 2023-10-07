@@ -8,4 +8,6 @@ export default {
 	component: Dialog,
 } as ComponentMeta<typeof Dialog>
 
-export const Basic = () => <Dialog>Hello! 👋</Dialog>
+export const Basic = () => {
+	return <Dialog>Hello! 👋</Dialog>
+}
