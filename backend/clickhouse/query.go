@@ -159,9 +159,10 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, proje
 	// of where to place the raw SQL later when it is being built.
 	// In this case, we are placing the marker after the `FROM` clause
 	preWheres := []string{}
+	bodyQuery := ""
 	for _, body := range filters.body {
 		if strings.Contains(body, "%") {
-			sb.Where("Body ILIKE" + sb.Var(body))
+			bodyQuery = "Body ILIKE" + sb.Var(body)
 		} else {
 			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(body)+")")
 		}
@@ -169,6 +170,9 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, proje
 
 	if len(preWheres) > 0 {
 		sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
+	}
+	if bodyQuery != "" {
+		sb.Where(bodyQuery)
 	}
 
 	sb.Where(sb.Equal("ProjectId", projectID))

@@ -49,7 +49,7 @@ func Fuzz_isIngestedBySample(f *testing.F) {
 	})
 }
 
-func Fuzz_isIngestedBySampleExtremes(f *testing.F) {
+func Fuzz_isIngestedByExtremeSamples(f *testing.F) {
 	ctx := context.TODO()
 	f.Add("")
 	f.Add("key")
