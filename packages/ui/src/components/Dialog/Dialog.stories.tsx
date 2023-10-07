@@ -9,11 +9,11 @@ export default {
 } as ComponentMeta<typeof Dialog>
 
 export const Basic = ({ rootRef }: { rootRef: React.Ref<HTMLDivElement> }) => {
-	console.log({ rootRef })
 	const store = Dialog.useStore({ defaultOpen: true })
 	return (
 		<Dialog store={store}>
-			<div ref={rootRef}>Hello!! 👋</div>
+			{/* rootRef tells Reflame to screenshot this portal'ed element instead of the empty root element */}
+			<div ref={rootRef}>Hello!!! 👋</div>
 		</Dialog>
 	)
 }
