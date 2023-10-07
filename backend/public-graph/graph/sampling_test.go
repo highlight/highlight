@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -21,6 +22,20 @@ func Benchmark_isIngestedBySample(b *testing.B) {
 	if b.N > 1 {
 		assert.Less(b, b.Elapsed()/time.Duration(b.N), time.Millisecond, "benchmarked fn is too slow")
 	}
+}
+
+func Test_isIngestedBySample_FindRare(t *testing.T) {
+	ctx := context.TODO()
+	var rare []string
+	for i := 0; i < 10*100_000; i++ {
+		key := uuid.New().String()
+		ingested := isIngestedBySample(ctx, key, 1./100_000)
+		if ingested {
+			t.Logf("ingested key %s", key)
+			rare = append(rare, key)
+		}
+	}
+	assert.Greater(t, len(rare), 0)
 }
 
 func Fuzz_isIngestedBySample(f *testing.F) {
@@ -84,7 +99,7 @@ func Test_IsSessionExcluded(t *testing.T) {
 	ctx := context.TODO()
 	_, err := resolver.Store.UpdateProjectFilterSettings(ctx, 1, store.UpdateProjectFilterSettingsParams{
 		Sampling: &modelInputs.SamplingInput{
-			SessionSamplingRate:    pointy.Float64(0.5),
+			SessionSamplingRate:    pointy.Float64(1. / 100_000),
 			SessionMinuteRateLimit: pointy.Int64(1),
 			SessionExclusionQuery:  pointy.String("environment:prod"),
 		},
@@ -97,14 +112,15 @@ func Test_IsSessionExcluded(t *testing.T) {
 		t.Error(err)
 	}
 
-	s := model.Session{ProjectID: 1}
+	// key is always included by sampling with the given rate (1 / 100_000)
+	rare := "53b0c406-c655-407a-817f-edefcddc7428"
+	s := model.Session{ProjectID: 1, SecureID: rare}
 	excluded, reason := resolver.IsSessionExcluded(ctx, &s, false)
 	assert.False(t, excluded)
 	assert.Equal(t, "", reason.String())
 	for i := 0; i < 100; i++ {
 		for _, hasErrors := range []bool{false, true} {
-			// "abc123" is always included by sampling with 50% rate
-			s := model.Session{ProjectID: 1, SecureID: "abc123"}
+			s := model.Session{ProjectID: 1, SecureID: rare}
 			excluded, reason := resolver.IsSessionExcluded(ctx, &s, hasErrors)
 			assert.True(t, excluded)
 			assert.Equal(t, modelInputs.SessionExcludedReasonRateLimitMinute, *reason)
