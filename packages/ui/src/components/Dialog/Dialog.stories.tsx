@@ -9,5 +9,5 @@ export default {
 } as ComponentMeta<typeof Dialog>
 
 export const Basic = () => {
-	return <Dialog>Hello! 👋</Dialog>
+	return <Dialog>Hello!! 👋</Dialog>
 }
