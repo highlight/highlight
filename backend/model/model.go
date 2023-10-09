@@ -1972,6 +1972,33 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 
 func (obj *ErrorAlert) SendAlertFeedback(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
 	obj.Type = ptr.String(AlertType.ERROR_FEEDBACK)
+
+	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+
+	identifier := input.UserIdentifier
+	if identifier == "" {
+		identifier = "User"
+	}
+
+	message := fmt.Sprintf("<b>Highlight: Error Feedback Alert</b><br>%s Left Feedback:<br>%s<br><br>", identifier, input.CommentText)
+	if input.SessionSecureID == "" || input.SessionExcluded {
+		message += " (No recorded session)"
+	} else {
+		sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+		message += fmt.Sprintf(" <a href=\"%s\">View Session</a>", sessionURL)
+	}
+
+	for _, email := range emailsToNotify {
+		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", "Highlight: Error Feedback Alert"); err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+	}
+
 	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
