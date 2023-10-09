@@ -18,13 +18,16 @@ import (
 )
 
 type ClickhouseErrorGroup struct {
-	ProjectID int32
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	ID        int64
-	Event     string
-	Status    string
-	Type      string
+	ProjectID           int32
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	ID                  int64
+	Event               string
+	Status              string
+	Type                string
+	ErrorTagID          int64
+	ErrorTagTitle       string
+	ErrorTagDescription string
 }
 
 type ClickhouseErrorObject struct {
@@ -62,6 +65,11 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			Event:     group.Event,
 			Status:    string(group.State),
 			Type:      group.Type,
+		}
+		if group.ErrorTag != nil {
+			chEg.ErrorTagID = int64(group.ErrorTag.ID)
+			chEg.ErrorTagTitle = group.ErrorTag.Title
+			chEg.ErrorTagDescription = group.ErrorTag.Description
 		}
 
 		chGroups = append(chGroups, &chEg)

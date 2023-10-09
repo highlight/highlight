@@ -367,7 +367,7 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error)) (*model.ErrorGroup, error) {
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), tagGroup bool) (*model.ErrorGroup, error) {
 	match, err := matchFn()
 	if err != nil {
 		return nil, err
@@ -407,6 +407,19 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Environments:     environmentsString,
 			ServiceName:      errorObj.ServiceName,
 		}
+
+		if tagGroup {
+			eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
+			defer cancel()
+			query := strings.Join([]string{}, " ")
+			tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
+			if err == nil && len(tags) > 0 {
+				newErrorGroup.ErrorTagID = &tags[0].ID
+			} else {
+				log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings for error group tag")
+			}
+		}
+
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
@@ -745,11 +758,13 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	var settings *model.AllWorkspaceSettings
 	if workspace != nil {
-		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+		if settings, err = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err != nil {
+			return nil, err
+		}
 	}
 
 	var embedding *model.ErrorObjectEmbeddings
-	if settings != nil && settings.ErrorEmbeddingsGroup {
+	if settings.ErrorEmbeddingsGroup {
 		eCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 		defer cancel()
 		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
@@ -764,21 +779,11 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
 				return match, err
-			})
+			}, settings.ErrorEmbeddingsTagGroup)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
-		}
-
-		eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
-		defer cancel()
-		query := strings.Join([]string{}, " ")
-		tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
-		if err == nil && len(tags) > 0 {
-			errorObj.ErrorTagID = &tags[0].ID
-		} else {
-			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 		}
 	} else {
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
@@ -791,7 +796,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				return nil, e.Wrap(err, "Error getting top error group match")
 			}
 			return match, err
-		})
+		}, settings.ErrorEmbeddingsTagGroup)
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting or creating error group")
 		}

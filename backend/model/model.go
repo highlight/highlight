@@ -414,7 +414,9 @@ type AllWorkspaceSettings struct {
 	// store embeddings for errors in this workspace
 	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
-	ErrorEmbeddingsGroup      bool    `gorm:"default:false"`
+	ErrorEmbeddingsGroup bool `gorm:"default:false"`
+	// use embeddings to tag error groups in this workspace
+	ErrorEmbeddingsTagGroup   bool    `gorm:"default:false"`
 	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
@@ -1001,8 +1003,6 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
-	ErrorTagID              *int
-	ErrorTag                *ErrorTag
 }
 
 type ErrorObjectEmbeddings struct {
@@ -1037,6 +1037,9 @@ type ErrorGroup struct {
 	LastOccurrence   *time.Time                           `gorm:"-"`
 	ErrorObjects     []ErrorObject
 	ServiceName      string
+
+	ErrorTagID *int
+	ErrorTag   *ErrorTag
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`

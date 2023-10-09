@@ -1485,6 +1485,8 @@ type ErrorGroupResolver interface {
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 }
 type ErrorObjectResolver interface {
+	ErrorTagID(ctx context.Context, obj *model1.ErrorObject) (*int, error)
+
 	ErrorGroupSecureID(ctx context.Context, obj *model1.ErrorObject) (string, error)
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
 
@@ -28821,7 +28823,7 @@ func (ec *executionContext) _ErrorObject_error_tag_id(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ErrorTagID, nil
+		return ec.resolvers.ErrorObject().ErrorTagID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28839,8 +28841,8 @@ func (ec *executionContext) fieldContext_ErrorObject_error_tag_id(ctx context.Co
 	fc = &graphql.FieldContext{
 		Object:     "ErrorObject",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -74390,9 +74392,22 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ErrorObject_span_id(ctx, field, obj)
 
 		case "error_tag_id":
+			field := field
 
-			out.Values[i] = ec._ErrorObject_error_tag_id(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorObject_error_tag_id(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "log_cursor":
 
 			out.Values[i] = ec._ErrorObject_log_cursor(ctx, field, obj)

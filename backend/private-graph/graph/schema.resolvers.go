@@ -189,6 +189,11 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	return metadataLogs, nil
 }
 
+// ErrorTagID is the resolver for the error_tag_id field.
+func (r *errorObjectResolver) ErrorTagID(ctx context.Context, obj *model.ErrorObject) (*int, error) {
+	panic(fmt.Errorf("not implemented: ErrorTagID - error_tag_id"))
+}
+
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
