@@ -1002,6 +1002,7 @@ type ErrorObject struct {
 	ServiceName             string
 	ServiceVersion          string
 	ErrorTagID              *int
+	ErrorTag                *ErrorTag
 }
 
 type ErrorObjectEmbeddings struct {

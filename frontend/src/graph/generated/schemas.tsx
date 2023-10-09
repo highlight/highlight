@@ -524,7 +524,7 @@ export type ErrorObject = {
 	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
-	error_tag_id?: Maybe<Scalars['String']>
+	error_tag_id?: Maybe<Scalars['Int']>
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
