@@ -1001,7 +1001,7 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
-	ErrorTagID              *string
+	ErrorTagID              *int
 }
 
 type ErrorObjectEmbeddings struct {

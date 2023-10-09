@@ -3,8 +3,11 @@ package embeddings
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"gorm.io/gorm"
 	"io"
 	"math"
 	"net/http"
@@ -19,6 +22,9 @@ import (
 )
 
 type EmbeddingType string
+
+// InferenceTimeout is max time to do inference in case api is slow. p95 ~ 0.3s
+const InferenceTimeout = 5 * time.Second
 
 const CombinedEmbedding EmbeddingType = "CombinedEmbedding"
 const EventEmbedding EmbeddingType = "EventEmbedding"
@@ -228,6 +234,30 @@ func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*mo
 		Info("AI embedding generated.")
 
 	return results, nil
+}
+
+func MatchErrorTag(ctx context.Context, db *gorm.DB, c Client, query string) ([]*modelInputs.MatchedErrorTag, error) {
+	stringEmbedding, err := c.GetStringEmbedding(ctx, query)
+
+	if err != nil {
+		return nil, e.Wrap(err, "500: failed to get string embedding")
+	}
+
+	var matchedErrorTags []*modelInputs.MatchedErrorTag
+	if err := db.Raw(`
+		select error_tags.embedding <-> @string_embedding as score,
+					error_tags.id as id,
+					error_tags.title as title,
+					error_tags.description as description
+		from error_tags
+		order by score
+		limit 5;
+	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
+		Scan(&matchedErrorTags).Error; err != nil {
+		return nil, e.Wrap(err, "error querying nearest ErrorTag")
+	}
+
+	return matchedErrorTags, nil
 }
 
 func New() Client {

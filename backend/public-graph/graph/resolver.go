@@ -750,8 +750,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	var embedding *model.ErrorObjectEmbeddings
 	if settings != nil && settings.ErrorEmbeddingsGroup {
-		// timeout to generate embeddings in case endpoint is slow. p95 ~ 0.3s
-		eCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		eCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 		defer cancel()
 		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
@@ -770,6 +769,17 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
+		}
+
+		eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
+		defer cancel()
+		query := strings.Join([]string{}, " ")
+		tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
+		if err == nil && len(tags) > 0 {
+			// TODO(vkorolik) check sort
+			errorObj.ErrorTagID = &tags[0].ID
+		} else {
+			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 		}
 	} else {
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
