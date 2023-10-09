@@ -442,6 +442,9 @@ func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorFilt
 	var err error
 	matchedRegexp := false
 	for _, errorFilter := range errorFilters {
+		if errorFilter == "" {
+			continue
+		}
 		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
 		if err != nil {
 			log.WithContext(ctx).
