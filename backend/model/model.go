@@ -2677,6 +2677,24 @@ func getUserPropertiesBlock(identifier string, userProperties map[string]string)
 
 var FILE_NAME_LENGTH_LIMIT = 75
 
+var RED_ALERT = "#961e13"
+var YELLOW_ALERT = "#f2c94c"
+var GREEN_ALERT = "#2eb886"
+var BLUE_ALERT = "#1e40af"
+
+func getAlertColor(alertType string) string {
+	switch alertType {
+	case AlertType.ERROR, AlertType.RAGE_CLICK:
+		return RED_ALERT
+	case AlertType.NEW_USER, AlertType.NEW_SESSION:
+		return GREEN_ALERT
+	case AlertType.TRACK_PROPERTIES, AlertType.USER_PROPERTIES:\
+		return YELLOW_ALERT
+	default:
+		return BLUE_ALERT
+	}
+}
+
 func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
@@ -2705,7 +2723,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 	var bodyBlockSet []slack.Block
 	var attachment *slack.Attachment
-	var attachmentColor string
 
 	frontendURL := os.Getenv("FRONTEND_URI")
 	suffix := ""
@@ -2759,8 +2776,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
-		attachmentColor = "#961e13"
-
 		locationName := *input.Project.Name
 		if input.ErrorObject.ServiceName != "" {
 			locationName = input.ErrorObject.ServiceName + " - " + locationName
@@ -2873,8 +2888,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
-		attachmentColor = "#2eb886"
-
 		sessionLink := fmt.Sprintf("%s/%d/sessions/%s%s", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 		if identifier == "" {
 			identifier = "_unidentified_ user"
@@ -2905,8 +2918,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
-		attachmentColor = "#f2c94c"
-
 		var sessionBlock *slack.TextBlockObject
 		if input.SessionSecureID == "" || input.SessionExcluded {
 			var sessionText string
@@ -2941,8 +2952,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
-		attachmentColor = "#f2c94c"
-
 		var sessionBlock *slack.TextBlockObject
 		if input.SessionSecureID == "" || input.SessionExcluded {
 			var sessionText string
@@ -2973,8 +2982,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
-		attachmentColor = "#961e13"
-
 		feedbackBlock := slack.NewTextBlockObject(slack.MarkdownType, input.CommentText, false, false)
 
 		var sessionBlock *slack.TextBlockObject
@@ -3005,8 +3012,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
-		attachmentColor = "#961e13"
-
 		var sessionBlock *slack.TextBlockObject
 		if input.SessionSecureID == "" || input.SessionExcluded {
 			var sessionText string
@@ -3031,8 +3036,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
-		attachmentColor = "#2eb886"
-
 		sessionLink := fmt.Sprintf("%s/%d/sessions/%s%s", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 		if identifier == "" {
 			identifier = "_unidentified_ user"
@@ -3052,7 +3055,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 	// move body within red line attachment
 	attachment = &slack.Attachment{
-		Color:  attachmentColor,
+		Color:  getAlertColor(*obj.Type),
 		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
 	}
 
