@@ -7363,6 +7363,11 @@ export const GetErrorGroupsClickhouseDocument = gql`
 				}
 				is_public
 				project_id
+				error_tag {
+					id
+					title
+					description
+				}
 			}
 			totalCount
 		}

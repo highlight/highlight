@@ -367,6 +367,19 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
+func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObject) *int {
+	eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
+	defer cancel()
+	query := strings.Join([]string{}, " ")
+	tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
+	if err == nil && len(tags) > 0 {
+		return &tags[0].ID
+	} else {
+		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings for error group tag")
+	}
+	return nil
+}
+
 func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), tagGroup bool) (*model.ErrorGroup, error) {
 	match, err := matchFn()
 	if err != nil {
@@ -409,15 +422,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		}
 
 		if tagGroup {
-			eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
-			defer cancel()
-			query := strings.Join([]string{}, " ")
-			tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
-			if err == nil && len(tags) > 0 {
-				newErrorGroup.ErrorTagID = &tags[0].ID
-			} else {
-				log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings for error group tag")
-			}
+			newErrorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
 		}
 
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
@@ -440,6 +445,10 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		// Note that ignored errors do change state
 		if updatedState == privateModel.ErrorStateResolved {
 			updatedState = privateModel.ErrorStateOpen
+		}
+
+		if errorGroup.ErrorTagID == nil && tagGroup {
+			errorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
 		}
 
 		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{

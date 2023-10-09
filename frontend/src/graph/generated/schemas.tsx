@@ -454,6 +454,8 @@ export type ErrorGroup = {
 	environments?: Maybe<Scalars['String']>
 	error_frequency: Array<Scalars['Int64']>
 	error_metrics: Array<ErrorDistributionItem>
+	error_tag?: Maybe<ErrorTag>
+	error_tag_id?: Maybe<Scalars['Int64']>
 	event: Array<Maybe<Scalars['String']>>
 	fields?: Maybe<Array<Maybe<ErrorField>>>
 	first_occurrence?: Maybe<Scalars['Timestamp']>

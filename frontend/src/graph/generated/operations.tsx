@@ -2409,6 +2409,12 @@ export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
 								'error_group_id' | 'date' | 'name' | 'value'
 							>
 						>
+						error_tag?: Types.Maybe<
+							{ __typename?: 'ErrorTag' } & Pick<
+								Types.ErrorTag,
+								'id' | 'title' | 'description'
+							>
+						>
 					}
 			>
 		}
