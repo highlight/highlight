@@ -938,16 +938,22 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	}
 
 	// Header
-	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
+	message := fmt.Sprintf("*You were %s in %s %s comment.*", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
+		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Email, action, determiner, subjectScope)
 	}
 	if admin.Name != nil && *admin.Name != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
+		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Name, action, determiner, subjectScope)
 	}
 
+	blockSet.BlockSet = append(blockSet.BlockSet,
+		slack.NewSectionBlock(
+			&slack.TextBlockObject{Type: slack.MarkdownType, Text: message},
+			nil, nil,
+		),
+	)
+
 	// comment message
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
 	blockSet.BlockSet = append(blockSet.BlockSet,
 		slack.NewSectionBlock(
 			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
@@ -959,14 +965,14 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	if subjectScope == "error" {
 		blockSet.BlockSet = append(blockSet.BlockSet,
 			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Error*: %s\n %s", viewLink, *additionalContext)},
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Error* %s\n %s", viewLink, *additionalContext)},
 				nil, nil,
 			),
 		)
 	} else if subjectScope == "session" {
 		blockSet.BlockSet = append(blockSet.BlockSet,
 			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Session*: %s\n%s", viewLink, *additionalContext)},
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Session* %s\n%s", viewLink, *additionalContext)},
 				nil, nil,
 			),
 		)

@@ -2990,7 +2990,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, accessory))
 	}
 
-	// move body within red line attachment
+	// move body within line attachment
 	attachment = &slack.Attachment{
 		Color:  getAlertColor(*obj.Type),
 		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
