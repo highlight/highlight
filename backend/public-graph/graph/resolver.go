@@ -776,7 +776,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		query := strings.Join([]string{}, " ")
 		tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
 		if err == nil && len(tags) > 0 {
-			// TODO(vkorolik) check sort
 			errorObj.ErrorTagID = &tags[0].ID
 		} else {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")

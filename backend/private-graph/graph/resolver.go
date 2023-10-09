@@ -3487,6 +3487,30 @@ func (r *Resolver) CreateErrorTag(ctx context.Context, title string, description
 	return errorTag, nil
 }
 
+func (r *Resolver) UpdateErrorTags(ctx context.Context) error {
+	var tags []*model.ErrorTag
+	if err := r.DB.Model(&model.ErrorTag{}).Scan(&tags).Error; err != nil {
+		return err
+	}
+	for _, tag := range tags {
+		emb, err := r.EmbeddingsClient.GetErrorTagEmbedding(ctx, tag.Title, tag.Description)
+		if err != nil {
+			log.WithContext(ctx).Error(err, "UpdateErrorTag: Error creating tag embedding")
+			return err
+		}
+		if err := r.DB.Model(&model.ErrorTag{}).Where(
+			&model.ErrorTag{Model: model.Model{ID: tag.ID}},
+		).Updates(
+			&model.ErrorTag{Embedding: emb.Embedding},
+		).Error; err != nil {
+			log.WithContext(ctx).Error(err, "UpdateErrorTag: Error updating embedding")
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 	var errorTags []*model.ErrorTag
 

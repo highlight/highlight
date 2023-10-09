@@ -1395,6 +1395,15 @@ export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateErrorTagsMutationVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type UpdateErrorTagsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateErrorTags'
+>
+
 export type UpsertSlackChannelMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -5022,6 +5031,7 @@ export const namedOperations = {
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
 		CreateErrorTag: 'CreateErrorTag' as const,
+		UpdateErrorTags: 'UpdateErrorTags' as const,
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		testErrorEnhancement: 'testErrorEnhancement' as const,

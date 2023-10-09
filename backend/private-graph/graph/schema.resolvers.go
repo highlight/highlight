@@ -3810,6 +3810,14 @@ func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, des
 	return r.Resolver.CreateErrorTag(ctx, title, description)
 }
 
+// UpdateErrorTags is the resolver for the updateErrorTags field.
+func (r *mutationResolver) UpdateErrorTags(ctx context.Context) (bool, error) {
+	if err := r.Resolver.UpdateErrorTags(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // UpsertSlackChannel is the resolver for the upsertSlackChannel field.
 func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int, name string) (*modelInputs.SanitizedSlackChannel, error) {
 	project, err := r.isAdminInProject(ctx, projectID)

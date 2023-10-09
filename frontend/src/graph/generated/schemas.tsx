@@ -1049,6 +1049,7 @@ export type Mutation = {
 	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
+	updateErrorTags?: Maybe<Scalars['Boolean']>
 	updateIntegrationProjectMappings: Scalars['Boolean']
 	updateLogAlert?: Maybe<LogAlert>
 	updateLogAlertIsDisabled?: Maybe<LogAlert>
