@@ -143,6 +143,14 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 		return true
 	}
 
+	var errorFilters []string
+	if project, err := r.Store.GetProject(ctx, settings.ProjectID); err == nil {
+		errorFilters = append(errorFilters, project.ErrorFilters...)
+	}
+	if r.isExcludedError(ctx, projectID, errorFilters, errorObject.Event) {
+		return false
+	}
+
 	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeErrors, settings.ProjectID, errorObject)
 }
 
@@ -344,13 +352,6 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		case privateModel.ProductTypeSessions:
 			return clickhouse.SessionMatchesQuery(object.(*model.Session), &filters)
 		case privateModel.ProductTypeErrors:
-			var errorFilters []string
-			if project, err := r.Store.GetProject(ctx, projectID); err == nil {
-				errorFilters = append(errorFilters, project.ErrorFilters...)
-			}
-			if r.isExcludedError(ctx, projectID, errorFilters, object.(*modelInputs.BackendErrorObjectInput).Event) {
-				return true
-			}
 			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), &filters)
 		case privateModel.ProductTypeLogs:
 			return clickhouse.LogMatchesQuery(object.(*clickhouse.LogRow), &filters)
