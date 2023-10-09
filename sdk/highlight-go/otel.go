@@ -2,6 +2,8 @@ package highlight
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -116,7 +118,18 @@ func (o *OTLP) shutdown() {
 
 func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	sessionID, requestID, _ := validateRequest(ctx)
-	ctx, span := tracer.Start(ctx, name, trace.WithTimestamp(t))
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if requestID != "" {
+		data, _ := base64.StdEncoding.DecodeString(requestID)
+		s := hex.EncodeToString(data)
+		add := 32 - len(s)
+		for i := 0; i < add; i++ {
+			s += "0"
+		}
+		tid, _ := trace.TraceIDFromHex(s)
+		spanCtx = spanCtx.WithTraceID(tid)
+	}
+	ctx, span := tracer.Start(trace.ContextWithSpanContext(ctx, spanCtx), name, trace.WithTimestamp(t))
 	span.SetAttributes(
 		attribute.String(ProjectIDAttribute, conf.projectID),
 		attribute.String(SessionIDAttribute, sessionID),
