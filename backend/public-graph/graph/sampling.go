@@ -143,12 +143,10 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 		return true
 	}
 
-	var errorFilters []string
 	if project, err := r.Store.GetProject(ctx, settings.ProjectID); err == nil {
-		errorFilters = append(errorFilters, project.ErrorFilters...)
-	}
-	if r.isExcludedError(ctx, projectID, errorFilters, errorObject.Event) {
-		return false
+		if r.isExcludedError(ctx, projectID, project.ErrorFilters, errorObject.Event) {
+			return false
+		}
 	}
 
 	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeErrors, settings.ProjectID, errorObject)
