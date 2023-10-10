@@ -13363,6 +13363,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			ai_application
 			ai_insights
 			enable_session_export
+			enable_unlisted_sharing
 		}
 	}
 `

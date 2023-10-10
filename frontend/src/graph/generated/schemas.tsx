@@ -137,6 +137,7 @@ export type AllWorkspaceSettings = {
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
+	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
 
