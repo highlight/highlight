@@ -123,6 +123,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 										{trace.secureSessionID ? (
 											<Tag
 												kind="secondary"
+												shape="basic"
 												iconLeft={
 													<IconSolidPlayCircle />
 												}
