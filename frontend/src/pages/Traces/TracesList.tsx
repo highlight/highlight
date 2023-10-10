@@ -102,7 +102,9 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 									<Table.Cell>{trace.traceID}</Table.Cell>
 									<Table.Cell>
 										{trace.parentSpanID ? (
-											<Text>{trace.parentSpanID}</Text>
+											<Text lines="1">
+												{trace.parentSpanID}
+											</Text>
 										) : (
 											<Text color="secondaryContentOnDisabled">
 												empty
