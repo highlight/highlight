@@ -6393,12 +6393,26 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		ExcludedUsers:                     project.ExcludedUsers,
 		ErrorFilters:                      project.ErrorFilters,
 		ErrorJSONPaths:                    project.ErrorJsonPaths,
-		FilterChromeExtension:             project.FilterChromeExtension,
 		RageClickWindowSeconds:            &project.RageClickWindowSeconds,
 		RageClickRadiusPixels:             &project.RageClickRadiusPixels,
 		RageClickCount:                    &project.RageClickCount,
+		FilterChromeExtension:             project.FilterChromeExtension,
 		FilterSessionsWithoutError:        projectFilterSettings.FilterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: projectFilterSettings.AutoResolveStaleErrorsDayInterval,
+		Sampling: &modelInputs.Sampling{
+			SessionSamplingRate:    projectFilterSettings.SessionSamplingRate,
+			ErrorSamplingRate:      projectFilterSettings.ErrorSamplingRate,
+			LogSamplingRate:        projectFilterSettings.LogSamplingRate,
+			TraceSamplingRate:      projectFilterSettings.TraceSamplingRate,
+			SessionMinuteRateLimit: projectFilterSettings.SessionMinuteRateLimit,
+			ErrorMinuteRateLimit:   projectFilterSettings.ErrorMinuteRateLimit,
+			LogMinuteRateLimit:     projectFilterSettings.LogMinuteRateLimit,
+			TraceMinuteRateLimit:   projectFilterSettings.TraceMinuteRateLimit,
+			SessionExclusionQuery:  projectFilterSettings.SessionExclusionQuery,
+			ErrorExclusionQuery:    projectFilterSettings.ErrorExclusionQuery,
+			LogExclusionQuery:      projectFilterSettings.LogExclusionQuery,
+			TraceExclusionQuery:    projectFilterSettings.TraceExclusionQuery,
+		},
 	}
 
 	return &allProjectSettings, nil
