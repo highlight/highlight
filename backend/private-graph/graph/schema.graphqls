@@ -432,6 +432,7 @@ type AllWorkspaceSettings {
 	ai_application: Boolean!
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
+	enable_unlisted_sharing: Boolean!
 }
 
 type Account {

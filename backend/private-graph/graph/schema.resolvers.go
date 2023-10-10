@@ -3198,6 +3198,13 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 	if err != nil {
 		return nil, err
 	}
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	if !settings.EnableUnlistedSharing {
+		return nil, AuthorizationError
+	}
 	if err := r.DB.Model(session).Updates(&model.Session{
 		IsPublic: isPublic,
 	}).Error; err != nil {

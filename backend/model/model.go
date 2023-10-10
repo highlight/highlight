@@ -419,6 +419,7 @@ type AllWorkspaceSettings struct {
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
 	EnableSessionExport       bool    `gorm:"default:false"`
+	EnableUnlistedSharing     bool    `gorm:"default:true"`
 	EnableNetworkTraces       bool    `gorm:"default:false"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
 }

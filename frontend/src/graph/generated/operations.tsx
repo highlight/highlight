@@ -4517,6 +4517,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_application'
 			| 'ai_insights'
 			| 'enable_session_export'
+			| 'enable_unlisted_sharing'
 		>
 	>
 }
