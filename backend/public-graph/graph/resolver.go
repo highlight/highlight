@@ -3004,7 +3004,10 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			}
 		}
 
-		span, _ := highlight.StartTraceWithTimestamp(context.Background(), strings.Join([]string{method, re.Name}, " "), start, attributes...)
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
+		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
+		span, _ := highlight.StartTraceWithTimestamp(ctx, strings.Join([]string{method, re.Name}, " "), start, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
 	return nil
