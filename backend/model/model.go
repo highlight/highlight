@@ -411,12 +411,14 @@ type AllWorkspaceSettings struct {
 	WorkspaceID   int  `gorm:"uniqueIndex"`
 	AIApplication bool `gorm:"default:true"`
 	AIInsights    bool `gorm:"default:false"`
+
 	// store embeddings for errors in this workspace
 	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
-	ErrorEmbeddingsGroup bool `gorm:"default:false"`
+	ErrorEmbeddingsGroup bool `gorm:"default:true"`
 	// use embeddings to tag error groups in this workspace
-	ErrorEmbeddingsTagGroup   bool    `gorm:"default:false"`
+	ErrorEmbeddingsTagGroup bool `gorm:"default:true"`
+
 	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
