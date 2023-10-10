@@ -99,7 +99,10 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 										</Box>
 									</Table.Cell>
 									<Table.Cell>
-										<Text lines="1">
+										<Text
+											lines="1"
+											title={trace.serviceName}
+										>
 											{trace.serviceName}
 										</Text>
 									</Table.Cell>
