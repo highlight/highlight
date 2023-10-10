@@ -3,6 +3,7 @@ import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	IconSolidDesktopComputer,
 	IconSolidSparkles,
 	IconSolidUsers,
 	IconSolidViewGrid,
@@ -180,6 +181,17 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 									size="medium"
 								/>
 							)}
+							{errorGroup?.error_tag?.title ? (
+								<Tag
+									shape="basic"
+									kind="secondary"
+									iconLeft={
+										<IconSolidDesktopComputer size={12} />
+									}
+								>
+									{errorGroup.error_tag.title}
+								</Tag>
+							) : null}
 						</Box>
 					</Box>
 					<Box paddingTop="2" display="flex" alignItems="flex-end">

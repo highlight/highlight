@@ -521,7 +521,6 @@ type ErrorObject {
 	session_id: Int
 	trace_id: String
 	span_id: String
-	error_tag_id: Int
 	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
@@ -579,7 +578,6 @@ type ErrorGroup {
 	last_occurrence: Timestamp
 	viewed: Boolean
 	serviceName: String
-	error_tag_id: Int64
 	error_tag: ErrorTag
 }
 

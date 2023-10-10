@@ -458,6 +458,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Event:            errorObj.Event,
 			State:            updatedState,
 			ServiceName:      errorObj.ServiceName,
+			ErrorTagID:       errorGroup.ErrorTagID,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}

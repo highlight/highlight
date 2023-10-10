@@ -189,16 +189,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	return metadataLogs, nil
 }
 
-// ErrorTagID is the resolver for the error_tag_id field.
-func (r *errorGroupResolver) ErrorTagID(ctx context.Context, obj *model.ErrorGroup) (*int64, error) {
-	panic(fmt.Errorf("not implemented: ErrorTagID - error_tag_id"))
-}
-
-// ErrorTagID is the resolver for the error_tag_id field.
-func (r *errorObjectResolver) ErrorTagID(ctx context.Context, obj *model.ErrorObject) (*int, error) {
-	panic(fmt.Errorf("not implemented: ErrorTagID - error_tag_id"))
-}
-
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -4320,10 +4310,11 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	}
 
 	var results []*model.ErrorGroup
-	if err := r.DB.Preload("ErrorTag").Model(&model.ErrorGroup{}).
-		Where("id in ?", ids).
-		Where("project_id = ?", projectID).
-		Order("updated_at DESC").
+	if err := r.DB.Model(&model.ErrorGroup{}).
+		Joins("ErrorTag").
+		Where("error_groups.id in ?", ids).
+		Where("error_groups.project_id = ?", projectID).
+		Order("error_groups.updated_at DESC").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
@@ -8039,16 +8030,3 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *errorGroupResolver) ErrorTagTitle(ctx context.Context, obj *model.ErrorGroup) (*string, error) {
-	panic(fmt.Errorf("not implemented: ErrorTagTitle - error_tag_title"))
-}
-func (r *errorGroupResolver) ErrorTagDescription(ctx context.Context, obj *model.ErrorGroup) (*string, error) {
-	panic(fmt.Errorf("not implemented: ErrorTagDescription - error_tag_description"))
-}
