@@ -79,10 +79,10 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 											>
 												<Badge
 													variant="outlineGray"
+													shape="basic"
 													size="medium"
-													shape="square"
 													iconStart={
-														<IconSolidMenuAlt_2 size="14" />
+														<IconSolidMenuAlt_2 size="12" />
 													}
 												/>
 												<Text lines="1" color="strong">

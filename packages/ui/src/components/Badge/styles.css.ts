@@ -3,14 +3,13 @@ import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 
 export const variants = recipe({
-	base: [
-		{
-			alignItems: 'center',
-			display: 'inline-flex',
-			userSelect: 'none',
-			width: 'max-content',
-		},
-	],
+	base: {
+		alignItems: 'center',
+		boxSizing: 'content-box',
+		display: 'inline-flex',
+		userSelect: 'none',
+		width: 'max-content',
+	},
 
 	variants: {
 		size: {
@@ -21,7 +20,6 @@ export const variants = recipe({
 		shape: {
 			rounded: {},
 			basic: {},
-			square: {},
 		},
 		variant: {
 			white: {
@@ -113,37 +111,6 @@ export const variants = recipe({
 			},
 			style: {
 				borderRadius: vars.borderRadius['16'],
-			},
-		},
-
-		{
-			variants: {
-				size: 'small',
-				shape: 'square',
-			},
-			style: {
-				borderRadius: vars.borderRadius['3'],
-				padding: 2,
-			},
-		},
-		{
-			variants: {
-				size: 'medium',
-				shape: 'square',
-			},
-			style: {
-				borderRadius: vars.borderRadius['5'],
-				padding: 4,
-			},
-		},
-		{
-			variants: {
-				size: 'large',
-				shape: 'square',
-			},
-			style: {
-				borderRadius: vars.borderRadius['6'],
-				padding: 6,
 			},
 		},
 	],
