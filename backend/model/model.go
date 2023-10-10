@@ -2710,7 +2710,7 @@ func getPreviewText(alertType string) string {
 	case AlertType.USER_PROPERTIES:
 		return "User Properties Alert"
 	case AlertType.ERROR_FEEDBACK:
-		return "Error Feedback Alert"
+		return "Crash Report Alert"
 	default:
 		return "Alert"
 	}
@@ -2802,15 +2802,15 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 	switch *obj.Type {
 	case AlertType.ERROR:
-		shortEvent := input.Group.Event
+		previewEvent := input.Group.Event
 		if len(input.Group.Event) > 100 {
-			shortEvent = input.Group.Event[:100] + "..."
+			previewEvent = input.Group.Event[:100] + "..."
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 		errorLink = routing.AttachReferrer(ctx, errorLink, routing.Slack)
 
 		// construct Slack message
-		previewText = fmt.Sprintf("Error event: %s", shortEvent)
+		previewText = fmt.Sprintf("Error event: %s", previewEvent)
 
 		// header
 		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
@@ -2824,7 +2824,11 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 		eventBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*<%s|Error event in %s>*", errorLink, locationName), false, false)
 
-		errorMessageBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("```%s```", shortEvent), false, false)
+		errorEvent := input.Group.Event
+		if len(errorEvent) > 250 {
+			errorEvent = errorEvent[:250] + "..."
+		}
+		errorMessageBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("```%s```", errorEvent), false, false)
 
 		var actionBlocks []slack.BlockElement
 		caser := cases.Title(language.AmericanEnglish)
@@ -2938,9 +2942,9 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, nil))
 	case AlertType.USER_PROPERTIES:
 		// format matched properties
-		var formattedFields []string
-		for _, addr := range input.MatchedFields {
-			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+		var formattedFields string
+		for index, addr := range input.MatchedFields {
+			formattedFields = formattedFields + fmt.Sprintf("%d. *%s*: `%s`\n", index+1, addr.Name, addr.Value)
 		}
 
 		// header
@@ -2957,7 +2961,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		if identifier == "" {
 			identifier = "User"
 		}
-		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*", identifier), false, false)
+		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left a Crash Report*", identifier), false, false)
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
