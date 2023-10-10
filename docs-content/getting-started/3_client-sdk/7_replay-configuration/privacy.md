@@ -15,7 +15,7 @@ One way to sanitize your recordings is by adding the `highlight-block` CSS class
 
 The Highlight snippet will in-turn measure the dimensions of the ignored element, and when the recording is being replayed, an empty placeholder will replace the content.
 
-![Elements with the highlight-block class will show up as redacted in your recordings](https://archbee-image-uploads.s3.amazonaws.com/XPwQFz8tul7ogqGkmtA0y/s3OAcyrUrqMsWXwDqT9Zj_aff29bb-kapture2021-03-25at140125.gif)
+![](/images/redaction.gif)
 
 ## Obfuscating Elements
 
