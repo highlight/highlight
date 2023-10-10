@@ -12656,10 +12656,10 @@ __metadata:
     "@types/validator": ^13.1.3
     "@typescript-eslint/eslint-plugin": ^5.46.1
     "@typescript-eslint/parser": ^5.46.1
-    "@vanilla-extract/css": ^1.11.1
-    "@vanilla-extract/esbuild-plugin": ^2.2.2
-    "@vanilla-extract/recipes": ^0.4.0
-    "@vanilla-extract/vite-plugin": ^3.8.2
+    "@vanilla-extract/css": ^1.13.0
+    "@vanilla-extract/esbuild-plugin": ^2.3.0
+    "@vanilla-extract/recipes": ^0.5.0
+    "@vanilla-extract/vite-plugin": ^3.9.0
     "@vitejs/plugin-react-swc": ^3.3.2
     antd: 4.21.7
     autoprefixer: ^10.4.8
@@ -13138,10 +13138,10 @@ __metadata:
     "@testing-library/react": ^13.4.0
     "@typescript-eslint/eslint-plugin": ^5.40.0
     "@typescript-eslint/parser": ^5.40.0
-    "@vanilla-extract/css": ^1.11.1
-    "@vanilla-extract/recipes": ^0.4.0
-    "@vanilla-extract/sprinkles": ^1.6.0
-    "@vanilla-extract/vite-plugin": ^3.8.2
+    "@vanilla-extract/css": ^1.13.0
+    "@vanilla-extract/recipes": ^0.5.0
+    "@vanilla-extract/sprinkles": ^1.6.1
+    "@vanilla-extract/vite-plugin": ^3.9.0
     babel-loader: ^8.2.5
     clsx: ^1.2.1
     eslint: ^8.39.0
@@ -23895,9 +23895,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vanilla-extract/css@npm:^1.11.1":
-  version: 1.12.0
-  resolution: "@vanilla-extract/css@npm:1.12.0"
+"@vanilla-extract/css@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "@vanilla-extract/css@npm:1.13.0"
   dependencies:
     "@emotion/hash": ^0.9.0
     "@vanilla-extract/private": ^1.0.3
@@ -23910,16 +23910,16 @@ __metadata:
     deepmerge: ^4.2.2
     media-query-parser: ^2.0.2
     outdent: ^0.8.0
-  checksum: b8691011b5ee5d4640d1ffb0a792fe97a34a07b0bfab371d23562bd7831f0a89241c0ff3bdde9eea660544aa62ae875a0a6184f9e8461c4b059c63bc185c0bd7
+  checksum: 35c88718d451cb71e16a2cc0ece045e51cc84f8da29f92c4cbd6bff333d2fd35a724e95c1affd9d9df9ac67c9a18a53853e79afb8bbae70f2396ba5bbece2b16
   languageName: node
   linkType: hard
 
-"@vanilla-extract/esbuild-plugin@npm:^2.2.2":
-  version: 2.2.2
-  resolution: "@vanilla-extract/esbuild-plugin@npm:2.2.2"
+"@vanilla-extract/esbuild-plugin@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "@vanilla-extract/esbuild-plugin@npm:2.3.0"
   dependencies:
     "@vanilla-extract/integration": ^6.2.0
-  checksum: 8a757f9df6e0bd37efec6aaf3fb2c28d06166248bf2ffde4ba2fd489a5776fe14ecf5cc03992b45b8b619627ca40f3333dd736519a89b8f47869046910320f97
+  checksum: 14d28da1f052d7c58301af77d364375598dbde12905e995688f1e41fdabd04acf8172f6ea76ed80b1f4b7cec6de22184015cd0e40f7ef1227b113929043f7b42
   languageName: node
   linkType: hard
 
@@ -23951,16 +23951,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vanilla-extract/recipes@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@vanilla-extract/recipes@npm:0.4.0"
+"@vanilla-extract/recipes@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@vanilla-extract/recipes@npm:0.5.0"
   peerDependencies:
     "@vanilla-extract/css": ^1.0.0
-  checksum: 043974c1e55a8aec2d3941f4ef997e68bf73cc3bf461bc071c5c7a7842927c8cb510d0d1942a2e15323db2154b656fcd4ef9616c99a9e470147e2d04f8fd1120
+  checksum: a05c5be63bfa15289e274027836943cec4b94110becb4b8bc8d56e3113d08352151fbe5abd7c00c147e38922a32d8672dc55c60177a99f94255ce7ecceffc829
   languageName: node
   linkType: hard
 
-"@vanilla-extract/sprinkles@npm:^1.6.0":
+"@vanilla-extract/sprinkles@npm:^1.6.1":
   version: 1.6.1
   resolution: "@vanilla-extract/sprinkles@npm:1.6.1"
   peerDependencies:
@@ -23969,9 +23969,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vanilla-extract/vite-plugin@npm:^3.8.2":
-  version: 3.8.2
-  resolution: "@vanilla-extract/vite-plugin@npm:3.8.2"
+"@vanilla-extract/vite-plugin@npm:^3.9.0":
+  version: 3.9.0
+  resolution: "@vanilla-extract/vite-plugin@npm:3.9.0"
   dependencies:
     "@vanilla-extract/integration": ^6.0.2
     outdent: ^0.8.0
@@ -23979,7 +23979,7 @@ __metadata:
     postcss-load-config: ^3.1.0
   peerDependencies:
     vite: ^2.2.3 || ^3.0.0 || ^4.0.3
-  checksum: 9f6e3534aff492abf0b29f37f9f9f969611d34d135f7b18171a13f73ef7b86504da7fd037ecc5b19e56845e06e2bb91cb3b42ab5beeb7e7dfa04c2349aebe1d5
+  checksum: 1eb5850fa8d2c8befaf79256b3a5bfe41fd9f122de140d12d1b937302108efe324df88c09f16e67f2a4cdebb9d627405e7278076768a98604df7604ae0644cdc
   languageName: node
   linkType: hard
 

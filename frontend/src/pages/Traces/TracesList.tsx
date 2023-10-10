@@ -1,6 +1,16 @@
-import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	Callout,
+	IconSolidMenuAlt_2,
+	IconSolidPlayCircle,
+	Stack,
+	Table,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import LoadingBox from '@/components/LoadingBox'
 import { GetTracesQuery } from '@/graph/generated/operations'
@@ -17,9 +27,10 @@ const gridColumns = ['1fr', '70px', '1fr', '1fr', '1fr', '1fr']
 export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
+	const location = useLocation()
 
 	const viewTrace = (trace: Trace) => {
-		navigate(`/${projectId}/traces/${trace.traceID}`)
+		navigate(`/${projectId}/traces/${trace.traceID}${location.search}`)
 	}
 
 	return (
@@ -42,8 +53,8 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 						height="full"
 						overflowY="auto"
 						style={{
-							// Subtract height of search filters + table header
-							height: `calc(100% - 67px)`,
+							// Subtract height of search filters + table header + charts
+							height: `calc(100% - 139px)`,
 						}}
 					>
 						{traces.edges
@@ -56,16 +67,47 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 									<Table.Cell
 										onClick={() => viewTrace(trace)}
 									>
-										{trace.spanName}
+										<Box
+											display="flex"
+											alignItems="center"
+											justifyContent="space-between"
+											width="full"
+										>
+											<Stack
+												direction="row"
+												align="center"
+											>
+												<Badge
+													variant="outlineGray"
+													size="medium"
+													shape="basic"
+													iconStart={
+														<IconSolidMenuAlt_2 size="13" />
+													}
+												/>
+												<Text lines="1">
+													{trace.spanName}
+												</Text>
+											</Stack>
+											<Table.Discoverable>
+												<Badge
+													variant="outlineGray"
+													label="Open"
+													size="medium"
+												/>
+											</Table.Discoverable>
+										</Box>
 									</Table.Cell>
 									<Table.Cell>{trace.serviceName}</Table.Cell>
-									<Table.Cell
-										onClick={() => viewTrace(trace)}
-									>
-										{trace.traceID}
-									</Table.Cell>
+									<Table.Cell>{trace.traceID}</Table.Cell>
 									<Table.Cell>
-										{trace.parentSpanID}
+										{trace.parentSpanID ? (
+											<Text>{trace.parentSpanID}</Text>
+										) : (
+											<Text color="secondaryContentOnDisabled">
+												empty
+											</Text>
+										)}
 									</Table.Cell>
 									<Table.Cell
 										onClick={
@@ -78,7 +120,20 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 												: undefined
 										}
 									>
-										{trace.secureSessionID}
+										{trace.secureSessionID ? (
+											<Tag
+												kind="secondary"
+												iconLeft={
+													<IconSolidPlayCircle />
+												}
+											>
+												{trace.secureSessionID}
+											</Tag>
+										) : (
+											<Text color="secondaryContentOnDisabled">
+												empty
+											</Text>
+										)}
 									</Table.Cell>
 									<Table.Cell>
 										{new Date(
@@ -106,7 +161,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 					<Callout title="No traces found" width={300}>
 						<Box pb="4">
 							<Text color="moderate">
-								TODO: Write a CTA here...
+								You don't have traces set up yet.
 							</Text>
 						</Box>
 					</Callout>
