@@ -2863,7 +2863,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		var headerBlock *slack.TextBlockObject
 		if input.FirstErrorAlert {
 			previewText = fmt.Sprintf("New Error Alert: %s", previewEvent)
-			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*❇️ New Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
 			attachmentColor = YELLOW_ALERT
 		} else {
 			previewText = fmt.Sprintf("Error Alert: %s", previewEvent)
