@@ -21,6 +21,7 @@ export const variants = recipe({
 		shape: {
 			rounded: {},
 			basic: {},
+			square: {},
 		},
 		variant: {
 			white: {
@@ -112,6 +113,37 @@ export const variants = recipe({
 			},
 			style: {
 				borderRadius: vars.borderRadius['16'],
+			},
+		},
+
+		{
+			variants: {
+				size: 'small',
+				shape: 'square',
+			},
+			style: {
+				borderRadius: vars.borderRadius['3'],
+				padding: 2,
+			},
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'square',
+			},
+			style: {
+				borderRadius: vars.borderRadius['5'],
+				padding: 4,
+			},
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'square',
+			},
+			style: {
+				borderRadius: vars.borderRadius['6'],
+				padding: 6,
 			},
 		},
 	],

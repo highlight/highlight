@@ -22,7 +22,7 @@ type Props = {
 	traces?: GetTracesQuery['traces']
 }
 
-const gridColumns = ['1fr', '70px', '1fr', '1fr', '1fr', '1fr']
+const gridColumns = ['2fr', '1fr', '2fr', '1fr', '2fr', '1.2fr']
 
 export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	const { projectId } = useProjectId()
@@ -80,12 +80,12 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 												<Badge
 													variant="outlineGray"
 													size="medium"
-													shape="basic"
+													shape="square"
 													iconStart={
-														<IconSolidMenuAlt_2 size="13" />
+														<IconSolidMenuAlt_2 size="14" />
 													}
 												/>
-												<Text lines="1">
+												<Text lines="1" color="strong">
 													{trace.spanName}
 												</Text>
 											</Stack>
@@ -146,16 +146,18 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 										)}
 									</Table.Cell>
 									<Table.Cell>
-										{new Date(
-											trace.timestamp,
-										).toLocaleDateString('en-US', {
-											month: 'short',
-											day: 'numeric',
-											year: 'numeric',
-											hour: 'numeric',
-											minute: 'numeric',
-											second: 'numeric',
-										})}
+										<Text lines="1">
+											{new Date(
+												trace.timestamp,
+											).toLocaleDateString('en-US', {
+												month: 'short',
+												day: 'numeric',
+												year: 'numeric',
+												hour: 'numeric',
+												minute: 'numeric',
+												second: 'numeric',
+											})}
+										</Text>
 									</Table.Cell>
 								</Table.Row>
 							))}
