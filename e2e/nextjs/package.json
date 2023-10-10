@@ -13,7 +13,7 @@
 		"hoistingLimits": "workspaces"
 	},
 	"dependencies": {
-		"@highlight-run/next": "workspace:^",
+		"@highlight-run/next": "workspace:*",
 		"@next/env": "^13.5.4",
 		"@tanstack/react-query": "^4.35.7",
 		"@trpc/client": "^10.38.5",
