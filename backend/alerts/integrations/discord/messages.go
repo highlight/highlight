@@ -43,7 +43,12 @@ func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlert
 	})
 
 	embed := newMessageEmbed()
-	embed.Title = "Highlight Error Alert"
+	if payload.FirstTimeAlert {
+		embed.Title = "New Highlight Error Alert"
+	} else {
+		embed.Title = "Highlight Error Alert"
+	}
+
 	embed.Description = payload.UserIdentifier
 	embed.Fields = fields
 
