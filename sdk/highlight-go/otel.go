@@ -3,7 +3,6 @@ package highlight
 import (
 	"context"
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -121,12 +120,8 @@ func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
 		data, _ := base64.StdEncoding.DecodeString(requestID)
-		s := hex.EncodeToString(data)
-		add := 32 - len(s)
-		for i := 0; i < add; i++ {
-			s += "0"
-		}
-		tid, _ := trace.TraceIDFromHex(s)
+		hex := fmt.Sprintf("%032x", data)
+		tid, _ := trace.TraceIDFromHex(hex)
 		spanCtx = spanCtx.WithTraceID(tid)
 	}
 	ctx, span := tracer.Start(trace.ContextWithSpanContext(ctx, spanCtx), name, trace.WithTimestamp(t))
