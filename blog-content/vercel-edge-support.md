@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
 authorPFP: 'https://firebasestorage.googleapis.com/v0/b/quiver-pixels-2020.appspot.com/o/F1EQ3eaBqkbEKEHBigolXIlmdut2%2F1408a808-60a6-4102-b636-08ab24041503.jpeg?alt=media&token=5f0ed5d8-c192-4aa3-a75b-3eb6cac9a552'
-image: 'https://firebasestorage.googleapis.com/v0/b/quiver-pixels-2020.appspot.com/o/F1EQ3eaBqkbEKEHBigolXIlmdut2%2F4c14d022-c25f-4c5e-b9d2-4e350549a552.png?alt=media&token=2b319401-5fa3-4c09-8fc6-496f460d936b'
+image: '/images/blog/vercel-edge-support/vercel-edge-runtime.jpg'
 tags: Next.js, Vercel, Edge
 metaTitle: "Vercel Edge Runtime Support"
 ---
