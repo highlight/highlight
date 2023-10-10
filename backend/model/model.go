@@ -2780,15 +2780,13 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 	var bodyBlockSet []slack.Block
 	var attachment *slack.Attachment
 
-	var sessionBlock *slack.TextBlockObject
+	var sessionString string
 	if input.SessionSecureID == "" || input.SessionExcluded {
-		var sessionText string
 		if identifier == "" {
-			sessionText = "*Session* No recorded session"
+			sessionString = "*Session* No recorded session"
 		} else {
-			sessionText = fmt.Sprintf("*Session* No recorded session (%s)", identifier)
+			sessionString = fmt.Sprintf("*Session* No recorded session (%s)", identifier)
 		}
-		sessionBlock = slack.NewTextBlockObject(slack.MarkdownType, sessionText, false, false)
 	} else {
 		sessionUserIdentifier := identifier
 		if sessionUserIdentifier == "" {
@@ -2797,7 +2795,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 		sessionLink := fmt.Sprintf("%s/%d/sessions/%s%s", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 		sessionText := fmt.Sprintf("#%s (%s)", input.SessionSecureID, sessionUserIdentifier)
-		sessionBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Session* <%s|%s>", sessionLink, sessionText), false, false)
+		sessionString = fmt.Sprintf("*Session* <%s|%s>", sessionLink, sessionText)
 	}
 
 	switch *obj.Type {
@@ -2822,13 +2820,12 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			locationName = input.ErrorObject.ServiceName + " - " + locationName
 		}
 
-		eventBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*<%s|Error event in %s>*", errorLink, locationName), false, false)
-
 		errorEvent := input.Group.Event
 		if len(errorEvent) > 250 {
 			errorEvent = errorEvent[:250] + "..."
 		}
-		errorMessageBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("```%s```", errorEvent), false, false)
+
+		eventBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*<%s|Error event in %s>*\n```%s```\n%s", errorLink, locationName, errorEvent, sessionString), false, false)
 
 		var actionBlocks []slack.BlockElement
 		caser := cases.Title(language.AmericanEnglish)
@@ -2901,8 +2898,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		}
 
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(eventBlock, nil, nil))
-		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(errorMessageBlock, nil, nil))
-		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
 		bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
 		if stackTraceBlock != nil {
 			highlightLogo := *slack.NewImageBlockElement("https://app.highlight.io/logo192.png", "Highlight logo")
@@ -2918,6 +2913,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		userPropertiesBlock, accessory := getUserPropertiesBlock(identifier, input.UserProperties)
 		attributeBlocks = append(attributeBlocks, userPropertiesBlock...)
 
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, accessory))
 	case AlertType.TRACK_PROPERTIES:
 		// format matched properties
@@ -2939,6 +2935,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties*\n%+v", matchedFormattedFields), false, false))
 		attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Related Track Properties*\n%+v", relatedFormattedFields), false, false))
 
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, nil))
 	case AlertType.USER_PROPERTIES:
 		// format matched properties
@@ -2955,6 +2952,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		var attributeBlocks []*slack.TextBlockObject
 		attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties*\n%+v", formattedFields), false, false))
 
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, nil))
 	case AlertType.ERROR_FEEDBACK:
 		// header
@@ -2966,6 +2964,8 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 		// body
 		feedbackBlock := slack.NewTextBlockObject(slack.MarkdownType, input.CommentText, false, false)
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(feedbackBlock, nil, nil))
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
 	case AlertType.RAGE_CLICK:
@@ -2977,6 +2977,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
 	case AlertType.NEW_SESSION:
 		// header
@@ -2991,6 +2992,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Visited URL*\n%s", *input.URL), false, false))
 		}
 
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, accessory))
 	}
 
