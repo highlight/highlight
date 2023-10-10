@@ -98,7 +98,11 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 											</Table.Discoverable>
 										</Box>
 									</Table.Cell>
-									<Table.Cell>{trace.serviceName}</Table.Cell>
+									<Table.Cell>
+										<Text lines="1">
+											{trace.serviceName}
+										</Text>
+									</Table.Cell>
 									<Table.Cell>{trace.traceID}</Table.Cell>
 									<Table.Cell>
 										{trace.parentSpanID ? (
