@@ -774,7 +774,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	var embedding *model.ErrorObjectEmbeddings
-	if settings.ErrorEmbeddingsGroup {
+	if settings != nil && settings.ErrorEmbeddingsGroup {
 		eCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 		defer cancel()
 		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
@@ -806,7 +806,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				return nil, e.Wrap(err, "Error getting top error group match")
 			}
 			return match, err
-		}, settings.ErrorEmbeddingsTagGroup)
+		}, settings != nil && settings.ErrorEmbeddingsTagGroup)
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting or creating error group")
 		}

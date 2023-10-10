@@ -1632,6 +1632,10 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		// limit the number of partitions created in dev or test to limit disk usage
 		endPart = lastVal + 10
 	}
+	if IsTestEnv() {
+		// create a 0 partition for tests
+		lastCreatedPart = -1
+	}
 
 	// Make sure partitions are created for the next N projects, starting with the next partition needed
 	for i := lastCreatedPart + 1; i < endPart; i++ {
