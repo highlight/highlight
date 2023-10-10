@@ -1818,6 +1818,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 
 			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 				Workspace:       workspace,
+				Project:         &project,
 				SessionSecureID: sessionObj.SecureID,
 				SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 				UserIdentifier:  sessionObj.Identifier,
