@@ -146,6 +146,13 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 									</Box>
 								</Tooltip>
 							)}
+							{recentlyCreated(errorGroup) && (
+								<Badge
+									variant="yellow"
+									label="New"
+									iconStart={<IconSolidSparkles size={12} />}
+								/>
+							)}
 							<Tag
 								shape="basic"
 								kind="secondary"
@@ -174,13 +181,6 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 							>
 								{createdDate}
 							</Tag>
-							{recentlyCreated(errorGroup) && (
-								<Badge
-									variant="yellow"
-									label="New"
-									iconStart={<IconSolidSparkles size={12} />}
-								/>
-							)}
 						</Box>
 					</Box>
 					<Box paddingTop="2" display="flex" alignItems="flex-end">
