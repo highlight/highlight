@@ -18,14 +18,14 @@ import (
 )
 
 type SendErrorAlertEvent struct {
-	Session     *model.Session
-	ErrorAlert  *model.ErrorAlert
-	ErrorGroup  *model.ErrorGroup
-	ErrorObject *model.ErrorObject
-	Workspace   *model.Workspace
-	ErrorCount  int64
-	VisitedURL  string
-	FirstAlert  bool
+	Session         *model.Session
+	ErrorAlert      *model.ErrorAlert
+	ErrorGroup      *model.ErrorGroup
+	ErrorObject     *model.ErrorObject
+	Workspace       *model.Workspace
+	ErrorCount      int64
+	VisitedURL      string
+	FirstErrorAlert bool
 }
 
 func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
@@ -41,7 +41,7 @@ func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
 		SessionURL:      getSessionURL(event.ErrorAlert.ProjectID, event.Session),
 		SessionExcluded: event.Session.Excluded && *event.Session.Processed,
 		VisitedURL:      event.VisitedURL,
-		FirstTimeAlert:  event.FirstAlert,
+		FirstTimeAlert:  event.FirstErrorAlert,
 	}
 
 	var g errgroup.Group

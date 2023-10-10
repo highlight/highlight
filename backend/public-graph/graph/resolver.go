@@ -1828,14 +1828,14 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 
 			if err := alerts.SendErrorAlert(ctx, alerts.SendErrorAlertEvent{
-				Session:     sessionObj,
-				ErrorAlert:  errorAlert,
-				ErrorGroup:  group,
-				ErrorObject: errorObject,
-				Workspace:   workspace,
-				ErrorCount:  numErrors,
-				FirstAlert:  totalAlertCount <= 0,
-				VisitedURL:  visitedUrl,
+				Session:         sessionObj,
+				ErrorAlert:      errorAlert,
+				ErrorGroup:      group,
+				ErrorObject:     errorObject,
+				Workspace:       workspace,
+				ErrorCount:      numErrors,
+				FirstErrorAlert: totalAlertCount <= 0,
+				VisitedURL:      visitedUrl,
 			}); err != nil {
 				log.WithContext(ctx).Error(err)
 			}
