@@ -11,6 +11,7 @@ import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails/ErrorDetails'
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
+import clsx from 'clsx'
 import { useEffect, useMemo } from 'react'
 
 import SessionFullCommentList from '@/pages/Player/SessionFullCommentList/SessionFullCommentList'
@@ -85,15 +86,15 @@ const RightPlayerPanel = () => {
 			flexShrink={0}
 			bt="dividerWeak"
 			bl="dividerWeak"
-			cssClass={[
-				{
-					[style.playerRightPanelContainerHidden]: !showRightPanel,
-				},
-			]}
+			cssClass={clsx(style.playerRightColumn, {
+				[style.playerRightPanelContainerHidden]: !showRightPanel,
+			})}
 		>
 			{content}
 		</Box>
 	)
 }
+
+// calc(100vh - 108px);
 
 export default RightPlayerPanel
