@@ -97,7 +97,10 @@ export const CUSTOM_FIELDS: CustomField[] = [
 	},
 ]
 
-const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
+const ErrorQueryBuilder = (props: {
+	readonly?: boolean
+	minimal?: boolean
+}) => {
 	const { data } = useGetErrorTagsQuery()
 	const { refetch } = useGetErrorFieldsClickhouseQuery({
 		skip: true,

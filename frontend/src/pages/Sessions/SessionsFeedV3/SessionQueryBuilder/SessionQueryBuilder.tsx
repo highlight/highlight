@@ -131,54 +131,56 @@ export const CUSTOM_FIELDS: CustomField[] = [
 	},
 ]
 
-const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
-	const { refetch } = useGetFieldsClickhouseQuery({
-		skip: true,
-	})
-	const fetchFields = useCallback(
-		(variables: FetchFieldVariables) =>
-			refetch(variables).then((r) => r.data.fields_clickhouse),
-		[refetch],
-	)
+const SessionQueryBuilder = React.memo(
+	(props: { readonly?: boolean; minimal?: boolean }) => {
+		const { refetch } = useGetFieldsClickhouseQuery({
+			skip: true,
+		})
+		const fetchFields = useCallback(
+			(variables: FetchFieldVariables) =>
+				refetch(variables).then((r) => r.data.fields_clickhouse),
+			[refetch],
+		)
 
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+		const { project_id } = useParams<{
+			project_id: string
+		}>()
 
-	const searchContext = useSearchContext()
+		const searchContext = useSearchContext()
 
-	const { rules: serializedRules }: { rules: any } = JSON.parse(
-		searchContext.searchQuery,
-	)
-	const newRules = deserializeRules(serializedRules)
-	const timeRange = newRules.find(
-		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
-	)
+		const { rules: serializedRules }: { rules: any } = JSON.parse(
+			searchContext.searchQuery,
+		)
+		const newRules = deserializeRules(serializedRules)
+		const timeRange = newRules.find(
+			(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
+		)
 
-	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
-	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
-	const { data: fieldData } = useGetFieldTypesClickhouseQuery({
-		variables: {
-			project_id: project_id!,
-			start_date: startDate!,
-			end_date: endDate!,
-		},
-		skip: !project_id,
-	})
+		const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
+		const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
+		const { data: fieldData } = useGetFieldTypesClickhouseQuery({
+			variables: {
+				project_id: project_id!,
+				start_date: startDate!,
+				end_date: endDate!,
+			},
+			skip: !project_id,
+		})
 
-	return (
-		<QueryBuilder
-			searchContext={searchContext}
-			timeRangeField={TIME_RANGE_FIELD}
-			customFields={CUSTOM_FIELDS}
-			fetchFields={fetchFields}
-			fieldData={fieldData}
-			useEditAnySegmentMutation={useEditSegmentMutation}
-			useGetAnySegmentsQuery={useGetSegmentsQuery}
-			CreateAnySegmentModal={CreateSegmentModal}
-			DeleteAnySegmentModal={DeleteSessionSegmentModal}
-			{...props}
-		/>
-	)
-})
+		return (
+			<QueryBuilder
+				searchContext={searchContext}
+				timeRangeField={TIME_RANGE_FIELD}
+				customFields={CUSTOM_FIELDS}
+				fetchFields={fetchFields}
+				fieldData={fieldData}
+				useEditAnySegmentMutation={useEditSegmentMutation}
+				useGetAnySegmentsQuery={useGetSegmentsQuery}
+				CreateAnySegmentModal={CreateSegmentModal}
+				DeleteAnySegmentModal={DeleteSessionSegmentModal}
+				{...props}
+			/>
+		)
+	},
+)
 export default SessionQueryBuilder

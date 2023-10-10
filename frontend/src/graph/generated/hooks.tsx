@@ -13369,6 +13369,10 @@ export const GetProjectSettingsDocument = gql`
 				error_exclusion_query
 				log_exclusion_query
 				trace_exclusion_query
+				session_minute_rate_limit
+				error_minute_rate_limit
+				log_minute_rate_limit
+				trace_minute_rate_limit
 			}
 		}
 	}
