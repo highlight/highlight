@@ -7365,6 +7365,7 @@ export const GetErrorGroupsClickhouseDocument = gql`
 				project_id
 				error_tag {
 					id
+					created_at
 					title
 					description
 				}

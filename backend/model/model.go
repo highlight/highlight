@@ -1041,8 +1041,8 @@ type ErrorGroup struct {
 	ServiceName      string
 
 	// manually migrate as gorm wants to make this have a default value otherwise
-	ErrorTagID *int `gorm:"-:migration"`
-	ErrorTag   *ErrorTag
+	ErrorTagID *int      `gorm:"-:migration"`
+	ErrorTag   *ErrorTag `gorm:"-:migration"`
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
@@ -1703,6 +1703,9 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	if err := DB.Exec(`alter table error_groups add column IF NOT EXISTS error_tag_id integer`).Error; err != nil {
 		return false, e.Wrap(err, "Error adding error_tag_id to error_groups")
 	}
+	// in case gorm still sets a default / not null constraint
+	DB.Exec(`alter table error_groups alter column error_tag_id drop default`)
+	DB.Exec(`alter table error_groups alter column error_tag_id drop not null`)
 
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 

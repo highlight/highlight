@@ -2412,7 +2412,7 @@ export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
 						error_tag?: Types.Maybe<
 							{ __typename?: 'ErrorTag' } & Pick<
 								Types.ErrorTag,
-								'id' | 'title' | 'description'
+								'id' | 'created_at' | 'title' | 'description'
 							>
 						>
 					}

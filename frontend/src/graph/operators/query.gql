@@ -720,6 +720,7 @@ query GetErrorGroupsClickhouse(
 			project_id
 			error_tag {
 				id
+				created_at
 				title
 				description
 			}
