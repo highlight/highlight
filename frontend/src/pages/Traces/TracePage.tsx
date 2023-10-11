@@ -258,46 +258,42 @@ export const TracePage: React.FC<Props> = () => {
 					</Box>
 				</Box>
 
-				{highlightedSpan && (
-					<Box mt="12">
-						<Tabs<TraceTabs>
-							tab={activeTab}
-							setTab={(tab) => setActiveTab(tab)}
-							containerClass={styles.tabs}
-							tabsContainerClass={styles.tabsContainer}
-							pageContainerClass={styles.tabsPageContainer}
-							pages={{
-								[TraceTabs.Info]: {
-									page: (
-										<TraceSpanAttributes
-											span={highlightedSpan}
+				<Box mt="12">
+					<Tabs<TraceTabs>
+						tab={activeTab}
+						setTab={(tab) => setActiveTab(tab)}
+						containerClass={styles.tabs}
+						tabsContainerClass={styles.tabsContainer}
+						pageContainerClass={styles.tabsPageContainer}
+						pages={{
+							[TraceTabs.Info]: {
+								page: (
+									<TraceSpanAttributes
+										span={highlightedSpan!}
+									/>
+								),
+							},
+							[TraceTabs.Errors]: {
+								badge:
+									errors?.length > 0 ? (
+										<Badge
+											variant="gray"
+											label={String(errors.length)}
 										/>
-									),
-								},
-								[TraceTabs.Errors]: {
-									badge:
-										errors?.length > 0 ? (
-											<Badge
-												variant="gray"
-												label={String(errors.length)}
-											/>
-										) : undefined,
-									page: (
-										<TraceErrors
-											errors={
-												(errors ?? []) as TraceError[]
-											}
-										/>
-									),
-								},
-								[TraceTabs.Logs]: {
-									page: <TraceLogs traceId={traceId!} />,
-								},
-							}}
-							noHandle
-						/>
-					</Box>
-				)}
+									) : undefined,
+								page: (
+									<TraceErrors
+										errors={(errors ?? []) as TraceError[]}
+									/>
+								),
+							},
+							[TraceTabs.Logs]: {
+								page: <TraceLogs />,
+							},
+						}}
+						noHandle
+					/>
+				</Box>
 			</Box>
 		</Box>
 	)

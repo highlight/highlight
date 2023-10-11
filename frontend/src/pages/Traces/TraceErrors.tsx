@@ -1,4 +1,5 @@
 import { Box, Text } from '@highlight-run/ui'
+import moment from 'moment'
 import React from 'react'
 
 import { LinkButton } from '@/components/LinkButton'
@@ -15,7 +16,7 @@ export const TraceErrors: React.FC<Props> = ({ errors }) => {
 
 	return (
 		<Box my="10">
-			<Box display="flex" gap="2" flexDirection="column">
+			<Box display="flex" gap="4" flexDirection="column">
 				{errors?.map((error, idx) => (
 					<Box
 						key={idx}
@@ -28,7 +29,12 @@ export const TraceErrors: React.FC<Props> = ({ errors }) => {
 						flexDirection="row"
 						justifyContent="space-between"
 					>
-						<Text>{error.event}</Text>
+						<Box display="flex" gap="12" flexDirection="column">
+							<Text size="medium">{error.event}</Text>
+							<Text color="weak">
+								{moment(error.timestamp).format()}
+							</Text>
+						</Box>
 						<LinkButton
 							to={`/errors/${error.error_group_secure_id}`}
 							size="small"

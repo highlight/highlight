@@ -21,20 +21,25 @@ import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { useParams } from '@/util/react-router/useParams'
 
-type Props = {
-	traceId: string
-}
+const startDate = moment().subtract(30, 'days').toDate()
+const endDate = moment().toDate()
 
-export const TraceLogs: React.FC<Props> = ({ traceId }) => {
-	const { project_id } = useParams<{
+export const TraceLogs: React.FC = () => {
+	const { project_id, trace_id } = useParams<{
 		project_id: string
+		trace_id: string
 	}>()
 	const [query, setQuery] = useState('')
 	const tableContainerRef = useRef<HTMLDivElement>(null)
-	const startDate = moment().subtract(30, 'days').toDate()
-	const endDate = moment().toDate()
 
-	const { logEdges, loading, error, loadingAfter, refetch } = useGetLogs({
+	const {
+		logEdges,
+		loading,
+		error,
+		loadingAfter,
+		fetchMoreForward,
+		fetchMoreBackward,
+	} = useGetLogs({
 		query,
 		project_id,
 		logCursor: undefined,
@@ -42,20 +47,39 @@ export const TraceLogs: React.FC<Props> = ({ traceId }) => {
 		endDate,
 	})
 
+	const fetchMoreWhenScrolled = React.useCallback(
+		(containerRefElement?: HTMLDivElement | null) => {
+			if (containerRefElement) {
+				const { scrollHeight, scrollTop, clientHeight } =
+					containerRefElement
+
+				if (scrollHeight - scrollTop - clientHeight < 100) {
+					fetchMoreForward()
+				} else if (scrollTop === 0) {
+					fetchMoreBackward()
+				}
+			}
+		},
+		[fetchMoreForward, fetchMoreBackward],
+	)
+
+	// Making this a noop since there shouldn't be additional logs to fetch
+	const refetch = () => {}
+
 	useEffect(() => {
 		setQuery(
-			traceId
+			trace_id
 				? stringifySearchQuery([
 						{
 							key: 'trace_id',
 							operator: DEFAULT_OPERATOR,
-							value: traceId,
+							value: trace_id,
 							offsetStart: 0,
 						},
 				  ])
 				: '',
 		)
-	}, [traceId])
+	}, [trace_id])
 
 	return (
 		<>
@@ -97,9 +121,12 @@ export const TraceLogs: React.FC<Props> = ({ traceId }) => {
 						px="12"
 						pb="12"
 						overflowY="auto"
+						onScroll={(e) =>
+							fetchMoreWhenScrolled(e.target as HTMLDivElement)
+						}
 						ref={tableContainerRef}
 					>
-						{(!loading && logEdges.length === 0) || !traceId ? (
+						{(!loading && logEdges.length === 0) || !trace_id ? (
 							<NoLogsFound />
 						) : (
 							<LogsTable
