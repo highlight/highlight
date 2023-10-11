@@ -1,7 +1,7 @@
 import {
 	Badge,
 	Box,
-	Callout,
+	IconSolidAcademicCap,
 	IconSolidMenuAlt_2,
 	IconSolidPlayCircle,
 	Stack,
@@ -12,6 +12,7 @@ import {
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import { GetTracesQuery } from '@/graph/generated/operations'
 import { Trace } from '@/graph/generated/schemas'
@@ -37,7 +38,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 		<>
 			{loading ? (
 				<LoadingBox />
-			) : traces ? (
+			) : false ? (
 				<Table height="full" noBorder>
 					<Table.Head>
 						<Table.Row gridColumns={gridColumns}>
@@ -164,20 +165,48 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 					</Table.Body>
 				</Table>
 			) : (
-				<Stack
-					align="center"
-					direction="column"
-					justify="space-around"
-					height="full"
-				>
-					<Callout title="No traces found" width={300}>
-						<Box pb="4">
-							<Text color="moderate">
-								You don't have traces set up yet.
-							</Text>
+				<Box px="12" py="8">
+					<Box
+						border="secondary"
+						borderRadius="6"
+						display="flex"
+						flexDirection="row"
+						gap="6"
+						p="8"
+						alignItems="center"
+						width="full"
+					>
+						<Box alignSelf="flex-start">
+							<Badge
+								size="medium"
+								shape="basic"
+								variant="gray"
+								iconStart={<IconSolidAcademicCap size="12" />}
+							/>
 						</Box>
-					</Callout>
-				</Stack>
+						<Stack gap="12" py="4" flexGrow={1}>
+							<Text color="strong" weight="bold" size="small">
+								Set up traces
+							</Text>
+							<Text color="moderate">
+								No traces found. Have you finished setting up
+								tracing in your app yet?
+							</Text>
+						</Stack>
+
+						<Box alignSelf="center" display="flex">
+							<LinkButton
+								to="https://www.highlight.io/docs/general/product-features/tracing/overview"
+								kind="primary"
+								size="small"
+								trackingId="tracing-empty-state_learn-more-setup"
+								target="_blank"
+							>
+								Learn more
+							</LinkButton>
+						</Box>
+					</Box>
+				</Box>
 			)}
 		</>
 	)
