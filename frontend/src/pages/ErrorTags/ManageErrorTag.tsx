@@ -26,12 +26,11 @@ export function ManageErrorTags() {
 			description: '',
 		},
 	})
-	const title = store.useValue('title')
-	const description = store.useValue('description')
 
 	async function onCreateErrorTagSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
-
+		const title = store.getValue(store.names.title)
+		const description = store.getValue(store.names.description)
 		if (!title || !description) {
 			throw new Error('Title and description are required')
 		}
@@ -83,12 +82,12 @@ export function ManageErrorTags() {
 
 				<Form store={store} onSubmit={onCreateErrorTagSubmit}>
 					<Stack gap="8">
-						<Form.Field
+						<Form.Input
 							label="Title"
 							type="text"
 							name={store.names.title}
 						/>
-						<Form.Field
+						<Form.Input
 							label="Description"
 							type="text"
 							name={store.names.description}
