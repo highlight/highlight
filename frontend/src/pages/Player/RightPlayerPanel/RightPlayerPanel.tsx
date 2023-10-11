@@ -95,6 +95,4 @@ const RightPlayerPanel = () => {
 	)
 }
 
-// calc(100vh - 108px);
-
 export default RightPlayerPanel
