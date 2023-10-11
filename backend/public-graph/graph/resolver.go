@@ -370,8 +370,23 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObject) *int {
 	eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 	defer cancel()
-	query := strings.Join([]string{}, " ")
-	tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
+
+	var stackTrace *string
+	if errorObj.MappedStackTrace != nil {
+		stackTrace = errorObj.MappedStackTrace
+	} else {
+		stackTrace = errorObj.StackTrace
+	}
+
+	var parts = []string{errorObj.Event, errorObj.Type}
+	if stackTrace != nil {
+		parts = append(parts, *stackTrace)
+	}
+	if errorObj.Payload != nil {
+		parts = append(parts, *errorObj.Payload)
+	}
+
+	tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, strings.Join(parts, " "))
 	if err == nil && len(tags) > 0 {
 		return &tags[0].ID
 	} else {

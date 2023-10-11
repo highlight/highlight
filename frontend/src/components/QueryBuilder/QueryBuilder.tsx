@@ -1491,6 +1491,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			projectId,
 			dateRange,
 			appVersionData?.app_version_suggestion,
+			errorTagData?.error_tags,
 		],
 	)
 

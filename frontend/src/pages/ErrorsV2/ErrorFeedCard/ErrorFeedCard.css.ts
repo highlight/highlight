@@ -32,8 +32,5 @@ export const errorCardSelected = style({
 })
 
 export const errorCardTagText = style({
-	maxWidth: 100,
-	overflow: 'hidden',
-	textOverflow: 'ellipsis',
-	whiteSpace: 'nowrap',
+	maxWidth: 110,
 })

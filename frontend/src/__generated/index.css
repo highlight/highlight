@@ -6160,10 +6160,7 @@ body {
   background-color: var(--_1pyqka921);
 }
 ._3dlaof4 {
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 110px;
 }
 ._1f2v8en0 {
   transition: transform 0.2s ease-in-out;

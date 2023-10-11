@@ -72,6 +72,8 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 					color="n12"
 					display="flex"
 					alignItems="center"
+					justifyContent="space-between"
+					gap="4"
 					cssClass={style.errorCardTitle}
 				>
 					<Text
@@ -83,6 +85,9 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 					>
 						{body}
 					</Text>
+					{recentlyCreated(errorGroup) && (
+						<Badge variant="yellow" label="New" size="medium" />
+					)}
 				</Box>
 				<Box display="flex" gap="12" justifyContent="space-between">
 					<Box
@@ -162,13 +167,6 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 							>
 								<Text>{totalCount}</Text>
 							</Tag>
-							{recentlyCreated(errorGroup) && (
-								<Badge
-									variant="yellow"
-									label="New"
-									size="medium"
-								/>
-							)}
 						</Box>
 						<Box display="flex" gap="4" alignItems="center">
 							<Tag shape="basic" kind="secondary">
@@ -189,7 +187,10 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 										<IconSolidDesktopComputer size={12} />
 									}
 								>
-									<Text cssClass={style.errorCardTagText}>
+									<Text
+										cssClass={style.errorCardTagText}
+										lines="1"
+									>
 										{errorGroup.error_tag.title}
 									</Text>
 								</Tag>

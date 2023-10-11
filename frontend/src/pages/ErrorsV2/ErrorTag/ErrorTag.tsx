@@ -22,49 +22,40 @@ const ErrorTag = React.memo(
 		if (!errorGroup) return <LoadingBox />
 		return (
 			<Box
-				display="flex"
 				alignItems="center"
-				justifyContent="space-between"
-				width="full"
+				display="flex"
+				gap="4"
+				color="weak"
+				flexWrap="nowrap"
 			>
-				<Box
-					alignItems="center"
-					display="flex"
-					gap="4"
-					color="weak"
-					flexWrap="nowrap"
+				<Tag
+					iconLeft={<IconSolidLocationMarker />}
+					kind="secondary"
+					size="medium"
+					shape="basic"
+					lines="1"
 				>
-					<Tag
-						iconLeft={<IconSolidLocationMarker />}
-						kind="secondary"
-						size="medium"
-						shape="basic"
-						lines="1"
-					>
+					<Text>
 						{errorGroup.serviceName && errorGroup.serviceName != ''
 							? errorGroup.serviceName
 							: errorGroup.type}
-					</Tag>
-
-					<IconSolidCheveronRight />
-					<Text
-						size="small"
-						weight="medium"
-						color="moderate"
-						lines="1"
-					>
-						{getProjectPrefix(projectData?.project)}-{errorGroup.id}
 					</Text>
-				</Box>
+				</Tag>
+
+				<IconSolidCheveronRight />
 				{errorGroup?.error_tag?.title ? (
 					<Tag
 						shape="basic"
 						kind="secondary"
+						emphasis="medium"
 						iconLeft={<IconSolidDesktopComputer size={12} />}
 					>
 						<Text>{errorGroup.error_tag.title}</Text>
 					</Tag>
 				) : null}
+				<Text size="small" weight="medium" color="moderate" lines="1">
+					{getProjectPrefix(projectData?.project)}-{errorGroup.id}
+				</Text>
 			</Box>
 		)
 	},

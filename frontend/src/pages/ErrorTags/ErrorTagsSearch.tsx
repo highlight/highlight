@@ -208,7 +208,7 @@ function Score({ score = 0 }: { score?: number }) {
 }
 
 function roundScore(score: number) {
-	return score ? Math.round(score * 10) / 10 : 0
+	return score ? Math.round(score * 100) / 100 : 0
 }
 
 function NoResults() {
