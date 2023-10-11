@@ -38,7 +38,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 		<>
 			{loading ? (
 				<LoadingBox />
-			) : false ? (
+			) : traces && traces.edges.length > 0 ? (
 				<Table height="full" noBorder>
 					<Table.Head>
 						<Table.Row gridColumns={gridColumns}>
@@ -184,7 +184,11 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 								iconStart={<IconSolidAcademicCap size="12" />}
 							/>
 						</Box>
-						<Stack gap="12" py="4" flexGrow={1}>
+						<Stack
+							gap="12"
+							flexGrow={1}
+							style={{ padding: '5px 0' }}
+						>
 							<Text color="strong" weight="bold" size="small">
 								Set up traces
 							</Text>
