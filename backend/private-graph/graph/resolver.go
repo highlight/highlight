@@ -931,13 +931,15 @@ func (r *Resolver) SendEmailAlert(
 	return nil
 }
 
-func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) (blockSet slack.Blocks) {
+func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) ([]slack.Block, *slack.Attachment) {
 	determiner := "a"
 	if subjectScope == "error" {
 		determiner = "an"
 	}
 
 	// Header
+	var headerBlockSet []slack.Block
+
 	message := fmt.Sprintf("*You were %s in %s %s comment.*", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
 		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Email, action, determiner, subjectScope)
@@ -946,37 +948,29 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Name, action, determiner, subjectScope)
 	}
 
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			&slack.TextBlockObject{Type: slack.MarkdownType, Text: message},
-			nil, nil,
-		),
-	)
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, message, false, false)
+	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 	// comment message
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
-			nil, nil,
-		),
-	)
+	var bodyBlockSet []slack.Block
 
+	commentBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("> %s", commentText), false, false)
+
+	detailsString := ""
 	// info on the session/error
 	if subjectScope == "error" {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Error* %s\n %s", viewLink, *additionalContext)},
-				nil, nil,
-			),
-		)
+		detailsString = fmt.Sprintf("*Error* %s", viewLink)
 	} else if subjectScope == "session" {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Session* %s\n%s", viewLink, *additionalContext)},
-				nil, nil,
-			),
-		)
+		detailsString = fmt.Sprintf("*Session* %s", viewLink)
 	}
+	if additionalContext != nil {
+		detailsString = fmt.Sprintf("%s\n%s", detailsString, *additionalContext)
+	}
+
+	detailsBlock := slack.NewTextBlockObject(slack.MarkdownType, detailsString, false, false)
+
+	// button
+	var actionBlocks []slack.BlockElement
 
 	button := slack.NewButtonBlockElement(
 		"",
@@ -988,14 +982,20 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 			false,
 		),
 	)
-	button.WithStyle("primary")
 	button.URL = viewLink
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewActionBlock("action_block", button),
-	)
 
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	return
+	actionBlocks = append(actionBlocks, button)
+
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(commentBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(detailsBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+
+	attachment := &slack.Attachment{
+		Color:  "#6c37f4",
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
+	}
+
+	return headerBlockSet, attachment
 }
 
 func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Workspace, admin *model.Admin, viewLink, commentText, action string, subjectScope string, threadIDs []int) error {
@@ -1003,14 +1003,15 @@ func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Wo
 		return nil
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
+	headerBlock, bodyAttachment := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
 	for _, threadID := range threadIDs {
 		thread := &model.CommentSlackThread{}
 		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).Take(&thread).Error; err != nil {
 			return e.Wrap(err, "error querying slack thread")
 		}
 		opts := []slack.MsgOption{
-			slack.MsgOptionBlocks(blocks.BlockSet...),
+			slack.MsgOptionBlocks(headerBlock...),
+			slack.MsgOptionAttachments(*bodyAttachment),
 			slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 			slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
 			slack.MsgOptionTS(thread.ThreadTS),
@@ -1031,7 +1032,7 @@ func (r *Resolver) SendSlackAlertToUser(ctx context.Context, workspace *model.Wo
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
 
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
+	headerBlock, bodyAttachment := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
 
 	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
@@ -1071,7 +1072,8 @@ func (r *Resolver) SendSlackAlertToUser(ctx context.Context, workspace *model.Wo
 				log.WithContext(ctx).Warn(e.Wrap(err, "failed to join slack channel"))
 			}
 			opts := []slack.MsgOption{
-				slack.MsgOptionBlocks(blocks.BlockSet...),
+				slack.MsgOptionBlocks(headerBlock...),
+				slack.MsgOptionAttachments(*bodyAttachment),
 				slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
 			}
