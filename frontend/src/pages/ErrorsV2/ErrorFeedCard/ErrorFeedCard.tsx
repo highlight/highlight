@@ -162,6 +162,13 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 							>
 								<Text>{totalCount}</Text>
 							</Tag>
+							{recentlyCreated(errorGroup) && (
+								<Badge
+									variant="yellow"
+									label="New"
+									size="medium"
+								/>
+							)}
 						</Box>
 						<Box display="flex" gap="4" alignItems="center">
 							<Tag shape="basic" kind="secondary">
@@ -174,13 +181,6 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 							>
 								{createdDate}
 							</Tag>
-							{recentlyCreated(errorGroup) && (
-								<Badge
-									variant="yellow"
-									label="New"
-									size="medium"
-								/>
-							)}
 							{errorGroup?.error_tag?.title ? (
 								<Tag
 									shape="basic"
