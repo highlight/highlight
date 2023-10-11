@@ -1,5 +1,6 @@
 import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
 import moment from 'moment'
+import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
@@ -199,7 +200,7 @@ const SearchFormActions: SearchFormProps['actions'] = ({
 		<LinkButton
 			kind="secondary"
 			trackingId="view-in-log-viewer"
-			to={`/${projectId}/logs?${encodedQuery}`}
+			to={`/${projectId}/logs?${stringify(encodedQuery)}`}
 			emphasis="medium"
 			iconLeft={<IconSolidExternalLink />}
 		>
