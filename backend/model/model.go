@@ -411,10 +411,14 @@ type AllWorkspaceSettings struct {
 	WorkspaceID   int  `gorm:"uniqueIndex"`
 	AIApplication bool `gorm:"default:true"`
 	AIInsights    bool `gorm:"default:false"`
+
 	// store embeddings for errors in this workspace
 	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
-	ErrorEmbeddingsGroup      bool    `gorm:"default:false"`
+	ErrorEmbeddingsGroup bool `gorm:"default:true"`
+	// use embeddings to tag error groups in this workspace
+	ErrorEmbeddingsTagGroup bool `gorm:"default:true"`
+
 	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
@@ -1001,7 +1005,6 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
-	ErrorTagID              *string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -1037,6 +1040,10 @@ type ErrorGroup struct {
 	ErrorObjects     []ErrorObject
 	ServiceName      string
 
+	// manually migrate as gorm wants to make this have a default value otherwise
+	ErrorTagID *int      `gorm:"-:migration"`
+	ErrorTag   *ErrorTag `gorm:"-:migration"`
+
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
@@ -1044,7 +1051,7 @@ type ErrorGroup struct {
 
 type ErrorTag struct {
 	Model
-	Title       string
+	Title       string `gorm:"uniqueIndex;not null"`
 	Description string
 	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
 }
@@ -1625,6 +1632,10 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		// limit the number of partitions created in dev or test to limit disk usage
 		endPart = lastVal + 10
 	}
+	if IsTestEnv() {
+		// create a 0 partition for tests
+		lastCreatedPart = -1
+	}
 
 	// Make sure partitions are created for the next N projects, starting with the next partition needed
 	for i := lastCreatedPart + 1; i < endPart; i++ {
@@ -1692,6 +1703,13 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
+
+	if err := DB.Exec(`alter table error_groups add column IF NOT EXISTS error_tag_id integer`).Error; err != nil {
+		return false, e.Wrap(err, "Error adding error_tag_id to error_groups")
+	}
+	// in case gorm still sets a default / not null constraint
+	DB.Exec(`alter table error_groups alter column error_tag_id drop default`)
+	DB.Exec(`alter table error_groups alter column error_tag_id drop not null`)
 
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 

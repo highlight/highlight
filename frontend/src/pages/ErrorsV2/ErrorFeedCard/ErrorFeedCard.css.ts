@@ -30,3 +30,7 @@ export const errorCardSelected = style({
 		},
 	},
 })
+
+export const errorCardTagText = style({
+	maxWidth: 110,
+})

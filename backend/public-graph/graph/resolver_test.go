@@ -149,7 +149,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		errorsToInsert      []model.ErrorObject
 		expectedErrorGroups []model.ErrorGroup
 		embeddingsToInsert  []model.ErrorObjectEmbeddings
-		withEmbeddings      *bool
+		withEmbeddings      bool
 	}{
 		"test two errors with everything different but similar embeddings": {
 			errorsToInsert: []model.ErrorObject{
@@ -179,7 +179,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					GteLargeEmbedding: vector,
 				},
 			},
-			withEmbeddings: pointy.Bool(true),
+			withEmbeddings: true,
 		},
 		"test two errors with same environment but different case": {
 			errorsToInsert: []model.ErrorObject{
@@ -206,7 +206,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Environments: `{"dev":2}`,
 				},
 			},
-			withEmbeddings: pointy.Bool(false),
+			withEmbeddings: false,
 		},
 		"test two errors with different environment": {
 			errorsToInsert: []model.ErrorObject{
@@ -313,20 +313,17 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	//run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipeWithName(t, resolver.DB, name, func(t *testing.T) {
-			_ = resolver.Redis.FlushDB(context.Background())
-
 			workspace := model.Workspace{Model: model.Model{ID: workspaceID}}
 			resolver.DB.Create(&workspace)
 
 			project := model.Project{Model: model.Model{ID: projectID}, WorkspaceID: workspaceID}
 			resolver.DB.Create(&project)
 
-			settings := model.AllWorkspaceSettings{WorkspaceID: workspaceID}
+			settings := model.AllWorkspaceSettings{WorkspaceID: workspaceID, ErrorEmbeddingsGroup: tc.withEmbeddings}
 			resolver.DB.Create(&settings)
+			resolver.DB.Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Select("error_embeddings_group").Updates(&model.AllWorkspaceSettings{ErrorEmbeddingsGroup: tc.withEmbeddings})
 
-			if tc.withEmbeddings != nil {
-				resolver.DB.Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Updates(&model.AllWorkspaceSettings{ErrorEmbeddingsGroup: *tc.withEmbeddings, ErrorEmbeddingsThreshold: 0.2})
-			}
+			_ = resolver.Redis.FlushDB(context.Background())
 
 			// create the error group to match against
 			var createdErrorGroup model.ErrorGroup

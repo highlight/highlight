@@ -341,6 +341,7 @@ type ComplexityRoot struct {
 		Environments         func(childComplexity int) int
 		ErrorFrequency       func(childComplexity int) int
 		ErrorMetrics         func(childComplexity int) int
+		ErrorTag             func(childComplexity int) int
 		Event                func(childComplexity int) int
 		Fields               func(childComplexity int) int
 		FirstOccurrence      func(childComplexity int) int
@@ -401,7 +402,6 @@ type ComplexityRoot struct {
 		Environment          func(childComplexity int) int
 		ErrorGroupID         func(childComplexity int) int
 		ErrorGroupSecureID   func(childComplexity int) int
-		ErrorTagID           func(childComplexity int) int
 		Event                func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		LineNumber           func(childComplexity int) int
@@ -771,6 +771,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state model.ErrorState, snoozedUntil *time.Time) int
+		UpdateErrorTags                  func(childComplexity int) int
 		UpdateIntegrationProjectMappings func(childComplexity int, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) int
 		UpdateLogAlert                   func(childComplexity int, id int, input model.LogAlertInput) int
 		UpdateLogAlertIsDisabled         func(childComplexity int, id int, projectID int, disabled bool) int
@@ -1594,6 +1595,7 @@ type MutationResolver interface {
 	UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) (bool, error)
 	EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model1.Service, error)
 	CreateErrorTag(ctx context.Context, title string, description string) (*model1.ErrorTag, error)
+	UpdateErrorTags(ctx context.Context) (bool, error)
 	UpsertSlackChannel(ctx context.Context, projectID int, name string) (*model.SanitizedSlackChannel, error)
 	UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model1.DiscordChannel, error)
 	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model1.ErrorObject, error)
@@ -3105,6 +3107,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.ErrorMetrics(childComplexity), true
 
+	case "ErrorGroup.error_tag":
+		if e.complexity.ErrorGroup.ErrorTag == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.ErrorTag(childComplexity), true
+
 	case "ErrorGroup.event":
 		if e.complexity.ErrorGroup.Event == nil {
 			break
@@ -3419,13 +3428,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.ErrorGroupSecureID(childComplexity), true
-
-	case "ErrorObject.error_tag_id":
-		if e.complexity.ErrorObject.ErrorTagID == nil {
-			break
-		}
-
-		return e.complexity.ErrorObject.ErrorTagID(childComplexity), true
 
 	case "ErrorObject.event":
 		if e.complexity.ErrorObject.Event == nil {
@@ -5556,6 +5558,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(model.ErrorState), args["snoozed_until"].(*time.Time)), true
+
+	case "Mutation.updateErrorTags":
+		if e.complexity.Mutation.UpdateErrorTags == nil {
+			break
+		}
+
+		return e.complexity.Mutation.UpdateErrorTags(childComplexity), true
 
 	case "Mutation.updateIntegrationProjectMappings":
 		if e.complexity.Mutation.UpdateIntegrationProjectMappings == nil {
@@ -10489,7 +10498,6 @@ type ErrorObject {
 	session_id: Int
 	trace_id: String
 	span_id: String
-	error_tag_id: String
 	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
@@ -10547,6 +10555,7 @@ type ErrorGroup {
 	last_occurrence: Timestamp
 	viewed: Boolean
 	serviceName: String
+	error_tag: ErrorTag
 }
 
 type ErrorMetadata {
@@ -12339,6 +12348,7 @@ type Mutation {
 		github_prefix: String
 	): Service
 	createErrorTag(title: String!, description: String!): ErrorTag!
+	updateErrorTags: Boolean!
 	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
 	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
 	testErrorEnhancement(
@@ -27587,6 +27597,57 @@ func (ec *executionContext) fieldContext_ErrorGroup_serviceName(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorGroup_error_tag(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroup_error_tag(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorTag, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorTag)
+	fc.Result = res
+	return ec.marshalOErrorTag2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorTag(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroup_error_tag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ErrorTag_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ErrorTag_created_at(ctx, field)
+			case "title":
+				return ec.fieldContext_ErrorTag_title(ctx, field)
+			case "description":
+				return ec.fieldContext_ErrorTag_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorTag", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorGroupTagAggregation_key(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorGroupTagAggregation_key(ctx, field)
 	if err != nil {
@@ -27866,8 +27927,6 @@ func (ec *executionContext) fieldContext_ErrorInstance_error_object(ctx context.
 				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
 			case "span_id":
 				return ec.fieldContext_ErrorObject_span_id(ctx, field)
-			case "error_tag_id":
-				return ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
 			case "log_cursor":
 				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
@@ -28785,47 +28844,6 @@ func (ec *executionContext) _ErrorObject_span_id(ctx context.Context, field grap
 }
 
 func (ec *executionContext) fieldContext_ErrorObject_span_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorObject",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorObject_error_tag_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ErrorTagID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorObject_error_tag_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorObject",
 		Field:      field,
@@ -30634,6 +30652,8 @@ func (ec *executionContext) fieldContext_ErrorResults_error_groups(ctx context.C
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			case "serviceName":
 				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
+			case "error_tag":
+				return ec.fieldContext_ErrorGroup_error_tag(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -38010,6 +38030,8 @@ func (ec *executionContext) fieldContext_Mutation_markErrorGroupAsViewed(ctx con
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			case "serviceName":
 				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
+			case "error_tag":
+				return ec.fieldContext_ErrorGroup_error_tag(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -38262,6 +38284,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupState(ctx cont
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			case "serviceName":
 				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
+			case "error_tag":
+				return ec.fieldContext_ErrorGroup_error_tag(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -41869,6 +41893,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupIsPublic(ctx c
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			case "serviceName":
 				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
+			case "error_tag":
+				return ec.fieldContext_ErrorGroup_error_tag(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -42646,6 +42672,49 @@ func (ec *executionContext) fieldContext_Mutation_createErrorTag(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateErrorTags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateErrorTags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateErrorTags(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateErrorTags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_upsertSlackChannel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_upsertSlackChannel(ctx, field)
 	if err != nil {
@@ -42813,8 +42882,6 @@ func (ec *executionContext) fieldContext_Mutation_testErrorEnhancement(ctx conte
 				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
 			case "span_id":
 				return ec.fieldContext_ErrorObject_span_id(ctx, field)
-			case "error_tag_id":
-				return ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
 			case "log_cursor":
 				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
@@ -45027,6 +45094,8 @@ func (ec *executionContext) fieldContext_Query_error_group(ctx context.Context, 
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
 			case "serviceName":
 				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
+			case "error_tag":
+				return ec.fieldContext_ErrorGroup_error_tag(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -45092,8 +45161,6 @@ func (ec *executionContext) fieldContext_Query_error_object(ctx context.Context,
 				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
 			case "span_id":
 				return ec.fieldContext_ErrorObject_span_id(ctx, field)
-			case "error_tag_id":
-				return ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
 			case "log_cursor":
 				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
@@ -45259,8 +45326,6 @@ func (ec *executionContext) fieldContext_Query_error_object_for_log(ctx context.
 				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
 			case "span_id":
 				return ec.fieldContext_ErrorObject_span_id(ctx, field)
-			case "error_tag_id":
-				return ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
 			case "log_cursor":
 				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
@@ -45490,8 +45555,6 @@ func (ec *executionContext) fieldContext_Query_errors(ctx context.Context, field
 				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
 			case "span_id":
 				return ec.fieldContext_ErrorObject_span_id(ctx, field)
-			case "error_tag_id":
-				return ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
 			case "log_cursor":
 				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
@@ -52973,8 +53036,6 @@ func (ec *executionContext) fieldContext_Query_logs_error_objects(ctx context.Co
 				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
 			case "span_id":
 				return ec.fieldContext_ErrorObject_span_id(ctx, field)
-			case "error_tag_id":
-				return ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
 			case "log_cursor":
 				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
@@ -61913,8 +61974,6 @@ func (ec *executionContext) fieldContext_SessionPayload_errors(ctx context.Conte
 				return ec.fieldContext_ErrorObject_trace_id(ctx, field)
 			case "span_id":
 				return ec.fieldContext_ErrorObject_span_id(ctx, field)
-			case "error_tag_id":
-				return ec.fieldContext_ErrorObject_error_tag_id(ctx, field)
 			case "log_cursor":
 				return ec.fieldContext_ErrorObject_log_cursor(ctx, field)
 			case "error_group_id":
@@ -74084,6 +74143,10 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 
 			out.Values[i] = ec._ErrorGroup_serviceName(ctx, field, obj)
 
+		case "error_tag":
+
+			out.Values[i] = ec._ErrorGroup_error_tag(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -74335,10 +74398,6 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 		case "span_id":
 
 			out.Values[i] = ec._ErrorObject_span_id(ctx, field, obj)
-
-		case "error_tag_id":
-
-			out.Values[i] = ec._ErrorObject_error_tag_id(ctx, field, obj)
 
 		case "log_cursor":
 
@@ -76957,6 +77016,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createErrorTag(ctx, field)
+			})
+
+		case "updateErrorTags":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateErrorTags(ctx, field)
 			})
 
 		case "upsertSlackChannel":

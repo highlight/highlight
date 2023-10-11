@@ -52,6 +52,7 @@ var fieldMap map[string]string = map[string]string{
 	"timestamp":       "Timestamp",
 	"secure_id":       "ErrorGroupSecureID",
 	"service_name":    "ServiceName",
+	"Tag":             "ErrorTagTitle",
 }
 
 type ClickhouseSession struct {

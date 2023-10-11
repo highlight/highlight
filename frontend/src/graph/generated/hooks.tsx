@@ -4985,6 +4985,52 @@ export type CreateErrorTagMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateErrorTagMutation,
 	Types.CreateErrorTagMutationVariables
 >
+export const UpdateErrorTagsDocument = gql`
+	mutation UpdateErrorTags {
+		updateErrorTags
+	}
+`
+export type UpdateErrorTagsMutationFn = Apollo.MutationFunction<
+	Types.UpdateErrorTagsMutation,
+	Types.UpdateErrorTagsMutationVariables
+>
+
+/**
+ * __useUpdateErrorTagsMutation__
+ *
+ * To run a mutation, you first call `useUpdateErrorTagsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateErrorTagsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateErrorTagsMutation, { data, loading, error }] = useUpdateErrorTagsMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUpdateErrorTagsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateErrorTagsMutation,
+		Types.UpdateErrorTagsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateErrorTagsMutation,
+		Types.UpdateErrorTagsMutationVariables
+	>(UpdateErrorTagsDocument, baseOptions)
+}
+export type UpdateErrorTagsMutationHookResult = ReturnType<
+	typeof useUpdateErrorTagsMutation
+>
+export type UpdateErrorTagsMutationResult =
+	Apollo.MutationResult<Types.UpdateErrorTagsMutation>
+export type UpdateErrorTagsMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateErrorTagsMutation,
+	Types.UpdateErrorTagsMutationVariables
+>
 export const UpsertSlackChannelDocument = gql`
 	mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
 		upsertSlackChannel(project_id: $project_id, name: $name) {
@@ -7317,6 +7363,12 @@ export const GetErrorGroupsClickhouseDocument = gql`
 				}
 				is_public
 				project_id
+				error_tag {
+					id
+					created_at
+					title
+					description
+				}
 			}
 			totalCount
 		}
@@ -8631,6 +8683,12 @@ export const GetErrorGroupDocument = gql`
 			last_occurrence
 			first_occurrence
 			serviceName
+			error_tag {
+				id
+				created_at
+				title
+				description
+			}
 		}
 	}
 `

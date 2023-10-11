@@ -1395,6 +1395,15 @@ export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateErrorTagsMutationVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type UpdateErrorTagsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateErrorTags'
+>
+
 export type UpsertSlackChannelMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -2400,6 +2409,12 @@ export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
 								'error_group_id' | 'date' | 'name' | 'value'
 							>
 						>
+						error_tag?: Types.Maybe<
+							{ __typename?: 'ErrorTag' } & Pick<
+								Types.ErrorTag,
+								'id' | 'created_at' | 'title' | 'description'
+							>
+						>
 					}
 			>
 		}
@@ -2970,6 +2985,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 					{ __typename?: 'ErrorDistributionItem' } & Pick<
 						Types.ErrorDistributionItem,
 						'error_group_id' | 'date' | 'name' | 'value'
+					>
+				>
+				error_tag?: Types.Maybe<
+					{ __typename?: 'ErrorTag' } & Pick<
+						Types.ErrorTag,
+						'id' | 'created_at' | 'title' | 'description'
 					>
 				>
 			}
@@ -5022,6 +5043,7 @@ export const namedOperations = {
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
 		CreateErrorTag: 'CreateErrorTag' as const,
+		UpdateErrorTags: 'UpdateErrorTags' as const,
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		testErrorEnhancement: 'testErrorEnhancement' as const,

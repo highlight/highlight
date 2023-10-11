@@ -3,6 +3,7 @@ import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	IconSolidDesktopComputer,
 	IconSolidSparkles,
 	IconSolidUsers,
 	IconSolidViewGrid,
@@ -71,6 +72,8 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 					color="n12"
 					display="flex"
 					alignItems="center"
+					justifyContent="space-between"
+					gap="4"
 					cssClass={style.errorCardTitle}
 				>
 					<Text
@@ -82,6 +85,9 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 					>
 						{body}
 					</Text>
+					{recentlyCreated(errorGroup) && (
+						<Badge variant="yellow" label="New" size="medium" />
+					)}
 				</Box>
 				<Box display="flex" gap="12" justifyContent="space-between">
 					<Box
@@ -173,13 +179,22 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 							>
 								{createdDate}
 							</Tag>
-							{recentlyCreated(errorGroup) && (
-								<Badge
-									variant="yellow"
-									label="New"
-									size="medium"
-								/>
-							)}
+							{errorGroup?.error_tag?.title ? (
+								<Tag
+									shape="basic"
+									kind="secondary"
+									iconLeft={
+										<IconSolidDesktopComputer size={12} />
+									}
+								>
+									<Text
+										cssClass={style.errorCardTagText}
+										lines="1"
+									>
+										{errorGroup.error_tag.title}
+									</Text>
+								</Tag>
+							) : null}
 						</Box>
 					</Box>
 					<Box paddingTop="2" display="flex" alignItems="flex-end">
