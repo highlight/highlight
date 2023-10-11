@@ -1,0 +1,27 @@
+[package]
+name = "highlight-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.6.20"
+http = "0.2.9"
+hyper = "0.14.27"
+log = { version = "0.4.20", features = ["std"] }
+opentelemetry = "0.20.0"
+opentelemetry-appender-log = "0.1.0"
+opentelemetry-otlp = { version = "0.13.0", features = ["http-proto", "logs", "reqwest-client", "reqwest-rustls"] }
+opentelemetry-semantic-conventions = "0.12.0"
+opentelemetry-stdout = { version = "0.1.0", features = ["logs"] }
+opentelemetry_api = "0.20.0"
+opentelemetry_sdk = { version = "0.20.0", features=["rt-tokio", "rt-tokio-current-thread", "logs_level_enabled"] }
+sysinfo = "0.29.10"
+tokio = { version = "1.33.0", features = ["full"] }
+tower = "0.4.13"
+tower-http = { version = "0.4.4", features = ["cors"] }
+tracing = "0.1.37"
+tracing-opentelemetry = "0.21.0"
+tracing-subscriber = { version = "0.3.17" }
+uuid = { version = "1.5.0", features = ["v4", "fast-rng"] }
