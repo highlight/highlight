@@ -1093,6 +1093,12 @@ query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
 		last_occurrence
 		first_occurrence
 		serviceName
+		error_tag {
+			id
+			created_at
+			title
+			description
+		}
 	}
 }
 

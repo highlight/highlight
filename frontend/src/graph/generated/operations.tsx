@@ -2987,6 +2987,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 						'error_group_id' | 'date' | 'name' | 'value'
 					>
 				>
+				error_tag?: Types.Maybe<
+					{ __typename?: 'ErrorTag' } & Pick<
+						Types.ErrorTag,
+						'id' | 'created_at' | 'title' | 'description'
+					>
+				>
 			}
 	>
 }

@@ -8683,6 +8683,12 @@ export const GetErrorGroupDocument = gql`
 			last_occurrence
 			first_occurrence
 			serviceName
+			error_tag {
+				id
+				created_at
+				title
+				description
+			}
 		}
 	}
 `

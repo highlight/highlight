@@ -189,7 +189,9 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 										<IconSolidDesktopComputer size={12} />
 									}
 								>
-									{errorGroup.error_tag.title}
+									<Text cssClass={style.errorCardTagText}>
+										{errorGroup.error_tag.title}
+									</Text>
 								</Tag>
 							) : null}
 						</Box>

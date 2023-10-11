@@ -4,6 +4,7 @@ import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	Box,
 	IconSolidCheveronRight,
+	IconSolidDesktopComputer,
 	IconSolidLocationMarker,
 	Tag,
 	Text,
@@ -21,28 +22,49 @@ const ErrorTag = React.memo(
 		if (!errorGroup) return <LoadingBox />
 		return (
 			<Box
-				alignItems="center"
 				display="flex"
-				gap="4"
-				color="weak"
-				flexWrap="nowrap"
+				alignItems="center"
+				justifyContent="space-between"
+				width="full"
 			>
-				<Tag
-					iconLeft={<IconSolidLocationMarker />}
-					kind="secondary"
-					size="medium"
-					shape="basic"
-					lines="1"
+				<Box
+					alignItems="center"
+					display="flex"
+					gap="4"
+					color="weak"
+					flexWrap="nowrap"
 				>
-					{errorGroup.serviceName && errorGroup.serviceName != ''
-						? errorGroup.serviceName
-						: errorGroup.type}
-				</Tag>
+					<Tag
+						iconLeft={<IconSolidLocationMarker />}
+						kind="secondary"
+						size="medium"
+						shape="basic"
+						lines="1"
+					>
+						{errorGroup.serviceName && errorGroup.serviceName != ''
+							? errorGroup.serviceName
+							: errorGroup.type}
+					</Tag>
 
-				<IconSolidCheveronRight />
-				<Text size="small" weight="medium" color="moderate" lines="1">
-					{getProjectPrefix(projectData?.project)}-{errorGroup.id}
-				</Text>
+					<IconSolidCheveronRight />
+					<Text
+						size="small"
+						weight="medium"
+						color="moderate"
+						lines="1"
+					>
+						{getProjectPrefix(projectData?.project)}-{errorGroup.id}
+					</Text>
+				</Box>
+				{errorGroup?.error_tag?.title ? (
+					<Tag
+						shape="basic"
+						kind="secondary"
+						iconLeft={<IconSolidDesktopComputer size={12} />}
+					>
+						<Text>{errorGroup.error_tag.title}</Text>
+					</Tag>
+				) : null}
 			</Box>
 		)
 	},

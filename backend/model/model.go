@@ -1051,7 +1051,7 @@ type ErrorGroup struct {
 
 type ErrorTag struct {
 	Model
-	Title       string
+	Title       string `gorm:"uniqueIndex;not null"`
 	Description string
 	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
 }
