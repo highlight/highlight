@@ -24,6 +24,9 @@ enum SessionExcludedReason {
 	IgnoredUser
 	BillingQuotaExceeded
 	RetentionPeriodExceeded
+	Sampled
+	RateLimitMinute
+	ExclusionFilter
 }
 
 type Session {
@@ -127,12 +130,15 @@ type BillingDetails {
 	membersMeter: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	tracesMeter: Int64!
 	sessionsDailyAverage: Float!
 	errorsDailyAverage: Float!
 	logsDailyAverage: Float!
+	tracesDailyAverage: Float!
 	sessionsBillingLimit: Int64
 	errorsBillingLimit: Int64
 	logsBillingLimit: Int64
+	tracesBillingLimit: Int64
 }
 
 type Invoice {
@@ -149,6 +155,7 @@ type SubscriptionDetails {
 	discountPercent: Float!
 	discountAmount: Int64!
 	lastInvoice: Invoice
+	billingIssue: Boolean!
 }
 
 type Plan {
@@ -158,6 +165,7 @@ type Plan {
 	membersLimit: Int
 	errorsLimit: Int!
 	logsLimit: Int!
+	tracesLimit: Int!
 }
 
 enum PlanType {
@@ -173,6 +181,7 @@ enum ProductType {
 	Sessions
 	Errors
 	Logs
+	Traces
 }
 
 enum SubscriptionInterval {
@@ -273,6 +282,36 @@ type ClickUpTask {
 type HeightTask {
 	id: String!
 	name: String!
+}
+
+type Sampling {
+	session_sampling_rate: Float!
+	error_sampling_rate: Float!
+	log_sampling_rate: Float!
+	trace_sampling_rate: Float!
+	session_minute_rate_limit: Int64!
+	error_minute_rate_limit: Int64!
+	log_minute_rate_limit: Int64!
+	trace_minute_rate_limit: Int64!
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
+}
+
+input SamplingInput {
+	session_sampling_rate: Float
+	error_sampling_rate: Float
+	log_sampling_rate: Float
+	trace_sampling_rate: Float
+	session_minute_rate_limit: Int64
+	error_minute_rate_limit: Int64
+	log_minute_rate_limit: Int64
+	trace_minute_rate_limit: Int64
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
 }
 
 type SocialLink {
@@ -385,6 +424,7 @@ type AllProjectSettings {
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
+	sampling: Sampling!
 }
 
 type AllWorkspaceSettings {
@@ -392,6 +432,7 @@ type AllWorkspaceSettings {
 	ai_application: Boolean!
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
+	enable_unlisted_sharing: Boolean!
 }
 
 type Account {
@@ -714,6 +755,7 @@ type ErrorObjectNode {
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
 	serviceVersion: String!
+	serviceName: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -793,6 +835,29 @@ enum ReservedTraceKey {
 	service_version
 }
 
+enum ReservedErrorObjectKey {
+	event
+	log_cursor
+	payload
+	request_id
+	service_name
+	service_version
+	session_secure_id
+	source
+	span_id
+	stackTrace
+	timestamp
+	trace_id
+	type
+	url
+}
+
+enum ReservedSessionKey {
+	environment
+	service_name
+	app_version
+}
+
 enum LogSource {
 	frontend
 	backend
@@ -817,6 +882,24 @@ type LogsHistogram {
 	totalCount: UInt64!
 	objectCount: UInt64!
 	sampleFactor: Float!
+}
+
+enum TracesMetricType {
+	count
+	p50
+	p90
+}
+
+type TracesMetricBucket {
+	bucket_id: UInt64!
+	metric_type: TracesMetricType!
+	metric_value: Float!
+}
+
+type TracesMetrics {
+	buckets: [TracesMetricBucket!]!
+	bucket_count: UInt64!
+	sample_factor: Float!
 }
 
 type QueryKey {
@@ -1902,6 +1985,11 @@ type Query {
 		at: String
 		direction: SortDirection!
 	): TraceConnection!
+	traces_metrics(
+		project_id: ID!
+		params: QueryInput!
+		metric_types: [TracesMetricType!]!
+	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
@@ -1946,6 +2034,7 @@ type Mutation {
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
 		autoResolveStaleErrorsDayInterval: Int
+		sampling: SamplingInput
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(
@@ -2289,6 +2378,7 @@ type Mutation {
 		github_repo_path: String!
 		github_prefix: String
 		build_prefix: String
+		save_error: Boolean
 	): ErrorObject
 }
 

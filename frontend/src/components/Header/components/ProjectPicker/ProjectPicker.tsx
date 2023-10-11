@@ -13,7 +13,7 @@ import { vars } from '@highlight-run/ui/src/css/vars'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
@@ -28,6 +28,7 @@ const ProjectPicker = () => {
 	const { isSettings } = useIsSettingsPath()
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()
+	const location = useLocation()
 	const isInDemoProject = projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 
 	const projectOptions = allProjects
@@ -108,6 +109,9 @@ const ProjectPicker = () => {
 									<Menu.Divider />
 									<Link
 										to={`/w/${currentWorkspace?.id}/new`}
+										state={{
+											previousLocation: location,
+										}}
 										className={linkStyle}
 									>
 										<Menu.Item>

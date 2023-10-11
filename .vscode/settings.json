@@ -97,7 +97,8 @@
 		"munge",
 		"runtimes",
 		"snapshotting",
-		"unobfuscated"
+		"unobfuscated",
+		"Vadim"
 	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"

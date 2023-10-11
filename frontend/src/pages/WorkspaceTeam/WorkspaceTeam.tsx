@@ -44,7 +44,19 @@ const WorkspaceTeam = () => {
 						roles!
 					</p>
 					<Authorization allowedRoles={[AdminRole.Admin]}>
-						<AutoJoinForm label="Auto join" labelFirst />
+						<AutoJoinForm
+							label="Auto join"
+							labelFirst
+							allowedEmailOrigins={
+								data?.workspace?.allowed_auto_join_email_origins
+									?.length
+									? JSON.parse(
+											data?.workspace
+												?.allowed_auto_join_email_origins,
+									  )
+									: undefined
+							}
+						/>
 					</Authorization>
 					<InviteMemberModal
 						workspaceId={workspace_id}

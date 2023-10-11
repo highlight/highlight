@@ -5,6 +5,11 @@ export const container = style({
 	width: '100%',
 })
 
+export const searchPanelContainer = style({
+	position: 'relative',
+	zIndex: 98,
+})
+
 export const detailsContainer = style({
 	backgroundColor: '#f9f8f9',
 	display: 'flex',

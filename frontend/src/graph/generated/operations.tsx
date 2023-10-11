@@ -278,6 +278,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
 	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
+	sampling?: Types.Maybe<Types.SamplingInput>
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
@@ -296,7 +297,19 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
-		>
+		> & {
+				sampling: { __typename?: 'Sampling' } & Pick<
+					Types.Sampling,
+					| 'session_sampling_rate'
+					| 'error_sampling_rate'
+					| 'log_sampling_rate'
+					| 'trace_sampling_rate'
+					| 'session_exclusion_query'
+					| 'error_exclusion_query'
+					| 'log_exclusion_query'
+					| 'trace_exclusion_query'
+				>
+			}
 	>
 }
 
@@ -1411,6 +1424,7 @@ export type TestErrorEnhancementMutationVariables = Types.Exact<{
 	github_repo_path: Types.Scalars['String']
 	github_prefix?: Types.Maybe<Types.Scalars['String']>
 	build_prefix?: Types.Maybe<Types.Scalars['String']>
+	save_error?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
@@ -2784,9 +2798,11 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'membersMeter'
 			| 'errorsMeter'
 			| 'logsMeter'
+			| 'tracesMeter'
 			| 'sessionsBillingLimit'
 			| 'errorsBillingLimit'
 			| 'logsBillingLimit'
+			| 'tracesBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2796,6 +2812,7 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'membersLimit'
 					| 'errorsLimit'
 					| 'logsLimit'
+					| 'tracesLimit'
 				>
 			}
 	>
@@ -2882,7 +2899,7 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'discountAmount' | 'discountPercent'
+		'baseAmount' | 'discountAmount' | 'discountPercent' | 'billingIssue'
 	> & {
 			lastInvoice?: Types.Maybe<
 				{ __typename?: 'Invoice' } & Pick<
@@ -4448,7 +4465,19 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_count'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
-		>
+		> & {
+				sampling: { __typename?: 'Sampling' } & Pick<
+					Types.Sampling,
+					| 'session_sampling_rate'
+					| 'error_sampling_rate'
+					| 'log_sampling_rate'
+					| 'trace_sampling_rate'
+					| 'session_exclusion_query'
+					| 'error_exclusion_query'
+					| 'log_exclusion_query'
+					| 'trace_exclusion_query'
+				>
+			}
 	>
 }
 
@@ -4488,6 +4517,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_application'
 			| 'ai_insights'
 			| 'enable_session_export'
+			| 'enable_unlisted_sharing'
 		>
 	>
 }
@@ -4525,6 +4555,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 						| 'timestamp'
 						| 'errorGroupSecureID'
 						| 'serviceVersion'
+						| 'serviceName'
 					> & {
 							session?: Types.Maybe<
 								{
@@ -4723,6 +4754,26 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetTracesMetricsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.QueryInput
+	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+}>
+
+export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
+	traces_metrics: { __typename?: 'TracesMetrics' } & Pick<
+		Types.TracesMetrics,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'TracesMetricBucket' } & Pick<
+					Types.TracesMetricBucket,
+					'bucket_id' | 'metric_type' | 'metric_value'
+				>
+			>
+		}
+}
+
 export type GetTracesKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
@@ -4885,6 +4936,7 @@ export const namedOperations = {
 		FindSimilarErrors: 'FindSimilarErrors' as const,
 		GetTrace: 'GetTrace' as const,
 		GetTraces: 'GetTraces' as const,
+		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
 	},

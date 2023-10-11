@@ -8,6 +8,7 @@ import {
 	IconSolidLoading,
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
+	IconSolidXCircle,
 	Stack,
 	Text,
 	Tooltip,
@@ -47,6 +48,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const [testedError, setTestedError] =
 		useState<ErrorObjectFragment>(errorObject)
 	const [testLoading, setTestLoading] = useState(false)
+	const [failedEnhancement, setFailedEnhancement] = useState(false)
 	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
 	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
@@ -87,6 +89,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 			? formValues
 			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
 
+		setTestLoading(true)
 		editServiceGithubSettings({
 			variables: {
 				id: String(service?.id),
@@ -96,8 +99,34 @@ export const GitHubEnhancementSettingsForm: React.FC<
 				github_prefix: submittedValues.githubPrefix,
 			},
 		})
-
-		onSave()
+			.then(() => {
+				if (formValues?.githubRepo) {
+					testErrorEnhancement({
+						variables: {
+							error_object_id: testedError.id,
+							github_repo_path: String(
+								submittedValues?.githubRepo,
+							),
+							build_prefix: submittedValues?.buildPrefix,
+							github_prefix: submittedValues?.githubPrefix,
+							save_error: true,
+						},
+					})
+						.then(() => {
+							setTestLoading(false)
+							onSave()
+						})
+						.catch(() => {
+							setTestLoading(false)
+						})
+				} else {
+					setTestLoading(false)
+					onSave()
+				}
+			})
+			.catch(() => {
+				setTestLoading(false)
+			})
 	}
 
 	const handleTestConfiguration = () => {
@@ -110,6 +139,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 				github_repo_path: String(formValues?.githubRepo),
 				build_prefix: formValues?.buildPrefix,
 				github_prefix: formValues?.githubPrefix,
+				save_error: false,
 			},
 		}).then(({ data }) => {
 			if (data?.testErrorEnhancement) {
@@ -118,7 +148,17 @@ export const GitHubEnhancementSettingsForm: React.FC<
 					...data.testErrorEnhancement,
 				}
 
+				// check if at least one file was enhanced
+				let latestFailedEnhancement = true
+				for (const trace of updatedError.structured_stack_trace) {
+					if (trace?.enhancementSource === 'github') {
+						latestFailedEnhancement = false
+						break
+					}
+				}
+
 				setTestedError(updatedError)
+				setFailedEnhancement(latestFailedEnhancement)
 			}
 			setTestLoading(false)
 		})
@@ -138,6 +178,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 					<Button
 						trackingId="error-github-enhancement-test-configuration"
 						kind="secondary"
+						emphasis="low"
 						size="xSmall"
 						iconLeft={
 							testLoading ? (
@@ -161,11 +202,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						trackingId="error-github-enhancement-step-save-configuration"
 						kind="primary"
 						size="xSmall"
-						disabled={
-							disabled ||
-							testLoading ||
-							!formStore.getValue(formStore.names.githubRepo)
-						}
+						disabled={disabled || testLoading}
 						onClick={handleSave}
 					>
 						Save changes
@@ -306,7 +343,28 @@ export const GitHubEnhancementSettingsForm: React.FC<
 					{testLoading ? (
 						<LoadingBox height={600} />
 					) : (
-						<ErrorStackTrace errorObject={testedError} />
+						<>
+							{failedEnhancement && (
+								<Box
+									display="flex"
+									alignItems="center"
+									gap="2"
+									pb="8"
+								>
+									<IconSolidXCircle
+										size={14}
+										color={
+											vars.theme.static.content.sentiment
+												.bad
+										}
+									/>
+									<Text color="bad">
+										Error: no traces successfully enhanced
+									</Text>
+								</Box>
+							)}
+							<ErrorStackTrace errorObject={testedError} />
+						</>
 					)}
 				</Box>
 			)}

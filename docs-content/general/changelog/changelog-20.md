@@ -22,11 +22,11 @@ And the email that invited users receive is now cleaner and easier to understand
 
 ## New Logging connectors
 
--   [AWS Kinesis](../../getting-started/backend-logging/5_hosting/aws.md#aws-kinesis-firehose-for-logs-from-infrastructure-or-other-services)
+-   [AWS Kinesis](../../getting-started/backend-logging/06_hosting/aws.md#aws-kinesis-firehose-for-logs-from-infrastructure-or-other-services)
 
--   [Fluent Forward](../../getting-started/backend-logging/9_fluentforward.md)
--   [Filesystem](../../getting-started/backend-logging/8_file.md)
--   [Loguru](../../getting-started/backend-logging/3_python/loguru.md)
+-   [Fluent Forward](../../getting-started/backend-logging/10_fluentforward.md)
+-   [Filesystem](../../getting-started/backend-logging/09_file.md)
+-   [Loguru](../../getting-started/backend-logging/03_python/loguru.md)
 
 These new connectors make Highlight much easier to use with AWS, Docker, custom VMs and Python!
 

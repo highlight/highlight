@@ -3,6 +3,9 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/queryparser"
+	"github.com/samber/lo"
 	"os"
 	"reflect"
 	"sort"
@@ -1227,4 +1230,148 @@ func FuzzReadLogs(f *testing.F) {
 		}, Pagination{})
 		assert.NoError(t, err)
 	})
+}
+
+func Test_LogMatchesQuery(t *testing.T) {
+	logRow := LogRow{}
+	filters := queryparser.Parse("hello world os.type:linux resource_name:worker.* service_name:all")
+	matches := LogMatchesQuery(&logRow, &filters)
+	assert.False(t, matches)
+
+	logRow = LogRow{
+		Body:        "this, is.a ; hello; world \nbe\xe2\x80\x83me",
+		ServiceName: "all",
+		LogAttributes: map[string]string{
+			"os.type":       "linux",
+			"resource_name": "worker.kafka.process",
+		},
+	}
+	filters = queryparser.Parse("hello world be me os.type:linux resource_name:worker.* service_name:all")
+	matches = LogMatchesQuery(&logRow, &filters)
+	assert.True(t, matches)
+
+	filters = queryparser.Parse("not this one os.type:linux resource_name:worker.* service_name:all")
+	matches = LogMatchesQuery(&logRow, &filters)
+	assert.False(t, matches)
+}
+
+func Test_LogMatchesQuery_Body(t *testing.T) {
+	for _, body := range []string{
+		"hello world a test",
+		"hello, world this is a test",
+		"this, is.a ; hello; 123 there6 world:message,.:;	\nbe\xe2\x80\x83me",
+		"0!0!  0*000000 000000000",
+		"0! 000\\\"0000000000000",
+		"(*",
+		"*!",
+		"*\\x80",
+	} {
+		logRow := LogRow{Body: body}
+		filters := queryparser.Parse(body)
+		// : represents a special case since our query parser treats it as an attribute. don't search on attrs
+		filters.Attributes = map[string][]string{}
+		matches := LogMatchesQuery(&logRow, &filters)
+		assert.True(t, matches, "failed on body %s", body)
+
+		filters = queryparser.Parse("no")
+		matches = LogMatchesQuery(&logRow, &filters)
+		assert.False(t, matches, "failed on body %s", body)
+	}
+}
+
+func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
+	var rows []*LogRow
+	for i := 1; i <= LogsLimit; i++ {
+		row := NewLogRow(oneSecondAgo, 1,
+			WithBody(ctx, "this is a hello world message"),
+			WithSeverityText(modelInputs.LogLevelInfo.String()),
+			WithServiceName("all"),
+			WithTraceID(uuid.New().String()),
+			WithLogAttributes(map[string]string{
+				"service":       "foo",
+				"os.type":       "linux",
+				"resource_name": "worker.kafka.process"}))
+		if i < 10 {
+			row.ServiceName = "dev"
+		}
+		rows = append(rows, row)
+	}
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	query := "hello world os.type:linux resource_name:worker.* service_name:dev"
+	result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     query,
+	}, Pagination{})
+	assert.NoError(t, err)
+
+	var filtered []*LogRow
+	filters := queryparser.Parse(query)
+	for _, logRow := range rows {
+		if LogMatchesQuery(logRow, &filters) {
+			filtered = append(filtered, logRow)
+		}
+	}
+
+	assert.Equal(t, len(filtered), len(result.Edges))
+	for _, logRow := range filtered {
+		_, found := lo.Find(result.Edges, func(edge *modelInputs.LogEdge) bool {
+			if edge.Node.TraceID == nil {
+				return false
+			}
+			return *edge.Node.TraceID == logRow.TraceId
+		})
+		assert.True(t, found)
+	}
+}
+
+func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
+	for _, body := range []string{
+		"hello world",
+		"this, is.a ; hello; \nbe  me",
+		"hello world a test",
+		"hello, world this is a test",
+		"foo*bar",
+		"0! 000\\\"0000000000000",
+		"(*",
+		"*!",
+		"*\\x80",
+	} {
+		ctx := context.Background()
+		client, teardown := setupTest(t)
+		defer teardown(t)
+
+		now := time.Now()
+		oneSecondAgo := now.Add(-time.Second * 1)
+		logRow := NewLogRow(oneSecondAgo, 1, WithBody(ctx, body))
+		assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{logRow}))
+
+		result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+			DateRange: makeDateWithinRange(now),
+			Query:     body,
+		}, Pagination{})
+		assert.NoError(t, err)
+
+		var filtered []*LogRow
+		filters := queryparser.Parse(body)
+		if LogMatchesQuery(logRow, &filters) {
+			filtered = append(filtered, logRow)
+		}
+
+		assert.Equal(t, 1, len(result.Edges))
+		assert.Equal(t, len(filtered), len(result.Edges))
+		_, found := lo.Find(result.Edges, func(edge *modelInputs.LogEdge) bool {
+			if edge.Node.TraceID == nil {
+				return false
+			}
+			return *edge.Node.TraceID == logRow.TraceId
+		})
+		assert.True(t, found)
+	}
 }

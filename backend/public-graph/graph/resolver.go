@@ -161,17 +161,17 @@ type NetworkResource struct {
 }
 
 func (re *NetworkResource) Start(sessionStart time.Time) time.Time {
-	start := time.UnixMicro(int64(re.StartTimeAbs))
+	start := time.UnixMicro(int64(1000. * re.StartTimeAbs))
 	if start.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
-		start = sessionStart.Add(time.Millisecond * time.Duration(re.StartTime))
+		start = sessionStart.Add(time.Microsecond * time.Duration(1000.*re.StartTime))
 	}
 	return start
 }
 
 func (re *NetworkResource) End(sessionStart time.Time) time.Time {
-	end := time.UnixMicro(int64(re.ResponseEndAbs))
+	end := time.UnixMicro(int64(1000. * re.ResponseEndAbs))
 	if end.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
-		end = sessionStart.Add(time.Millisecond * time.Duration(re.ResponseEnd))
+		end = sessionStart.Add(time.Microsecond * time.Duration(1000.*re.ResponseEnd))
 	}
 	return end
 }
@@ -1620,6 +1620,7 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return int64(limit)
 		},
 	},
+	// TODO(vkorolik) include trace pricing once we have that in place
 }
 
 func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
@@ -1817,6 +1818,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 
 			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 				Workspace:       workspace,
+				Project:         &project,
 				SessionSecureID: sessionObj.SecureID,
 				SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 				UserIdentifier:  sessionObj.Identifier,
@@ -1843,12 +1845,16 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 	}
 
 	for secureID, metrics := range sessionMetrics {
-		err := r.ProducerQueue.Submit(ctx, secureID, &kafka_queue.Message{
-			Type: kafka_queue.PushMetrics,
-			PushMetrics: &kafka_queue.PushMetricsArgs{
-				SessionSecureID: secureID,
-				Metrics:         metrics,
-			}})
+		var messages []*kafka_queue.Message
+		for _, metric := range metrics {
+			messages = append(messages, &kafka_queue.Message{
+				Type: kafka_queue.PushMetrics,
+				PushMetrics: &kafka_queue.PushMetricsArgs{
+					SessionSecureID: secureID,
+					Metrics:         []*publicModel.MetricInput{metric},
+				}})
+		}
+		err := r.ProducerQueue.Submit(ctx, secureID, messages...)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
@@ -2072,13 +2078,12 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
-	// Filter out empty errors
+	// Filter out ignored errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
-			continue
+		if r.IsErrorIngested(ctx, project.ID, errorObject) {
+			filteredErrors = append(filteredErrors, errorObject)
 		}
-		filteredErrors = append(filteredErrors, errorObject)
 	}
 	errorObjects = filteredErrors
 
@@ -2560,8 +2565,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error saving resources data")
 		}
 
-		settings, _ := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
-		if settings.EnableNetworkTraces {
+		settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+		if err == nil && settings.EnableNetworkTraces {
 			resourcesParsed := make(map[string][]NetworkResource)
 			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 				return nil
@@ -2609,7 +2614,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			if !r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, errorObject) {
 				continue
 			}
 			seenEvents[errorObject.Event] = errorObject
@@ -2752,7 +2757,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	updateSpan, updateSpanCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
-	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
+	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
@@ -2999,7 +3004,10 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			}
 		}
 
-		span, _ := highlight.StartTraceWithTimestamp(context.Background(), strings.Join([]string{method, re.Name}, " "), start, attributes...)
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
+		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
+		span, _ := highlight.StartTraceWithTimestamp(ctx, strings.Join([]string{method, re.Name}, " "), start, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
 	return nil
@@ -3281,111 +3289,4 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 		}
 	}
 	return nil
-}
-
-func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
-	var excluded bool
-	var reason privateModel.SessionExcludedReason
-
-	var project model.Project
-	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false, nil
-	}
-
-	if r.isSessionUserExcluded(ctx, s, project) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonIgnoredUser
-	}
-
-	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonNoError
-	}
-
-	if r.isSessionExcludedForNoUserEvents(ctx, s) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonNoUserEvents
-	}
-
-	return excluded, &reason
-}
-
-func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
-	return s.LastUserInteractionTime.Unix() == 0
-}
-
-func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(project)
-
-	if projectFilterSettings.FilterSessionsWithoutError {
-		return !sessionHasErrors
-	}
-
-	return false
-}
-
-func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project model.Project) bool {
-	if project.ExcludedUsers == nil {
-		return false
-	}
-	var email string
-	if s.UserProperties != "" {
-		encodedProperties := []byte(s.UserProperties)
-		decodedProperties := map[string]string{}
-		err := json.Unmarshal(encodedProperties, &decodedProperties)
-		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
-			return false
-		}
-		email = decodedProperties["email"]
-	}
-	for _, value := range []string{s.Identifier, email} {
-		if value == "" {
-			continue
-		}
-		for _, excludedExpr := range project.ExcludedUsers {
-			matched, err := regexp.MatchString(excludedExpr, value)
-			if err != nil {
-				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
-				return false
-			} else if matched {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
-	if errorEvent == "[{}]" {
-		log.WithContext(ctx).
-			WithField("project_id", projectID).
-			Warn("ignoring empty error")
-		return true
-	}
-
-	if cfg, err := r.Store.GetSystemConfiguration(ctx); err == nil {
-		errorFilters = append(errorFilters, cfg.ErrorFilters...)
-	}
-
-	// Filter out by project.ErrorFilters, aka regexp filters
-	var err error
-	matchedRegexp := false
-	for _, errorFilter := range errorFilters {
-		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
-		if err != nil {
-			log.WithContext(ctx).
-				WithField("project_id", projectID).
-				WithField("regex", errorFilter).
-				WithError(err).
-				Error("invalid regex: failed to parse backend error filter")
-			continue
-		}
-
-		if matchedRegexp {
-			return true
-		}
-	}
-	return false
 }

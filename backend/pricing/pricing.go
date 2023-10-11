@@ -711,6 +711,8 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		return e.Wrap(err, "error updating overage item")
 	}
 
+	// TODO(vkorolik) include trace pricing once we have that in place
+
 	if util.IsHubspotEnabled() {
 		props := []hubspot.Property{{
 			Name:     "sessions_overage",

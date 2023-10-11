@@ -12,7 +12,7 @@ export declare interface Metric {
 export const H: HighlightInterface = {
 	...NodeH,
 	init: (options: NodeOptions) => {
-		if (process.env.NEXT_RUNTIME === 'nodejs') {
+		if (isNodeJs()) {
 			if (!NodeH.isInitialized()) {
 				NodeH.init(options)
 			}
@@ -53,4 +53,11 @@ export const H: HighlightInterface = {
 			'H.sendResponse is not implemented for the Node runtime.',
 		)
 	},
+}
+
+function isNodeJs() {
+	return (
+		typeof process.env.NEXT_RUNTIME === 'undefined' ||
+		process.env.NEXT_RUNTIME === 'nodejs'
+	)
 }

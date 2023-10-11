@@ -373,6 +373,16 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 				session.Fields = lo.Map(sessionToFields[session.ID], func(sf *sessionField, _ int) *model.Field {
 					return fieldsById[sf.FieldID]
 				})
+				// fields are populated, so calculate whether session is excluded
+				if k.Worker.PublicResolver.IsSessionExcludedByFilter(ctx, session) {
+					reason := privateModel.SessionExcludedReasonExclusionFilter
+					session.Excluded = true
+					session.ExcludedReason = &reason
+					if err := k.Worker.PublicResolver.DB.Model(&model.Session{Model: model.Model{ID: session.ID}}).
+						Select("Excluded", "ExcludedReason").Updates(&session).Error; err != nil {
+						return err
+					}
+				}
 			}
 
 			allSessionObjs = append(allSessionObjs, sessionObjs...)

@@ -42,7 +42,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		project := model.Project{}
 		db.Create(&project)
 
-		_, err := autoResolver.store.UpdateProjectFilterSettings(project, store.UpdateProjectFilterSettingsParams{
+		_, err := autoResolver.store.UpdateProjectFilterSettings(context.TODO(), project.ID, store.UpdateProjectFilterSettingsParams{
 			AutoResolveStaleErrorsDayInterval: ptr.Int(1),
 		})
 		assert.NoError(t, err)

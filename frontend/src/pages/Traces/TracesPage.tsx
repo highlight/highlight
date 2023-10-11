@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import LineChart from '@/components/LineChart/LineChart'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -22,10 +23,12 @@ import {
 import {
 	useGetTracesKeysQuery,
 	useGetTracesKeyValuesLazyQuery,
+	useGetTracesMetricsQuery,
 	useGetTracesQuery,
 } from '@/graph/generated/hooks'
-import { SortDirection } from '@/graph/generated/schemas'
+import { SortDirection, TracesMetricType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
+import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { TracesList } from '@/pages/Traces/TracesList'
 
 export const TracesPage: React.FC = () => {
@@ -59,6 +62,58 @@ export const TracesPage: React.FC = () => {
 			direction: SortDirection.Desc,
 		},
 	})
+
+	const { data: metricsData, loading: metricsLoading } =
+		useGetTracesMetricsQuery({
+			variables: {
+				project_id: projectId!,
+				params: {
+					query: serverQuery,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+				},
+				metric_types: [
+					TracesMetricType.Count,
+					TracesMetricType.P50,
+					TracesMetricType.P90,
+				],
+			},
+			skip: !projectId,
+		})
+
+	const histogramBuckets = metricsData?.traces_metrics.buckets
+		.filter((b) => b.metric_type === TracesMetricType.Count)
+		.map((b) => ({
+			bucketId: b.bucket_id,
+			counts: [{ level: 'trace', count: b.metric_value }],
+		}))
+
+	const metricsBuckets: {
+		bucketId: number
+		p50: number | undefined
+		p90: number | undefined
+	}[] = []
+	for (let i = 0; i < metricsData?.traces_metrics.bucket_count; i++) {
+		metricsBuckets.push({ bucketId: i, p50: undefined, p90: undefined })
+	}
+
+	metricsData?.traces_metrics.buckets.forEach((b) => {
+		switch (b.metric_type) {
+			case TracesMetricType.P50:
+				metricsBuckets[b.bucket_id].p50 = b.metric_value / 1_000_000
+				break
+			case TracesMetricType.P90:
+				metricsBuckets[b.bucket_id].p90 = b.metric_value / 1_000_000
+				break
+		}
+	})
+
+	const LINE_COLORS = {
+		p50: 'var(--color-blue-400)',
+		p90: 'var(--color-orange-400)',
+	}
 
 	return (
 		<>
@@ -97,6 +152,34 @@ export const TracesPage: React.FC = () => {
 						fetchKeys={useGetTracesKeysQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
+
+					<Box display="flex">
+						<Box width="full">
+							<LogsHistogram
+								startDate={startDate}
+								endDate={endDate}
+								onDatesChange={handleDatesChange}
+								histogramBuckets={histogramBuckets}
+								bucketCount={
+									metricsData?.traces_metrics.bucket_count
+								}
+								loading={metricsLoading}
+							/>
+						</Box>
+						<Box width="full">
+							<LineChart
+								data={metricsBuckets}
+								xAxisDataKeyName="bucketId"
+								xAxisProps={{
+									domain: ['dataMin', 'dataMax'],
+								}}
+								lineColorMapping={LINE_COLORS}
+								hideXAxis
+								hideLegend
+								yAxisLabel="ms"
+							/>
+						</Box>
+					</Box>
 
 					<TracesList traces={data?.traces} loading={loading} />
 				</Box>

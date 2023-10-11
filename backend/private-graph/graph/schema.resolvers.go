@@ -587,7 +587,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectSettings is the resolver for the editProjectSettings field.
-func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*modelInputs.AllProjectSettings, error) {
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *modelInputs.SamplingInput) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, filterChromeExtension)
 	if err != nil {
 		return nil, err
@@ -606,9 +606,10 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 		RageClickCount:         &project.RageClickCount,
 	}
 
-	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, store.UpdateProjectFilterSettingsParams{
+	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(ctx, project.ID, store.UpdateProjectFilterSettingsParams{
 		FilterSessionsWithoutError:        filterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: autoResolveStaleErrorsDayInterval,
+		Sampling:                          sampling,
 	})
 	if err != nil {
 		return nil, err
@@ -3197,6 +3198,13 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 	if err != nil {
 		return nil, err
 	}
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	if !settings.EnableUnlistedSharing {
+		return nil, AuthorizationError
+	}
 	if err := r.DB.Model(session).Updates(&model.Session{
 		IsPublic: isPublic,
 	}).Error; err != nil {
@@ -3792,6 +3800,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 		return nil, updateErr
 	}
 
+	_ = r.Store.DeleteServiceCache(ctx, service.Name, service.ProjectID)
 	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
 }
@@ -3848,7 +3857,7 @@ func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID i
 }
 
 // TestErrorEnhancement is the resolver for the testErrorEnhancement field.
-func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string) (*model.ErrorObject, error) {
+func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model.ErrorObject, error) {
 	errorObject := model.ErrorObject{}
 	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
 		Preload("ErrorGroup").
@@ -3881,6 +3890,12 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	}
 	if mappedStackTrace != nil {
 		errorObject.MappedStackTrace = mappedStackTrace
+	}
+
+	if saveError != nil && *saveError {
+		if err := r.DB.Save(&errorObject).Error; err != nil {
+			return nil, err
+		}
 	}
 
 	return &errorObject, nil
@@ -5525,6 +5540,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		logsIncluded = *workspace.MonthlyLogsLimit
 	}
 
+	// TODO(vkorolik) include trace pricing once we have that in place
+
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	if workspace.RetentionPeriod != nil {
 		retentionPeriod = *workspace.RetentionPeriod
@@ -6371,7 +6388,7 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -6383,12 +6400,26 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		ExcludedUsers:                     project.ExcludedUsers,
 		ErrorFilters:                      project.ErrorFilters,
 		ErrorJSONPaths:                    project.ErrorJsonPaths,
-		FilterChromeExtension:             project.FilterChromeExtension,
 		RageClickWindowSeconds:            &project.RageClickWindowSeconds,
 		RageClickRadiusPixels:             &project.RageClickRadiusPixels,
 		RageClickCount:                    &project.RageClickCount,
+		FilterChromeExtension:             project.FilterChromeExtension,
 		FilterSessionsWithoutError:        projectFilterSettings.FilterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: projectFilterSettings.AutoResolveStaleErrorsDayInterval,
+		Sampling: &modelInputs.Sampling{
+			SessionSamplingRate:    projectFilterSettings.SessionSamplingRate,
+			ErrorSamplingRate:      projectFilterSettings.ErrorSamplingRate,
+			LogSamplingRate:        projectFilterSettings.LogSamplingRate,
+			TraceSamplingRate:      projectFilterSettings.TraceSamplingRate,
+			SessionMinuteRateLimit: projectFilterSettings.SessionMinuteRateLimit,
+			ErrorMinuteRateLimit:   projectFilterSettings.ErrorMinuteRateLimit,
+			LogMinuteRateLimit:     projectFilterSettings.LogMinuteRateLimit,
+			TraceMinuteRateLimit:   projectFilterSettings.TraceMinuteRateLimit,
+			SessionExclusionQuery:  projectFilterSettings.SessionExclusionQuery,
+			ErrorExclusionQuery:    projectFilterSettings.ErrorExclusionQuery,
+			LogExclusionQuery:      projectFilterSettings.LogExclusionQuery,
+			TraceExclusionQuery:    projectFilterSettings.TraceExclusionQuery,
+		},
 	}
 
 	return &allProjectSettings, nil
@@ -6799,6 +6830,11 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
+		settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+		if err != nil {
+			return nil, err
+		}
+		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
 	}
 
 	return details, nil
@@ -7573,6 +7609,16 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 		At:        at,
 		Direction: direction,
 	})
+}
+
+// TracesMetrics is the resolver for the traces_metrics field.
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType) (*modelInputs.TracesMetrics, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, 48)
 }
 
 // TracesKeys is the resolver for the traces_keys field.

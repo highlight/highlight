@@ -21,7 +21,7 @@ import type { NodeOptions } from '@highlight-run/node'
 
 const nodeOptions: NodeOptions = {
 	projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID,
-	otlpEndpoint: 'http://localhost:4318',
+	// otlpEndpoint: 'http://localhost:4318',
 	serviceName: 'my-remix-backend',
 	serviceVersion: '1.0.0',
 }

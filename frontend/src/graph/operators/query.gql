@@ -960,14 +960,17 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			membersLimit
 			errorsLimit
 			logsLimit
+			tracesLimit
 		}
 		meter
 		membersMeter
 		errorsMeter
 		logsMeter
+		tracesMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
+		tracesBillingLimit
 	}
 	workspace_for_project(project_id: $project_id) {
 		id
@@ -1042,6 +1045,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			url
 			status
 		}
+		billingIssue
 	}
 }
 
@@ -2095,6 +2099,16 @@ query GetProjectSettings($projectId: ID!) {
 		rage_click_count
 		filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval
+		sampling {
+			session_sampling_rate
+			error_sampling_rate
+			log_sampling_rate
+			trace_sampling_rate
+			session_exclusion_query
+			error_exclusion_query
+			log_exclusion_query
+			trace_exclusion_query
+		}
 	}
 }
 
@@ -2117,6 +2131,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		ai_application
 		ai_insights
 		enable_session_export
+		enable_unlisted_sharing
 	}
 }
 
@@ -2148,6 +2163,7 @@ query GetErrorObjects(
 				timestamp
 				errorGroupSecureID
 				serviceVersion
+				serviceName
 				session {
 					secureID
 					email
@@ -2306,6 +2322,26 @@ query GetTraces(
 			startCursor
 			endCursor
 		}
+	}
+}
+
+query GetTracesMetrics(
+	$project_id: ID!
+	$params: QueryInput!
+	$metric_types: [TracesMetricType!]!
+) {
+	traces_metrics(
+		project_id: $project_id
+		params: $params
+		metric_types: $metric_types
+	) {
+		buckets {
+			bucket_id
+			metric_type
+			metric_value
+		}
+		bucket_count
+		sample_factor
 	}
 }
 

@@ -8,7 +8,6 @@ import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'
-import { GetLogsHistogramQuery } from '@/graph/generated/operations'
 
 import * as styles from './LogsHistogram.css'
 
@@ -30,7 +29,8 @@ type LogsHistogramProps = Omit<
 	| 'maxBucketCount'
 	| 'loadingState'
 > & {
-	histogramData: GetLogsHistogramQuery | undefined
+	histogramBuckets: { bucketId: number; counts: LogCount[] }[] | undefined
+	bucketCount: number
 	loading: boolean
 	outline?: boolean
 	threshold?: number
@@ -60,19 +60,18 @@ const LogsHistogram = ({
 	threshold,
 	belowThreshold,
 	frequencySeconds,
-	histogramData,
+	histogramBuckets,
+	bucketCount,
 	loading,
 	...props
 }: LogsHistogramProps) => {
 	const maxBucketCount = useMemo(() => {
-		if (!histogramData?.logs_histogram) {
+		if (histogramBuckets === undefined) {
 			return 0
 		}
 
-		const { buckets } = histogramData.logs_histogram
-
 		let maxBucketCount = 0
-		buckets.forEach((bucket) => {
+		histogramBuckets.forEach((bucket) => {
 			const { counts } = bucket
 			const bucketTotal = counts.reduce(
 				(acc, count) => acc + count.count,
@@ -82,18 +81,16 @@ const LogsHistogram = ({
 		})
 
 		return maxBucketCount
-	}, [histogramData?.logs_histogram])
+	}, [histogramBuckets])
 
 	const buckets = useMemo(() => {
-		if (!histogramData?.logs_histogram) {
+		if (histogramBuckets === undefined) {
 			return []
 		}
 
-		const { totalCount, buckets } = histogramData.logs_histogram
-
 		const bucketData = new Map<number, LogCount[]>()
 
-		buckets.forEach((bucket) => {
+		histogramBuckets.forEach((bucket) => {
 			const { bucketId, counts } = bucket
 			const bucketTotal = counts.reduce(
 				(acc, count) => acc + count.count,
@@ -109,9 +106,9 @@ const LogsHistogram = ({
 		})
 
 		const bucketStep =
-			(endDate.getTime() - startDate.getTime()) / totalCount
+			(endDate.getTime() - startDate.getTime()) / bucketCount
 
-		return [...Array(totalCount)].map((_, bucketId) => {
+		return [...Array(bucketCount)].map((_, bucketId) => {
 			const counts = bucketData.get(bucketId)
 			const bucket = {
 				startDate: new Date(
@@ -120,12 +117,12 @@ const LogsHistogram = ({
 				endDate: new Date(
 					startDate.getTime() + (bucketId + 1) * bucketStep,
 				),
-				width: 100 / totalCount,
+				width: 100 / bucketCount,
 				counts,
 			} as HistogramBucket
 			return bucket
 		})
-	}, [histogramData?.logs_histogram, endDate, maxBucketCount, startDate])
+	}, [histogramBuckets, endDate, startDate, bucketCount, maxBucketCount])
 
 	const tickValues = useMemo(() => {
 		// return the axis with up to 5 ticks based on maxBucketCount
@@ -197,7 +194,7 @@ const LogsHistogram = ({
 
 	const showLoadingState =
 		loading ||
-		(!outline && (!histogramData?.logs_histogram || !maxBucketCount))
+		(!outline && (histogramBuckets === undefined || !maxBucketCount))
 
 	if (!loading && !maxBucketCount && !outline) {
 		return (

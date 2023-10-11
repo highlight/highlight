@@ -11,34 +11,36 @@ import (
 )
 
 func TestGetProjectFilterSettings(t *testing.T) {
+	ctx := context.TODO()
 	defer teardown(t)
 
 	project := model.Project{}
 	store.db.Create(&project)
 
-	originalSettings, err := store.GetProjectFilterSettings(project)
+	originalSettings, err := store.GetProjectFilterSettings(ctx, project.ID)
 	assert.NoError(t, err)
 	assert.NotNil(t, originalSettings.ID)
 
-	settings, err := store.GetProjectFilterSettings(project)
+	settings, err := store.GetProjectFilterSettings(ctx, project.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, settings.ID, originalSettings.ID)
 }
 
 func TestUpdateProjectFilterSettings(t *testing.T) {
+	ctx := context.TODO()
 	defer teardown(t)
 
 	project := model.Project{}
 	store.db.Create(&project)
 
-	originalSettings, err := store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
+	originalSettings, err := store.UpdateProjectFilterSettings(ctx, project.ID, UpdateProjectFilterSettingsParams{
 		FilterSessionsWithoutError: ptr.Bool(true),
 	})
 	assert.NoError(t, err)
 	assert.True(t, originalSettings.FilterSessionsWithoutError)
 	assert.Equal(t, originalSettings.ProjectID, project.ID)
 
-	updatedSettings, err := store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
+	updatedSettings, err := store.UpdateProjectFilterSettings(ctx, project.ID, UpdateProjectFilterSettingsParams{
 		FilterSessionsWithoutError: ptr.Bool(false),
 	})
 	assert.NoError(t, err)
@@ -49,6 +51,7 @@ func TestUpdateProjectFilterSettings(t *testing.T) {
 }
 
 func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
+	ctx := context.TODO()
 	defer teardown(t)
 
 	project1 := model.Project{}
@@ -57,19 +60,19 @@ func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
 	project2 := model.Project{}
 	store.db.Create(&project2)
 
-	_, err := store.GetProjectFilterSettings(project1)
+	_, err := store.GetProjectFilterSettings(ctx, project1.ID)
 	assert.NoError(t, err)
-	_, err = store.UpdateProjectFilterSettings(project1, UpdateProjectFilterSettingsParams{})
+	_, err = store.UpdateProjectFilterSettings(ctx, project1.ID, UpdateProjectFilterSettingsParams{})
 	assert.NoError(t, err)
 
-	_, err = store.GetProjectFilterSettings(project2)
+	_, err = store.GetProjectFilterSettings(ctx, project2.ID)
 	assert.NoError(t, err)
-	projectWithAutoResolveSetting, err := store.UpdateProjectFilterSettings(project1, UpdateProjectFilterSettingsParams{
+	projectWithAutoResolveSetting, err := store.UpdateProjectFilterSettings(ctx, project1.ID, UpdateProjectFilterSettingsParams{
 		AutoResolveStaleErrorsDayInterval: ptr.Int(1),
 	})
 	assert.NoError(t, err)
 
-	projectFilterSettings := store.FindProjectsWithAutoResolveSetting(context.TODO())
+	projectFilterSettings, _ := store.FindProjectsWithAutoResolveSetting()
 
 	assert.Len(t, projectFilterSettings, 1)
 	assert.Equal(t, projectFilterSettings[0].ID, projectWithAutoResolveSetting.ID)

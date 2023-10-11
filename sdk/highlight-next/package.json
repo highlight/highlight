@@ -1,10 +1,11 @@
 {
 	"name": "@highlight-run/next",
-	"version": "4.4.2",
+	"version": "5.0.5",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
 		"client.d.ts",
+		"config.d.ts",
 		"server.d.ts",
 		"types.d.ts"
 	],
@@ -22,6 +23,11 @@
 			"types": "./dist/next-client.d.ts",
 			"import": "./dist/next-client.js",
 			"require": "./dist/next-client.cjs"
+		},
+		"./config": {
+			"types": "./dist/config.d.ts",
+			"import": "./dist/config.js",
+			"require": "./dist/config.cjs"
 		}
 	},
 	"type": "module",
@@ -55,6 +61,7 @@
 		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20230115.0",
 		"@opentelemetry/api": "1.4.1",
 		"@opentelemetry/resources": "1.17.0",
 		"@trpc/server": "^9.27.4",
@@ -62,7 +69,7 @@
 		"chokidar-cli": "^3.0.0",
 		"eslint": "8.39.0",
 		"jest": "^29.2.0",
-		"next": "^13.3.4",
+		"next": "^13.5.4",
 		"ts-jest": "^29.0.3",
 		"tsup": "^6.7.0",
 		"typescript": "^5.0.4"

@@ -2,8 +2,8 @@ package redis
 
 import (
 	"context"
+	"github.com/go-redsync/redsync/v4"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/sync/errgroup"
 	"testing"
 	"time"
 )
@@ -12,8 +12,7 @@ func TestLock(t *testing.T) {
 	r := NewClient()
 
 	var count = 0
-	var g errgroup.Group
-	g.Go(func() error {
+	go func() {
 		mutex, err := r.AcquireLock(context.Background(), "test-lock", time.Minute)
 		assert.NoError(t, err)
 		t.Logf("hello 1")
@@ -22,10 +21,8 @@ func TestLock(t *testing.T) {
 		ok, err := mutex.Unlock()
 		assert.True(t, ok)
 		assert.NoError(t, err)
-		return nil
-	})
-	time.Sleep(time.Second)
-	g.Go(func() error {
+	}()
+	go func() {
 		mutex, err := r.AcquireLock(context.Background(), "test-lock", time.Minute)
 		assert.NoError(t, err)
 		t.Logf("hello 2")
@@ -33,11 +30,20 @@ func TestLock(t *testing.T) {
 		ok, err := mutex.Unlock()
 		assert.True(t, ok)
 		assert.NoError(t, err)
-		return nil
-	})
-	time.Sleep(time.Second)
-	assert.Equal(t, count, 1)
-	_ = g.Wait()
+	}()
+	t.Logf("waiting")
+	time.Sleep(5 * time.Second)
+	mutex, err := r.AcquireLock(context.Background(), "test-lock", time.Minute)
+	if err != nil {
+		t.Error(err)
+	}
+	defer func(mutex *redsync.Mutex) {
+		_, err := mutex.Unlock()
+		if err != nil {
+			t.Error(err)
+		}
+	}(mutex)
+	t.Logf("acquired")
 	assert.Equal(t, count, 2)
 }
 

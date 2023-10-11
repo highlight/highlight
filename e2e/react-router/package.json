@@ -16,12 +16,12 @@
 		"match-sorter": "^6.3.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-router-dom": "^6.14.1",
+		"react-router-dom": "^6.16.0",
 		"sort-by": "^1.2.0"
 	},
 	"devDependencies": {
-		"@types/react": "^18.2.14",
-		"@types/react-dom": "^18.2.6",
+		"@types/react": "^18.2.25",
+		"@types/react-dom": "^18.2.10",
 		"@typescript-eslint/eslint-plugin": "^5.61.0",
 		"@typescript-eslint/parser": "^5.61.0",
 		"@vitejs/plugin-react-swc": "^3.3.2",

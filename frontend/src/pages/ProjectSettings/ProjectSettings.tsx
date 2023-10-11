@@ -93,6 +93,7 @@ const ProjectSettings = () => {
 		return <LoadingRightPanel show={true} />
 	}
 
+	// TODO(vkorolik) build UI for adjusting sampling settings
 	return (
 		<>
 			<Helmet>

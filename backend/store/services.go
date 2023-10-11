@@ -76,6 +76,10 @@ func CacheServiceKey(name string, projectID int) string {
 	return fmt.Sprintf("service-%s-%d", name, projectID)
 }
 
+func (store *Store) DeleteServiceCache(ctx context.Context, name string, projectID int) error {
+	return store.redis.Del(ctx, CacheServiceKey(name, projectID))
+}
+
 // Number of results per page
 const SERVICE_LIMIT = 10
 

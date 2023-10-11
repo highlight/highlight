@@ -1,7 +1,6 @@
 import { Button } from '@components/Button'
 import Switch from '@components/Switch/Switch'
 import { Box, IconSolidDotsHorizontal, Menu, Text } from '@highlight-run/ui'
-import { useWindowEvent } from '@hooks/useWindowEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	formatCount,
@@ -16,7 +15,6 @@ import {
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
-import { isInsideElement } from '@util/dom'
 import React, { useRef, useState } from 'react'
 
 import { ClickhouseQuery } from '@/graph/generated/schemas'
@@ -44,33 +42,17 @@ export const DropdownMenu = function ({
 		setShowDetailedSessionView,
 	} = usePlayerConfiguration()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
-	const [open, setOpen] = useState(false)
 
 	const menuRef = useRef<HTMLDivElement>(null)
 	const buttonRef = useRef<HTMLButtonElement>(null)
 
-	const [delayClose, setDelayClose] = useState(false)
-
-	useWindowEvent('click', (event) => {
-		if (
-			!(
-				isInsideElement(event, menuRef.current) ||
-				isInsideElement(event, buttonRef.current)
-			) &&
-			!delayClose
-		) {
-			setOpen(false)
-		}
-	})
-
 	return (
-		<Menu open={open}>
+		<Menu>
 			<Menu.Button
 				kind="secondary"
 				size="small"
 				emphasis="low"
 				iconRight={<IconSolidDotsHorizontal />}
-				onClick={() => setOpen(!open)}
 				ref={buttonRef}
 			/>
 			<Menu.List ref={menuRef} style={{ minWidth: 324 }}>
@@ -157,11 +139,6 @@ export const DropdownMenu = function ({
 											sessionFeedConfiguration.setSortOrder(
 												sortOrder,
 											)
-											setDelayClose(true)
-											setTimeout(
-												() => setDelayClose(false),
-												300,
-											)
 										}}
 									>
 										{getSortOrderDisplayName(sortOrder)}
@@ -201,11 +178,6 @@ export const DropdownMenu = function ({
 										onClick={() => {
 											sessionFeedConfiguration.setDatetimeFormat(
 												dt,
-											)
-											setDelayClose(true)
-											setTimeout(
-												() => setDelayClose(false),
-												300,
 											)
 										}}
 									>
@@ -250,11 +222,6 @@ export const DropdownMenu = function ({
 										onClick={() => {
 											sessionFeedConfiguration.setCountFormat(
 												format,
-											)
-											setDelayClose(true)
-											setTimeout(
-												() => setDelayClose(false),
-												300,
 											)
 										}}
 									>

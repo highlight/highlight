@@ -73,6 +73,7 @@
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.26.2",
 		"@typescript-eslint/eslint-plugin": "^6.1.0",
 		"all-contributors-cli": "^6.26.0",
 		"chalk": "^5.0.1",
@@ -130,6 +131,8 @@
 		"puppeteer": "19.8.5",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
+		"@types/react": "^18.2.25",
+		"@types/react-dom": "^18.2.10",
 		"tmpl": "1.0.5",
 		"trim": "0.0.3",
 		"trim-newlines": "3.0.1",

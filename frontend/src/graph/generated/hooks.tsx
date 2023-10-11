@@ -1475,6 +1475,7 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_count: Int
 		$filterSessionsWithoutError: Boolean
 		$autoResolveStaleErrorsDayInterval: Int
+		$sampling: SamplingInput
 	) {
 		editProjectSettings(
 			projectId: $projectId
@@ -1489,6 +1490,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count: $rage_click_count
 			filterSessionsWithoutError: $filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
+			sampling: $sampling
 		) {
 			id
 			name
@@ -1502,6 +1504,16 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
+			sampling {
+				session_sampling_rate
+				error_sampling_rate
+				log_sampling_rate
+				trace_sampling_rate
+				session_exclusion_query
+				error_exclusion_query
+				log_exclusion_query
+				trace_exclusion_query
+			}
 		}
 	}
 `
@@ -1535,6 +1547,7 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  *      rage_click_count: // value for 'rage_click_count'
  *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
  *      autoResolveStaleErrorsDayInterval: // value for 'autoResolveStaleErrorsDayInterval'
+ *      sampling: // value for 'sampling'
  *   },
  * });
  */
@@ -5080,12 +5093,14 @@ export const TestErrorEnhancementDocument = gql`
 		$github_repo_path: String!
 		$github_prefix: String
 		$build_prefix: String
+		$save_error: Boolean
 	) {
 		testErrorEnhancement(
 			error_object_id: $error_object_id
 			github_repo_path: $github_repo_path
 			github_prefix: $github_prefix
 			build_prefix: $build_prefix
+			save_error: $save_error
 		) {
 			id
 			type
@@ -5130,6 +5145,7 @@ export type TestErrorEnhancementMutationFn = Apollo.MutationFunction<
  *      github_repo_path: // value for 'github_repo_path'
  *      github_prefix: // value for 'github_prefix'
  *      build_prefix: // value for 'build_prefix'
+ *      save_error: // value for 'save_error'
  *   },
  * });
  */
@@ -8338,14 +8354,17 @@ export const GetBillingDetailsForProjectDocument = gql`
 				membersLimit
 				errorsLimit
 				logsLimit
+				tracesLimit
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
+			tracesMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
+			tracesBillingLimit
 		}
 		workspace_for_project(project_id: $project_id) {
 			id
@@ -8520,6 +8539,7 @@ export const GetSubscriptionDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
 		}
 	}
 `
@@ -13161,6 +13181,16 @@ export const GetProjectSettingsDocument = gql`
 			rage_click_count
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
+			sampling {
+				session_sampling_rate
+				error_sampling_rate
+				log_sampling_rate
+				trace_sampling_rate
+				session_exclusion_query
+				error_exclusion_query
+				log_exclusion_query
+				trace_exclusion_query
+			}
 		}
 	}
 `
@@ -13333,6 +13363,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			ai_application
 			ai_insights
 			enable_session_export
+			enable_unlisted_sharing
 		}
 	}
 `
@@ -13463,6 +13494,7 @@ export const GetErrorObjectsDocument = gql`
 					timestamp
 					errorGroupSecureID
 					serviceVersion
+					serviceName
 					session {
 						secureID
 						email
@@ -14022,6 +14054,78 @@ export type GetTracesLazyQueryHookResult = ReturnType<
 export type GetTracesQueryResult = Apollo.QueryResult<
 	Types.GetTracesQuery,
 	Types.GetTracesQueryVariables
+>
+export const GetTracesMetricsDocument = gql`
+	query GetTracesMetrics(
+		$project_id: ID!
+		$params: QueryInput!
+		$metric_types: [TracesMetricType!]!
+	) {
+		traces_metrics(
+			project_id: $project_id
+			params: $params
+			metric_types: $metric_types
+		) {
+			buckets {
+				bucket_id
+				metric_type
+				metric_value
+			}
+			bucket_count
+			sample_factor
+		}
+	}
+`
+
+/**
+ * __useGetTracesMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetTracesMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesMetricsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      metric_types: // value for 'metric_types'
+ *   },
+ * });
+ */
+export function useGetTracesMetricsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>(GetTracesMetricsDocument, baseOptions)
+}
+export function useGetTracesMetricsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>(GetTracesMetricsDocument, baseOptions)
+}
+export type GetTracesMetricsQueryHookResult = ReturnType<
+	typeof useGetTracesMetricsQuery
+>
+export type GetTracesMetricsLazyQueryHookResult = ReturnType<
+	typeof useGetTracesMetricsLazyQuery
+>
+export type GetTracesMetricsQueryResult = Apollo.QueryResult<
+	Types.GetTracesMetricsQuery,
+	Types.GetTracesMetricsQueryVariables
 >
 export const GetTracesKeysDocument = gql`
 	query GetTracesKeys(

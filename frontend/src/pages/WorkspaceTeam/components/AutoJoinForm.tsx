@@ -15,25 +15,21 @@ const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
 function AutoJoinForm({
 	updateOrigins,
 	newWorkspace,
+	allowedEmailOrigins,
 }: {
 	updateOrigins?: (domains: string[]) => void
 	newWorkspace?: boolean
 	label?: string
 	labelFirst?: boolean
+	allowedEmailOrigins?: string[]
 }) {
-	const [origins, setOrigins] = useState<{
-		emailOrigins: string[]
-		allowedEmailOrigins: string[]
-	}>({ emailOrigins: [], allowedEmailOrigins: [] })
+	const [origins, setOrigins] = useState<string[]>([])
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { admin } = useAuthContext()
 
 	const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation()
 	const onChangeMsg = (domains: string[], msg: string) => {
-		setOrigins((p) => ({
-			emailOrigins: domains,
-			allowedEmailOrigins: p.allowedEmailOrigins,
-		}))
+		setOrigins(domains)
 		if (updateOrigins) {
 			updateOrigins(domains)
 		} else if (workspace_id) {
@@ -52,11 +48,14 @@ function AutoJoinForm({
 	const adminsEmailDomain = getEmailDomain(admin?.email)
 
 	useEffect(() => {
+		if (allowedEmailOrigins) {
+			setOrigins(allowedEmailOrigins)
+		}
+	}, [allowedEmailOrigins])
+
+	useEffect(() => {
 		if (newWorkspace && adminsEmailDomain.length) {
-			setOrigins((p) => ({
-				emailOrigins: [adminsEmailDomain],
-				allowedEmailOrigins: p.allowedEmailOrigins,
-			}))
+			setOrigins([adminsEmailDomain])
 		}
 	}, [newWorkspace, adminsEmailDomain])
 
@@ -77,7 +76,7 @@ function AutoJoinForm({
 			<div className={styles.container}>
 				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
 					<Checkbox
-						checked={origins.emailOrigins.length > 0}
+						checked={origins.length > 0}
 						onChange={(event) => {
 							const checked = event.target.checked
 							if (checked) {
