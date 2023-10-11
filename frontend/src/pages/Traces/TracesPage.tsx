@@ -130,7 +130,6 @@ export const TracesPage: React.FC = () => {
 				flexDirection="column"
 				height="full"
 				position="relative"
-				overflow="hidden"
 			>
 				<Box
 					backgroundColor="white"
@@ -138,6 +137,7 @@ export const TracesPage: React.FC = () => {
 					borderRadius="6"
 					height="full"
 					shadow="medium"
+					overflow="hidden"
 				>
 					<SearchForm
 						initialQuery={query ?? ''}
@@ -153,7 +153,7 @@ export const TracesPage: React.FC = () => {
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
 
-					<Box display="flex">
+					<Box display="flex" borderBottom="dividerWeak">
 						<Box width="full">
 							<LogsHistogram
 								startDate={startDate}

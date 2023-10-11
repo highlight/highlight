@@ -39,6 +39,7 @@ export const Callout: React.FC<Props> = ({
 			p="8"
 			gap="8"
 			display="flex"
+			alignItems="flex-start"
 			borderRadius="8"
 			border="secondary"
 			cssClass={styles.variants({ kind, border })}

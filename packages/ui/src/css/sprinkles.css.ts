@@ -68,6 +68,7 @@ export const backgroundColors = {
 const staticProperties = defineProperties({
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
+		alignSelf: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
 		borderTopLeftRadius: vars.borderRadius,
 		borderTopRightRadius: vars.borderRadius,

@@ -1,13 +1,13 @@
 import { style } from '@vanilla-extract/css'
 
-import * as rowStyles from '../Row/styles.css'
+import { cell } from '../Cell/styles.css'
 
 export const discoverable = style({
-	visibility: 'hidden',
+	display: 'none',
 
 	selectors: {
-		[`${rowStyles.row}:hover &`]: {
-			visibility: 'visible',
+		[`${cell}:hover &`]: {
+			display: 'flex',
 		},
 	},
 })
