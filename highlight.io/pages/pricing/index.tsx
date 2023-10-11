@@ -355,8 +355,8 @@ const PlanTable = () => {
 			</div>
 			<div className="max-w-[908px] w-full mt-4">
 				<WideCard
-					title="Self-hosting"
-					desc="Learn how to host Highlight on your own infrastructure."
+					title="Enterprise self-hosted deployment?"
+					desc="Get in touch to host Highlight on your own infrastructure with SLAs and support."
 					primaryLink="/docs/general/company/open-source/hosting/self-host-enterprise"
 					primaryLinkText="Learn More"
 				/>
