@@ -12,6 +12,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -46,20 +47,7 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 	var combinedErrors []*model.ErrorObject
 	var combinedInputs []string
 	for _, errorObject := range errors {
-		var stackTrace *string
-		if errorObject.MappedStackTrace != nil {
-			stackTrace = errorObject.MappedStackTrace
-		} else {
-			stackTrace = errorObject.StackTrace
-		}
-		combinedInput := errorObject.Event
-		if stackTrace != nil {
-			combinedInput = combinedInput + " " + *stackTrace
-		}
-		if errorObject.Payload != nil {
-			combinedInput = combinedInput + " " + *errorObject.Payload
-		}
-		combinedInputs = append(combinedInputs, combinedInput)
+		combinedInputs = append(combinedInputs, GetErrorObjectQuery(errorObject))
 		combinedErrors = append(combinedErrors, errorObject)
 	}
 
@@ -184,24 +172,30 @@ func (c *HuggingfaceModelClient) makeRequest(ctx context.Context, b []byte) ([]b
 	return body, nil
 }
 
+func GetErrorObjectQuery(errorObj *model.ErrorObject) string {
+	var stackTrace *string
+	if errorObj.MappedStackTrace != nil {
+		stackTrace = errorObj.MappedStackTrace
+	} else {
+		stackTrace = errorObj.StackTrace
+	}
+
+	var parts = []string{errorObj.Event, errorObj.Type, errorObj.Source}
+	if stackTrace != nil {
+		parts = append(parts, *stackTrace)
+	}
+	if errorObj.Payload != nil {
+		parts = append(parts, *errorObj.Payload)
+	}
+
+	return strings.Join(parts, " ")
+}
+
 func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error) {
 	start := time.Now()
 	var combinedInputs []string
 	for _, errorObject := range errors {
-		var stackTrace *string
-		if errorObject.MappedStackTrace != nil {
-			stackTrace = errorObject.MappedStackTrace
-		} else {
-			stackTrace = errorObject.StackTrace
-		}
-		combinedInput := errorObject.Event
-		if stackTrace != nil {
-			combinedInput = combinedInput + " " + *stackTrace
-		}
-		if errorObject.Payload != nil {
-			combinedInput = combinedInput + " " + *errorObject.Payload
-		}
-		combinedInputs = append(combinedInputs, combinedInput)
+		combinedInputs = append(combinedInputs, GetErrorObjectQuery(errorObject))
 	}
 
 	var results []*model.ErrorObjectEmbeddings

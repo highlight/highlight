@@ -371,22 +371,8 @@ func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObjec
 	eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 	defer cancel()
 
-	var stackTrace *string
-	if errorObj.MappedStackTrace != nil {
-		stackTrace = errorObj.MappedStackTrace
-	} else {
-		stackTrace = errorObj.StackTrace
-	}
-
-	var parts = []string{errorObj.Event, errorObj.Type}
-	if stackTrace != nil {
-		parts = append(parts, *stackTrace)
-	}
-	if errorObj.Payload != nil {
-		parts = append(parts, *errorObj.Payload)
-	}
-
-	tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, strings.Join(parts, " "))
+	query := embeddings.GetErrorObjectQuery(errorObj)
+	tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
 	if err == nil && len(tags) > 0 {
 		return &tags[0].ID
 	} else {
