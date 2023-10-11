@@ -824,11 +824,10 @@ type TraceError struct {
 	TraceID            *string   `json:"trace_id"`
 	SpanID             *string   `json:"span_id"`
 	LogCursor          *string   `json:"log_cursor"`
-	SecureID           string    `json:"secure_id"`
-	ErrorGroupSecureID string    `json:"error_group_secure_id"`
 	Event              string    `json:"event"`
 	Type               string    `json:"type"`
 	Source             string    `json:"source"`
+	ErrorGroupSecureID string    `json:"error_group_secure_id"`
 	Timestamp          time.Time `json:"timestamp"`
 }
 
