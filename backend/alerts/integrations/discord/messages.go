@@ -15,6 +15,9 @@ func newMessageEmbed() *discordgo.MessageEmbed {
 	}
 }
 
+var RED_ALERT = 0x961e13
+var YELLOW_ALERT = 0xf2c94c
+
 func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 
@@ -45,8 +48,10 @@ func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlert
 	embed := newMessageEmbed()
 	if payload.FirstTimeAlert {
 		embed.Title = "Highlight Error Alert (New Occurence ❇️)"
+		embed.Color = YELLOW_ALERT
 	} else {
 		embed.Title = "Highlight Error Alert"
+		embed.Color = RED_ALERT
 	}
 
 	embed.Description = payload.UserIdentifier
