@@ -1,6 +1,7 @@
 import BarChart from '@components/BarChart/BarChart'
 import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	IconSolidSparkles,
 	IconSolidUsers,
@@ -18,8 +19,10 @@ import moment from 'moment'
 import { Link } from 'react-router-dom'
 
 import * as style from './ErrorFeedCard.css'
+
+type ErrorGroupType = Maybe<Omit<ErrorGroup, 'metadata_log'>>
 interface Props {
-	errorGroup: Maybe<Omit<ErrorGroup, 'metadata_log'>>
+	errorGroup: ErrorGroupType
 	onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
 export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
@@ -170,6 +173,13 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 							>
 								{createdDate}
 							</Tag>
+							{recentlyCreated(errorGroup) && (
+								<Badge
+									variant="yellow"
+									label="New"
+									size="medium"
+								/>
+							)}
 						</Box>
 					</Box>
 					<Box paddingTop="2" display="flex" alignItems="flex-end">
@@ -185,4 +195,9 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 			</Box>
 		</Link>
 	)
+}
+
+const recentlyCreated = (errorGroup: ErrorGroupType) => {
+	const createdAt = moment(errorGroup?.created_at)
+	return createdAt.isAfter(moment().subtract(3, 'day'))
 }

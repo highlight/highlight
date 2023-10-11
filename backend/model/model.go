@@ -2674,6 +2674,8 @@ type SendSlackAlertInput struct {
 	URL *string
 	// ErrorsCount is a required parameter for Error alerts
 	ErrorsCount *int64
+	// FirstErrorAlert is a required parameter for Error alerts
+	FirstErrorAlert bool
 	// Project is a required parameter for Error alerts
 	Project *Project
 	// MatchedFields is a required parameter for Track Properties and User Properties alerts
@@ -2823,6 +2825,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 	}
 
 	previewText := getPreviewText(*obj.Type)
+	attachmentColor := getAlertColor(*obj.Type)
 
 	var headerBlockSet []slack.Block
 
@@ -2857,10 +2860,16 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		errorLink = routing.AttachReferrer(ctx, errorLink, routing.Slack)
 
 		// construct Slack message
-		previewText = fmt.Sprintf("Error event: %s", previewEvent)
-
 		// header
-		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
+		var headerBlock *slack.TextBlockObject
+		if input.FirstErrorAlert {
+			previewText = fmt.Sprintf("New Error Alert: %s", previewEvent)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*❇️ New Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
+			attachmentColor = YELLOW_ALERT
+		} else {
+			previewText = fmt.Sprintf("Error Alert: %s", previewEvent)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
+		}
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
@@ -2943,7 +2952,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				}
 			}
 
-			stackTraceBlock = slack.NewTextBlockObject(slack.MarkdownType, fileLocation, false, false)
+			stackTraceBlock = slack.NewTextBlockObject(slack.PlainTextType, fileLocation, false, false)
 		}
 
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(eventBlock, nil, nil))
@@ -3047,7 +3056,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 	// move body within line attachment
 	attachment = &slack.Attachment{
-		Color:  getAlertColor(*obj.Type),
+		Color:  attachmentColor,
 		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
 	}
 
