@@ -39,7 +39,7 @@ const WideCard = ({
 					</Typography>
 					<Typography
 						type="copy3"
-						className="text-color-darker-copy-on-dark"
+						className="text-color-darker-copy-on-dark md:w-[80%]"
 					>
 						{desc}
 					</Typography>
@@ -59,7 +59,7 @@ const WideCard = ({
 				)}
 				<PrimaryButton
 					className={classNames(
-						'max-h-10 flex flex-col justify-center text-center',
+						'max-h-10 flex flex-col justify-center text-center flex-shrink-0 whitespace-nowrap',
 					)}
 					href={primaryLink}
 				>
