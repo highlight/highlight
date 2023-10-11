@@ -4,25 +4,22 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { StaticImageData } from 'next/image'
 import { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
-import { AiFillGithub } from 'react-icons/ai'
 import {
 	HiBell,
 	HiChevronDown,
 	HiCloudDownload,
 	HiCode,
 	HiDatabase,
-	HiDesktopComputer,
 	HiDocumentSearch,
+	HiEye,
 	HiFilm,
 	HiLightningBolt,
 	HiPhoneOutgoing,
-	HiPresentationChartLine,
 	HiTerminal,
 	HiUserGroup,
 	HiViewBoards,
 } from 'react-icons/hi'
-import selfHosting from '../../../public/images/docker.png'
-import dockerscreenshot from '../../../public/images/dockerscreenshot.png'
+import { IoTelescope } from 'react-icons/io5'
 import errorMonitoring from '../../../public/images/error-monitoring.png'
 import fullstackLogging from '../../../public/images/fullstack-logging.png'
 import githubscreenshot from '../../../public/images/githubscreenshot.png'
@@ -45,6 +42,8 @@ export type Feature = {
 	mobileImage: StaticImageData
 	right?: boolean
 	code?: string[]
+	shortenWidth?: boolean
+	beta?: boolean
 	feature1?: string
 	feature1Link?: string
 	featureImage1?: JSX.Element
@@ -114,13 +113,33 @@ const features: Feature[] = [
 		link: '/logging',
 	},
 	{
+		name: 'Traces',
+		title: 'Traces',
+		description:
+			'Get performance insights on requests and transactions throughout your web application stack.',
+		thumbnail: <HiLightningBolt className="h-[35px] w-[35px]" />,
+		desktopImage: fullstackLogging,
+		mobileImage: loggingscreenshot,
+		right: true,
+		shortenWidth: true,
+		beta: true,
+		feature1: 'Powerful Visualization Capabilities',
+		featureImage1: <HiEye className="h-[20px] w-[20px]" />,
+		feature2: 'OpenTelemetry Support',
+		featureImage2: <IoTelescope className="h-[20px] w-[20px]" />,
+		feature3: 'Distributed Tracing Support',
+		featureImage3: <HiDatabase className="h-[20px] w-[20px]" />,
+		link: '/logging',
+	},
+
+	{
 		name: 'Self-Hosting',
 		title: 'Self-Hosting highlight.io',
 		description:
 			'Interested in self-hosting highlight? Spin up highlight.io in docker with just a few commands.',
 		thumbnail: <HiCloudDownload className="h-[35px] w-[35px]" />,
-		desktopImage: selfHosting,
-		mobileImage: dockerscreenshot,
+		desktopImage: openSource,
+		mobileImage: githubscreenshot,
 		right: true,
 		code: [
 			`git clone --recurse-submodules https://github.com/highlight/highlight;`,
@@ -128,30 +147,6 @@ const features: Feature[] = [
 			`./run-hobby.sh;`,
 		],
 		link: '/docs/general/company/open-source/hosting/self-host-hobby',
-	},
-	{
-		name: 'Open Source',
-		title: "We're Open Source!",
-		description:
-			'highlight.io is an open source tool for debugging your web application.',
-		thumbnail: <AiFillGithub className="h-[35px] w-[35px]" />,
-		desktopImage: openSource,
-		mobileImage: githubscreenshot,
-		right: true,
-		feature1: 'Join the Community',
-		feature1Link: 'https://discord.gg/yxaXEAqgwN',
-		featureImage1: (
-			<HiPresentationChartLine className="h-[20px] w-[20px]" />
-		),
-		feature2: 'Find us on GitHub',
-		feature2Link: 'https://github.com/highlight/highlight/',
-		featureImage2: <HiDesktopComputer className="h-[20px] w-[20px]" />,
-		feature3: 'Self host highlight.io',
-		feature3Link:
-			'/docs/general/company/open-source/hosting/self-host-hobby',
-		featureImage3: (
-			<ExclamationCircleFilled className="h-[20px] w-[20px]" />
-		),
 	},
 ]
 

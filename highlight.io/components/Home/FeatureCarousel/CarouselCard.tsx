@@ -41,11 +41,23 @@ const CarouselFeatures = ({ feature }: { feature: Feature }) => {
 	return (
 		<div
 			className={`${
-				feature.code ? 'md:w-[60%]' : 'md:w-2/3'
+				feature.code || feature.shortenWidth ? 'md:w-[60%]' : 'md:w-2/3'
 			} flex flex-col justify-between h-full sm:w-1/2 px-5`}
 		>
 			<div className="flex flex-col gap-4 justify-start md:pt-8 text-left">
 				<div className="flex flex-col gap-2">
+					{feature.beta && (
+						<div className="absolute bg-highlight-yellow w-fit py-0.5 px-3 -translate-y-2 rounded-full">
+							<Typography
+								type="copy4"
+								emphasis
+								className="text-dark-background"
+							>
+								Private Beta
+							</Typography>
+						</div>
+					)}
+
 					<h5 className="hidden sm:flex">{feature.title}</h5>
 					<h4 className="sm:hidden">{feature.title}</h4>
 					<Typography
