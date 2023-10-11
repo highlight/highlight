@@ -3,8 +3,6 @@ import { Box, Tag, Text } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useEffect, useRef, useState } from 'react'
 
-import * as style from './style.css'
-
 interface Props {
 	errorBody: Maybe<string>[]
 }
@@ -25,7 +23,7 @@ const ErrorBodyText = ({ errorBody }: Props) => {
 
 	return (
 		<Box display="flex" flexDirection="column" gap="8">
-			<Box py="8" cssClass={style.errorBodyContainer}>
+			<Box py="8">
 				<Text
 					family="monospace"
 					lines={truncated ? '3' : undefined}

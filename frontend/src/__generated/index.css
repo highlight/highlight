@@ -6067,9 +6067,6 @@ body {
 ._1068vpp6 {
   animation: 1s _1068vpp5 linear infinite;
 }
-._33eaux0 {
-  max-height: 16em;
-}
 ._2tuxi80 {
   background: linear-gradient(45deg, rgba(162, 138, 220, 0.08) 0%, rgba(216, 165, 216, 0.08) 50%, rgba(233, 192, 186, 0.08) 100%);
 }
@@ -6668,18 +6665,22 @@ body {
   max-height: calc(100vh - 160px - 32px - 42px - 32px - var(--header-height) - var(--banner-height));
 }
 .ltrwrc0 {
-  height: calc(100vh - 108px - var(--banner-height));
+  height: calc(100vh - 108px);
+  overflow-y: scroll;
 }
 .ltrwrc1 {
+  height: calc(100vh - 108px - var(--banner-height));
+}
+.ltrwrc2 {
   position: fixed;
   left: 100%;
   transform: translateX(300px);
 }
-.ltrwrc2 {
+.ltrwrc3 {
   height: 100%;
   padding: 0;
 }
-.ltrwrc3 {
+.ltrwrc4 {
   border-radius: 8px;
 }
 ._1l6nlco0 {
