@@ -1771,7 +1771,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 
 			var alertCounts []AlertCountsGroupedByRecent
 			if err := r.DB.Raw(`
-				SELECT COUNT(*), ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND') AS recent_alert
+				SELECT ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND') AS recent_alert, COUNT(*)
 				FROM error_alert_events ev
 				INNER JOIN error_objects obj
 				ON obj.id = ev.error_object_id
