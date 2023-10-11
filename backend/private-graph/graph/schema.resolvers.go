@@ -616,6 +616,20 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 	}
 	allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
 	allProjectSettings.AutoResolveStaleErrorsDayInterval = projectFilterSettings.AutoResolveStaleErrorsDayInterval
+	allProjectSettings.Sampling = &modelInputs.Sampling{
+		SessionSamplingRate:    projectFilterSettings.SessionSamplingRate,
+		ErrorSamplingRate:      projectFilterSettings.SessionSamplingRate,
+		LogSamplingRate:        projectFilterSettings.SessionSamplingRate,
+		TraceSamplingRate:      projectFilterSettings.SessionSamplingRate,
+		SessionMinuteRateLimit: projectFilterSettings.SessionMinuteRateLimit,
+		ErrorMinuteRateLimit:   projectFilterSettings.ErrorMinuteRateLimit,
+		LogMinuteRateLimit:     projectFilterSettings.LogMinuteRateLimit,
+		TraceMinuteRateLimit:   projectFilterSettings.TraceMinuteRateLimit,
+		SessionExclusionQuery:  projectFilterSettings.SessionExclusionQuery,
+		ErrorExclusionQuery:    projectFilterSettings.ErrorExclusionQuery,
+		LogExclusionQuery:      projectFilterSettings.LogExclusionQuery,
+		TraceExclusionQuery:    projectFilterSettings.TraceExclusionQuery,
+	}
 
 	return &allProjectSettings, nil
 }

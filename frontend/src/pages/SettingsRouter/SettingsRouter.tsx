@@ -73,10 +73,9 @@ export const SettingsRouter = () => {
 	// defined in a route anywhere, it's only used by the tabs.
 	const workspaceMatch = useMatch('/w/:workspace_id/:section_id/:page_id?')
 	const projectMatch = useMatch('/:project_id/settings/:page_id?')
-	const productFilterMatch = useMatch<{
-		project_id: string
-		product: Product
-	}>('/:project_id/settings/filters/:product')
+	const productFilterMatch = useMatch(
+		'/:project_id/settings/filters/:product',
+	)
 	const pageId =
 		workspaceMatch?.params.page_id ||
 		projectMatch?.params.page_id ||
@@ -326,12 +325,22 @@ export const SettingsRouter = () => {
 								<Route
 									path="filters/:product"
 									element={
-										<ProjectProductFilters
-											product={
-												productFilterMatch?.params
-													.product
-											}
-										/>
+										<Box
+											style={{ maxWidth: 560 }}
+											my="40"
+											mx="auto"
+										>
+											{productFilterMatch?.params
+												.product && (
+												<ProjectProductFilters
+													product={
+														productFilterMatch
+															?.params
+															.product as Product
+													}
+												/>
+											)}
+										</Box>
 									}
 								/>
 							</Routes>

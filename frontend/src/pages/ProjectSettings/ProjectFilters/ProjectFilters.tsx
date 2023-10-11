@@ -1,10 +1,14 @@
 import { Button } from '@components/Button'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import {
+	useEditProjectSettingsMutation,
 	useGetLogsKeysQuery,
 	useGetLogsKeyValuesLazyQuery,
 	useGetProjectSettingsQuery,
+	useGetTracesKeysQuery,
+	useGetTracesKeyValuesLazyQuery,
 } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -12,6 +16,7 @@ import {
 	getNow,
 	Heading,
 	IconSolidCheveronRight,
+	IconSolidPencil,
 	PreviousDateRangePicker,
 	Stack,
 	Tag,
@@ -95,6 +100,12 @@ export const ProjectFilters: React.FC = () => {
 	)
 }
 
+interface Config {
+	exclusion_query: string
+	sampling_rate: number
+	minute_rate_limit: number
+}
+
 export const ProjectProductFilters: React.FC<{
 	product: Product
 	noHeader?: boolean
@@ -106,41 +117,142 @@ export const ProjectProductFilters: React.FC<{
 		},
 		skip: !projectId,
 	})
+	const [editProjectSettingsMutation] = useEditProjectSettingsMutation({
+		refetchQueries: [namedOperations.Query.GetProjectSettings],
+	})
+	const [config, setConfig] = React.useState<Config>()
 
-	if (!product) {
+	const resetConfig = React.useCallback(() => {
+		const c =
+			product === 'sessions'
+				? {
+						exclusion_query:
+							data?.projectSettings?.sampling
+								.session_exclusion_query,
+						sampling_rate:
+							data?.projectSettings?.sampling
+								.session_sampling_rate,
+						minute_rate_limit:
+							data?.projectSettings?.sampling
+								.session_minute_rate_limit,
+				  }
+				: product === 'errors'
+				? {
+						exclusion_query:
+							data?.projectSettings?.sampling
+								.error_exclusion_query,
+						sampling_rate:
+							data?.projectSettings?.sampling.error_sampling_rate,
+						minute_rate_limit:
+							data?.projectSettings?.sampling
+								.error_minute_rate_limit,
+				  }
+				: product === 'logs'
+				? {
+						exclusion_query:
+							data?.projectSettings?.sampling.log_exclusion_query,
+						sampling_rate:
+							data?.projectSettings?.sampling.log_sampling_rate,
+						minute_rate_limit:
+							data?.projectSettings?.sampling
+								.log_minute_rate_limit,
+				  }
+				: product === 'traces'
+				? {
+						exclusion_query:
+							data?.projectSettings?.sampling
+								.trace_exclusion_query,
+						sampling_rate:
+							data?.projectSettings?.sampling.trace_sampling_rate,
+						minute_rate_limit:
+							data?.projectSettings?.sampling
+								.trace_minute_rate_limit,
+				  }
+				: undefined
+		setConfig({
+			exclusion_query: c?.exclusion_query ?? '',
+			sampling_rate: c?.sampling_rate ?? 1,
+			minute_rate_limit: c?.minute_rate_limit ?? 1_000_000,
+		})
+	}, [data?.projectSettings?.sampling, product])
+
+	React.useEffect(resetConfig, [resetConfig])
+
+	if (!product || !config) {
 		return null
 	}
 
-	const query =
-		(product === 'sessions'
-			? data?.projectSettings?.sampling.session_exclusion_query
-			: product === 'errors'
-			? data?.projectSettings?.sampling.error_exclusion_query
-			: product === 'logs'
-			? data?.projectSettings?.sampling.log_exclusion_query
-			: product === 'traces'
-			? data?.projectSettings?.sampling.trace_exclusion_query
-			: null) ?? ''
-	const samplingPercent =
-		((product === 'sessions'
-			? data?.projectSettings?.sampling.session_sampling_rate
-			: product === 'errors'
-			? data?.projectSettings?.sampling.error_sampling_rate
-			: product === 'logs'
-			? data?.projectSettings?.sampling.log_sampling_rate
-			: product === 'traces'
-			? data?.projectSettings?.sampling.trace_sampling_rate
-			: null) ?? 1) * 100
-	const maxIngested =
-		(product === 'sessions'
-			? data?.projectSettings?.sampling.session_minute_rate_limit
-			: product === 'errors'
-			? data?.projectSettings?.sampling.error_minute_rate_limit
-			: product === 'logs'
-			? data?.projectSettings?.sampling.log_minute_rate_limit
-			: product === 'traces'
-			? data?.projectSettings?.sampling.trace_minute_rate_limit
-			: null) ?? Infinity
+	return (
+		<ProjectProductFiltersPicker
+			product={product}
+			config={config}
+			noHeader={noHeader}
+			onChange={(c: Partial<Config>) => {
+				setConfig((cfg) =>
+					cfg
+						? {
+								exclusion_query:
+									c?.exclusion_query ?? cfg?.exclusion_query,
+								sampling_rate:
+									c?.sampling_rate ?? cfg?.sampling_rate,
+								minute_rate_limit:
+									c?.minute_rate_limit ??
+									cfg?.minute_rate_limit,
+						  }
+						: undefined,
+				)
+			}}
+			onReset={resetConfig}
+			onSave={async () => {
+				const sampling =
+					product === 'sessions'
+						? {
+								session_exclusion_query: config.exclusion_query,
+								session_sampling_rate: config.sampling_rate,
+								session_minute_rate_limit:
+									config.minute_rate_limit,
+						  }
+						: product === 'errors'
+						? {
+								error_exclusion_query: config.exclusion_query,
+								error_sampling_rate: config.sampling_rate,
+								error_minute_rate_limit:
+									config.minute_rate_limit,
+						  }
+						: product === 'logs'
+						? {
+								log_exclusion_query: config.exclusion_query,
+								log_sampling_rate: config.sampling_rate,
+								log_minute_rate_limit: config.minute_rate_limit,
+						  }
+						: product === 'traces'
+						? {
+								trace_exclusion_query: config.exclusion_query,
+								trace_sampling_rate: config.sampling_rate,
+								trace_minute_rate_limit:
+									config.minute_rate_limit,
+						  }
+						: {}
+				await editProjectSettingsMutation({
+					variables: {
+						projectId,
+						sampling,
+					},
+				})
+			}}
+		/>
+	)
+}
+
+const ProjectProductFiltersPicker: React.FC<{
+	product: Product
+	config: Config
+	onChange: (config: Partial<Config>) => void
+	onReset: () => void
+	onSave: () => void
+	noHeader?: boolean
+}> = ({ product, config, onChange, onReset, onSave, noHeader }) => {
+	const navigate = useNavigate()
 	const label = upperFirst(product.slice(0, -1))
 	return (
 		<Box width="full">
@@ -155,70 +267,77 @@ export const ProjectProductFilters: React.FC<{
 					width="full"
 				>
 					<Text>{label} filters</Text>
-					<Box display="flex" alignItems="center" gap="6">
+					{noHeader ? null : (
+						<Box display="flex" alignItems="center" gap="6">
+							<Button
+								trackingId={`project-filters-${product}-discard`}
+								kind="secondary"
+								size="small"
+								emphasis="low"
+								onClick={onReset}
+							>
+								Discard changes
+							</Button>
+							<Button
+								trackingId={`project-filters-${product}-save`}
+								kind="primary"
+								size="small"
+								emphasis="high"
+								onClick={onSave}
+							>
+								Save changes
+							</Button>
+						</Box>
+					)}
+				</Box>
+				<Box display="flex" width="full" py="12" gap="6">
+					<Box width="full">
+						{product === 'sessions' ? (
+							<SessionQueryBuilder
+								minimal /*TODO(vkorolik) use exclusion query, on update*/
+							/>
+						) : product === 'errors' ? (
+							<ErrorQueryBuilder
+								minimal /*TODO(vkorolik) use exclusion query, on update*/
+							/>
+						) : product === 'logs' || product === 'traces' ? (
+							<SearchForm
+								initialQuery={config.exclusion_query}
+								onFormSubmit={(value) =>
+									onChange({ exclusion_query: value })
+								}
+								startDate={defaultPresets[5].startDate}
+								endDate={getNow().toDate()}
+								onDatesChange={() => {}}
+								presets={defaultPresets}
+								minDate={defaultPresets[5].startDate}
+								timeMode="fixed-range"
+								fetchKeys={
+									product === 'logs'
+										? useGetLogsKeysQuery
+										: useGetTracesKeysQuery
+								}
+								fetchValuesLazyQuery={
+									product === 'logs'
+										? useGetLogsKeyValuesLazyQuery
+										: useGetTracesKeyValuesLazyQuery
+								}
+							/>
+						) : null}
+					</Box>
+					{noHeader ? (
 						<Button
-							trackingId="project-filters-discard"
+							trackingId={`project-filters-${product}-edit`}
 							kind="secondary"
 							size="small"
-							emphasis="low"
+							emphasis="medium"
+							iconRight={<IconSolidPencil />}
 							onClick={() => {
-								/*TODO(vkorolik)*/
+								navigate(product)
 							}}
 						>
-							Discard changes
+							Edit
 						</Button>
-						<Button
-							trackingId="project-filters-save"
-							kind="primary"
-							size="small"
-							emphasis="high"
-							onClick={() => {
-								/*TODO(vkorolik)*/
-							}}
-						>
-							Save changes
-						</Button>
-					</Box>
-				</Box>
-				<Box display="flex" width="full" py="12">
-					{product === 'sessions' ? (
-						<SessionQueryBuilder minimal />
-					) : product === 'errors' ? (
-						<ErrorQueryBuilder minimal />
-					) : product === 'logs' ? (
-						<SearchForm
-							initialQuery={query}
-							onFormSubmit={() => {
-								/*TODO(vkorolik)*/
-							}}
-							startDate={defaultPresets[5].startDate}
-							endDate={getNow().toDate()}
-							onDatesChange={() => {
-								/*TODO(vkorolik)*/
-							}}
-							presets={defaultPresets}
-							minDate={defaultPresets[5].startDate}
-							timeMode="fixed-range"
-							fetchKeys={useGetLogsKeysQuery}
-							fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
-						/>
-					) : product === 'traces' ? (
-						<SearchForm
-							initialQuery={query}
-							onFormSubmit={() => {
-								/*TODO(vkorolik)*/
-							}}
-							startDate={defaultPresets[5].startDate}
-							endDate={getNow().toDate()}
-							onDatesChange={() => {
-								/*TODO(vkorolik)*/
-							}}
-							presets={defaultPresets}
-							minDate={defaultPresets[5].startDate}
-							timeMode="fixed-range"
-							fetchKeys={useGetLogsKeysQuery}
-							fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
-						/>
 					) : null}
 				</Box>
 				<Box
@@ -228,10 +347,12 @@ export const ProjectProductFilters: React.FC<{
 					py="12"
 				>
 					<Text>
-						{label} sampling: {samplingPercent}%
+						{label} sampling: {100 * config.sampling_rate}%
 					</Text>
+					{/*TODO(vkorolik) make inputs onChange*/}
 					<Text>
-						Max ingested {product}: {maxIngested} per minute
+						Max ingested {product}: {config.minute_rate_limit} /
+						minute
 					</Text>
 				</Box>
 				<Box
@@ -260,7 +381,7 @@ export const ProjectProductFilters: React.FC<{
 						<SessionsHistogram readonly />
 					) : product === 'errors' ? (
 						<ErrorFeedHistogram readonly />
-					) : /*TODO(vkorolik) use the IsIngestedBy counts*/ null}
+					) : /*TODO(vkorolik) use the IsIngestedBy counts, histogram for logs & traces */ null}
 				</Box>
 			</Box>
 		</Box>

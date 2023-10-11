@@ -1106,7 +1106,7 @@ export type FetchFieldVariables =
 	  >
 	| undefined
 
-interface QueryBuilderProps {
+export interface QueryBuilderProps {
 	searchContext: BaseSearchContext
 	timeRangeField: SelectOption
 	customFields: CustomField[]
@@ -1837,7 +1837,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 				flexShrink={0}
 				m={readonly || minimal ? undefined : '8'}
 				shadow={minimal ? undefined : 'medium'}
-				width={minimal ? 'full' : undefined}
 			>
 				<Box
 					p="4"
