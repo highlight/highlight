@@ -101,6 +101,7 @@ export type HighlightClassOptions = {
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
 	enableStrictPrivacy?: boolean
+	privacySetting?: 'strict' | 'default' | 'none'
 	enableCanvasRecording?: boolean
 	enablePerformanceRecording?: boolean
 	samplingStrategy?: SamplingStrategy
@@ -176,6 +177,7 @@ export class Highlight {
 	logger!: Logger
 	enableSegmentIntegration!: boolean
 	enableStrictPrivacy!: boolean
+	privacySetting!: 'strict' | 'default' | 'none'
 	enableCanvasRecording!: boolean
 	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy
@@ -351,6 +353,7 @@ export class Highlight {
 		this.manualStopped = false
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
 		this.enableStrictPrivacy = options.enableStrictPrivacy ?? false
+		this.privacySetting = options.privacySetting ?? 'default'
 		this.enableCanvasRecording = options.enableCanvasRecording ?? false
 		this.enablePerformanceRecording =
 			options.enablePerformanceRecording ?? true
@@ -585,6 +588,12 @@ export class Highlight {
 				// wait for 'cross-origin iframe ready' message
 				await this._setupCrossOriginIframe()
 			} else {
+				// TODO(spenny): should we pass in privacy_setting as a new param or just check value for enable_strict_privacy
+				console.log(
+					'INITIALIZE SESSION',
+					this.privacySetting,
+					this.enableStrictPrivacy,
+				)
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
 					enable_strict_privacy: this.enableStrictPrivacy,
@@ -725,6 +734,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					recordCrossOriginIframes:
 						this.options.recordCrossOriginIframe,
 					enableStrictPrivacy: this.enableStrictPrivacy,
+					privacySetting: this.privacySetting,
 					maskAllInputs: this.enableStrictPrivacy,
 					recordCanvas: this.enableCanvasRecording,
 					sampling: {

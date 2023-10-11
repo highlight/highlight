@@ -153,6 +153,13 @@ export declare type HighlightOptions = {
 	 */
 	enableStrictPrivacy?: boolean
 	/**
+	 * Specifies how much data Highlight should redact during recording.
+	 * strict - Highlight will redact all text data on the page.
+	 * default - TODO(spenny): document this
+	 * none - Highlight will not redact any text data on the page.
+	 */
+	privacySetting?: 'strict' | 'default' | 'none'
+	/**
 	 * Specifies whether to record canvas elements or not.
 	 * @default false
 	 */

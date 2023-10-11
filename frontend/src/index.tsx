@@ -68,6 +68,7 @@ const options: HighlightOptions = {
 	backendUrl: PUBLIC_GRAPH_URI,
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
+	privacySetting: 'none',
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
