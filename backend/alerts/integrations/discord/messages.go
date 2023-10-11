@@ -441,6 +441,7 @@ func (bot *Bot) SendLogAlert(channelId string, payload integrations.LogAlertPayl
 
 	embed := newMessageEmbed()
 	embed.Title = "Highlight Log Alert"
+	embed.Color = RED_ALERT
 	embed.Description = fmt.Sprintf("*%s* is currently %s the threshold.", payload.Name, aboveStr)
 	embed.Fields = fields
 
