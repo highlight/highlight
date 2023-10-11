@@ -132,7 +132,6 @@ const H: HighlightPublicInterface = {
 				reportConsoleErrors: options?.reportConsoleErrors,
 				consoleMethodsToRecord: options?.consoleMethodsToRecord,
 				enableSegmentIntegration: options?.enableSegmentIntegration,
-				enableStrictPrivacy: options?.enableStrictPrivacy,
 				privacySetting: options?.privacySetting,
 				enableCanvasRecording: options?.enableCanvasRecording,
 				enablePerformanceRecording: options?.enablePerformanceRecording,

@@ -145,18 +145,12 @@ export declare type HighlightOptions = {
 	 */
 	serviceName?: string
 	/**
-	 * Specifies whether Highlight should redact data during recording.
-	 * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
-	 * @example
-	 * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
-	 * @see {@link https://docs.highlight.run/docs/privacy} for more information.
-	 */
-	enableStrictPrivacy?: boolean
-	/**
 	 * Specifies how much data Highlight should redact during recording.
 	 * strict - Highlight will redact all text data on the page.
 	 * default - TODO(spenny): document this
 	 * none - Highlight will not redact any text data on the page.
+	 * // Redacted text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
+	 * @see {@link https://docs.highlight.run/docs/privacy} for more information.
 	 */
 	privacySetting?: 'strict' | 'default' | 'none'
 	/**

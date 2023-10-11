@@ -493,7 +493,7 @@ function onceStylesheetLoaded(link, listener, styleSheetLoadTimeout) {
   });
 }
 function serializeNode(n2, options) {
-  var doc = options.doc, mirror2 = options.mirror, blockClass = options.blockClass, blockSelector = options.blockSelector, maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskTextFn = options.maskTextFn, maskInputFn = options.maskInputFn, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, enableStrictPrivacy = options.enableStrictPrivacy, privacySetting = options.privacySetting;
+  var doc = options.doc, mirror2 = options.mirror, blockClass = options.blockClass, blockSelector = options.blockSelector, maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskTextFn = options.maskTextFn, maskInputFn = options.maskInputFn, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, privacySetting = options.privacySetting;
   var rootId = getRootId(doc, mirror2);
   switch (n2.nodeType) {
     case n2.DOCUMENT_NODE:
@@ -531,7 +531,6 @@ function serializeNode(n2, options) {
         recordCanvas,
         keepIframeSrcFn,
         newlyAddedElement,
-        enableStrictPrivacy,
         privacySetting,
         rootId
       });
@@ -540,7 +539,6 @@ function serializeNode(n2, options) {
         maskTextClass,
         maskTextSelector,
         maskTextFn,
-        enableStrictPrivacy,
         privacySetting,
         rootId
       });
@@ -568,7 +566,7 @@ function getRootId(doc, mirror2) {
 }
 function serializeTextNode(n2, options) {
   var _a2;
-  var maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, maskTextFn = options.maskTextFn, enableStrictPrivacy = options.enableStrictPrivacy, privacySetting = options.privacySetting, rootId = options.rootId;
+  var maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, maskTextFn = options.maskTextFn, privacySetting = options.privacySetting, rootId = options.rootId;
   var parentTagName = n2.parentNode && n2.parentNode.tagName;
   var textContent = n2.textContent;
   var isStyle = parentTagName === "STYLE" ? true : void 0;
@@ -596,7 +594,7 @@ function serializeTextNode(n2, options) {
   if (!isStyle && !isScript && textContent && needMaskingText(n2, maskTextClass, maskTextSelector)) {
     textContent = maskTextFn ? maskTextFn(textContent) : textContent.replace(/[\S]/g, "*");
   }
-  console.log("snapshot obfuscate", privacySetting, enableStrictPrivacy);
+  var enableStrictPrivacy = privacySetting === "strict";
   if (enableStrictPrivacy && !textContentHandled && parentTagName) {
     var IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
@@ -619,9 +617,10 @@ function serializeTextNode(n2, options) {
   };
 }
 function serializeElementNode(n2, options) {
-  var doc = options.doc, blockClass = options.blockClass, blockSelector = options.blockSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskInputFn = options.maskInputFn, maskTextClass = options.maskTextClass, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, enableStrictPrivacy = options.enableStrictPrivacy, privacySetting = options.privacySetting, rootId = options.rootId;
+  var doc = options.doc, blockClass = options.blockClass, blockSelector = options.blockSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskInputFn = options.maskInputFn, maskTextClass = options.maskTextClass, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, privacySetting = options.privacySetting, rootId = options.rootId;
   var needBlock = _isBlockedElement(n2, blockClass, blockSelector);
   var needMask = _isBlockedElement(n2, maskTextClass, null);
+  var enableStrictPrivacy = privacySetting === "strict";
   var tagName = getValidTagName(n2);
   var attributes = {};
   var len = n2.attributes.length;
@@ -691,7 +690,6 @@ function serializeElementNode(n2, options) {
     }
   }
   if (tagName === "img" && inlineImages && !needBlock && !needMask && !enableStrictPrivacy) {
-    console.log("snapshot inlineImages", privacySetting, enableStrictPrivacy);
     if (!canvasService) {
       canvasService = doc.createElement("canvas");
       canvasCtx = canvasService.getContext("2d");
@@ -737,7 +735,6 @@ function serializeElementNode(n2, options) {
     };
   }
   if (enableStrictPrivacy && isElementSrcBlocked(tagName)) {
-    console.log("src blocked", privacySetting, enableStrictPrivacy);
     needBlock = true;
   }
   if (tagName === "iframe" && !keepIframeSrcFn(attributes.src)) {
@@ -805,7 +802,7 @@ function slimDOMExcluded(sn, slimDOMOptions) {
 function serializeNodeWithId(n2, options) {
   var doc = options.doc, mirror2 = options.mirror, blockClass = options.blockClass, blockSelector = options.blockSelector, maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, _a2 = options.skipChild, skipChild = _a2 === void 0 ? false : _a2, _b2 = options.inlineStylesheet, inlineStylesheet = _b2 === void 0 ? true : _b2, _c = options.maskInputOptions, maskInputOptions = _c === void 0 ? {} : _c, maskTextFn = options.maskTextFn, maskInputFn = options.maskInputFn, slimDOMOptions = options.slimDOMOptions, _d = options.dataURLOptions, dataURLOptions = _d === void 0 ? {} : _d, _e = options.inlineImages, inlineImages = _e === void 0 ? false : _e, _f = options.recordCanvas, recordCanvas = _f === void 0 ? false : _f, onSerialize = options.onSerialize, onIframeLoad = options.onIframeLoad, _g = options.iframeLoadTimeout, iframeLoadTimeout = _g === void 0 ? 5e3 : _g, onStylesheetLoad = options.onStylesheetLoad, _h = options.stylesheetLoadTimeout, stylesheetLoadTimeout = _h === void 0 ? 5e3 : _h, _j = options.keepIframeSrcFn, keepIframeSrcFn = _j === void 0 ? function() {
     return false;
-  } : _j, _k = options.newlyAddedElement, newlyAddedElement = _k === void 0 ? false : _k, enableStrictPrivacy = options.enableStrictPrivacy, privacySetting = options.privacySetting;
+  } : _j, _k = options.newlyAddedElement, newlyAddedElement = _k === void 0 ? false : _k, privacySetting = options.privacySetting;
   var _l = options.preserveWhiteSpace, preserveWhiteSpace = _l === void 0 ? true : _l;
   var _serializedNode = serializeNode(n2, {
     doc,
@@ -823,7 +820,6 @@ function serializeNodeWithId(n2, options) {
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement,
-    enableStrictPrivacy,
     privacySetting
   });
   if (!_serializedNode) {
@@ -847,11 +843,10 @@ function serializeNodeWithId(n2, options) {
     onSerialize(n2);
   }
   var recordChild = !skipChild;
-  var strictPrivacy = enableStrictPrivacy;
+  var strictPrivacy = privacySetting === "strict";
   if (serializedNode.type === NodeType.Element) {
-    console.log("Node element", privacySetting, enableStrictPrivacy);
     recordChild = recordChild && !serializedNode.needBlock;
-    strictPrivacy = enableStrictPrivacy || !!serializedNode.needBlock || !!serializedNode.needMask;
+    strictPrivacy || (strictPrivacy = !!serializedNode.needBlock || !!serializedNode.needMask);
     if (strictPrivacy && isElementSrcBlocked(serializedNode.tagName)) {
       var clone = n2.cloneNode();
       clone.src = "";
@@ -941,7 +936,6 @@ function serializeNodeWithId(n2, options) {
           onStylesheetLoad,
           stylesheetLoadTimeout,
           keepIframeSrcFn,
-          enableStrictPrivacy,
           privacySetting
         });
         if (serializedIframeNode) {
@@ -976,7 +970,6 @@ function serializeNodeWithId(n2, options) {
           onStylesheetLoad,
           stylesheetLoadTimeout,
           keepIframeSrcFn,
-          enableStrictPrivacy,
           privacySetting
         });
         if (serializedLinkNode) {
@@ -990,7 +983,7 @@ function serializeNodeWithId(n2, options) {
 function snapshot(n2, options) {
   var _a2 = options || {}, _b2 = _a2.mirror, mirror2 = _b2 === void 0 ? new Mirror() : _b2, _c = _a2.blockClass, blockClass = _c === void 0 ? "highlight-block" : _c, _d = _a2.blockSelector, blockSelector = _d === void 0 ? null : _d, _e = _a2.maskTextClass, maskTextClass = _e === void 0 ? "highlight-mask" : _e, _f = _a2.maskTextSelector, maskTextSelector = _f === void 0 ? null : _f, _g = _a2.inlineStylesheet, inlineStylesheet = _g === void 0 ? true : _g, _h = _a2.inlineImages, inlineImages = _h === void 0 ? false : _h, _j = _a2.recordCanvas, recordCanvas = _j === void 0 ? false : _j, _k = _a2.maskAllInputs, maskAllInputs = _k === void 0 ? false : _k, maskTextFn = _a2.maskTextFn, maskInputFn = _a2.maskInputFn, _l = _a2.slimDOM, slimDOM = _l === void 0 ? false : _l, dataURLOptions = _a2.dataURLOptions, preserveWhiteSpace = _a2.preserveWhiteSpace, onSerialize = _a2.onSerialize, onIframeLoad = _a2.onIframeLoad, iframeLoadTimeout = _a2.iframeLoadTimeout, onStylesheetLoad = _a2.onStylesheetLoad, stylesheetLoadTimeout = _a2.stylesheetLoadTimeout, _m = _a2.keepIframeSrcFn, keepIframeSrcFn = _m === void 0 ? function() {
     return false;
-  } : _m, _o = _a2.enableStrictPrivacy, enableStrictPrivacy = _o === void 0 ? false : _o, _p = _a2.privacySetting, privacySetting = _p === void 0 ? "default" : _p;
+  } : _m, _o = _a2.privacySetting, privacySetting = _o === void 0 ? "default" : _o;
   var maskInputOptions = maskAllInputs === true ? {
     color: true,
     date: true,
@@ -1047,7 +1040,6 @@ function snapshot(n2, options) {
     stylesheetLoadTimeout,
     keepIframeSrcFn,
     newlyAddedElement: false,
-    enableStrictPrivacy,
     privacySetting
   });
 }
@@ -2448,7 +2440,6 @@ var MutationBuffer = class {
           dataURLOptions: this.dataURLOptions,
           recordCanvas: this.recordCanvas,
           inlineImages: this.inlineImages,
-          enableStrictPrivacy: this.enableStrictPrivacy,
           privacySetting: this.privacySetting,
           onSerialize: (currentN) => {
             if (isSerializedIframe(currentN, this.mirror)) {
@@ -2543,8 +2534,8 @@ var MutationBuffer = class {
       const payload = {
         texts: this.texts.map((text) => {
           let value = text.value;
-          console.log("mutation obfuscate", this.privacySetting, this.enableStrictPrivacy, value);
-          if (this.enableStrictPrivacy && value) {
+          const enableStrictPrivacy = this.privacySetting = "strict";
+          if (enableStrictPrivacy && value) {
             value = obfuscateText(value);
           }
           return {
@@ -2735,7 +2726,6 @@ var MutationBuffer = class {
       "keepIframeSrcFn",
       "recordCanvas",
       "inlineImages",
-      "enableStrictPrivacy",
       "privacySetting",
       "slimDOMOptions",
       "dataURLOptions",
@@ -4658,7 +4648,7 @@ var recording = false;
 var mirror = createMirror();
 function record(options = {}) {
   var _a2, _b2, _c, _d, _e, _f, _g, _h;
-  const { emit, checkoutEveryNms, checkoutEveryNth, blockClass = "highlight-block", blockSelector = null, ignoreClass = "highlight-ignore", maskTextClass = "highlight-mask", maskTextSelector = null, inlineStylesheet = true, maskAllInputs, maskInputOptions: _maskInputOptions, slimDOMOptions: _slimDOMOptions, maskInputFn, maskTextFn = obfuscateText, hooks, packFn, sampling = {}, mousemoveWait, recordCanvas = false, recordCrossOriginIframes = false, recordAfter = options.recordAfter === "DOMContentLoaded" ? options.recordAfter : "load", userTriggeredOnInput = false, collectFonts = false, inlineImages = false, plugins, keepIframeSrcFn = () => false, enableStrictPrivacy = false, privacySetting = "default", ignoreCSSAttributes = /* @__PURE__ */ new Set([]), errorHandler: errorHandler2, logger } = options;
+  const { emit, checkoutEveryNms, checkoutEveryNth, blockClass = "highlight-block", blockSelector = null, ignoreClass = "highlight-ignore", maskTextClass = "highlight-mask", maskTextSelector = null, inlineStylesheet = true, maskAllInputs, maskInputOptions: _maskInputOptions, slimDOMOptions: _slimDOMOptions, maskInputFn, maskTextFn = obfuscateText, hooks, packFn, sampling = {}, mousemoveWait, recordCanvas = false, recordCrossOriginIframes = false, recordAfter = options.recordAfter === "DOMContentLoaded" ? options.recordAfter : "load", userTriggeredOnInput = false, collectFonts = false, inlineImages = false, plugins, keepIframeSrcFn = () => false, privacySetting = "default", ignoreCSSAttributes = /* @__PURE__ */ new Set([]), errorHandler: errorHandler2, logger } = options;
   const dataURLOptions = Object.assign(Object.assign({}, options.dataURLOptions), (_b2 = (_a2 = options.sampling) === null || _a2 === void 0 ? void 0 : _a2.canvas) === null || _b2 === void 0 ? void 0 : _b2.dataURLOptions);
   registerErrorHandler(errorHandler2);
   const inEmittingFrame = recordCrossOriginIframes ? window.parent === window : true;
@@ -4824,7 +4814,6 @@ function record(options = {}) {
       maskInputFn,
       recordCanvas,
       inlineImages,
-      enableStrictPrivacy,
       privacySetting,
       sampling,
       slimDOMOptions,
@@ -4861,7 +4850,6 @@ function record(options = {}) {
       dataURLOptions,
       recordCanvas,
       inlineImages,
-      enableStrictPrivacy,
       privacySetting,
       onSerialize: (n2) => {
         if (isSerializedIframe(n2, mirror)) {
@@ -4971,7 +4959,6 @@ function record(options = {}) {
         processedNodeManager,
         canvasManager,
         ignoreCSSAttributes,
-        enableStrictPrivacy,
         privacySetting,
         plugins: ((_a3 = plugins === null || plugins === void 0 ? void 0 : plugins.filter((p) => p.observer)) === null || _a3 === void 0 ? void 0 : _a3.map((p) => ({
           observer: p.observer,

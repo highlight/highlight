@@ -53,6 +53,18 @@ import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils
 
 document.body.className = 'highlight-light-theme'
 
+const determinePrivacySetting = () => {
+	return 'strict'
+	const value = Math.random() * 10
+	if (value < 1) {
+		return 'strict' // 10%
+	} else if (value < 4) {
+		return 'none' // 30%
+	} else {
+		return 'default' // 60%
+	}
+}
+
 analytics.initialize()
 const dev = import.meta.env.DEV
 const clientDebugKey = 'highlight-client-debug'
@@ -67,8 +79,7 @@ const options: HighlightOptions = {
 		: undefined,
 	backendUrl: PUBLIC_GRAPH_URI,
 	manualStart: true,
-	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
-	privacySetting: 'none',
+	privacySetting: determinePrivacySetting(),
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
