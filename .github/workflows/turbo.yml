@@ -226,15 +226,15 @@ jobs:
                   # wait for highlight to be ready
                   yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;
 
+                  # run cypress tests
+                  yarn cy:run;
+
                   # run python backend functional tests
                   pushd ./e2e/tests
                   export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
                   export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
                   poetry run pytest .
                   popd
-
-                  # run cypress tests
-                  yarn cy:run;
 
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)

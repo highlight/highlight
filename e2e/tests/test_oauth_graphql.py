@@ -55,14 +55,7 @@ def test_make_request_with_oauth():
             "variables": {
                 "query": {
                     "isAnd": True,
-                    "rules": [
-                        ["custom_processed", "is", "true"],
-                        [
-                            "custom_created_at",
-                            "between_date",
-                            "2023-09-12T03:51:47.260Z_2023-10-12T03:51:47.260Z",
-                        ],
-                    ],
+                    "rules": [],
                 },
                 "count": 10,
                 "page": 1,
