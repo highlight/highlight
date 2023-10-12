@@ -20,6 +20,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/go-oauth2/oauth2/v4"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/util"
@@ -248,12 +249,15 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		} else if OAuthServer.HasCookie(r) || OAuthServer.HasBearer(r) {
 			span.SetOperationName("oauth")
 			var cookie *http.Cookie
-			ctx, _, cookie, err = OAuthServer.Validate(ctx, r)
+			var tokenInfo oauth2.TokenInfo
+			ctx, tokenInfo, cookie, err = OAuthServer.Validate(ctx, r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
 			http.SetCookie(w, cookie)
+			span.SetAttribute("client_id", tokenInfo.GetClientID())
+			span.SetAttribute("user_id", tokenInfo.GetUserID())
 		}
 		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
 		r = r.WithContext(ctx)
