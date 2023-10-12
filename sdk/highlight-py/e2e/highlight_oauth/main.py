@@ -59,11 +59,12 @@ query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQu
 }
 """
 
-# in development
-# OAUTH_URL = "https://localhost:8082/oauth"
-# API_URL = "https://localhost:8082/private"
-OAUTH_URL = "https://pri.highlight.io/oauth"
-API_URL = "https://pri.highlight.io"
+if os.environ.get('ENVIRONMENT') in {'test', 'dev'}:
+    OAUTH_URL = "https://localhost:8082/oauth"
+    API_URL = "https://localhost:8082/private"
+else:
+    OAUTH_URL = "https://pri.highlight.io/oauth"
+    API_URL = "https://pri.highlight.io"
 
 CLIENT_ID = os.environ["HIGHLIGHT_OAUTH_CLIENT_ID"]
 SECRET = os.environ["HIGHLIGHT_OAUTH_CLIENT_SECRET"]
