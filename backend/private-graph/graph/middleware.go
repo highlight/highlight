@@ -245,7 +245,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
-		} else if OAuthServer.HasCookie(r) {
+		} else if OAuthServer.HasCookie(r) || OAuthServer.HasBearer(r) {
 			span.SetOperationName("oauth")
 			var cookie *http.Cookie
 			ctx, _, cookie, err = OAuthServer.Validate(ctx, r)

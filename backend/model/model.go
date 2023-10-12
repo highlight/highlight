@@ -1282,6 +1282,9 @@ type OAuthClientStore struct {
 	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
 	AppName   string
+
+	AdminID int
+	Admin   *Admin
 }
 
 var ErrorType = struct {
