@@ -1,6 +1,8 @@
 import os
+import typing
 
 import requests
+import time
 
 GET_SESSIONS_CLICKHOUSE = """
 query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQuery!, $sort_desc: Boolean!, $sort_field: String, $page: Int) {
@@ -47,26 +49,36 @@ def perform_oauth_flow():
 def test_make_request_with_oauth():
     auth = perform_oauth_flow()
 
-    r = requests.post(
-        API_URL,
-        verify=False,
-        json={
-            "operationName": "GetSessionsClickhouse",
-            "variables": {
-                "query": {
-                    "isAnd": True,
-                    "rules": [],
+    exc: typing.Optional[Exception] = None
+    # retry up for up to 30 seconds in case the session needs time to populate from datasync queue
+    for _ in range(30):
+        try:
+            r = requests.post(
+                API_URL,
+                verify=False,
+                json={
+                    "operationName": "GetSessionsClickhouse",
+                    "variables": {
+                        "query": {
+                            "isAnd": True,
+                            "rules": [],
+                        },
+                        "count": 10,
+                        "page": 1,
+                        "project_id": "1",
+                        "sort_desc": True,
+                    },
+                    "query": GET_SESSIONS_CLICKHOUSE,
                 },
-                "count": 10,
-                "page": 1,
-                "project_id": "1",
-                "sort_desc": True,
-            },
-            "query": GET_SESSIONS_CLICKHOUSE,
-        },
-        headers={"Authorization": f"Bearer {auth}"},
-    )
-    assert r.status_code == 200
-    j = r.json()
-    assert len(j.get("errors") or []) == 0
-    assert len(j["data"]["sessions_clickhouse"]["sessions"]) == 10
+                headers={"Authorization": f"Bearer {auth}"},
+            )
+            assert r.status_code == 200
+            j = r.json()
+            assert len(j.get("errors") or []) == 0
+            assert len(j["data"]["sessions_clickhouse"]["sessions"]) == 10
+            break
+        except Exception as e:
+            exc = e
+            time.sleep(1)
+    else:
+        raise exc
