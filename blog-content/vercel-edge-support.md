@@ -18,14 +18,14 @@ metaTitle: "Vercel Edge Runtime Support"
 ## Why Vercel Edge?
 If I had to bet, I’d wager that Vercel’s [Edge Runtime](https://edge-runtime.vercel.app/) is The Next Big Thing.
 
-That’s because Vercel cleverly built on top of [Cloudflare Workers](https://developers.cloudflare.com/workers/), which solve the primary problems of serverless… at a price.
+That’s because Vercel cleverly built it on top of [Cloudflare Workers](https://developers.cloudflare.com/workers/), which solve the primary problems of serverless… at a price.
 
 Think of Cloudflare Workers like the web’s [Web Workers API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API). A single JavaScript loop in your browser can spin off seemingly infinite Web Workers. Cloudflare does the same thing, but it’s a single Node.js process spinning up seemingly infinite Cloudflare Workers.
 
 Say goodbye to coldstarts. Network latency is lower as well, because workers are deployed across Cloudflare’s global data centers. And each process is so cheap from an infra perspective that Cloudflare can keep their pricing ridiculously low. So even with Vercel’s markup, it’s hard to argue against the cost.
 
 ## Why NOT Vercel Edge?
-The speed, low latency, and low cost come at a price.
+Vercel Edge's speed, low latency, and low cost come at a price.
 
 Edge workers are emphatically NOT Node.js compatible. 
 
