@@ -588,8 +588,8 @@ export class Highlight {
 			} else {
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
-					// TODO: should this be updated to use the new privacySetting enum?
 					enable_strict_privacy: this.privacySetting === 'strict',
+					privacy_setting: this.privacySetting,
 					enable_recording_network_contents: enableNetworkRecording,
 					clientVersion: this.firstloadVersion,
 					firstloadVersion: this.firstloadVersion,
