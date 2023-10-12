@@ -64,9 +64,9 @@ const CustomLegend = ({
 				>
 					<div
 						className={clsx(styles.legendIcon, {
-							// [styles.notShowing]: !dataTypesToShow.includes(
-							// 	entry.value,
-							// ),
+							[styles.notShowingIcon]: !dataTypesToShow.includes(
+								entry.value,
+							),
 						})}
 						style={{
 							background: entry.color,
@@ -74,9 +74,9 @@ const CustomLegend = ({
 					></div>
 					<span
 						className={clsx(styles.legendValue, {
-							// [styles.notShowing]: !dataTypesToShow.includes(
-							// 	entry.value,
-							// ),
+							[styles.notShowingValue]: !dataTypesToShow.includes(
+								entry.value,
+							),
 						})}
 					>
 						{entry.value}

@@ -4,10 +4,10 @@ export const legendValue = style({
 	color: 'var(--color-gray-500) !important',
 	overflow: 'hidden',
 	textOverflow: 'ellipsis',
+})
 
-	// &.notShowing {
-	// 	text-decoration: line-through;
-	// }
+export const notShowingValue = style({
+	textDecoration: 'line-through',
 })
 
 export const legendIcon = style({
@@ -17,8 +17,8 @@ export const legendIcon = style({
 	marginBottom: 'auto',
 	marginTop: 'auto',
 	width: '6px',
+})
 
-	// &.notShowing {
-	// 	filter: grayscale(0.5);
-	// }
+export const notShowingIcon = style({
+	filter: 'grayscale(0.5)',
 })
