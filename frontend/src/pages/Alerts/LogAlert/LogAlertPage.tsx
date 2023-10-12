@@ -348,6 +348,7 @@ export const LogAlertPage = () => {
 							})
 								.then(() => {
 									message.success(`Log alert ${createStr}d!`)
+									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
 									message.error(
