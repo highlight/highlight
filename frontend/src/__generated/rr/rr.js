@@ -229,7 +229,14 @@ var maskedInputType = function(_a2) {
 function maskInputValue(_a2) {
   var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, inputId = _a2.inputId, inputName = _a2.inputName, autocomplete = _a2.autocomplete, value = _a2.value, maskInputFn = _a2.maskInputFn;
   var text = value || "";
-  if (maskedInputType({ maskInputOptions, tagName, type, inputId, inputName, autocomplete })) {
+  if (maskedInputType({
+    maskInputOptions,
+    tagName,
+    type,
+    inputId,
+    inputName,
+    autocomplete
+  })) {
     if (maskInputFn) {
       text = maskInputFn(text);
     } else {
