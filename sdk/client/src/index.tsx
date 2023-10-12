@@ -37,6 +37,7 @@ import {
 import StackTrace from 'stacktrace-js'
 import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
+import { determineMaskInputOptions } from './utils/privacy'
 
 import { ViewportResizeListener } from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
@@ -585,9 +586,9 @@ export class Highlight {
 				// wait for 'cross-origin iframe ready' message
 				await this._setupCrossOriginIframe()
 			} else {
-				// TODO(spenny): should we pass in privacy_setting as a new param or just check value for enable_strict_privacy
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
+					// TODO: should this be updated to use the new privacySetting enum?
 					enable_strict_privacy: this.privacySetting === 'strict',
 					enable_recording_network_contents: enableNetworkRecording,
 					clientVersion: this.firstloadVersion,
@@ -719,6 +720,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						warn: HighlightWarning,
 					}
 				}
+				const [maskAllInputs, maskInputOptions] =
+					determineMaskInputOptions(this.privacySetting)
+
 				this._recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
@@ -726,7 +730,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					recordCrossOriginIframes:
 						this.options.recordCrossOriginIframe,
 					privacySetting: this.privacySetting,
-					maskAllInputs: this.privacySetting === 'strict',
+					maskAllInputs,
+					maskInputOptions: maskInputOptions,
 					recordCanvas: this.enableCanvasRecording,
 					sampling: {
 						canvas: {

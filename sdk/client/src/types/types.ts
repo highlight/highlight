@@ -147,7 +147,7 @@ export declare type HighlightOptions = {
 	/**
 	 * Specifies how much data Highlight should redact during recording.
 	 * strict - Highlight will redact all text data on the page.
-	 * default - TODO(spenny): document this
+	 * default - Highlight will redact text data on the page that is associated with personal identifiable data.
 	 * none - Highlight will not redact any text data on the page.
 	 * // Redacted text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
 	 * @see {@link https://docs.highlight.run/docs/privacy} for more information.

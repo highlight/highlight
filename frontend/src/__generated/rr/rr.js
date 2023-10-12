@@ -152,19 +152,6 @@ var Mirror = function() {
 function createMirror() {
   return new Mirror();
 }
-function maskInputValue(_a2) {
-  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, value = _a2.value, maskInputFn = _a2.maskInputFn;
-  var text = value || "";
-  var actualType = type && type.toLowerCase();
-  if (maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType]) {
-    if (maskInputFn) {
-      text = maskInputFn(text);
-    } else {
-      text = "*".repeat(text.length);
-    }
-  }
-  return text;
-}
 var ORIGINAL_ATTRIBUTE_NAME = "__rrweb_original__";
 function is2DCanvasBlank(canvas) {
   var ctx = canvas.getContext("2d");
@@ -228,12 +215,24 @@ var DEFAULT_OBFUSCATE_REGEXES = [
   IP_REGEX
 ];
 function shouldObfuscateTextByDefault(text) {
-  var emailMatch = EMAIL_REGEX.test(text);
-  var rv = DEFAULT_OBFUSCATE_REGEXES.some(function(regex) {
+  if (!text)
+    return false;
+  return DEFAULT_OBFUSCATE_REGEXES.some(function(regex) {
     return regex.test(text);
   });
-  console.log(text, emailMatch, rv);
-  return rv;
+}
+function maskInputValue(_a2) {
+  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, autocomplete = _a2.autocomplete, value = _a2.value, maskInputFn = _a2.maskInputFn;
+  var text = value || "";
+  var actualType = type && type.toLowerCase();
+  if (maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType] || autocomplete && typeof autocomplete === "string" && maskInputOptions[autocomplete]) {
+    if (maskInputFn) {
+      text = maskInputFn(text);
+    } else {
+      text = "*".repeat(text.length);
+    }
+  }
+  return text;
 }
 var _id = 1;
 var tagNameRegex = new RegExp("[^a-z0-9-_:]");
@@ -619,7 +618,7 @@ function serializeTextNode(n2, options) {
     textContent = maskTextFn ? maskTextFn(textContent) : textContent.replace(/[\S]/g, "*");
   }
   var enableStrictPrivacy = privacySetting === "strict";
-  var obfuscateDefaultPrivacy = privacySetting === "default" && textContent && shouldObfuscateTextByDefault(textContent);
+  var obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(textContent);
   if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !textContentHandled && parentTagName) {
     var IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
@@ -684,6 +683,7 @@ function serializeElementNode(n2, options) {
         type,
         tagName,
         value,
+        autocomplete: n2.autocomplete,
         maskInputOptions,
         maskInputFn
       });
@@ -868,10 +868,12 @@ function serializeNodeWithId(n2, options) {
     onSerialize(n2);
   }
   var recordChild = !skipChild;
+  var overwrittenPrivacySetting = privacySetting;
   var strictPrivacy = privacySetting === "strict";
   if (serializedNode.type === NodeType.Element) {
     recordChild = recordChild && !serializedNode.needBlock;
     strictPrivacy || (strictPrivacy = !!serializedNode.needBlock || !!serializedNode.needMask);
+    overwrittenPrivacySetting = strictPrivacy ? "strict" : overwrittenPrivacySetting;
     if (strictPrivacy && isElementSrcBlocked(serializedNode.tagName)) {
       var clone = n2.cloneNode();
       clone.src = "";
@@ -910,8 +912,7 @@ function serializeNodeWithId(n2, options) {
       onStylesheetLoad,
       stylesheetLoadTimeout,
       keepIframeSrcFn,
-      enableStrictPrivacy: strictPrivacy,
-      privacySetting
+      privacySetting: overwrittenPrivacySetting
     };
     for (var _i = 0, _m = Array.from(n2.childNodes); _i < _m.length; _i++) {
       var childN = _m[_i];
@@ -2560,7 +2561,7 @@ var MutationBuffer = class {
         texts: this.texts.map((text) => {
           let value = text.value;
           const enableStrictPrivacy = this.privacySetting === "strict";
-          const obfuscateDefaultPrivacy = this.privacySetting === "default" && value && shouldObfuscateTextByDefault(value);
+          const obfuscateDefaultPrivacy = this.privacySetting === "default" && shouldObfuscateTextByDefault(value);
           if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && value) {
             value = obfuscateText(value);
           }
@@ -2614,6 +2615,7 @@ var MutationBuffer = class {
               tagName: target.tagName,
               type,
               value,
+              autocomplete: target.getAttribute("autocomplete"),
               maskInputFn: this.maskInputFn
             });
           }
@@ -3044,6 +3046,7 @@ function initInputObserver({ inputCb, doc, mirror: mirror2, blockClass, blockSel
         tagName,
         type,
         value: text,
+        autocomplete: target.autocomplete,
         maskInputFn
       });
     }
