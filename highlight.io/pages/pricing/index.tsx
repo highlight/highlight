@@ -7,6 +7,7 @@ import Footer from '../../components/common/Footer/Footer'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 import homeStyles from '../../components/Home/Home.module.scss'
+import WideCard from '../../components/Integrations/WideCard'
 import pricingStyles from '../../components/Pricing/Pricing.module.scss'
 
 import CreditCard from '../../public/images/credit-card.svg'
@@ -287,13 +288,13 @@ const priceTiers: Record<TierName, PricingTier> = {
 		label: 'Pay as you go',
 		features: [
 			{
-				feature: '500 monthly sessions',
+				feature: '500+ monthly sessions',
 			},
 			{
-				feature: '1,000 monthly errors',
+				feature: '1,000+ monthly errors',
 			},
 			{
-				feature: '1,000,000 monthly logs',
+				feature: '1,000,000+ monthly logs',
 			},
 			{
 				feature: 'Unlimited seats',
@@ -351,6 +352,14 @@ const PlanTable = () => {
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
+			</div>
+			<div className="max-w-[908px] w-full mt-4">
+				<WideCard
+					title="Enterprise self-hosted deployment?"
+					desc="Get in touch to host Highlight on your own infrastructure with SLAs and support."
+					primaryLink="/docs/general/company/open-source/hosting/self-host-enterprise"
+					primaryLinkText="Learn More"
+				/>
 			</div>
 			<div className="flex-shrink w-48" />
 		</div>

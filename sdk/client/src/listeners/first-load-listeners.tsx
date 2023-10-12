@@ -115,7 +115,17 @@ export class FirstLoadListeners {
 			)
 		}
 		this.listeners.push(
-			ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e)),
+			ErrorListener((e: ErrorMessage) => {
+				if (
+					ERRORS_TO_IGNORE.includes(e.event) ||
+					ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
+						e.event.includes(pattern),
+					)
+				) {
+					return
+				}
+				highlightThis.errors.push(e)
+			}),
 		)
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}

@@ -26,11 +26,7 @@ import {
 	useGetTracesMetricsQuery,
 	useGetTracesQuery,
 } from '@/graph/generated/hooks'
-import {
-	LogLevel,
-	SortDirection,
-	TracesMetricType,
-} from '@/graph/generated/schemas'
+import { SortDirection, TracesMetricType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
@@ -124,12 +120,6 @@ export const TracesPage: React.FC = () => {
 		}
 	})
 
-	const COLOR_MAPPING: {
-		[key in LogLevel]: string
-	} = {
-		[LogLevel.Trace]: '#6F6E77',
-	}
-
 	return (
 		<>
 			<Helmet>
@@ -145,7 +135,6 @@ export const TracesPage: React.FC = () => {
 				flexDirection="column"
 				height="full"
 				position="relative"
-				overflow="hidden"
 			>
 				<Box
 					backgroundColor="white"
@@ -153,6 +142,7 @@ export const TracesPage: React.FC = () => {
 					borderRadius="6"
 					height="full"
 					shadow="medium"
+					overflow="hidden"
 				>
 					<SearchForm
 						initialQuery={query ?? ''}
@@ -167,7 +157,7 @@ export const TracesPage: React.FC = () => {
 						fetchKeys={useGetTracesKeysQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
-					<Box display="flex">
+					<Box display="flex" borderBottom="dividerWeak">
 						<Box
 							width="full"
 							padding="8"

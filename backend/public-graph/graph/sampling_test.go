@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/openlyinc/pointy"
@@ -126,4 +127,21 @@ func Test_IsSessionExcluded(t *testing.T) {
 			assert.Equal(t, modelInputs.SessionExcludedReasonRateLimitMinute, *reason)
 		}
 	}
+}
+
+func Test_isExcludedError(t *testing.T) {
+	ctx := context.TODO()
+	p1 := &model.Project{ErrorFilters: []string{""}}
+	p2 := &model.Project{ErrorFilters: []string{".*a+.*"}}
+	p3 := &model.Project{ErrorFilters: []string{"("}}
+	resolver.DB.Create(p1)
+	resolver.DB.Create(p2)
+	resolver.DB.Create(p3)
+	if err := resolver.Redis.FlushDB(context.TODO()); err != nil {
+		t.Error(err)
+	}
+	assert.True(t, resolver.IsErrorIngestedByFilter(ctx, p1.ID, &model2.BackendErrorObjectInput{Event: ""}))
+	assert.False(t, resolver.IsErrorIngestedByFilter(ctx, p1.ID, &model2.BackendErrorObjectInput{Event: "[{}]"}))
+	assert.False(t, resolver.IsErrorIngestedByFilter(ctx, p2.ID, &model2.BackendErrorObjectInput{Event: "foo bar baz"}))
+	assert.True(t, resolver.IsErrorIngestedByFilter(ctx, p3.ID, &model2.BackendErrorObjectInput{Event: "foo bar baz"}))
 }

@@ -18,6 +18,7 @@ type ErrorAlertPayload struct {
 	ErrorSnoozeURL  string
 	UserIdentifier  string
 	VisitedURL      string
+	FirstTimeAlert  bool
 }
 
 type NewUserAlertPayload struct {

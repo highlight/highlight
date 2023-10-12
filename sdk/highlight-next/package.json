@@ -62,8 +62,8 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230115.0",
-		"@opentelemetry/api": "1.4.1",
-		"@opentelemetry/resources": "1.17.0",
+		"@opentelemetry/api": "^1.6.0",
+		"@opentelemetry/resources": "^1.17.1",
 		"@trpc/server": "^9.27.4",
 		"@types/jest": "27.4.1",
 		"chokidar-cli": "^3.0.0",

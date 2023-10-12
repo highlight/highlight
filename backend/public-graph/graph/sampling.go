@@ -38,7 +38,7 @@ func (r *Resolver) IsTraceIngestedBySample(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsTraceIngestedByRateLimit(ctx context.Context, trace *clickhouse.TraceRow) bool {
-	return r.isItemIngestedByRate(ctx, privateModel.ProductTypeTraces, int(trace.ProjectId))
+	return r.isItemIngestedByRate(ctx, trace.Timestamp, privateModel.ProductTypeTraces, int(trace.ProjectId))
 }
 
 func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhouse.TraceRow) bool {
@@ -63,7 +63,7 @@ func (r *Resolver) IsLogIngestedBySample(ctx context.Context, logRow *clickhouse
 }
 
 func (r *Resolver) IsLogIngestedByRateLimit(ctx context.Context, logRow *clickhouse.LogRow) bool {
-	return r.isItemIngestedByRate(ctx, privateModel.ProductTypeLogs, int(logRow.ProjectId))
+	return r.isItemIngestedByRate(ctx, logRow.Timestamp, privateModel.ProductTypeLogs, int(logRow.ProjectId))
 }
 
 func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse.LogRow) bool {
@@ -134,13 +134,19 @@ func (r *Resolver) IsErrorIngestedByRateLimit(ctx context.Context, projectID int
 		return true
 	}
 
-	return r.isItemIngestedByRate(ctx, privateModel.ProductTypeErrors, settings.ProjectID)
+	return r.isItemIngestedByRate(ctx, errorObject.Timestamp, privateModel.ProductTypeErrors, settings.ProjectID)
 }
 
 func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
 	settings, err := r.getSettings(ctx, projectID, errorObject.SessionSecureID)
 	if err != nil {
 		return true
+	}
+
+	if project, err := r.Store.GetProject(ctx, settings.ProjectID); err == nil {
+		if r.isExcludedError(ctx, projectID, project.ErrorFilters, errorObject.Event) {
+			return false
+		}
 	}
 
 	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeErrors, settings.ProjectID, errorObject)
@@ -194,7 +200,7 @@ func (r *Resolver) isSessionExcludedBySample(ctx context.Context, session *model
 }
 
 func (r *Resolver) isSessionExcludedByRateLimit(ctx context.Context, session *model.Session) bool {
-	return !r.isItemIngestedByRate(ctx, privateModel.ProductTypeSessions, session.ProjectID)
+	return !r.isItemIngestedByRate(ctx, session.CreatedAt, privateModel.ProductTypeSessions, session.ProjectID)
 }
 
 func (r *Resolver) IsSessionExcludedByFilter(ctx context.Context, session *model.Session) bool {
@@ -279,7 +285,7 @@ func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateMo
 	return ingested
 }
 
-func (r *Resolver) isItemIngestedByRate(ctx context.Context, product privateModel.ProductType, projectID int) bool {
+func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, product privateModel.ProductType, projectID int) bool {
 	span := util.StartSpan("IsIngestedByRate", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", "rate"), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
 	defer span.Finish()
 
@@ -301,7 +307,7 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, product privateMode
 		}
 		return 1.
 	}()
-	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), max, time.Now().Minute())
+	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), max, when.Minute())
 	span.SetAttribute("ingested", ingested)
 	if ingested {
 		hlog.Incr("sampling.ingested", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:rate", fmt.Sprintf("product:%s", product)}, 1)
@@ -344,13 +350,6 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		case privateModel.ProductTypeSessions:
 			return clickhouse.SessionMatchesQuery(object.(*model.Session), &filters)
 		case privateModel.ProductTypeErrors:
-			var errorFilters []string
-			if project, err := r.Store.GetProject(ctx, projectID); err == nil {
-				errorFilters = append(errorFilters, project.ErrorFilters...)
-			}
-			if r.isExcludedError(ctx, projectID, errorFilters, object.(*modelInputs.BackendErrorObjectInput).Event) {
-				return true
-			}
 			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), &filters)
 		case privateModel.ProductTypeLogs:
 			return clickhouse.LogMatchesQuery(object.(*clickhouse.LogRow), &filters)
@@ -443,6 +442,9 @@ func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorFilt
 	var err error
 	matchedRegexp := false
 	for _, errorFilter := range errorFilters {
+		if errorFilter == "" {
+			continue
+		}
 		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
 		if err != nil {
 			log.WithContext(ctx).

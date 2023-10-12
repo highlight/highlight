@@ -3198,6 +3198,13 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 	if err != nil {
 		return nil, err
 	}
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	if !settings.EnableUnlistedSharing {
+		return nil, AuthorizationError
+	}
 	if err := r.DB.Model(session).Updates(&model.Session{
 		IsPublic: isPublic,
 	}).Error; err != nil {
@@ -3803,6 +3810,14 @@ func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, des
 	return r.Resolver.CreateErrorTag(ctx, title, description)
 }
 
+// UpdateErrorTags is the resolver for the updateErrorTags field.
+func (r *mutationResolver) UpdateErrorTags(ctx context.Context) (bool, error) {
+	if err := r.Resolver.UpdateErrorTags(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // UpsertSlackChannel is the resolver for the upsertSlackChannel field.
 func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int, name string) (*modelInputs.SanitizedSlackChannel, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
@@ -4296,9 +4311,10 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 
 	var results []*model.ErrorGroup
 	if err := r.DB.Model(&model.ErrorGroup{}).
-		Where("id in ?", ids).
-		Where("project_id = ?", projectID).
-		Order("updated_at DESC").
+		Joins("ErrorTag").
+		Where("error_groups.id in ?", ids).
+		Where("error_groups.project_id = ?", projectID).
+		Order("error_groups.updated_at DESC").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
@@ -6393,12 +6409,26 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		ExcludedUsers:                     project.ExcludedUsers,
 		ErrorFilters:                      project.ErrorFilters,
 		ErrorJSONPaths:                    project.ErrorJsonPaths,
-		FilterChromeExtension:             project.FilterChromeExtension,
 		RageClickWindowSeconds:            &project.RageClickWindowSeconds,
 		RageClickRadiusPixels:             &project.RageClickRadiusPixels,
 		RageClickCount:                    &project.RageClickCount,
+		FilterChromeExtension:             project.FilterChromeExtension,
 		FilterSessionsWithoutError:        projectFilterSettings.FilterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: projectFilterSettings.AutoResolveStaleErrorsDayInterval,
+		Sampling: &modelInputs.Sampling{
+			SessionSamplingRate:    projectFilterSettings.SessionSamplingRate,
+			ErrorSamplingRate:      projectFilterSettings.ErrorSamplingRate,
+			LogSamplingRate:        projectFilterSettings.LogSamplingRate,
+			TraceSamplingRate:      projectFilterSettings.TraceSamplingRate,
+			SessionMinuteRateLimit: projectFilterSettings.SessionMinuteRateLimit,
+			ErrorMinuteRateLimit:   projectFilterSettings.ErrorMinuteRateLimit,
+			LogMinuteRateLimit:     projectFilterSettings.LogMinuteRateLimit,
+			TraceMinuteRateLimit:   projectFilterSettings.TraceMinuteRateLimit,
+			SessionExclusionQuery:  projectFilterSettings.SessionExclusionQuery,
+			ErrorExclusionQuery:    projectFilterSettings.ErrorExclusionQuery,
+			LogExclusionQuery:      projectFilterSettings.LogExclusionQuery,
+			TraceExclusionQuery:    projectFilterSettings.TraceExclusionQuery,
+		},
 	}
 
 	return &allProjectSettings, nil

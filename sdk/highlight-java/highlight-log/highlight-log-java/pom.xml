@@ -30,6 +30,22 @@
 
 	<properties>
 		<maven.install.skip>false</maven.install.skip>
+        <maven.deploy.skip>false</maven.deploy.skip>
 		<skipStaging>false</skipStaging>
 	</properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.highlight</groupId>
+            <artifactId>highlight-sdk</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.highlight</groupId>
+            <artifactId>highlight-log-api</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 </project>

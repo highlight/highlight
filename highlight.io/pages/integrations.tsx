@@ -11,7 +11,7 @@ import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import styles from '../components/Home/Home.module.scss'
 import { INTEGRATIONS } from '../components/Integrations/integration'
 import IntegrationCard from '../components/Integrations/IntegrationCard'
-import MissingCard from '../components/Integrations/MissingCard'
+import WideCard from '../components/Integrations/WideCard'
 
 const IntegrationsPage = () => {
 	const [copy, setCopy] = useState(false)
@@ -79,10 +79,14 @@ const IntegrationsPage = () => {
 							</div>
 						</div>
 					))}
-					<MissingCard
-						link="/docs"
-						desc="Reach out if you want support for another integration!"
-					/>
+					<div className="mt-16">
+						<WideCard
+							title="Are we missing anything?"
+							desc="Reach out if you want support for another integration!"
+							primaryLink="https://discord.gg/yxaXEAqgwN"
+							primaryLinkText="Get in Touch"
+						/>
+					</div>
 				</div>
 				<Section>
 					<CompaniesReel />
