@@ -52,7 +52,10 @@ const ApplicationRouter: React.FC = () => {
 				<>
 					{isHighlightAdmin && (
 						<Route path="traces" element={<TracesPage />}>
-							<Route path=":trace_id" element={<TracePanel />} />
+							<Route
+								path=":trace_id/:span_id?"
+								element={<TracePanel />}
+							/>
 						</Route>
 					)}
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />

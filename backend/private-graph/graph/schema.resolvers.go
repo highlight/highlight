@@ -7596,13 +7596,32 @@ func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]
 }
 
 // Trace is the resolver for the trace field.
-func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
+func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string) (*modelInputs.TracePayload, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTrace(ctx, project.ID, traceID)
+	trace, err := r.ClickhouseClient.ReadTrace(ctx, project.ID, traceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var errors = []*modelInputs.TraceError{}
+	err = r.DB.Model(&model.ErrorObject{}).
+		Joins("JOIN error_groups ON error_objects.error_group_id = error_groups.id").
+		Where("error_objects.trace_id = ?", traceID).
+		Order("error_objects.timestamp DESC").
+		Select("error_objects.*, error_groups.secure_id as error_group_secure_id").
+		Find(&errors).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.TracePayload{
+		Trace:  trace,
+		Errors: errors,
+	}, nil
 }
 
 // Traces is the resolver for the traces field.

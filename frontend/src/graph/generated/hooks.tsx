@@ -13949,21 +13949,34 @@ export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
 export const GetTraceDocument = gql`
 	query GetTrace($project_id: ID!, $trace_id: String!) {
 		trace(project_id: $project_id, trace_id: $trace_id) {
-			timestamp
-			traceID
-			spanID
-			parentSpanID
-			projectID
-			secureSessionID
-			traceState
-			spanName
-			spanKind
-			duration
-			serviceName
-			serviceVersion
-			traceAttributes
-			statusCode
-			statusMessage
+			trace {
+				timestamp
+				traceID
+				spanID
+				parentSpanID
+				projectID
+				secureSessionID
+				traceState
+				spanName
+				spanKind
+				duration
+				serviceName
+				serviceVersion
+				traceAttributes
+				statusCode
+				statusMessage
+			}
+			errors {
+				created_at
+				trace_id
+				span_id
+				log_cursor
+				event
+				type
+				source
+				timestamp
+				error_group_secure_id
+			}
 		}
 	}
 `

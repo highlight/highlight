@@ -84,13 +84,15 @@ export const Tabs = function <T extends string>({
 									selected: t === tab,
 								})}
 							>
-								<Text
-									color={t === tab ? 'p9' : 'n11'}
-									cssClass={styles.tabText}
-								>
-									{t}
+								<Box display="flex" gap="6">
+									<Text
+										color={t === tab ? 'p9' : 'n11'}
+										cssClass={styles.tabText}
+									>
+										{t}
+									</Text>
 									{pages[t].badge}
-								</Text>
+								</Box>
 							</Button>
 							<Box
 								cssClass={styles.controlBarBottomVariants({

@@ -1338,6 +1338,18 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	TraceError struct {
+		CreatedAt          func(childComplexity int) int
+		ErrorGroupSecureID func(childComplexity int) int
+		Event              func(childComplexity int) int
+		LogCursor          func(childComplexity int) int
+		Source             func(childComplexity int) int
+		SpanID             func(childComplexity int) int
+		Timestamp          func(childComplexity int) int
+		TraceID            func(childComplexity int) int
+		Type               func(childComplexity int) int
+	}
+
 	TraceEvent struct {
 		Attributes func(childComplexity int) int
 		Name       func(childComplexity int) int
@@ -1349,6 +1361,11 @@ type ComplexityRoot struct {
 		SpanID     func(childComplexity int) int
 		TraceID    func(childComplexity int) int
 		TraceState func(childComplexity int) int
+	}
+
+	TracePayload struct {
+		Errors func(childComplexity int) int
+		Trace  func(childComplexity int) int
 	}
 
 	TracesMetricBucket struct {
@@ -1742,7 +1759,7 @@ type QueryResolver interface {
 	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
 	MatchErrorTag(ctx context.Context, query string) ([]*model.MatchedErrorTag, error)
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
-	Trace(ctx context.Context, projectID int, traceID string) ([]*model.Trace, error)
+	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType) (*model.TracesMetrics, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
@@ -9356,6 +9373,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TraceEdge.Node(childComplexity), true
 
+	case "TraceError.created_at":
+		if e.complexity.TraceError.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.TraceError.CreatedAt(childComplexity), true
+
+	case "TraceError.error_group_secure_id":
+		if e.complexity.TraceError.ErrorGroupSecureID == nil {
+			break
+		}
+
+		return e.complexity.TraceError.ErrorGroupSecureID(childComplexity), true
+
+	case "TraceError.event":
+		if e.complexity.TraceError.Event == nil {
+			break
+		}
+
+		return e.complexity.TraceError.Event(childComplexity), true
+
+	case "TraceError.log_cursor":
+		if e.complexity.TraceError.LogCursor == nil {
+			break
+		}
+
+		return e.complexity.TraceError.LogCursor(childComplexity), true
+
+	case "TraceError.source":
+		if e.complexity.TraceError.Source == nil {
+			break
+		}
+
+		return e.complexity.TraceError.Source(childComplexity), true
+
+	case "TraceError.span_id":
+		if e.complexity.TraceError.SpanID == nil {
+			break
+		}
+
+		return e.complexity.TraceError.SpanID(childComplexity), true
+
+	case "TraceError.timestamp":
+		if e.complexity.TraceError.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.TraceError.Timestamp(childComplexity), true
+
+	case "TraceError.trace_id":
+		if e.complexity.TraceError.TraceID == nil {
+			break
+		}
+
+		return e.complexity.TraceError.TraceID(childComplexity), true
+
+	case "TraceError.type":
+		if e.complexity.TraceError.Type == nil {
+			break
+		}
+
+		return e.complexity.TraceError.Type(childComplexity), true
+
 	case "TraceEvent.attributes":
 		if e.complexity.TraceEvent.Attributes == nil {
 			break
@@ -9404,6 +9484,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TraceLink.TraceState(childComplexity), true
+
+	case "TracePayload.errors":
+		if e.complexity.TracePayload.Errors == nil {
+			break
+		}
+
+		return e.complexity.TracePayload.Errors(childComplexity), true
+
+	case "TracePayload.trace":
+		if e.complexity.TracePayload.Trace == nil {
+			break
+		}
+
+		return e.complexity.TracePayload.Trace(childComplexity), true
 
 	case "TracesMetricBucket.bucket_id":
 		if e.complexity.TracesMetricBucket.BucketID == nil {
@@ -10694,6 +10788,23 @@ type Trace {
 	links: [TraceLink]
 }
 
+type TracePayload {
+	trace: [Trace!]!
+	errors: [TraceError!]!
+}
+
+type TraceError {
+	created_at: Timestamp!
+	trace_id: String
+	span_id: String
+	log_cursor: String
+	event: String!
+	type: String!
+	source: String!
+	error_group_secure_id: String!
+	timestamp: Timestamp!
+}
+
 type TraceEvent {
 	timestamp: Timestamp!
 	name: String!
@@ -11953,7 +12064,7 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
-	trace(project_id: ID!, trace_id: String!): [Trace!]
+	trace(project_id: ID!, trace_id: String!): TracePayload
 	traces(
 		project_id: ID!
 		params: QueryInput!
@@ -53648,9 +53759,9 @@ func (ec *executionContext) _Query_trace(ctx context.Context, field graphql.Coll
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Trace)
+	res := resTmp.(*model.TracePayload)
 	fc.Result = res
-	return ec.marshalOTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceᚄ(ctx, field.Selections, res)
+	return ec.marshalOTracePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracePayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_trace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -53661,42 +53772,12 @@ func (ec *executionContext) fieldContext_Query_trace(ctx context.Context, field 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "timestamp":
-				return ec.fieldContext_Trace_timestamp(ctx, field)
-			case "traceID":
-				return ec.fieldContext_Trace_traceID(ctx, field)
-			case "spanID":
-				return ec.fieldContext_Trace_spanID(ctx, field)
-			case "parentSpanID":
-				return ec.fieldContext_Trace_parentSpanID(ctx, field)
-			case "projectID":
-				return ec.fieldContext_Trace_projectID(ctx, field)
-			case "secureSessionID":
-				return ec.fieldContext_Trace_secureSessionID(ctx, field)
-			case "traceState":
-				return ec.fieldContext_Trace_traceState(ctx, field)
-			case "spanName":
-				return ec.fieldContext_Trace_spanName(ctx, field)
-			case "spanKind":
-				return ec.fieldContext_Trace_spanKind(ctx, field)
-			case "duration":
-				return ec.fieldContext_Trace_duration(ctx, field)
-			case "serviceName":
-				return ec.fieldContext_Trace_serviceName(ctx, field)
-			case "serviceVersion":
-				return ec.fieldContext_Trace_serviceVersion(ctx, field)
-			case "traceAttributes":
-				return ec.fieldContext_Trace_traceAttributes(ctx, field)
-			case "statusCode":
-				return ec.fieldContext_Trace_statusCode(ctx, field)
-			case "statusMessage":
-				return ec.fieldContext_Trace_statusMessage(ctx, field)
-			case "events":
-				return ec.fieldContext_Trace_events(ctx, field)
-			case "links":
-				return ec.fieldContext_Trace_links(ctx, field)
+			case "trace":
+				return ec.fieldContext_TracePayload_trace(ctx, field)
+			case "errors":
+				return ec.fieldContext_TracePayload_errors(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Trace", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type TracePayload", field.Name)
 		},
 	}
 	defer func() {
@@ -65178,6 +65259,393 @@ func (ec *executionContext) fieldContext_TraceEdge_node(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _TraceError_created_at(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_trace_id(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_trace_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TraceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_trace_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_span_id(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_span_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpanID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_span_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_log_cursor(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_log_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_log_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_event(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_event(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Event, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_event(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_type(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_source(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_source(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_source(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_error_group_secure_id(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_error_group_secure_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorGroupSecureID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_error_group_secure_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TraceError_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.TraceError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TraceError_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TraceError_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TraceError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TraceEvent_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.TraceEvent) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TraceEvent_timestamp(ctx, field)
 	if err != nil {
@@ -65481,6 +65949,150 @@ func (ec *executionContext) fieldContext_TraceLink_attributes(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TracePayload_trace(ctx context.Context, field graphql.CollectedField, obj *model.TracePayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracePayload_trace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Trace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Trace)
+	fc.Result = res
+	return ec.marshalNTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TracePayload_trace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TracePayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "timestamp":
+				return ec.fieldContext_Trace_timestamp(ctx, field)
+			case "traceID":
+				return ec.fieldContext_Trace_traceID(ctx, field)
+			case "spanID":
+				return ec.fieldContext_Trace_spanID(ctx, field)
+			case "parentSpanID":
+				return ec.fieldContext_Trace_parentSpanID(ctx, field)
+			case "projectID":
+				return ec.fieldContext_Trace_projectID(ctx, field)
+			case "secureSessionID":
+				return ec.fieldContext_Trace_secureSessionID(ctx, field)
+			case "traceState":
+				return ec.fieldContext_Trace_traceState(ctx, field)
+			case "spanName":
+				return ec.fieldContext_Trace_spanName(ctx, field)
+			case "spanKind":
+				return ec.fieldContext_Trace_spanKind(ctx, field)
+			case "duration":
+				return ec.fieldContext_Trace_duration(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_Trace_serviceName(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_Trace_serviceVersion(ctx, field)
+			case "traceAttributes":
+				return ec.fieldContext_Trace_traceAttributes(ctx, field)
+			case "statusCode":
+				return ec.fieldContext_Trace_statusCode(ctx, field)
+			case "statusMessage":
+				return ec.fieldContext_Trace_statusMessage(ctx, field)
+			case "events":
+				return ec.fieldContext_Trace_events(ctx, field)
+			case "links":
+				return ec.fieldContext_Trace_links(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Trace", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TracePayload_errors(ctx context.Context, field graphql.CollectedField, obj *model.TracePayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracePayload_errors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Errors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.TraceError)
+	fc.Result = res
+	return ec.marshalNTraceError2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceErrorᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TracePayload_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TracePayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "created_at":
+				return ec.fieldContext_TraceError_created_at(ctx, field)
+			case "trace_id":
+				return ec.fieldContext_TraceError_trace_id(ctx, field)
+			case "span_id":
+				return ec.fieldContext_TraceError_span_id(ctx, field)
+			case "log_cursor":
+				return ec.fieldContext_TraceError_log_cursor(ctx, field)
+			case "event":
+				return ec.fieldContext_TraceError_event(ctx, field)
+			case "type":
+				return ec.fieldContext_TraceError_type(ctx, field)
+			case "source":
+				return ec.fieldContext_TraceError_source(ctx, field)
+			case "error_group_secure_id":
+				return ec.fieldContext_TraceError_error_group_secure_id(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_TraceError_timestamp(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TraceError", field.Name)
 		},
 	}
 	return fc, nil
@@ -82792,6 +83404,81 @@ func (ec *executionContext) _TraceEdge(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var traceErrorImplementors = []string{"TraceError"}
+
+func (ec *executionContext) _TraceError(ctx context.Context, sel ast.SelectionSet, obj *model.TraceError) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, traceErrorImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TraceError")
+		case "created_at":
+
+			out.Values[i] = ec._TraceError_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "trace_id":
+
+			out.Values[i] = ec._TraceError_trace_id(ctx, field, obj)
+
+		case "span_id":
+
+			out.Values[i] = ec._TraceError_span_id(ctx, field, obj)
+
+		case "log_cursor":
+
+			out.Values[i] = ec._TraceError_log_cursor(ctx, field, obj)
+
+		case "event":
+
+			out.Values[i] = ec._TraceError_event(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+
+			out.Values[i] = ec._TraceError_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "source":
+
+			out.Values[i] = ec._TraceError_source(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "error_group_secure_id":
+
+			out.Values[i] = ec._TraceError_error_group_secure_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "timestamp":
+
+			out.Values[i] = ec._TraceError_timestamp(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var traceEventImplementors = []string{"TraceEvent"}
 
 func (ec *executionContext) _TraceEvent(ctx context.Context, sel ast.SelectionSet, obj *model.TraceEvent) graphql.Marshaler {
@@ -82868,6 +83555,41 @@ func (ec *executionContext) _TraceLink(ctx context.Context, sel ast.SelectionSet
 		case "attributes":
 
 			out.Values[i] = ec._TraceLink_attributes(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var tracePayloadImplementors = []string{"TracePayload"}
+
+func (ec *executionContext) _TracePayload(ctx context.Context, sel ast.SelectionSet, obj *model.TracePayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tracePayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TracePayload")
+		case "trace":
+
+			out.Values[i] = ec._TracePayload_trace(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "errors":
+
+			out.Values[i] = ec._TracePayload_errors(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -88060,6 +88782,50 @@ func (ec *executionContext) marshalNTopUsersPayload2ᚕᚖgithubᚗcomᚋhighlig
 	return ret
 }
 
+func (ec *executionContext) marshalNTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Trace) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTrace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrace(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNTrace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrace(ctx context.Context, sel ast.SelectionSet, v *model.Trace) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -88136,6 +88902,60 @@ func (ec *executionContext) marshalNTraceEdge2ᚖgithubᚗcomᚋhighlightᚑrun�
 		return graphql.Null
 	}
 	return ec._TraceEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTraceError2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceErrorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TraceError) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTraceError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceError(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTraceError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceError(ctx context.Context, sel ast.SelectionSet, v *model.TraceError) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TraceError(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTracesMetricBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TracesMetricBucket) graphql.Marshaler {
@@ -90673,53 +91493,6 @@ func (ec *executionContext) marshalOTopUsersPayload2ᚖgithubᚗcomᚋhighlight�
 	return ec._TopUsersPayload(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Trace) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTrace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrace(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalOTraceEvent2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTraceEvent(ctx context.Context, sel ast.SelectionSet, v []*model.TraceEvent) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -90814,6 +91587,13 @@ func (ec *executionContext) marshalOTraceLink2ᚖgithubᚗcomᚋhighlightᚑrun�
 		return graphql.Null
 	}
 	return ec._TraceLink(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOTracePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracePayload(ctx context.Context, sel ast.SelectionSet, v *model.TracePayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TracePayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOTrackProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTrackProperty(ctx context.Context, sel ast.SelectionSet, v *model1.TrackProperty) graphql.Marshaler {

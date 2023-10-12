@@ -31,7 +31,9 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	const location = useLocation()
 
 	const viewTrace = (trace: Trace) => {
-		navigate(`/${projectId}/traces/${trace.traceID}${location.search}`)
+		navigate(
+			`/${projectId}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
+		)
 	}
 
 	return (

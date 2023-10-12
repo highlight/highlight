@@ -3,8 +3,9 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"

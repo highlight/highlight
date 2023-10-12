@@ -717,6 +717,23 @@ type Trace {
 	links: [TraceLink]
 }
 
+type TracePayload {
+	trace: [Trace!]!
+	errors: [TraceError!]!
+}
+
+type TraceError {
+	created_at: Timestamp!
+	trace_id: String
+	span_id: String
+	log_cursor: String
+	event: String!
+	type: String!
+	source: String!
+	error_group_secure_id: String!
+	timestamp: Timestamp!
+}
+
 type TraceEvent {
 	timestamp: Timestamp!
 	name: String!
@@ -1976,7 +1993,7 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
-	trace(project_id: ID!, trace_id: String!): [Trace!]
+	trace(project_id: ID!, trace_id: String!): TracePayload
 	traces(
 		project_id: ID!
 		params: QueryInput!
