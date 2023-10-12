@@ -211,6 +211,30 @@ function obfuscateText(text) {
 function isElementSrcBlocked(tagName) {
   return tagName === "img" || tagName === "video" || tagName === "audio" || tagName === "source";
 }
+var EMAIL_REGEX = new RegExp("[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*");
+var LONG_NUMBER_REGEX = new RegExp("d{9,16}");
+var SSN_REGEX = new RegExp("d{3}-?d{2}-?d{4}");
+var PHONE_NUMBER_REGEX = new RegExp("[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}");
+var CREDIT_CARD_REGEX = new RegExp("d{4}-?d{4}-?d{4}-?d{4}");
+var ADDRESS_REGEX = new RegExp("d{1,3}.?d{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}");
+var IP_REGEX = new RegExp("(?:[0-9]{1,3}.){3}[0-9]{1,3}");
+var DEFAULT_OBFUSCATE_REGEXES = [
+  EMAIL_REGEX,
+  LONG_NUMBER_REGEX,
+  SSN_REGEX,
+  PHONE_NUMBER_REGEX,
+  CREDIT_CARD_REGEX,
+  ADDRESS_REGEX,
+  IP_REGEX
+];
+function shouldObfuscateTextByDefault(text) {
+  var emailMatch = EMAIL_REGEX.test(text);
+  var rv = DEFAULT_OBFUSCATE_REGEXES.some(function(regex) {
+    return regex.test(text);
+  });
+  console.log(text, emailMatch, rv);
+  return rv;
+}
 var _id = 1;
 var tagNameRegex = new RegExp("[^a-z0-9-_:]");
 var IGNORED_NODE = -2;
@@ -595,7 +619,8 @@ function serializeTextNode(n2, options) {
     textContent = maskTextFn ? maskTextFn(textContent) : textContent.replace(/[\S]/g, "*");
   }
   var enableStrictPrivacy = privacySetting === "strict";
-  if (enableStrictPrivacy && !textContentHandled && parentTagName) {
+  var obfuscateDefaultPrivacy = privacySetting === "default" && textContent && shouldObfuscateTextByDefault(textContent);
+  if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !textContentHandled && parentTagName) {
     var IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
       "TITLE",
@@ -2534,8 +2559,9 @@ var MutationBuffer = class {
       const payload = {
         texts: this.texts.map((text) => {
           let value = text.value;
-          const enableStrictPrivacy = this.privacySetting = "strict";
-          if (enableStrictPrivacy && value) {
+          const enableStrictPrivacy = this.privacySetting === "strict";
+          const obfuscateDefaultPrivacy = this.privacySetting === "default" && value && shouldObfuscateTextByDefault(value);
+          if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && value) {
             value = obfuscateText(value);
           }
           return {

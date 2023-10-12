@@ -586,7 +586,6 @@ export class Highlight {
 				await this._setupCrossOriginIframe()
 			} else {
 				// TODO(spenny): should we pass in privacy_setting as a new param or just check value for enable_strict_privacy
-				console.log('INITIALIZE SESSION', this.privacySetting)
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
 					enable_strict_privacy: this.privacySetting === 'strict',
