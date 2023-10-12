@@ -22,7 +22,6 @@ interface Props {
 }
 
 const CustomLegend = ({
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	dataTypesToShow,
 	setDataTypesToShow,
 	props,
@@ -135,12 +134,6 @@ export const LatencyChart = ({ metricsBuckets }: Props) => {
 						dot={false}
 					/>
 				))}
-				{/* {referenceAreaProps && (
-            <ReferenceArea
-                {...referenceAreaProps}
-                isFront
-            />
-        )} */}
 			</LineChart>
 		</ResponsiveContainer>
 	)
