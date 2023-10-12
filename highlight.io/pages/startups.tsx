@@ -43,7 +43,7 @@ const StartupsPage = () => {
 									}
 								/>
 								<PrimaryButton
-									href={`https://vfyijuriede.typeform.com/to/Sq220glZ#email=${
+									href={`https://8fonvna4lyz.typeform.com/to/WCZaRU3y#email=${
 										email || 'xxxxx'
 									}`}
 									className="bg-white hover:bg-opacity-70 rounded-lg"
