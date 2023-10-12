@@ -59,7 +59,7 @@ query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQu
 }
 """
 
-if os.environ.get('ENVIRONMENT') in {'test', 'dev'}:
+if os.environ.get("ENVIRONMENT") in {"test", "dev"}:
     OAUTH_URL = "https://localhost:8082/oauth"
     API_URL = "https://localhost:8082/private"
 else:
@@ -80,7 +80,7 @@ def perform_oauth_flow():
             "client_secret": SECRET,
         },
     )
-    assert r.status_code == 200
+    assert r.status_code == 200, f"{r.status_code} - {r.text}"
     params = r.json()
 
     return params["access_token"]

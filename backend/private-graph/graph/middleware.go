@@ -222,7 +222,7 @@ func getSourcemapRequestToken(r *http.Request) string {
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		span, _ := util.StartSpanFromContext(ctx, "middleware.private")
+		span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
 		var err error
 		if token := r.Header.Get("token"); token != "" {
