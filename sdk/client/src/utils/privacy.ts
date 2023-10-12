@@ -1,4 +1,5 @@
 import { MaskInputOptions } from '@highlight-run/rrweb-snapshot'
+import { PrivacySettingOption } from '../types/types'
 
 const DEFAULT_MASK_INPUT_OPTIONS: MaskInputOptions = {
 	password: true,
@@ -49,7 +50,7 @@ const DEFAULT_MASK_INPUT_OPTIONS: MaskInputOptions = {
 
 // returns (1) whether all inputs should be masked and (2) which inputs should be masked
 export const determineMaskInputOptions = (
-	privacyPolicy: 'strict' | 'default' | 'none',
+	privacyPolicy: PrivacySettingOption,
 ): [maskAllOptions: boolean, maskOptions?: MaskInputOptions] => {
 	switch (privacyPolicy) {
 		case 'strict':

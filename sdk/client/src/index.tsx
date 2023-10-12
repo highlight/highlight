@@ -24,6 +24,7 @@ import {
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
+	PrivacySettingOption,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -101,7 +102,7 @@ export type HighlightClassOptions = {
 	reportConsoleErrors?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
-	privacySetting?: 'strict' | 'default' | 'none'
+	privacySetting?: PrivacySettingOption
 	enableCanvasRecording?: boolean
 	enablePerformanceRecording?: boolean
 	samplingStrategy?: SamplingStrategy
@@ -176,7 +177,7 @@ export class Highlight {
 	state!: 'NotRecording' | 'Recording'
 	logger!: Logger
 	enableSegmentIntegration!: boolean
-	privacySetting!: 'strict' | 'default' | 'none'
+	privacySetting!: PrivacySettingOption
 	enableCanvasRecording!: boolean
 	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy

@@ -16,6 +16,8 @@ export declare interface Metric {
 	tags?: { name: string; value: string }[]
 }
 
+export type PrivacySettingOption = 'strict' | 'default' | 'none'
+
 export declare type SamplingStrategy = {
 	/**
 	 * 'all' will record every single canvas call.
@@ -152,7 +154,8 @@ export declare type HighlightOptions = {
 	 * // Redacted text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
 	 * @see {@link https://docs.highlight.run/docs/privacy} for more information.
 	 */
-	privacySetting?: 'strict' | 'default' | 'none'
+	privacySetting?: PrivacySettingOption
+
 	/**
 	 * Specifies whether to record canvas elements or not.
 	 * @default false
