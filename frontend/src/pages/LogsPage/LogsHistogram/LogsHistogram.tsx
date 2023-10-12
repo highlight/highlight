@@ -36,6 +36,8 @@ type LogsHistogramProps = Omit<
 	threshold?: number
 	belowThreshold?: boolean
 	frequencySeconds?: number
+	barColor?: string
+	noPadding?: boolean
 } & BoxProps
 
 type LoadingState = 'skeleton' | 'spinner'
@@ -49,6 +51,8 @@ interface LogsHistogramChartProps {
 	maxBucketCount: number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
+	barColor?: string
+	noPadding?: boolean
 }
 
 const LogsHistogram = ({
@@ -63,6 +67,8 @@ const LogsHistogram = ({
 	histogramBuckets,
 	bucketCount,
 	loading,
+	barColor,
+	noPadding,
 	...props
 }: LogsHistogramProps) => {
 	const maxBucketCount = useMemo(() => {
@@ -262,6 +268,8 @@ const LogsHistogram = ({
 							onLevelChange={onLevelChange}
 							totalCount={buckets.length}
 							maxBucketCount={maxBucketCount}
+							barColor={barColor}
+							noPadding={noPadding}
 						/>
 					</>
 				) : (
@@ -291,6 +299,8 @@ const LogsHistogramChart = ({
 	loadingState,
 	totalCount,
 	maxBucketCount,
+	barColor,
+	noPadding,
 }: LogsHistogramChartProps) => {
 	const [dragStart, setDragStart] = useState<number | undefined>()
 	const [dragEnd, setDragEnd] = useState<number | undefined>()
@@ -314,11 +324,13 @@ const LogsHistogramChart = ({
 					isDragging={
 						dragLeft !== undefined && dragRight !== undefined
 					}
+					barColor={barColor}
 				/>
 			)
 		})
 	}, [
 		buckets,
+		barColor,
 		dragLeft,
 		dragRight,
 		maxBucketCount,
@@ -336,8 +348,8 @@ const LogsHistogramChart = ({
 			height="full"
 			width="full"
 			position="relative"
-			px="12"
-			py="4"
+			px={noPadding ? '0' : '12'}
+			py={noPadding ? '0' : '4'}
 			ref={containerRef}
 			onMouseDown={(e: any) => {
 				if (!e || !containerRef.current || loadingState) {
@@ -405,6 +417,7 @@ const LogBucketBar = ({
 	onLevelChange,
 	isDragging,
 	loading,
+	barColor,
 }: {
 	bucket?: HistogramBucket
 	maxBucketCount: number
@@ -413,6 +426,7 @@ const LogBucketBar = ({
 	onLevelChange?: (level: Level) => void
 	isDragging?: boolean
 	loading?: boolean
+	barColor?: string
 }) => {
 	const [open, setOpen] = useState(false)
 	useHotkeys('esc', () => {
@@ -443,7 +457,8 @@ const LogBucketBar = ({
 							style={{
 								backgroundColor: loading
 									? '#F3F3F4'
-									: COLOR_MAPPING[bar.level as Level],
+									: barColor ??
+									  COLOR_MAPPING[bar.level as Level],
 								height: `${Math.max(
 									(bar.count / maxBucketCount) * 100,
 									2,
@@ -456,7 +471,7 @@ const LogBucketBar = ({
 				})}
 			</Popover.BoxTrigger>
 		)
-	}, [bucket?.counts, width, isDragging, loading, maxBucketCount])
+	}, [loading, isDragging, width, bucket?.counts, barColor, maxBucketCount])
 
 	const content = useMemo(() => {
 		if (loading) {
@@ -511,6 +526,7 @@ const LogBucketBar = ({
 									borderRadius="round"
 									style={{
 										backgroundColor:
+											barColor ??
 											COLOR_MAPPING[bar.level as Level],
 										height: 8,
 										width: 8,
@@ -541,6 +557,7 @@ const LogBucketBar = ({
 		bucket?.counts,
 		bucket?.endDate,
 		bucket?.startDate,
+		barColor,
 		loading,
 		onDatesChange,
 		onLevelChange,
