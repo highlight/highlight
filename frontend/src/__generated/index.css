@@ -7269,3 +7269,28 @@ body {
   z-index: 8;
   position: absolute;
 }
+._1yp8bvx0 {
+  color: var(--color-gray-500) !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+._1yp8bvx1 {
+  text-decoration: line-through;
+}
+._1yp8bvx2 {
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 6px;
+  margin-bottom: auto;
+  margin-top: auto;
+  width: 6px;
+}
+._1yp8bvx3 {
+  filter: grayscale(0.5);
+}
+._14l2j9r1 {
+  font-size: 12px;
+}
+._14l2j9r2 {
+  position: fixed;
+}

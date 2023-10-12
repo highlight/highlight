@@ -57,7 +57,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 						overflowY="auto"
 						style={{
 							// Subtract height of search filters + table header + charts
-							height: `calc(100% - 139px)`,
+							height: `calc(100% - 163px)`,
 						}}
 					>
 						{traces.edges
