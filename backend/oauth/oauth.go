@@ -119,7 +119,7 @@ func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 	manager.MapAccessGenerate(generates.NewAccessGenerate())
 
 	srv := server.NewDefaultServer(manager)
-	srv.SetAllowGetAccessRequest(true)
+	srv.SetAllowGetAccessRequest(false)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.WithContext(ctx).Errorf("Internal Error: %s", err.Error())
@@ -332,6 +332,7 @@ func (s *Server) setUserContext(ctx context.Context, tokenInfo oauth2.TokenInfo)
 	if len(parts) != 2 {
 		return ctx, tokenInfo, errors.ErrInvalidClient
 	}
+	ctx = context.WithValue(ctx, model.ContextKeys.OAuthClientID, tokenInfo.GetClientID())
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
 	return ctx, tokenInfo, nil

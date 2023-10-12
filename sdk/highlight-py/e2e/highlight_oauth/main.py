@@ -71,7 +71,7 @@ SECRET = os.environ["HIGHLIGHT_OAUTH_CLIENT_SECRET"]
 
 
 def perform_oauth_flow():
-    r = requests.get(
+    r = requests.post(
         f"{OAUTH_URL}/token",
         verify=False,
         params={

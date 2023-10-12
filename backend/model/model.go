@@ -121,6 +121,7 @@ var ContextKeys = struct {
 	UserAgent      contextString
 	AcceptLanguage contextString
 	UID            contextString
+	OAuthClientID  contextString
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
@@ -192,6 +193,7 @@ var Models = []interface{}{
 	&DeleteSessionsTask{},
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
+	&OAuthOperation{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
 	&IntegrationWorkspaceMapping{},
@@ -1285,6 +1287,15 @@ type OAuthClientStore struct {
 
 	AdminID int
 	Admin   *Admin
+
+	Operations []*OAuthOperation `gorm:"foreignKey:ClientID"`
+}
+
+type OAuthOperation struct {
+	Model
+	ClientID                   string
+	AuthorizedGraphQLOperation string
+	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
 var ErrorType = struct {

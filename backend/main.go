@@ -405,7 +405,7 @@ func main() {
 		}
 
 		r.Route("/oauth", func(r chi.Router) {
-			r.Use(private.PrivateMiddleware)
+			r.Use(private.GetPrivateMiddleware(false))
 			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
 			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
 			r.HandleFunc("/validate", oauthSrv.HandleValidate)
@@ -418,7 +418,7 @@ func main() {
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 		r.Route(privateEndpoint, func(r chi.Router) {
-			r.Use(private.PrivateMiddleware)
+			r.Use(private.GetPrivateMiddleware(true))
 			r.Use(highlightChi.Middleware)
 			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
 				fsClient.SetupHTTPSListener(r)
@@ -454,9 +454,9 @@ func main() {
 			privateServer.SetQueryCache(lru.New(1000))
 			privateServer.Use(extension.Introspection{})
 			privateServer.Use(extension.AutomaticPersistedQuery{
-				Cache: lru.New(100),
+				Cache: lru.New(10000),
 			})
-
+			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
 			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))

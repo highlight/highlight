@@ -219,50 +219,55 @@ func getSourcemapRequestToken(r *http.Request) string {
 	return graphqlQuery.Variables.APIKey
 }
 
-func PrivateMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
-		defer span.Finish()
-		var err error
-		if token := r.Header.Get("token"); token != "" {
-			span.SetAttribute("type", "tokenHeader")
-			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
-			span.SetAttribute("type", "apiKeyHeader")
-			workspaceID, err := workspaceTokenHandler(ctx, apiKey)
-			if err != nil || workspaceID == nil {
+func GetPrivateMiddleware(authRequired bool) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
+			defer span.Finish()
+			var err error
+			if token := r.Header.Get("token"); token != "" {
+				span.SetAttribute("type", "tokenHeader")
+				ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
+				span.SetAttribute("type", "apiKeyHeader")
+				workspaceID, err := workspaceTokenHandler(ctx, apiKey)
+				if err != nil || workspaceID == nil {
+					http.Error(w, err.Error(), http.StatusUnauthorized)
+					return
+				}
+			} else if sourcemapRequestToken := getSourcemapRequestToken(r); sourcemapRequestToken != "" {
+				span.SetAttribute("type", "sourcemapBody")
+				workspaceID, err := workspaceTokenHandler(ctx, sourcemapRequestToken)
+				if err != nil || workspaceID == nil {
+					http.Error(w, err.Error(), http.StatusUnauthorized)
+					return
+				}
+			} else if OAuthServer.HasCookie(r) || OAuthServer.HasBearer(r) {
+				span.SetAttribute("type", "oauth")
+				var cookie *http.Cookie
+				var tokenInfo oauth2.TokenInfo
+				ctx, tokenInfo, cookie, err = OAuthServer.Validate(ctx, r)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusUnauthorized)
+					return
+				}
+				http.SetCookie(w, cookie)
+				span.SetAttribute("client_id", tokenInfo.GetClientID())
+				span.SetAttribute("user_id", tokenInfo.GetUserID())
+			} else if authRequired {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
-		} else if sourcemapRequestToken := getSourcemapRequestToken(r); sourcemapRequestToken != "" {
-			span.SetAttribute("type", "sourcemapBody")
-			workspaceID, err := workspaceTokenHandler(ctx, sourcemapRequestToken)
-			if err != nil || workspaceID == nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
-				return
-			}
-		} else if OAuthServer.HasCookie(r) || OAuthServer.HasBearer(r) {
-			span.SetAttribute("type", "oauth")
-			var cookie *http.Cookie
-			var tokenInfo oauth2.TokenInfo
-			ctx, tokenInfo, cookie, err = OAuthServer.Validate(ctx, r)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
-				return
-			}
-			http.SetCookie(w, cookie)
-			span.SetAttribute("client_id", tokenInfo.GetClientID())
-			span.SetAttribute("user_id", tokenInfo.GetUserID())
-		}
-		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
-		r = r.WithContext(ctx)
-		next.ServeHTTP(w, r)
-	})
+			ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func WebsocketInitializationFunction() transport.WebsocketInitFunc {
