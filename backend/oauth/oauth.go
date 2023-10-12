@@ -239,7 +239,7 @@ func (s *Server) HasBearer(r *http.Request) bool {
 // necessary authorization context variables. the function returns the auth token cookie,
 // refreshed if applicable.
 func (s *Server) Validate(ctx context.Context, r *http.Request) (context.Context, oauth2.TokenInfo, *http.Cookie, error) {
-	span, _ := util.StartSpanFromContext(ctx, "oauth.validate")
+	span, ctx := util.StartSpanFromContext(ctx, "oauth.validate")
 	defer span.Finish()
 	var token oauth2.TokenInfo
 	if cookie, err := r.Cookie(CookieName); err == nil {
