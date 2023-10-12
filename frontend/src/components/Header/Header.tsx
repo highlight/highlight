@@ -3,7 +3,7 @@ import { Button } from '@components/Button'
 import CommandBar from '@components/CommandBar/CommandBar'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
-import { linkStyle } from '@components/Header/styles.css'
+import { betaTag, linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import {
@@ -146,6 +146,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			icon: IconSolidLogs,
 		},
 		{
+			key: 'traces',
+			icon: IconSolidSparkles,
+			highlightAdminOnly: true,
+			isBeta: true,
+		},
+		{
 			key: 'alerts',
 			icon: IconSolidSpeakerphone,
 		},
@@ -212,43 +218,54 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							<ProjectPicker />
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
-									{pages.map((p) => {
-										return (
-											<LinkButton
-												iconLeft={
-													<p.icon
-														size={14}
-														color={
-															currentPage ===
-															p.key
-																? undefined
-																: vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-														}
-													/>
-												}
-												emphasis={
-													currentPage === p.key
-														? 'high'
-														: 'low'
-												}
-												kind={
-													currentPage === p.key
-														? 'primary'
-														: 'secondary'
-												}
-												to={`/${projectId}/${p.key}`}
-												key={p.key}
-												trackingId={`header-link-click-${p.key}`}
-											>
-												{titleCaseString(p.key)}
-											</LinkButton>
+									{pages
+										.filter(
+											(p) =>
+												!p.highlightAdminOnly ||
+												isHighlightAdmin,
 										)
-									})}
+										.map((p) => {
+											return (
+												<LinkButton
+													iconLeft={
+														<p.icon
+															size={14}
+															color={
+																currentPage ===
+																p.key
+																	? undefined
+																	: vars.theme
+																			.interactive
+																			.fill
+																			.secondary
+																			.content
+																			.text
+															}
+														/>
+													}
+													emphasis={
+														currentPage === p.key
+															? 'high'
+															: 'low'
+													}
+													kind={
+														currentPage === p.key
+															? 'primary'
+															: 'secondary'
+													}
+													to={`/${projectId}/${p.key}`}
+													key={p.key}
+													trackingId={`header-link-click-${p.key}`}
+												>
+													{titleCaseString(p.key)}
+													{p.isBeta ? (
+														<Box cssClass={betaTag}>
+															Beta
+														</Box>
+													) : null}
+												</LinkButton>
+											)
+										})}
 									<Menu>
 										<Menu.Button
 											icon={
@@ -365,33 +382,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Box>
 												</Menu.Item>
 											</Link>
-											{isHighlightAdmin && (
-												<Link
-													to={`/${projectId}/traces`}
-													className={linkStyle}
-												>
-													<Menu.Item>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<IconSolidSparkles
-																size={14}
-																color={
-																	vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-																}
-															/>
-															Traces
-														</Box>
-													</Menu.Item>
-												</Link>
-											)}
 										</Menu.List>
 									</Menu>
 								</Box>
