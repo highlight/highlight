@@ -14,44 +14,6 @@ query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQu
   ) {
     sessions {
       id
-      secure_id
-      client_id
-      fingerprint
-      identifier
-      identified
-      os_name
-      os_version
-      browser_name
-      browser_version
-      ip
-      city
-      state
-      country
-      postal
-      created_at
-      language
-      length
-      active_length
-      enable_recording_network_contents
-      viewed
-      starred
-      processed
-      has_rage_clicks
-      has_errors
-      fields {
-        name
-        value
-        type
-        id
-        __typename
-      }
-      first_time
-      user_properties
-      event_counts
-      last_user_interaction_time
-      is_public
-      excluded
-      __typename
     }
     totalCount
     __typename
@@ -59,12 +21,8 @@ query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQu
 }
 """
 
-if os.environ.get("ENVIRONMENT") in {"test", "dev"}:
-    OAUTH_URL = "https://localhost:8082/oauth"
-    API_URL = "https://localhost:8082/private"
-else:
-    OAUTH_URL = "https://pri.highlight.io/oauth"
-    API_URL = "https://pri.highlight.io"
+OAUTH_URL = "https://localhost:8082/oauth"
+API_URL = "https://localhost:8082/private"
 
 CLIENT_ID = os.environ["HIGHLIGHT_OAUTH_CLIENT_ID"]
 SECRET = os.environ["HIGHLIGHT_OAUTH_CLIENT_SECRET"]
@@ -86,7 +44,7 @@ def perform_oauth_flow():
     return params["access_token"]
 
 
-def make_request(url):
+def test_make_request_with_oauth():
     auth = perform_oauth_flow()
 
     r = requests.post(
@@ -115,13 +73,7 @@ def make_request(url):
         },
         headers={"Authorization": f"Bearer {auth}"},
     )
-    print(r.status_code)
-    print(r.text)
-
-
-def main():
-    r = make_request(API_URL)
-
-
-if __name__ == "__main__":
-    main()
+    assert r.status_code == 200
+    j = r.json()
+    assert len(j.get("errors") or []) == 0
+    assert len(j["data"]["sessions_clickhouse"]["sessions"]) == 10
