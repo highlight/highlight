@@ -221,11 +221,15 @@ function shouldObfuscateTextByDefault(text) {
     return regex.test(text);
   });
 }
-function maskInputValue(_a2) {
-  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, autocomplete = _a2.autocomplete, value = _a2.value, maskInputFn = _a2.maskInputFn;
-  var text = value || "";
+var maskedInputType = function(_a2) {
+  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, inputId = _a2.inputId, inputName = _a2.inputName, autocomplete = _a2.autocomplete;
   var actualType = type && type.toLowerCase();
-  if (maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType] || autocomplete && typeof autocomplete === "string" && maskInputOptions[autocomplete]) {
+  return maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType] || inputId && maskInputOptions[inputId] || inputName && maskInputOptions[inputName] || !!autocomplete && typeof autocomplete === "string" && !!maskInputOptions[autocomplete];
+};
+function maskInputValue(_a2) {
+  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, inputId = _a2.inputId, inputName = _a2.inputName, autocomplete = _a2.autocomplete, value = _a2.value, maskInputFn = _a2.maskInputFn;
+  var text = value || "";
+  if (maskedInputType({ maskInputOptions, tagName, type, inputId, inputName, autocomplete })) {
     if (maskInputFn) {
       text = maskInputFn(text);
     } else {
@@ -683,6 +687,8 @@ function serializeElementNode(n2, options) {
         type,
         tagName,
         value,
+        inputId: n2.id,
+        inputName: n2.name,
         autocomplete: n2.autocomplete,
         maskInputOptions,
         maskInputFn
@@ -2615,6 +2621,8 @@ var MutationBuffer = class {
               tagName: target.tagName,
               type,
               value,
+              inputId: target.id,
+              inputName: target.getAttribute("name"),
               autocomplete: target.getAttribute("autocomplete"),
               maskInputFn: this.maskInputFn
             });
@@ -3038,15 +3046,25 @@ function initInputObserver({ inputCb, doc, mirror: mirror2, blockClass, blockSel
     let text = target.value;
     let isChecked = false;
     const type = getInputType(target) || "";
+    const { id: inputId, name: inputName, autocomplete } = target;
     if (type === "radio" || type === "checkbox") {
       isChecked = target.checked;
-    } else if (maskInputOptions[tagName.toLowerCase()] || maskInputOptions[type]) {
+    } else if (maskedInputType({
+      maskInputOptions,
+      type,
+      tagName,
+      inputId,
+      inputName,
+      autocomplete
+    })) {
       text = maskInputValue({
         maskInputOptions,
         tagName,
         type,
         value: text,
-        autocomplete: target.autocomplete,
+        inputId,
+        inputName,
+        autocomplete,
         maskInputFn
       });
     }
