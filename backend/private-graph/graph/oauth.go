@@ -2,15 +2,17 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/store"
+	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 )
 
 type OAuthValidator interface {
 	graphql.HandlerExtension
-	graphql.OperationInterceptor
+	graphql.FieldInterceptor
 }
 
 type Tracer struct {
@@ -29,8 +31,7 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 	return nil
 }
 
-// InterceptOperation is called for each incoming query
-func (t Tracer) InterceptOperation(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
+func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
 	clientID, _ := ctx.Value(model.ContextKeys.OAuthClientID).(string)
 	if clientID == "" {
 		return next(ctx)
@@ -42,21 +43,22 @@ func (t Tracer) InterceptOperation(ctx context.Context, next graphql.OperationHa
 
 	client, err := t.store.GetOAuth(ctx, clientID)
 	if err != nil {
-		return func(ctx context.Context) *graphql.Response {
-			return graphql.ErrorResponse(ctx, "unauthorized")
-		}
+		return nil, AuthorizationError
 	}
 
-	operation := graphql.GetOperationContext(ctx).OperationName
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil || (fc.Object != "Query" && fc.Object != "Mutation") {
+		return next(ctx)
+	}
+
+	fieldName := fc.Field.Name
 	// TODO(vkorolik) rate limit based on opConfig
 	_, found := lo.Find(client.Operations, func(item *model.OAuthOperation) bool {
-		return item.AuthorizedGraphQLOperation == operation
+		return item.AuthorizedGraphQLOperation == fieldName
 	})
 
 	if !found {
-		return func(ctx context.Context) *graphql.Response {
-			return graphql.ErrorResponse(ctx, "unauthorized to perform operation %s", operation)
-		}
+		return nil, e.New(fmt.Sprintf("403 - AuthorizationError: %s", fieldName))
 	}
 
 	return next(ctx)
