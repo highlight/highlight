@@ -2,9 +2,11 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/store"
+	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 )
 
@@ -45,6 +47,10 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	}
 
 	fc := graphql.GetFieldContext(ctx)
+	if fc == nil || (fc.Object != "Query" && fc.Object != "Mutation") {
+		return next(ctx)
+	}
+
 	fieldName := fc.Field.Name
 	// TODO(vkorolik) rate limit based on opConfig
 	_, found := lo.Find(client.Operations, func(item *model.OAuthOperation) bool {
@@ -52,7 +58,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	})
 
 	if !found {
-		return nil, AuthorizationError
+		return nil, e.New(fmt.Sprintf("403 - AuthorizationError: %s", fieldName))
 	}
 
 	return next(ctx)
