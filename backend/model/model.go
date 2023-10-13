@@ -377,6 +377,7 @@ const (
 	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
 	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
 	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+	MarkBackendSetupTypeTraces  MarkBackendSetupType = "traces"
 )
 
 type SetupEvent struct {

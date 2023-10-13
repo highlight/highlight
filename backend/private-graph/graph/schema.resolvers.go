@@ -4969,6 +4969,33 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	return integration, nil
 }
 
+// TracesIntegration is the resolver for the tracesIntegration field.
+func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:   false,
+		ResourceType: "Trace",
+	}
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	setupEvent := model.SetupEvent{}
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeTraces).Take(&setupEvent).Error
+	if err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying logging setup event")
+		}
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
+
+	return integration, nil
+}
+
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {

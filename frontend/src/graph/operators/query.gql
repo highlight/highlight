@@ -1407,6 +1407,14 @@ query GetLogsIntegration($project_id: ID!) {
 	}
 }
 
+query GetTracesIntegration($project_id: ID!) {
+	tracesIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		createdAt
+	}
+}
+
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
