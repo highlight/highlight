@@ -223,8 +223,8 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		return r.Field == timeRangeField
 	})
 	if !found {
-		end := time.Now()
-		start := end.AddDate(0, 0, -30)
+		end := time.Now().UTC()
+		start := end.AddDate(0, 0, -30).UTC()
 		timeRangeRule = Rule{
 			Field: timeRangeField,
 			Op:    BetweenDate,
