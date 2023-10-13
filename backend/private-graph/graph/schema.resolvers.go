@@ -7610,7 +7610,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 	var errors = []*modelInputs.TraceError{}
 	err = r.DB.Model(&model.ErrorObject{}).
 		Joins("JOIN error_groups ON error_objects.error_group_id = error_groups.id").
-		Where("error_objects.trace_id = ?", traceID).
+		Where("error_objects.trace_id = ? AND error_objects.project_id = ?", traceID, project.ID).
 		Order("error_objects.timestamp DESC").
 		Select("error_objects.*, error_groups.secure_id as error_group_secure_id").
 		Find(&errors).Error
