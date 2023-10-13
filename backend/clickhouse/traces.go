@@ -313,7 +313,6 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 
 	groupStr := ""
 	for _, group := range groupBy {
-		// TODO(vkorolik) check for sql injection
 		groupStr += fmt.Sprintf("toString(TraceAttributes['%s']), ", group)
 	}
 

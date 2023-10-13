@@ -11,7 +11,7 @@ import {
 	useGetTracesMetricsQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { ProductType, TracesMetricType } from '@graph/schemas'
+import { KeyType, ProductType, TracesMetricType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -26,9 +26,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
-import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import _, { upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
@@ -315,39 +313,54 @@ const ProjectProductFiltersPicker: React.FC<{
 				</Box>
 				<Box display="flex" width="full" py="12" gap="6">
 					<Box width="full">
-						{product === ProductType.Sessions ? (
-							<SessionQueryBuilder
-								minimal /*TODO(vkorolik) use exclusion query, on update*/
-							/>
-						) : product === ProductType.Errors ? (
-							<ErrorQueryBuilder
-								minimal /*TODO(vkorolik) use exclusion query, on update*/
-							/>
-						) : product === ProductType.Logs ||
-						  product === ProductType.Traces ? (
-							<SearchForm
-								initialQuery={config.exclusion_query}
-								onFormSubmit={(value) =>
-									onChange({ exclusion_query: value })
-								}
-								startDate={dateRange.start}
-								endDate={dateRange.end}
-								onDatesChange={() => {}}
-								presets={defaultPresets}
-								minDate={defaultPresets[5].startDate}
-								timeMode="fixed-range"
-								fetchKeys={
-									product === ProductType.Logs
-										? useGetLogsKeysQuery
-										: useGetTracesKeysQuery
-								}
-								fetchValuesLazyQuery={
-									product === ProductType.Logs
-										? useGetLogsKeyValuesLazyQuery
-										: useGetTracesKeyValuesLazyQuery
-								}
-							/>
-						) : null}
+						<SearchForm
+							initialQuery={config.exclusion_query}
+							onFormSubmit={(value) =>
+								onChange({ exclusion_query: value })
+							}
+							hideDatePicker
+							hideCreateAlert
+							startDate={dateRange.start}
+							endDate={dateRange.end}
+							onDatesChange={() => {}}
+							presets={defaultPresets}
+							minDate={defaultPresets[5].startDate}
+							timeMode="fixed-range"
+							fetchKeys={
+								product === ProductType.Logs
+									? useGetLogsKeysQuery
+									: product === ProductType.Traces
+									? useGetTracesKeysQuery
+									: () => ({
+											loading: false,
+											data: {
+												keys: [
+													{
+														name: 'TODO(vkorolik)',
+														type: KeyType.String,
+													},
+												],
+											},
+									  })
+							}
+							fetchValuesLazyQuery={
+								product === ProductType.Logs
+									? useGetLogsKeyValuesLazyQuery
+									: product === ProductType.Traces
+									? useGetTracesKeyValuesLazyQuery
+									: () => [
+											() => {},
+											{
+												loading: false,
+												data: {
+													key_values: [
+														'TODO(vkorolik)',
+													],
+												},
+											},
+									  ]
+							}
+						/>
 					</Box>
 					{noHeader ? (
 						<Button

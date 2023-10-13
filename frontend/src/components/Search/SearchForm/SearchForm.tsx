@@ -1,10 +1,11 @@
 import {
-	useGetLogsKeysQuery,
-	useGetLogsKeyValuesLazyQuery,
-	useGetTracesKeysQuery,
-	useGetTracesKeyValuesLazyQuery,
-} from '@graph/hooks'
-import { GetLogsKeysQuery, GetTracesKeysQuery } from '@graph/operations'
+	GetLogsKeysQuery,
+	GetLogsKeysQueryVariables,
+	GetLogsKeyValuesQueryVariables,
+	GetTracesKeysQuery,
+	GetTracesKeysQueryVariables,
+	GetTracesKeyValuesQueryVariables,
+} from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -62,10 +63,17 @@ export const PermalinkStartDateParam = withDefault(
 )
 export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
 
-type FetchKeys = typeof useGetLogsKeysQuery | typeof useGetTracesKeysQuery
-type FetchValues =
-	| typeof useGetLogsKeyValuesLazyQuery
-	| typeof useGetTracesKeyValuesLazyQuery
+type FetchKeys = ({}: {
+	variables: GetLogsKeysQueryVariables | GetTracesKeysQueryVariables
+}) => { data?: { keys: Keys }; loading: boolean }
+type FetchValues = () => [
+	({}: {
+		variables:
+			| GetLogsKeyValuesQueryVariables
+			| GetTracesKeyValuesQueryVariables
+	}) => void,
+	{ data?: { key_values: string[] }; loading: boolean },
+]
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
 
 const MAX_ITEMS = 10
