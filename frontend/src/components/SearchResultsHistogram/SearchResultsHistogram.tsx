@@ -116,7 +116,7 @@ export const SearchResultsHistogram = React.memo(
 				const newEndTime = new Date(bucketTimes[right + 1])
 				updateTimeRange(newStartTime, newEndTime)
 			},
-			[bucketTimes, updateTimeRange],
+			[bucketTimes, readonly, updateTimeRange],
 		)
 		const onBucketClicked = useCallback(
 			(bucketIndex: number) => {
