@@ -5,6 +5,7 @@ import {
 	useGetLogsIntegrationQuery,
 	useGetProjectQuery,
 	useGetServerIntegrationQuery,
+	useGetTracesIntegrationQuery,
 	useGetWorkspaceAdminsQuery,
 	useIsIntegratedLazyQuery,
 } from '@graph/hooks'
@@ -19,7 +20,7 @@ const POLL_INTERVAL_MS = 5000
 
 export const useIntegratedLocalStorage = (
 	projectId: string,
-	area: 'client' | 'server' | 'logs' | 'alerts' | 'team',
+	area: 'client' | 'server' | 'logs' | 'alerts' | 'team' | 'traces',
 ) => {
 	return useLocalStorage<LocalStorageIntegrationData>(
 		`highlight-${projectId}-${area}-integration`,
@@ -257,6 +258,60 @@ export const useLogsIntegration = () => {
 		}
 	}, [
 		data?.logsIntegration,
+		localStorageIntegrated.integrated,
+		projectId,
+		setLocalStorageIntegrated,
+	])
+
+	return localStorageIntegrated
+}
+
+export const useTracesIntegration = () => {
+	const { isLoggedIn } = useAuthContext()
+	const { projectId } = useNumericProjectId()
+	const [localStorageIntegrated, setLocalStorageIntegrated] =
+		useIntegratedLocalStorage(projectId!, 'traces')
+
+	const { data, startPolling, stopPolling } = useGetTracesIntegrationQuery({
+		variables: { project_id: projectId! },
+		skip: localStorageIntegrated.integrated,
+		fetchPolicy: 'cache-and-network',
+	})
+
+	useEffect(() => {
+		if (!isLoggedIn) return
+		if (!localStorageIntegrated.integrated) {
+			startPolling(POLL_INTERVAL_MS)
+
+			return () => {
+				stopPolling()
+			}
+		} else {
+			stopPolling()
+		}
+	}, [
+		localStorageIntegrated.integrated,
+		isLoggedIn,
+		startPolling,
+		stopPolling,
+	])
+
+	useEffect(() => {
+		if (data?.tracesIntegration !== undefined) {
+			if (
+				!localStorageIntegrated.integrated &&
+				data?.tracesIntegration.integrated
+			) {
+				analytics.track('integrated-traces', { id: projectId })
+			}
+
+			setLocalStorageIntegrated({
+				loading: false,
+				...data?.tracesIntegration,
+			})
+		}
+	}, [
+		data?.tracesIntegration,
 		localStorageIntegrated.integrated,
 		projectId,
 		setLocalStorageIntegrated,

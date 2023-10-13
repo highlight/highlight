@@ -1831,6 +1831,7 @@ export type Query = {
 	topUsers: Array<Maybe<TopUsersPayload>>
 	trace?: Maybe<TracePayload>
 	traces: TraceConnection
+	tracesIntegration: IntegrationStatus
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
 	traces_metrics: TracesMetrics
@@ -2411,6 +2412,10 @@ export type QueryTracesArgs = {
 	before?: InputMaybe<Scalars['String']>
 	direction: SortDirection
 	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTracesIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 

@@ -327,6 +327,20 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 		span.Finish(err)
 		return err
 	}
+	markBackendSetupProjectIds := map[uint32]struct{}{}
+	for _, trace := range traceRows {
+		// Skip traces with a `http.method` attribute as likely autoinstrumented frontend traces
+		if _, found := trace.TraceAttributes["http.method"]; !found {
+			markBackendSetupProjectIds[trace.ProjectId] = struct{}{}
+		}
+	}
+	for projectId := range markBackendSetupProjectIds {
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, int(projectId), model.MarkBackendSetupTypeTraces)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend traces setup")
+			return err
+		}
+	}
 	return nil
 }
 
