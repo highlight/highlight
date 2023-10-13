@@ -23,7 +23,7 @@ const CardOverlay = ({
 
 				{subheader && (
 					<Typography
-						className="text-copy-on-light leading-[28px]"
+						className="text-[#EDEDEF] leading-[28px] opacity-70"
 						type="copy2"
 					>
 						{' ' + subheader}
