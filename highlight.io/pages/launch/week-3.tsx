@@ -12,7 +12,7 @@ import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel
 import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
 import styles from '../../components/Home/Home.module.scss'
 import DayOne from '../../components/Launch/Week3/DayOne'
-import preview from '../../public/images/launch/preview.png'
+import preview from '../../public/images/launch/week-3/ogimage.png'
 
 const LaunchPage = () => {
 	const day = 1
