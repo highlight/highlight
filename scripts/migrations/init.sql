@@ -32,4 +32,10 @@ INSERT INTO all_workspace_settings (id, created_at, updated_at, deleted_at, work
                                     error_embeddings_write, error_embeddings_group, error_embeddings_threshold,
                                     replace_assets, store_ip, enable_session_export, enable_network_traces)
 VALUES (1, '2023-09-26 01:01:33.718911 +00:00', '2023-09-26 01:01:33.718911 +00:00', null, 1,
-        true, true, true, true, 0.2, true, true, true, true);
+        true, false, false, false, 0.2, true, true, true, true);
+
+-- Set up oauth for testing
+INSERT INTO o_auth_client_stores (id, created_at, secret, domains, app_name, admin_id)
+VALUES ('abc123', now(), 'def456', '{example.com}', 'Test', 1);
+INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
+VALUES (now(), 'abc123', 'GetSessionsClickhouse');

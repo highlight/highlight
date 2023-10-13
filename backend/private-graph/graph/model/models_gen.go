@@ -819,6 +819,18 @@ type TraceEdge struct {
 func (TraceEdge) IsEdge()                {}
 func (this TraceEdge) GetCursor() string { return this.Cursor }
 
+type TraceError struct {
+	CreatedAt          time.Time `json:"created_at"`
+	TraceID            *string   `json:"trace_id"`
+	SpanID             *string   `json:"span_id"`
+	LogCursor          *string   `json:"log_cursor"`
+	Event              string    `json:"event"`
+	Type               string    `json:"type"`
+	Source             string    `json:"source"`
+	ErrorGroupSecureID string    `json:"error_group_secure_id"`
+	Timestamp          time.Time `json:"timestamp"`
+}
+
 type TraceEvent struct {
 	Timestamp  time.Time              `json:"timestamp"`
 	Name       string                 `json:"name"`
@@ -830,6 +842,11 @@ type TraceLink struct {
 	SpanID     string                 `json:"spanID"`
 	TraceState string                 `json:"traceState"`
 	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TracePayload struct {
+	Trace  []*Trace      `json:"trace"`
+	Errors []*TraceError `json:"errors"`
 }
 
 type TracesMetricBucket struct {

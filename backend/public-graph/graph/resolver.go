@@ -367,7 +367,21 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error)) (*model.ErrorGroup, error) {
+func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObject) *int {
+	eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
+	defer cancel()
+
+	query := embeddings.GetErrorObjectQuery(errorObj)
+	tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
+	if err == nil && len(tags) > 0 {
+		return &tags[0].ID
+	} else {
+		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings for error group tag")
+	}
+	return nil
+}
+
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), tagGroup bool) (*model.ErrorGroup, error) {
 	match, err := matchFn()
 	if err != nil {
 		return nil, err
@@ -407,6 +421,11 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Environments:     environmentsString,
 			ServiceName:      errorObj.ServiceName,
 		}
+
+		if tagGroup {
+			newErrorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
+		}
+
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
@@ -429,6 +448,10 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			updatedState = privateModel.ErrorStateOpen
 		}
 
+		if errorGroup.ErrorTagID == nil && tagGroup {
+			errorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
+		}
+
 		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{
 			StackTrace:       *errorObj.StackTrace,
 			MappedStackTrace: errorObj.MappedStackTrace,
@@ -436,6 +459,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Event:            errorObj.Event,
 			State:            updatedState,
 			ServiceName:      errorObj.ServiceName,
+			ErrorTagID:       errorGroup.ErrorTagID,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}
@@ -745,13 +769,14 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	var settings *model.AllWorkspaceSettings
 	if workspace != nil {
-		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+		if settings, err = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err != nil {
+			return nil, err
+		}
 	}
 
 	var embedding *model.ErrorObjectEmbeddings
 	if settings != nil && settings.ErrorEmbeddingsGroup {
-		// timeout to generate embeddings in case endpoint is slow. p95 ~ 0.3s
-		eCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		eCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 		defer cancel()
 		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
@@ -765,7 +790,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
 				return match, err
-			})
+			}, settings.ErrorEmbeddingsTagGroup)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
@@ -782,7 +807,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				return nil, e.Wrap(err, "Error getting top error group match")
 			}
 			return match, err
-		})
+		}, settings != nil && settings.ErrorEmbeddingsTagGroup)
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting or creating error group")
 		}
@@ -1672,6 +1697,11 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
 }
 
+type AlertCountsGroupedByRecent struct {
+	Count       int64 `gorm:"column:count"`
+	RecentAlert bool  `gorm:"column:recent_alert"`
+}
+
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
 	func() {
 		var errorAlerts []*model.ErrorAlert
@@ -1765,9 +1795,9 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				continue
 			}
 
-			numAlerts := int64(-1)
+			var alertCounts []AlertCountsGroupedByRecent
 			if err := r.DB.Raw(`
-				SELECT COUNT(*)
+				SELECT ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND') AS recent_alert, COUNT(*)
 				FROM error_alert_events ev
 				INNER JOIN error_objects obj
 				ON obj.id = ev.error_object_id
@@ -1775,12 +1805,30 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 					(obj.error_group_id IS NOT NULL
 						AND obj.error_group_id=?)
 					AND ev.error_alert_id=?
-					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
+				GROUP BY recent_alert
+			`, errorAlert.Frequency, group.ID, errorAlert.ID).Scan(&alertCounts).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Frequency))
 				continue
 			}
-			if numAlerts > 0 {
+
+			recentAlertCount := int64(-1)
+			totalAlertCount := int64(-1)
+
+			if len(alertCounts) >= 2 {
+				totalAlertCount = alertCounts[0].Count + alertCounts[1].Count
+				if alertCounts[0].RecentAlert {
+					recentAlertCount = alertCounts[0].Count
+				} else {
+					recentAlertCount = alertCounts[1].Count
+				}
+			} else if len(alertCounts) == 1 {
+				totalAlertCount = alertCounts[0].Count
+				if alertCounts[0].RecentAlert {
+					recentAlertCount = alertCounts[0].Count
+				}
+			}
+
+			if recentAlertCount > 0 {
 				log.WithContext(ctx).Warnf("num alerts > 0 for project_id=%d, error_group_id=%d", projectID, group.ID)
 				continue
 			}
@@ -1806,13 +1854,14 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 
 			if err := alerts.SendErrorAlert(ctx, alerts.SendErrorAlertEvent{
-				Session:     sessionObj,
-				ErrorAlert:  errorAlert,
-				ErrorGroup:  group,
-				ErrorObject: errorObject,
-				Workspace:   workspace,
-				ErrorCount:  numErrors,
-				VisitedURL:  visitedUrl,
+				Session:         sessionObj,
+				ErrorAlert:      errorAlert,
+				ErrorGroup:      group,
+				ErrorObject:     errorObject,
+				Workspace:       workspace,
+				ErrorCount:      numErrors,
+				FirstErrorAlert: totalAlertCount <= 0,
+				VisitedURL:      visitedUrl,
 			}); err != nil {
 				log.WithContext(ctx).Error(err)
 			}
@@ -1827,6 +1876,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				ErrorObject:     errorObject,
 				URL:             &visitedUrl,
 				ErrorsCount:     &numErrors,
+				FirstErrorAlert: totalAlertCount <= 0,
 				UserObject:      sessionObj.UserObject,
 			})
 		}

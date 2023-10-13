@@ -454,6 +454,7 @@ export type ErrorGroup = {
 	environments?: Maybe<Scalars['String']>
 	error_frequency: Array<Scalars['Int64']>
 	error_metrics: Array<ErrorDistributionItem>
+	error_tag?: Maybe<ErrorTag>
 	event: Array<Maybe<Scalars['String']>>
 	fields?: Maybe<Array<Maybe<ErrorField>>>
 	first_occurrence?: Maybe<Scalars['Timestamp']>
@@ -524,7 +525,6 @@ export type ErrorObject = {
 	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
-	error_tag_id?: Maybe<Scalars['String']>
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
@@ -1049,6 +1049,7 @@ export type Mutation = {
 	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
+	updateErrorTags: Scalars['Boolean']
 	updateIntegrationProjectMappings: Scalars['Boolean']
 	updateLogAlert?: Maybe<LogAlert>
 	updateLogAlertIsDisabled?: Maybe<LogAlert>
@@ -1828,7 +1829,7 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
-	trace?: Maybe<Array<Trace>>
+	trace?: Maybe<TracePayload>
 	traces: TraceConnection
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
@@ -3098,6 +3099,19 @@ export type TraceEdge = Edge & {
 	node: Trace
 }
 
+export type TraceError = {
+	__typename?: 'TraceError'
+	created_at: Scalars['Timestamp']
+	error_group_secure_id: Scalars['String']
+	event: Scalars['String']
+	log_cursor?: Maybe<Scalars['String']>
+	source: Scalars['String']
+	span_id?: Maybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
+	trace_id?: Maybe<Scalars['String']>
+	type: Scalars['String']
+}
+
 export type TraceEvent = {
 	__typename?: 'TraceEvent'
 	attributes: Scalars['Map']
@@ -3111,6 +3125,12 @@ export type TraceLink = {
 	spanID: Scalars['String']
 	traceID: Scalars['String']
 	traceState: Scalars['String']
+}
+
+export type TracePayload = {
+	__typename?: 'TracePayload'
+	errors: Array<TraceError>
+	trace: Array<Trace>
 }
 
 export type TracesMetricBucket = {

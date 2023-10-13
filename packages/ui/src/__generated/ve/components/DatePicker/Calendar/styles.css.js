@@ -1,1 +1,1 @@
-import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var r="ybwwtm1",e=a({defaultClassName:"",variantClassNames:{},defaultVariants:{},compoundVariants:[]}),s="ybwwtm0";export{r as days,e as variants,s as weekDays};
+import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var r="ybwwtm1",e=a({defaultClassName:"ybwwtm2",variantClassNames:{},defaultVariants:{},compoundVariants:[]}),s="ybwwtm0";export{r as days,e as variants,s as weekDays};

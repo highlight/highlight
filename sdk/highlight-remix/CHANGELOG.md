@@ -1,5 +1,14 @@
 # @highlight-run/remix
 
+## 1.0.0
+
+### Patch Changes
+
+-   Updated dependencies [e264f6a61]
+-   Updated dependencies [683330896]
+    -   highlight.run@7.6.0
+    -   @highlight-run/node@3.4.3
+
 ## 0.1.1
 
 ### Patch Changes
@@ -16,13 +25,13 @@
 
 ### Minor changes
 
-- Added support for setting metadata on `consumeError`
+-   Added support for setting metadata on `consumeError`
 
 ### 0.3.0
 
 ### Minor changes
 
-- Added support for setting `serviceName`
+-   Added support for setting `serviceName`
 
 ## 0.4.1
 
@@ -34,5 +43,5 @@
 
 ### Patch Changes
 
-- Tune settings of opentelemetry SDK to reduce memory usage.
-- Enable GZIP compression of exported data.
+-   Tune settings of opentelemetry SDK to reduce memory usage.
+-   Enable GZIP compression of exported data.

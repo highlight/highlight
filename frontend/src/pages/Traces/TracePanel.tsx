@@ -1,6 +1,6 @@
 import { Box, Dialog } from '@highlight-run/ui'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { TracePage } from '@/pages/Traces/TracePage'
 import { useParams } from '@/util/react-router/useParams'
@@ -9,6 +9,7 @@ import * as styles from './TracePanel.css'
 
 export const TracePanel: React.FC = () => {
 	const navigate = useNavigate()
+	const location = useLocation()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -17,7 +18,9 @@ export const TracePanel: React.FC = () => {
 		open: true,
 		setOpen(open) {
 			if (!open) {
-				navigate(`/${project_id}/traces`, { replace: true })
+				navigate(`/${project_id}/traces${location.search}`, {
+					replace: true,
+				})
 			}
 		},
 	})

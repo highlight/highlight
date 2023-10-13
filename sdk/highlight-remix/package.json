@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/remix",
-	"version": "0.4.2",
+	"version": "1.0.0",
 	"description": "Client for interfacing with Highlight in Remix",
 	"packageManager": "yarn@3.5.0",
 	"author": "",
@@ -34,7 +34,7 @@
 		"build": "tsup"
 	},
 	"peerDependencies": {
-		"highlight.run": ">=7.4.0",
+		"highlight.run": ">=7.6.0",
 		"react": ">=18"
 	},
 	"dependencies": {

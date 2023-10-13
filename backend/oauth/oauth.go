@@ -26,6 +26,7 @@ import (
 )
 
 const CookieName = "highlightOAuth"
+const AuthHeaderName = "Authorization"
 const CookieRefreshThreshold = 15 * time.Minute
 
 type Server struct {
@@ -94,17 +95,21 @@ func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 	// client memory store
 	clientStore := store.NewClientStore()
 	var clients []*model.OAuthClientStore
-	if err := db.Model(&model.OAuthClientStore{}).Scan(&clients).Error; err != nil {
+	if err := db.Model(&model.OAuthClientStore{}).Joins("Admin").Scan(&clients).Error; err != nil {
 		return nil, e.Wrap(err, "failed to get oauth client store from db")
 	}
 	for _, client := range clients {
 		for _, uri := range client.Domains {
-			log.WithContext(ctx).Infof("adding oauth client %s", client.ID)
-			err := clientStore.Set(client.ID, &models.Client{
+			c := &models.Client{
 				ID:     client.ID,
 				Secret: client.Secret,
 				Domain: uri,
-			})
+			}
+			if client.Admin != nil && client.Admin.UID != nil && client.Admin.Email != nil {
+				c.UserID = strings.Join([]string{*client.Admin.UID, *client.Admin.Email}, ":")
+			}
+			log.WithContext(ctx).Infof("adding oauth client %s", client.ID)
+			err := clientStore.Set(client.ID, c)
 			if err != nil {
 				return nil, e.Wrapf(err, "failed to set oauth client store entry %s", client.ID)
 			}
@@ -114,7 +119,7 @@ func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 	manager.MapAccessGenerate(generates.NewAccessGenerate())
 
 	srv := server.NewDefaultServer(manager)
-	srv.SetAllowGetAccessRequest(true)
+	srv.SetAllowGetAccessRequest(false)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.WithContext(ctx).Errorf("Internal Error: %s", err.Error())
@@ -226,22 +231,33 @@ func (s *Server) HasCookie(r *http.Request) bool {
 	return false
 }
 
+func (s *Server) HasBearer(r *http.Request) bool {
+	return r.Header.Get(AuthHeaderName) != ""
+}
+
 // Validate ensures the request is authenticated and configures the context to contain
 // necessary authorization context variables. the function returns the auth token cookie,
 // refreshed if applicable.
 func (s *Server) Validate(ctx context.Context, r *http.Request) (context.Context, oauth2.TokenInfo, *http.Cookie, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "oauth.validate")
+	defer span.Finish()
 	var token oauth2.TokenInfo
 	if cookie, err := r.Cookie(CookieName); err == nil {
+		span.SetAttribute("mode", "cookie")
 		ctx, token, err = s.authCookieContext(ctx, cookie, r)
 		if err != nil {
 			return ctx, nil, nil, err
 		}
 	} else {
+		span.SetAttribute("mode", "bearer")
 		ctx, token, err = s.authContext(ctx, r)
 		if err != nil {
 			return ctx, nil, nil, err
 		}
 	}
+	span.SetAttribute("client_id", token.GetClientID())
+	span.SetAttribute("user_id", token.GetUserID())
+	span.SetAttribute("expiry", token.GetAccessExpiresIn())
 	expirySeconds := token.GetAccessExpiresIn().Seconds()
 	cookieData, err := json.Marshal(&Token{
 		AccessToken:  token.GetAccess(),
@@ -275,10 +291,7 @@ func (s *Server) authContext(ctx context.Context, r *http.Request) (context.Cont
 	if err != nil {
 		return nil, nil, err
 	}
-	parts := strings.Split(token.GetUserID(), ":")
-	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
-	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
-	return ctx, token, nil
+	return s.setUserContext(ctx, token)
 }
 
 // AuthCookieContext configures the context based on the login session of the oauth token provided.
@@ -303,7 +316,23 @@ func (s *Server) authCookieContext(ctx context.Context, tokenCookie *http.Cookie
 		}
 	}
 
-	parts := strings.Split(tokenInfo.GetUserID(), ":")
+	return s.setUserContext(ctx, tokenInfo)
+}
+
+func (s *Server) setUserContext(ctx context.Context, tokenInfo oauth2.TokenInfo) (context.Context, oauth2.TokenInfo, error) {
+	userID := tokenInfo.GetUserID()
+	if userID == "" {
+		client, err := s.clientStore.GetByID(ctx, tokenInfo.GetClientID())
+		if err != nil {
+			return ctx, tokenInfo, errors.ErrInvalidClient
+		}
+		userID = client.GetUserID()
+	}
+	parts := strings.Split(userID, ":")
+	if len(parts) != 2 {
+		return ctx, tokenInfo, errors.ErrInvalidClient
+	}
+	ctx = context.WithValue(ctx, model.ContextKeys.OAuthClientID, tokenInfo.GetClientID())
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
 	return ctx, tokenInfo, nil

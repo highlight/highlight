@@ -522,7 +522,6 @@ type ErrorObject {
 	session_id: Int
 	trace_id: String
 	span_id: String
-	error_tag_id: String
 	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
@@ -580,6 +579,7 @@ type ErrorGroup {
 	last_occurrence: Timestamp
 	viewed: Boolean
 	serviceName: String
+	error_tag: ErrorTag
 }
 
 type ErrorMetadata {
@@ -716,6 +716,23 @@ type Trace {
 	statusMessage: String!
 	events: [TraceEvent]
 	links: [TraceLink]
+}
+
+type TracePayload {
+	trace: [Trace!]!
+	errors: [TraceError!]!
+}
+
+type TraceError {
+	created_at: Timestamp!
+	trace_id: String
+	span_id: String
+	log_cursor: String
+	event: String!
+	type: String!
+	source: String!
+	error_group_secure_id: String!
+	timestamp: Timestamp!
 }
 
 type TraceEvent {
@@ -1977,7 +1994,7 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
-	trace(project_id: ID!, trace_id: String!): [Trace!]
+	trace(project_id: ID!, trace_id: String!): TracePayload
 	traces(
 		project_id: ID!
 		params: QueryInput!
@@ -2372,6 +2389,7 @@ type Mutation {
 		github_prefix: String
 	): Service
 	createErrorTag(title: String!, description: String!): ErrorTag!
+	updateErrorTags: Boolean!
 	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
 	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
 	testErrorEnhancement(

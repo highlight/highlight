@@ -1,13 +1,23 @@
-import { Box, Heading, Stack, Text, Tooltip } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	Heading,
+	Stack,
+	Tabs,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useState } from 'react'
 
-import JsonViewer from '@/components/JsonViewer/JsonViewer'
 import LoadingBox from '@/components/LoadingBox'
 import { useGetTraceQuery } from '@/graph/generated/hooks'
-import { Trace } from '@/graph/generated/schemas'
+import { Trace, TraceError } from '@/graph/generated/schemas'
+import { TraceErrors } from '@/pages/Traces/TraceErrors'
+import { TraceLogs } from '@/pages/Traces/TraceLogs'
+import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 import {
 	getFirstSpan,
 	getTraceDuration,
@@ -18,31 +28,52 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as styles from './TracePage.css'
 
+enum TraceTabs {
+	Info = 'Info',
+	Errors = 'Errors',
+	Logs = 'Logs',
+}
+
 type Props = {}
 
 const MAX_TICKS = 6
 
 export const TracePage: React.FC<Props> = () => {
+	const {
+		project_id: projectId,
+		trace_id: traceId,
+		span_id: spanId,
+	} = useParams<{
+		project_id: string
+		trace_id: string
+		span_id?: string
+	}>()
+	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
 	const [selectedSpan, setSelectedSpan] = useState<Trace>()
 	const [hoveredSpan, setHoveredSpan] = useState<Trace>()
 	const highlightedSpan = hoveredSpan || selectedSpan
-
-	const { project_id: projectId, trace_id: traceId } = useParams<{
-		project_id: string
-		trace_id: string
-	}>()
 
 	const { data, loading } = useGetTraceQuery({
 		variables: {
 			project_id: projectId!,
 			trace_id: traceId!,
 		},
+		onCompleted: (data) => {
+			if (spanId) {
+				const span = data.trace?.trace.find(
+					(span) => span.spanID === spanId,
+				)
+				if (span) {
+					setSelectedSpan(span)
+				}
+			}
+		},
 		skip: !projectId || !traceId,
 	})
 
 	const traces = React.useMemo(() => {
-		if (!data?.trace) return []
-		const sortableTraces = [...data.trace]
+		if (!data?.trace?.trace) return []
+		const sortableTraces = [...data.trace.trace]
 
 		if (!selectedSpan) {
 			const firstSpan = getFirstSpan(sortableTraces)
@@ -53,7 +84,7 @@ export const TracePage: React.FC<Props> = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace])
 
-	if (!data?.trace || !data?.trace?.length) {
+	if (!data?.trace || !data?.trace?.trace?.length) {
 		return loading ? (
 			<LoadingBox />
 		) : (
@@ -63,10 +94,11 @@ export const TracePage: React.FC<Props> = () => {
 		)
 	}
 
-	const totalDuration = getTraceDuration(data.trace)
-	const firstSpan = getFirstSpan(data.trace)
+	const totalDuration = getTraceDuration(data.trace.trace)
+	const firstSpan = getFirstSpan(data.trace.trace)
 	const traceName = firstSpan?.spanName
 	const startTime = moment(firstSpan.timestamp)
+	const errors = data.trace?.errors
 	const durationString = getTraceDurationString(totalDuration)
 	const ticks = Array.from({ length: MAX_TICKS }).map((_, index) => {
 		const percent = index / (MAX_TICKS - 1)
@@ -153,6 +185,9 @@ export const TracePage: React.FC<Props> = () => {
 								.diff(startTime, 'ms')
 								.valueOf()
 							const marginLeft = (diff / totalDuration) * 100
+							const error = data.trace?.errors.find(
+								(error) => error.span_id === span.spanID,
+							)
 
 							return (
 								<Box
@@ -169,7 +204,7 @@ export const TracePage: React.FC<Props> = () => {
 										trigger={
 											<Box
 												borderRadius="3"
-												p="4"
+												p="3"
 												py="6"
 												mb="2"
 												display="flex"
@@ -182,6 +217,7 @@ export const TracePage: React.FC<Props> = () => {
 														span === selectedSpan,
 													[styles.hoveredSpan]:
 														span === hoveredSpan,
+													[styles.errorSpan]: !!error,
 												})}
 											>
 												<Text size="xSmall" lines="1">
@@ -222,21 +258,43 @@ export const TracePage: React.FC<Props> = () => {
 					</Box>
 				</Box>
 
-				{highlightedSpan && (
-					<Box mt="10">
-						<SpanAttributes span={highlightedSpan} />
-					</Box>
-				)}
+				<Box mt="12">
+					<Tabs<TraceTabs>
+						tab={activeTab}
+						setTab={(tab) => setActiveTab(tab)}
+						containerClass={styles.tabs}
+						tabsContainerClass={styles.tabsContainer}
+						pageContainerClass={styles.tabsPageContainer}
+						pages={{
+							[TraceTabs.Info]: {
+								page: (
+									<TraceSpanAttributes
+										span={highlightedSpan!}
+									/>
+								),
+							},
+							[TraceTabs.Errors]: {
+								badge:
+									errors?.length > 0 ? (
+										<Badge
+											variant="gray"
+											label={String(errors.length)}
+										/>
+									) : undefined,
+								page: (
+									<TraceErrors
+										errors={(errors ?? []) as TraceError[]}
+									/>
+								),
+							},
+							[TraceTabs.Logs]: {
+								page: <TraceLogs />,
+							},
+						}}
+						noHandle
+					/>
+				</Box>
 			</Box>
 		</Box>
 	)
-}
-
-const SpanAttributes: React.FC<{ span: Trace }> = ({ span }) => {
-	const attributes = { ...span }
-
-	// Drop any attributes we don't want to display
-	delete attributes.__typename
-
-	return <JsonViewer src={attributes} collapsed={false} />
 }
