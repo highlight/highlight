@@ -12704,6 +12704,7 @@ __metadata:
     react-copy-to-clipboard: ^5.0.2
     react-dom: ^18.2.0
     react-files-hooks: ^2.0.0
+    react-flame-graph: ^1.4.0
     react-grid-layout: ^1.3.3
     react-helmet: ^6.1.0
     react-highlight-words: ^0.17.0
@@ -34866,6 +34867,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"flow-bin@npm:^0.118.0":
+  version: 0.118.0
+  resolution: "flow-bin@npm:0.118.0"
+  bin:
+    flow: cli.js
+  checksum: 43e4b9d5137eee9811e10707cf442730e4f9a16f469ac00e68cbdced81d8c806ddc994985fb6fb013dbbf403a7ec32aeadfc38be1941f33c0dd0ed22c667675d
+  languageName: node
+  linkType: hard
+
 "flow-parser@npm:0.*":
   version: 0.212.0
   resolution: "flow-parser@npm:0.212.0"
@@ -42817,6 +42827,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"memoize-one@npm:>=3.1.1 <6":
+  version: 5.2.1
+  resolution: "memoize-one@npm:5.2.1"
+  checksum: a3cba7b824ebcf24cdfcd234aa7f86f3ad6394b8d9be4c96ff756dafb8b51c7f71320785fbc2304f1af48a0467cbbd2a409efc9333025700ed523f254cb52e3d
+  languageName: node
+  linkType: hard
+
+"memoize-one@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "memoize-one@npm:3.1.1"
+  checksum: 58e5b070c9d9c4cde86a96e425cb20c698def8d5d235896014185b5335c0fc8d2484bbeabff9994f8bdfb2bd63b90f219c58160e36ead338522f2618869ae5b0
+  languageName: node
+  linkType: hard
+
 "memoize-one@npm:^4.0.0":
   version: 4.1.0
   resolution: "memoize-one@npm:4.1.0"
@@ -49398,6 +49422,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-flame-graph@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "react-flame-graph@npm:1.4.0"
+  dependencies:
+    flow-bin: ^0.118.0
+    memoize-one: ^3.1.1
+    react-window: ^1
+  peerDependencies:
+    react: ^15.0.0 || ^16.0.0
+    react-dom: ^15.0.0 || ^16.0.0
+  checksum: 475605221d17581b2c89f502a2da5d1f19648eb38474c5569fe0102fc19a70b376900dd9904913ef588d251aaeda403bfb179a30c164313cf1aa6e10a237a9c5
+  languageName: node
+  linkType: hard
+
 "react-focus-lock@npm:^2.9.2":
   version: 2.9.4
   resolution: "react-focus-lock@npm:2.9.4"
@@ -50162,6 +50200,19 @@ __metadata:
     react: ">=16 || >=17 || >= 18"
     react-dom: ">=16 || >=17 || >= 18"
   checksum: 36bf40489e1abe697036e1c21dd8f1ae2a781ad8b3c3d8f0784c76006a32b2df844bf19f722be0434a98bd0d4e2998e257d5efaaed60e956958969705aa333d3
+  languageName: node
+  linkType: hard
+
+"react-window@npm:^1":
+  version: 1.8.9
+  resolution: "react-window@npm:1.8.9"
+  dependencies:
+    "@babel/runtime": ^7.0.0
+    memoize-one: ">=3.1.1 <6"
+  peerDependencies:
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: cefa232f4f37269d292529ef15780fb108123d6bb5beee19eeac657e75cf8d4664be66f2da04baf0cb1bc64c5ab3d83a88199c3358f023b78940acd37b0673b2
   languageName: node
   linkType: hard
 

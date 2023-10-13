@@ -1,6 +1,4 @@
-import { sortBy } from 'lodash'
-
-import { Trace } from '@/graph/generated/schemas'
+import { Trace, TraceError } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
 	return trace.reduce((acc, span) => {
@@ -58,11 +56,61 @@ export const getTraceDurationString = (duration: number) => {
 	}
 }
 
-export const sortTrace = (trace?: Trace[]) => {
-	if (trace && trace.length > 0) {
-		// Naive sorting implementation for now. Will need to update in the future.
-		return sortBy(trace, ['duration', 'timestamp']).reverse()
-	} else {
-		return []
-	}
+export type FlameGraphSpan = Trace & {
+	backgroundColor: string
+	color: string
+	name: string
+	selected: boolean
+	value: number
+	children?: FlameGraphSpan[]
+	errors?: TraceError[]
+}
+
+export const organizeSpans = (
+	spans: Trace[],
+	errors?: TraceError[],
+	selectedSpan?: Trace,
+) => {
+	// Object is not modifieable, so we need to clone it to add children
+	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
+
+	const sortedTrace = tempSpans.reduce((acc, span) => {
+		const parentSpanID = span.parentSpanID
+		span.name = span.spanName
+		span.value = span.duration
+
+		if (selectedSpan?.spanID === span.spanID) {
+			span.selected = true
+		}
+
+		span.color = span.selected ? '#fff' : '#744ED4'
+		span.backgroundColor = span.selected ? '#744ED4' : '#E7DEFC'
+
+		const spanErrors =
+			errors?.filter((e) => e.span_id === span.spanID) ?? []
+		if (spanErrors.length > 0) {
+			span.errors = spanErrors
+		}
+
+		if (parentSpanID) {
+			const parentSpan = tempSpans.find(
+				(s) => s.spanID === parentSpanID,
+			) as FlameGraphSpan
+
+			if (parentSpan) {
+				if (parentSpan.children) {
+					parentSpan.children.push(span)
+				} else {
+					parentSpan.children = [span]
+				}
+			} else {
+				acc.push(span)
+			}
+		} else {
+			acc.push(span)
+		}
+		return acc
+	}, [] as FlameGraphSpan[])
+
+	return sortedTrace[0]
 }
