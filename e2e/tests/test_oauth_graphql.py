@@ -75,7 +75,8 @@ def test_make_request_with_oauth():
             assert r.status_code == 200
             j = r.json()
             assert len(j.get("errors") or []) == 0
-            assert len(j["data"]["sessions_clickhouse"]["sessions"]) == 10
+            # E2E test will return 1 real session from the login cypress test
+            assert len(j["data"]["sessions_clickhouse"]["sessions"]) >= 1
             break
         except Exception as e:
             exc = e
