@@ -114,7 +114,6 @@ jobs:
                   APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Configure yarn npm registry credentials
-              if: github.ref == 'refs/heads/main'
               run: |
                   yarn config set npmRegistryServer "https://registry.npmjs.org"
                   yarn config set npmAuthToken "${NPM_TOKEN}"
@@ -134,7 +133,6 @@ jobs:
               run: yarn publish:client
 
             - name: Publish changesets
-              if: github.ref == 'refs/heads/main'
               id: changesets
               uses: changesets/action@v1
               with:
