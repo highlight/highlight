@@ -61,8 +61,6 @@ const Navbar = ({
 	const [isOpen, setIsOpen] = useState(false)
 	const [prevY, setPrevY] = useState(0)
 
-	hideBanner = true
-
 	const changeBackground = () => {
 		const currentScrollPos = window.pageYOffset
 		if (window.scrollY > 60 && prevY < currentScrollPos) {
@@ -83,7 +81,7 @@ const Navbar = ({
 			<GithubPopup />
 			{!hideBanner && (
 				<Link
-					href="/launch-week-2"
+					href="/launch/week-3"
 					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 				>
 					<Typography type="copy3">

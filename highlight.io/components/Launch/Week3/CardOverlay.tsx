@@ -14,11 +14,18 @@ const CardOverlay = ({
 }) => {
 	return (
 		<div className="absolute px-3 top-4 left-2 flex-row h-full justify-between">
-			<Typography className="text-white" type="copy2" emphasis>
+			<Typography
+				className="text-white leading-[28px]"
+				type="copy2"
+				emphasis
+			>
 				{header}
 
 				{subheader && (
-					<Typography className="text-copy-on-light" type="copy2">
+					<Typography
+						className="text-copy-on-light leading-[28px]"
+						type="copy2"
+					>
 						{' ' + subheader}
 					</Typography>
 				)}

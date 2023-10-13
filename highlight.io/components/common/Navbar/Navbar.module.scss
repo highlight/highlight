@@ -2,7 +2,7 @@
 	position: sticky;
 	top: 0;
 	transition: all 0.2s ease;
-	z-index: 20;
+	z-index: 100;
 
 	&.hide {
 		top: -125px;
