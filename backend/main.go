@@ -405,7 +405,7 @@ func main() {
 		}
 
 		r.Route("/oauth", func(r chi.Router) {
-			r.Use(private.GetPrivateMiddleware(false))
+			r.Use(private.PrivateMiddleware)
 			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
 			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
 			r.HandleFunc("/validate", oauthSrv.HandleValidate)
@@ -418,7 +418,7 @@ func main() {
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 		r.Route(privateEndpoint, func(r chi.Router) {
-			r.Use(private.GetPrivateMiddleware(true))
+			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
 			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
 				fsClient.SetupHTTPSListener(r)

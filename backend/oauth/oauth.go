@@ -108,7 +108,7 @@ func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 			if client.Admin != nil && client.Admin.UID != nil && client.Admin.Email != nil {
 				c.UserID = strings.Join([]string{*client.Admin.UID, *client.Admin.Email}, ":")
 			}
-			log.WithContext(ctx).Infof("adding oauth client %s %+v", client.ID, c)
+			log.WithContext(ctx).Infof("adding oauth client %s", client.ID)
 			err := clientStore.Set(client.ID, c)
 			if err != nil {
 				return nil, e.Wrapf(err, "failed to set oauth client store entry %s", client.ID)
