@@ -4828,6 +4828,7 @@ export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
 	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 }>
 
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
@@ -4838,7 +4839,7 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 			buckets: Array<
 				{ __typename?: 'TracesMetricBucket' } & Pick<
 					Types.TracesMetricBucket,
-					'bucket_id' | 'metric_type' | 'metric_value'
+					'bucket_id' | 'group' | 'metric_type' | 'metric_value'
 				>
 			>
 		}

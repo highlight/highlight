@@ -739,6 +739,12 @@ export type HistogramPayload = {
 	min: Scalars['Float']
 }
 
+export enum IngestReason {
+	Filter = 'Filter',
+	Rate = 'Rate',
+	Sample = 'Sample',
+}
+
 export type IntegrationProjectMapping = {
 	__typename?: 'IntegrationProjectMapping'
 	external_id: Scalars['String']
@@ -2485,6 +2491,7 @@ export type QueryTraces_KeysArgs = {
 }
 
 export type QueryTraces_MetricsArgs = {
+	group_by: Array<Scalars['String']>
 	metric_types: Array<TracesMetricType>
 	params: QueryInput
 	project_id: Scalars['ID']
@@ -3195,6 +3202,7 @@ export type TracePayload = {
 export type TracesMetricBucket = {
 	__typename?: 'TracesMetricBucket'
 	bucket_id: Scalars['UInt64']
+	group: Array<Scalars['String']>
 	metric_type: TracesMetricType
 	metric_value: Scalars['Float']
 }

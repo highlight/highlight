@@ -14256,14 +14256,17 @@ export const GetTracesMetricsDocument = gql`
 		$project_id: ID!
 		$params: QueryInput!
 		$metric_types: [TracesMetricType!]!
+		$group_by: [String!]!
 	) {
 		traces_metrics(
 			project_id: $project_id
 			params: $params
 			metric_types: $metric_types
+			group_by: $group_by
 		) {
 			buckets {
 				bucket_id
+				group
 				metric_type
 				metric_value
 			}
@@ -14288,6 +14291,7 @@ export const GetTracesMetricsDocument = gql`
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
  *      metric_types: // value for 'metric_types'
+ *      group_by: // value for 'group_by'
  *   },
  * });
  */

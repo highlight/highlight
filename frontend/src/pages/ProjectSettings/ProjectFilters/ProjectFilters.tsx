@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import {
 	useEditProjectSettingsMutation,
@@ -7,8 +8,10 @@ import {
 	useGetProjectSettingsQuery,
 	useGetTracesKeysQuery,
 	useGetTracesKeyValuesLazyQuery,
+	useGetTracesMetricsQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { ProductType, TracesMetricType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -23,18 +26,16 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import { SessionsHistogram } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
-import { upperFirst } from 'lodash'
+import _, { upperFirst } from 'lodash'
+import moment from 'moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export type Product = 'sessions' | 'errors' | 'logs' | 'traces'
-
 export const Header: React.FC<{
-	product: Product
+	product: ProductType
 	title: string
 	subtitle?: string
 }> = ({ title, subtitle, product }) => {
@@ -89,13 +90,13 @@ export const Header: React.FC<{
 export const ProjectFilters: React.FC = () => {
 	return (
 		<Stack width="full">
-			<ProjectProductFilters product="sessions" noHeader />
+			<ProjectProductFilters product={ProductType.Sessions} noHeader />
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters product="errors" noHeader />
+			<ProjectProductFilters product={ProductType.Errors} noHeader />
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters product="logs" noHeader />
+			<ProjectProductFilters product={ProductType.Logs} noHeader />
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters product="traces" noHeader />
+			<ProjectProductFilters product={ProductType.Traces} noHeader />
 		</Stack>
 	)
 }
@@ -106,11 +107,20 @@ interface Config {
 	minute_rate_limit: number
 }
 
+interface DateRange {
+	start: Date
+	end: Date
+}
+
 export const ProjectProductFilters: React.FC<{
-	product: Product
+	product: ProductType
 	noHeader?: boolean
 }> = ({ product, noHeader }) => {
 	const { projectId } = useProjectId()
+	const [dateRange, setDateRange] = React.useState<DateRange>({
+		start: defaultPresets[3].startDate,
+		end: getNow().toDate(),
+	})
 	const { data } = useGetProjectSettingsQuery({
 		variables: {
 			projectId: projectId!,
@@ -124,7 +134,7 @@ export const ProjectProductFilters: React.FC<{
 
 	const resetConfig = React.useCallback(() => {
 		const c =
-			product === 'sessions'
+			product === ProductType.Sessions
 				? {
 						exclusion_query:
 							data?.projectSettings?.sampling
@@ -136,7 +146,7 @@ export const ProjectProductFilters: React.FC<{
 							data?.projectSettings?.sampling
 								.session_minute_rate_limit,
 				  }
-				: product === 'errors'
+				: product === ProductType.Errors
 				? {
 						exclusion_query:
 							data?.projectSettings?.sampling
@@ -147,7 +157,7 @@ export const ProjectProductFilters: React.FC<{
 							data?.projectSettings?.sampling
 								.error_minute_rate_limit,
 				  }
-				: product === 'logs'
+				: product === ProductType.Logs
 				? {
 						exclusion_query:
 							data?.projectSettings?.sampling.log_exclusion_query,
@@ -157,7 +167,7 @@ export const ProjectProductFilters: React.FC<{
 							data?.projectSettings?.sampling
 								.log_minute_rate_limit,
 				  }
-				: product === 'traces'
+				: product === ProductType.Traces
 				? {
 						exclusion_query:
 							data?.projectSettings?.sampling
@@ -186,6 +196,8 @@ export const ProjectProductFilters: React.FC<{
 		<ProjectProductFiltersPicker
 			product={product}
 			config={config}
+			dateRange={dateRange}
+			onDateRangeChange={setDateRange}
 			noHeader={noHeader}
 			onChange={(c: Partial<Config>) => {
 				setConfig((cfg) =>
@@ -205,27 +217,27 @@ export const ProjectProductFilters: React.FC<{
 			onReset={resetConfig}
 			onSave={async () => {
 				const sampling =
-					product === 'sessions'
+					product === ProductType.Sessions
 						? {
 								session_exclusion_query: config.exclusion_query,
 								session_sampling_rate: config.sampling_rate,
 								session_minute_rate_limit:
 									config.minute_rate_limit,
 						  }
-						: product === 'errors'
+						: product === ProductType.Errors
 						? {
 								error_exclusion_query: config.exclusion_query,
 								error_sampling_rate: config.sampling_rate,
 								error_minute_rate_limit:
 									config.minute_rate_limit,
 						  }
-						: product === 'logs'
+						: product === ProductType.Logs
 						? {
 								log_exclusion_query: config.exclusion_query,
 								log_sampling_rate: config.sampling_rate,
 								log_minute_rate_limit: config.minute_rate_limit,
 						  }
-						: product === 'traces'
+						: product === ProductType.Traces
 						? {
 								trace_exclusion_query: config.exclusion_query,
 								trace_sampling_rate: config.sampling_rate,
@@ -245,13 +257,24 @@ export const ProjectProductFilters: React.FC<{
 }
 
 const ProjectProductFiltersPicker: React.FC<{
-	product: Product
+	product: ProductType
 	config: Config
+	dateRange: DateRange
+	onDateRangeChange: (range: DateRange) => void
 	onChange: (config: Partial<Config>) => void
 	onReset: () => void
 	onSave: () => void
 	noHeader?: boolean
-}> = ({ product, config, onChange, onReset, onSave, noHeader }) => {
+}> = ({
+	product,
+	config,
+	dateRange,
+	onDateRangeChange,
+	onChange,
+	onReset,
+	onSave,
+	noHeader,
+}) => {
 	const navigate = useNavigate()
 	const label = upperFirst(product.slice(0, -1))
 	return (
@@ -292,33 +315,34 @@ const ProjectProductFiltersPicker: React.FC<{
 				</Box>
 				<Box display="flex" width="full" py="12" gap="6">
 					<Box width="full">
-						{product === 'sessions' ? (
+						{product === ProductType.Sessions ? (
 							<SessionQueryBuilder
 								minimal /*TODO(vkorolik) use exclusion query, on update*/
 							/>
-						) : product === 'errors' ? (
+						) : product === ProductType.Errors ? (
 							<ErrorQueryBuilder
 								minimal /*TODO(vkorolik) use exclusion query, on update*/
 							/>
-						) : product === 'logs' || product === 'traces' ? (
+						) : product === ProductType.Logs ||
+						  product === ProductType.Traces ? (
 							<SearchForm
 								initialQuery={config.exclusion_query}
 								onFormSubmit={(value) =>
 									onChange({ exclusion_query: value })
 								}
-								startDate={defaultPresets[5].startDate}
-								endDate={getNow().toDate()}
+								startDate={dateRange.start}
+								endDate={dateRange.end}
 								onDatesChange={() => {}}
 								presets={defaultPresets}
 								minDate={defaultPresets[5].startDate}
 								timeMode="fixed-range"
 								fetchKeys={
-									product === 'logs'
+									product === ProductType.Logs
 										? useGetLogsKeysQuery
 										: useGetTracesKeysQuery
 								}
 								fetchValuesLazyQuery={
-									product === 'logs'
+									product === ProductType.Logs
 										? useGetLogsKeyValuesLazyQuery
 										: useGetTracesKeyValuesLazyQuery
 								}
@@ -366,24 +390,78 @@ const ProjectProductFiltersPicker: React.FC<{
 						{label}s
 					</Text>
 					<PreviousDateRangePicker
-						selectedDates={[defaultPresets[5].startDate]}
-						onDatesChange={() => {}}
+						selectedDates={[dateRange.start, dateRange.end]}
+						onDatesChange={(dates) =>
+							onDateRangeChange({
+								start: dates[0],
+								end: dates[1],
+							})
+						}
 						presets={defaultPresets}
 						minDate={defaultPresets[5].startDate}
 						kind="secondary"
 						size="medium"
 						emphasis="low"
-						disabled={true}
 					/>
 				</Box>
 				<Box display="flex" width="full" py="12">
-					{product === 'sessions' ? (
-						<SessionsHistogram readonly />
-					) : product === 'errors' ? (
-						<ErrorFeedHistogram readonly />
-					) : /*TODO(vkorolik) use the IsIngestedBy counts, histogram for logs & traces */ null}
+					<IngestTimeline product={product} dateRange={dateRange} />
 				</Box>
 			</Box>
+		</Box>
+	)
+}
+
+const IngestTimeline: React.FC<{
+	product: ProductType
+	dateRange: DateRange
+}> = ({ product, dateRange }) => {
+	const { projectId } = useProjectId()
+	const { data, loading } = useGetTracesMetricsQuery({
+		variables: {
+			project_id: projectId,
+			metric_types: [TracesMetricType.Count],
+			group_by: ['ingested'],
+			params: {
+				query: `span_name:IsIngestedBy product:${product}`,
+				date_range: {
+					start_date: moment(dateRange.start).format(TIME_FORMAT),
+					end_date: moment(dateRange.end).format(TIME_FORMAT),
+				},
+			},
+		},
+	})
+
+	const groupedByBucket = _.groupBy(
+		data?.traces_metrics.buckets,
+		(i) => i.bucket_id,
+	)
+
+	const histogramBuckets = data?.traces_metrics.buckets.map((b) => ({
+		bucketId: b.bucket_id,
+		group: b.group,
+		counts: [
+			{
+				level: 'Ingested',
+				count: groupedByBucket[b.bucket_id][0]?.metric_value ?? 0,
+			},
+			{
+				level: 'Dropped',
+				count: groupedByBucket[b.bucket_id][1]?.metric_value ?? 0,
+			},
+		],
+	}))
+
+	return (
+		<Box width="full" height="full">
+			<LogsHistogram
+				startDate={dateRange.start}
+				endDate={dateRange.end}
+				onDatesChange={() => {}}
+				histogramBuckets={histogramBuckets}
+				bucketCount={data?.traces_metrics.bucket_count}
+				loading={loading}
+			/>
 		</Box>
 	)
 }

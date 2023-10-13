@@ -7,7 +7,6 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -254,7 +253,7 @@ func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, 
 }
 
 func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateModel.ProductType, projectID int, key string) bool {
-	span := util.StartSpan("IsIngestedBySample", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", "sample"), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
+	span := util.StartSpan("IsIngestedBy", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", privateModel.IngestReasonSample), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
@@ -277,16 +276,11 @@ func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateMo
 	}()
 	ingested := isIngestedBySample(ctx, key, rate)
 	span.SetAttribute("ingested", ingested)
-	if ingested {
-		hlog.Incr("sampling.ingested", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:sample", fmt.Sprintf("product:%s", product)}, 1)
-	} else {
-		hlog.Incr("sampling.dropped", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:sample", fmt.Sprintf("product:%s", product)}, 1)
-	}
 	return ingested
 }
 
 func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, product privateModel.ProductType, projectID int) bool {
-	span := util.StartSpan("IsIngestedByRate", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", "rate"), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
+	span := util.StartSpan("IsIngestedBy", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", privateModel.IngestReasonRate), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
@@ -309,16 +303,11 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, pro
 	}()
 	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), max, when.Minute())
 	span.SetAttribute("ingested", ingested)
-	if ingested {
-		hlog.Incr("sampling.ingested", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:rate", fmt.Sprintf("product:%s", product)}, 1)
-	} else {
-		hlog.Incr("sampling.dropped", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:rate", fmt.Sprintf("product:%s", product)}, 1)
-	}
 	return ingested
 }
 
 func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateModel.ProductType, projectID int, object interface{}) bool {
-	span := util.StartSpan("IsIngestedByFilter", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", "filter"), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
+	span := util.StartSpan("IsIngestedBy", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(product == privateModel.ProductTypeTraces), util.Tag("reason", privateModel.IngestReasonFilter), util.Tag("project", projectID), util.Tag("product", product), util.Tag("ingested", true))
 	defer span.Finish()
 
 	settings, err := r.getSettings(ctx, projectID, nil)
@@ -359,11 +348,6 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		return false
 	}()
 	span.SetAttribute("ingested", !excluded)
-	if !excluded {
-		hlog.Incr("sampling.ingested", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:filter", fmt.Sprintf("product:%s", product)}, 1)
-	} else {
-		hlog.Incr("sampling.dropped", []string{fmt.Sprintf("project:%d", settings.ProjectID), "reason:filter", fmt.Sprintf("product:%s", product)}, 1)
-	}
 	return !excluded
 }
 

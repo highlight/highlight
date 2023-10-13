@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -289,7 +290,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	return traces, rows.Err()
 }
 
-func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, nBuckets int) (*modelInputs.TracesMetrics, error) {
+func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string, nBuckets int) (*modelInputs.TracesMetrics, error) {
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
@@ -310,17 +311,24 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		}
 	}
 
+	groupStr := ""
+	for _, group := range groupBy {
+		// TODO(vkorolik) check for sql injection
+		groupStr += fmt.Sprintf("toString(TraceAttributes['%s']), ", group)
+	}
+
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
 	if useSampling {
 		fromSb, err = makeSelectBuilder(
 			tracesSamplingTableConfig,
 			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), %sany(_sample_factor)%s",
 				nBuckets,
 				startTimestamp,
 				endTimestamp,
 				startTimestamp,
+				groupStr,
 				fnStr,
 			),
 			projectID,
@@ -333,11 +341,12 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		fromSb, err = makeSelectBuilder(
 			tracesTableConfig,
 			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), %s1.0%s",
 				nBuckets,
 				startTimestamp,
 				endTimestamp,
 				startTimestamp,
+				groupStr,
 				fnStr,
 			),
 			projectID,
@@ -351,7 +360,12 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		return nil, err
 	}
 
-	fromSb.GroupBy("1")
+	groupByCols := []string{"1"}
+	for i := 2; i < 2+len(groupBy); i++ {
+		groupByCols = append(groupByCols, strconv.Itoa(i))
+	}
+	fromSb.GroupBy(groupByCols...)
+	fromSb.OrderBy(groupByCols...)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -374,12 +388,16 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		sampleFactor float64
 	)
 
+	groupByColResults := make([]string, len(groupBy))
 	metricResults := make([]float64, len(metricTypes))
-	scanResults := make([]interface{}, 2+len(metricTypes))
+	scanResults := make([]interface{}, 2+len(groupByColResults) + +len(metricResults))
 	scanResults[0] = &groupKey
-	scanResults[1] = &sampleFactor
+	for idx := range groupByColResults {
+		scanResults[1+idx] = &groupByColResults[idx]
+	}
+	scanResults[1+len(groupByColResults)] = &sampleFactor
 	for idx := range metricTypes {
-		scanResults[2+idx] = &metricResults[idx]
+		scanResults[2+len(groupByColResults)+idx] = &metricResults[idx]
 	}
 
 	for rows.Next() {
@@ -395,6 +413,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		for idx, metricType := range metricTypes {
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.TracesMetricBucket{
 				BucketID:    bucketId,
+				Group:       groupByColResults,
 				MetricType:  metricType,
 				MetricValue: metricResults[idx],
 			})
