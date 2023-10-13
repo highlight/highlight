@@ -48,12 +48,14 @@ const Navbar = ({
 	hideBanner,
 	fixed,
 	title,
+	bg,
 }: {
 	hideFreeTrialText?: boolean
 	isDocsPage?: boolean
 	hideBanner?: boolean
 	fixed?: boolean
 	title?: string
+	bg?: string
 }) => {
 	const [scrolled, setScrolled] = useState(false)
 	const [isOpen, setIsOpen] = useState(false)
@@ -104,6 +106,7 @@ const Navbar = ({
 						className={classNames(
 							styles.header,
 							styles.headerInner,
+							`bg-[${bg ? bg : ''}]`,
 							{
 								[styles.openHeader]: isOpen,
 								[styles.headerBorder]: prevY != 0,
