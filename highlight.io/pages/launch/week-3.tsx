@@ -34,7 +34,7 @@ const LaunchPage = () => {
 				canonical="/launch/week-3"
 			/>
 
-			<Navbar hideBanner bg="#000000" />
+			<Navbar hideBanner bg="black" />
 
 			<main className="scroll-smooth bg-black">
 				<div className="absolute flex justify-center top-8 w-full bg-black opacity-80">

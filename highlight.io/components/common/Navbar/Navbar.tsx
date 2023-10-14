@@ -104,7 +104,7 @@ const Navbar = ({
 						className={classNames(
 							styles.header,
 							styles.headerInner,
-							`bg-[${bg ? bg : ''}]`,
+							`bg-${bg ? bg : ''}`,
 							{
 								[styles.openHeader]: isOpen,
 								[styles.headerBorder]: prevY != 0,
