@@ -38,7 +38,7 @@ const LaunchPage = () => {
 			<Navbar hideBanner bg="black" />
 
 			<main className="scroll-smooth bg-black">
-				<div className="absolute flex justify-center top-8 w-full bg-black opacity-80">
+				<div className="absolute flex justify-center top-0 w-full bg-black opacity-80">
 					<Image
 						src="/images/launch/week-3/bg.svg"
 						alt=""

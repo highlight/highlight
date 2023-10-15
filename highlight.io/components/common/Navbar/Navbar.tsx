@@ -58,6 +58,7 @@ const Navbar = ({
 	bg?: string
 }) => {
 	const [scrolled, setScrolled] = useState(false)
+	const [atTop, setAtTop] = useState(true)
 	const [isOpen, setIsOpen] = useState(false)
 	const [prevY, setPrevY] = useState(0)
 
@@ -68,6 +69,13 @@ const Navbar = ({
 		} else if (window.scrollY > 60 && prevY > currentScrollPos) {
 			setScrolled(false)
 		}
+
+		if (window.scrollY > 60) {
+			setAtTop(false)
+		} else {
+			setAtTop(true)
+		}
+
 		setPrevY(currentScrollPos)
 	}
 
@@ -104,7 +112,9 @@ const Navbar = ({
 						className={classNames(
 							styles.header,
 							styles.headerInner,
-							`bg-${bg ? bg : ''}`,
+							`bg-${bg ? bg : ''} transition-all ${
+								bg && atTop ? 'bg-opacity-10' : 'bg-opacity-100'
+							}`,
 							{
 								[styles.openHeader]: isOpen,
 								[styles.headerBorder]: prevY != 0,
