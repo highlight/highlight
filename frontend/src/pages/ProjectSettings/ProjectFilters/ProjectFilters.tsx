@@ -16,6 +16,7 @@ import {
 	Badge,
 	Box,
 	defaultPresets,
+	Form,
 	getNow,
 	Heading,
 	IconSolidCheveronRight,
@@ -24,6 +25,7 @@ import {
 	Stack,
 	Tag,
 	Text,
+	useFormStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -88,13 +90,29 @@ export const Header: React.FC<{
 export const ProjectFilters: React.FC = () => {
 	return (
 		<Stack width="full">
-			<ProjectProductFilters product={ProductType.Sessions} noHeader />
+			<ProjectProductFilters
+				product={ProductType.Sessions}
+				noHeader
+				disabled
+			/>
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters product={ProductType.Errors} noHeader />
+			<ProjectProductFilters
+				product={ProductType.Errors}
+				noHeader
+				disabled
+			/>
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters product={ProductType.Logs} noHeader />
+			<ProjectProductFilters
+				product={ProductType.Logs}
+				noHeader
+				disabled
+			/>
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters product={ProductType.Traces} noHeader />
+			<ProjectProductFilters
+				product={ProductType.Traces}
+				noHeader
+				disabled
+			/>
 		</Stack>
 	)
 }
@@ -113,10 +131,12 @@ interface DateRange {
 export const ProjectProductFilters: React.FC<{
 	product: ProductType
 	noHeader?: boolean
-}> = ({ product, noHeader }) => {
+	disabled?: boolean
+}> = ({ product, noHeader, disabled }) => {
 	const { projectId } = useProjectId()
+	const navigate = useNavigate()
 	const [dateRange, setDateRange] = React.useState<DateRange>({
-		start: defaultPresets[3].startDate,
+		start: defaultPresets[1].startDate,
 		end: getNow().toDate(),
 	})
 	const { data } = useGetProjectSettingsQuery({
@@ -125,9 +145,10 @@ export const ProjectProductFilters: React.FC<{
 		},
 		skip: !projectId,
 	})
-	const [editProjectSettingsMutation] = useEditProjectSettingsMutation({
-		refetchQueries: [namedOperations.Query.GetProjectSettings],
-	})
+	const [editProjectSettingsMutation, { loading: saveLoading }] =
+		useEditProjectSettingsMutation({
+			refetchQueries: [namedOperations.Query.GetProjectSettings],
+		})
 	const [config, setConfig] = React.useState<Config>()
 
 	const resetConfig = React.useCallback(() => {
@@ -186,95 +207,65 @@ export const ProjectProductFilters: React.FC<{
 
 	React.useEffect(resetConfig, [resetConfig])
 
+	const formStore = useFormStore({
+		defaultValues: {
+			samplingRate: 100 * (config?.sampling_rate ?? 1),
+			minuteRateLimit: config?.minute_rate_limit,
+		},
+	})
+
 	if (!product || !config) {
 		return null
 	}
 
-	return (
-		<ProjectProductFiltersPicker
-			product={product}
-			config={config}
-			dateRange={dateRange}
-			onDateRangeChange={setDateRange}
-			noHeader={noHeader}
-			onChange={(c: Partial<Config>) => {
-				setConfig((cfg) =>
-					cfg
-						? {
-								exclusion_query:
-									c?.exclusion_query ?? cfg?.exclusion_query,
-								sampling_rate:
-									c?.sampling_rate ?? cfg?.sampling_rate,
-								minute_rate_limit:
-									c?.minute_rate_limit ??
-									cfg?.minute_rate_limit,
-						  }
-						: undefined,
-				)
-			}}
-			onReset={resetConfig}
-			onSave={async () => {
-				const sampling =
-					product === ProductType.Sessions
-						? {
-								session_exclusion_query: config.exclusion_query,
-								session_sampling_rate: config.sampling_rate,
-								session_minute_rate_limit:
-									config.minute_rate_limit,
-						  }
-						: product === ProductType.Errors
-						? {
-								error_exclusion_query: config.exclusion_query,
-								error_sampling_rate: config.sampling_rate,
-								error_minute_rate_limit:
-									config.minute_rate_limit,
-						  }
-						: product === ProductType.Logs
-						? {
-								log_exclusion_query: config.exclusion_query,
-								log_sampling_rate: config.sampling_rate,
-								log_minute_rate_limit: config.minute_rate_limit,
-						  }
-						: product === ProductType.Traces
-						? {
-								trace_exclusion_query: config.exclusion_query,
-								trace_sampling_rate: config.sampling_rate,
-								trace_minute_rate_limit:
-									config.minute_rate_limit,
-						  }
-						: {}
-				await editProjectSettingsMutation({
-					variables: {
-						projectId,
-						sampling,
-					},
-				})
-			}}
-		/>
-	)
-}
-
-const ProjectProductFiltersPicker: React.FC<{
-	product: ProductType
-	config: Config
-	dateRange: DateRange
-	onDateRangeChange: (range: DateRange) => void
-	onChange: (config: Partial<Config>) => void
-	onReset: () => void
-	onSave: () => void
-	noHeader?: boolean
-}> = ({
-	product,
-	config,
-	dateRange,
-	onDateRangeChange,
-	onChange,
-	onReset,
-	onSave,
-	noHeader,
-}) => {
-	const navigate = useNavigate()
 	const label = upperFirst(product.slice(0, -1))
+	const onChange = (c: Partial<Config>) => {
+		setConfig((cfg) =>
+			cfg
+				? {
+						exclusion_query:
+							c?.exclusion_query ?? cfg?.exclusion_query,
+						sampling_rate: c?.sampling_rate ?? cfg?.sampling_rate,
+						minute_rate_limit:
+							c?.minute_rate_limit ?? cfg?.minute_rate_limit,
+				  }
+				: undefined,
+		)
+	}
+	const onSave = async () => {
+		const sampling =
+			product === ProductType.Sessions
+				? {
+						session_exclusion_query: config.exclusion_query,
+						session_sampling_rate: config.sampling_rate,
+						session_minute_rate_limit: config.minute_rate_limit,
+				  }
+				: product === ProductType.Errors
+				? {
+						error_exclusion_query: config.exclusion_query,
+						error_sampling_rate: config.sampling_rate,
+						error_minute_rate_limit: config.minute_rate_limit,
+				  }
+				: product === ProductType.Logs
+				? {
+						log_exclusion_query: config.exclusion_query,
+						log_sampling_rate: config.sampling_rate,
+						log_minute_rate_limit: config.minute_rate_limit,
+				  }
+				: product === ProductType.Traces
+				? {
+						trace_exclusion_query: config.exclusion_query,
+						trace_sampling_rate: config.sampling_rate,
+						trace_minute_rate_limit: config.minute_rate_limit,
+				  }
+				: {}
+		await editProjectSettingsMutation({
+			variables: {
+				projectId,
+				sampling,
+			},
+		})
+	}
 	return (
 		<Box width="full">
 			{noHeader ? null : (
@@ -295,7 +286,7 @@ const ProjectProductFiltersPicker: React.FC<{
 								kind="secondary"
 								size="small"
 								emphasis="low"
-								onClick={onReset}
+								onClick={resetConfig}
 							>
 								Discard changes
 							</Button>
@@ -305,6 +296,7 @@ const ProjectProductFiltersPicker: React.FC<{
 								size="small"
 								emphasis="high"
 								onClick={onSave}
+								loading={saveLoading}
 							>
 								Save changes
 							</Button>
@@ -377,21 +369,33 @@ const ProjectProductFiltersPicker: React.FC<{
 						</Button>
 					) : null}
 				</Box>
-				<Box
-					display="flex"
-					justifyContent="space-between"
-					width="full"
-					py="12"
-				>
-					<Text>
-						{label} sampling: {100 * config.sampling_rate}%
-					</Text>
-					{/*TODO(vkorolik) make inputs onChange*/}
-					<Text>
-						Max ingested {product}: {config.minute_rate_limit} /
-						minute
-					</Text>
-				</Box>
+				<Form store={formStore}>
+					<Stack>
+						<Box width="full">
+							<Form.Label
+								label={`${label} sampling %`}
+								name={formStore.names.samplingRate}
+							/>
+							<Form.Input
+								name={formStore.names.samplingRate}
+								type="number"
+								disabled={disabled}
+							/>
+						</Box>
+						<Box width="full">
+							<Form.Label
+								label={`Max ingested ${product} /
+							minute`}
+								name={formStore.names.samplingRate}
+							/>
+							<Form.Input
+								name={formStore.names.minuteRateLimit}
+								type="number"
+								disabled={disabled}
+							/>
+						</Box>
+					</Stack>
+				</Form>
 				<Box
 					display="flex"
 					alignItems="center"
@@ -405,7 +409,7 @@ const ProjectProductFiltersPicker: React.FC<{
 					<PreviousDateRangePicker
 						selectedDates={[dateRange.start, dateRange.end]}
 						onDatesChange={(dates) =>
-							onDateRangeChange({
+							setDateRange({
 								start: dates[0],
 								end: dates[1],
 							})
