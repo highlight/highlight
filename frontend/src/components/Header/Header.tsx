@@ -1084,7 +1084,7 @@ const LaunchWeekBanner = () => {
 
 	const bannerMessage = (
 		<span>
-			Launch Week 2 is here.{' '}
+			Launch Week 3 is here.{' '}
 			<a
 				target="_blank"
 				href="https://www.highlight.io/launch/week-3"
