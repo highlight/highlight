@@ -199,11 +199,11 @@ function isElementSrcBlocked(tagName) {
   return tagName === "img" || tagName === "video" || tagName === "audio" || tagName === "source";
 }
 var EMAIL_REGEX = new RegExp("[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*");
-var LONG_NUMBER_REGEX = new RegExp("d{9,16}");
-var SSN_REGEX = new RegExp("d{3}-?d{2}-?d{4}");
+var LONG_NUMBER_REGEX = new RegExp("[0-9]{9,16}");
+var SSN_REGEX = new RegExp("[0-9]{3}-?[0-9]{2}-?[0-9]{4}");
 var PHONE_NUMBER_REGEX = new RegExp("[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}");
-var CREDIT_CARD_REGEX = new RegExp("d{4}-?d{4}-?d{4}-?d{4}");
-var ADDRESS_REGEX = new RegExp("d{1,5}.?d{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}");
+var CREDIT_CARD_REGEX = new RegExp("[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}");
+var ADDRESS_REGEX = new RegExp("[0-9]{1,5}.?[0-9]{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}");
 var IP_REGEX = new RegExp("(?:[0-9]{1,3}.){3}[0-9]{1,3}");
 var DEFAULT_OBFUSCATE_REGEXES = [
   EMAIL_REGEX,

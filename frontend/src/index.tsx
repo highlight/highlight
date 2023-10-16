@@ -54,6 +54,8 @@ import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils
 document.body.className = 'highlight-light-theme'
 
 const determinePrivacySetting = () => {
+	return 'default'
+
 	const value = Math.random() * 10
 	if (value < 1) {
 		return 'strict' // 10%
