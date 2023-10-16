@@ -75,7 +75,7 @@ const DayOne = () => {
 						header="Updates to Harold AI."
 						subheader="Harold can now identify error types!"
 						buttonText="View Blogpost"
-						buttonLink="#"
+						buttonLink="https://news.ycombinator.com/item?id=37675894"
 					/>
 				</div>
 				<div className="flex flex-col md:w-2/3 lg:w-3/4 gap-2 max-h-[450px]">
@@ -108,9 +108,9 @@ const DayOne = () => {
 						/>
 
 						<CardOverlay
-							header="New Github-enhanced stacktraces."
+							header="GitHub-enhanced stacktraces."
 							buttonText="View Blog Post"
-							buttonLink="#"
+							buttonLink="/blog/github-enhanced-stacktraces"
 						/>
 					</div>
 				</div>
