@@ -101,7 +101,7 @@ const LaunchPage = () => {
 					</Link>
 
 					<Link
-						href="https://dub.sh/O3ayz3t"
+						href="https://news.ycombinator.com/item?id=37675894"
 						className="z-50 flex justify-between items-center text-copy-on-dark p-4 w-full bg-black border-[1px] border-[#1C1C1C] rounded-md flex-shrink-0 hover:border-white transition-all"
 					>
 						<div className="flex gap-3 items-center">
