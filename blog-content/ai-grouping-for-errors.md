@@ -10,9 +10,9 @@ authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-image: "https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2Fy11erLrRriQHCiQeXo34&w=3840&q=75"
+image: "/images/blog/ai-grouping-for-errors/error-7.png"
 tags: AI, Developer Tooling, Launch Week 3
-metaTitle: "Day 5: Our Partners & Supporters" 
+metaTitle: "Day 5: Our Partners & Supporters"
 ---
 
 Highlight offers full stack visibility into errors happening in your application. Often though, it's difficult to differentiate real errors that impact your user experience from noise or other expected errors. To help sift out inconsequential errors from actionable ones, we now group and tag errors using the insights of a trained language learning model. We'll be covering how we did this and how it works with this high level overview.
@@ -29,8 +29,11 @@ Anecdotally, this approach seems to work very well. For example, here are two au
 
     * Firebase: A network AuthError has occurred
     * Error retrieving user from firebase api for email verification: cannot find user from uid.
+
 We also use these error embeddings to group similar errors. To decide whether an error joins a group or starts a new one, we decide on a distance threshold (using the euclidean distance) ahead of time. An interesting thing about this approach, compared to using a text-based heuristic, is that two errors with different stack traces can still be grouped together. Here’s an example:
-* github.com/highlight-run/highlight/backend/worker.(*Worker).ReportStripeUsage
-* github.com/highlight-run/highlight/backend/private-graph/graph.(*Resolver).GetSlackChannelsFromSlack.func1
+
+    * github.com/highlight-run/highlight/backend/worker.(*Worker).ReportStripeUsage
+    * github.com/highlight-run/highlight/backend/private-graph/graph.(*Resolver).GetSlackChannelsFromSlack.func1
+
 Both reported as `integration api error` as they involve the Stripe and Slack integrations respectively. The neat thing is that the LLM can use the full context of an error and match based on the most relevant details about the error.
 We have rolled out a first version of the error grouping logic to [our cloud product](https://app.highlight.io), and there’s [a demo of all the functionality](https://app.highlight.io/error-tags). Long-term, if the HN community has other ideas of what we could build with LLM tooling in observability, we’re all ears. Let us know what you think!
