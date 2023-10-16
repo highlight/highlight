@@ -2,6 +2,7 @@ import {
 	IconSolidClickUp,
 	IconSolidGithub,
 	IconSolidHeight,
+	IconSolidJira,
 	IconSolidLinear,
 } from '@highlight-run/ui'
 import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -21,6 +22,9 @@ import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIn
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import React from 'react'
+
+import JiraIntegrationConfig from '@/pages/IntegrationsPage/components/JiraIntegration/JiraIntegrationConfig'
+import JiraProjectAndIssueTypeSelector from '@/pages/IntegrationsPage/components/JiraIntegration/JiraProjectSelector'
 
 import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
 import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
@@ -69,6 +73,21 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'issue',
 	containerSelection: (opts) => <LinearTeamSelector {...opts} />,
 	Icon: IconSolidLinear,
+}
+
+export const JIRA_INTEGRATION: IssueTrackerIntegration = {
+	key: 'jira',
+	name: 'Jira',
+	configurationPath: 'jira',
+	description: 'Bring your Highlight comments to Jira as issues.',
+	icon: '/images/integrations/jira.png',
+	configurationPage: (opts) => <JiraIntegrationConfig {...opts} />,
+	hasSettings: false,
+	containerLabel: 'team',
+	issueLabel: 'issue',
+	containerSelection: (opts) => <JiraProjectAndIssueTypeSelector {...opts} />,
+	Icon: IconSolidJira,
+	onlyShowForHighlightAdmin: true,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -191,6 +210,7 @@ const INTEGRATIONS: Integration[] = [
 	CLICKUP_INTEGRATION,
 	HEIGHT_INTEGRATION,
 	GITHUB_INTEGRATION,
+	JIRA_INTEGRATION,
 ]
 
 export default INTEGRATIONS

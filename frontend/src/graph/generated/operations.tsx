@@ -3724,6 +3724,23 @@ export type GetWorkspaceIsIntegratedWithVercelQuery = {
 	>
 }
 
+export type GetJiraIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	jira_projects?: Types.Maybe<
+		Array<
+			{ __typename?: 'JiraProject' } & Pick<
+				Types.JiraProject,
+				'id' | 'name' | 'key'
+			>
+		>
+	>
+}
+
 export type GetClickUpIntegrationSettingsQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 }>
@@ -4938,6 +4955,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
+		GetJiraIntegrationSettings: 'GetJiraIntegrationSettings' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,

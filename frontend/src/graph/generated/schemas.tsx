@@ -25,6 +25,15 @@ export type Scalars = {
 	Upload: any
 }
 
+export type AccessibleJiraResources = {
+	__typename?: 'AccessibleJiraResources'
+	avatarUrl: Scalars['String']
+	id: Scalars['String']
+	name: Scalars['String']
+	scopes?: Maybe<Array<Scalars['String']>>
+	url: Scalars['String']
+}
+
 export type Account = {
 	__typename?: 'Account'
 	email: Scalars['String']
@@ -754,6 +763,7 @@ export enum IntegrationType {
 	Front = 'Front',
 	GitHub = 'GitHub',
 	Height = 'Height',
+	Jira = 'Jira',
 	Linear = 'Linear',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
@@ -768,6 +778,45 @@ export type Invoice = {
 	date?: Maybe<Scalars['Timestamp']>
 	status?: Maybe<Scalars['String']>
 	url?: Maybe<Scalars['String']>
+}
+
+export type JiraIssueType = {
+	__typename?: 'JiraIssueType'
+	description: Scalars['String']
+	iconUrl: Scalars['String']
+	id: Scalars['String']
+	name: Scalars['String']
+	scope?: Maybe<JiraIssueTypeScope>
+	self: Scalars['String']
+	subtask: Scalars['Boolean']
+	untranslatedName: Scalars['String']
+}
+
+export type JiraIssueTypeScope = {
+	__typename?: 'JiraIssueTypeScope'
+	project?: Maybe<JiraProjectIdentifier>
+	type: Scalars['String']
+}
+
+export type JiraProject = {
+	__typename?: 'JiraProject'
+	id: Scalars['String']
+	issueTypes?: Maybe<Array<Maybe<JiraIssueType>>>
+	key: Scalars['String']
+	name: Scalars['String']
+	self: Scalars['String']
+}
+
+export type JiraProjectIdentifier = {
+	__typename?: 'JiraProjectIdentifier'
+	id: Scalars['String']
+}
+
+export type JiraTeam = {
+	__typename?: 'JiraTeam'
+	key: Scalars['String']
+	name: Scalars['String']
+	team_id: Scalars['String']
 }
 
 export enum KeyType {
@@ -1772,6 +1821,7 @@ export type Query = {
 	is_integrated_with: Scalars['Boolean']
 	is_project_integrated_with: Scalars['Boolean']
 	is_workspace_integrated_with: Scalars['Boolean']
+	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
@@ -2147,6 +2197,10 @@ export type QueryIs_Project_Integrated_WithArgs = {
 
 export type QueryIs_Workspace_Integrated_WithArgs = {
 	integration_type: IntegrationType
+	workspace_id: Scalars['ID']
+}
+
+export type QueryJira_ProjectsArgs = {
 	workspace_id: Scalars['ID']
 }
 

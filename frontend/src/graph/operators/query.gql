@@ -1568,6 +1568,18 @@ query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 	}
 }
 
+query GetJiraIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: Jira
+		workspace_id: $workspace_id
+	)
+	jira_projects(workspace_id: $workspace_id) {
+		id
+		name
+		key
+	}
+}
+
 query GetClickUpIntegrationSettings($workspace_id: ID!) {
 	is_integrated: is_workspace_integrated_with(
 		integration_type: ClickUp

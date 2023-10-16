@@ -22,6 +22,7 @@ import (
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
@@ -1973,6 +1974,35 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 	return nil
 }
 
+func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	err := r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
+	if err != nil {
+		return err
+	}
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return err
+	}
+
+	jiraSite, err := jira.GetJiraSite(*accessToken)
+
+	if err != nil {
+		return err
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  &jiraSite.URL,
+		JiraCloudID: &jiraSite.ID,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
@@ -2122,6 +2152,31 @@ func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeJira,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "workspace does not have a Jira integration")
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "error deleting workspace Jira integration")
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  nil,
+		JiraCloudID: nil,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
 	}
 
 	return nil
@@ -2599,6 +2654,49 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 
 	attachment.ExternalID = task.ID
 	attachment.Title = task.Name
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateJiraTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	projectId string,
+) error {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No Jira integration access token found.")
+	}
+
+	jiraIssuePayload := jira.JiraCreateIssueFields{
+		Description: issueDescription,
+		Summary:     issueTitle,
+		Project:     jira.JiraIssueProjectData{Id: projectId},
+		IssueType:   jira.JiraIssueTypeData{Id: "10001"},
+	}
+
+	jiraCreateIssueData := jira.JiraCreateIssuePayload{
+		Fields: jiraIssuePayload,
+	}
+
+	task, err := jira.CreateJiraTask(workspace, *accessToken, jiraCreateIssueData)
+
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task)
+	attachment.Title = issueTitle
 	if err := r.DB.Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
 	}
@@ -3550,4 +3648,20 @@ func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*mode
 	}
 
 	return matchedErrorObjects, nil
+}
+
+func (r *Resolver) GetJiraProjects(
+	ctx context.Context,
+	workspace *model.Workspace,
+) ([]*modelInputs.JiraProject, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, nil
+	}
+
+	return jira.GetJiraProjects(workspace, *accessToken)
 }

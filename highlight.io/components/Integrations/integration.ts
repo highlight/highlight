@@ -119,5 +119,11 @@ export const INTEGRATIONS: {
 			link: '/docs/general/integrations/github-integration',
 			image: '/images/companies/icons/github.png',
 		},
+		{
+			name: 'Jira',
+			description: 'Create Jira issues within highlight.io.',
+			link: '/docs/general/integrations/jira-integration',
+			image: '/images/companies/icons/jira.png',
+		},
 	],
 }
