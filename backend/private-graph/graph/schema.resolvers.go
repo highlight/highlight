@@ -1614,6 +1614,19 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				title,
+				desc,
+				*issueTeamID,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1685,6 +1698,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		} else if *s == modelInputs.IntegrationTypeGitHub {
 			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2003,6 +2022,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2174,6 +2199,12 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2321,6 +2352,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddLinearToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
@@ -2358,6 +2393,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 
 	if *integrationType == modelInputs.IntegrationTypeLinear {
 		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
@@ -2410,6 +2449,10 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddGitHubToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2430,6 +2473,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitHub {
 		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
+			return false, err
+		}
+	} else if integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -6378,6 +6425,16 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 	})
 
 	return ret, nil
+}
+
+// JiraProjects is the resolver for the jira_projects field.
+func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*modelInputs.JiraProject, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetJiraProjects(ctx, workspace)
 }
 
 // GithubRepos is the resolver for the github_repos field.

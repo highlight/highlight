@@ -19,6 +19,8 @@ import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
+
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
 
@@ -54,6 +56,13 @@ const IntegrationsPage = () => {
 
 	const {
 		settings: {
+			isIntegrated: isJiraIntegratedWithProject,
+			loading: loadingJira,
+		},
+	} = useJiraIntegration()
+
+	const {
+		settings: {
 			isIntegrated: isGitHubIntegratedWithProject,
 			loading: loadingGitHub,
 		},
@@ -83,7 +92,8 @@ const IntegrationsPage = () => {
 		loadingDiscord ||
 		loadingClickUp ||
 		loadingHeight ||
-		loadingGitHub
+		loadingGitHub ||
+		loadingJira
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
@@ -121,7 +131,8 @@ const IntegrationsPage = () => {
 				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
 				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
 				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
-				(inter.key === 'height' && isHeightIntegratedWithProject),
+				(inter.key === 'height' && isHeightIntegratedWithProject) ||
+				(inter.key === 'jira' && isJiraIntegratedWithProject),
 		}))
 	}, [
 		currentWorkspace?.id,
@@ -136,6 +147,7 @@ const IntegrationsPage = () => {
 		isGitHubIntegratedWithProject,
 		isClickUpIntegratedWithProject,
 		isHeightIntegratedWithProject,
+		isJiraIntegratedWithProject,
 	])
 
 	useEffect(() => analytics.page(), [])

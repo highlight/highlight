@@ -14,6 +14,7 @@ import {
 	ButtonIcon,
 	Form,
 	IconSolidClickUp,
+	IconSolidJira,
 	IconSolidLinear,
 	IconSolidX,
 	Stack,
@@ -23,6 +24,7 @@ import {
 import { vars } from '@highlight-run/ui/src/css/vars'
 import {
 	CLICKUP_INTEGRATION,
+	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -184,6 +186,8 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				return <IconSolidLinear size={14} />
 			case CLICKUP_INTEGRATION.key:
 				return <IconSolidClickUp size={14} />
+			case JIRA_INTEGRATION.key:
+				return <IconSolidJira size={14} />
 			default:
 				return <></>
 		}
