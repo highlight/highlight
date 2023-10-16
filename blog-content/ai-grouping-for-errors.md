@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-image: "/images/blog/ai-grouping-for-errors/error-7.png"
+image: "/images/blog/ai-grouping-for-errors/error-main-2.png"
 tags: AI, Developer Tooling, Launch Week 3
 metaTitle: "Day 5: Our Partners & Supporters"
 ---
