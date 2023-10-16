@@ -1,9 +1,9 @@
 import { Box, Text } from '@highlight-run/ui'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import React from 'react'
-import { FlameGraph } from 'react-flame-graph'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
+import { FlameChartWrapper } from '@/pages/Traces/TraceFlameChartWrapper'
 import {
 	getFirstSpan,
 	getTraceDuration,
@@ -28,7 +28,6 @@ export const TraceFlameGraph: React.FC<Props> = ({
 	setHoveredSpan,
 	setSelectedSpan,
 }) => {
-	console.log('::: selectedSpan', selectedSpan?.spanID)
 	const organizedSpans = React.useMemo(() => {
 		const sortableTraces = [...trace]
 
@@ -42,6 +41,8 @@ export const TraceFlameGraph: React.FC<Props> = ({
 	}, [trace, selectedSpan?.spanID])
 
 	const totalDuration = getTraceDuration(trace)
+	const timeUnits =
+		totalDuration < 10000 ? 'ns' : totalDuration < 1000 ? 'ms' : 's'
 
 	const ticks = Array.from({ length: MAX_TICKS }).map((_, index) => {
 		const percent = index / (MAX_TICKS - 1)
@@ -96,20 +97,18 @@ export const TraceFlameGraph: React.FC<Props> = ({
 				</Box>
 
 				<Box p="4">
-					{/* TODO: Consider using https://github.com/pyatyispyatil/flame-chart-js
-					instead of this React lib which isn't maintained anymore - it says
-					they have support for react, so seems worth a shot */}
-					<FlameGraph
+					<FlameChartWrapper
 						data={organizedSpans}
-						// TODO: Make height dynamic
-						height={300}
-						// TODO: Use autosizer
-						width={654}
-						onChange={(data: { source: Trace }) => {
-							setSelectedSpan(data.source)
+						onSelect={(node: any) => {
+							if (node?.node) {
+								console.log('::: onSelect', node)
+								setSelectedSpan(node.node.source)
+							}
 						}}
-						onMouseOver={(_: any, span: Trace) => {
-							setHoveredSpan(span)
+						settings={{
+							options: {
+								timeUnits,
+							},
 						}}
 					/>
 				</Box>

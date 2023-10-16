@@ -1,3 +1,6 @@
+import { FlameChartNode } from 'flame-chart-js'
+import moment from 'moment'
+
 import { Trace, TraceError } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
@@ -56,15 +59,7 @@ export const getTraceDurationString = (duration: number) => {
 	}
 }
 
-export type FlameGraphSpan = Trace & {
-	backgroundColor: string
-	color: string
-	name: string
-	selected: boolean
-	value: number
-	children?: FlameGraphSpan[]
-	errors?: TraceError[]
-}
+export type FlameGraphSpan = Trace & FlameChartNode
 
 export const organizeSpans = (
 	spans: Trace[],
@@ -76,21 +71,12 @@ export const organizeSpans = (
 
 	const sortedTrace = tempSpans.reduce((acc, span) => {
 		const parentSpanID = span.parentSpanID
+		const isSelected = selectedSpan?.spanID === span.spanID
+		const hasErrors = errors?.some((e) => e.span_id === span.spanID)
 		span.name = span.spanName
-		span.value = span.duration
-
-		if (selectedSpan?.spanID === span.spanID) {
-			span.selected = true
-		}
-
-		span.color = span.selected ? '#fff' : '#744ED4'
-		span.backgroundColor = span.selected ? '#744ED4' : '#E7DEFC'
-
-		const spanErrors =
-			errors?.filter((e) => e.span_id === span.spanID) ?? []
-		if (spanErrors.length > 0) {
-			span.errors = spanErrors
-		}
+		span.start = moment(span.timestamp).valueOf()
+		span.color = isSelected ? '#744ED4' : '#E7DEFC'
+		span.color = hasErrors ? '#ff0000' : span.color
 
 		if (parentSpanID) {
 			const parentSpan = tempSpans.find(
@@ -112,5 +98,5 @@ export const organizeSpans = (
 		return acc
 	}, [] as FlameGraphSpan[])
 
-	return sortedTrace[0]
+	return sortedTrace
 }

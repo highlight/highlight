@@ -1,4 +1,4 @@
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui'
 import moment from 'moment'
 import React from 'react'
 
@@ -11,7 +11,13 @@ type Props = {
 
 export const TraceErrors: React.FC<Props> = ({ errors }) => {
 	if (!errors.length) {
-		return <Box>No errors...</Box>
+		return (
+			<Box mt="10" mx="auto" style={{ maxWidth: 300 }}>
+				<Callout title="No errors">
+					<Text>There are no errors associated with this trace.</Text>
+				</Callout>
+			</Box>
+		)
 	}
 
 	return (
