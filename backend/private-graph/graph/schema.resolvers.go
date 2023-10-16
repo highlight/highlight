@@ -3117,7 +3117,7 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 
 	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
 		Where("project_id = ?", input.ProjectID).
-		Save(alert).Error; err != nil {
+		Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating log alert")
 	}
 
