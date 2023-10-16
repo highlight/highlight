@@ -121,6 +121,7 @@ var ContextKeys = struct {
 	UserAgent      contextString
 	AcceptLanguage contextString
 	UID            contextString
+	OAuthClientID  contextString
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
@@ -192,6 +193,7 @@ var Models = []interface{}{
 	&DeleteSessionsTask{},
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
+	&OAuthOperation{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
 	&IntegrationWorkspaceMapping{},
@@ -377,6 +379,7 @@ const (
 	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
 	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
 	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+	MarkBackendSetupTypeTraces  MarkBackendSetupType = "traces"
 )
 
 type SetupEvent struct {
@@ -1282,6 +1285,18 @@ type OAuthClientStore struct {
 	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
 	AppName   string
+
+	AdminID int
+	Admin   *Admin
+
+	Operations []*OAuthOperation `gorm:"foreignKey:ClientID"`
+}
+
+type OAuthOperation struct {
+	Model
+	ClientID                   string
+	AuthorizedGraphQLOperation string
+	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
 var ErrorType = struct {
@@ -2599,7 +2614,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 }
 
 type SendSlackAlertForLogAlertInput struct {
-	Message   string
+	Body      string
 	Workspace *Workspace
 	StartDate time.Time
 	EndDate   time.Time
@@ -2637,12 +2652,42 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 
 	alertUrl := GetLogAlertURL(obj.ProjectID, obj.Query, input.StartDate, input.EndDate)
 
+	previewText := fmt.Sprintf("%s fired!", obj.Name)
+
+	var headerBlockSet []slack.Block
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s* fired!", obj.Name), false, false)
+	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+	var bodyBlockSet []slack.Block
+	logBlock := slack.NewTextBlockObject(slack.MarkdownType, input.Body, false, false)
+
+	var actionBlocks []slack.BlockElement
+	button := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"View Logs",
+			false,
+			false,
+		),
+	)
+	button.URL = alertUrl
+	actionBlocks = append(actionBlocks, button)
+
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(logBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+
+	attachment := &slack.Attachment{
+		Color:  RED_ALERT,
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
+	}
+
 	log.WithContext(ctx).Info("Sending Slack Alert for Log Alert")
 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
-			message := fmt.Sprintf("%s\n<%s|View Logs>", input.Message, alertUrl)
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 
@@ -2655,12 +2700,12 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
-				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
+				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(headerBlockSet...), slack.MsgOptionAttachments(*attachment),
 					slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 					slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 				)
 				if err != nil {
-					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": previewText}).
 						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
 				}
 
@@ -2882,7 +2927,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		var headerBlock *slack.TextBlockObject
 		if input.FirstErrorAlert {
 			previewText = fmt.Sprintf("New Error Alert: %s", previewEvent)
-			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*❇️ New Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Error Alert: %d Recent Occurrences ❇️*", *input.ErrorsCount), false, false)
 			attachmentColor = YELLOW_ALERT
 		} else {
 			previewText = fmt.Sprintf("Error Alert: %s", previewEvent)

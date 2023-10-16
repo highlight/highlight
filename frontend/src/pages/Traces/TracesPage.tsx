@@ -1,11 +1,11 @@
-import { Box, defaultPresets } from '@highlight-run/ui'
+import { Box, defaultPresets, Text } from '@highlight-run/ui'
+import _ from 'lodash'
 import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
-import LineChart from '@/components/LineChart/LineChart'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -29,7 +29,11 @@ import {
 import { SortDirection, TracesMetricType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
+import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
+import { formatNumber } from '@/util/numbers'
+
+import * as styles from './TracesPage.css'
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
@@ -87,16 +91,22 @@ export const TracesPage: React.FC = () => {
 		.filter((b) => b.metric_type === TracesMetricType.Count)
 		.map((b) => ({
 			bucketId: b.bucket_id,
-			counts: [{ level: 'trace', count: b.metric_value }],
+			counts: [{ level: 'traces', count: b.metric_value }],
 		}))
 
+	const totalCount = _.sumBy(
+		metricsData?.traces_metrics.buckets.filter(
+			(b) => b.metric_type === TracesMetricType.Count,
+		),
+		(b) => b.metric_value,
+	)
+
 	const metricsBuckets: {
-		bucketId: number
 		p50: number | undefined
 		p90: number | undefined
 	}[] = []
 	for (let i = 0; i < metricsData?.traces_metrics.bucket_count; i++) {
-		metricsBuckets.push({ bucketId: i, p50: undefined, p90: undefined })
+		metricsBuckets.push({ p50: undefined, p90: undefined })
 	}
 
 	metricsData?.traces_metrics.buckets.forEach((b) => {
@@ -109,11 +119,6 @@ export const TracesPage: React.FC = () => {
 				break
 		}
 	})
-
-	const LINE_COLORS = {
-		p50: 'var(--color-blue-400)',
-		p90: 'var(--color-orange-400)',
-	}
 
 	return (
 		<>
@@ -152,9 +157,26 @@ export const TracesPage: React.FC = () => {
 						fetchKeys={useGetTracesKeysQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
-
 					<Box display="flex" borderBottom="dividerWeak">
-						<Box width="full">
+						<Box
+							width="full"
+							padding="8"
+							paddingBottom="4"
+							borderRight="dividerWeak"
+						>
+							<Box
+								display="flex"
+								flexDirection="row"
+								gap="4"
+								paddingBottom="4"
+							>
+								<Text size="xSmall">Traces</Text>
+								{!metricsLoading && (
+									<Text size="xSmall" color="weak">
+										{formatNumber(totalCount)} total
+									</Text>
+								)}
+							</Box>
 							<LogsHistogram
 								startDate={startDate}
 								endDate={endDate}
@@ -164,20 +186,20 @@ export const TracesPage: React.FC = () => {
 									metricsData?.traces_metrics.bucket_count
 								}
 								loading={metricsLoading}
+								barColor="#6F6E77"
+								noPadding
 							/>
 						</Box>
-						<Box width="full">
-							<LineChart
-								data={metricsBuckets}
-								xAxisDataKeyName="bucketId"
-								xAxisProps={{
-									domain: ['dataMin', 'dataMax'],
-								}}
-								lineColorMapping={LINE_COLORS}
-								hideXAxis
-								hideLegend
-								yAxisLabel="ms"
-							/>
+						<Box
+							width="full"
+							padding="8"
+							paddingBottom="4"
+							cssClass={styles.chart}
+						>
+							<Text cssClass={styles.chartText} size="xSmall">
+								Latency
+							</Text>
+							<LatencyChart metricsBuckets={metricsBuckets} />
 						</Box>
 					</Box>
 

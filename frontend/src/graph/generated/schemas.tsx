@@ -1829,8 +1829,9 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
-	trace?: Maybe<Array<Trace>>
+	trace?: Maybe<TracePayload>
 	traces: TraceConnection
+	tracesIntegration: IntegrationStatus
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
 	traces_metrics: TracesMetrics
@@ -2411,6 +2412,10 @@ export type QueryTracesArgs = {
 	before?: InputMaybe<Scalars['String']>
 	direction: SortDirection
 	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTracesIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -3098,6 +3103,19 @@ export type TraceEdge = Edge & {
 	node: Trace
 }
 
+export type TraceError = {
+	__typename?: 'TraceError'
+	created_at: Scalars['Timestamp']
+	error_group_secure_id: Scalars['String']
+	event: Scalars['String']
+	log_cursor?: Maybe<Scalars['String']>
+	source: Scalars['String']
+	span_id?: Maybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
+	trace_id?: Maybe<Scalars['String']>
+	type: Scalars['String']
+}
+
 export type TraceEvent = {
 	__typename?: 'TraceEvent'
 	attributes: Scalars['Map']
@@ -3111,6 +3129,12 @@ export type TraceLink = {
 	spanID: Scalars['String']
 	traceID: Scalars['String']
 	traceState: Scalars['String']
+}
+
+export type TracePayload = {
+	__typename?: 'TracePayload'
+	errors: Array<TraceError>
+	trace: Array<Trace>
 }
 
 export type TracesMetricBucket = {

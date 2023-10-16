@@ -152,19 +152,18 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 		if alert.Query != "" {
 			queryStr = fmt.Sprintf(`for query *%s* `, alert.Query)
 		}
-		message := fmt.Sprintf(
-			"🚨 *%s* fired!\nLog count %swas %s the threshold.\n"+
+		body := fmt.Sprintf(
+			"Log count %swas %s the threshold.\n"+
 				"_Count_: %d | _Threshold_: %d",
-			alert.Name,
 			queryStr,
 			aboveStr,
 			count,
 			alert.CountThreshold,
 		)
 
-		log.WithContext(ctx).Info(message)
+		log.WithContext(ctx).WithField("alert_id", alert.ID).Info(fmt.Sprintf("Firing alert for %s", alert.Name))
 
-		if err := alert.SendSlackAlert(ctx, DB, &model.SendSlackAlertForLogAlertInput{Message: message, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
+		if err := alert.SendSlackAlert(ctx, DB, &model.SendSlackAlertForLogAlertInput{Body: body, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
 			log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
 		}
 
@@ -190,7 +189,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 			if alert.Query != "" {
 				queryStr = fmt.Sprintf(`for query <b>%s</b> `, alert.Query)
 			}
-			message = fmt.Sprintf(
+			message := fmt.Sprintf(
 				"<b>%s</b> fired! Log count %sis currently %s the threshold.<br>"+
 					"<em>Count</em>: %d | <em>Threshold</em>: %d"+
 					"<br><br>"+

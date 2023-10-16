@@ -3480,6 +3480,17 @@ export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetTracesIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
+	tracesIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'createdAt'
+	>
+}
+
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	lookBackPeriod: Types.Scalars['Int']
@@ -4712,26 +4723,42 @@ export type GetTraceQueryVariables = Types.Exact<{
 
 export type GetTraceQuery = { __typename?: 'Query' } & {
 	trace?: Types.Maybe<
-		Array<
-			{ __typename?: 'Trace' } & Pick<
-				Types.Trace,
-				| 'timestamp'
-				| 'traceID'
-				| 'spanID'
-				| 'parentSpanID'
-				| 'projectID'
-				| 'secureSessionID'
-				| 'traceState'
-				| 'spanName'
-				| 'spanKind'
-				| 'duration'
-				| 'serviceName'
-				| 'serviceVersion'
-				| 'traceAttributes'
-				| 'statusCode'
-				| 'statusMessage'
+		{ __typename?: 'TracePayload' } & {
+			trace: Array<
+				{ __typename?: 'Trace' } & Pick<
+					Types.Trace,
+					| 'timestamp'
+					| 'traceID'
+					| 'spanID'
+					| 'parentSpanID'
+					| 'projectID'
+					| 'secureSessionID'
+					| 'traceState'
+					| 'spanName'
+					| 'spanKind'
+					| 'duration'
+					| 'serviceName'
+					| 'serviceVersion'
+					| 'traceAttributes'
+					| 'statusCode'
+					| 'statusMessage'
+				>
 			>
-		>
+			errors: Array<
+				{ __typename?: 'TraceError' } & Pick<
+					Types.TraceError,
+					| 'created_at'
+					| 'trace_id'
+					| 'span_id'
+					| 'log_cursor'
+					| 'event'
+					| 'type'
+					| 'source'
+					| 'timestamp'
+					| 'error_group_secure_id'
+				>
+			>
+		}
 	>
 }
 
@@ -4888,6 +4915,7 @@ export const namedOperations = {
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
 		GetLogsIntegration: 'GetLogsIntegration' as const,
+		GetTracesIntegration: 'GetTracesIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,

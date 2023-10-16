@@ -4969,6 +4969,33 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	return integration, nil
 }
 
+// TracesIntegration is the resolver for the tracesIntegration field.
+func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:   false,
+		ResourceType: "Trace",
+	}
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	setupEvent := model.SetupEvent{}
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeTraces).Take(&setupEvent).Error
+	if err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying logging setup event")
+		}
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
+
+	return integration, nil
+}
+
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -7596,13 +7623,32 @@ func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]
 }
 
 // Trace is the resolver for the trace field.
-func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
+func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string) (*modelInputs.TracePayload, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTrace(ctx, project.ID, traceID)
+	trace, err := r.ClickhouseClient.ReadTrace(ctx, project.ID, traceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var errors = []*modelInputs.TraceError{}
+	err = r.DB.Model(&model.ErrorObject{}).
+		Joins("JOIN error_groups ON error_objects.error_group_id = error_groups.id").
+		Where("error_objects.trace_id = ? AND error_objects.project_id = ?", traceID, project.ID).
+		Order("error_objects.timestamp DESC").
+		Select("error_objects.*, error_groups.secure_id as error_group_secure_id").
+		Find(&errors).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.TracePayload{
+		Trace:  trace,
+		Errors: errors,
+	}, nil
 }
 
 // Traces is the resolver for the traces field.
