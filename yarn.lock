@@ -12898,7 +12898,7 @@ __metadata:
     tsup: ^7.1.0
     typescript: ^5.1.6
   peerDependencies:
-    highlight.run: ">=7.6.0"
+    highlight.run: ">=8.0.0"
     react: ">=18"
   languageName: unknown
   linkType: soft
