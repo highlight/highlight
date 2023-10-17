@@ -12,11 +12,12 @@ import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel
 import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
 import styles from '../../components/Home/Home.module.scss'
 import DayOne from '../../components/Launch/Week3/DayOne'
+import DayTwo from '../../components/Launch/Week3/DayTwo'
 import HiddenDay from '../../components/Launch/Week3/HiddenDay'
 import preview from '../../public/images/launch/week-3/ogimage.png'
 
 const LaunchPage = () => {
-	const day = 1
+	const day = 2
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
@@ -124,7 +125,7 @@ const LaunchPage = () => {
 				</div>
 				<div className="flex flex-col items-center gap-16 w-full max-w-[550px] md:max-w-[1200px] mx-auto my-10 px-8">
 					<DayOne />
-					<HiddenDay title="Day 2: October 17th" />
+					<DayTwo />
 					<HiddenDay title="Day 3: October 18th" />
 					<HiddenDay title="Day 4: October 19th" />
 					<HiddenDay title="Day 5: October 20th" />
