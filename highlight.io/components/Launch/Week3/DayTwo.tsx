@@ -44,7 +44,7 @@ const DayTwo = () => {
 
 			<div
 				className={classNames(
-					'flex flex-col md:flex-row gap-2 max-w-[550px] md:max-w-none mx-auto mt-3',
+					'flex flex-col md:flex-row gap-5 max-w-[550px] md:max-w-none mx-auto mt-3',
 				)}
 			>
 				<div
