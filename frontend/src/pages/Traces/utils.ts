@@ -1,5 +1,4 @@
 import { FlameChartNode } from 'flame-chart-js'
-import moment from 'moment'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
 
@@ -28,14 +27,15 @@ export const getTraceDuration = (trace: Trace[]) => {
 	const firstSpanStartMs = new Date(firstSpan.timestamp).getTime()
 	const finalSpan = getFinalSpan(trace)
 	const finalSpanMs =
-		new Date(finalSpan.timestamp).getTime() + finalSpan.duration / 1000
+		new Date(finalSpan.timestamp).getTime() + finalSpan.duration
 
 	return Math.round(finalSpanMs - firstSpanStartMs)
 }
 
 export const getTraceDurationString = (duration: number) => {
-	const milliseconds = Math.floor(duration)
-	const seconds = Math.floor(duration / 1000)
+	const nanoseconds = Math.floor(duration)
+	const milliseconds = Math.floor(nanoseconds / 1000000)
+	const seconds = Math.floor(milliseconds / 1000)
 	const minutes = Math.floor(seconds / 60)
 	const hours = Math.floor(minutes / 60)
 	const days = Math.floor(hours / 24)
@@ -59,7 +59,10 @@ export const getTraceDurationString = (duration: number) => {
 	}
 }
 
-export type FlameGraphSpan = Trace & FlameChartNode
+export type FlameGraphSpan = {
+	children?: FlameGraphSpan[]
+} & Trace &
+	FlameChartNode
 
 export const organizeSpans = (
 	spans: Trace[],
@@ -74,9 +77,8 @@ export const organizeSpans = (
 		const isSelected = selectedSpan?.spanID === span.spanID
 		const hasErrors = errors?.some((e) => e.span_id === span.spanID)
 		span.name = span.spanName
-		span.start = moment(span.timestamp).valueOf()
-		span.color = isSelected ? '#744ED4' : '#E7DEFC'
-		span.color = hasErrors ? '#ff0000' : span.color
+		// span.color = isSelected ? '#744ED4' : '#E7DEFC'
+		// span.color = hasErrors ? '#ff0000' : span.color
 
 		if (parentSpanID) {
 			const parentSpan = tempSpans.find(

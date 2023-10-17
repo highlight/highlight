@@ -8,7 +8,7 @@ import { trace } from './utils.fixture'
 describe('getTraceDuration', () => {
 	it('should return the duration between the start and end times', () => {
 		const totalDuration = getTraceDuration(trace)
-		expect(totalDuration).toEqual(594375)
+		expect(totalDuration).toEqual(594375375)
 	})
 })
 
@@ -19,6 +19,7 @@ const unsortedSpans = [
 	{ spanID: 'd', spanName: 'd', parentSpanID: 'a', duration: 400 },
 	{ spanID: 'e', spanName: 'e', parentSpanID: 'd', duration: 500 },
 	{ spanID: 'f', spanName: 'f', parentSpanID: 'e', duration: 600 },
+	{ spanID: 'g', spanName: 'g', parentSpanID: 'b', duration: 600 },
 ] as Trace[]
 
 const expectedSortedTrace = {
@@ -28,8 +29,6 @@ const expectedSortedTrace = {
 	duration: 100,
 	name: 'a',
 	value: 100,
-	color: '#744ED4',
-	backgroundColor: '#E7DEFC',
 	children: [
 		{
 			spanID: 'b',
@@ -38,8 +37,15 @@ const expectedSortedTrace = {
 			duration: 200,
 			name: 'b',
 			value: 200,
-			color: '#744ED4',
-			backgroundColor: '#E7DEFC',
+			children: [
+				{
+					duration: 600,
+					name: 'g',
+					parentSpanID: 'b',
+					spanID: 'g',
+					spanName: 'g',
+				},
+			],
 		},
 		{
 			spanID: 'd',
@@ -54,8 +60,6 @@ const expectedSortedTrace = {
 					duration: 300,
 					name: 'c',
 					value: 300,
-					color: '#744ED4',
-					backgroundColor: '#E7DEFC',
 				},
 				{
 					spanID: 'e',
@@ -64,8 +68,6 @@ const expectedSortedTrace = {
 					duration: 500,
 					name: 'e',
 					value: 500,
-					color: '#744ED4',
-					backgroundColor: '#E7DEFC',
 					children: [
 						{
 							spanID: 'f',
@@ -74,16 +76,12 @@ const expectedSortedTrace = {
 							duration: 600,
 							name: 'f',
 							value: 600,
-							color: '#744ED4',
-							backgroundColor: '#E7DEFC',
 						},
 					],
 				},
 			],
 			name: 'd',
 			value: 400,
-			color: '#744ED4',
-			backgroundColor: '#E7DEFC',
 		},
 	],
 }
