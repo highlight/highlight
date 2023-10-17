@@ -1,5 +1,5 @@
 ---
-title: An honest, open source, session replay benchmark.
+title: An honest, open source, session replay benchmark
 createdAt: 2023-10-17T12:00:00Z
 readingTime: 13
 authorFirstName: Abhishek
