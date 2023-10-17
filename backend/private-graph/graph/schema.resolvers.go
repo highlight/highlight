@@ -7807,6 +7807,24 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	return deviceMemory, nil
 }
 
+// SessionComments is the resolver for the session_comments field.
+func (r *sessionResolver) SessionComments(ctx context.Context, s *model.Session) ([]*model.SessionComment, error) {
+	if util.IsDevEnv() && s.sessionSecureID == "repro" {
+		sessionComments := []*model.SessionComment{}
+		return sessionComments, nil
+	}
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, err
+	}
+	sessionComments := []*model.SessionComment{}
+
+	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comments for session")
+	}
+	return sessionComments, nil
+}
+
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
