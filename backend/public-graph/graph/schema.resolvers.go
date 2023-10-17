@@ -24,7 +24,7 @@ import (
 )
 
 // InitializeSession is the resolver for the initializeSession field.
-func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*customModels.InitializeSessionResponse, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) (*customModels.InitializeSessionResponse, error) {
 	s, _ := util.StartSpanFromContext(ctx, "InitializeSession", util.ResourceName("gql.initializeSession"))
 	s.SetAttribute("secure_id", sessionSecureID)
 	s.SetAttribute("client_version", clientVersion)
@@ -45,6 +45,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				CreatedAt:                      time.Now(),
 				ProjectVerboseID:               organizationVerboseID,
 				EnableStrictPrivacy:            enableStrictPrivacy,
+				PrivacySetting:                 privacySetting,
 				EnableRecordingNetworkContents: enableRecordingNetworkContents,
 				ClientVersion:                  clientVersion,
 				FirstloadVersion:               firstloadVersion,

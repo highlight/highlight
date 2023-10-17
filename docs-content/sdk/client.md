@@ -72,8 +72,12 @@ slug: client
           <p>Specifies the name of your application.</p>
         </aside>
         <aside className="parameter">
-          <h5>enableStrictPrivacy <code>boolean</code> <code>optional</code></h5>
-          <p>Specifies whether Highlight should redact all text and image data during recording. This is useful to make sure you are not recording any personally identifiable information without having to manually add annotations to elements you don't want to be recorded. See [Privacy](../general/6_product-features/1_session-replay/privacy.md) to learn more about the privacy options. The default value is false.</p>
+          <h5>privacySetting <code>'strict' | 'default' | 'none'</code> <code>optional</code></h5>
+          <p>Specifies how much of the content Highlight should redact during recording. There are 3 levels of privacy:
+          1. 'strict' - Redact all text and images on the page. This is the safest way to ensure you are not recording any personally identifiable information without having to manually add annotations to elements you don't want to be recorded.
+          2. 'default' - Highlight will redact any text or input data that matches common regex expressions and input names of personally identifiable information. No images or media will be redacted.
+          3. 'none' - All text and content will be recorded as it is displayed on the page.  
+          See [Privacy](../general/6_product-features/1_session-replay/privacy.md) to learn more about the privacy options. The default value is 'default'.</p>
         </aside>
         <aside className="parameter">
           <h5>integrations <code>IntegrationOptions</code> <code>optional</code></h5>

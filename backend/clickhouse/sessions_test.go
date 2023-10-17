@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/stretchr/testify/assert"
@@ -72,6 +73,7 @@ func TestWriteSession(t *testing.T) {
 		Starred:                        new(bool),
 		FieldGroup:                     new(string),
 		EnableStrictPrivacy:            new(bool),
+		PrivacySetting:                 new(string),
 		EnableRecordingNetworkContents: new(bool),
 		ClientVersion:                  "",
 		FirstloadVersion:               "",

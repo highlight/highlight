@@ -5,7 +5,7 @@ export const getInitSnippet = (projectId: string, withOptions = false) =>
 	withOptions
 		? `H.init('${projectId}', {
   environment: 'production',
-  enableStrictPrivacy: false,${
+  privacySetting: 'default',${
 		isOnPrem ? '\n  backendUrl: "' + GetBaseURL() + '/public",' : ''
   }
 });`

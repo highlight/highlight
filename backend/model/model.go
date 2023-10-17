@@ -685,6 +685,7 @@ type Session struct {
 	Starred                        *bool   `json:"starred"`
 	FieldGroup                     *string `json:"field_group"`
 	EnableStrictPrivacy            *bool   `json:"enable_strict_privacy"`
+	PrivacySetting                 *string `json:"privacy_setting"`
 	EnableRecordingNetworkContents *bool   `json:"enable_recording_network_contents"`
 	// The version of Highlight's Client.
 	ClientVersion string `json:"client_version"`

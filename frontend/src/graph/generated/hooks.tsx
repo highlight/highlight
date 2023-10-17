@@ -5724,6 +5724,7 @@ export const GetSessionDocument = gql`
 			client_id
 			starred
 			enable_strict_privacy
+			privacy_setting
 			enable_recording_network_contents
 			field_group
 			fields {

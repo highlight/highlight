@@ -117,6 +117,7 @@ export type MutationInitializeSessionArgs = {
 	firstloadVersion: Scalars['String']
 	network_recording_domains?: InputMaybe<Array<Scalars['String']>>
 	organization_verbose_id: Scalars['String']
+	privacy_setting?: InputMaybe<Scalars['String']>
 	serviceName?: InputMaybe<Scalars['String']>
 	session_secure_id: Scalars['String']
 }
@@ -262,6 +263,7 @@ export type InitializeSessionMutationVariables = Exact<{
 	session_secure_id: Scalars['String']
 	organization_verbose_id: Scalars['String']
 	enable_strict_privacy: Scalars['Boolean']
+	privacy_setting: Scalars['String']
 	enable_recording_network_contents: Scalars['Boolean']
 	clientVersion: Scalars['String']
 	firstloadVersion: Scalars['String']
@@ -370,6 +372,7 @@ export const InitializeSessionDocument = gql`
 		$session_secure_id: String!
 		$organization_verbose_id: String!
 		$enable_strict_privacy: Boolean!
+		$privacy_setting: String!
 		$enable_recording_network_contents: Boolean!
 		$clientVersion: String!
 		$firstloadVersion: String!
@@ -397,6 +400,7 @@ export const InitializeSessionDocument = gql`
 			client_id: $client_id
 			network_recording_domains: $network_recording_domains
 			disable_session_recording: $disable_session_recording
+			privacy_setting: $privacy_setting
 		) {
 			secure_id
 			project_id
