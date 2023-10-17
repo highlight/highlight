@@ -36,7 +36,7 @@ export const ProjectRedirectionRouter = () => {
 	}
 
 	let redirectTo
-	if (authRedirectRoute) {
+	if (authRedirectRoute && authRedirectRoute !== '/') {
 		redirectTo = authRedirectRoute
 	} else if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
