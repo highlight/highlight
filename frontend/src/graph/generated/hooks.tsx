@@ -145,7 +145,6 @@ export const ErrorObjectFragmentDoc = gql`
 				y_coordinate
 				type
 				metadata
-				tags
 			}
 		}
 		error_group_id
