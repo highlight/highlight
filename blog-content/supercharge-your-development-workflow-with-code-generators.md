@@ -1,6 +1,6 @@
 ---
 title: Supercharge Your Development Workflow with Code Generators
-createdAt: 2023-06-08T14:00:00Z
+createdAt: 2023-10-16T14:00:00Z
 readingTime: 4
 authorFirstName: Chris
 authorLastName: Schmitz
