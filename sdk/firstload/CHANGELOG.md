@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.0.0
+
+### Major Changes
+
+-   4f4e5aa4f: Switches privacy settings from `enableStrictPrivacy` to `privacySetting`, which will have a `'default'` mode that uses common regex expressions and input names to obfuscate personally identifiable information. Strict privacy mode is unchanged, and can be used by setting `privacySetting` to `'strict'`. No obfuscation can still be used by setting `privacySetting` to `'none'`.
+
 ## 7.6.0
 
 ### Minor Changes
