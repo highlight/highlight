@@ -572,7 +572,7 @@ const User: React.FC<{
 						)}
 					</Box>
 				</Box>
-				<ErrorBoundaryFeedback data={errorObject} />
+				{errorObject && <ErrorBoundaryFeedback data={errorObject} />}
 			</Box>
 		</Box>
 	)

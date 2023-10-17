@@ -7865,18 +7865,18 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 }
 
 // SessionComments is the resolver for the session_comments field.
-func (r *sessionResolver) SessionComments(ctx context.Context, s *model.Session) ([]*model.SessionComment, error) {
-	if util.IsDevEnv() && s.sessionSecureID == "repro" {
+func (r *sessionResolver) SessionComments(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
+	if util.IsDevEnv() && obj.SecureID == "repro" {
 		sessionComments := []*model.SessionComment{}
 		return sessionComments, nil
 	}
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	s, err := r.canAdminViewSession(ctx, obj.SecureID)
 	if err != nil {
 		return nil, err
 	}
 	sessionComments := []*model.SessionComment{}
 
-	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.SessionComment{SessionId: s.ID, SessionCommentType: SessionCommentType.Feedback}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
@@ -8151,3 +8151,13 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *errorObjectResolver) SessionComments(ctx context.Context, obj *model.ErrorObject) ([]*model.SessionComment, error) {
+	panic(fmt.Errorf("not implemented: SessionComments - session_comments"))
+}
