@@ -1,5 +1,11 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
+	AdminSuggestion,
+	filterMentionedAdmins,
+	filterMentionedSlackUsers,
+	parseAdminSuggestions,
+} from '@components/Comment/utils/utils'
+import {
 	useCreateErrorCommentMutation,
 	useCreateSessionCommentMutation,
 	useGetCommentMentionSuggestionsQuery,
@@ -20,6 +26,7 @@ import {
 	IconSolidClickUp,
 	IconSolidGithub,
 	IconSolidHeight,
+	IconSolidJira,
 	IconSolidLinear,
 	IconSolidPaperAirplane,
 	IconSolidPlus,
@@ -28,7 +35,7 @@ import {
 	Menu,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -36,10 +43,9 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import ISSUE_TRACKER_INTEGRATIONS, {
 	IssueTrackerIntegration,
 } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
-import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
+import { CommentTextBody } from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
-import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -48,10 +54,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
-import {
-	AdminSuggestion,
-	parseAdminSuggestions,
-} from '@/components/Comment/utils/utils'
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
@@ -89,9 +92,8 @@ export const NewCommentForm = ({
 	const [createComment] = useCreateSessionCommentMutation({
 		refetchQueries: [
 			namedOperations.Query.GetSessionComments,
-			namedOperations.Query.GetSessionsOpenSearch,
+			namedOperations.Query.GetSessionsClickhouse,
 		],
-		onQueryUpdated: delayedRefetch,
 	})
 	const [createErrorComment] = useCreateErrorCommentMutation()
 	const { admin, isLoggedIn } = useAuthContext()
@@ -111,13 +113,14 @@ export const NewCommentForm = ({
 	const [selectedIssueService, setSelectedIssueService] =
 		useState<IntegrationType>()
 	const [containerId, setContainerId] = useState('')
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			commentText: '',
 			issueTitle: '',
 			issueDescription: '',
 		},
 	})
+	const formValues = formStore.useState('values')
 
 	const integrationMap = useMemo(() => {
 		const ret: { [key: string]: IssueTrackerIntegration } = {}
@@ -172,7 +175,7 @@ export const NewCommentForm = ({
 		})
 		setIsCreatingComment(true)
 
-		const { issueTitle, issueDescription } = formState.values
+		const { issueTitle, issueDescription } = formValues
 
 		try {
 			await createErrorComment({
@@ -196,7 +199,7 @@ export const NewCommentForm = ({
 				},
 				refetchQueries: [namedOperations.Query.GetErrorComments],
 			})
-			formState.reset()
+			formStore.reset()
 			setCommentText('')
 			onCloseHandler()
 		} catch (_e) {
@@ -216,7 +219,7 @@ export const NewCommentForm = ({
 		})
 		setIsCreatingComment(true)
 
-		const { issueTitle, issueDescription } = formState.values
+		const { issueTitle, issueDescription } = formValues
 
 		try {
 			await createComment({
@@ -243,15 +246,13 @@ export const NewCommentForm = ({
 						? issueDescription
 						: null,
 					additional_context: currentUrl
-						? `• From ${
-								error_secure_id ? 'error' : 'session'
-						  } URL: <${currentUrl}|${currentUrl}>`
+						? `*User\'s URL* <${currentUrl}|${currentUrl}>`
 						: null,
 				},
 				refetchQueries: [namedOperations.Query.GetSessionComments],
 			})
 			onCloseHandler()
-			formState.reset()
+			formStore.reset()
 			if (!selectedTimelineAnnotationTypes.includes('Comments')) {
 				setSelectedTimelineAnnotationTypes([
 					...selectedTimelineAnnotationTypes,
@@ -304,47 +305,21 @@ export const NewCommentForm = ({
 	) => {
 		setCommentTextForEmail(newPlainTextValue)
 
-		setMentionedAdmins(
-			mentions
-				.filter(
-					(mention) =>
-						!mention.display.includes('@') &&
-						!mention.display.includes('#'),
-				)
-				.map((mention) => {
-					const wa = adminsInWorkspace?.admins?.find((wa) => {
-						return wa.admin?.id === mention.id
-					})
-					return { id: mention.id, email: wa?.admin?.email || '' }
-				}),
-		)
+		if (adminsInWorkspace?.admins) {
+			setMentionedAdmins(
+				filterMentionedAdmins(
+					adminsInWorkspace.admins.map((wa) => wa.admin),
+					mentions,
+				),
+			)
+		}
 
 		if (mentionSuggestionsData?.slack_channel_suggestion) {
 			setMentionedSlackUsers(
-				mentions
-					.filter(
-						(mention) =>
-							mention.display.includes('@') ||
-							mention.display.includes('#'),
-					)
-					.map<SanitizedSlackChannelInput>((mention) => {
-						const matchingSlackUser =
-							mentionSuggestionsData.slack_channel_suggestion.find(
-								(suggestion) => {
-									return (
-										suggestion.webhook_channel_id ===
-										mention.id
-									)
-								},
-							)
-
-						return {
-							webhook_channel_id:
-								matchingSlackUser?.webhook_channel_id,
-							webhook_channel_name:
-								matchingSlackUser?.webhook_channel,
-						}
-					}),
+				filterMentionedSlackUsers(
+					mentionSuggestionsData.slack_channel_suggestion,
+					mentions,
+				),
 			)
 		}
 		setCommentText(e.target.value)
@@ -364,6 +339,7 @@ export const NewCommentForm = ({
 	)
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
+	const { settings: jiraSettings } = useJiraIntegration()
 
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
@@ -387,6 +363,18 @@ export const NewCommentForm = ({
 				),
 				id: 'linear',
 				value: IntegrationType.Linear,
+			})
+		}
+		if (jiraSettings.isIntegrated) {
+			integrations.push({
+				displayValue: (
+					<Stack direction="row" gap="4" align="center">
+						<IconSolidJira />
+						Create a Jira issue
+					</Stack>
+				),
+				id: 'jira',
+				value: IntegrationType.Jira,
 			})
 		}
 		if (isClickupIntegrated) {
@@ -428,6 +416,7 @@ export const NewCommentForm = ({
 		return integrations
 	}, [
 		isLinearIntegratedWithProject,
+		jiraSettings.isIntegrated,
 		isClickupIntegrated,
 		isHeightIntegrated,
 		githubSettings.isIntegrated,
@@ -455,7 +444,7 @@ export const NewCommentForm = ({
 			<Form
 				name="newComment"
 				onSubmit={handleSubmit}
-				state={formState}
+				store={formStore}
 				onKeyDown={onFormChangeHandler}
 			>
 				{section === CommentFormSection.NewIssueForm && (
@@ -487,23 +476,27 @@ export const NewCommentForm = ({
 									kind="secondary"
 									emphasis="low"
 									icon={<IconSolidX size={14} />}
+									disabled={isCreatingComment}
 								/>
 							</Stack>
 						</Box>
 						<Stack direction="column" gap="12" p="12">
 							{issueServiceDetail?.containerSelection({
+								disabled: isCreatingComment,
 								setSelectionId: setContainerId,
 							})}
 							<Form.Input
 								name="issueTitle"
 								label="Title"
 								placeholder="Title"
+								disabled={isCreatingComment}
 							/>
 							<Form.Input
 								name="issueDescription"
 								label="Description"
 								// @ts-expect-error
 								as="textarea"
+								disabled={isCreatingComment}
 							/>
 						</Stack>
 						<Stack
@@ -523,14 +516,15 @@ export const NewCommentForm = ({
 								size="small"
 								trackingId="new-comment-attach-issue_cancel"
 								onClick={() => {
-									formState.setValues({
-										...formState.values,
+									formStore.setValues({
+										...formValues,
 										issueTitle: '',
 										issueDescription: '',
 									})
 									setSelectedIssueService(undefined)
 									setSection(CommentFormSection.CommentForm)
 								}}
+								disabled={isCreatingComment}
 							>
 								Cancel
 							</Button>
@@ -542,6 +536,7 @@ export const NewCommentForm = ({
 								onClick={() => {
 									setSection(CommentFormSection.CommentForm)
 								}}
+								disabled={isCreatingComment}
 							>
 								Save
 							</Button>
@@ -585,17 +580,17 @@ export const NewCommentForm = ({
 												<Menu.Item
 													key={id}
 													onClick={() => {
-														formState.setValue(
+														formStore.setValue(
 															'issueTitle',
 															defaultIssueTitle,
 														)
 
 														if (
-															!formState.getValue(
+															!formStore.getValue(
 																'issueDescription',
 															)
 														) {
-															formState.setValue(
+															formStore.setValue(
 																'issueDescription',
 																commentTextForEmail,
 															)

@@ -1,6 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetWebVitalsQuery } from '@graph/hooks'
-import { Box, Form, IconSolidSearch, useFormState } from '@highlight-run/ui'
+import { Box, Form, IconSolidSearch, useFormStore } from '@highlight-run/ui'
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
 import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import {
@@ -37,16 +37,23 @@ const EventStreamV2 = function () {
 		currentEvent,
 		setCurrentEvent,
 	} = useReplayerContext()
-	const { setActiveEvent, setRightPanelView } = usePlayerUIContext()
+	const {
+		setActiveEvent,
+		setRightPanelView,
+		activeEventIndex,
+		setActiveEventIndex,
+		searchItem,
+		setSearchItem,
+	} = usePlayerUIContext()
 	const [isInteractingWithStreamEvents, setIsInteractingWithStreamEvents] =
 		useState(false)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
-	const form = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
-			search: '',
+			search: searchItem,
 		},
 	})
-	const searchQuery = form.getValue('search')
+	const searchQuery = formStore.useValue('search')
 	const eventTypeFilters = useEventTypeFilters()
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
@@ -80,7 +87,7 @@ const EventStreamV2 = function () {
 
 	const usefulEvents = useMemo(() => events.filter(usefulEvent), [events])
 	const filteredEvents = useMemo(
-		() => getFilteredEvents(searchQuery, usefulEvents, eventTypeFilters),
+		() => getFilteredEvents(searchQuery!, usefulEvents, eventTypeFilters),
 		[eventTypeFilters, searchQuery, usefulEvents],
 	)
 
@@ -116,7 +123,7 @@ const EventStreamV2 = function () {
 		!replayer || state === ReplayerState.Loading || events.length === 0
 
 	return (
-		<Box className={style.container}>
+		<Box cssClass={style.container}>
 			{isLoading ? (
 				<LoadingBox />
 			) : (
@@ -127,7 +134,7 @@ const EventStreamV2 = function () {
 					flexDirection="column"
 				>
 					<Box px="12" py="8">
-						<Form state={form}>
+						<Form store={formStore}>
 							<Box
 								display="flex"
 								justifyContent="space-between"
@@ -138,7 +145,7 @@ const EventStreamV2 = function () {
 							>
 								<IconSolidSearch size={16} />
 								<Form.Input
-									name={form.names.search}
+									name={formStore.names.search}
 									placeholder="Search"
 									size="xSmall"
 									outline={false}
@@ -158,6 +165,7 @@ const EventStreamV2 = function () {
 							data={filteredEvents}
 							totalCount={filteredEvents.length}
 							className={styledVerticalScrollbar}
+							initialTopMostItemIndex={activeEventIndex}
 							itemContent={(index, event) => (
 								<StreamEventV2
 									e={event}
@@ -171,6 +179,8 @@ const EventStreamV2 = function () {
 										setCurrentEvent(e)
 										setActiveEvent(event)
 										setRightPanelView(RightPanelView.Event)
+										setActiveEventIndex(index)
+										setSearchItem(searchQuery)
 									}}
 								/>
 							)}

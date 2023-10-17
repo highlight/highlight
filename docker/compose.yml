@@ -11,6 +11,9 @@ services:
         logging: *highlight-logging
         image: confluentinc/cp-zookeeper:7.3.0
         container_name: zookeeper
+        volumes:
+            - zoo-data:/var/lib/zookeeper/data
+            - zoo-log:/var/lib/zookeeper/log
         environment:
             ZOOKEEPER_CLIENT_PORT: 2181
             ZOOKEEPER_TICK_TIME: 2000
@@ -19,6 +22,8 @@ services:
         logging: *highlight-logging
         image: confluentinc/cp-kafka:7.3.0
         container_name: kafka
+        volumes:
+            - kafka-data:/var/lib/kafka/data
         ports:
             - 9092:9092
         depends_on:
@@ -52,7 +57,8 @@ services:
     postgres:
         logging: *highlight-logging
         container_name: postgres
-        image: postgres
+        # a postgres image with pgvector installed
+        image: ankane/pgvector
         ports:
             - 5432:5432
         environment:
@@ -69,42 +75,13 @@ services:
     clickhouse:
         logging: *highlight-logging
         container_name: clickhouse
-        image: clickhouse/clickhouse-server
+        image: clickhouse/clickhouse-server:23.5.1.3174
         ports:
             - 8123:8123
             - 9000:9000
         volumes:
             - clickhouse-data:/var/lib/clickhouse
             - clickhouse-logs:/var/log/clickhouse-server
-
-    opensearch:
-        logging: *highlight-logging
-        container_name: opensearch
-        image: opensearchproject/opensearch:1.1.0
-        ports:
-            - 9200:9200
-            - 9600:9600
-        environment:
-            discovery.type: single-node
-            ES_JAVA_OPTS: '-Xms128m -Xmx128m'
-            DISABLE_INSTALL_DEMO_CONFIG: true
-            DISABLE_SECURITY_PLUGIN: true
-        volumes:
-            - opensearch-data:/usr/share/opensearch/data
-        healthcheck:
-            test:
-                [
-                    'CMD',
-                    'curl',
-                    '-f',
-                    '-u',
-                    'admin:admin',
-                    'http://localhost:9200',
-                ]
-            start_period: 180s
-            interval: 5s
-            timeout: 5s
-            retries: 5
 
     influxdb:
         logging: *highlight-logging
@@ -129,7 +106,9 @@ services:
             - 4317:4317
             - 4318:4318
             - 4319:4319
+            - 8888:8888
             - 24224:24224
+            - 34302:34302
         container_name: collector
         image: otel/opentelemetry-collector-contrib
         command:
@@ -142,5 +121,7 @@ volumes:
     clickhouse-data:
     clickhouse-logs:
     redis-data:
-    opensearch-data:
     influxdb-data:
+    kafka-data:
+    zoo-log:
+    zoo-data:

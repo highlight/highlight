@@ -76,6 +76,10 @@ const RequestStatusFilter = ({
 					// if fetch, consider unknown. otherwise assume it is 2xx
 					if (request.initiatorType === RequestType.Fetch) {
 						count['Unknown'] += 1
+					} else if (
+						request.initiatorType === RequestType.WebSocket
+					) {
+						count['1XX'] += 1
 					} else {
 						count['2XX'] += 1
 					}
@@ -141,7 +145,7 @@ const RequestStatusFilter = ({
 
 	return (
 		<MultiSelectButton
-			label="Status"
+			label={FILTER_LABEL}
 			icon={<IconSolidFilter />}
 			defaultValue={options[0].key}
 			value={requestStatuses}

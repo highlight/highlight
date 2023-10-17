@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -15,8 +17,13 @@ func init() {
 
 func main() {
 	highlight.SetProjectID("1jdkoe52")
-	highlight.Start()
-	defer highlight.Stop()
+	highlight.Start(
+		highlight.WithServiceName("lambda-functions--deleteSession-batchFromS3"),
+		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+	)
 	hlog.Init()
-	lambda.Start(h.DeleteSessionBatchFromS3)
+	lambda.StartWithOptions(
+		h.DeleteSessionBatchFromS3,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

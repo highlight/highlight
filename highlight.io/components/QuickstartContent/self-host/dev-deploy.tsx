@@ -29,16 +29,16 @@ cd highlight/docker;
 					language: 'bash',
 				},
 				{
-					key: 'frontend',
-					text: `# now, start the frontend. this will run yarn docker:frontend in the monorepo and block until you stop it with ctrl+c.
-./run-frontend.sh`,
+					key: 'backend',
+					text: `# start the backend. this will run make start-no-doppler in backend and block until you stop it with ctrl+c.
+cd highlight/docker;
+./run-backend.sh`,
 					language: 'bash',
 				},
 				{
-					key: 'backend',
-					text: `# in a second terminal, start the backend. this will run make start-no-doppler in backend and block until you stop it with ctrl+c.
-cd highlight/docker;
-./run-backend.sh`,
+					key: 'frontend',
+					text: `# now, start the frontend in a second terminal. this will run yarn docker:frontend in the monorepo and block until you stop it with ctrl+c.
+./run-frontend.sh`,
 					language: 'bash',
 				},
 			],

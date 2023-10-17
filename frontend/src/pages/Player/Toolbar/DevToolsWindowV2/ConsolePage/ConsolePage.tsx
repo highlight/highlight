@@ -8,16 +8,18 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
-import { buildSessionParams } from '@pages/LogsPage/SearchForm/utils'
-import { ReplayerState } from '@pages/Player/ReplayerContext'
+import { COLOR_MAPPING } from '@pages/LogsPage/constants'
+import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import _ from 'lodash'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetSessionLogsQuery } from '@/graph/generated/hooks'
+import { buildSessionParams } from '@/pages/LogsPage/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { useReplayerContext } from '../../../ReplayerContext'
@@ -41,7 +43,7 @@ export const ConsolePage = ({
 }) => {
 	const { projectId } = useProjectId()
 	const [selectedCursor, setSelectedCursor] = useState(logCursor)
-	const { session, setTime, time, isPlayerReady, sessionMetadata, state } =
+	const { session, time, setTime, sessionMetadata, isPlayerReady } =
 		useReplayerContext()
 
 	const params = buildSessionParams({ session, levels, sources })
@@ -52,9 +54,8 @@ export const ConsolePage = ({
 				query: params.query,
 				date_range: {
 					start_date:
-						params.date_range.start_date.format(LOG_TIME_FORMAT),
-					end_date:
-						params.date_range.end_date.format(LOG_TIME_FORMAT),
+						params.date_range.start_date.format(TIME_FORMAT),
+					end_date: params.date_range.end_date.format(TIME_FORMAT),
 				},
 			},
 			project_id: projectId,
@@ -84,7 +85,7 @@ export const ConsolePage = ({
 
 	// Logic for scrolling to current entry.
 	useEffect(() => {
-		if (state !== ReplayerState.Playing || !autoScroll) {
+		if (!autoScroll) {
 			return
 		}
 		if (messagesToRender.length) {
@@ -103,7 +104,7 @@ export const ConsolePage = ({
 			}
 			setSelectedCursor(cursor)
 		}
-	}, [state, time, messagesToRender, autoScroll])
+	}, [time, messagesToRender, autoScroll])
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
@@ -113,6 +114,21 @@ export const ConsolePage = ({
 		)
 	}, [messagesToRender, selectedCursor])
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const scrollFunction = useCallback(
+		_.debounce((index: number) => {
+			requestAnimationFrame(() => {
+				if (virtuoso.current) {
+					virtuoso.current.scrollToIndex({
+						index,
+						align: 'center',
+					})
+				}
+			})
+		}, THROTTLED_UPDATE_MS),
+		[],
+	)
+
 	useEffect(() => {
 		if (
 			isPlayerReady && // ensure Virtuoso component is actually rendered
@@ -120,39 +136,13 @@ export const ConsolePage = ({
 			messagesToRender
 		) {
 			if (foundIndex >= 0) {
-				virtuoso.current.scrollToIndex({
-					index: foundIndex,
-					align: 'center',
-					// Using smooth has performance issues with large lists
-					// See: https://virtuoso.dev/scroll-to-index/
-					// behavior: 'smooth'
-				})
-
-				if (state === ReplayerState.Paused) {
-					// We really only want this run when the component is mounted
-					// and we are trying to set the player time based on what the log cursor
-					// query param is.
-					const timestamp =
-						new Date(
-							messagesToRender[foundIndex].node.timestamp,
-						).getTime() - sessionMetadata.startTime
-					setTime(timestamp)
-				}
+				scrollFunction(foundIndex)
 			}
 		}
-	}, [
-		autoScroll,
-		foundIndex,
-		isPlayerReady,
-		messagesToRender,
-		selectedCursor,
-		sessionMetadata.startTime,
-		setTime,
-		state,
-	])
+	}, [foundIndex, isPlayerReady, messagesToRender, scrollFunction])
 
 	return (
-		<Box className={styles.consoleBox}>
+		<Box cssClass={styles.consoleBox}>
 			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : messagesToRender?.length ? (
@@ -169,6 +159,11 @@ export const ConsolePage = ({
 							current={selectedCursor === logEdge.cursor}
 							onSelect={() => {
 								setSelectedCursor(logEdge.cursor)
+								const timestamp =
+									new Date(
+										messagesToRender[_index].node.timestamp,
+									).getTime() - sessionMetadata.startTime
+								setTime(timestamp)
 							}}
 						/>
 					)}

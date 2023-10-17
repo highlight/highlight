@@ -1,5 +1,12 @@
 import { LinkButton } from '@components/LinkButton'
-import { ErrorGroup, IntegrationStatus, Session } from '@graph/schemas'
+import {
+	ErrorAlert,
+	ErrorGroup,
+	IntegrationStatus,
+	LogAlert,
+	Session,
+	SessionAlert,
+} from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -15,8 +22,9 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 
 import {
-	useGetErrorGroupsOpenSearchQuery,
-	useGetSessionsOpenSearchQuery,
+	useGetAlertsPagePayloadQuery,
+	useGetErrorGroupsClickhouseQuery,
+	useGetSessionsClickhouseQuery,
 } from '@/graph/generated/hooks'
 
 import * as styles from './IntegrationBar.css'
@@ -25,24 +33,30 @@ type Props = React.PropsWithChildren & {
 	integrationData?: IntegrationStatus
 }
 
-type Area = 'client' | 'backend' | 'backend-logging'
+type Area = 'client' | 'backend' | 'backend-logging' | 'alerts' | 'traces'
 
 const AREA_TITLE_MAP: { [key in Area]: string } = {
 	client: 'Frontend monitoring + session replay',
 	backend: 'Backend monitoring',
 	'backend-logging': 'Backend logging',
+	alerts: 'Alerts',
+	traces: 'Traces',
 }
 
 const CTA_TITLE_MAP: { [key in Area]: string } = {
 	client: 'View a session',
 	backend: 'View an error',
 	'backend-logging': 'View logs',
+	alerts: 'Configure an alert',
+	traces: 'View traces',
 }
 
 const CTA_PATH_MAP: { [key in Area]: string } = {
 	client: 'sessions',
 	backend: 'errors',
 	'backend-logging': 'logs',
+	alerts: 'alerts',
+	traces: 'traces',
 }
 
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
@@ -52,10 +66,10 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
-	const { data: sessionData } = useGetSessionsOpenSearchQuery({
+	const { data: sessionData } = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: '{"match_all": {}}',
+			query: { isAnd: true, rules: [] },
 			count: 1,
 			page: 1,
 			sort_desc: true,
@@ -64,23 +78,36 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		fetchPolicy: 'no-cache',
 	})
 
-	const { data: errorGroupData } = useGetErrorGroupsOpenSearchQuery({
+	const { data: errorGroupData } = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: '{"match_all": {}}',
+			query: { isAnd: true, rules: [] },
 			count: 1,
 		},
 		skip: area !== 'backend' || !integrated,
 		fetchPolicy: 'no-cache',
 	})
 
+	const { data: alertsData } = useGetAlertsPagePayloadQuery({
+		variables: { project_id: projectId! },
+		skip: area !== 'alerts' || !integrated,
+		fetchPolicy: 'no-cache',
+	})
+
 	const resource =
 		area === 'client'
-			? sessionData?.sessions_opensearch.sessions[0]
+			? sessionData?.sessions_clickhouse.sessions[0]
 			: area === 'backend'
-			? errorGroupData?.error_groups_opensearch.error_groups[0]
+			? errorGroupData?.error_groups_clickhouse.error_groups[0]
 			: undefined
-	const path = buildResourcePath(area!, projectId, resource)
+	const alert =
+		area === 'alerts'
+			? alertsData?.new_session_alerts[0] ??
+			  alertsData?.error_alerts[0] ??
+			  alertsData?.log_alerts[0] ??
+			  undefined
+			: undefined
+	const path = buildResourcePath(area!, projectId, resource, alert)
 	const complete = path && integrated
 
 	return (
@@ -158,19 +185,22 @@ const buildResourcePath = (
 	area: Area,
 	projectId: string,
 	resource?: Partial<Session> | Partial<ErrorGroup>,
+	alert?: Partial<SessionAlert> | Partial<ErrorAlert> | Partial<LogAlert>,
 ) => {
 	const basePath = `/${projectId}/${CTA_PATH_MAP[area!]}`
 	let path
 
 	if (resource?.secure_id) {
 		path = `${basePath}/${resource.secure_id}`
-	} else if (area === 'backend-logging') {
+	} else if (area === 'backend-logging' || area === 'traces') {
 		const logDate = moment(resource?.created_at)
 		// Show logs with a 2 minute buffer of when the setup event was created.
 		const startDate = moment(logDate).subtract(2, 'minutes')
 		const endDate = moment(logDate).add(2, 'minutes')
 
 		path = `${basePath}?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
+	} else if (alert) {
+		path = basePath
 	}
 
 	return path

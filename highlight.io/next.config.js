@@ -1,5 +1,5 @@
 const { withAxiom } = require('next-axiom')
-const { withHighlightConfig } = require('@highlight-run/next')
+const { withHighlightConfig } = require('@highlight-run/next/config')
 const getStaticPages = require('./scripts/get-static-pages')
 
 /** @type {import('next').NextConfig} */
@@ -21,6 +21,7 @@ const nextConfig = {
 			'lh3.googleusercontent.com',
 			'picsum.photos',
 			'firebasestorage.googleapis.com',
+			'tamuhack.org',
 		],
 	},
 	productionBrowserSourceMaps: true,

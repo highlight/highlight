@@ -15,7 +15,32 @@ import styles from './Navbar.module.scss'
 import ResourceDropdown from './ResourceDropdown'
 
 import '@docsearch/css'
+import moment from 'moment'
+import Banner from '../Banner/Banner'
 import FeatureDropdown from './FeatureDropdown'
+
+const LaunchWeekBanner = () => {
+	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
+	if (day < 1 || day > 5) {
+		return null
+	}
+
+	const bannerMessage = (
+		<div className={styles.launchWeekText}>
+			Launch Week 2 is here.{' '}
+			<a
+				target="_blank"
+				href="https://www.highlight.io/launch-week-2"
+				rel="noreferrer"
+			>
+				Follow along
+			</a>{' '}
+			to see what we&apos;ve been building!
+		</div>
+	)
+
+	return <Banner>{bannerMessage}</Banner>
+}
 
 const Navbar = ({
 	hideFreeTrialText,
@@ -23,14 +48,17 @@ const Navbar = ({
 	hideBanner,
 	fixed,
 	title,
+	bg,
 }: {
 	hideFreeTrialText?: boolean
 	isDocsPage?: boolean
 	hideBanner?: boolean
 	fixed?: boolean
 	title?: string
+	bg?: string
 }) => {
 	const [scrolled, setScrolled] = useState(false)
+	const [atTop, setAtTop] = useState(true)
 	const [isOpen, setIsOpen] = useState(false)
 	const [prevY, setPrevY] = useState(0)
 
@@ -41,6 +69,13 @@ const Navbar = ({
 		} else if (window.scrollY > 60 && prevY > currentScrollPos) {
 			setScrolled(false)
 		}
+
+		if (window.scrollY > 60) {
+			setAtTop(false)
+		} else {
+			setAtTop(true)
+		}
+
 		setPrevY(currentScrollPos)
 	}
 
@@ -52,6 +87,16 @@ const Navbar = ({
 	return (
 		<>
 			<GithubPopup />
+			{!hideBanner && (
+				<Link
+					href="/launch/week-3"
+					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+				>
+					<Typography type="copy3">
+						It&apos;s Launch Week! Click here to follow along.
+					</Typography>
+				</Link>
+			)}
 			<div
 				className={classNames(styles.container, {
 					[styles.hide]: scrolled && !fixed,
@@ -67,6 +112,9 @@ const Navbar = ({
 						className={classNames(
 							styles.header,
 							styles.headerInner,
+							`bg-${bg ? bg : ''} transition-all ${
+								bg && atTop ? 'bg-opacity-10' : 'bg-opacity-100'
+							}`,
 							{
 								[styles.openHeader]: isOpen,
 								[styles.headerBorder]: prevY != 0,
@@ -204,18 +252,20 @@ const Navbar = ({
 							>
 								<FeatureDropdown isOpen={scrolled && !fixed} />
 								<Link
+									href="/integrations"
+									className={styles.headerButton}
+								>
+									<Typography type="copy2">
+										Integrations
+									</Typography>
+								</Link>
+								<Link
 									href="/pricing"
 									className={styles.headerButton}
 								>
 									<Typography type="copy2">
 										Pricing
 									</Typography>
-								</Link>
-								<Link
-									href="/blog"
-									className={styles.headerButton}
-								>
-									<Typography type="copy2">Blog</Typography>
 								</Link>
 								<ResourceDropdown isOpen={scrolled && !fixed} />
 							</div>

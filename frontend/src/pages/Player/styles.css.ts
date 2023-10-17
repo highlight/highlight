@@ -68,6 +68,7 @@ export const playerCenterColumn = style({
 	flexGrow: 1,
 	position: 'relative',
 	minWidth: MIN_CENTER_COLUMN_WIDTH,
+	zIndex: 0,
 })
 
 export const playerLeftPanel = style({
@@ -114,4 +115,8 @@ export const withLeftPanel = style({
 
 export const withRightPanel = style({
 	gridTemplateColumns: `1fr ${RIGHT_PANEL_WIDTH}px`,
+})
+
+export const blurBackground = style({
+	filter: 'blur(4px)',
 })

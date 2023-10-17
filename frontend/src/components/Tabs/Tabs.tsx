@@ -6,13 +6,14 @@ const { TabPane } = AntDesignTabs
 import { isRenderable } from '@util/react'
 import clsx from 'clsx'
 
-import styles from './Tabs.module.scss'
+import styles from './Tabs.module.css'
 
 export interface TabItem {
 	key: string
 	title?: string | React.ReactNode // If undefined, `key` will be used as the title
 	panelContent: React.ReactNode
 	disabled?: boolean
+	hidden?: boolean
 }
 
 type Props = Pick<
@@ -105,19 +106,24 @@ const Tabs = ({
 				[styles.noHeaderPadding]: noHeaderPadding,
 			})}
 		>
-			{tabs.map(({ panelContent, title, key, disabled }) => (
-				<TabPane
-					key={key}
-					tab={title ?? key}
-					className={clsx(styles.tabPane, {
-						[styles.withPadding]: !noPadding,
-						[styles.unsetOverflowY]: unsetOverflowY,
-					})}
-					disabled={disabled}
-				>
-					{panelContent}
-				</TabPane>
-			))}
+			{tabs.map(({ panelContent, title, key, disabled, hidden }) => {
+				if (hidden) {
+					return null
+				}
+				return (
+					<TabPane
+						key={key}
+						tab={title ?? key}
+						className={clsx(styles.tabPane, {
+							[styles.withPadding]: !noPadding,
+							[styles.unsetOverflowY]: unsetOverflowY,
+						})}
+						disabled={disabled}
+					>
+						{panelContent}
+					</TabPane>
+				)
+			})}
 		</AntDesignTabs>
 	)
 }

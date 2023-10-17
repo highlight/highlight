@@ -3,13 +3,15 @@ import { Button } from '@components/Button'
 import CommandBar from '@components/CommandBar/CommandBar'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
-import { linkStyle } from '@components/Header/styles.css'
+import { betaTag, linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import {
 	useGetBillingDetailsForProjectQuery,
 	useGetProjectQuery,
 	useGetSubscriptionDetailsQuery,
+	useGetSystemConfigurationQuery,
+	useGetWorkspacesQuery,
 } from '@graph/hooks'
 import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
@@ -22,6 +24,7 @@ import {
 	IconSolidChartBar,
 	IconSolidChartPie,
 	IconSolidChat,
+	IconSolidCheck,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
@@ -30,7 +33,9 @@ import {
 	IconSolidLogs,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
+	IconSolidPlusSm,
 	IconSolidSearch,
+	IconSolidSparkles,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
@@ -38,8 +43,10 @@ import {
 	Menu,
 	Stack,
 	Text,
+	TextLink,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
+import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
@@ -54,18 +61,20 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { showIntercom } from '@util/window'
+import { showIntercomMessage } from '@util/window'
+import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
+import { generateRandomColor } from '@/util/color'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
-import styles from './Header.module.scss'
+import styles from './Header.module.css'
 
 type Props = {
 	fullyIntegrated?: boolean
@@ -102,25 +111,20 @@ export const useBillingHook = ({
 		loading: subscriptionLoading,
 		subscriptionData: subscriptionData,
 		refetchSubscription: refetchSubscription,
-		issues:
-			!subscriptionLoading &&
-			subscriptionData?.subscription_details.lastInvoice?.status
-				?.length &&
-			!['paid', 'void', 'draft'].includes(
-				subscriptionData.subscription_details.lastInvoice.status,
-			),
 	}
 }
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
+	const navigate = useNavigate()
+	const location = useLocation()
 	const { projectId } = useProjectId()
-	const { admin, isLoggedIn, signOut } = useAuthContext()
+	const { isHighlightAdmin, isLoggedIn, signOut } = useAuthContext()
+	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
-	const { pathname, state } = useLocation()
-	const goBackPath = state?.previousPath ?? `/${projectId}/sessions`
-	const parts = pathname.split('/')
+	const goBackPath = location.state?.previousPath ?? `/${projectId}/sessions`
+	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
 	const { isSettings } = useIsSettingsPath()
@@ -142,12 +146,32 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			icon: IconSolidLogs,
 		},
 		{
+			key: 'traces',
+			icon: IconSolidSparkles,
+			highlightAdminOnly: true,
+			isBeta: true,
+		},
+		{
 			key: 'alerts',
 			icon: IconSolidSpeakerphone,
 		},
 	]
 
 	const inProjectOrWorkspace = isLoggedIn && (projectId || workspaceId)
+
+	const { data: workspacesData, loading: workspacesLoading } =
+		useGetWorkspacesQuery()
+
+	const workspaceOptions = useMemo(() => {
+		const currentWorkspaces = workspacesData?.workspaces || []
+		const joinableWorkspaces = workspacesData?.joinable_workspaces || []
+		const all = [...currentWorkspaces, ...joinableWorkspaces]
+		return all.map((workspace) => ({
+			id: workspace?.id,
+			value: workspace?.id,
+			displayValue: workspace?.name,
+		}))
+	}, [workspacesData?.workspaces, workspacesData?.joinable_workspaces])
 
 	return (
 		<>
@@ -194,43 +218,54 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							<ProjectPicker />
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
-									{pages.map((p) => {
-										return (
-											<LinkButton
-												iconLeft={
-													<p.icon
-														size={14}
-														color={
-															currentPage ===
-															p.key
-																? undefined
-																: vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-														}
-													/>
-												}
-												emphasis={
-													currentPage === p.key
-														? 'high'
-														: 'low'
-												}
-												kind={
-													currentPage === p.key
-														? 'primary'
-														: 'secondary'
-												}
-												to={`/${projectId}/${p.key}`}
-												key={p.key}
-												trackingId={`header-link-click-${p.key}`}
-											>
-												{titleCaseString(p.key)}
-											</LinkButton>
+									{pages
+										.filter(
+											(p) =>
+												!p.highlightAdminOnly ||
+												isHighlightAdmin,
 										)
-									})}
+										.map((p) => {
+											return (
+												<LinkButton
+													iconLeft={
+														<p.icon
+															size={14}
+															color={
+																currentPage ===
+																p.key
+																	? undefined
+																	: vars.theme
+																			.interactive
+																			.fill
+																			.secondary
+																			.content
+																			.text
+															}
+														/>
+													}
+													emphasis={
+														currentPage === p.key
+															? 'high'
+															: 'low'
+													}
+													kind={
+														currentPage === p.key
+															? 'primary'
+															: 'secondary'
+													}
+													to={`/${projectId}/${p.key}`}
+													key={p.key}
+													trackingId={`header-link-click-${p.key}`}
+												>
+													{titleCaseString(p.key)}
+													{p.isBeta ? (
+														<Box cssClass={betaTag}>
+															Beta
+														</Box>
+													) : null}
+												</LinkButton>
+											)
+										})}
 									<Menu>
 										<Menu.Button
 											icon={
@@ -243,31 +278,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											kind="secondary"
 										/>
 										<Menu.List>
-											<Link
-												to={`/${projectId}/dashboards`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidChartBar
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Dashboards
-													</Box>
-												</Menu.Item>
-											</Link>
+											{showAnalytics && (
+												<Link
+													to={`/${projectId}/dashboards`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidChartBar
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Dashboards
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 											<Link
 												to={`/${projectId}/integrations`}
 												className={linkStyle}
@@ -293,31 +330,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Box>
 												</Menu.Item>
 											</Link>
-											<Link
-												to={`/${projectId}/analytics`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidChartPie
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Analytics
-													</Box>
-												</Menu.Item>
-											</Link>
+											{showAnalytics && (
+												<Link
+													to={`/${projectId}/analytics`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidChartPie
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Analytics
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 											<Link
 												to={`/${projectId}/setup`}
 												className={linkStyle}
@@ -546,35 +585,188 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Menu.Divider />
-											<Link
-												to="/switch"
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidSwitchHorizontal
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Switch workspace
-													</Box>
-												</Menu.Item>
-											</Link>
 											<Menu.Item
-												onClick={() =>
-													showIntercom({ admin })
-												}
+												style={{
+													paddingTop: 0,
+													paddingBottom: 0,
+												}}
+											>
+												<Menu>
+													<Menu.Button
+														style={{
+															paddingLeft: 0,
+														}}
+														size="small"
+														emphasis="low"
+														kind="secondary"
+													>
+														<Box
+															gap="4"
+															display="flex"
+															alignItems="center"
+														>
+															<IconSolidSwitchHorizontal
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															<Text
+																color="n11"
+																weight="regular"
+															>
+																Switch workspace
+															</Text>
+														</Box>
+													</Menu.Button>
+													<Menu.List>
+														{workspacesLoading
+															? null
+															: workspaceOptions.map(
+																	(
+																		workspace,
+																	) => {
+																		const isSelected =
+																			workspaceId ===
+																			workspace?.id
+																		return (
+																			<Menu.Item
+																				key={
+																					workspace?.id
+																				}
+																				onClick={() => {
+																					navigate(
+																						`/w/${workspace?.id}`,
+																					)
+																				}}
+																				style={{
+																					marginTop:
+																						'2px',
+																					...(isSelected && {
+																						backgroundColor:
+																							vars
+																								.color
+																								.n2,
+																					}),
+																				}}
+																			>
+																				<Box
+																					display="flex"
+																					alignItems="center"
+																					gap="4"
+																				>
+																					<Box
+																						flexShrink={
+																							0
+																						}
+																						margin="4"
+																						style={{
+																							height: 8,
+																							width: 8,
+																							backgroundColor:
+																								generateRandomColor(
+																									workspace?.displayValue ??
+																										'',
+																								),
+																							borderRadius:
+																								'50%',
+																						}}
+																					></Box>
+																					<Box
+																						display="flex"
+																						alignItems="center"
+																						justifyContent="space-between"
+																						width="full"
+																						gap="2"
+																					>
+																						<Text lines="1">
+																							{workspace?.displayValue ??
+																								''}
+																						</Text>
+																						{isSelected && (
+																							<IconSolidCheck
+																								size={
+																									14
+																								}
+																							/>
+																						)}
+																					</Box>
+																				</Box>
+																			</Menu.Item>
+																		)
+																	},
+															  )}
+														<Divider className="mt-1 mb-0" />
+														<Link
+															to="/new"
+															state={{
+																previousLocation:
+																	location,
+															}}
+															className={
+																linkStyle
+															}
+														>
+															<Menu.Item>
+																<Box
+																	display="flex"
+																	alignItems="center"
+																	gap="4"
+																>
+																	<IconSolidPlusSm
+																		size={
+																			14
+																		}
+																		color={
+																			vars
+																				.color
+																				.n9
+																		}
+																	/>
+																	Create new
+																	workspace
+																</Box>
+															</Menu.Item>
+														</Link>
+														<Link
+															to={`/${workspaceId}/settings`}
+															className={
+																linkStyle
+															}
+														>
+															<Menu.Item>
+																<Box
+																	display="flex"
+																	alignItems="center"
+																	gap="4"
+																>
+																	<IconSolidCog
+																		size={
+																			14
+																		}
+																		color={
+																			vars
+																				.color
+																				.n9
+																		}
+																	/>
+																	Workspace
+																	settings
+																</Box>
+															</Menu.Item>
+														</Link>
+													</Menu.List>
+												</Menu>
+											</Menu.Item>
+											<Menu.Item
+												onClick={() => {
+													showIntercomMessage()
+												}}
 											>
 												<Box
 													display="flex"
@@ -693,13 +885,22 @@ const BillingBanner: React.FC = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { projectId } = useProjectId()
 
+	const { data: systemData } = useGetSystemConfigurationQuery({
+		// check for updates every minute
+		pollInterval: 1000 * 60,
+	})
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
-	const { issues: billingIssues } = useBillingHook({ project_id: projectId })
+	const { loading: subscriptionLoading, subscriptionData } = useBillingHook({
+		project_id: projectId,
+	})
+	const billingIssues =
+		!subscriptionLoading &&
+		subscriptionData?.subscription_details.billingIssue
 
 	useEffect(() => {
 		if (
@@ -721,8 +922,8 @@ const BillingBanner: React.FC = () => {
 	])
 
 	const isMaintenance = moment().isBetween(
-		'2023-03-05T23:30:00Z',
-		'2023-03-06T01:45:00Z',
+		systemData?.system_configuration?.maintenance_start,
+		systemData?.system_configuration?.maintenance_end,
 	)
 	if (isMaintenance) {
 		return <MaintenanceBanner />
@@ -773,8 +974,16 @@ const BillingBanner: React.FC = () => {
 	}
 
 	if (!bannerMessage && !hasTrial) {
-		toggleShowBanner(false)
-		return null
+		const isLaunchWeek = moment().isBetween(
+			'2023-10-16T16:00:00Z', // 10/16/2023 9AM PST
+			'2023-10-21T16:00:00Z',
+		)
+		if (isLaunchWeek) {
+			return <LaunchWeekBanner />
+		} else {
+			toggleShowBanner(false)
+			return null
+		}
 	}
 
 	if (hasTrial) {
@@ -850,26 +1059,46 @@ const DemoWorkspaceBanner = () => {
 
 const MaintenanceBanner = () => {
 	const { toggleShowBanner } = useGlobalContext()
+	toggleShowBanner(true)
 
+	return (
+		<Box
+			cssClass={styles.trialWrapper}
+			style={{ backgroundColor: vars.color.y9 }}
+		>
+			<Text color="black">
+				We are performing maintenance which may delay data ingest.
+				Follow in{' '}
+				<TextLink color="none" href="https://highlight.io/community">
+					#incidents
+				</TextLink>{' '}
+				on our Discord for updates.
+			</Text>
+		</Box>
+	)
+}
+
+const LaunchWeekBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
 	toggleShowBanner(true)
 
 	const bannerMessage = (
 		<span>
-			We are performance maintenance which may result in delayed data.
-			Apologies for the inconvenience.{' '}
+			Launch Week 3 is here.{' '}
 			<a
 				target="_blank"
-				href="https://highlight.io/community"
+				href="https://www.highlight.io/launch/week-3"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>
-				Follow on Discord #incidents for updates.
-			</a>
+				Follow along
+			</a>{' '}
+			to see what we've been building!
 		</span>
 	)
 
 	return (
-		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
+		<div className={clsx(styles.trialWrapper, styles.launchWeek)}>
 			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)

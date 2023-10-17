@@ -1,0 +1,18 @@
+.channelSelect {
+	margin-bottom: var(--size-medium);
+	width: 100%;
+
+	&:last-of-type {
+		margin-bottom: 0;
+	}
+}
+
+.saveButton {
+	justify-content: center;
+	width: 125px;
+}
+
+.notFoundContentEmail {
+	color: var(--color-gray-500);
+	padding: var(--size-medium) 0;
+}

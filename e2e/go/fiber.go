@@ -14,9 +14,11 @@ import (
 
 func main() {
 	highlight.SetProjectID("1jdkoe52")
-	highlight.SetGraphqlClientAddress("https://localhost:8082/public")
 	highlight.SetOTLPEndpoint("http://localhost:4318")
-	highlight.Start()
+	highlight.Start(
+		highlight.WithServiceName("go-fiber-app"),
+		highlight.WithServiceVersion("abc123"),
+	)
 	defer highlight.Stop()
 	hlog.Init()
 

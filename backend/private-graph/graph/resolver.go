@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -15,8 +16,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
+
 	github2 "github.com/google/go-github/v50/github"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/highlight-run/highlight/backend/integrations/jira"
+	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
 
@@ -31,6 +38,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -52,14 +60,13 @@ import (
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/workerpool"
 
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
@@ -75,6 +82,9 @@ import (
 const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
+
+var AuthenticationError = errors.New("401 - AuthenticationError")
+var AuthorizationError = errors.New("403 - AuthorizationError")
 
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
@@ -109,6 +119,14 @@ var PromoCodes = map[string]PromoCode{
 		TrialDays:  60,
 		ValidUntil: time.Date(2023, time.August, 7, 0, 0, 0, 0, time.UTC),
 	},
+	"USEGOLANG": {
+		TrialDays:  14,
+		ValidUntil: time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC),
+	},
+}
+
+func isAuthError(err error) bool {
+	return e.Is(err, AuthenticationError) || e.Is(err, AuthorizationError)
 }
 
 type Resolver struct {
@@ -120,16 +138,18 @@ type Resolver struct {
 	LambdaClient           *lambda.Client
 	ClearbitClient         *clearbit.Client
 	PrivateWorkerPool      *workerpool.WorkerPool
-	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	RH                     *resthooks.Resthook
-	HubspotApi             HubspotApiInterface
+	HubspotApi             hubspotApi.Api
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
 	OAuthServer            *oauth.Server
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
 	Store                  *store.Store
+	DataSyncQueue          kafka_queue.MessageQueue
+	TracesQueue            kafka_queue.MessageQueue
+	EmbeddingsClient       embeddings.Client
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -145,17 +165,17 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 
 func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 	adminUID := pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))
-	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-		tracer.Tag("admin_uid", adminUID))
+	firebaseSpan, _ := util.StartSpanFromContext(ctx, "resolver.createAdmin", util.ResourceName("db.createAdminFromFirebase"),
+		util.Tag("admin_uid", adminUID))
 	firebaseUser, err := AuthClient.GetUser(context.Background(), *adminUID)
 	if err != nil {
 		spanError := e.Wrap(err, "error retrieving user from firebase api")
-		firebaseSpan.Finish(tracer.WithError(spanError))
+		firebaseSpan.Finish(spanError)
 		return nil, spanError
 	}
 	firebaseSpan.Finish()
 
-	adminSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	adminSpan, _ := util.StartSpanFromContext(ctx, "resolver.createAdmin", util.ResourceName("db.admin"))
 	admin := &model.Admin{
 		UID:                   adminUID,
 		Name:                  &firebaseUser.DisplayName,
@@ -171,7 +191,7 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		Attrs(&admin)
 	if tx.Error != nil {
 		spanError := e.Wrap(tx.Error, "error retrieving user from db")
-		adminSpan.Finish(tracer.WithError(spanError))
+		adminSpan.Finish(spanError)
 		return nil, spanError
 	}
 	adminSpan.Finish()
@@ -180,7 +200,12 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
-	return r.Query().Admin(ctx)
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, AuthenticationError
+	}
+
+	return admin, nil
 }
 
 func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -195,14 +220,6 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	return domain, nil
-}
-
-type HubspotApiInterface interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error
-	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
-	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
-	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
-	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -297,7 +314,7 @@ func (r *Resolver) demoProjectID(ctx context.Context) int {
 // isAdminInProjectOrDemoProject should be used for actions that you want admins in all projects
 // and laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProjectOrDemoProject"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInProjectOrDemoProject"))
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
@@ -308,20 +325,20 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	var project *model.Project
 	var err error
 	if r.isDemoProject(ctx, project_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).First(&project).Error; err != nil {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).Take(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
 		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
+			return nil, err
 		}
 	}
 	return project, nil
 }
 
 func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
@@ -332,13 +349,13 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	var workspace *model.Workspace
 	var err error
 	if r.isDemoWorkspace(workspace_id) {
-		if err = r.DB.Model(&model.Workspace{}).Where("id = ?", 0).First(&workspace).Error; err != nil {
+		if err = r.DB.Model(&model.Workspace{}).Where("id = ?", 0).Take(&workspace).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo workspace")
 		}
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+			return nil, err
 		}
 	}
 	return workspace, nil
@@ -346,7 +363,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 
 func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
-	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
+	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).Take(&workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
 	return &workspace, nil
@@ -354,7 +371,7 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 
 func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID int) (string, error) {
 	var workspaceAdmin model.WorkspaceAdmin
-	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).First(&workspaceAdmin).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Take(&workspaceAdmin).Error; err != nil {
 		return "", e.Wrap(err, "error querying workspace_admin")
 	}
 	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
@@ -367,16 +384,16 @@ func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID in
 
 func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
 	workspace := &model.Workspace{}
-	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
+	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).Take(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "500: error querying workspace")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("500: error querying admin")
+		return nil, err
 	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).Take(&inviteLink).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.New("404: Invite not found")
 		}
@@ -387,7 +404,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	if inviteLink.InviteeEmail != nil {
 		// check case-insensitively because email addresses are case-insensitive.
 		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
-			return nil, e.New("403: This invite is not valid for the admin.")
+			return nil, AuthorizationError
 		}
 	}
 
@@ -422,7 +439,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("error querying admin while deleting admin association")
+		return nil, err
 	}
 	if admin.ID == adminID {
 		return nil, e.New("Admin tried deleting their own association")
@@ -436,10 +453,10 @@ func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, 
 }
 
 func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspace"))
+	span, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInWorkspace"))
 	defer span.Finish()
 
-	span.SetTag("WorkspaceID", workspaceID)
+	span.SetAttribute("WorkspaceID", workspaceID)
 
 	if r.isWhitelistedAccount(ctx) {
 		return r.GetWorkspace(workspaceID)
@@ -447,10 +464,10 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
+		return nil, err
 	}
 
-	span.SetTag("AdminID", admin.ID)
+	span.SetAttribute("AdminID", admin.ID)
 
 	workspace := model.Workspace{}
 	if err := r.DB.Order("name asc").
@@ -460,7 +477,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	if workspaceID != workspace.ID {
-		return nil, e.New("workspace is not associated to the current admin")
+		return nil, AuthorizationError
 	}
 
 	return &workspace, nil
@@ -469,17 +486,14 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProject"))
+	span, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInProject"))
 	defer span.Finish()
 
-	span.SetTag("ProjectID", project_id)
+	span.SetAttribute("ProjectID", project_id)
 
-	if util.IsTestEnv() {
-		return nil, nil
-	}
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).Take(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying project")
 		}
 		return project, nil
@@ -488,13 +502,17 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	if err != nil {
 		return nil, e.Wrap(err, "error querying projects")
 	}
+	if len(projects) == 0 {
+		return nil, AuthenticationError
+	}
+
 	for _, p := range projects {
 		if p.ID == project_id {
-			span.SetTag("WorkspaceID", p.WorkspaceID)
+			span.SetAttribute("WorkspaceID", p.WorkspaceID)
 			return p, nil
 		}
 	}
-	return nil, e.New("admin doesn't exist in project")
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
@@ -514,9 +532,9 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.Error
       union(tables:[query() |> first(), query() |> last()])
         |> sort(columns: ["ErrorGroupID", "_field", "_time"])
 	`, bucket, measurement, eg.ID, filter)
-	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
-	span.SetTag("projectID", eg.ProjectID)
-	span.SetTag("errorGroupID", eg.ID)
+	span, _ := util.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
+	span.SetAttribute("projectID", eg.ProjectID)
+	span.SetAttribute("errorGroupID", eg.ID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to perform tdb query for error group occurrences")
@@ -525,106 +543,6 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.Error
 		return &eg.CreatedAt, &eg.UpdatedAt, nil
 	}
 	return &results[0].Time, &results[1].Time, nil
-}
-
-func (r *Resolver) GetErrorFrequenciesOpensearch(errorGroups []*model.ErrorGroup, lookbackPeriod int) (map[int][]int64, map[int][]*modelInputs.ErrorDistributionItem, error) {
-	endDate := time.Now().UTC()
-	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
-	startDateFormatted := startDate.Format("2006-01-02")
-
-	aggQuery :=
-		fmt.Sprintf(`{"bool": {
-			"must": [
-				{
-					"terms": {
-					"routing.keyword" : [%s]
-				}},
-				{
-					"range": {
-					"timestamp": {
-						"gte": "%s"
-					}
-				}}
-			]
-		}}`,
-			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
-			startDateFormatted)
-	aggOptions := opensearch.SearchOptions{
-		MaxResults: pointy.Int(0),
-		Aggregation: &opensearch.TermsAggregation{
-			Field: "routing.keyword",
-			SubAggregation: &opensearch.DateHistogramAggregation{
-				Field:            "timestamp",
-				CalendarInterval: "day",
-				SortOrder:        "desc",
-				Format:           "yyyy-MM-dd",
-				TimeZone:         "UTC",
-			},
-		},
-	}
-
-	var ignored []struct{}
-	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	errFreqs := map[int][]int64{}
-	errMetrics := map[int][]*modelInputs.ErrorDistributionItem{}
-	for _, ar1 := range aggResults {
-		errorGroupId, err := strconv.Atoi(ar1.Key)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		freqMap := map[string]int64{}
-		for _, ar2 := range ar1.SubAggregationResults {
-			freqMap[ar2.Key] = ar2.DocCount
-		}
-
-		var freqs []int64
-		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
-			curDateFormatted := curDate.Format("2006-01-02")
-			freq, ok := freqMap[curDateFormatted]
-			if !ok {
-				freq = 0
-			}
-			freqs = append(freqs, freq)
-			errMetrics[errorGroupId] = append(errMetrics[errorGroupId], &modelInputs.ErrorDistributionItem{ErrorGroupID: errorGroupId, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: freq})
-		}
-
-		errFreqs[errorGroupId] = freqs
-	}
-
-	return errFreqs, errMetrics, nil
-}
-
-func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
-	bucket, _ := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Minute)
-	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID), true)
-	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
-	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupID", errorGroupID)
-	results, err := r.TDB.Query(ctx, query)
-	if err != nil {
-		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
-	}
-	var response []*modelInputs.ErrorDistributionItem
-	for _, r := range results {
-		if r.Value != nil {
-			for _, k := range []string{
-				"count", "environmentCount", "identifierCount", "sessionCount",
-			} {
-				response = append(response, &modelInputs.ErrorDistributionItem{
-					ErrorGroupID: errorGroupID,
-					Date:         r.Time,
-					Name:         k,
-					Value:        r.Values[k].(int64),
-				})
-			}
-		}
-	}
-	return response, nil
 }
 
 func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -650,9 +568,9 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 		|> aggregateWindow(every: %[7]dm, fn: sum, createEmpty: true)
 		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
 	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionMinutes)
-	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
-	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupIDs", errorGroupIDs)
+	span, _ := util.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetAttribute("projectID", projectID)
+	span.SetAttribute("errorGroupIDs", errorGroupIDs)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
 		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
@@ -681,7 +599,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 	return response, nil
 }
 
-func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
 	params := modelInputs.ErrorGroupFrequenciesParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
@@ -689,56 +607,28 @@ func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, error
 		},
 		ResolutionMinutes: 24 * 60,
 	}
-	var errorGroupMap = make(map[int]*model.ErrorGroup)
+
+	errorGroupsById := map[int]*model.ErrorGroup{}
 	for _, errorGroup := range errorGroups {
 		errorGroup.ErrorMetrics = []*modelInputs.ErrorDistributionItem{}
-		errorGroupMap[errorGroup.ID] = errorGroup
-	}
-	oldErrorGroups := make(map[int]*model.ErrorGroup)
-	var err error
-	var results []*modelInputs.ErrorDistributionItem
-	for _, eg := range errorGroups {
-		if time.Since(eg.CreatedAt) <= time.Hour {
-			results, err = r.GetErrorGroupFrequenciesUnsampled(ctx, eg.ProjectID, eg.ID)
-			if err != nil {
-				log.WithContext(ctx).Error(err)
-			}
-			endDate := time.Now().UTC().AddDate(0, 0, -1)
-			startDate := endDate.AddDate(0, 0, -1*(lookbackPeriod-1))
-			for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
-				eg.ErrorFrequency = append(eg.ErrorFrequency, 0)
-				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: curDate.Truncate(24 * time.Hour), Name: "count", Value: 0})
-			}
-			for _, r := range results {
-				if r.Name == "count" {
-					eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
-				}
-				eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
-			}
-			// fallback to using opensearch for the frequency query
-			if len(results) == 0 {
-				errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch([]*model.ErrorGroup{eg}, lookbackPeriod)
-				if err != nil {
-					log.WithContext(ctx).Error(err)
-				} else {
-					eg.ErrorFrequency = errFreqs[eg.ID]
-					eg.ErrorMetrics = errMetrics[eg.ID]
-				}
-			}
-		} else {
-			oldErrorGroups[eg.ID] = eg
-		}
+		errorGroup.ErrorFrequency = []int64{}
+		errorGroupsById[errorGroup.ID] = errorGroup
 	}
 
-	results, err = r.GetErrorGroupFrequencies(ctx, projectID, lo.Map(lo.Values(oldErrorGroups), func(eg *model.ErrorGroup, i int) int {
-		return eg.ID
-	}), params, "")
+	frequencies, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, lo.Keys(errorGroupsById), params)
 	if err != nil {
 		return err
 	}
-	for _, r := range results {
-		eg := errorGroupMap[r.ErrorGroupID]
-		// in case influx returns an error group that isn't part of the inputs
+
+	aggregates, err := r.ClickhouseClient.QueryErrorGroupAggregateFrequency(ctx, projectID, lo.Keys(errorGroupsById))
+	if err != nil {
+		return err
+	}
+
+	allMetrics := append(frequencies, aggregates...)
+
+	for _, r := range allMetrics {
+		eg := errorGroupsById[r.ErrorGroupID]
 		if eg == nil {
 			continue
 		}
@@ -747,19 +637,7 @@ func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, error
 		}
 		eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
 	}
-	// fallback to using opensearch for the frequency query
-	if len(results) == 0 {
-		errFreqs, errMetrics, err := r.GetErrorFrequenciesOpensearch(lo.Values(oldErrorGroups), lookbackPeriod)
-		if err != nil {
-			log.WithContext(ctx).Error(err)
-		} else {
-			for egID, freqs := range errFreqs {
-				eg := oldErrorGroups[egID]
-				eg.ErrorFrequency = freqs
-				eg.ErrorMetrics = errMetrics[egID]
-			}
-		}
-	}
+
 	return nil
 }
 
@@ -861,33 +739,37 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
 	eg := &model.ErrorGroup{}
 
-	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
+	if err := r.DB.Joins("ErrorTag").Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).Take(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return eg, false, e.Wrap(err, "error validating admin in project")
-	}
-
-	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group occurrences")
-	}
-	if err := r.SetErrorFrequencies(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group frequencies")
+		return eg, false, err
 	}
 
 	return eg, true, nil
 }
 
+func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *model.ErrorGroup) error {
+	var err error
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+		return e.Wrap(err, "error querying error group occurrences")
+	}
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 30); err != nil {
+		return e.Wrap(err, "error querying error group frequencies")
+	}
+	return nil
+}
+
 func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorObject"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminViewErrorObject"))
 	defer authSpan.Finish()
 
 	errorObject := model.ErrorObject{}
 	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
 		Preload("ErrorGroup").
-		First(&errorObject).Error; err != nil {
+		Take(&errorObject).Error; err != nil {
 		return nil, err
 	}
 
@@ -899,7 +781,7 @@ func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID in
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminViewErrorGroup"))
 	defer authSpan.Finish()
 	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
@@ -912,7 +794,7 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureI
 }
 
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()
 	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
@@ -921,37 +803,43 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 	return nil, err
 }
 
-func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
-	session = &model.Session{}
-	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, sessionSecureId string) (session *model.Session, ownsSession bool, err error) {
+	if session, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureId); err != nil {
+		return nil, false, AuthorizationError
 	}
-
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in project")
+		return session, false, err
 	}
 	return session, true, nil
 }
 
 func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id string) (*model.Session, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
-	if err == nil && isOwner {
+	if err != nil {
+		if !isAuthError(err) {
+			return nil, err
+		} else {
+			if session == nil {
+				return nil, AuthorizationError
+			}
+			// auth error, but we should check if this is demo / public session
+		}
+	}
+	if isOwner {
+		return session, nil
+	} else if session.IsPublic {
+		return session, nil
+	} else if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
-	if session != nil && session.IsPublic {
-		return session, nil
-	}
-	if session.ProjectID == r.demoProjectID(ctx) {
-		return session, nil
-	}
-	return nil, err
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifySession"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminModifySession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err == nil && isOwner {
@@ -961,29 +849,29 @@ func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id 
 }
 
 func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminSegmentOwner"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminSegmentOwner"))
 	defer authSpan.Finish()
 	segment := &model.Segment{}
-	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
+	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).Take(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
 
 func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminErrorSegmentOwner"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminErrorSegmentOwner"))
 	defer authSpan.Finish()
 	segment := &model.ErrorSegment{}
-	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).Take(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -1044,49 +932,71 @@ func (r *Resolver) SendEmailAlert(
 	return nil
 }
 
-func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) (blockSet slack.Blocks) {
+func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) ([]slack.Block, *slack.Attachment) {
 	determiner := "a"
 	if subjectScope == "error" {
 		determiner = "an"
 	}
-	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
+
+	// Header
+	var headerBlockSet []slack.Block
+
+	message := fmt.Sprintf("*You were %s in %s %s comment.*", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
+		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Email, action, determiner, subjectScope)
 	}
 	if admin.Name != nil && *admin.Name != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
+		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Name, action, determiner, subjectScope)
 	}
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, message, false, false)
+	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+	// comment message
+	var bodyBlockSet []slack.Block
+
+	commentBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("> %s", commentText), false, false)
+
+	detailsString := ""
+	// info on the session/error
+	if subjectScope == "error" {
+		detailsString = fmt.Sprintf("*Error* %s", viewLink)
+	} else if subjectScope == "session" {
+		detailsString = fmt.Sprintf("*Session* %s", viewLink)
+	}
+	if additionalContext != nil {
+		detailsString = fmt.Sprintf("%s\n%s", detailsString, *additionalContext)
+	}
+
+	detailsBlock := slack.NewTextBlockObject(slack.MarkdownType, detailsString, false, false)
+
+	// button
+	var actionBlocks []slack.BlockElement
 
 	button := slack.NewButtonBlockElement(
 		"",
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			"View",
+			"View comment",
 			false,
 			false,
 		),
 	)
 	button.URL = viewLink
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
-			nil, slack.NewAccessory(button),
-		),
-	)
 
-	if additionalContext != nil {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Additional Context*\n %s", *additionalContext)},
-				nil, nil,
-			),
-		)
+	actionBlocks = append(actionBlocks, button)
+
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(commentBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(detailsBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+
+	attachment := &slack.Attachment{
+		Color:  "#6c37f4",
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
 	}
 
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	return
+	return headerBlockSet, attachment
 }
 
 func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Workspace, admin *model.Admin, viewLink, commentText, action string, subjectScope string, threadIDs []int) error {
@@ -1094,14 +1004,15 @@ func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Wo
 		return nil
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
+	headerBlock, bodyAttachment := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
 	for _, threadID := range threadIDs {
 		thread := &model.CommentSlackThread{}
-		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).First(&thread).Error; err != nil {
+		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).Take(&thread).Error; err != nil {
 			return e.Wrap(err, "error querying slack thread")
 		}
 		opts := []slack.MsgOption{
-			slack.MsgOptionBlocks(blocks.BlockSet...),
+			slack.MsgOptionBlocks(headerBlock...),
+			slack.MsgOptionAttachments(*bodyAttachment),
 			slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 			slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
 			slack.MsgOptionTS(thread.ThreadTS),
@@ -1122,7 +1033,7 @@ func (r *Resolver) SendSlackAlertToUser(ctx context.Context, workspace *model.Wo
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
 
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
+	headerBlock, bodyAttachment := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
 
 	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
@@ -1162,7 +1073,8 @@ func (r *Resolver) SendSlackAlertToUser(ctx context.Context, workspace *model.Wo
 				log.WithContext(ctx).Warn(e.Wrap(err, "failed to join slack channel"))
 			}
 			opts := []slack.MsgOption{
-				slack.MsgOptionBlocks(blocks.BlockSet...),
+				slack.MsgOptionBlocks(headerBlock...),
+				slack.MsgOptionAttachments(*bodyAttachment),
 				slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
 			}
@@ -1236,19 +1148,112 @@ func (r *Resolver) GetSessionChunk(ctx context.Context, sessionID int, ts int) (
 	return
 }
 
-func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) ([]byte, error) {
-	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts, chunk)
+func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interface{}) (string, error) {
+	parsedEvents, err := parse.FilterEventsForInsights(events)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to make screenshot render request")
+		return "", e.Wrap(err, "Failed filter session events")
 	}
-	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("screenshot render returned %d", res.StatusCode))
-	}
-	b, err := io.ReadAll(res.Body)
+
+	b, err := json.Marshal(parsedEvents)
+
 	if err != nil {
-		return nil, e.Wrap(err, "failed to read body of screenshot render response")
+		return "", err
 	}
-	return b, nil
+
+	userPrompt := fmt.Sprintf(`
+	Input:
+	%v
+	`, string(b))
+
+	return userPrompt, nil
+}
+
+func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session) (*model.SessionInsight, error) {
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
+	systemPrompt := `
+	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
+	Rules:
+	- Use less than 2 sentences for each point
+	- Provide high level insights, do not mention singular events
+	- Do not mention event types in the insights
+	- Insights must be different to each other
+	- Do not mention identification or authentication events
+	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
+	- Output timestamp that best represents the insight in <timestamp> of output
+	- Sort the insights by timestamp
+
+	You must respond ONLY with JSON that looks like this:
+	[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
+	Do not provide any other output other than this format.
+
+	Context:
+	- The events are JSON objects, where the "timestamp" field represents UNIX time of the event, the "type" field represents the type of event, and the "data" field represents more information about the event
+	- If the event is of type "Custom", the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	- If the event is of tag "Track", it is a custom event where the actual type of the event is in the "event" field within "data.payload"
+
+	The "type" field follows this format:
+	0 - DomContentLoaded
+	1 - Load
+	2 -	FullSnapshot, the full page view was loaded
+	3 -	IncrementalSnapshot, some components were updated
+	4 -	Meta
+	5 -	Custom, the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	6 -	Plugin
+	`
+
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: GetEvents error")
+		return nil, err
+	}
+
+	userPrompt, err := r.getSessionInsightPrompt(ctx, events)
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Prompt error")
+		return nil, err
+	}
+
+	const MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH = 32000
+	if len(userPrompt) > MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH {
+		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
+	}
+
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:       openai.GPT3Dot5Turbo16K,
+			Temperature: 0.7,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: userPrompt,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: ChatCompletion error")
+		return nil, err
+	}
+
+	insight := &model.SessionInsight{SessionID: session.ID, Insight: resp.Choices[0].Message.Content}
+
+	if err := r.DB.Create(insight).Error; err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Error saving insight")
+		return nil, err
+	}
+
+	return insight, nil
 }
 
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
@@ -1356,7 +1361,7 @@ func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
 	return &channelsString, nil
 }
 
-func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome bool) ([]*modelInputs.ErrorTrace, error) {
+func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
 		// Stack trace may not be able to be unmarshalled as the format may differ
@@ -1369,9 +1374,7 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome boo
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
 		if frame != nil && *frame != empty {
-			if !filterChrome || (frame.FileName != nil && !strings.HasPrefix(*frame.FileName, "chrome-extension")) {
-				ret = append(ret, frame)
-			}
+			ret = append(ret, frame)
 		}
 	}
 
@@ -1385,12 +1388,12 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return e.Wrap(err, "error retrieving admin")
+		return err
 	}
 
 	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
 	if err != nil || role != model.AdminRole.ADMIN {
-		return e.New("admin does not have role=ADMIN")
+		return AuthorizationError
 	}
 
 	return nil
@@ -1452,7 +1455,6 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
-	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
@@ -1462,10 +1464,9 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, productUnlimitedMembers, _, priceRetentionPeriod := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
 				unlimitedMembers = productUnlimitedMembers
-				retentionPeriod = priceRetentionPeriod
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1492,12 +1493,46 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"BillingPeriodStart": billingPeriodStart,
 		"BillingPeriodEnd":   billingPeriodEnd,
 		"NextInvoiceDate":    nextInvoiceDate,
+		"TrialEndDate":       nil,
 	}
 
-	// Only update retention period if already set
-	// This preserves `nil` values for customers grandfathered into 6 month retention
-	if workspace.RetentionPeriod != nil {
-		updates["RetentionPeriod"] = retentionPeriod
+	if util.IsHubspotEnabled() {
+		props := []hubspot.Property{{
+			Name:     "plan_tier",
+			Property: "plan_tier",
+			Value:    string(tier),
+		}}
+		if workspace.PlanTier != modelInputs.PlanTypeFree.String() && tier == modelInputs.PlanTypeFree {
+			props = append(props, hubspot.Property{
+				Name:     "churn_date",
+				Property: "churn_date",
+				Value:    time.Now().UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodStart != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_start",
+				Property: "billing_period_start",
+				Value:    billingPeriodStart.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodEnd != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_end",
+				Property: "billing_period_end",
+				Value:    billingPeriodEnd.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if nextInvoiceDate != nil {
+			props = append(props, hubspot.Property{
+				Name:     "next_invoice",
+				Property: "next_invoice",
+				Value:    nextInvoiceDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if err := r.HubspotApi.UpdateCompanyProperty(ctx, workspace.ID, props); err != nil {
+			log.WithContext(ctx).WithField("props", props).Error(e.Wrap(err, "hubspot error processing stripe webhook"))
+		}
 	}
 
 	if err := r.DB.Model(&model.Workspace{}).
@@ -1507,7 +1542,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, r.HubspotApi).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
@@ -1667,7 +1702,7 @@ func (r *Resolver) SlackEventsWebhook(ctx context.Context, signingSecret string)
 
 					if sessionId, err := getIdForPageFromUrl(u, "sessions"); err == nil {
 						session := model.Session{SecureID: sessionId}
-						if err := r.DB.Where(&session).First(&session).Error; err != nil {
+						if err := r.DB.Where(&session).Take(&session).Error; err != nil {
 							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get session (unfurl url: %s)", link))
 							continue
 						}
@@ -1681,7 +1716,7 @@ func (r *Resolver) SlackEventsWebhook(ctx context.Context, signingSecret string)
 						urlToSlackAttachment[link.URL] = attachment
 					} else if errorId, err := getIdForPageFromUrl(u, "errors"); err == nil {
 						errorGroup := model.ErrorGroup{SecureID: errorId}
-						if err := r.DB.Where(&errorGroup).First(&errorGroup).Error; err != nil {
+						if err := r.DB.Where(&errorGroup).Take(&errorGroup).Error; err != nil {
 							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get ErrorGroup (unfurl url: %s)", link))
 							continue
 						}
@@ -1939,6 +1974,35 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 	return nil
 }
 
+func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	err := r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
+	if err != nil {
+		return err
+	}
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return err
+	}
+
+	jiraSite, err := jira.GetJiraSite(*accessToken)
+
+	if err != nil {
+		return err
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  &jiraSite.URL,
+		JiraCloudID: &jiraSite.ID,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
@@ -2093,6 +2157,31 @@ func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	return nil
 }
 
+func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeJira,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "workspace does not have a Jira integration")
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "error deleting workspace Jira integration")
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  nil,
+		JiraCloudID: nil,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 	if workspace.VercelAccessToken == nil {
 		return e.New("workspace does not have a Vercel access token")
@@ -2157,22 +2246,48 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 	return nil
 }
 
-func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	workspaceMapping := &model.IntegrationWorkspaceMapping{}
 	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
-		IntegrationType: integrationType,
-	}).First(&workspaceMapping).Error; err != nil {
-		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+		IntegrationType: modelInputs.IntegrationTypeGitHub,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "workspace does not have a GitHub integration")
 	}
 
 	// uninstall the app in github
-	if c, err := github.NewClient(ctx, workspaceMapping.AccessToken); err == nil {
+	if c, err := github.NewClient(ctx, workspaceMapping.AccessToken, r.Redis); err == nil {
 		if err := c.DeleteInstallation(ctx, workspaceMapping.AccessToken); err != nil {
 			return e.Wrap(err, "failed to delete github app installation")
 		}
 	} else {
 		return e.Wrap(err, "failed to create github client")
+	}
+
+	if err := r.DB.Exec(`
+		UPDATE services
+		SET github_repo_path = NULL, github_prefix = NULL, build_prefix = NULL, status = 'created', error_details = ARRAY[]::text[]
+		FROM projects
+		WHERE projects.workspace_id = ?
+			AND services.project_id = projects.id
+	`, workspace.ID).Error; err != nil {
+		return e.Wrap(err, "failed to remove GitHub repo from associated project services")
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "error deleting workspace GitHub integration")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: integrationType,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
 	}
 
 	if err := r.DB.Raw(`
@@ -2545,6 +2660,49 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 	return nil
 }
 
+func (r *Resolver) CreateJiraTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	projectId string,
+) error {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No Jira integration access token found.")
+	}
+
+	jiraIssuePayload := jira.JiraCreateIssueFields{
+		Description: issueDescription,
+		Summary:     issueTitle,
+		Project:     jira.JiraIssueProjectData{Id: projectId},
+		IssueType:   jira.JiraIssueTypeData{Id: "10001"},
+	}
+
+	jiraCreateIssueData := jira.JiraCreateIssuePayload{
+		Fields: jiraIssuePayload,
+	}
+
+	task, err := jira.CreateJiraTask(workspace, *accessToken, jiraCreateIssueData)
+
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task)
+	attachment.Title = issueTitle
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
 func (r *Resolver) CreateGitHubTaskAndAttachment(
 	ctx context.Context,
 	workspace *model.Workspace,
@@ -2568,7 +2726,7 @@ func (r *Resolver) CreateGitHubTaskAndAttachment(
 		return errors.New("No GitHub integration access token found.")
 	}
 	var task *github2.Issue
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		task, err = c.CreateIssue(ctx, *repo, &github2.IssueRequest{
 			Title:  pointy.String(issueTitle),
 			Body:   pointy.String(issueDescription),
@@ -2602,7 +2760,7 @@ func (r *Resolver) GetGitHubRepos(
 		return nil, nil
 	}
 	var repos []*github2.Repository
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		repos, err = c.ListRepos(ctx)
 		if err != nil {
 			return nil, err
@@ -2634,7 +2792,7 @@ func (r *Resolver) GetGitHubIssueLabels(
 		return nil, nil
 	}
 	var labels []*github2.Label
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		labels, err = c.ListLabels(ctx, repository)
 		if err != nil {
 			return nil, err
@@ -2810,7 +2968,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 		}
 		if f.AdminId > 0 {
 			a := &model.Admin{}
-			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).First(&a).Error; err != nil {
+			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).Take(&a).Error; err != nil {
 				log.WithContext(ctx).Error(err, "Error finding follower admin object")
 				continue
 			}
@@ -2827,8 +2985,9 @@ func (r *Resolver) sendFollowedCommentNotification(
 
 	if len(threadIDs) > 0 {
 		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
-				tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
+			ctx := context.Background()
+			commentMentionSlackSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+				util.ResourceName("slackBot.sendCommentFollowerUpdate"), util.Tag("project_id", projectID), util.Tag("count", len(followers)), util.Tag("subjectScope", subjectScope))
 			defer commentMentionSlackSpan.Finish()
 
 			err := r.SendSlackThreadReply(ctx, workspace, admin, viewLink, textForEmail, action, subjectScope, threadIDs)
@@ -2840,8 +2999,9 @@ func (r *Resolver) sendFollowedCommentNotification(
 
 	if len(tos) > 0 {
 		r.PrivateWorkerPool.SubmitRecover(func() {
-			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
-				tracer.ResourceName("sendgrid.sendFollowerEmail"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+			ctx := context.Background()
+			commentMentionEmailSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+				util.ResourceName("sendgrid.sendFollowerEmail"), util.Tag("project_id", projectID), util.Tag("count", len(followers)), util.Tag("action", action), util.Tag("subjectScope", subjectScope))
 			defer commentMentionEmailSpan.Finish()
 
 			err := r.SendEmailAlert(
@@ -2865,8 +3025,9 @@ func (r *Resolver) sendFollowedCommentNotification(
 
 func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
-			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
+		ctx := context.Background()
+		commentMentionSlackSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
+			util.ResourceName("slackBot.sendCommentMention"), util.Tag("project_id", projectID), util.Tag("count", len(taggedSlackUsers)), util.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
 		err := r.SendSlackAlertToUser(ctx, workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID, additionalContext)
@@ -2925,8 +3086,9 @@ func (r *Resolver) sendCommentPrimaryNotification(
 	}
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
-			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		ctx := context.Background()
+		commentMentionEmailSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			util.ResourceName("sendgrid.sendCommentMention"), util.Tag("project_id", projectID), util.Tag("count", len(taggedAdmins)), util.Tag("action", action), util.Tag("subjectScope", subjectScope))
 		defer commentMentionEmailSpan.Finish()
 
 		err := r.SendEmailAlert(
@@ -2947,8 +3109,9 @@ func (r *Resolver) sendCommentPrimaryNotification(
 	})
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
-			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		ctx := context.Background()
+		commentMentionSlackSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			util.ResourceName("slack.sendCommentMention"), util.Tag("project_id", projectID), util.Tag("count", len(adminIds)), util.Tag("action", action), util.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
 		var admins []*model.Admin
@@ -3011,75 +3174,145 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
-	var filteredNewChannels []model.SlackChannel
+	type result struct {
+		ExistingChannels []model.SlackChannel
+		NewChannelsCount int
+	}
+	res, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf(`slack-channels-workspace-%d`, workspaceId), 5*time.Second, 5*time.Minute, func() (*result, error) {
+		workspace, _ := r.GetWorkspace(workspaceId)
+		// workspace is not integrated with slack
+		if workspace.SlackAccessToken == nil {
+			return nil, nil
+		}
 
+		slackClient := slack.New(*workspace.SlackAccessToken)
+		existingChannels, _ := workspace.IntegratedSlackChannels()
+
+		getConversationsParam := slack.GetConversationsParameters{
+			Limit: 1000,
+			// public_channel is for public channels in the Slack workspace
+			// private is for private channels in the Slack workspace that the Bot is included in
+			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+			Types: []string{"public_channel", "private_channel", "mpim"},
+		}
+		allSlackChannelsFromAPI := []slack.Channel{}
+
+		// Slack paginates the channels/people listing.
+		for {
+			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+			getConversationsParam.Cursor = cursor
+			if err != nil {
+				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
+			}
+
+			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+			if getConversationsParam.Cursor == "" {
+				break
+			}
+			// delay the next slack call to avoid getting rate limited
+			time.Sleep(time.Second)
+		}
+
+		// We need to get the users in the Slack channel in order to get their name.
+		// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
+		users, err := slackClient.GetUsers()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to get users"))
+		}
+
+		newChannelsCount := 0
+
+		channelsAndUsers := map[string]model.SlackChannel{}
+		for _, channel := range existingChannels {
+			channelsAndUsers[channel.WebhookChannelID] = channel
+		}
+
+		for _, channel := range allSlackChannelsFromAPI {
+			_, exists := channelsAndUsers[channel.ID]
+			if !exists && channel.IsChannel && channel.ID != "" {
+				newChannelsCount++
+				slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
+				channelsAndUsers[channel.ID] = slackChannel
+				existingChannels = append(existingChannels, slackChannel)
+			}
+		}
+
+		for _, user := range users {
+			_, exists := channelsAndUsers[user.ID]
+			if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
+				newChannelsCount++
+				slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
+				channelsAndUsers[user.ID] = slackChannel
+				existingChannels = append(existingChannels, slackChannel)
+			}
+		}
+
+		return &result{existingChannels, newChannelsCount}, nil
+	})
+	if res == nil {
+		return nil, 0, err
+	}
+	return &res.ExistingChannels, res.NewChannelsCount, err
+}
+func (r *Resolver) CreateSlackChannel(workspaceId int, name string) (*model.SlackChannel, error) {
 	workspace, _ := r.GetWorkspace(workspaceId)
 	// workspace is not integrated with slack
 	if workspace.SlackAccessToken == nil {
-		return &filteredNewChannels, 0, nil
+		return nil, e.New("no slack access token provided")
 	}
 
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	existingChannels, _ := workspace.IntegratedSlackChannels()
-
-	getConversationsParam := slack.GetConversationsParameters{
-		Limit: 1000,
-		// public_channel is for public channels in the Slack workspace
-		// im is for all individuals in the Slack workspace
-		Types: []string{"public_channel", "im"},
-	}
-	allSlackChannelsFromAPI := []slack.Channel{}
-
-	// Slack paginates the channels/people listing.
-	for {
-		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
-		if err != nil {
-			return &filteredNewChannels, 0, e.Wrap(err, "error getting Slack channels from Slack.")
-		}
-
-		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
-
-		if cursor == "" {
-			break
-		}
-
-	}
-
-	// We need to get the users in the Slack channel in order to get their name.
-	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
-	users, err := slackClient.GetUsers()
+	channel, err := slackClient.CreateConversation(name, false)
 	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "failed to get users"))
+		return nil, err
 	}
 
-	newChannelsCount := 0
+	return &model.SlackChannel{
+		WebhookChannel:   channel.Name,
+		WebhookChannelID: channel.ID,
+	}, nil
+}
 
-	channelsAndUsers := map[string]model.SlackChannel{}
-	for _, channel := range existingChannels {
-		channelsAndUsers[channel.WebhookChannelID] = channel
+func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.DiscordChannel, error) {
+	workspace, err := r.GetWorkspace(workspaceId)
+	if err != nil {
+		return nil, err
 	}
 
-	for _, channel := range allSlackChannelsFromAPI {
-		_, exists := channelsAndUsers[channel.ID]
-		if !exists && channel.IsChannel && channel.ID != "" {
-			newChannelsCount++
-			slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
-			channelsAndUsers[channel.ID] = slackChannel
-			existingChannels = append(existingChannels, slackChannel)
-		}
+	guildId := workspace.DiscordGuildId
+	if guildId == nil {
+		return nil, nil
 	}
 
-	for _, user := range users {
-		_, exists := channelsAndUsers[user.ID]
-		if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
-			newChannelsCount++
-			slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
-			channelsAndUsers[user.ID] = slackChannel
-			existingChannels = append(existingChannels, slackChannel)
-		}
+	bot, err := discord.NewDiscordBot(*guildId)
+	if err != nil {
+		return nil, err
 	}
 
-	return &existingChannels, newChannelsCount, nil
+	channels, err := bot.GetChannels()
+	if err != nil {
+		return nil, err
+	}
+
+	if channel, has := lo.Find(channels, func(item *discordgo.Channel) bool {
+		return strings.EqualFold(item.Name, name)
+	}); has {
+		return &model.DiscordChannel{
+			Name: channel.Name,
+			ID:   channel.ID,
+		}, nil
+	}
+
+	channel, err := bot.CreateChannel(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.DiscordChannel{
+		Name: channel.Name,
+		ID:   channel.ID,
+	}, nil
 }
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
@@ -3224,10 +3457,10 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		agg = *params.Aggregator
 	}
 	query += GetAggregateFluxStatement(ctx, agg, resMins)
-	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
-	timelineQuerySpan.SetTag("projectID", projectID)
-	timelineQuerySpan.SetTag("metricName", metricName)
-	timelineQuerySpan.SetTag("resMins", resMins)
+	timelineQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
+	timelineQuerySpan.SetAttribute("projectID", projectID)
+	timelineQuerySpan.SetAttribute("metricName", metricName)
+	timelineQuerySpan.SetAttribute("resMins", resMins)
 	results, err := tdb.Query(ctx, query)
 	timelineQuerySpan.Finish()
 	if err != nil {
@@ -3270,7 +3503,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 
 func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
 	var project *model.Project
-	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).First(&project).Error; err != nil {
+	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).Take(&project).Error; err != nil {
 		return time.Time{}, e.Wrap(err, "error querying project")
 	}
 
@@ -3297,143 +3530,6 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		return time.Now().AddDate(-2, 0, 0)
 	}
 	return time.Now()
-}
-
-func FormatErrorInstancesQuery(query string, retentionDate time.Time) string {
-	return fmt.Sprintf(`
-	{
-		"bool": {
-		   "must": [
-			  {
-				"range": {
-					"timestamp": {
-					   "gt": "%s"
-					}
-				 }
-			  },
-			  %s
-		   ]
-		}
-	 }`, retentionDate.Format(time.RFC3339), query)
-}
-
-func FormatErrorGroupsQuery(query string, retentionDate time.Time) string {
-	return fmt.Sprintf(`
-	{
-		"bool": {
-		   "must": [
-			  {
-				"range": {
-					"updated_at": {
-					   "gt": "%s"
-					}
-				 }
-			  },
-			  %s
-		   ]
-		}
-	 }`, retentionDate.Format(time.RFC3339), query)
-}
-
-func FormatSessionsQuery(query string, retentionDate time.Time) string {
-	return fmt.Sprintf(`
-	{
-		"bool": {
-		   "must": [
-			  {
-				"range": {
-					"created_at": {
-					   "gt": "%s"
-					}
-				 }
-			  },
-			  {
-				 "bool": {
-					"must_not": [
-					   {
-						  "term": {
-							 "Excluded": true
-						  }
-					   },
-					   {
-						  "term": {
-							 "within_billing_quota": false
-						  }
-					   },
-					   {
-						  "bool": {
-							 "must": [
-								{
-								   "term": {
-									  "processed": "true"
-								   }
-								},
-								{
-								   "bool": {
-									  "should": [
-										 {
-											"range": {
-											   "active_length": {
-												  "lt": 1000
-											   }
-											}
-										 },
-										 {
-											"range": {
-											   "length": {
-												  "lt": 1000
-											   }
-											}
-										 }
-									  ]
-								   }
-								}
-							 ]
-						  }
-					   }
-					]
-				 }
-			  },
-			  %s
-		   ]
-		}
-	 }`, retentionDate.Format(time.RFC3339), query)
-}
-
-func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
-	aggregation := opensearch.DateHistogramAggregation{
-		Field:            field,
-		CalendarInterval: histogramOptions.BucketSize.CalendarInterval.String(),
-		SortOrder:        "asc",
-		Format:           "epoch_millis",
-		TimeZone:         histogramOptions.TimeZone,
-		DateBounds: &opensearch.DateBounds{
-			Min: histogramOptions.Bounds.StartDate.UnixMilli(),
-			Max: histogramOptions.Bounds.EndDate.UnixMilli(),
-		},
-	}
-	if subAggregation != nil {
-		aggregation.SubAggregation = subAggregation
-	}
-	return &aggregation
-}
-
-func GetBucketTimesAndTotalCounts(ctx context.Context, aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
-	bucketTimes, totalCounts := []time.Time{}, []int64{}
-	for _, date_bucket := range aggs {
-		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
-		if err != nil {
-			log.WithContext(ctx).Errorf("Error parsing date bucket key for histogram: %s", err.Error())
-			break
-		}
-		bucketTimes = append(bucketTimes, time.UnixMilli(unixMillis))
-		totalCounts = append(totalCounts, date_bucket.DocCount)
-	}
-	if len(aggs) > 0 {
-		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
-		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
-	}
-	return bucketTimes, totalCounts
 }
 
 func MergeHistogramBucketTimes(bucketTimes []time.Time, multiple int) []time.Time {
@@ -3473,4 +3569,99 @@ func IsOptOutTokenValid(adminID int, token string) bool {
 
 	// If the token matches the prior month's, it's valid
 	return token == Email.GetOptOutToken(adminID, true)
+}
+
+func (r *Resolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	errorTag, err := r.EmbeddingsClient.GetErrorTagEmbedding(ctx, title, description)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "CreateErrorTag: Error creating tag embedding")
+		return nil, err
+	}
+
+	if err := r.DB.Create(errorTag).Error; err != nil {
+		log.WithContext(ctx).Error(err, "CreateErrorTag: Error creating tag")
+		return nil, err
+	}
+
+	return errorTag, nil
+}
+
+func (r *Resolver) UpdateErrorTags(ctx context.Context) error {
+	var tags []*model.ErrorTag
+	if err := r.DB.Model(&model.ErrorTag{}).Scan(&tags).Error; err != nil {
+		return err
+	}
+	for _, tag := range tags {
+		emb, err := r.EmbeddingsClient.GetErrorTagEmbedding(ctx, tag.Title, tag.Description)
+		if err != nil {
+			log.WithContext(ctx).Error(err, "UpdateErrorTag: Error creating tag embedding")
+			return err
+		}
+		if err := r.DB.Model(&model.ErrorTag{}).Where(
+			&model.ErrorTag{Model: model.Model{ID: tag.ID}},
+		).Updates(
+			&model.ErrorTag{Embedding: emb.Embedding},
+		).Error; err != nil {
+			log.WithContext(ctx).Error(err, "UpdateErrorTag: Error updating embedding")
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
+	var errorTags []*model.ErrorTag
+
+	if err := r.DB.Model(errorTags).Scan(&errorTags).Error; err != nil {
+		return nil, e.Wrap(err, "500: error querying error tags")
+	}
+
+	return errorTags, nil
+}
+
+func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
+	return embeddings.MatchErrorTag(ctx, r.DB, r.EmbeddingsClient, query)
+}
+
+func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
+	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
+
+	if err != nil {
+		return nil, e.Wrap(err, "500: failed to get string embedding")
+	}
+
+	var matchedErrorObjects []*model.MatchedErrorObject
+	if err := r.DB.Raw(`
+		select distinct on (1, error_group_id) eoep.gte_large_embedding <-> @string_embedding as score,
+											   eo.*
+		from error_object_embeddings_partitioned eoep
+				 inner join error_objects eo on eoep.error_object_id = eo.id
+		where eoep.gte_large_embedding is not null
+		  and eoep.project_id = 1
+		order by 1
+		limit 10;
+	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
+		Scan(&matchedErrorObjects).Error; err != nil {
+		return matchedErrorObjects, e.Wrap(err, "error querying nearest ErrorTag")
+	}
+
+	return matchedErrorObjects, nil
+}
+
+func (r *Resolver) GetJiraProjects(
+	ctx context.Context,
+	workspace *model.Workspace,
+) ([]*modelInputs.JiraProject, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, nil
+	}
+
+	return jira.GetJiraProjects(workspace, *accessToken)
 }

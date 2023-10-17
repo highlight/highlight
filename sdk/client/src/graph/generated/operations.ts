@@ -29,6 +29,7 @@ export type BackendErrorObjectInput = {
 	log_cursor?: InputMaybe<Scalars['String']>
 	payload?: InputMaybe<Scalars['String']>
 	request_id?: InputMaybe<Scalars['String']>
+	service: ServiceInput
 	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
 	span_id?: InputMaybe<Scalars['String']>
@@ -116,6 +117,8 @@ export type MutationInitializeSessionArgs = {
 	firstloadVersion: Scalars['String']
 	network_recording_domains?: InputMaybe<Array<Scalars['String']>>
 	organization_verbose_id: Scalars['String']
+	privacy_setting?: InputMaybe<Scalars['String']>
+	serviceName?: InputMaybe<Scalars['String']>
 	session_secure_id: Scalars['String']
 }
 
@@ -144,6 +147,7 @@ export type MutationPushPayloadArgs = {
 	payload_id?: InputMaybe<Scalars['ID']>
 	resources: Scalars['String']
 	session_secure_id: Scalars['String']
+	web_socket_events?: InputMaybe<Scalars['String']>
 }
 
 export enum PublicGraphError {
@@ -170,6 +174,11 @@ export type ReplayEventsInput = {
 	events: Array<InputMaybe<ReplayEventInput>>
 }
 
+export type ServiceInput = {
+	name: Scalars['String']
+	version: Scalars['String']
+}
+
 export type Session = {
 	__typename?: 'Session'
 	id?: Maybe<Scalars['ID']>
@@ -194,6 +203,7 @@ export type PushPayloadMutationVariables = Exact<{
 	events: ReplayEventsInput
 	messages: Scalars['String']
 	resources: Scalars['String']
+	web_socket_events: Scalars['String']
 	errors: Array<InputMaybe<ErrorObjectInput>> | InputMaybe<ErrorObjectInput>
 	is_beacon?: InputMaybe<Scalars['Boolean']>
 	has_session_unloaded?: InputMaybe<Scalars['Boolean']>
@@ -253,6 +263,7 @@ export type InitializeSessionMutationVariables = Exact<{
 	session_secure_id: Scalars['String']
 	organization_verbose_id: Scalars['String']
 	enable_strict_privacy: Scalars['Boolean']
+	privacy_setting: Scalars['String']
 	enable_recording_network_contents: Scalars['Boolean']
 	clientVersion: Scalars['String']
 	firstloadVersion: Scalars['String']
@@ -260,6 +271,7 @@ export type InitializeSessionMutationVariables = Exact<{
 	environment: Scalars['String']
 	id: Scalars['String']
 	appVersion?: InputMaybe<Scalars['String']>
+	serviceName: Scalars['String']
 	client_id: Scalars['String']
 	network_recording_domains?: InputMaybe<
 		Array<Scalars['String']> | Scalars['String']
@@ -288,6 +300,7 @@ export const PushPayloadDocument = gql`
 		$events: ReplayEventsInput!
 		$messages: String!
 		$resources: String!
+		$web_socket_events: String!
 		$errors: [ErrorObjectInput]!
 		$is_beacon: Boolean
 		$has_session_unloaded: Boolean
@@ -299,6 +312,7 @@ export const PushPayloadDocument = gql`
 			events: $events
 			messages: $messages
 			resources: $resources
+			web_socket_events: $web_socket_events
 			errors: $errors
 			is_beacon: $is_beacon
 			has_session_unloaded: $has_session_unloaded
@@ -358,6 +372,7 @@ export const InitializeSessionDocument = gql`
 		$session_secure_id: String!
 		$organization_verbose_id: String!
 		$enable_strict_privacy: Boolean!
+		$privacy_setting: String!
 		$enable_recording_network_contents: Boolean!
 		$clientVersion: String!
 		$firstloadVersion: String!
@@ -365,6 +380,7 @@ export const InitializeSessionDocument = gql`
 		$environment: String!
 		$id: String!
 		$appVersion: String
+		$serviceName: String!
 		$client_id: String!
 		$network_recording_domains: [String!]
 		$disable_session_recording: Boolean
@@ -379,10 +395,12 @@ export const InitializeSessionDocument = gql`
 			clientConfig: $clientConfig
 			environment: $environment
 			appVersion: $appVersion
+			serviceName: $serviceName
 			fingerprint: $id
 			client_id: $client_id
 			network_recording_domains: $network_recording_domains
 			disable_session_recording: $disable_session_recording
+			privacy_setting: $privacy_setting
 		) {
 			secure_id
 			project_id

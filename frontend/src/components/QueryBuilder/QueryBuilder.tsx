@@ -1,17 +1,6 @@
-import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import Popover from '@components/Popover/Popover'
-import { START_PAGE } from '@components/SearchPagination/SearchPagination'
-import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import Tooltip from '@components/Tooltip/Tooltip'
-import {
-	BackendSearchQuery,
-	BaseSearchContext,
-	normalizeParams,
-} from '@context/BaseSearchContext'
+import { BaseSearchContext } from '@context/BaseSearchContext'
 import {
 	useEditErrorSegmentMutation,
 	useEditSegmentMutation,
@@ -19,73 +8,80 @@ import {
 	useGetErrorSegmentsQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
-import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
 import {
-	ErrorSearchParamsInput,
-	ErrorSegment,
-	Exact,
-	Field,
-	SearchParamsInput,
-	Segment,
-} from '@graph/schemas'
+	GetErrorTagsQuery,
+	GetFieldTypesClickhouseQuery,
+	namedOperations,
+} from '@graph/operations'
+import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
-	getDefaultPresets,
+	ComboboxSelect,
+	defaultPresets,
+	getNow,
+	IconSolidCalendar,
+	IconSolidChat,
 	IconSolidCheveronDown,
+	IconSolidClock,
 	IconSolidCloudUpload,
+	IconSolidCube,
+	IconSolidCubeTransparent,
+	IconSolidCursorClick,
+	IconSolidDesktopComputer,
+	IconSolidDocumentAdd,
 	IconSolidDocumentDuplicate,
+	IconSolidDocumentRemove,
+	IconSolidDocumentText,
+	IconSolidEye,
+	IconSolidGlobe,
+	IconSolidGlobeAlt,
+	IconSolidLightningBolt,
+	IconSolidLink,
 	IconSolidLogout,
 	IconSolidPencil,
 	IconSolidPlusCircle,
 	IconSolidPlusSm,
+	IconSolidQuestionMarkCircle,
 	IconSolidRefresh,
 	IconSolidSave,
 	IconSolidSegment,
+	IconSolidTag,
+	IconSolidTerminal,
 	IconSolidTrash,
+	IconSolidUser,
+	IconSolidUserAdd,
 	IconSolidX,
 	Menu,
+	Popover,
 	PreviousDateRangePicker,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
-import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
-import { QueryBuilderStateParam } from '@util/url/params'
-import { Checkbox, message } from 'antd'
+import { message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
-import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { components } from 'react-select'
-import AsyncSelect from 'react-select/async'
-import Creatable from 'react-select/creatable'
-import { Styles } from 'react-select/src/styles'
-import { OptionTypeBase } from 'react-select/src/types'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useToggle } from 'react-use'
-import {
-	BooleanParam,
-	JsonParam,
-	NumberParam,
-	useQueryParam,
-	useQueryParams,
-} from 'use-query-params'
 
+import LoadingBox from '@/components/LoadingBox'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 
 import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
-import styles from './QueryBuilder.module.scss'
+import styles from './QueryBuilder.module.css'
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -97,30 +93,31 @@ export interface SelectOption {
 	label: string
 	value: string
 }
-interface MultiselectOption {
+export interface MultiselectOption {
 	kind: 'multi'
-	options: readonly {
-		label: string
-		value: string
-	}[]
+	options: readonly Option[]
 }
 
-type OnChangeInput = SelectOption | MultiselectOption | undefined
-type OnChange = (val: OnChangeInput) => void
-type LoadOptions = (input: string, callback: any) => Promise<any>
-type OpenSearchQuery = {
-	query: any
-	childQuery?: any
-}
+type Option = { label: string; value: string }
+type OnSelectChange = (val: SelectOption) => void
+type OnMultiselectChange = (val: MultiselectOption) => void
+type LoadOptions = (input: string) => Promise<Option[] | undefined>
+type UpdateRule = (targetRule: RuleProps, newProps: any) => void
+type RemoveRule = (targetRule: RuleProps) => void
 
 interface RuleSettings {
-	onChangeKey: OnChange
 	getKeyOptions: LoadOptions
-	onChangeOperator: OnChange
-	getOperatorOptions: LoadOptions
-	onChangeValue: OnChange
-	getValueOptions: LoadOptions
-	onRemove: () => void
+	getOperatorOptionsCallback: (
+		options: FieldOptions | undefined,
+		val: MultiselectOption | undefined,
+	) => LoadOptions
+	getValueOptionsCallback: (field: SelectOption | undefined) => LoadOptions
+	getCustomFieldOptions: (
+		field: SelectOption | undefined,
+	) => FieldOptions | undefined
+	getDefaultOperator: (field: SelectOption | undefined) => Operator
+	updateRule: UpdateRule
+	removeRule: RemoveRule
 	readonly: boolean
 }
 
@@ -131,170 +128,31 @@ type PopoutType =
 	| 'date_range'
 	| 'time_range'
 	| 'range'
-interface PopoutContentProps {
+
+interface MultiselectPopoutContentProps {
 	type: PopoutType
-	value: OnChangeInput
-	onChange: OnChange
+	value: MultiselectOption | undefined
+	onChange: OnMultiselectChange
 	loadOptions: LoadOptions
+}
+
+interface SelectPopoutContentProps {
+	type: PopoutType
+	value: SelectOption | undefined
+	icon?: React.ReactNode
+	valueRender?: React.ReactNode
+	onChange: OnSelectChange
+	loadOptions: LoadOptions
+	defaultOpen?: boolean
 }
 
 interface PopoutProps {
 	disabled: boolean
 }
 
-interface SetVisible {
-	setVisible: (val: boolean) => void
-}
+export const TIME_MAX_LENGTH = 60
+export const RANGE_MAX_LENGTH = 200
 
-const TIME_MAX_LENGTH = 60
-const RANGE_MAX_LENGTH = 200
-
-const TOOLTIP_MESSAGE = 'This property was automatically collected by Highlight'
-
-const styleProps: Styles<{ label: string; value: string }, false> = {
-	...SharedSelectStyleProps,
-	option: (provided, { isFocused }) => ({
-		...provided,
-		whiteSpace: 'nowrap',
-		overflow: 'hidden',
-		textOverflow: 'ellipsis',
-		direction: 'ltr',
-		textAlign: 'left',
-		padding: '0 0 0 12px',
-		marginRight: '12px',
-		fontSize: '12px',
-		color: 'var(--color-text-primary)',
-		backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
-		'&:active': {
-			backgroundColor: 'var(--color-gray-200)',
-		},
-	}),
-	menuList: (provided) => ({
-		...provided,
-		scrollbarWidth: 'none',
-		padding: '0',
-		'&::-webkit-scrollbar': {
-			display: 'none',
-		},
-		maxHeight: '400px',
-	}),
-	control: (provided) => ({
-		...provided,
-		border: '0',
-		boxShadow: '0',
-		fontSize: '12px',
-		background: 'none',
-		'border-radius': '0',
-		'border-bottom': '1px solid var(--color-gray-300)',
-		'&:hover': {
-			'border-bottom': '1px solid var(--color-gray-300)',
-		},
-	}),
-	valueContainer: (provided) => ({
-		...provided,
-		padding: '8px 12px',
-	}),
-	noOptionsMessage: (provided) => ({
-		...provided,
-		fontSize: '12px',
-	}),
-	loadingMessage: (provided) => ({
-		...provided,
-		fontSize: '12px',
-	}),
-}
-
-function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
-	const ref = useRef<T>(null)
-	const doScroll = useCallback(() => {
-		ref?.current?.scrollIntoView({ inline: 'center' })
-	}, [])
-
-	return [doScroll, ref]
-}
-
-const OptionLabelName: React.FC<React.PropsWithChildren> = (props) => {
-	const ref = useRef<HTMLDivElement>(null)
-
-	const [className, setClassName] = useState<string>(styles.shadowContainer)
-
-	const setScrollShadow = (target: any) => {
-		const { scrollLeft, offsetWidth, scrollWidth } = target
-		const showRightShadow = scrollLeft + offsetWidth < scrollWidth
-		const showLeftShadow = scrollLeft > 0
-		setClassName(
-			clsx(styles.shadowContainer, {
-				[styles.shadowRight]: showRightShadow && !showLeftShadow,
-				[styles.shadowLeft]: showLeftShadow && !showRightShadow,
-				[styles.shadowBoth]: showLeftShadow && showRightShadow,
-			}),
-		)
-	}
-
-	useEffect(() => {
-		if (!!ref?.current) {
-			setScrollShadow(ref.current)
-			const onScroll = (ev: any) => {
-				setScrollShadow(ev.target)
-			}
-			ref.current.removeEventListener('scroll', onScroll)
-			ref.current.addEventListener('scroll', onScroll, { passive: true })
-			return () => window.removeEventListener('scroll', onScroll)
-		}
-	}, [ref])
-
-	return (
-		<div className={styles.shadowParent}>
-			<div className={className} />
-			<div className={styles.optionLabelName} ref={ref}>
-				{props.children}
-			</div>
-		</div>
-	)
-}
-
-const ScrolledTextHighlighter = ({
-	searchWords,
-	textToHighlight,
-}: {
-	searchWords: string[]
-	textToHighlight: string
-}) => {
-	const [memoText, setMemoText] = useState<string>(textToHighlight)
-	if (!isEqual(memoText, textToHighlight)) {
-		setMemoText(textToHighlight)
-	}
-	const [doScroll, ref] = useScroll()
-
-	useEffect(() => {
-		doScroll()
-	}, [doScroll, textToHighlight])
-
-	const ScrolledMark = (props: any) => {
-		if (props.highlightIndex === 0) {
-			// Attach the ref to the first matching instance
-			return (
-				<mark className={styles.highlighterStyles} ref={ref}>
-					{props.children}
-				</mark>
-			)
-		} else {
-			return (
-				<mark className={styles.highlighterStyles}>
-					{props.children}
-				</mark>
-			)
-		}
-	}
-
-	return (
-		<TextHighlighter
-			highlightTag={ScrolledMark}
-			searchWords={searchWords}
-			textToHighlight={textToHighlight}
-		/>
-	)
-}
 const getDateLabel = (value: string): string => {
 	if (!value.includes('_')) {
 		// Value is a duration such as '7 days'
@@ -385,96 +243,33 @@ const getStateLabel = (value: string): string => {
 	}
 }
 
-const getMultiselectOption = (props: any) => {
-	const {
-		label,
-		value,
-		isSelected,
-		selectOption,
-		data: { __isNew__: isNew },
-		selectProps: { inputValue },
-	} = props
-
-	return (
-		<div>
-			<components.Option {...props}>
-				<div className={styles.optionLabelContainer}>
-					<Checkbox
-						className={styles.optionCheckbox}
-						checked={isSelected}
-						onChange={() => {
-							selectOption({
-								label: label,
-								value: value,
-								data: { fromCheckbox: true },
-							})
-						}}
-					></Checkbox>
-
-					<OptionLabelName>
-						{isNew ? ( // Don't highlight user provided values (e.g. contains/matches input)
-							label
-						) : (
-							<ScrolledTextHighlighter
-								searchWords={inputValue.split(' ')}
-								textToHighlight={label}
-							/>
-						)}
-					</OptionLabelName>
-				</div>
-			</components.Option>
-		</div>
-	)
-}
-
-const getOption = (props: any) => {
-	const {
-		label,
-		value,
-		selectProps: { inputValue },
-	} = props
-	const type = getType(value)
+const getOption = (option: Option, query: string) => {
+	const { label, value } = option
 	const nameLabel = getNameLabel(label)
-	const typeLabel = getTypeLabel(value)
+	const icon = getIcon(value)
 	const tooltipMessage = TOOLTIP_MESSAGES[value]
-	const searchWords = [inputValue]
 
 	return (
-		<div>
-			<components.Option {...props}>
-				<div className={styles.optionLabelContainer}>
-					{!!typeLabel && (
-						<div className={styles.labelTypeContainer}>
-							<div className={styles.optionLabelType}>
-								<TextHighlighter
-									searchWords={searchWords}
-									textToHighlight={typeLabel}
-								/>
-							</div>
-						</div>
-					)}
-					<div className={styles.optionLabelName}>
-						<TextHighlighter
-							searchWords={searchWords}
-							textToHighlight={nameLabel}
-						/>
-					</div>
-					{(!!tooltipMessage ||
-						type === SESSION_TYPE ||
-						type === CUSTOM_TYPE ||
-						type === ERROR_TYPE ||
-						type === ERROR_FIELD_TYPE ||
-						value === 'user_identifier') && (
-						<InfoTooltip
-							title={tooltipMessage ?? TOOLTIP_MESSAGE}
-							size="medium"
-							hideArrow
-							placement="right"
-							className={styles.optionTooltip}
-						/>
-					)}
-				</div>
-			</components.Option>
+		<div className={newStyle.optionLabelContainer}>
+			{icon}
+			<TextHighlighter
+				searchWords={[query]}
+				textToHighlight={nameLabel}
+			/>
+			{!!tooltipMessage && (
+				<Tooltip
+					placement="right"
+					trigger={
+						<Box display="flex">
+							<IconSolidQuestionMarkCircle size={18} />
+						</Box>
+					}
+				>
+					<Text color="moderate" size="xSmall">
+						{tooltipMessage}
+					</Text>
+				</Tooltip>
+			)}
 		</div>
 	)
 }
@@ -482,168 +277,9 @@ const getOption = (props: any) => {
 const PopoutContent = ({
 	value,
 	onChange,
-	loadOptions,
-	setVisible,
 	type,
-	...props
-}: PopoutContentProps & SetVisible & OptionTypeBase) => {
+}: MultiselectPopoutContentProps) => {
 	switch (type) {
-		case 'select':
-			return (
-				<AsyncSelect
-					autoFocus
-					openMenuOnFocus
-					value={value?.kind === 'single' ? value : null}
-					styles={styleProps}
-					loadOptions={loadOptions}
-					defaultOptions
-					menuIsOpen
-					controlShouldRenderValue={false}
-					hideSelectedOptions={false}
-					isClearable={false}
-					components={{
-						DropdownIndicator: () => null,
-						IndicatorSeparator: () => null,
-						Menu: (props) => {
-							return (
-								<components.MenuList
-									className={styles.menuListContainer}
-									maxHeight={400}
-									{...props}
-								></components.MenuList>
-							)
-						},
-						Option: getOption,
-					}}
-					noOptionsMessage={({ inputValue }) =>
-						`No results for "${inputValue}"`
-					}
-					onChange={(item) => {
-						onChange(
-							!!item ? { kind: 'single', ...item } : undefined,
-						)
-						setVisible(false)
-					}}
-					{...props}
-				/>
-			)
-		case 'multiselect':
-			const selected =
-				(value?.kind === 'multi' ? value.options : null) ?? []
-			return (
-				<AsyncSelect
-					autoFocus
-					openMenuOnFocus
-					isMulti
-					value={selected}
-					styles={styleProps}
-					loadOptions={(input, callback) => {
-						const selectedSet = new Set(
-							selected.map((s) => s.value),
-						)
-						return loadOptions(input, callback).then((results) => [
-							...selected,
-							...results.filter(
-								(r: any) => !selectedSet.has(r.value),
-							),
-						])
-					}}
-					defaultOptions
-					menuIsOpen
-					controlShouldRenderValue={false}
-					hideSelectedOptions={false}
-					isClearable={false}
-					components={{
-						DropdownIndicator: () => null,
-						IndicatorSeparator: () => null,
-						Menu: (props) => {
-							return (
-								<components.MenuList
-									className={styles.menuListContainer}
-									maxHeight={400}
-									{...props}
-								></components.MenuList>
-							)
-						},
-						Option: getMultiselectOption,
-						LoadingIndicator: () => {
-							return <></>
-						},
-					}}
-					noOptionsMessage={({ inputValue }) =>
-						`No results for "${inputValue}"`
-					}
-					onChange={(item) => {
-						onChange(
-							!!item
-								? {
-										kind: 'multi',
-										options: item as readonly {
-											label: string
-											value: string
-										}[],
-								  }
-								: undefined,
-						)
-						if (value === undefined) {
-							setVisible(false)
-						}
-					}}
-					{...props}
-				/>
-			)
-		case 'creatable':
-			const created =
-				(value?.kind === 'multi' ? value.options : null) ?? []
-			return (
-				<Creatable
-					autoFocus
-					openMenuOnFocus
-					isMulti
-					value={created}
-					styles={styleProps}
-					options={created}
-					defaultOptions
-					menuIsOpen
-					controlShouldRenderValue={false}
-					hideSelectedOptions={false}
-					isClearable={false}
-					filterOption={() => true}
-					components={{
-						DropdownIndicator: () => null,
-						IndicatorSeparator: () => null,
-						Menu: (props) => {
-							return (
-								<components.MenuList
-									className={styles.menuListContainer}
-									maxHeight={400}
-									{...props}
-								></components.MenuList>
-							)
-						},
-						Option: getMultiselectOption,
-					}}
-					noOptionsMessage={() => null}
-					onChange={(item) => {
-						onChange(
-							!!item
-								? {
-										kind: 'multi',
-										options: item as readonly {
-											label: string
-											value: string
-										}[],
-								  }
-								: undefined,
-						)
-						setVisible(false)
-					}}
-					formatCreateLabel={(label) => label}
-					createOptionPosition="first"
-					allowCreateWhileLoading={false}
-					{...props}
-				/>
-			)
 		case 'date_range':
 			return (
 				<DateInput
@@ -677,7 +313,6 @@ const PopoutContent = ({
 								},
 							],
 						})
-						setVisible(false)
 					}}
 				/>
 			)
@@ -708,7 +343,6 @@ const PopoutContent = ({
 								},
 							],
 						})
-						setVisible(false)
 					}}
 				/>
 			)
@@ -739,95 +373,218 @@ const PopoutContent = ({
 								},
 							],
 						})
-						setVisible(false)
 					}}
 				/>
 			)
 	}
+	return null
+}
+
+function useDebouncedState<T>(
+	initialState: T,
+	delay: number,
+): [T, React.Dispatch<React.SetStateAction<T>>] {
+	const [value, setValue] = useState<T>(initialState)
+	const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+	useEffect(() => {
+		const timer = setTimeout(() => setDebouncedValue(value), delay)
+
+		return () => {
+			clearTimeout(timer)
+		}
+	}, [value, delay])
+
+	return [debouncedValue, setValue]
+}
+
+const MultiselectPopout = ({
+	value,
+	cssClass,
+	loadOptions,
+	type,
+	onChange,
+	disabled,
+}: PopoutProps &
+	MultiselectPopoutContentProps & {
+		cssClass?: ClassValue | ClassValue[]
+		limitWidth?: boolean
+	}) => {
+	const [query, setQuery] = useDebouncedState('', 300)
+	const [lastQuery, setLastQuery] = useState('')
+	const [options, setOptions] = useState<Option[] | undefined>(undefined)
+	useMemo(() => {
+		loadOptions(query).then((v) => {
+			setOptions(v ?? [])
+			setLastQuery(query)
+		})
+	}, [loadOptions, query])
+
+	const invalid = value === undefined || value.options.length === 0
+
+	let label = '--'
+	if (invalid) {
+		label = '--'
+	} else if (value.options.length > 1) {
+		label = `${value.options.length} selections`
+	} else if (value.options.length === 1) {
+		label = value.options[0].label
+	}
+
+	const loadingBox = (
+		<div className={newStyle.loadingBox}>
+			<LoadingBox />
+		</div>
+	)
+
+	let multiValue: string[] = []
+	switch (type) {
+		case 'multiselect':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={options?.map((o) => ({
+						key: o.value,
+						render: getOption(o, lastQuery),
+					}))}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender={loadingBox}
+				/>
+			)
+		case 'creatable':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={[]}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					creatableRender={(query) =>
+						getOption({ label: query, value: query }, '')
+					}
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender={loadingBox}
+				/>
+			)
+		case 'date_range':
+		case 'time_range':
+		case 'range':
+			return (
+				<Popover placement="bottom-start">
+					<span className={newStyle.tagPopoverAnchor}>
+						<Popover.TagTrigger
+							kind="secondary"
+							shape="basic"
+							size="medium"
+							lines="1"
+							className={clsx([
+								newStyle.flatLeft,
+								newStyle.flatRight,
+							])}
+						>
+							{label}
+						</Popover.TagTrigger>
+					</span>
+					<Popover.Content
+						disabled={disabled}
+						className={newStyle.selectPopover}
+					>
+						<PopoutContent
+							value={value}
+							type={type}
+							onChange={onChange}
+							loadOptions={loadOptions}
+						/>
+					</Popover.Content>
+				</Popover>
+			)
+	}
+	return null
 }
 
 const SelectPopout = ({
 	value,
-	disabled,
+	valueRender,
+	icon,
 	cssClass,
-	limitWidth,
-	...props
+	loadOptions,
+	onChange,
+	defaultOpen,
+	disabled,
 }: PopoutProps &
-	PopoutContentProps & {
+	SelectPopoutContentProps & {
 		cssClass?: ClassValue | ClassValue[]
 		limitWidth?: boolean
 	}) => {
-	// Visible by default if no value yet
-	const [visible, setVisible] = useState(!value)
-	const onSetVisible = (val: boolean) => {
-		setVisible(val)
-	}
+	const [query, setQuery] = useState('')
+	const [options, setOptions] = useState<Option[]>([])
+	useMemo(() => {
+		loadOptions(query).then((v) => setOptions(v ?? []))
+	}, [loadOptions, query])
 
-	const invalid =
-		value === undefined ||
-		(value?.kind === 'multi' && value.options.length === 0)
-
-	const tooltipMessage =
-		(value?.kind === 'multi' &&
-			value.options.map((o) => o.label).join(', ')) ||
-		undefined
-
-	const inner = (
-		<Tooltip
-			title={tooltipMessage}
-			mouseEnterDelay={1.5}
-			overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
-		>
-			<span className={newStyle.tagPopoverAnchor}>
-				<Tag
-					kind="secondary"
-					size="medium"
-					shape="basic"
-					className={clsx(cssClass, {
-						[styles.invalid]: invalid && !visible,
-					})}
-					lines={limitWidth ? '1' : undefined}
-					disabled={disabled}
-				>
-					{invalid && '--'}
-					{value?.kind === 'single' && getNameLabel(value.label)}
-					{value?.kind === 'multi' &&
-						value.options.length > 1 &&
-						`${value.options.length} selections`}
-					{value?.kind === 'multi' &&
-						value.options.length === 1 &&
-						value.options[0].label}
-				</Tag>
-			</span>
-		</Tooltip>
-	)
-
-	if (disabled) {
-		return inner
+	let label = '--'
+	if (value !== undefined) {
+		label = getNameLabel(value.label)
 	}
 
 	return (
-		<Popover
-			showArrow={false}
-			trigger="click"
-			content={
-				<PopoutContent
-					value={value}
-					setVisible={onSetVisible}
-					{...props}
-				/>
-			}
-			placement="bottomLeft"
-			contentContainerClassName={styles.contentContainer}
-			popoverClassName={styles.popoverContainer}
-			onVisibleChange={(isVisible) => {
-				setVisible(isVisible)
+		<ComboboxSelect
+			label="key"
+			icon={icon}
+			value={value?.value ?? ''}
+			valueRender={valueRender !== undefined ? valueRender : label}
+			options={options.map((o) => ({
+				key: o.value,
+				render: getOption(o, query),
+			}))}
+			onChange={(val: string) => {
+				const selected = options.find((o) => o.value === val)!
+				onChange({
+					kind: 'single',
+					...selected,
+				})
 			}}
-			visible={visible}
-			destroyTooltipOnHide
-		>
-			{inner}
-		</Popover>
+			onChangeQuery={(val: string) => {
+				setQuery(val)
+			}}
+			cssClass={cssClass}
+			queryPlaceholder="Filter..."
+			defaultOpen={defaultOpen}
+			disabled={disabled}
+		/>
 	)
 }
 
@@ -851,15 +608,60 @@ const getPopoutType = (op: Operator | undefined): PopoutType => {
 
 const QueryRule = ({
 	rule,
-	onChangeKey,
 	getKeyOptions,
-	onChangeOperator,
-	getOperatorOptions,
-	onChangeValue,
-	getValueOptions,
-	onRemove,
+	getOperatorOptionsCallback,
+	getValueOptionsCallback,
+	removeRule,
+	updateRule,
 	readonly,
+	getCustomFieldOptions,
+	getDefaultOperator,
 }: { rule: RuleProps } & RuleSettings) => {
+	const onChangeKey = useCallback(
+		(val: SelectOption) => {
+			// Default to 'is' when rule is not defined yet
+			if (rule.op === undefined) {
+				updateRule(rule, {
+					field: val,
+					op: getDefaultOperator(rule.field),
+					val: undefined,
+				})
+			} else {
+				updateRule(rule, {
+					field: val,
+					val: undefined,
+				})
+			}
+		},
+		[getDefaultOperator, rule, updateRule],
+	)
+
+	const onChangeOperator = useCallback(
+		(val: SelectOption) => {
+			if (val?.kind === 'single') {
+				updateRule(rule, { op: val.value })
+			}
+		},
+		[rule, updateRule],
+	)
+
+	const onChangeValue = useCallback(
+		(val: MultiselectOption) => {
+			updateRule(rule, { val: val })
+		},
+		[rule, updateRule],
+	)
+
+	const getOperatorOptions = getOperatorOptionsCallback(
+		getCustomFieldOptions(rule.field),
+		rule.val,
+	)
+
+	const getValueOptions = useCallback(
+		(input: string) => getValueOptionsCallback(rule.field)(input),
+		[getValueOptionsCallback, rule.field],
+	)
+
 	return (
 		<Box display="inline-flex" gap="1">
 			<SelectPopout
@@ -868,7 +670,7 @@ const QueryRule = ({
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
-				cssClass={[newStyle.flatRight, newStyle.tagKey]}
+				cssClass={[newStyle.tag, newStyle.flatRight, newStyle.tagKey]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -877,6 +679,7 @@ const QueryRule = ({
 				type="select"
 				disabled={readonly}
 				cssClass={[
+					newStyle.tag,
 					newStyle.tagKey,
 					newStyle.flatLeft,
 					{
@@ -884,9 +687,10 @@ const QueryRule = ({
 							(!!rule.op && hasArguments(rule.op)) || !readonly,
 					},
 				]}
+				defaultOpen={rule.op === undefined}
 			/>
 			{!!rule.op && hasArguments(rule.op) && (
-				<SelectPopout
+				<MultiselectPopout
 					value={rule.val}
 					onChange={onChangeValue}
 					loadOptions={getValueOptions}
@@ -894,7 +698,7 @@ const QueryRule = ({
 					disabled={readonly}
 					limitWidth
 					cssClass={[
-						newStyle.tagValue,
+						newStyle.tag,
 						newStyle.flatLeft,
 						{ [newStyle.flatRight]: !readonly },
 					]}
@@ -907,7 +711,7 @@ const QueryRule = ({
 					shape="basic"
 					className={newStyle.flatLeft}
 					onClick={() => {
-						onRemove()
+						removeRule(rule)
 					}}
 					iconRight={<IconSolidX size={12} />}
 				/>
@@ -916,19 +720,8 @@ const QueryRule = ({
 	)
 }
 
-const hasArguments = (op: Operator): boolean =>
+export const hasArguments = (op: Operator): boolean =>
 	!['exists', 'not_exists'].includes(op)
-
-const isNegative = (op: Operator): boolean =>
-	[
-		'is_not',
-		'not_contains',
-		'not_exists',
-		'not_between',
-		'not_between_time',
-		'not_between_date',
-		'not_matches',
-	].includes(op)
 
 const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 	is: 'is',
@@ -975,24 +768,7 @@ const TOOLTIP_MESSAGES: { [K in string]: string } = {
 	not_exists: 'Filters for results which do not have this field.',
 }
 
-const NEGATION_MAP: { [K in Operator]: Operator } = {
-	is: 'is_not',
-	is_not: 'is',
-	contains: 'not_contains',
-	not_contains: 'contains',
-	exists: 'not_exists',
-	not_exists: 'exists',
-	between: 'not_between',
-	not_between: 'between',
-	between_time: 'not_between_time',
-	not_between_time: 'between_time',
-	between_date: 'not_between_date',
-	not_between_date: 'between_date',
-	matches: 'not_matches',
-	not_matches: 'matches',
-}
-
-type Operator =
+export type Operator =
 	| 'is'
 	| 'is_not'
 	| 'contains'
@@ -1008,7 +784,7 @@ type Operator =
 	| 'matches'
 	| 'not_matches'
 
-const OPERATORS: Operator[] = [
+export const OPERATORS: Operator[] = [
 	'is',
 	'is_not',
 	'contains',
@@ -1028,9 +804,7 @@ export const RANGE_OPERATORS: Operator[] = ['between', 'not_between']
 
 export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time']
 
-export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not']
-
-export const VIEWED_BY_OPERATORS: Operator[] = ['is']
+export const BOOLEAN_OPERATORS: Operator[] = ['is']
 
 const LABEL_MAP: { [key: string]: string } = {
 	referrer: 'Referrer',
@@ -1055,20 +829,22 @@ const LABEL_MAP: { [key: string]: string } = {
 	starred: 'Starred',
 	identifier: 'Identifier',
 	reload: 'Reloaded',
-	state: 'State',
+	state: 'Status',
 	event: 'Event',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
+	has_session: 'Has Sessions',
 	pages_visited: 'Pages Visited',
 	landing_page: 'Landing Page',
 	exit_page: 'Exit Page',
 	has_comments: 'Has Comments',
+	service_name: 'Service',
 }
 
 const getOperator = (
 	op: Operator | undefined,
-	val: OnChangeInput,
+	val: MultiselectOption | undefined,
 ): SelectOption | undefined => {
 	if (!op) {
 		return undefined
@@ -1082,8 +858,8 @@ const getOperator = (
 	}
 }
 
-const isSingle = (val: OnChangeInput) =>
-	!(val?.kind === 'multi' && val.options.length > 1)
+const isSingle = (val: MultiselectOption | undefined) =>
+	!(val !== undefined && val.options.length > 1)
 
 interface FieldOptions {
 	operators?: Operator[]
@@ -1166,7 +942,8 @@ export const deserializeGroup = (
 	}
 }
 
-const deserializeRules = (ruleGroups: any): RuleProps[] => {
+export const deserializeRules = (ruleGroups: Array<string[]>): RuleProps[] => {
+	ruleGroups = ruleGroups.filter((g) => g.length)
 	if (!ruleGroups) {
 		return []
 	}
@@ -1180,20 +957,98 @@ const isComplete = (rule: RuleProps) =>
 	rule.field !== undefined &&
 	rule.op !== undefined &&
 	(!hasArguments(rule.op) ||
-		(rule.val !== undefined && rule.val.options.length !== 0))
+		(rule.val !== undefined && rule.val?.options?.length !== 0))
 
 const getNameLabel = (label: string) => LABEL_MAP[label] ?? label
 
-const getTypeLabel = (value: string) => {
+const getIcon = (value: string): JSX.Element | undefined => {
+	switch (value) {
+		case 'custom_app_version':
+			return <IconSolidDesktopComputer />
+		case 'session_browser_name':
+			return <IconSolidGlobeAlt />
+		case 'session_browser_version':
+			return <IconSolidGlobeAlt />
+		case 'session_city':
+			return <IconSolidGlobe />
+		case 'session_clickSelector':
+			return <IconSolidCursorClick />
+		case 'session_clickTextContent':
+			return <IconSolidDocumentText />
+		case 'session_country':
+			return <IconSolidGlobe />
+		case 'session_device_id':
+			return <IconSolidUser />
+		case 'session_environment':
+			return <IconSolidTerminal />
+		case 'track_event':
+			return <IconSolidCalendar />
+		case 'session_exit_page':
+			return <IconSolidDocumentRemove />
+		case 'custom_first_time':
+			return <IconSolidUserAdd />
+		case 'custom_has_comments':
+			return <IconSolidChat />
+		case 'custom_has_errors':
+			return <IconSolidLightningBolt />
+		case 'custom_has_rage_clicks':
+			return <IconSolidCursorClick />
+		case 'session_landing_page':
+			return <IconSolidDocumentAdd />
+		case 'custom_active_length':
+			return <IconSolidClock />
+		case 'session_os_name':
+			return <IconSolidDesktopComputer />
+		case 'session_os_version':
+			return <IconSolidDesktopComputer />
+		case 'session_reload':
+			return <IconSolidRefresh />
+		case 'custom_processed':
+			return <IconSolidTag />
+		case 'custom_viewed':
+			return <IconSolidEye />
+		case 'custom_viewed_by_me':
+			return <IconSolidEye />
+		case 'session_visited-url':
+			return <IconSolidLink />
+		case 'error-field_browser':
+			return <IconSolidGlobeAlt />
+		case 'error-field_environment':
+			return <IconSolidTerminal />
+		case 'error_Event':
+			return <IconSolidCalendar />
+		case 'error-field_os_name':
+			return <IconSolidDesktopComputer />
+		case 'error_state':
+			return <IconSolidTag />
+		case 'error_Type':
+			return <IconSolidCube />
+		case 'error_Tag':
+			return <IconSolidTag />
+		case 'error-field_visited_url':
+			return <IconSolidLink />
+		case 'error-field_service_name':
+			return <IconSolidCubeTransparent />
+		case 'error-field_has_session':
+			return <IconSolidDesktopComputer />
+	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type
+	switch (type) {
+		case 'session':
+			return <IconSolidDesktopComputer />
+		case 'user':
+			return <IconSolidUser />
+		case 'track':
+			return <IconSolidDesktopComputer />
+	}
 	if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
-		return mapped
+		return <IconSolidUser />
 	}
 	return undefined
 }
 
-const getType = (value: string) => {
+export const getType = (value: string) => {
 	return value.split('_')[0]
 }
 
@@ -1242,20 +1097,21 @@ export type FetchFieldVariables =
 				field_type: string
 				field_name: string
 				query: string
+				start_date: string
+				end_date: string
+				use_clickhouse: boolean
 			}>
 	  >
 	| undefined
 
-interface QueryBuilderProps<
-	T extends SearchParamsInput | ErrorSearchParamsInput,
-> {
-	searchContext: BaseSearchContext<T>
+interface QueryBuilderProps {
+	searchContext: BaseSearchContext
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
-	fieldData?: GetFieldTypesQuery
+	fieldData?: GetFieldTypesClickhouseQuery
+	errorTagData?: GetErrorTagsQuery
 	readonly?: boolean
-	emptySearchParams: T
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
 		| typeof useEditErrorSegmentMutation
@@ -1271,30 +1127,29 @@ interface QueryBuilderProps<
 }
 
 enum QueryBuilderMode {
-	EMPTY = 'EMPTY',
 	CUSTOM = 'CUSTOM',
 	SEGMENT = 'SEGMENT',
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
-const now = moment()
-const defaultMinDate = now.clone().subtract(90, 'days').toDate()
+enum SegmentModalState {
+	HIDDEN = 'HIDDEN',
+	CREATE = 'CREATE',
+	EDIT_NAME = 'EDIT_NAME',
+}
 
-const presetOptions = getDefaultPresets(now)
+const defaultMinDate = getNow().subtract(90, 'days').toDate()
+const defaultPreset = defaultPresets[5]
 
-const defaultPreset = presetOptions[5]
-
-function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
-	props: QueryBuilderProps<T>,
-) {
+function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
 		timeRangeField,
 		customFields,
 		fetchFields,
 		fieldData,
+		errorTagData,
 		readonly,
-		emptySearchParams,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
 		CreateAnySegmentModal,
@@ -1302,38 +1157,48 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 	} = props
 
 	const {
-		backendSearchQuery,
-		setBackendSearchQuery,
-		searchParams,
-		setSearchParams,
-		searchResultsLoading,
-		existingParams,
-		setExistingParams,
+		searchQuery,
+		setSearchQuery,
+		existingQuery,
 		searchResultsCount,
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
-		page,
-		setPage,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
 		project_id: string
 	}>()
 
+	const location = useLocation()
+	const isOnErrorsPage = location.pathname.includes('errors')
+
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetAnySegmentsQuery({
 			variables: { project_id: projectId! },
 			skip: !projectId,
+			onCompleted: (data) => {
+				if (selectedSegment && selectedSegment.id) {
+					const match = data?.segments
+						?.map((s) => s)
+						.find((s) => s?.id === selectedSegment.id)
+
+					if (match && match.params?.query) {
+						setSelectedSegment(
+							{ id: match.id, name: match.name },
+							match.params?.query,
+						)
+						return
+					} else {
+						setSelectedSegment(undefined, searchQuery)
+					}
+				}
+			},
 		})
 
-	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
-	const [showEditSegmentNameModal, setShowEditSegmentNameModal] =
-		useState(false)
-
-	useEffect(() => {
-		setShowCreateSegmentModal(showEditSegmentNameModal)
-	}, [showEditSegmentNameModal])
+	const [segmentModalState, setSegmentModalState] = useState(
+		SegmentModalState.HIDDEN,
+	)
 
 	const [segmentToDelete, setSegmentToDelete] = useState<{
 		name?: string
@@ -1355,16 +1220,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		?.map((s) => s)
 		.find((s) => s?.id === selectedSegment?.id)
 
-	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
-		useQueryParams({
-			query: QueryBuilderStateParam,
-		})
-
-	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
-		'segment',
-		JsonParam,
-	)
-
 	const selectSegment = useCallback(
 		(segment?: Pick<Segment | ErrorSegment, 'id' | 'name'>) => {
 			if (segment && segment.id && segment.name) {
@@ -1372,34 +1227,19 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 					?.map((s) => s)
 					.find((s) => s?.id === segment?.id)
 
-				if (match !== undefined) {
-					const segmentParameters = normalizeParams(
-						gqlSanitize(match?.params),
+				if (match && match.params?.query) {
+					setSelectedSegment(
+						{ id: segment.id, name: segment.name },
+						match.params?.query,
 					)
-					// @ts-expect-error
-					setSearchParams(segmentParameters)
-					// @ts-expect-error
-					setExistingParams(segmentParameters)
-					setSelectedSegment({ id: segment.id, name: segment.name })
 					return
 				}
 			}
 
 			removeSelectedSegment()
-			setSearchParams(emptySearchParams)
-			setExistingParams(emptySearchParams)
 		},
-		[
-			removeSelectedSegment,
-			segmentData?.segments,
-			setExistingParams,
-			setSearchParams,
-			setSelectedSegment,
-			emptySearchParams,
-		],
+		[removeSelectedSegment, segmentData?.segments, setSelectedSegment],
 	)
-
-	const { admin } = useAuthContext()
 
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
@@ -1427,305 +1267,36 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 	const getDefaultOperator = (field: SelectOption | undefined) =>
 		((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0]
 
-	const parseInner = useCallback(
-		(field: SelectOption, op: Operator, value?: string): any => {
-			if (
-				[CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(
-					getType(field.value),
-				)
-			) {
-				const name = field.label
-				const isKeyword = !(
-					getCustomFieldOptions(field)?.type !== 'text'
-				)
-
-				if (field.label === 'viewed_by_me' && admin) {
-					const baseQuery = {
-						term: {
-							[`viewed_by_admins.id`]: admin.id,
-						},
-					}
-
-					if (value === 'true') {
-						return {
-							...baseQuery,
-						}
-					}
-					return {
-						bool: {
-							must_not: {
-								...baseQuery,
-							},
-						},
-					}
-				}
-
-				switch (op) {
-					case 'is':
-						return {
-							term: {
-								[`${name}${isKeyword ? '.keyword' : ''}`]:
-									value,
-							},
-						}
-					case 'contains':
-						return {
-							wildcard: {
-								[`${name}${
-									isKeyword ? '.keyword' : ''
-								}`]: `*${value}*`,
-							},
-						}
-					case 'matches':
-						return {
-							regexp: {
-								[`${name}${isKeyword ? '.keyword' : ''}`]:
-									value,
-							},
-						}
-					case 'exists':
-						return { exists: { field: name } }
-					case 'between_date':
-						return {
-							range: {
-								[name]: {
-									gte: getAbsoluteStartTime(value),
-									lte: getAbsoluteEndTime(value),
-								},
-							},
-						}
-					case 'between_time':
-						return {
-							range: {
-								[name]: {
-									gte:
-										Number(value?.split('_')[0]) *
-										60 *
-										1000,
-									...(Number(value?.split('_')[1]) ===
-									TIME_MAX_LENGTH
-										? null
-										: {
-												lte:
-													Number(
-														value?.split('_')[1],
-													) *
-													60 *
-													1000,
-										  }),
-								},
-							},
-						}
-					case 'between':
-						return {
-							range: {
-								[name]: {
-									gte: Number(value?.split('_')[0]),
-									...(Number(value?.split('_')[1]) ===
-									RANGE_MAX_LENGTH
-										? null
-										: {
-												lte: Number(
-													value?.split('_')[1],
-												),
-										  }),
-								},
-							},
-						}
-				}
-			} else {
-				const key = field.value
-				switch (op) {
-					case 'is':
-						return {
-							term: { 'fields.KeyValue': `${key}_${value}` },
-						}
-					case 'contains':
-						return {
-							wildcard: {
-								'fields.KeyValue': `${key}_*${value}*`,
-							},
-						}
-					case 'matches':
-						return {
-							regexp: {
-								'fields.KeyValue': `${key}_${value}`,
-							},
-						}
-					case 'exists':
-						return { term: { 'fields.Key': key } }
-				}
-			}
-		},
-		[getCustomFieldOptions, admin],
-	)
-
-	const parseRuleImpl = useCallback(
-		(
-			field: SelectOption,
-			op: Operator,
-			multiValue: MultiselectOption,
-		): any => {
-			if (isNegative(op)) {
-				return {
-					bool: {
-						must_not: {
-							...parseRuleImpl(
-								field,
-								NEGATION_MAP[op],
-								multiValue,
-							),
-						},
-					},
-				}
-			} else if (hasArguments(op)) {
-				return {
-					bool: {
-						should: multiValue.options.map(({ value }) =>
-							parseInner(field, op, value),
-						),
-					},
-				}
-			} else {
-				return parseInner(field, op)
-			}
-		},
-		[parseInner],
-	)
-
-	const parseRule = useCallback(
-		(rule: RuleProps): any => {
-			const field = rule.field!
-			const multiValue = rule.val!
-			const op = rule.op!
-
-			return parseRuleImpl(field, op, multiValue)
-		},
-		[parseRuleImpl],
-	)
 	const { data: appVersionData } = useGetAppVersionsQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
+
+	const {
+		isAnd: serializedIsAnd,
+		rules: serializedRules,
+	}: { isAnd: boolean; rules: any } = JSON.parse(searchQuery)
+	const startingRules = deserializeRules(serializedRules)
+	const [isAnd, toggleIsAnd] = useToggle(serializedIsAnd)
+	const [rules, setRules] = useState<RuleProps[]>(startingRules)
+
+	const startingDateRange = startingRules.find(
+		(rule) =>
+			rule.op === 'between_date' &&
+			rule.field?.value === timeRangeField.value,
+	)?.val?.options?.[0]?.value
+	let from, to: Date | undefined
+	if (startingDateRange) {
+		const [fromStr, toStr] = startingDateRange.split('_')
+		from = new Date(fromStr)
+		to = new Date(toStr)
+	}
 	const [dateRange, setDateRange] = useState<Date[]>([
-		defaultPreset.startDate, // Start at 30days
-		new Date(now.toISOString()),
+		from ?? defaultPreset.startDate, // Start at 30days
+		to ?? new Date(getNow().toISOString()),
 	])
-	const defaultTimeRangeRule: RuleProps = useMemo(() => {
-		const period = {
-			label: defaultPreset.label, // Start at 30 days
-			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days
-		}
-
-		return {
-			field: timeRangeField,
-			op: 'between_date',
-			val: {
-				kind: 'multi',
-				options: [period],
-			},
-		}
-	}, [timeRangeField])
-
-	const parseGroup = useCallback(
-		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
-			const condition = isAnd ? 'must' : 'should'
-			const filterErrors = rules.some(
-				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
-			)
-			const timeRange =
-				rules.find(
-					(rule) => rule.field?.value === timeRangeField.value,
-				) ?? defaultTimeRangeRule
-
-			const timeRule = parseRule(timeRange)
-
-			const errorObjectRules = rules
-				.filter(
-					(r) =>
-						getType(r.field!.value) === ERROR_FIELD_TYPE &&
-						r !== timeRange,
-				)
-				.map(parseRule)
-
-			const standardRules = rules
-				.filter(
-					(r) =>
-						getType(r.field!.value) !== ERROR_FIELD_TYPE &&
-						r !== timeRange,
-				)
-				.map(parseRule)
-
-			const request: OpenSearchQuery = { query: {} }
-
-			if (filterErrors) {
-				const errorGroupFilter = {
-					bool: {
-						[condition]: standardRules,
-					},
-				}
-				const errorObjectFilter = {
-					bool: {
-						must: [
-							timeRule,
-							{
-								bool: {
-									[condition]: errorObjectRules,
-								},
-							},
-						],
-					},
-				}
-				request.query = {
-					bool: {
-						must: [
-							errorGroupFilter,
-							{
-								has_child: {
-									type: 'child',
-									query: errorObjectFilter,
-								},
-							},
-						],
-					},
-				}
-				request.childQuery = {
-					bool: {
-						must: [
-							{
-								has_parent: {
-									parent_type: 'parent',
-									query: errorGroupFilter,
-								},
-							},
-							errorObjectFilter,
-						],
-					},
-				}
-			} else {
-				request.query = {
-					bool: {
-						must: [
-							timeRule,
-							{
-								bool: {
-									[condition]: standardRules,
-								},
-							},
-						],
-					},
-				}
-			}
-			return request
-		},
-		[defaultTimeRangeRule, parseRule, timeRangeField.value],
-	)
-	const [isAnd, toggleIsAnd] = useToggle(true)
-	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
-	const serializedQuery = useRef<BackendSearchQuery | undefined>()
-	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
 
 	const filterRules = useMemo(
 		() =>
@@ -1733,48 +1304,61 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		[rules, timeRangeField.value],
 	)
 
-	const setRules = (rules: RuleProps[]) => {
-		setRulesImpl(rules)
-	}
-	const addNewRule = () => {
-		setCurrentRule({
-			field: undefined,
-			op: undefined,
-			val: undefined,
-		})
-		setCurrentStep(1)
-	}
+	const setRulesImpl = useCallback(
+		(newRules: RuleProps[], isAnd: boolean) => {
+			setRules(newRules)
+			toggleIsAnd(isAnd)
+
+			if (readonly || !newRules.every(isComplete)) {
+				return
+			}
+
+			const newState = JSON.stringify({
+				isAnd,
+				rules: serializeRules(newRules),
+			})
+			setSearchQuery(newState)
+		},
+		[readonly, setSearchQuery, toggleIsAnd],
+	)
+
 	const addRule = useCallback(
 		(rule: RuleProps) => {
-			setRules([...rules, rule])
+			setRulesImpl([...rules, rule], isAnd)
 			setCurrentRule(undefined)
 		},
-		[rules],
+		[rules, setRulesImpl, isAnd],
 	)
 	const removeRule = useCallback(
 		(targetRule: RuleProps) =>
-			setRules(rules.filter((rule) => rule !== targetRule)),
-		[rules],
-	)
-	const updateRule = (targetRule: RuleProps, newProps: any) => {
-		setRulesImpl((currentRules) =>
-			currentRules.map((rule) =>
-				rule !== targetRule ? rule : { ...rule, ...newProps },
+			setRulesImpl(
+				rules.filter((rule) => rule !== targetRule),
+				isAnd,
 			),
-		)
-	}
+		[rules, setRulesImpl, isAnd],
+	)
+	const updateRule = useCallback(
+		(targetRule: RuleProps, newProps: any) => {
+			setRulesImpl(
+				rules.map((rule) =>
+					rule !== targetRule ? rule : { ...rule, ...newProps },
+				),
+				isAnd,
+			)
+		},
+		[rules, setRulesImpl, isAnd],
+	)
+	const toggleIsAndImpl = useCallback(() => {
+		setRulesImpl(rules, !isAnd)
+	}, [isAnd, rules, setRulesImpl])
 
 	const timeRangeRule = useMemo<RuleProps>(() => {
 		const timeRange = rules.find(
 			(rule) => rule.field?.value === timeRangeField.value,
-		)
-		if (!timeRange) {
-			addRule(defaultTimeRangeRule)
-			return defaultTimeRangeRule
-		}
+		)! // ZANETODO: can we enforce this?
 
 		return timeRange
-	}, [addRule, defaultTimeRangeRule, rules, timeRangeField.value])
+	}, [rules, timeRangeField.value])
 
 	const getKeyOptions = useCallback(
 		async (input: string) => {
@@ -1785,11 +1369,9 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 					value: ft.type + '_' + ft.name,
 				}))
 				.filter((ft) =>
-					(
-						getTypeLabel(ft.value)?.toLowerCase() +
-						':' +
-						getNameLabel(ft.label).toLowerCase()
-					).includes(input.toLowerCase()),
+					getNameLabel(ft.label)
+						.toLowerCase()
+						.includes(input.toLowerCase()),
 				)
 				.sort((a, b) => {
 					const aLower = getNameLabel(a.label).toLowerCase()
@@ -1806,46 +1388,23 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		[customFields, fieldData?.field_types],
 	)
 
-	const updateSerializedQuery = useCallback(
-		(isAnd: boolean, rules: RuleProps[]) => {
-			const startDate = roundFeedDate(
-				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
-			)
-			const endDate = roundFeedDate(
-				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
-			)
-			const searchQuery = parseGroup(isAnd, rules)
-			serializedQuery.current = {
-				searchQuery: JSON.stringify(searchQuery.query),
-				childSearchQuery: searchQuery.childQuery
-					? JSON.stringify(searchQuery.childQuery)
-					: undefined,
-				startDate,
-				endDate,
-				histogramBucketSize: GetHistogramBucketSize(
-					moment.duration(endDate.diff(startDate)),
-				),
-			}
-		},
-		[parseGroup, timeRangeRule],
-	)
-
 	const getOperatorOptionsCallback = (
 		options: FieldOptions | undefined,
-		val: OnChangeInput,
+		val: MultiselectOption | undefined,
 	) => {
 		return async (input: string) => {
 			return (options?.operators ?? OPERATORS)
 				.map((op) => getOperator(op, val))
+				.filter((op) => op !== undefined)
 				.filter((op) =>
 					op?.label.toLowerCase().includes(input.toLowerCase()),
-				)
+				) as Option[]
 		}
 	}
 
 	const getValueOptionsCallback = useCallback(
 		(field: SelectOption | undefined) => {
-			return async (input: string) => {
+			return async (input: string): Promise<Option[] | undefined> => {
 				if (field === undefined) {
 					return
 				}
@@ -1879,6 +1438,12 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 						label: v,
 						value: v,
 					}))
+				} else if (field.value === 'error_Tag') {
+					options =
+						errorTagData?.error_tags?.map((et) => ({
+							label: et?.title ?? '',
+							value: et?.title ?? '',
+						})) ?? []
 				} else if (getCustomFieldOptions(field)?.type === 'boolean') {
 					options = ['true', 'false'].map((v) => ({
 						label: v,
@@ -1887,9 +1452,13 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				}
 
 				if (options.length > 0) {
-					return options.filter((opt) =>
-						opt.label?.toLowerCase().includes(input.toLowerCase()),
-					)
+					return options
+						.filter((opt) =>
+							opt.label
+								?.toLowerCase()
+								.includes(input.toLowerCase()),
+						)
+						.slice(0, 10)
 				}
 
 				let label = field.label
@@ -1897,12 +1466,17 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 					label = 'event'
 				}
 
+				const fieldType = getType(field.value)
+
 				return await fetchFields({
 					project_id: projectId,
 					count: 10,
-					field_type: getType(field.value),
+					field_type: fieldType,
 					field_name: label,
 					query: input,
+					start_date: moment(dateRange[0]).toISOString(),
+					end_date: moment(dateRange[1]).toISOString(),
+					use_clickhouse: true,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1912,214 +1486,60 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 			}
 		},
 		[
-			appVersionData?.app_version_suggestion,
-			fetchFields,
 			getCustomFieldOptions,
+			fetchFields,
 			projectId,
+			dateRange,
+			appVersionData?.app_version_suggestion,
+			errorTagData?.error_tags,
 		],
 	)
 
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
+	const areRulesValid = rules.every(isComplete)
+
+	// If the search query is updated externally,
+	// set the rules and `isAnd` toggle based on it
 	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams({ page }, 'replaceIn')
-		}
-	}, [setPaginationToUrlParams, page])
-
-	// Set initial state from URL params.
-	const [initialized, setInitialized] = useState(false)
-	useEffect(() => {
-		setPage(paginationToUrlParams.page || START_PAGE)
-
-		if (searchParamsToUrlParams.query !== undefined) {
-			setSearchParams(searchParamsToUrlParams as T)
-		} else {
-			setSearchParams(emptySearchParams)
-		}
-
-		setInitialized(true)
-		// Only want this to run on init.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
-	useEffect(() => {
-		if (forceReload && searchParamsToUrlParams.query !== undefined) {
-			setSearchParams(searchParamsToUrlParams as T)
-			setForceReload(false)
-		}
-	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
-
-	useEffect(() => {
-		if (!segmentsLoading) {
-			if (activeSegmentUrlParam) {
-				selectSegment(activeSegmentUrlParam)
-			}
-			if (searchParamsToUrlParams.query !== undefined) {
-				setSearchParams(searchParamsToUrlParams as T)
-			}
-		}
-		// We only want to run this once after loading segments.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [segmentsLoading])
-
-	// Errors Segment Deep Linking
-	useEffect(() => {
-		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
-			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
-				setActiveSegmentUrlParam(selectedSegment, 'replaceIn')
-			}
-		} else if (activeSegmentUrlParam !== undefined) {
-			setActiveSegmentUrlParam(undefined, 'replace')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, setActiveSegmentUrlParam])
-
-	// Main useEffect that handles updates to URL on every filter change.
-	useEffect(() => {
-		if (initialized && searchParams.query !== undefined) {
-			setSearchParamsToUrlParams(
-				normalizeParams(searchParams),
-				'replaceIn',
-			)
-		}
-	}, [
-		setSearchParamsToUrlParams,
-		searchParams,
-		selectedSegment,
-		activeSegmentUrlParam,
-		initialized,
-	])
-
-	useEffect(() => {
-		if (!searchResultsLoading) {
-			const timer = setTimeout(() => {
-				setSyncButtonDisabled(false)
-			}, 5000)
-			return () => {
-				clearTimeout(timer)
-			}
-		} else {
-			setSyncButtonDisabled(true)
-		}
-	}, [searchResultsLoading])
-
-	// Track the current state of the query builder to detect changes
-	const [qbState, setQbState] = useState<string | undefined>(undefined)
-
-	// If the search query is updated externally, set the rules and `isAnd` toggle
-	// based on it
-	useEffect(() => {
-		if (
-			initialized &&
-			!!searchParams.query &&
-			searchParams.query !== qbState
-		) {
-			const newState = JSON.parse(searchParams.query)
+		if (searchQuery) {
+			const newState = JSON.parse(searchQuery)
 			const deserializedRules = deserializeRules(newState.rules)
 
-			const defaultDateRange = deserializedRules?.find(
+			const dateRange = deserializedRules?.find(
 				(rule) =>
 					rule.op === 'between_date' &&
 					rule.field?.value === timeRangeField.value,
 			)?.val?.options?.[0]?.value
-
-			if (defaultDateRange) {
-				const [from, to] = defaultDateRange.split('_')
+			if (dateRange) {
+				const [from, to] = dateRange.split('_')
 				setDateRange([new Date(from), new Date(to)])
 			}
+
 			toggleIsAnd(newState.isAnd)
-			setRules(deserializeRules(newState.rules))
+			setRules(deserializedRules)
 		}
-	}, [
-		searchParams.query,
-		toggleIsAnd,
-		qbState,
-		initialized,
-		timeRangeField.value,
-	])
+	}, [searchQuery, timeRangeField.value, toggleIsAnd])
 
-	const areRulesValid = rules.every(isComplete)
+	// When the query builder is unmounted, reset the state.
+	// Not sure if this is desired behavior in the long term, but
+	// this matches the current prod behavior.
 	useEffect(() => {
-		if (areRulesValid) {
-			// For relative time ranges, the serialized query will be different every time you serialize,
-			// so serialize once and only once every time the rules list changes
-			updateSerializedQuery(isAnd, rules)
+		return () => {
+			removeSelectedSegment()
 		}
-	}, [areRulesValid, isAnd, rules, updateSerializedQuery])
-
-	useEffect(() => {
-		// Only update the external state if not readonly
-		if (readonly) {
-			return
-		}
-
-		const allComplete = rules.every(isComplete)
-
-		if (!allComplete) {
-			return
-		}
-
-		const newState = JSON.stringify({
-			isAnd,
-			rules: serializeRules(rules),
-		})
-
-		// Update if the state has changed
-		if (
-			newState !== qbState &&
-			!(
-				rules.length === 1 &&
-				rules[0].field?.value === timeRangeField.value &&
-				rules[0] === defaultTimeRangeRule
-			)
-		) {
-			setQbState(newState)
-			setSearchParams((params) => ({
-				...params,
-				query: newState,
-			}))
-			return
-		}
-
-		if (serializedQuery.current) {
-			setBackendSearchQuery(serializedQuery.current)
-		}
-	}, [
-		defaultTimeRangeRule,
-		isAnd,
-		qbState,
-		readonly,
-		rules,
-		setBackendSearchQuery,
-		setSearchParams,
-		timeRangeField.value,
-	])
-
-	const [currentStep, setCurrentStep] = useState<number | undefined>(
-		undefined,
-	)
+	}, [removeSelectedSegment])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
-	const mode = useMemo(() => {
-		if (filterRules.length === 0 && !selectedSegment) {
-			return QueryBuilderMode.EMPTY
-		} else if (selectedSegment !== undefined) {
-			const areParamsDifferent = !isEqual(
-				normalizeParams(searchParams),
-				normalizeParams(existingParams),
-			)
-			if (areParamsDifferent) {
+	const mode = (() => {
+		if (selectedSegment !== undefined) {
+			if (searchQuery !== existingQuery) {
 				return QueryBuilderMode.SEGMENT_UPDATE
 			} else {
 				return QueryBuilderMode.SEGMENT
 			}
 		}
 		return QueryBuilderMode.CUSTOM
-	}, [existingParams, filterRules.length, searchParams, selectedSegment])
+	})()
 
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
@@ -2127,128 +1547,31 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		}
 
 		return (
-			<Popover
-				showArrow={false}
-				trigger="click"
-				content={
-					currentRule?.field === undefined ? (
-						<PopoutContent
-							key="popover-step-1"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(undefined)
-							}}
-							onChange={(val) => {
-								const field = val as SelectOption | undefined
-								addRule({
-									field: field,
-									op: undefined,
-									val: undefined,
-								})
-							}}
-							loadOptions={getKeyOptions}
-							type="select"
-							placeholder="Filter..."
-						/>
-					) : currentRule?.op === undefined ? (
-						<PopoutContent
-							key="popover-step-2"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(3)
-							}}
-							onChange={(val) => {
-								const op = (val as SelectOption)
-									.value as Operator
-								if (!hasArguments(op)) {
-									setCurrentStep(undefined)
-									addRule({
-										...currentRule,
-										op,
-									})
-								} else {
-									setCurrentRule({
-										...currentRule,
-										op,
-									})
-								}
-							}}
-							loadOptions={getOperatorOptionsCallback(
-								getCustomFieldOptions(currentRule.field),
-								currentRule.val,
-							)}
-							type="select"
-							placeholder="Select..."
-						/>
-					) : (
-						<PopoutContent
-							key="popover-step-3"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(undefined)
-							}}
-							onChange={(val) => {
-								addRule({
-									...currentRule,
-									val: val as MultiselectOption | undefined,
-								})
-							}}
-							loadOptions={getValueOptionsCallback(
-								currentRule.field,
-							)}
-							type={getPopoutType(currentRule.op)}
-							placeholder="Select..."
-						/>
-					)
-				}
-				placement="bottomLeft"
-				contentContainerClassName={styles.contentContainer}
-				popoverClassName={styles.popoverContainer}
-				destroyTooltipOnHide
-				onVisibleChange={(isVisible) => {
-					if (!isVisible) {
-						setCurrentStep(undefined)
-					}
+			<SelectPopout
+				value={undefined}
+				icon={<IconSolidPlusSm size={12} />}
+				onChange={(val) => {
+					const field = val as SelectOption | undefined
+					const operators =
+						field && getCustomFieldOptions(field)?.operators
+					addRule({
+						field: field,
+						op:
+							operators && operators.length === 1
+								? operators[0]
+								: undefined,
+						val: undefined,
+					})
 				}}
-				visible={
-					currentStep === 1 ||
-					(currentStep === 2 && !!currentRule?.field) ||
-					(currentStep === 3 && !!currentRule?.op)
-				}
-			>
-				{mode === QueryBuilderMode.EMPTY ? (
-					<Button
-						kind="secondary"
-						size="xSmall"
-						emphasis="low"
-						iconLeft={<IconSolidPlusSm size={12} />}
-						onClick={addNewRule}
-						trackingId="queryBuilderAddFilter"
-					>
-						Add filter
-					</Button>
-				) : (
-					<ButtonIcon
-						kind="secondary"
-						size="xSmall"
-						emphasis="low"
-						icon={<IconSolidPlusSm size={12} />}
-						onClick={addNewRule}
-						cssClass={newStyle.addButton}
-					/>
-				)}
-			</Popover>
+				valueRender={null}
+				loadOptions={getKeyOptions}
+				type="select"
+				cssClass={[newStyle.addButton]}
+				disabled={false}
+			/>
 		)
-	}, [
-		addRule,
-		currentRule,
-		currentStep,
-		getCustomFieldOptions,
-		getKeyOptions,
-		getValueOptionsCallback,
-		mode,
-		readonly,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [addRule, currentRule, getKeyOptions, readonly])
 
 	const canUpdateSegment =
 		!!selectedSegment && filterRules.length > 0 && areRulesValid
@@ -2259,13 +1582,21 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				variables: {
 					project_id: projectId!,
 					id: selectedSegment.id,
-					params: searchParams,
+					params: {
+						query: searchQuery,
+					},
 					name: selectedSegment.name,
 				},
 			})
 				.then(() => {
 					message.success(`Updated '${selectedSegment.name}'`, 5)
-					setExistingParams(searchParams)
+					setSelectedSegment(
+						{
+							id: selectedSegment.id,
+							name: selectedSegment.name,
+						},
+						searchQuery,
+					)
 				})
 				.catch(() => {
 					message.error('Error updating segment!', 5)
@@ -2275,16 +1606,14 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		canUpdateSegment,
 		editSegment,
 		projectId,
-		searchParams,
+		searchQuery,
 		selectedSegment?.id,
 		selectedSegment?.name,
-		setExistingParams,
+		setSelectedSegment,
 	])
 
 	const actionButton = useMemo(() => {
 		switch (mode) {
-			case QueryBuilderMode.EMPTY:
-				return addFilterButton
 			case QueryBuilderMode.CUSTOM:
 				return (
 					<Menu.Button
@@ -2294,7 +1623,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 						iconLeft={<IconSolidSave size={12} />}
 						onClick={(e: React.MouseEvent) => {
 							e.preventDefault()
-							setShowCreateSegmentModal(true)
+							setSegmentModalState(SegmentModalState.CREATE)
 						}}
 						disabled={!areRulesValid}
 					>
@@ -2327,7 +1656,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 					</Menu.Button>
 				)
 		}
-	}, [addFilterButton, areRulesValid, mode, selectedSegment?.name])
+	}, [areRulesValid, mode, selectedSegment?.name])
 
 	const controlBar = useMemo(() => {
 		return (
@@ -2339,7 +1668,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				cssClass={styles.controlBar}
 			>
 				<PreviousDateRangePicker
-					presets={presetOptions}
+					presets={defaultPresets}
 					selectedDates={dateRange}
 					minDate={defaultMinDate}
 					onDatesChange={(dates: Date[]) => {
@@ -2361,26 +1690,10 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
-					<DropdownMenu
-						sessionCount={searchResultsCount}
-						sessionQuery={backendSearchQuery?.searchQuery || ''}
-					/>
-
-					{!isAbsoluteTimeRange(
-						timeRangeRule.val?.options[0].value,
-					) && (
-						<ButtonIcon
-							kind="secondary"
-							size="small"
-							shape="square"
-							emphasis="low"
-							icon={<IconSolidRefresh size={14} />}
-							disabled={syncButtonDisabled}
-							onClick={() => {
-								// Re-generate the absolute times used in the serialized query
-								updateSerializedQuery(isAnd, rules)
-								setBackendSearchQuery(serializedQuery.current)
-							}}
+					{!isOnErrorsPage && (
+						<DropdownMenu
+							sessionCount={searchResultsCount || 0}
+							sessionQuery={JSON.parse(searchQuery)}
 						/>
 					)}
 
@@ -2397,14 +1710,11 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		)
 	}, [
 		dateRange,
+		isOnErrorsPage,
 		searchResultsCount,
-		backendSearchQuery?.searchQuery,
+		searchQuery,
+		updateRule,
 		timeRangeRule,
-		syncButtonDisabled,
-		updateSerializedQuery,
-		isAnd,
-		rules,
-		setBackendSearchQuery,
 		setShowLeftPanel,
 	])
 
@@ -2431,7 +1741,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				<Menu.Item
 					onClick={(e) => {
 						e.stopPropagation()
-						setShowCreateSegmentModal(true)
+						setSegmentModalState(SegmentModalState.CREATE)
 					}}
 					disabled={!canUpdateSegment}
 				>
@@ -2477,21 +1787,25 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 	return (
 		<>
 			<CreateAnySegmentModal
-				showModal={showCreateSegmentModal}
+				showModal={segmentModalState !== SegmentModalState.HIDDEN}
 				onHideModal={() => {
-					setShowEditSegmentNameModal(false)
-					setShowCreateSegmentModal(false)
+					setSegmentModalState(SegmentModalState.HIDDEN)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
 					if (segmentData?.segments) {
-						setSelectedSegment({
-							id: segmentId,
-							name: segmentName,
-						})
+						setSelectedSegment(
+							{
+								id: segmentId,
+								name: segmentName,
+							},
+							searchQuery,
+						)
 					}
 				}}
 				currentSegment={
-					showEditSegmentNameModal ? currentSegment : undefined
+					segmentModalState === SegmentModalState.EDIT_NAME
+						? currentSegment
+						: undefined
 				}
 			/>
 			<DeleteAnySegmentModal
@@ -2506,7 +1820,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 						selectedSegment?.name === segmentToDelete.name
 					) {
 						removeSelectedSegment()
-						setSearchParams(emptySearchParams)
 					}
 				}}
 			/>
@@ -2521,69 +1834,48 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				m={readonly ? undefined : '8'}
 				shadow="medium"
 			>
-				{mode !== QueryBuilderMode.EMPTY && (
-					<Box
-						p="4"
-						paddingBottom="8"
-						background="white"
-						borderBottom={readonly ? undefined : 'secondary'}
-						display="flex"
-						alignItems="center"
-						flexWrap="wrap"
-						gap="4"
-					>
-						{filterRules.flatMap((rule, index) => [
-							...(index != 0
-								? [
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											onClick={toggleIsAnd}
-											key={`separator-${index}`}
-											disabled={readonly}
-										>
-											{isAnd ? 'and' : 'or'}
-										</Tag>,
-								  ]
-								: []),
-							<QueryRule
-								key={`rule-${index}`}
-								rule={rule}
-								onChangeKey={(val) => {
-									// Default to 'is' when rule is not defined yet
-									if (rule.op === undefined) {
-										updateRule(rule, {
-											field: val,
-											op: getDefaultOperator(rule.field),
-										})
-									} else {
-										updateRule(rule, { field: val })
-									}
-								}}
-								getKeyOptions={getKeyOptions}
-								onChangeOperator={(val) => {
-									if (val?.kind === 'single') {
-										updateRule(rule, { op: val.value })
-									}
-								}}
-								getOperatorOptions={getOperatorOptionsCallback(
-									getCustomFieldOptions(rule.field),
-									rule.val,
-								)}
-								onChangeValue={(val) => {
-									updateRule(rule, { val: val })
-								}}
-								getValueOptions={getValueOptionsCallback(
-									rule.field,
-								)}
-								onRemove={() => removeRule(rule)}
-								readonly={readonly ?? false}
-							/>,
-						])}
-						{addFilterButton}
-					</Box>
-				)}
+				<Box
+					p="4"
+					paddingBottom="8"
+					background="white"
+					borderBottom={readonly ? undefined : 'secondary'}
+					display="flex"
+					alignItems="center"
+					flexWrap="wrap"
+					gap="4"
+				>
+					{filterRules.flatMap((rule, index) => [
+						...(index != 0
+							? [
+									<Tag
+										shape="basic"
+										kind="secondary"
+										emphasis="low"
+										onClick={toggleIsAndImpl}
+										key={`separator-${index}`}
+										disabled={readonly}
+									>
+										{isAnd ? 'and' : 'or'}
+									</Tag>,
+							  ]
+							: []),
+						<QueryRule
+							key={`rule-${index}`}
+							rule={rule}
+							getDefaultOperator={getDefaultOperator}
+							getKeyOptions={getKeyOptions}
+							getOperatorOptionsCallback={
+								getOperatorOptionsCallback
+							}
+							getCustomFieldOptions={getCustomFieldOptions}
+							getValueOptionsCallback={getValueOptionsCallback}
+							removeRule={removeRule}
+							readonly={readonly ?? false}
+							updateRule={updateRule}
+						/>,
+					])}
+					{addFilterButton}
+				</Box>
 				{!readonly && (
 					<Box
 						display="flex"
@@ -2592,7 +1884,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 						justifyContent="space-between"
 						alignItems="center"
 					>
-						{searchResultsLoading ? (
+						{searchResultsCount === undefined ? (
 							<Skeleton width="100px" />
 						) : (
 							<Text
@@ -2635,7 +1927,9 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 									<Menu.Item
 										onClick={(e) => {
 											e.stopPropagation()
-											setShowEditSegmentNameModal(true)
+											setSegmentModalState(
+												SegmentModalState.EDIT_NAME,
+											)
 										}}
 									>
 										<Box
@@ -2657,7 +1951,9 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 											e.stopPropagation()
 											if (currentSegment) {
 												selectSegment(currentSegment)
-												setShowCreateSegmentModal(true)
+												setSegmentModalState(
+													SegmentModalState.CREATE,
+												)
 											}
 										}}
 									>

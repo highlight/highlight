@@ -33,49 +33,96 @@ export function ErrorButtons() {
 				<Button onClick={() => setIsErrored(true)}>
 					Trigger error boundary
 				</Button>
-
-				<hr />
-
 				<Button
-					onClick={() =>
-						fetch('/api/test?success=true')
-							.then((res) => res.text())
-							.then((data) => console.log(data))
-					}
+					onClick={async () => {
+						throw new Error('an async error occurred')
+					}}
 				>
-					Pages Api: Success
-				</Button>
-
-				<Button
-					onClick={() =>
-						fetch('/api/test?success=false')
-							.then((res) => res.text())
-							.then((data) => console.log(data))
-					}
-				>
-					Pages Api: Error&nbsp;&nbsp;&nbsp;
+					Trigger promise error
 				</Button>
 
 				<hr />
 
 				<Button
 					onClick={() =>
-						fetch('/api/app-directory-test?success=true')
+						fetch('/api/page-router-test?success=true')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory: Success
+					Pages Api (Node.js): Success
 				</Button>
 
 				<Button
 					onClick={() =>
-						fetch('/api/app-directory-test?success=false')
+						fetch('/api/page-router-test?success=false')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}
 				>
-					App Directory: Error&nbsp;&nbsp;&nbsp;
+					Pages Api (Node.js): Error&nbsp;&nbsp;&nbsp;
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/page-router-edge-test?success=true')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					Pages Api (Edge): Success
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/page-router-edge-test?success=false')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					Pages Api (Edge): Error&nbsp;&nbsp;&nbsp;
+				</Button>
+
+				<hr />
+
+				<Button
+					onClick={() =>
+						fetch('/api/app-router-test?success=true')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					App Router (Node.js): Success
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/app-router-test?success=false')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					App Router (Node.js): Error&nbsp;&nbsp;&nbsp;
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/edge-test?success=true')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					App Router (Edge): Success
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/edge-test?success=false')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					App Router (Edge): Error&nbsp;&nbsp;&nbsp;
 				</Button>
 			</ErrorBoundary>
 		</div>

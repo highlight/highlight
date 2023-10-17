@@ -12,17 +12,19 @@ import React, { useEffect, useState } from 'react'
 
 import analytics from '@/util/analytics'
 
-import commonStyles from '../../Common.module.scss'
-import styles from './Buttons.module.scss'
+import commonStyles from '../../Common.module.css'
+import styles from './Buttons.module.css'
 import {
 	CustomError,
 	DefaultError,
 	NestedError,
 	RandomError,
+	WebSocketEvent,
 } from './ButtonsHelper'
 
 export const Buttons = () => {
 	const [hasError, setHasError] = useState(false)
+	const [showWebSocket, setShowWebSocket] = useState(false)
 	const [sendEmail, { loading }] = useSendEmailSignupMutation()
 	if (hasError) {
 		throw new Error('got an error')
@@ -106,7 +108,7 @@ export const Buttons = () => {
 					title="Highlight Landing"
 					src={
 						import.meta.env.DEV
-							? 'http://localhost:3001/'
+							? 'http://localhost:4000/'
 							: 'https://www.highlight.io/'
 					}
 					height={300}
@@ -164,6 +166,15 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
+							setShowWebSocket((p) => !p)
+						}}
+					>
+						Toggle WebSocket Event
+					</button>
+					{showWebSocket && <WebSocketEvent />}
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
 							DefaultError()
 						}}
 					>
@@ -200,6 +211,25 @@ export const Buttons = () => {
 						}}
 					>
 						Console Error
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
+							for (let i = 0; i < 100; i++) {
+								new Promise<void>((resolve, reject) => {
+									if (Math.random() < 0.1) {
+										throw new Error(
+											'third uncaught error in promise',
+										)
+									} else if (Math.random() < 0.2) {
+										reject('what the')
+									}
+									resolve()
+								}).then()
+							}
+						}}
+					>
+						Async Error
 					</button>
 					<button
 						className={commonStyles.submitButton}
@@ -387,6 +417,13 @@ export const Buttons = () => {
 					>
 						POST xhr('https://pokeapi.co/api/v2/pokemon/ditto')
 					</button>
+					<button
+						onClick={async () => {
+							await fetch('https://github.com/api')
+						}}
+					>
+						GET fetch('https://github.com/api')
+					</button>
 				</div>
 				<div>
 					<button
@@ -524,7 +561,7 @@ export const Buttons = () => {
 								key={c}
 								display="flex"
 								flexDirection="column"
-								className={c}
+								cssClass={c}
 								id={`video-test-${c}`}
 								data-id={`video-test-${c}`}
 							>

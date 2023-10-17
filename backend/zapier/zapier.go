@@ -25,7 +25,7 @@ var (
 func getProjectForToken(parsedToken *ParsedZapierToken, db *gorm.DB) (*model.Project, error) {
 	project := model.Project{}
 
-	if err := db.Where(&model.Project{Model: model.Model{ID: parsedToken.ProjectID}}).First(&project).Error; err != nil {
+	if err := db.Where(&model.Project{Model: model.Model{ID: parsedToken.ProjectID}}).Take(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 

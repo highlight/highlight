@@ -7,6 +7,21 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 25" href="./changelog-25.md">
+    {"GitHub stack trace settings, Next.js Edge runtime support, Large session exports"}
+    </DocsCard>
+    <DocsCard title="Changelog 24" href="./changelog-24.md">
+    {"GitHub-enhanced stack traces, Session search on ClickHouse, Algora.io open-source bounties"}
+    </DocsCard>
+    <DocsCard title="Changelog 23" href="./changelog-23.md">
+    {"Error list visual indicator, Poll for new sessions, Pino.js support, Alerts redesign "}
+    </DocsCard>
+    <DocsCard title="Changelog 22" href="./changelog-22.md">
+    {"Remix SDK, Render.com Log Stream, Go & Python SDK updates"}
+    </DocsCard>
+    <DocsCard title="Changelog 21" href="./changelog-21.md">
+    {"GitHub Auth, Invite detection, AllContributor App"}
+    </DocsCard>
     <DocsCard title="Changelog 20" href="./changelog-20.md">
     {"User Management, New logging connectors"}
     </DocsCard>

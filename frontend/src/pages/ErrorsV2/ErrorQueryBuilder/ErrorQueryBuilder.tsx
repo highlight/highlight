@@ -1,9 +1,11 @@
 import {
 	useEditErrorSegmentMutation,
-	useGetErrorFieldsOpensearchQuery,
+	useGetErrorFieldsClickhouseQuery,
 	useGetErrorSegmentsQuery,
+	useGetErrorTagsQuery,
 } from '@graph/hooks'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { useCallback } from 'react'
 
 import QueryBuilder, {
 	CustomField,
@@ -14,7 +16,6 @@ import QueryBuilder, {
 } from '@/components/QueryBuilder/QueryBuilder'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
-import { EmptyErrorsSearchParams } from '@/pages/Errors/ErrorsPage'
 
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
@@ -22,7 +23,7 @@ export const TIME_RANGE_FIELD: SelectOption = {
 	value: 'error-field_timestamp',
 }
 
-const CUSTOM_FIELDS: CustomField[] = [
+export const CUSTOM_FIELDS: CustomField[] = [
 	{
 		type: ERROR_TYPE,
 		name: 'Type',
@@ -40,6 +41,13 @@ const CUSTOM_FIELDS: CustomField[] = [
 	{
 		type: ERROR_TYPE,
 		name: 'state',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: ERROR_TYPE,
+		name: 'Tag',
 		options: {
 			type: 'text',
 		},
@@ -72,14 +80,33 @@ const CUSTOM_FIELDS: CustomField[] = [
 			type: 'text',
 		},
 	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'service_name',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'has_session',
+		options: {
+			operators: ['is', 'is_not'],
+			type: 'boolean',
+		},
+	},
 ]
 
 const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
-	const { refetch } = useGetErrorFieldsOpensearchQuery({
+	const { data } = useGetErrorTagsQuery()
+	const { refetch } = useGetErrorFieldsClickhouseQuery({
 		skip: true,
 	})
-	const fetchFields = (variables: FetchFieldVariables) =>
-		refetch(variables).then((r) => r.data.error_fields_opensearch)
+	const fetchFields = useCallback(
+		(variables: FetchFieldVariables) =>
+			refetch(variables).then((r) => r.data.error_fields_clickhouse),
+		[refetch],
+	)
 
 	return (
 		<QueryBuilder
@@ -87,7 +114,7 @@ const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
 			timeRangeField={TIME_RANGE_FIELD}
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
-			emptySearchParams={EmptyErrorsSearchParams}
+			errorTagData={data}
 			useEditAnySegmentMutation={useEditErrorSegmentMutation}
 			useGetAnySegmentsQuery={useGetErrorSegmentsQuery}
 			CreateAnySegmentModal={CreateErrorSegmentModal}

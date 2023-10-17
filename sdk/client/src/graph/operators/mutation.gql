@@ -3,6 +3,7 @@ mutation PushPayload(
 	$events: ReplayEventsInput!
 	$messages: String!
 	$resources: String!
+	$web_socket_events: String!
 	$errors: [ErrorObjectInput]!
 	$is_beacon: Boolean
 	$has_session_unloaded: Boolean
@@ -14,6 +15,7 @@ mutation PushPayload(
 		events: $events
 		messages: $messages
 		resources: $resources
+		web_socket_events: $web_socket_events
 		errors: $errors
 		is_beacon: $is_beacon
 		has_session_unloaded: $has_session_unloaded
@@ -68,6 +70,7 @@ mutation initializeSession(
 	$session_secure_id: String!
 	$organization_verbose_id: String!
 	$enable_strict_privacy: Boolean!
+	$privacy_setting: String!
 	$enable_recording_network_contents: Boolean!
 	$clientVersion: String!
 	$firstloadVersion: String!
@@ -75,6 +78,7 @@ mutation initializeSession(
 	$environment: String!
 	$id: String!
 	$appVersion: String
+	$serviceName: String!
 	$client_id: String!
 	$network_recording_domains: [String!]
 	$disable_session_recording: Boolean
@@ -89,10 +93,12 @@ mutation initializeSession(
 		clientConfig: $clientConfig
 		environment: $environment
 		appVersion: $appVersion
+		serviceName: $serviceName
 		fingerprint: $id
 		client_id: $client_id
 		network_recording_domains: $network_recording_domains
 		disable_session_recording: $disable_session_recording
+		privacy_setting: $privacy_setting
 	) {
 		secure_id
 		project_id

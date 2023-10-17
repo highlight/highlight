@@ -11,15 +11,14 @@ import { useSlackSync } from '@hooks/useSlackSync'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
 import clsx from 'clsx'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Linkify from 'react-linkify'
 
 import { AdminSuggestion } from '@/components/Comment/utils/utils'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
-import newCommentFormStyles from '../NewCommentForm.module.scss'
-import styles from './CommentTextBody.module.scss'
-import mentionsClassNames from './mentions.module.scss'
+import styles from './CommentTextBody.module.css'
+import mentionsClassNames from './mentions.module.css'
 
 interface Props {
 	commentText: string
@@ -32,7 +31,7 @@ interface Props {
 	inputRef?: React.RefObject<HTMLTextAreaElement>
 }
 
-const CommentTextBody = ({
+export const CommentTextBody = ({
 	commentText,
 	placeholder,
 	onChangeHandler,
@@ -46,20 +45,15 @@ const CommentTextBody = ({
 		project_id: string
 	}>()
 	const slackUrl = getSlackUrl(project_id ?? '')
-	const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler)
 	const { slackLoading, syncSlack } = useSlackSync()
+	const [slackSynced, setSlackSynced] = useState(false)
 
-	useEffect(() => {
-		if (shouldAutoFocus) {
-			const textarea = document.querySelector(
-				`.${newCommentFormStyles.commentInputContainer} textarea`,
-			) as HTMLTextAreaElement | null
-			if (textarea) {
-				textarea.focus()
-			}
-			setShouldAutoFocus(false)
+	const handleMentionsInputFocus = () => {
+		if (!slackSynced) {
+			setSlackSynced(true)
+			syncSlack()
 		}
-	}, [shouldAutoFocus])
+	}
 
 	const mentions = commentText.split('@')
 	const latestMention = `@${mentions.at(-1)}`
@@ -122,10 +116,9 @@ const CommentTextBody = ({
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}
-			onFocus={syncSlack}
+			onFocus={handleMentionsInputFocus}
 			onChange={onChangeHandler}
 			placeholder={placeholder}
-			autoFocus={shouldAutoFocus}
 			aria-readonly={!onChangeHandler}
 			suggestionsPortalHost={suggestionsPortalHost}
 			allowSuggestionsAboveCursor
@@ -160,6 +153,7 @@ const CommentTextBody = ({
 				data={suggestions}
 				displayTransform={onDisplayTransformHandler}
 				appendSpaceOnAdd
+				suggestionLimit={15}
 				renderSuggestion={(
 					suggestion,
 					search,
@@ -179,8 +173,6 @@ const CommentTextBody = ({
 		</MentionsInput>
 	)
 }
-
-export default CommentTextBody
 
 const Suggestion = ({
 	suggestion,

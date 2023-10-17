@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa'
 
 import Tooltip from '../../../../components/Tooltip/Tooltip'
-import styles from './CurrentUrlBar.module.scss'
+import styles from './CurrentUrlBar.module.css'
 
 export const CurrentUrlBar = ({ url }: { url: string }) => {
 	const [hover, setHover] = useState(false)

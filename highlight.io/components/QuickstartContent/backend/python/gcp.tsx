@@ -2,6 +2,7 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	downloadSnippet,
+	init,
 	setupFrontendSnippet,
 	setupLogging,
 } from './shared-snippets'
@@ -28,7 +29,7 @@ import functions_framework
 import highlight_io
 from highlight_io.integrations.gcp import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
+${init}
 
 
 @observe_handler
@@ -59,7 +60,7 @@ import functions_framework
 import highlight_io
 from highlight_io.integrations.gcp import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
+${init}
 
 
 @observe_handler

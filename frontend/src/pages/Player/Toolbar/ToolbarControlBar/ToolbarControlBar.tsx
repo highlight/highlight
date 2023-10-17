@@ -9,24 +9,32 @@ import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
 import {
+	useExportSessionMutation,
+	useGetWorkspaceSettingsQuery,
+} from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
+import {
+	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidArrowsExpand,
 	IconSolidChartBar,
 	IconSolidClock,
 	IconSolidCog,
+	IconSolidDownload,
 	IconSolidPause,
 	IconSolidPlay,
 	IconSolidRefresh,
 	IconSolidSkip,
 	IconSolidSkipLeft,
 	IconSolidTerminal,
+	Stack,
 	SwitchButton,
 	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
-import ActivityIcon from '@icons/ActivityIcon'
+import { useProjectId } from '@hooks/useProjectId'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
@@ -47,19 +55,22 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
-import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import { showIntercomMessage } from '@util/window'
+import { message } from 'antd'
 import clsx from 'clsx'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.scss'
-import style from './ToolbarControlBar.module.scss'
+import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
+import style from './ToolbarControlBar.module.css'
 
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
@@ -204,30 +215,34 @@ export const ToolbarControlBar = () => {
 			{showLiveToggle && (
 				<Tag
 					onClick={() => {
-						setIsLiveMode((isLive) => !isLive)
+						setIsLiveMode(!isLiveMode)
 					}}
 					shape="rounded"
-					kind="primary"
-					emphasis="high"
+					kind={isLiveMode ? 'primary' : 'secondary'}
+					emphasis={isLiveMode ? 'high' : 'medium'}
 					disabled={disableControls}
 					lines="1"
 				>
-					{isLiveMode ? 'Hide' : 'Show'} live mode
+					{isLiveMode ? 'Disable' : 'Enable'} live mode
 				</Tag>
 			)}
 
-			<Box display="flex" gap="4" ml="4">
+			<Box display="flex" gap="4" ml="4" alignItems="center">
 				{isLiveMode && lastActiveString && (
-					<SessionToken
-						className={style.liveUserStatus}
-						icon={<ActivityIcon />}
-						tooltipTitle={`This session is live, but the user was last active ${lastActiveString}.`}
-					>
-						User was last active {lastActiveString}
-					</SessionToken>
+					<Stack align="center" direction="row" gap="4">
+						<Text size="xSmall" color="weak">
+							Last activity
+						</Text>
+						<Badge
+							iconStart={<IconSolidClock size={12} />}
+							label={lastActiveString}
+							variant="gray"
+							size="small"
+						/>
+					</Stack>
 				)}
 				{!isLiveMode && (
-					<Text color="n11" userSelect="none" lines="1">
+					<Text color="weak" userSelect="none" lines="1">
 						{disableControls ? (
 							<Skeleton count={1} width="60.13px" />
 						) : showPlayerAbsoluteTime ? (
@@ -264,107 +279,113 @@ export const ToolbarControlBar = () => {
 				gap="4"
 			>
 				{!isLiveMode && (
-					<Tooltip
-						trigger={
-							<Tag
-								kind="secondary"
-								shape="rounded"
-								size="medium"
-								emphasis="low"
-								onClick={() => {
-									setPlayerSpeedIdx(playerSpeedIdx + 1)
-								}}
-								disabled={disableControls}
-								lines="1"
-							>
-								{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
-							</Tag>
-						}
-						delayed
-						disabled={disableControls}
-					>
-						<KeyboardShortcut
-							label="Speed +/-"
-							shortcut={[cmdKey, '↑/↓']}
-						/>
-					</Tooltip>
-				)}
-
-				{!isLiveMode && (
-					<Tooltip
-						trigger={
-							<SwitchButton
-								onChange={() => {
-									setShowHistogram(!showHistogram)
-								}}
-								checked={showHistogram}
-								disabled={isPlayerFullscreen || disableControls}
-								iconLeft={<IconSolidChartBar size={14} />}
+					<>
+						<Tooltip
+							trigger={
+								<Tag
+									kind="secondary"
+									shape="rounded"
+									size="medium"
+									emphasis="low"
+									onClick={() => {
+										setPlayerSpeedIdx(playerSpeedIdx + 1)
+									}}
+									disabled={disableControls}
+									lines="1"
+								>
+									{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
+								</Tag>
+							}
+							delayed
+							disabled={disableControls}
+						>
+							<KeyboardShortcut
+								label="Speed +/-"
+								shortcut={[cmdKey, '↑/↓']}
 							/>
-						}
-						delayed
-						disabled={isPlayerFullscreen || disableControls}
-					>
-						<KeyboardShortcut
-							label="Timeline"
-							shortcut={TimelineShortcut.shortcut}
-						/>
-					</Tooltip>
-				)}
+						</Tooltip>
 
-				<Tooltip
-					trigger={
-						<SwitchButton
-							onChange={() => {
-								setShowDevTools(!showDevTools)
-							}}
-							checked={showDevTools}
+						<Tooltip
+							trigger={
+								<SwitchButton
+									onChange={() => {
+										setShowHistogram(!showHistogram)
+									}}
+									checked={showHistogram}
+									disabled={
+										isPlayerFullscreen || disableControls
+									}
+									iconLeft={<IconSolidChartBar size={14} />}
+								/>
+							}
+							delayed
 							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconSolidTerminal size={14} />}
-						/>
-					}
-					delayed
-					disabled={isPlayerFullscreen || disableControls}
-				>
-					<KeyboardShortcut
-						label="Dev tools"
-						shortcut={DevToolsShortcut.shortcut}
-					/>
-				</Tooltip>
+						>
+							<KeyboardShortcut
+								label="Timeline"
+								shortcut={TimelineShortcut.shortcut}
+							/>
+						</Tooltip>
 
-				<Popover
-					getPopupContainer={getFullScreenPopoverGetPopupContainer}
-					content={
-						<ControlSettings
-							setShowSettingsPopover={setShowSettings}
-						/>
-					}
-					overlayClassName={style.settingsPopoverOverlay}
-					placement="topRight"
-					trigger="click"
-					showArrow={false}
-					align={{
-						overflow: {
-							adjustY: false,
-							adjustX: false,
-						},
-						offset: [0, 8],
-					}}
-					onVisibleChange={(visible) => {
-						setShowSettings(visible)
-					}}
-					visible={showSettings}
-					destroyTooltipOnHide
-				>
-					<ButtonIcon
-						icon={<IconSolidCog />}
-						disabled={disableControls}
-						size="xSmall"
-						shape="square"
-						emphasis="low"
-						kind="secondary"
-					/>
-				</Popover>
+						<Tooltip
+							trigger={
+								<SwitchButton
+									onChange={() => {
+										setShowDevTools(!showDevTools)
+									}}
+									checked={showDevTools}
+									disabled={
+										isPlayerFullscreen || disableControls
+									}
+									iconLeft={<IconSolidTerminal size={14} />}
+								/>
+							}
+							delayed
+							disabled={isPlayerFullscreen || disableControls}
+						>
+							<KeyboardShortcut
+								label="Dev tools"
+								shortcut={DevToolsShortcut.shortcut}
+							/>
+						</Tooltip>
+
+						<Popover
+							getPopupContainer={
+								getFullScreenPopoverGetPopupContainer
+							}
+							content={
+								<ControlSettings
+									setShowSettingsPopover={setShowSettings}
+								/>
+							}
+							overlayClassName={style.settingsPopoverOverlay}
+							placement="topRight"
+							trigger="click"
+							showArrow={false}
+							align={{
+								overflow: {
+									adjustY: false,
+									adjustX: false,
+								},
+								offset: [0, 8],
+							}}
+							onVisibleChange={(visible) => {
+								setShowSettings(visible)
+							}}
+							visible={showSettings}
+							destroyTooltipOnHide
+						>
+							<ButtonIcon
+								icon={<IconSolidCog />}
+								disabled={disableControls}
+								size="xSmall"
+								shape="square"
+								emphasis="low"
+								kind="secondary"
+							/>
+						</Popover>
+					</>
+				)}
 
 				<ButtonIcon
 					onClick={() => {
@@ -386,7 +407,14 @@ interface ControlSettingsProps {
 	setShowSettingsPopover: (shouldShow: boolean) => void
 }
 const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
+	const navigate = useNavigate()
+	const { projectId } = useProjectId()
 	const [showSessionSettings, setShowSessionSettings] = useState(true)
+	const { currentWorkspace } = useApplicationContext()
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 	const {
 		showHistogram,
 		setShowHistogram,
@@ -403,6 +431,76 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		selectedTimelineAnnotationTypes,
 		setSelectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
+	const { session } = useReplayerContext()
+	const [exportSessionMutation] = useExportSessionMutation()
+
+	const exportSession = useCallback(async () => {
+		if (!workspaceSettingsData?.workspaceSettings?.enable_session_export) {
+			analytics.track('Session Export Upgrade', {
+				sessionSecureId: session?.secure_id,
+				workspaceId: currentWorkspace?.id,
+			})
+			await message.warn(
+				'Downloading sessions is only available on annual commitment plans.',
+			)
+			showIntercomMessage(
+				'Hi! I would like to use the session export feature.',
+			)
+			return
+		}
+		if (session?.secure_id) {
+			analytics.track('Session Export Requested', {
+				sessionSecureId: session.secure_id,
+				workspaceId: currentWorkspace?.id,
+			})
+			try {
+				await exportSessionMutation({
+					variables: {
+						session_secure_id: session.secure_id,
+					},
+					refetchQueries: [namedOperations.Query.GetSessionExports],
+				})
+				message.open({
+					content: (
+						<Box
+							display="flex"
+							alignItems="center"
+							justifyContent="center"
+							gap="2"
+							cssClass={style.toast}
+						>
+							<Box
+								display="flex"
+								alignItems="center"
+								width="full"
+								height="full"
+								onClick={() =>
+									navigate(
+										`/${projectId}/settings/sessions#exports`,
+									)
+								}
+							>
+								<Text color="white">
+									You will receive an email once the session
+									is ready. Click here to check progress.
+								</Text>
+							</Box>
+						</Box>
+					),
+					duration: 10,
+				})
+			} catch (e) {
+				message.error(`An error occurred exporting the session: ${e}`)
+			}
+		}
+	}, [
+		currentWorkspace?.id,
+		exportSessionMutation,
+		navigate,
+		projectId,
+		session?.secure_id,
+		workspaceSettingsData?.workspaceSettings?.enable_session_export,
+	])
 
 	const { isLiveMode } = useReplayerContext()
 	const options = (
@@ -412,7 +510,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowHistogram(!showHistogram)}
 			>
 				<IconSolidChartBar />
-				<p>Timeline</p>
+				<Text color="secondaryContentText">Timeline</Text>
 				<ShortcutTextGuide
 					shortcut={TimelineShortcut}
 					className={style.moveRight}
@@ -432,7 +530,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
 				<IconSolidTerminal />
-				<p>Dev tools</p>
+				<Text color="secondaryContentText">Dev tools</Text>
 				<ShortcutTextGuide
 					shortcut={DevToolsShortcut}
 					className={style.moveRight}
@@ -451,7 +549,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowPlayerMouseTail(!showPlayerMouseTail)}
 			>
 				<CursorClickIcon />
-				<p>Mouse trail</p>
+				<Text color="secondaryContentText">Mouse trail</Text>
 				<Switch
 					trackingId="MouseTrailMenuToggle"
 					checked={showPlayerMouseTail}
@@ -467,7 +565,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setSkipInactive(!skipInactive)}
 			>
 				<FastForwardIcon />
-				<p>Skip inactive</p>
+				<Text color="secondaryContentText">Skip inactive</Text>
 				<Switch
 					trackingId="SkipInactiveMenuToggle"
 					checked={!isLiveMode && skipInactive}
@@ -484,7 +582,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setAutoPlayVideo(!autoPlayVideo)}
 			>
 				<PlayCircleIcon />
-				<p>Autoplay</p>
+				<Text color="secondaryContentText">Autoplay</Text>
 				<Switch
 					trackingId="AutoplayVideoMenuToggle"
 					checked={autoPlayVideo}
@@ -502,7 +600,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				}
 			>
 				<IconSolidClock />
-				<p>Absolute time</p>
+				<Text color="secondaryContentText">Absolute time</Text>
 				<Switch
 					trackingId="PlayerAbsoluteTimeMenuToggle"
 					checked={showPlayerAbsoluteTime}
@@ -518,8 +616,31 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowSessionSettings(false)}
 			>
 				<AnnotationIcon />
-				<p>Annotations</p>
+				<Text color="secondaryContentText">Annotations</Text>
 				<ChevronRightIcon className={style.moveRight} />
+			</button>
+
+			<button
+				className={clsx(style.settingsButton, style.downloadButton)}
+				onClick={exportSession}
+			>
+				<IconSolidDownload size={16} />
+				<Box
+					color="secondaryContentText"
+					display="inline-flex"
+					alignItems="center"
+					gap="6"
+					flexGrow={1}
+				>
+					<Text lines="1">Download video</Text>
+				</Box>
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="flex-end"
+				>
+					<Badge size="small" label="Annual" />
+				</Box>
 			</button>
 		</>
 	)

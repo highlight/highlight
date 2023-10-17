@@ -42,6 +42,14 @@ slug: python
       <h5>instrument_logging<code>boolean</code> <code>optional</code></h5>
       <p>If enabled, Highlight will record log output from the logging module.</p>
     </aside>
+    <aside className="parameter">
+      <h5>service_name<code>string</code> <code>optional</code></h5>
+      <p>The name of your app.</p>
+    </aside>
+    <aside className="parameter">
+      <h5>service_version<code>string</code> <code>optional</code></h5>
+      <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+    </aside>
   </div>
   <div className="right">
     In Flask, you'll add Highlight in your main app.py entrypoint.
@@ -49,19 +57,36 @@ slug: python
         import highlight_io
         from highlight_io.integrations.flask import FlaskIntegration
         app = Flask('test-app')
-        H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)
+        H = highlight_io.H(
+          "<YOUR_PROJECT_ID>",
+          integrations=[FlaskIntegration()],
+          instrument_logging=True,
+          service_name="my-flask-app",
+          service_version="git-sha", 
+        )
     </code>
     In Django, you'll add Highlight to your settings.py file:
     <code>
         import highlight_io
         from highlight_io.integrations.django import DjangoIntegration
-        H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[DjangoIntegration()], instrument_logging=True)
+        H = highlight_io.H(
+          "<YOUR_PROJECT_ID>",
+          integrations=[DjangoIntegration()],
+          instrument_logging=True,
+          service_name="my-django-app",
+          service_version="git-sha", 
+        )
     </code>
     In FastAPI, you'll add Highlight as a middleware:
     <code>
         import highlight_io
         from highlight_io.integrations.fastapi import FastAPIMiddleware
-        H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
+        H = highlight_io.H(
+          "<YOUR_PROJECT_ID>",
+          instrument_logging=True,
+          service_name="my-fastapi-app",
+          service_version="git-sha", 
+        )
         app = FastAPI()
         app.add_middleware(FastAPIMiddleware)
     </code>
@@ -75,6 +100,10 @@ slug: python
     <aside className="parameter">
       <h5>e <code>Exception</code> <code>optional</code></h5>
       <p>The exception to record. The contents and stacktrace will be recorded.</p>
+    </aside>
+    <aside className="parameter">
+      <h5>attributes <code>dict[str, any]</code> <code>optional</code></h5>
+      <p>Metadata to associate with this exception.</p>
     </aside>
   </div>
   <div className="right">
@@ -105,6 +134,10 @@ the error will be associated with the project ID passed to H().</p>
     <aside className="parameter">
       <h5>request_id <code>string</code> <code>optional</code></h5>
       <p>A Highlight network request ID that initiated the handler raising this error.</p>
+    </aside>
+    <aside className="parameter">
+      <h5>attributes <code>dict[str, any]</code> <code>optional</code></h5>
+      <p>Metadata to associate with this exception.</p>
     </aside>
   </div>
   <div className="right">

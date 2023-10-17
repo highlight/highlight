@@ -39,7 +39,7 @@ import { HighlightEvent } from '../HighlightEvent'
 import { useReplayerContext } from '../ReplayerContext'
 import RightPanelCard from '../RightPanelCard/RightPanelCard'
 import { getAnnotationColor } from '../Toolbar/Toolbar'
-import styles from './StreamElement.module.scss'
+import styles from './StreamElement.module.css'
 import StreamElementPayload from './StreamElementPayload'
 
 const EVENT_TYPES_TO_NOT_RENDER_TIME = ['Web Vitals']

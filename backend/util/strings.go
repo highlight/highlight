@@ -1,6 +1,9 @@
 package util
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 func JsonStringToStringArray(s string) []*string {
 	var eventInterface []*string
@@ -8,4 +11,13 @@ func JsonStringToStringArray(s string) []*string {
 		return []*string{&s}
 	}
 	return eventInterface
+}
+
+func StringContainsAnyOf(str string, substrings []string) bool {
+	for _, s := range substrings {
+		if strings.Contains(str, s) {
+			return true
+		}
+	}
+	return false
 }

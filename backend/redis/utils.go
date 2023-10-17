@@ -9,24 +9,24 @@ import (
 	"strconv"
 	"time"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
-	"github.com/go-redis/cache/v8"
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/cache/v9"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
 
 type Client struct {
-	redisClient redis.Cmdable
-	Cache       *cache.Cache
+	Client  redis.Cmdable
+	Cache   *cache.Cache
+	Redsync *redsync.Redsync
 }
 
 const LockPollInterval = 100 * time.Millisecond
@@ -43,11 +43,15 @@ func NetworkResourcesKey(sessionId int) string {
 	return fmt.Sprintf("network-resources-%d", sessionId)
 }
 
+func WebSocketEventsKey(sessionId int) string {
+	return fmt.Sprintf("web-socket-events-%d", sessionId)
+}
+
 func SessionInitializedKey(sessionSecureId string) string {
 	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
 
-func BillingQuotaExceededKey(projectId int, productType pricing.ProductType) string {
+func BillingQuotaExceededKey(projectId int, productType model.PricingProductType) string {
 	return fmt.Sprintf("billing-quota-exceeded-%d-%s", projectId, productType)
 }
 
@@ -55,42 +59,63 @@ func LastLogTimestampKey(projectId int) string {
 	return fmt.Sprintf("last-log-timestamp-%d", projectId)
 }
 
+func ServiceGithubErrorCountKey(serviceId int) string {
+	return fmt.Sprintf("service-github-errors-%d", serviceId)
+}
+
+func GithubRateLimitKey(gitHubRepo string) string {
+	return fmt.Sprintf("github-rate-limit-exceeded-%s", gitHubRepo)
+}
+
+func GitHubFileErrorKey(gitHubRepo string, version string, fileName string) string {
+	return fmt.Sprintf("github-file-error-%s-%s-%s", gitHubRepo, version, fileName)
+}
+
 func NewClient() *Client {
+	var lfu cache.LocalCache
+	// disable lfu cache locally to allow flushing cache between test-cases
+	if !util.IsTestEnv() {
+		lfu = cache.NewTinyLFU(100_000, time.Second)
+	}
 	if util.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
-			Addr:         ServerAddr,
-			Password:     "",
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 5 * time.Second,
-			MaxConnAge:   5 * time.Minute,
-			IdleTimeout:  5 * time.Minute,
-			MaxRetries:   5,
-			MinIdleConns: 16,
-			PoolSize:     256,
+			Addr:            ServerAddr,
+			Password:        "",
+			ReadTimeout:     5 * time.Second,
+			WriteTimeout:    5 * time.Second,
+			ConnMaxIdleTime: 5 * time.Minute,
+			ConnMaxLifetime: 5 * time.Minute,
+			MaxRetries:      5,
+			MinIdleConns:    16,
+			PoolSize:        256,
 		})
-
 		return &Client{
-			redisClient: client,
+			Client: client,
 			Cache: cache.New(&cache.Options{
 				Redis:      client,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
+				LocalCache: lfu,
 			}),
+			Redsync: redsync.New(goredis.NewPool(client)),
 		}
 	} else {
 		c := redis.NewClusterClient(&redis.ClusterOptions{
-			Addrs:        []string{ServerAddr},
-			Password:     "",
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 5 * time.Second,
-			MaxConnAge:   5 * time.Minute,
-			IdleTimeout:  5 * time.Minute,
-			MaxRetries:   5,
-			MinIdleConns: 16,
-			PoolSize:     256,
+			Addrs:           []string{ServerAddr},
+			Password:        "",
+			ReadTimeout:     5 * time.Second,
+			WriteTimeout:    5 * time.Second,
+			ConnMaxIdleTime: 5 * time.Minute,
+			ConnMaxLifetime: 5 * time.Minute,
+			MaxRetries:      5,
+			MinIdleConns:    16,
+			PoolSize:        256,
 			OnConnect: func(context.Context, *redis.Conn) error {
 				hlog.Incr("redis.new-conn", nil, 1)
 				return nil
 			},
+		})
+		rCache := cache.New(&cache.Options{
+			Redis:      c,
+			LocalCache: lfu,
 		})
 		go func() {
 			for {
@@ -104,21 +129,25 @@ func NewClient() *Client {
 				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
 				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
 				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+
+				if stats := rCache.Stats(); stats != nil {
+					hlog.Histogram("redis.cache.hits", float64(stats.Hits), nil, 1)
+					hlog.Histogram("redis.cache.misses", float64(stats.Misses), nil, 1)
+				}
+
 				time.Sleep(time.Second)
 			}
 		}()
 		return &Client{
-			redisClient: c,
-			Cache: cache.New(&cache.Options{
-				Redis:      c,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
-			}),
+			Client:  c,
+			Cache:   rCache,
+			Redsync: redsync.New(goredis.NewPool(c)),
 		}
 	}
 }
 
 func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove []interface{}) error {
-	cmd := r.redisClient.ZRem(ctx, EventsKey(sessionId), valuesToRemove...)
+	cmd := r.Client.ZRem(ctx, EventsKey(sessionId), valuesToRemove...)
 	if cmd.Err() != nil {
 		return errors.Wrap(cmd.Err(), "error removing values from Redis")
 	}
@@ -128,7 +157,7 @@ func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove
 func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId int) ([]redis.Z, error) {
 	maxScore := "(" + strconv.FormatInt(int64(nextPayloadId), 10)
 
-	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, EventsKey(sessionId), &redis.ZRangeBy{
+	vals, err := r.Client.ZRangeByScoreWithScores(ctx, EventsKey(sessionId), &redis.ZRangeBy{
 		Min: "-inf",
 		Max: maxScore,
 	}).Result()
@@ -145,15 +174,17 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 		return EventsKey(sessionId)
 	case model.PayloadTypeResources:
 		return NetworkResourcesKey(sessionId)
+	case model.PayloadTypeWebSocketEvents:
+		return WebSocketEventsKey(sessionId)
 	default:
 		return ""
 	}
 }
 
-func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]model.SessionData, error) {
+func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]string, error) {
 	key := GetKey(sessionId, payloadType)
 
-	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
+	vals, err := r.Client.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 		Min: "-inf",
 		Max: "+inf",
 	}).Result()
@@ -177,24 +208,13 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 	}
 	sort.Ints(keys)
 
-	results := []model.SessionData{}
+	results := []string{}
 	if len(keys) == 0 {
 		return results, nil
 	}
 
 	for _, k := range keys {
-		asBytes := []byte(objects[k])
-
-		// Messages may be encoded with `snappy`.
-		// Try decoding them, but if decoding fails, use the original message.
-		decoded, err := snappy.Decode(nil, asBytes)
-		if err != nil {
-			decoded = asBytes
-		}
-
-		results = append(results, model.SessionData{
-			Data: string(decoded),
-		})
+		results = append(results, objects[k])
 	}
 
 	return results, nil
@@ -209,7 +229,7 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		eventObjectIndex = "(" + strconv.FormatInt(int64(*cursor.EventObjectIndex), 10)
 	}
 
-	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, EventsKey(s.ID), &redis.ZRangeBy{
+	vals, err := r.Client.ZRangeByScoreWithScores(ctx, EventsKey(s.ID), &redis.ZRangeBy{
 		Min: eventObjectIndex,
 		Max: "+inf",
 	}).Result()
@@ -289,7 +309,7 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interface{}, error) {
 	allResources := make([]interface{}, 0)
 
-	redisData, err := r.redisClient.ZRangeByScoreWithScores(ctx, NetworkResourcesKey(s.ID), &redis.ZRangeBy{
+	redisData, err := r.Client.ZRangeByScoreWithScores(ctx, NetworkResourcesKey(s.ID), &redis.ZRangeBy{
 		Min: "-inf",
 		Max: "+inf",
 	}).Result()
@@ -346,7 +366,7 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 
 	keys := []string{GetKey(sessionID, payloadType)}
 	values := []interface{}{score, encoded}
-	cmd := zAddAndExpire.Run(ctx, r.redisClient, keys, values...)
+	cmd := zAddAndExpire.Run(ctx, r.Client, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
 		return errors.Wrap(err, "error adding events payload in Redis")
@@ -355,7 +375,7 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 }
 
 func (r *Client) getString(ctx context.Context, key string) (string, error) {
-	val, err := r.redisClient.Get(ctx, key).Result()
+	val, err := r.Client.Get(ctx, key).Result()
 
 	// return empty for non-existent keys
 	if err == redis.Nil {
@@ -367,7 +387,7 @@ func (r *Client) getString(ctx context.Context, key string) (string, error) {
 }
 
 func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.Duration) error {
-	cmd := r.redisClient.Set(ctx, key, value, exp)
+	cmd := r.Client.Set(ctx, key, value, exp)
 	if cmd.Err() != nil {
 		return errors.Wrap(cmd.Err(), "error setting flag from Redis")
 	}
@@ -375,7 +395,7 @@ func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.D
 }
 
 func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
-	val, err := r.redisClient.Get(ctx, key).Result()
+	val, err := r.Client.Get(ctx, key).Result()
 
 	// ignore non-existent keys
 	if err == redis.Nil {
@@ -387,7 +407,7 @@ func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
 }
 
 func (r *Client) getFlagOrNil(ctx context.Context, key string) (*bool, error) {
-	val, err := r.redisClient.Get(ctx, key).Result()
+	val, err := r.Client.Get(ctx, key).Result()
 
 	// ignore non-existent keys
 	if err == redis.Nil {
@@ -406,11 +426,11 @@ func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string
 	return r.setFlag(ctx, SessionInitializedKey(sessionSecureId), initialized, 24*time.Hour)
 }
 
-func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType) (*bool, error) {
+func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, productType model.PricingProductType) (*bool, error) {
 	return r.getFlagOrNil(ctx, BillingQuotaExceededKey(projectId, productType))
 }
 
-func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType, exceeded bool) error {
+func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType model.PricingProductType, exceeded bool) error {
 	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 5*time.Minute)
 }
 
@@ -444,7 +464,7 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 
 	keys := []string{LastLogTimestampKey(projectId)}
 	values := []interface{}{str}
-	cmd := setIfGreater.Run(ctx, r.redisClient, keys, values...)
+	cmd := setIfGreater.Run(ctx, r.Client, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
 		return errors.Wrap(err, "error setting last log timestamp")
@@ -453,47 +473,89 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 }
 
 func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{}) error {
-	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
+	span, _ := util.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
 	defer span.Finish()
 	if err := r.Cache.Set(&cache.Item{
 		Ctx:   ctx,
 		Key:   CacheKeyHubspotCompanies,
 		Value: companies,
-		TTL:   time.Minute,
+		TTL:   time.Hour,
 	}); err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return err
 	}
 	return nil
 }
 
 func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{}) (err error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
+	span, _ := util.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
 	err = r.Cache.Get(ctx, CacheKeyHubspotCompanies, companies)
-	span.Finish(tracer.WithError(err))
+	span.Finish(err)
 	return
 }
 
-func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (err error) {
-	start := time.Now()
-	for {
-		if time.Since(start) > timeout {
-			break
-		}
-		cmd := r.redisClient.SetArgs(ctx, key, "1", redis.SetArgs{
-			TTL:  timeout,
-			Mode: "NX",
-			Get:  true,
-		})
-		// error means value is not set
-		if cmd.Err() != nil {
-			return nil
-		}
-		time.Sleep(LockPollInterval)
+func (r *Client) SetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string, expirationTime time.Time) error {
+	expirationDuration := time.Until(expirationTime)
+	if expirationDuration <= 0 {
+		expirationDuration = time.Hour
 	}
-	return errors.New("timed out acquiring lock")
+
+	return r.setFlag(ctx, GithubRateLimitKey(gitHubRepo), true, expirationDuration)
 }
 
-func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
-	return r.redisClient.Del(ctx, key).Err()
+func (r *Client) GetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string) (bool, error) {
+	return r.getFlag(ctx, GithubRateLimitKey(gitHubRepo))
+}
+
+func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
+	serviceKey := ServiceGithubErrorCountKey(projectId)
+	count, err := r.Client.Incr(ctx, serviceKey).Result()
+
+	if count == 1 {
+		r.Client.Expire(ctx, serviceKey, time.Hour)
+	}
+
+	return count, err
+}
+
+func (r *Client) ResetServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
+	serviceKey := ServiceGithubErrorCountKey(projectId)
+	return r.Client.Del(ctx, serviceKey).Result()
+}
+
+func (r *Client) SetGitHubFileError(ctx context.Context, gitHubRepo string, version string, fileName string) error {
+	return r.setFlag(ctx, GitHubFileErrorKey(gitHubRepo, version, fileName), true, 1*time.Hour)
+}
+
+func (r *Client) GetGitHubFileError(ctx context.Context, repo string, version string, fileName string) (bool, error) {
+	return r.getFlag(ctx, GitHubFileErrorKey(repo, version, fileName))
+}
+
+func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {
+	mutex := r.Redsync.NewMutex(
+		key,
+		redsync.WithRetryDelay(LockPollInterval),
+		redsync.WithTries(int(timeout/LockPollInterval)),
+		// ecs containers have up to 25 seconds to shut down
+		redsync.WithExpiry(25*time.Second),
+	)
+	return mutex, mutex.Lock()
+}
+
+func (r *Client) FlushDB(ctx context.Context) error {
+	if util.IsDevOrTestEnv() {
+		return r.Client.FlushAll(ctx).Err()
+	}
+	return nil
+}
+
+func (r *Client) Del(ctx context.Context, key string) error {
+	if util.IsDevOrTestEnv() {
+		return r.Client.Del(ctx, key).Err()
+	}
+	return nil
+}
+
+func (r *Client) TTL(ctx context.Context, key string) time.Duration {
+	return r.Client.TTL(ctx, key).Val()
 }

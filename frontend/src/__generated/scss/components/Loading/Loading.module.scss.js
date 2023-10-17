@@ -1,1 +1,0 @@
-var _={spinnerStyle:"_spinnerStyle_xtyfi_1",spinnerWrapper:"_spinnerWrapper_xtyfi_9",loadingWrapper:"_loadingWrapper_xtyfi_17",loadingFlexWrapper:"_loadingFlexWrapper_xtyfi_28",background:"_background_xtyfi_33",logoContainer:"_logoContainer_xtyfi_47",logo:"_logo_xtyfi_47",logoBackground:"_logoBackground_xtyfi_64"};export{_ as default};

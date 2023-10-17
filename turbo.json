@@ -21,8 +21,23 @@
 		"nextjs#lint": {
 			"dependsOn": ["^build"]
 		},
+		"@highlight-run/cloudflare#build": {
+			"dependsOn": ["@highlight-run/opentelemetry-sdk-workers#build"],
+			"outputs": ["dist/**"]
+		},
+		"@highlight-run/next#build": {
+			"dependsOn": [
+				"@highlight-run/cloudflare#build",
+				"@highlight-run/node#build",
+				"@highlight-run/opentelemetry-sdk-workers#build",
+				"@highlight-run/react#build",
+				"@highlight-run/sourcemap-uploader#build",
+				"highlight.run#build"
+			],
+			"outputs": ["dist/**"]
+		},
 		"codegen": {
-			"inputs": ["./**/*.gql", "./**/*.graphqls"],
+			"inputs": ["../**/*.gql", "../**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
@@ -62,6 +77,7 @@
 			],
 			"env": [
 				"CLICKUP_CLIENT_ID",
+				"CYPRESS_CLIENT_VERSION",
 				"DD_CLIENT_TOKEN",
 				"DEMO_PROJECT_ID",
 				"DISCORD_CLIENT_ID",
@@ -79,11 +95,16 @@
 				"REACT_APP_PUBLIC_GRAPH_URI",
 				"REACT_APP_STRIPE_API_PK",
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
-				"SLACK_CLIENT_ID"
+				"SLACK_CLIENT_ID",
+				"JIRA_CLIENT_ID"
 			]
 		},
 		"dev": {
 			"dependsOn": ["typegen", "^build"],
+			"cache": false,
+			"persistent": true
+		},
+		"dev:watch": {
 			"cache": false,
 			"persistent": true
 		},

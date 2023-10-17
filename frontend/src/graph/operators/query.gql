@@ -59,9 +59,14 @@ fragment SessionAlertFragment on SessionAlert {
 	DiscordChannelsToNotify {
 		...DiscordChannelFragment
 	}
+	WebhookDestinations {
+		url
+		authorization
+	}
 	CountThreshold
 	DailyFrequency
 	disabled
+	default
 	EmailsToNotify
 	ExcludedEnvironments
 	ExcludeRules
@@ -71,6 +76,11 @@ fragment SessionAlertFragment on SessionAlert {
 	updated_at
 	ThresholdWindow
 	TrackProperties {
+		id
+		name
+		value
+	}
+	UserProperties {
 		id
 		name
 		value
@@ -215,6 +225,7 @@ query GetSession($secure_id: String!) {
 		browser_version
 		environment
 		app_version
+		ip
 		city
 		state
 		country
@@ -230,6 +241,7 @@ query GetSession($secure_id: String!) {
 		client_id
 		starred
 		enable_strict_privacy
+		privacy_setting
 		enable_recording_network_contents
 		field_group
 		fields {
@@ -241,6 +253,7 @@ query GetSession($secure_id: String!) {
 		payload_size
 		processed
 		excluded
+		excluded_reason
 		has_rage_clicks
 		has_errors
 		within_billing_quota
@@ -251,6 +264,7 @@ query GetSession($secure_id: String!) {
 		event_counts
 		direct_download_url
 		resources_url
+		web_socket_events_url
 		timeline_indicators_url
 		deviceMemory
 		last_user_interaction_time
@@ -294,6 +308,26 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 		invitee_role
 		expiration_date
 		secret
+	}
+}
+
+query GetSessionInsight($secure_id: String!) {
+	session_insight(secure_id: $secure_id) {
+		id
+		insight
+	}
+}
+
+query GetSessionExports($project_id: ID!) {
+	session_exports(project_id: $project_id) {
+		created_at
+		type
+		url
+		error
+		# session details
+		secure_id
+		identifier
+		active_length
 	}
 }
 
@@ -511,72 +545,78 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 	}
 }
 
-query GetFieldTypes($project_id: ID!) {
-	field_types(project_id: $project_id) {
-		type
-		name
-	}
+query GetWebSocketEvents($session_secure_id: String!) {
+	websocket_events(session_secure_id: $session_secure_id)
 }
 
-query GetFieldsOpensearch(
+query GetFieldTypesClickhouse(
 	$project_id: ID!
-	$count: Int!
-	$field_type: String!
-	$field_name: String!
-	$query: String!
+	$start_date: Timestamp!
+	$end_date: Timestamp!
 ) {
-	fields_opensearch(
+	field_types: field_types_clickhouse(
 		project_id: $project_id
-		count: $count
-		field_type: $field_type
-		field_name: $field_name
-		query: $query
-	)
-}
-
-query GetQuickFieldsOpensearch(
-	$project_id: ID!
-	$count: Int!
-	$query: String!
-) {
-	quickFields_opensearch(
-		project_id: $project_id
-		count: $count
-		query: $query
+		start_date: $start_date
+		end_date: $end_date
 	) {
 		type
 		name
-		value
 	}
 }
 
-query GetErrorFieldsOpensearch(
+query GetFieldsClickhouse(
 	$project_id: ID!
 	$count: Int!
 	$field_type: String!
 	$field_name: String!
 	$query: String!
+	$start_date: Timestamp!
+	$end_date: Timestamp!
 ) {
-	error_fields_opensearch(
+	fields_clickhouse(
 		project_id: $project_id
 		count: $count
 		field_type: $field_type
 		field_name: $field_name
 		query: $query
+		start_date: $start_date
+		end_date: $end_date
 	)
 }
 
-query GetSessionsOpenSearch(
+query GetErrorFieldsClickhouse(
 	$project_id: ID!
 	$count: Int!
+	$field_type: String!
+	$field_name: String!
 	$query: String!
+	$start_date: Timestamp!
+	$end_date: Timestamp!
+) {
+	error_fields_clickhouse(
+		project_id: $project_id
+		count: $count
+		field_type: $field_type
+		field_name: $field_name
+		query: $query
+		start_date: $start_date
+		end_date: $end_date
+	)
+}
+
+query GetSessionsClickhouse(
+	$project_id: ID!
+	$count: Int!
+	$query: ClickhouseQuery!
 	$sort_desc: Boolean!
+	$sort_field: String
 	$page: Int
 ) {
-	sessions_opensearch(
+	sessions_clickhouse(
 		project_id: $project_id
 		count: $count
 		query: $query
+		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
 	) {
@@ -591,6 +631,7 @@ query GetSessionsOpenSearch(
 			os_version
 			browser_name
 			browser_version
+			ip
 			city
 			state
 			country
@@ -622,12 +663,12 @@ query GetSessionsOpenSearch(
 	}
 }
 
-query GetSessionsHistogram(
+query GetSessionsHistogramClickhouse(
 	$project_id: ID!
-	$query: String!
+	$query: ClickhouseQuery!
 	$histogram_options: DateHistogramOptions!
 ) {
-	sessions_histogram(
+	sessions_histogram_clickhouse(
 		project_id: $project_id
 		query: $query
 		histogram_options: $histogram_options
@@ -639,13 +680,13 @@ query GetSessionsHistogram(
 	}
 }
 
-query GetErrorGroupsOpenSearch(
+query GetErrorGroupsClickhouse(
 	$project_id: ID!
 	$count: Int!
-	$query: String!
+	$query: ClickhouseQuery!
 	$page: Int
 ) {
-	error_groups_opensearch(
+	error_groups_clickhouse(
 		project_id: $project_id
 		count: $count
 		query: $query
@@ -678,17 +719,23 @@ query GetErrorGroupsOpenSearch(
 			}
 			is_public
 			project_id
+			error_tag {
+				id
+				created_at
+				title
+				description
+			}
 		}
 		totalCount
 	}
 }
 
-query GetErrorsHistogram(
+query GetErrorsHistogramClickhouse(
 	$project_id: ID!
-	$query: String!
+	$query: ClickhouseQuery!
 	$histogram_options: DateHistogramOptions!
 ) {
-	errors_histogram(
+	errors_histogram_clickhouse(
 		project_id: $project_id
 		query: $query
 		histogram_options: $histogram_options
@@ -903,7 +950,6 @@ query GetProject($id: ID!) {
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 		secret
 	}
 	workspace: workspace_for_project(project_id: $id) {
@@ -921,14 +967,17 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			membersLimit
 			errorsLimit
 			logsLimit
+			tracesLimit
 		}
 		meter
 		membersMeter
 		errorsMeter
 		logsMeter
+		tracesMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
+		tracesBillingLimit
 	}
 	workspace_for_project(project_id: $project_id) {
 		id
@@ -1003,11 +1052,12 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			url
 			status
 		}
+		billingIssue
 	}
 }
 
-query GetErrorGroup($secure_id: String!) {
-	error_group(secure_id: $secure_id) {
+query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
+	error_group(secure_id: $secure_id, use_clickhouse: $use_clickhouse) {
 		created_at
 		updated_at
 		id
@@ -1043,6 +1093,13 @@ query GetErrorGroup($secure_id: String!) {
 		is_public
 		last_occurrence
 		first_occurrence
+		serviceName
+		error_tag {
+			id
+			created_at
+			title
+			description
+		}
 	}
 }
 
@@ -1092,6 +1149,9 @@ fragment ErrorObject on ErrorObject {
 		linesBefore
 		linesAfter
 		error
+		enhancementSource
+		enhancementVersion
+		externalLink
 		sourceMappingErrorMetadata {
 			errorCode
 			stackTraceFileURL
@@ -1114,6 +1174,8 @@ fragment ErrorObject on ErrorObject {
 	os
 	browser
 	environment
+	serviceVersion
+	serviceName
 }
 
 query GetErrorObject($id: ID!) {
@@ -1132,26 +1194,6 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 		}
 		next_id
 		previous_id
-	}
-}
-
-query GetRecentErrors($secure_id: String!) {
-	error_group(secure_id: $secure_id) {
-		secure_id
-		metadata_log {
-			error_id
-			session_secure_id
-			environment
-			timestamp
-			os
-			browser
-			visited_url
-			fingerprint
-			identifier
-			user_properties
-			request_id
-			payload
-		}
 	}
 }
 
@@ -1182,10 +1224,6 @@ query GetProjectSuggestion($query: String!) {
 		id
 		name
 		workspace_id
-	}
-	workspaceSuggestion(query: $query) {
-		id
-		name
 	}
 }
 
@@ -1370,6 +1408,14 @@ query GetLogsIntegration($project_id: ID!) {
 	}
 }
 
+query GetTracesIntegration($project_id: ID!) {
+	tracesIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		createdAt
+	}
+}
+
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
@@ -1461,21 +1507,6 @@ query GetDailyErrorFrequency(
 	)
 }
 
-query GetErrorDistribution(
-	$project_id: ID!
-	$error_group_secure_id: String!
-	$property: String!
-) {
-	errorDistribution(
-		project_id: $project_id
-		error_group_secure_id: $error_group_secure_id
-		property: $property
-	) {
-		name
-		value
-	}
-}
-
 query GetSlackChannelSuggestion($project_id: ID!) {
 	slack_channel_suggestion(project_id: $project_id) {
 		webhook_channel
@@ -1535,6 +1566,18 @@ query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 	vercel_project_mappings(project_id: $project_id) {
 		vercel_project_id
 		project_id
+	}
+}
+
+query GetJiraIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: Jira
+		workspace_id: $workspace_id
+	)
+	jira_projects(workspace_id: $workspace_id) {
+		id
+		name
+		key
 	}
 }
 
@@ -1745,6 +1788,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		Name
 		DailyFrequency
 		disabled
+		default
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
@@ -1802,6 +1846,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		CountThreshold
 		DailyFrequency
 		disabled
+		default
 		EmailsToNotify
 		ExcludedEnvironments
 		id
@@ -1938,12 +1983,14 @@ query GetErrorGroupFrequencies(
 	$error_group_secure_ids: [String!]!
 	$params: ErrorGroupFrequenciesParamsInput!
 	$metric: String!
+	$use_clickhouse: Boolean
 ) {
 	errorGroupFrequencies(
 		project_id: $project_id
 		error_group_secure_ids: $error_group_secure_ids
 		params: $params
 		metric: $metric
+		use_clickhouse: $use_clickhouse
 	) {
 		error_group_id
 		date
@@ -1952,8 +1999,14 @@ query GetErrorGroupFrequencies(
 	}
 }
 
-query GetErrorGroupTags($error_group_secure_id: String!) {
-	errorGroupTags(error_group_secure_id: $error_group_secure_id) {
+query GetErrorGroupTags(
+	$error_group_secure_id: String!
+	$use_clickhouse: Boolean
+) {
+	errorGroupTags(
+		error_group_secure_id: $error_group_secure_id
+		use_clickhouse: $use_clickhouse
+	) {
 		key
 		buckets {
 			key
@@ -1969,11 +2022,11 @@ query GetEmailOptOuts($token: String, $admin_id: ID) {
 
 query GetLogs(
 	$project_id: ID!
-	$params: LogsParamsInput!
+	$params: QueryInput!
 	$after: String
 	$before: String
 	$at: String
-	$direction: LogDirection!
+	$direction: SortDirection!
 ) {
 	logs(
 		project_id: $project_id
@@ -1995,6 +2048,7 @@ query GetLogs(
 				secureSessionID
 				source
 				serviceName
+				serviceVersion
 			}
 		}
 		pageInfo {
@@ -2006,7 +2060,7 @@ query GetLogs(
 	}
 }
 
-query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 	sessionLogs(project_id: $project_id, params: $params) {
 		cursor
 		node {
@@ -2017,11 +2071,11 @@ query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
 	}
 }
 
-query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
+query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
 	logs_total_count(project_id: $project_id, params: $params)
 }
 
-query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	logs_histogram(project_id: $project_id, params: $params) {
 		totalCount
 		buckets {
@@ -2031,11 +2085,13 @@ query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
 				level
 			}
 		}
+		objectCount
+		sampleFactor
 	}
 }
 
 query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	logs_keys(project_id: $project_id, date_range: $date_range) {
+	keys: logs_keys(project_id: $project_id, date_range: $date_range) {
 		name
 		type
 	}
@@ -2046,7 +2102,7 @@ query GetLogsKeyValues(
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
 ) {
-	logs_key_values(
+	key_values: logs_key_values(
 		project_id: $project_id
 		key_name: $key_name
 		date_range: $date_range
@@ -2074,9 +2130,18 @@ query GetProjectSettings($projectId: ID!) {
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 		filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval
+		sampling {
+			session_sampling_rate
+			error_sampling_rate
+			log_sampling_rate
+			trace_sampling_rate
+			session_exclusion_query
+			error_exclusion_query
+			log_exclusion_query
+			trace_exclusion_query
+		}
 	}
 }
 
@@ -2087,4 +2152,260 @@ query GetWorkspacePendingInvites($workspace_id: ID!) {
 		invitee_role
 		created_at
 	}
+}
+
+query GetErrorResolutionSuggestion($error_object_id: ID!) {
+	error_resolution_suggestion(error_object_id: $error_object_id)
+}
+
+query GetWorkspaceSettings($workspace_id: ID!) {
+	workspaceSettings(workspace_id: $workspace_id) {
+		workspace_id
+		ai_application
+		ai_insights
+		enable_session_export
+		enable_unlisted_sharing
+	}
+}
+
+query GetSystemConfiguration {
+	system_configuration {
+		maintenance_start
+		maintenance_end
+	}
+}
+
+query GetErrorObjects(
+	$errorGroupSecureID: String!
+	$after: String
+	$before: String
+	$query: String!
+) {
+	error_objects(
+		error_group_secure_id: $errorGroupSecureID
+		after: $after
+		before: $before
+		query: $query
+	) {
+		edges {
+			cursor
+			node {
+				id
+				createdAt
+				event
+				timestamp
+				errorGroupSecureID
+				serviceVersion
+				serviceName
+				session {
+					secureID
+					email
+					fingerprint
+					excluded
+				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
+
+query GetServices(
+	$project_id: ID!
+	$query: String
+	$after: String
+	$before: String
+) {
+	services(
+		project_id: $project_id
+		query: $query
+		after: $after
+		before: $before
+	) {
+		edges {
+			cursor
+			node {
+				id
+				projectID
+				name
+				status
+				githubRepoPath
+				buildPrefix
+				githubPrefix
+				errorDetails
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
+
+query GetServiceByName($project_id: ID!, $name: String!) {
+	serviceByName(project_id: $project_id, name: $name) {
+		id
+		projectID
+		name
+		status
+		githubRepoPath
+		buildPrefix
+		githubPrefix
+		errorDetails
+	}
+}
+
+fragment ErrorTag on ErrorTag {
+	id
+	created_at
+	title
+	description
+}
+
+query GetErrorTags {
+	error_tags {
+		...ErrorTag
+	}
+}
+
+query MatchErrorTag($query: String!) {
+	match_error_tag(query: $query) {
+		id
+		title
+		description
+		score
+	}
+}
+
+query FindSimilarErrors($query: String!) {
+	find_similar_errors(query: $query) {
+		id
+		type
+		event
+		stack_trace
+		score
+	}
+}
+
+query GetTrace($project_id: ID!, $trace_id: String!) {
+	trace(project_id: $project_id, trace_id: $trace_id) {
+		trace {
+			timestamp
+			traceID
+			spanID
+			parentSpanID
+			projectID
+			secureSessionID
+			traceState
+			spanName
+			spanKind
+			duration
+			serviceName
+			serviceVersion
+			traceAttributes
+			statusCode
+			statusMessage
+		}
+		errors {
+			created_at
+			trace_id
+			span_id
+			log_cursor
+			event
+			type
+			source
+			timestamp
+			error_group_secure_id
+		}
+	}
+}
+
+query GetTraces(
+	$project_id: ID!
+	$params: QueryInput!
+	$after: String
+	$before: String
+	$at: String
+	$direction: SortDirection!
+) {
+	traces(
+		project_id: $project_id
+		params: $params
+		after: $after
+		before: $before
+		at: $at
+		direction: $direction
+	) {
+		edges {
+			cursor
+			node {
+				timestamp
+				traceID
+				spanID
+				parentSpanID
+				projectID
+				secureSessionID
+				traceState
+				spanName
+				spanKind
+				duration
+				serviceName
+				serviceVersion
+				traceAttributes
+				statusCode
+				statusMessage
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
+
+query GetTracesMetrics(
+	$project_id: ID!
+	$params: QueryInput!
+	$metric_types: [TracesMetricType!]!
+) {
+	traces_metrics(
+		project_id: $project_id
+		params: $params
+		metric_types: $metric_types
+	) {
+		buckets {
+			bucket_id
+			metric_type
+			metric_value
+		}
+		bucket_count
+		sample_factor
+	}
+}
+
+query GetTracesKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
+	keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+		name
+		type
+	}
+}
+
+query GetTracesKeyValues(
+	$project_id: ID!
+	$key_name: String!
+	$date_range: DateRangeRequiredInput!
+) {
+	key_values: traces_key_values(
+		project_id: $project_id
+		key_name: $key_name
+		date_range: $date_range
+	)
 }

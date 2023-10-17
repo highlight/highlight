@@ -24,6 +24,7 @@ import {
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
+	PrivacySettingOption,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -37,6 +38,7 @@ import {
 import StackTrace from 'stacktrace-js'
 import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
+import { determineMaskInputOptions } from './utils/privacy'
 
 import { ViewportResizeListener } from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
@@ -77,6 +79,7 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
+import { getItem, setItem, setStorageMode } from './utils/storage'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -99,7 +102,7 @@ export type HighlightClassOptions = {
 	reportConsoleErrors?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
-	enableStrictPrivacy?: boolean
+	privacySetting?: PrivacySettingOption
 	enableCanvasRecording?: boolean
 	enablePerformanceRecording?: boolean
 	samplingStrategy?: SamplingStrategy
@@ -109,8 +112,10 @@ export type HighlightClassOptions = {
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
+	serviceName?: string
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
+	storageMode?: 'sessionStorage' | 'localStorage'
 }
 
 /**
@@ -135,6 +140,7 @@ const SEND_FREQUENCY = 1000 * 2
  * Maximum length of a session
  */
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000
+const EXTENDED_MAX_SESSION_LENGTH = 12 * 60 * 60 * 1000
 
 const HIGHLIGHT_URL = 'app.highlight.run'
 
@@ -171,7 +177,7 @@ export class Highlight {
 	state!: 'NotRecording' | 'Recording'
 	logger!: Logger
 	enableSegmentIntegration!: boolean
-	enableStrictPrivacy!: boolean
+	privacySetting!: PrivacySettingOption
 	enableCanvasRecording!: boolean
 	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy
@@ -184,6 +190,7 @@ export class Highlight {
 	sessionShortcut!: SessionShortcutOptions
 	/** The end-user's app version. This isn't Highlight's version. */
 	appVersion!: string | undefined
+	serviceName!: string
 	_worker!: HighlightClientRequestWorker
 	_optionsInternal!: HighlightClassOptionsInternal
 	_backendUrl!: string
@@ -224,6 +231,12 @@ export class Highlight {
 			this.debugOptions = this.options?.debug ?? {}
 		}
 		this.logger = new Logger(this.debugOptions.clientInteractions)
+		if (options.storageMode === 'sessionStorage') {
+			this.logger.log(
+				'initializing in sessionStorage non-persistent session mode',
+			)
+			setStorageMode('sessionStorage')
+		}
 
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker
@@ -282,7 +295,10 @@ export class Highlight {
 				this._isCrossOriginIframe = false
 			}
 		} catch (e) {
-			this._isCrossOriginIframe = true
+			// if recordCrossOriginIframe is set to false, operate as if highlight is only recording the iframe as a dedicated web app.
+			// this is useful if you are running highlight on your app that is used in a cross-origin iframe with no access to the parent page.
+			this._isCrossOriginIframe =
+				this.options.recordCrossOriginIframe ?? true
 		}
 		this._initMembers(this.options)
 	}
@@ -327,13 +343,16 @@ export class Highlight {
 	_initMembers(options: HighlightClassOptions) {
 		this.sessionShortcut = false
 		this._recordingStartTime = 0
-		this._isOnLocalHost = window.location.hostname === 'localhost'
+		this._isOnLocalHost =
+			window.location.hostname === 'localhost' ||
+			window.location.hostname === '127.0.0.1' ||
+			window.location.hostname === ''
 
 		this.ready = false
 		this.state = 'NotRecording'
 		this.manualStopped = false
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
-		this.enableStrictPrivacy = options.enableStrictPrivacy ?? false
+		this.privacySetting = options.privacySetting ?? 'default'
 		this.enableCanvasRecording = options.enableCanvasRecording ?? false
 		this.enablePerformanceRecording =
 			options.enablePerformanceRecording ?? true
@@ -341,9 +360,9 @@ export class Highlight {
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
 		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
-			canvas: 1,
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
+			canvasClearWebGLBuffer: true,
 			...(options.samplingStrategy ?? {}),
 		}
 		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
@@ -366,6 +385,7 @@ export class Highlight {
 		)
 		this.environment = options.environment ?? 'production'
 		this.appVersion = options.appVersion
+		this.serviceName = options.serviceName ?? ''
 
 		if (typeof options.organizationID === 'string') {
 			this.organizationID = options.organizationID
@@ -458,14 +478,7 @@ export class Highlight {
 	}
 
 	async consumeCustomError(error: Error, message?: string, payload?: string) {
-		let res: ErrorStackParser.StackFrame[] = []
-		try {
-			res = ErrorStackParser.parse(error)
-		} catch (e) {
-			if (this._isOnLocalHost) {
-				console.error(e)
-			}
-		}
+		const res = ErrorStackParser.parse(error)
 		this._firstLoadListeners.errors.push({
 			event: message ? message + ':' + error.message : error.message,
 			type: 'custom',
@@ -480,10 +493,20 @@ export class Highlight {
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {
+		// Remove any properties which throw on structuredClone
+		// (structuredClone is used when posting messages to the worker)
+		const obj = { ...properties_obj } as any
+		Object.entries(obj).forEach(([key, val]) => {
+			try {
+				structuredClone(val)
+			} catch {
+				delete obj[key]
+			}
+		})
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Properties,
-				propertiesObject: properties_obj,
+				propertiesObject: obj,
 				propertyType: typeArg,
 			},
 		})
@@ -528,16 +551,11 @@ export class Highlight {
 				this._recordingStartTime = parseInt(recordingStartTime, 10)
 			}
 
-			let clientID = window.localStorage.getItem(
-				LOCAL_STORAGE_KEYS['CLIENT_ID'],
-			)
+			let clientID = getItem(LOCAL_STORAGE_KEYS['CLIENT_ID'])
 
 			if (!clientID) {
 				clientID = GenerateSecureID()
-				window.localStorage.setItem(
-					LOCAL_STORAGE_KEYS['CLIENT_ID'],
-					clientID,
-				)
+				setItem(LOCAL_STORAGE_KEYS['CLIENT_ID'], clientID)
 			}
 
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
@@ -571,7 +589,8 @@ export class Highlight {
 			} else {
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
-					enable_strict_privacy: this.enableStrictPrivacy,
+					enable_strict_privacy: this.privacySetting === 'strict',
+					privacy_setting: this.privacySetting,
 					enable_recording_network_contents: enableNetworkRecording,
 					clientVersion: this.firstloadVersion,
 					firstloadVersion: this.firstloadVersion,
@@ -579,6 +598,7 @@ export class Highlight {
 					environment: this.environment,
 					id: clientID,
 					appVersion: this.appVersion,
+					serviceName: this.serviceName,
 					session_secure_id: this.sessionData.sessionSecureID,
 					client_id: clientID,
 					network_recording_domains: destinationDomains,
@@ -701,19 +721,30 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						warn: HighlightWarning,
 					}
 				}
+				const [maskAllInputs, maskInputOptions] =
+					determineMaskInputOptions(this.privacySetting)
+
 				this._recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
 					recordCrossOriginIframes:
 						this.options.recordCrossOriginIframe,
-					enableStrictPrivacy: this.enableStrictPrivacy,
-					maskAllInputs: this.enableStrictPrivacy,
+					privacySetting: this.privacySetting,
+					maskAllInputs,
+					maskInputOptions: maskInputOptions,
 					recordCanvas: this.enableCanvasRecording,
 					sampling: {
 						canvas: {
 							fps: this.samplingStrategy.canvas,
+							fpsManual:
+								this.samplingStrategy.canvasManualSnapshot,
 							resizeFactor: this.samplingStrategy.canvasFactor,
+							clearWebGLBuffer:
+								this.samplingStrategy.canvasClearWebGLBuffer,
+							initialSnapshotDelay:
+								this.samplingStrategy
+									.canvasInitialSnapshotDelay,
 							dataURLOptions: {
 								type: 'image/webp',
 								quality: 0.9,
@@ -1189,6 +1220,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		return null
 	}
 
+	async snapshot(element: HTMLCanvasElement) {
+		await record.snapshotCanvas(element)
+	}
+
 	addSessionFeedback({
 		timestamp,
 		verbatim,
@@ -1215,12 +1250,15 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	// Reset the events array and push to a backend.
 	async _save() {
 		try {
+			let maxLength = MAX_SESSION_LENGTH
+			if (this.organizationID === 'odzl0xep') {
+				maxLength = EXTENDED_MAX_SESSION_LENGTH
+			}
 			if (
 				this.state === 'Recording' &&
 				this.listeners &&
 				this.sessionData.sessionStartTime &&
-				Date.now() - this.sessionData.sessionStartTime >
-					MAX_SESSION_LENGTH
+				Date.now() - this.sessionData.sessionStartTime > maxLength
 			) {
 				await this._reset()
 			}
@@ -1279,6 +1317,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this._firstLoadListeners,
 			this._recordingStartTime,
 		)
+		const webSocketEvents = FirstLoadListeners.getRecordedWebSocketEvents(
+			this._firstLoadListeners,
+		)
 		const events = [...this.events]
 		const messages = [...this._firstLoadListeners.messages]
 		const errors = [...this._firstLoadListeners.errors]
@@ -1309,6 +1350,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
+				web_socket_events: JSON.stringify({
+					webSocketEvents: webSocketEvents,
+				}),
 				errors,
 				is_beacon: isBeacon,
 				has_session_unloaded: this.hasSessionUnloaded,
@@ -1323,6 +1367,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					messages,
 					errors,
 					resourcesString: JSON.stringify({ resources: resources }),
+					webSocketEventsString: JSON.stringify({
+						webSocketEvents: webSocketEvents,
+					}),
 					isBeacon,
 					hasSessionUnloaded: this.hasSessionUnloaded,
 					highlightLogs: highlightLogs,
@@ -1365,7 +1412,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 }
 
-;(window as any).Highlight = Highlight
+;(window as any).HighlightIO = Highlight
 
 interface HighlightWindow extends Window {
 	Highlight: Highlight

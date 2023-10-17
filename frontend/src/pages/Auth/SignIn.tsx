@@ -1,17 +1,17 @@
 import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
-	useGetProjectsLazyQuery,
 	useGetWorkspaceForInviteLinkQuery,
 } from '@graph/hooks'
 import {
 	Box,
 	Form,
 	Heading,
-	IconSolidSparkles,
+	IconSolidGithub,
+	IconSolidGoogle,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
@@ -22,6 +22,10 @@ import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
+import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@/context/AppLoadingContext'
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 import analytics from '@/util/analytics'
 
@@ -34,25 +38,39 @@ type Props = {
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
 	const { fetchAdmin, signIn } = useAuthContext()
+	const { setLoadingState } = useAppLoadingContext()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const location = useLocation()
+
 	const initialEmail: string = location.state?.email ?? ''
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			email: initialEmail,
 			password: '',
 		},
 	})
-	const [getProjects] = useGetProjectsLazyQuery()
-	const [createAdmin] = useCreateAdminMutation()
-	const { data } = useGetWorkspaceForInviteLinkQuery({
-		variables: {
-			secret: inviteCode!,
-		},
-		skip: !inviteCode,
+	const email = formStore.useValue('email')
+	formStore.useSubmit(async (formState) => {
+		setLoading(true)
+
+		auth.signInWithEmailAndPassword(
+			formState.values.email,
+			formState.values.password,
+		)
+			.then(handleAuth)
+			.catch(handleAuthError)
 	})
+
+	const [createAdmin] = useCreateAdminMutation()
+	const { data, loading: loadingWorkspaceForInvite } =
+		useGetWorkspaceForInviteLinkQuery({
+			variables: {
+				secret: inviteCode!,
+			},
+			skip: !inviteCode,
+		})
 	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleAuth = useCallback(
@@ -63,19 +81,17 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					provider: additionalUserInfo.providerId,
 				})
 
+				if (!user?.emailVerified) {
+					auth.currentUser?.sendEmailVerification()
+				}
+
 				await createAdmin()
 			}
 
-			const { data: projectsData } = await getProjects()
 			await fetchAdmin()
-
 			signIn(user)
-			if (projectsData?.projects?.length) {
-				const projectId = projectsData.projects[0]!.id
-				navigate(`/${projectId}/sessions`, { replace: true })
-			}
 		},
-		[createAdmin, fetchAdmin, getProjects, navigate, signIn],
+		[createAdmin, fetchAdmin, signIn],
 	)
 
 	const handleAuthError = useCallback(
@@ -99,23 +115,19 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		[navigate, setResolver],
 	)
 
+	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
+		auth.signInWithPopup(provider).then(handleAuth).catch(handleAuthError)
+	}
+
 	useEffect(() => analytics.page(), [])
+	useEffect(() => {
+		if (!loadingWorkspaceForInvite) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
+	}, [loadingWorkspaceForInvite, setLoadingState])
 
 	return (
-		<Form
-			state={formState}
-			resetOnSubmit={false}
-			onSubmit={() => {
-				setLoading(true)
-
-				auth.signInWithEmailAndPassword(
-					formState.values.email,
-					formState.values.password,
-				)
-					.then(handleAuth)
-					.catch(handleAuthError)
-			}}
-		>
+		<Form store={formStore} resetOnSubmit={false}>
 			<AuthHeader>
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
@@ -127,10 +139,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						</Heading>
 						<Text>
 							New here?{' '}
-							<Link
-								to={SIGN_UP_ROUTE}
-								state={{ email: formState.values.email }}
-							>
+							<Link to={SIGN_UP_ROUTE} state={{ email }}>
 								Create an account
 							</Link>
 							.
@@ -141,22 +150,19 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			<AuthBody>
 				<Stack gap="12">
 					<Form.Input
-						name={formState.names.email}
+						name={formStore.names.email}
 						label="Email"
 						type="email"
 						autoFocus
 						autoComplete="email"
 					/>
 					<Form.Input
-						name={formState.names.password}
+						name={formStore.names.password}
 						label="Password"
 						type="password"
 						autoComplete="current-password"
 					/>
-					<Link
-						to="/reset_password"
-						state={{ email: formState.values.email }}
-					>
+					<Link to="/reset_password" state={{ email }}>
 						<Text size="xSmall">Forgot your password?</Text>
 					</Link>
 					{error && <AuthError>{error}</AuthError>}
@@ -168,6 +174,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						trackingId="sign-up-submit"
 						loading={loading}
 						type="submit"
+						id="email-password-signin"
 					>
 						Sign in
 					</Button>
@@ -189,13 +196,25 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						type="button"
 						trackingId="sign-in-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!)
-								.then(handleAuth)
-								.catch(handleAuthError)
+							handleExternalAuthClick(auth.googleProvider!)
 						}}
 					>
 						<Box display="flex" alignItems="center" gap="6">
-							Sign in with Google <IconSolidSparkles />
+							<IconSolidGoogle />
+							Sign in with Google
+						</Box>
+					</Button>
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-in-with-github"
+						onClick={() => {
+							handleExternalAuthClick(auth.githubProvider!)
+						}}
+					>
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGithub />
+							Sign in with Github
 						</Box>
 					</Button>
 				</Stack>

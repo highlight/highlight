@@ -11,7 +11,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
-import styles from './TopRoutesTable.module.scss'
+import styles from './TopRoutesTable.module.css'
 
 const TopRoutesTable = ({
 	setUpdatingData,
@@ -79,7 +79,7 @@ const TopRoutesTable = ({
 							<>
 								Have you{' '}
 								<Link
-									to={`/${project_id}/settings/recording#network`}
+									to={`/${project_id}/settings/sessions#network`}
 								>
 									configured your backend domains?
 								</Link>{' '}

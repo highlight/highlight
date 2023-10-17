@@ -27,8 +27,8 @@ func BenchmarkQueue_Submit(b *testing.B) {
 
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	writer := New(ctx, "dev", Producer)
-	reader := New(ctx, "dev", Consumer)
+	writer := New(ctx, "dev", Producer, nil)
+	reader := New(ctx, "dev", Consumer, nil)
 
 	sendWg := sync.WaitGroup{}
 	sendWg.Add(workers)
@@ -46,7 +46,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					log.WithContext(ctx).Error(err)
 				}
 
-				err = writer.Submit(ctx, &Message{
+				err = writer.Submit(ctx, fmt.Sprintf("test-%d", w), &Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						Events: model.ReplayEventsInput{
@@ -65,7 +65,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 						HighlightLogs:      nil,
 						PayloadID:          nil,
 					},
-				}, fmt.Sprintf("test-%d", w))
+				})
 				if err != nil {
 					log.WithContext(ctx).Error(err)
 				}

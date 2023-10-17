@@ -7,17 +7,16 @@ $(cat .env | grep -vE '^#' | sed -e 's/^/export /')
 export ENABLE_OBJECT_STORAGE=true
 export IN_DOCKER=true
 export OBJECT_STORAGE_FS=/tmp/highlight-data
-export REACT_APP_AUTH_MODE=simple
+export REACT_APP_AUTH_MODE=password
 
 if [[ "$*" == *"--go-docker"* ]]; then
     export IN_DOCKER_GO=true
     echo "Using docker-internal infra."
 else
+    export OTLP_ENDPOINT=http://localhost:4318
     export CLICKHOUSE_ADDRESS=localhost:9000
     export INFLUXDB_SERVER=http://localhost:8086
     export KAFKA_SERVERS=localhost:9092
-    export OPENSEARCH_DOMAIN=http://localhost:9200
-    export OPENSEARCH_DOMAIN_READ=http://localhost:9200
     export PSQL_HOST=localhost
     export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
 fi
@@ -29,7 +28,8 @@ export BUILD_ARGS="--build-arg GOARCH=${GOARCH}
 --build-arg REACT_APP_PRIVATE_GRAPH_URI=${REACT_APP_PRIVATE_GRAPH_URI}
 --build-arg REACT_APP_PUBLIC_GRAPH_URI=${REACT_APP_PUBLIC_GRAPH_URI}
 --build-arg TURBO_TOKEN=${TURBO_TOKEN}
---build-arg TURBO_TEAM=${TURBO_TEAM}"
+--build-arg TURBO_TEAM=${TURBO_TEAM}
+--build-arg ADMIN_PASSWORD=${ADMIN_PASSWORD}"
 
 mkdir -p ${OBJECT_STORAGE_FS}
 

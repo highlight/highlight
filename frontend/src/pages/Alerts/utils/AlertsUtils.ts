@@ -1,3 +1,13 @@
+import { GetAlertsPagePayloadQuery } from '@/graph/generated/operations'
+import {
+	DiscordChannelInput,
+	SanitizedSlackChannelInput,
+} from '@/graph/generated/schemas'
+import {
+	DEFAULT_FREQUENCY,
+	FREQUENCIES,
+} from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
+
 export interface EnvironmentSuggestion {
 	name: string
 	value: string
@@ -23,25 +33,61 @@ export const DEFAULT_HIGHLIGHT_ENVIRONMENTS = [
 	'development',
 ]
 
-export const getAlertTypeColor = (type: string) => {
-	switch (type) {
-		case 'Errors':
-			return '#eb5757'
-		case 'Feedback':
-			return '#6fcf97'
-		case 'Track Events':
-			return '#56ccf2'
-		case 'User Properties':
-			return '#ffb038'
-		case 'New Users':
-			return '#937ccc'
-		case 'New Sessions':
-			return '#f95d6a'
-		case 'Rage Clicks':
-			return 'var(--color-red-400)'
-		case 'Metric Monitor':
-			return 'var(--color-orange-500)'
-		default:
-			return '#bdbdbd'
+/**
+ * All form fields for alerts
+ */
+export interface AlertForm {
+	name: string
+	belowThreshold: boolean
+	threshold: number | undefined
+	frequency: number
+	threshold_window: number
+	excludedEnvironments: string[]
+	slackChannels: SanitizedSlackChannelInput[]
+	discordChannels: DiscordChannelInput[]
+	emails: string[]
+	webhookDestinations: string[]
+	loaded: boolean
+}
+
+/**
+ * Gets specific alert given an id
+ * @param id
+ * @param alertsPayload
+ * @returns
+ */
+export const findAlert = (
+	id: string,
+	type: 'error' | 'session',
+	alertsPayload?: GetAlertsPagePayloadQuery,
+) => {
+	if (!alertsPayload) {
+		return undefined
 	}
+
+	if (type === 'error') {
+		return alertsPayload.error_alerts.find((alert: any) => alert?.id === id)
+	}
+
+	const possibleAlerts = [
+		...alertsPayload.new_session_alerts,
+		...(alertsPayload.new_user_alerts || []),
+		...alertsPayload.track_properties_alerts,
+		...alertsPayload.user_properties_alerts,
+		...alertsPayload.rage_click_alerts,
+	]
+
+	return possibleAlerts.find((alert: any) => alert?.id === id)
+}
+
+export const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
+	const option = FREQUENCIES.find(
+		(option) => option.value === seconds?.toString(),
+	)
+
+	if (!option) {
+		return FREQUENCIES.find((option) => option.value === DEFAULT_FREQUENCY)
+	}
+
+	return option
 }

@@ -8,8 +8,6 @@ x-depends-infra: &depends-infra
             condition: service_healthy
         clickhouse:
             condition: service_started
-        opensearch:
-            condition: service_healthy
         influxdb:
             condition: service_healthy
         collector:
@@ -37,22 +35,23 @@ x-backend-env: &backend-env
         - KAFKA_TOPIC
         - OBJECT_STORAGE_FS=/highlight-data
         - ON_PREM=true
-        - OPENSEARCH_DOMAIN
-        - OPENSEARCH_DOMAIN_READ
-        - OPENSEARCH_PASSWORD
-        - OPENSEARCH_USERNAME
+        - OTLP_ENDPOINT
         - PSQL_DB
         - PSQL_HOST
         - PSQL_PASSWORD
         - PSQL_PORT
         - PSQL_USER
         - REACT_APP_AUTH_MODE=simple
+        - REACT_APP_COMMIT_SHA
+        - REACT_APP_FRONTEND_URI
+        - REACT_APP_PRIVATE_GRAPH_URI
         - PRIVATE_GRAPH_URI
         - PUBLIC_GRAPH_URI
         - REDIS_ADDRESS
         - REDIS_EVENTS_STAGING_ENDPOINT
         - SESSION_FILE_PATH_PREFIX
         - TZ
+        - ADMIN_PASSWORD
 
 services:
     kafka:
@@ -70,14 +69,6 @@ services:
         volumes:
             - ./otel-collector.hobby.yaml:/etc/otel-collector-config.yaml
 
-    backend-setup-opensearch:
-        image: ghcr.io/highlight/highlight-backend:latest
-        command:
-            - /build/backend
-            - -runtime=worker
-            - -worker-handler=init-opensearch
-        <<: [*depends-infra, *backend-env]
-
     backend:
         container_name: backend
         image: ghcr.io/highlight/highlight-backend:latest
@@ -92,9 +83,6 @@ services:
         volumes:
             - highlight-data:/highlight-data
         <<: *backend-env
-        depends_on:
-            backend-setup-opensearch:
-                condition: service_completed_successfully
 
     frontend:
         container_name: frontend
@@ -112,6 +100,7 @@ services:
         environment:
             - REACT_APP_PRIVATE_GRAPH_URI
             - REACT_APP_PUBLIC_GRAPH_URI
+            - REACT_APP_FRONTEND_URI
 
 volumes:
     highlight-data:

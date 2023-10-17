@@ -2,7 +2,7 @@ import React from 'react'
 import {
 	Button as AriakitButton,
 	ButtonProps as AriakitButtonProps,
-} from 'ariakit/button'
+} from '@ariakit/react'
 import { Props as TextProps, Text } from '../Text/Text'
 
 import * as styles from './styles.css'
@@ -101,7 +101,7 @@ export const ButtonContent: React.FC<ButtonContentProps> = ({
 					as="span"
 					display="inline-flex"
 					disabled={disabled}
-					className={styles.iconVariants({
+					cssClass={styles.iconVariants({
 						size,
 						emphasis,
 						kind,
@@ -125,7 +125,7 @@ export const ButtonContent: React.FC<ButtonContentProps> = ({
 					as="span"
 					display="inline-flex"
 					disabled={disabled}
-					className={styles.iconVariants({
+					cssClass={styles.iconVariants({
 						size,
 						emphasis,
 						kind,

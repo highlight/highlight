@@ -1,6 +1,7 @@
 package kafka_queue
 
 import (
+	"context"
 	"math"
 	"time"
 
@@ -15,21 +16,26 @@ import (
 type PayloadType = int
 
 const (
-	PushPayload                      PayloadType = iota
-	InitializeSession                PayloadType = iota
-	IdentifySession                  PayloadType = iota
-	AddTrackProperties               PayloadType = iota // Deprecated: track events are now processed in pushPayload
-	AddSessionProperties             PayloadType = iota
-	PushBackendPayload               PayloadType = iota
-	PushMetrics                      PayloadType = iota
-	MarkBackendSetup                 PayloadType = iota // Deprecated: setup events are written from other payload processing
-	AddSessionFeedback               PayloadType = iota
-	PushLogs                         PayloadType = iota
-	HubSpotCreateContactForAdmin     PayloadType = iota
-	HubSpotCreateCompanyForWorkspace PayloadType = iota
-	HubSpotUpdateContactProperty     PayloadType = iota
-	HubSpotUpdateCompanyProperty     PayloadType = iota
-	HealthCheck                      PayloadType = math.MaxInt
+	PushPayload                            PayloadType = iota
+	InitializeSession                      PayloadType = iota
+	IdentifySession                        PayloadType = iota
+	AddTrackProperties                     PayloadType = iota // Deprecated: track events are now processed in pushPayload
+	AddSessionProperties                   PayloadType = iota
+	PushBackendPayload                     PayloadType = iota
+	PushMetrics                            PayloadType = iota
+	MarkBackendSetup                       PayloadType = iota // Deprecated: setup events are written from other payload processing
+	AddSessionFeedback                     PayloadType = iota
+	PushLogs                               PayloadType = iota
+	PushTraces                             PayloadType = iota
+	HubSpotCreateContactForAdmin           PayloadType = iota
+	HubSpotCreateCompanyForWorkspace       PayloadType = iota
+	HubSpotUpdateContactProperty           PayloadType = iota
+	HubSpotUpdateCompanyProperty           PayloadType = iota
+	HubSpotCreateContactCompanyAssociation PayloadType = iota
+	SessionDataSync                        PayloadType = iota
+	ErrorGroupDataSync                     PayloadType = iota
+	ErrorObjectDataSync                    PayloadType = iota
+	HealthCheck                            PayloadType = math.MaxInt
 )
 
 type PushPayloadArgs struct {
@@ -37,6 +43,7 @@ type PushPayloadArgs struct {
 	Events             customModels.ReplayEventsInput
 	Messages           string
 	Resources          string
+	WebSocketEvents    *string
 	Errors             []*customModels.ErrorObjectInput
 	IsBeacon           *bool
 	HasSessionUnloaded *bool
@@ -49,6 +56,7 @@ type InitializeSessionArgs struct {
 	CreatedAt                      time.Time
 	ProjectVerboseID               string
 	EnableStrictPrivacy            bool
+	PrivacySetting                 *string
 	EnableRecordingNetworkContents bool
 	ClientVersion                  string
 	FirstloadVersion               string
@@ -62,6 +70,7 @@ type InitializeSessionArgs struct {
 	ClientID                       string
 	NetworkRecordingDomains        []string
 	DisableSessionRecording        *bool
+	ServiceName                    string
 }
 
 type IdentifySessionArgs struct {
@@ -100,18 +109,24 @@ type AddSessionFeedbackArgs struct {
 }
 
 type PushLogsArgs struct {
-	LogRows []*clickhouse.LogRow
+	LogRow *clickhouse.LogRow
+}
+
+type PushTracesArgs struct {
+	TraceRow *clickhouse.TraceRow
 }
 
 type HubSpotCreateContactForAdminArgs struct {
-	AdminID            int
-	Email              string
-	UserDefinedRole    string
-	UserDefinedPersona string
-	First              string
-	Last               string
-	Phone              string
-	Referral           string
+	AdminID             int
+	Email               string
+	UserDefinedRole     string
+	UserDefinedPersona  string
+	UserDefinedTeamSize string
+	HeardAbout          string
+	First               string
+	Last                string
+	Phone               string
+	Referral            string
 }
 
 type HubSpotCreateCompanyForWorkspaceArgs struct {
@@ -130,27 +145,67 @@ type HubSpotUpdateCompanyPropertyArgs struct {
 	Properties  []hubspot.Property
 }
 
+type HubSpotCreateContactCompanyAssociationArgs struct {
+	AdminID     int
+	WorkspaceID int
+}
+
+type SessionDataSyncArgs struct {
+	SessionID int
+}
+
+type ErrorGroupDataSyncArgs struct {
+	ErrorGroupID int
+}
+
+type ErrorObjectDataSyncArgs struct {
+	ErrorObjectID int
+}
+
 type Message struct {
-	Type                             PayloadType
-	Failures                         int
-	MaxRetries                       int
-	KafkaMessage                     *kafka.Message
-	PushPayload                      *PushPayloadArgs
-	InitializeSession                *InitializeSessionArgs
-	IdentifySession                  *IdentifySessionArgs
-	AddTrackProperties               *AddTrackPropertiesArgs
-	AddSessionProperties             *AddSessionPropertiesArgs
-	PushBackendPayload               *PushBackendPayloadArgs
-	PushMetrics                      *PushMetricsArgs
-	AddSessionFeedback               *AddSessionFeedbackArgs
-	PushLogs                         *PushLogsArgs
-	HubSpotCreateContactForAdmin     *HubSpotCreateContactForAdminArgs
-	HubSpotCreateCompanyForWorkspace *HubSpotCreateCompanyForWorkspaceArgs
-	HubSpotUpdateContactProperty     *HubSpotUpdateContactPropertyArgs
-	HubSpotUpdateCompanyProperty     *HubSpotUpdateCompanyPropertyArgs
+	Type                                   PayloadType
+	Failures                               int
+	MaxRetries                             int
+	KafkaMessage                           *kafka.Message                              `json:",omitempty"`
+	PushPayload                            *PushPayloadArgs                            `json:",omitempty"`
+	InitializeSession                      *InitializeSessionArgs                      `json:",omitempty"`
+	IdentifySession                        *IdentifySessionArgs                        `json:",omitempty"`
+	AddTrackProperties                     *AddTrackPropertiesArgs                     `json:",omitempty"`
+	AddSessionProperties                   *AddSessionPropertiesArgs                   `json:",omitempty"`
+	PushBackendPayload                     *PushBackendPayloadArgs                     `json:",omitempty"`
+	PushMetrics                            *PushMetricsArgs                            `json:",omitempty"`
+	AddSessionFeedback                     *AddSessionFeedbackArgs                     `json:",omitempty"`
+	PushLogs                               *PushLogsArgs                               `json:",omitempty"`
+	PushTraces                             *PushTracesArgs                             `json:",omitempty"`
+	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs           `json:",omitempty"`
+	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs       `json:",omitempty"`
+	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs           `json:",omitempty"`
+	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs           `json:",omitempty"`
+	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs `json:",omitempty"`
+	SessionDataSync                        *SessionDataSyncArgs                        `json:",omitempty"`
+	ErrorGroupDataSync                     *ErrorGroupDataSyncArgs                     `json:",omitempty"`
+	ErrorObjectDataSync                    *ErrorObjectDataSyncArgs                    `json:",omitempty"`
 }
 
 type PartitionMessage struct {
 	Message   *Message
 	Partition int32
+}
+
+type MockMessageQueue struct{}
+
+func (k *MockMessageQueue) Stop(context.Context) {
+
+}
+
+func (k *MockMessageQueue) Receive(context.Context) *Message {
+	return nil
+}
+
+func (k *MockMessageQueue) Submit(context.Context, string, ...*Message) error {
+	return nil
+}
+
+func (k *MockMessageQueue) LogStats() {
+
 }

@@ -25,10 +25,10 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 	const [operatingSystems, setOperatingSystems] = useState<
 		ErrorGroupTagAggregation | undefined
 	>()
-
 	const { loading, data } = useGetErrorGroupTagsQuery({
 		variables: {
 			error_group_secure_id: `${errorGroup?.secure_id}`,
+			use_clickhouse: true,
 		},
 		skip: !errorGroup?.secure_id,
 	})

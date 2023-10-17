@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func makeRandLogAttributes() map[string]any {
+func makeRandLogAttributes() map[string]string {
 	randomKeys := [21]string{
 		"key1",
 		"key2",
@@ -68,7 +68,7 @@ func makeRandLogAttributes() map[string]any {
 		"flounder",
 	}
 
-	logAttributes := map[string]any{}
+	logAttributes := map[string]string{}
 
 	randomKey := randomKeys[rand.Intn(len(randomKeys))]
 	randomVal := randomVals[rand.Intn(len(randomVals))]
@@ -146,7 +146,7 @@ func main() {
 			clickhouse.WithSpanID(makeRandomSpanID()),
 			clickhouse.WithSecureSessionID(makeRandomSecureSessionID()),
 			clickhouse.WithBody(ctx, fmt.Sprintf("Body %d", i)),
-			clickhouse.WithLogAttributes(ctx, makeRandLogAttributes(), makeRandLogAttributes(), makeRandLogAttributes(), false),
+			clickhouse.WithLogAttributes(makeRandLogAttributes()),
 			clickhouse.WithSeverityText(makeRandomSeverityText()),
 		))
 		err = client.BatchWriteLogRows(context.Background(), logRows)

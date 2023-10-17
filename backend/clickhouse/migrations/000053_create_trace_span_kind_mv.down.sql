@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS trace_span_kind_mv;

@@ -197,7 +197,7 @@ const BlogNavbar = ({
 						className={classNames(
 							styles.navContainer,
 							styles.header,
-							styles.headerRight,
+							styles.headerRightBlog,
 						)}
 					>
 						<PrimaryButton

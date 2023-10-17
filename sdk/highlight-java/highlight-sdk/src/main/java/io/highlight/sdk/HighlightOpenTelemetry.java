@@ -1,5 +1,6 @@
 package io.highlight.sdk;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 import io.highlight.sdk.common.HighlightAttributes;
@@ -48,7 +49,8 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 				.put(HighlightAttributes.HIGHLIGHT_PROJECT_ID, options.projectId())
 				.put(ResourceAttributes.DEPLOYMENT_ENVIRONMENT, options.enviroment())
 				.put(ResourceAttributes.SERVICE_INSTANCE_ID, SessionId.get().toString())
-				.put(ResourceAttributes.SERVICE_VERSION, options.version());
+				.put(ResourceAttributes.SERVICE_VERSION, options.version())
+				.put(ResourceAttributes.SERVICE_NAME, options.serviceName());
 
 		if (options.metric()) {
 			attributesBuilder
@@ -72,9 +74,13 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 		// Tracer
 		SpanExporter tracerExporter = OtlpHttpSpanExporter.builder()
 				.setEndpoint(HighlightRoute.buildTraceRoute(options.backendUrl()))
+				.setCompression("gzip")
 				.build();
 
 		BatchSpanProcessor tracerProcessor = BatchSpanProcessor.builder(tracerExporter)
+		        .setScheduleDelay(Duration.ofSeconds(1))
+		        .setMaxExportBatchSize(128)
+		        .setMaxQueueSize(1024)
 				.build();
 
 		this.tracerProvider = SdkTracerProvider.builder()

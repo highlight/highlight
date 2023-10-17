@@ -10,25 +10,25 @@ import (
 	"time"
 
 	"github.com/DmitriyVTitov/size"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
-func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*customModels.InitializeSessionResponse, error) {
-	s, _ := tracer.StartSpanFromContext(ctx, "InitializeSession", tracer.ResourceName("gql.initializeSession"))
-	s.SetTag("secure_id", sessionSecureID)
-	s.SetTag("client_version", clientVersion)
-	s.SetTag("firstload_version", firstloadVersion)
+func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) (*customModels.InitializeSessionResponse, error) {
+	s, _ := util.StartSpanFromContext(ctx, "InitializeSession", util.ResourceName("gql.initializeSession"))
+	s.SetAttribute("secure_id", sessionSecureID)
+	s.SetAttribute("client_version", clientVersion)
+	s.SetAttribute("firstload_version", firstloadVersion)
 	defer s.Finish()
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
@@ -38,19 +38,21 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	if err != nil {
 		log.WithContext(ctx).Errorf("An unsupported verboseID was used: %s, %s", organizationVerboseID, clientConfig)
 	} else {
-		err = r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+		err = r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
 				SessionSecureID:                sessionSecureID,
 				CreatedAt:                      time.Now(),
 				ProjectVerboseID:               organizationVerboseID,
 				EnableStrictPrivacy:            enableStrictPrivacy,
+				PrivacySetting:                 privacySetting,
 				EnableRecordingNetworkContents: enableRecordingNetworkContents,
 				ClientVersion:                  clientVersion,
 				FirstloadVersion:               firstloadVersion,
 				ClientConfig:                   clientConfig,
 				Environment:                    environment,
 				AppVersion:                     appVersion,
+				ServiceName:                    ptr.ToString(serviceName),
 				Fingerprint:                    fingerprint,
 				UserAgent:                      userAgentString,
 				AcceptLanguage:                 acceptLanguageString,
@@ -59,12 +61,12 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				NetworkRecordingDomains:        networkRecordingDomains,
 				DisableSessionRecording:        disableSessionRecording,
 			},
-		}, sessionSecureID)
+		})
 		if err == nil {
 			err = r.Redis.SetIsPendingSession(ctx, sessionSecureID, true)
 		}
 		if err == nil {
-			exceeded, err := r.Redis.IsBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions)
+			exceeded, err := r.Redis.IsBillingQuotaExceeded(ctx, projectID, model.PricingProductTypeSessions)
 			if err == nil && exceeded != nil && *exceeded {
 				err = e.New(string(customModels.PublicGraphErrorBillingQuotaExceeded))
 			}
@@ -72,7 +74,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	}
 
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("secure_id:%s", sessionSecureID), fmt.Sprintf("firstload_version:%s", firstloadVersion), fmt.Sprintf("client_version:%s", clientVersion)}, 1)
-	s.SetTag("success", err == nil)
+	s.SetAttribute("success", err == nil)
 
 	return &customModels.InitializeSessionResponse{
 		SecureID:  sessionSecureID,
@@ -82,48 +84,49 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 
 // IdentifySession is the resolver for the identifySession field.
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error) {
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.IdentifySession,
 		IdentifySession: &kafkaqueue.IdentifySessionArgs{
 			SessionSecureID: sessionSecureID,
 			UserIdentifier:  userIdentifier,
 			UserObject:      userObject,
 		},
-	}, sessionSecureID)
+	})
 	return sessionSecureID, err
 }
 
 // AddSessionProperties is the resolver for the addSessionProperties field.
 func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error) {
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionProperties,
 		AddSessionProperties: &kafkaqueue.AddSessionPropertiesArgs{
 			SessionSecureID:  sessionSecureID,
 			PropertiesObject: propertiesObject,
 		},
-	}, sessionSecureID)
+	})
 	return sessionSecureID, err
 }
 
 // PushPayload is the resolver for the pushPayload field.
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
 	if payloadID == nil {
 		payloadID = pointy.Int(0)
 	}
 
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.PushPayload,
 		PushPayload: &kafkaqueue.PushPayloadArgs{
 			SessionSecureID:    sessionSecureID,
 			Events:             events,
 			Messages:           messages,
 			Resources:          resources,
+			WebSocketEvents:    webSocketEvents,
 			Errors:             errors,
 			IsBeacon:           isBeacon,
 			HasSessionUnloaded: hasSessionUnloaded,
 			HighlightLogs:      highlightLogs,
 			PayloadID:          payloadID,
-		}}, sessionSecureID)
+		}})
 	return size.Of(events), err
 }
 
@@ -133,6 +136,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 	for _, backendError := range errors {
 		errorsBySecureID[backendError.SessionSecureID] = append(errorsBySecureID[backendError.SessionSecureID], backendError)
 	}
+	var messages []*kafkaqueue.Message
 	for secureID, backendErrors := range errorsBySecureID {
 		var partitionKey string
 		if secureID != nil {
@@ -140,13 +144,16 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 		} else if projectID != nil {
 			partitionKey = uuid.New().String()
 		}
-		err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				ProjectVerboseID: projectID,
-				SessionSecureID:  secureID,
-				Errors:           backendErrors,
-			}}, partitionKey)
+		for _, backendError := range backendErrors {
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					ProjectVerboseID: projectID,
+					SessionSecureID:  secureID,
+					Errors:           []*customModels.BackendErrorObjectInput{backendError},
+				}})
+		}
+		err := r.ProducerQueue.Submit(ctx, partitionKey, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID, "secure_id": secureID}).
 				Error(e.Wrap(err, "failed to send kafka message for push backend payload."))
@@ -167,7 +174,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *stri
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.
 func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (string, error) {
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionFeedback,
 		AddSessionFeedback: &kafkaqueue.AddSessionFeedbackArgs{
 			SessionSecureID: sessionSecureID,
@@ -175,7 +182,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecure
 			UserEmail:       userEmail,
 			Verbatim:        verbatim,
 			Timestamp:       timestamp,
-		}}, sessionSecureID)
+		}})
 
 	return sessionSecureID, err
 }

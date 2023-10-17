@@ -34,7 +34,7 @@ func main() {
 		wg.Add(1)
 		func() {
 			for _, admin := range admins {
-				if admin.Email == nil || admin.UserDefinedRole == nil || admin.UserDefinedPersona == nil || admin.FirstName == nil || admin.LastName == nil || admin.Phone == nil || admin.Referral == nil {
+				if admin.Email == nil || admin.UserDefinedRole == nil || admin.UserDefinedPersona == nil || admin.UserDefinedTeamSize == nil || admin.HeardAbout == nil || admin.FirstName == nil || admin.LastName == nil || admin.Phone == nil || admin.Referral == nil {
 					log.WithContext(ctx).WithField("AdminID", admin.ID).Error("admin is not filled out")
 					continue
 				}
@@ -44,6 +44,8 @@ func main() {
 					*admin.Email,
 					*admin.UserDefinedRole,
 					*admin.UserDefinedPersona,
+					*admin.UserDefinedTeamSize,
+					*admin.HeardAbout,
 					*admin.FirstName,
 					*admin.LastName,
 					*admin.Phone,

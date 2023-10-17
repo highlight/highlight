@@ -7,7 +7,7 @@ import { Text } from 'recharts'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
-import styles from './ErrorFiltersForm.module.scss'
+import styles from './ErrorFiltersForm.module.css'
 
 const isValidRegex = function (p: string) {
 	try {
@@ -35,14 +35,14 @@ export const ErrorFiltersForm = () => {
 			<Stack gap="8">
 				<BoxLabel
 					label="Error filters"
-					info="Enter regular expression patterns to filter out errors."
+					info="Enter regular expression patterns to filter out newly created errors. Any error filtered out will not count towards your billing quota."
 				/>
 				<div className={styles.inputAndButtonRow}>
 					<Select
 						className={styles.input}
 						mode="tags"
 						placeholder="TypeError: Failed to fetch"
-						value={data?.projectSettings?.error_filters}
+						value={data?.projectSettings?.error_filters || []}
 						notFoundContent={
 							<Text>
 								Provide a regex pattern to filter out errors.

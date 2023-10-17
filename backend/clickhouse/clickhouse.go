@@ -3,8 +3,8 @@ package clickhouse
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -13,6 +13,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -31,7 +32,21 @@ var (
 )
 
 func NewClient(dbName string) (*Client, error) {
-	conn, err := clickhouse.Open(getClickhouseOptions(dbName))
+	opts := getClickhouseOptions(dbName)
+	opts.MaxIdleConns = 10
+	opts.MaxOpenConns = 100
+
+	conn, err := clickhouse.Open(opts)
+
+	go func() {
+		for {
+			stats := conn.Stats()
+			log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).Debug("Clickhouse Connection Stats")
+			hlog.Histogram("clickhouse.open", float64(stats.Open), nil, 1)
+			hlog.Histogram("clickhouse.idle", float64(stats.Idle), nil, 1)
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	return &Client{
 		conn: conn,
@@ -52,8 +67,9 @@ func RunMigrations(ctx context.Context, dbName string) {
 		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
+	migrationsPath := filepath.Join(projectpath.GetRoot(), "clickhouse", "migrations")
 	m, err := migrate.NewWithDatabaseInstance(
-		fmt.Sprintf("file:///%s/clickhouse/migrations", projectpath.GetRoot()),
+		"file://"+migrationsPath,
 		dbName,
 		driver,
 	)
@@ -96,6 +112,9 @@ func getClickhouseOptions(dbName string) *clickhouse.Options {
 			Password: Password,
 		},
 		DialTimeout: time.Duration(25) * time.Second,
+		Compression: &clickhouse.Compression{
+			Method: clickhouse.CompressionZSTD,
+		},
 	}
 
 	if useTLS() {

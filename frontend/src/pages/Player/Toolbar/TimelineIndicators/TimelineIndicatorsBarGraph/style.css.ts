@@ -42,6 +42,10 @@ export const hideOverflow = style({
 	overflow: 'hidden !important',
 })
 
+export const noPointerEvents = style({
+	pointerEvents: 'none',
+})
+
 export const progressBarContainer = style({
 	backgroundColor: 'var(--color-neutral-300)',
 	borderBottom: '1px solid var(--color-neutral-100)',
@@ -62,26 +66,6 @@ export const progressBar = style({
 	top: 0,
 	width: '100%',
 	transformOrigin: 'left',
-})
-
-export const liveProgressBar = style({
-	animationDuration: '2s',
-	animationFillMode: 'forwards',
-	animationIterationCount: 'infinite',
-	animationName: 'liveShimmer',
-	animationTimingFunction: 'linear',
-	background: `linear-gradient(
-		to right,
-		var(--color-red-300) 8%,
-		var(--color-red) 38%,
-		var(--color-red-300) 68%
-	)`,
-	backgroundSize: '800px 5px',
-	display: 'flex',
-	height: PROGRESS_BAR_HEIGHT,
-	position: 'absolute',
-	transition: 'all 0.2s ease-in-out',
-	width: '100%',
 })
 
 export const inactivityPeriod = style({
@@ -183,7 +167,7 @@ export const inactivityPeriodMask = style({
 })
 
 export const moveIndicator = style({
-	transition: 'transform 0.3s linear',
+	transition: 'transform 0.27s linear',
 })
 
 export const timeIndicatorContainerWrapper = style({

@@ -1,5 +1,8 @@
 import contextlib
+import http
+import json
 import logging
+import traceback
 import typing
 
 from opentelemetry import trace, _logs
@@ -12,6 +15,8 @@ from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace import TracerProvider, Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace import INVALID_SPAN
+from opentelemetry.sdk.resources import Attributes, Resource
 
 from highlight_io.integrations import Integration
 
@@ -24,6 +29,7 @@ class LogHandler(logging.Handler):
     def emit(self, record: logging.LogRecord):
         ctx = contextlib.nullcontext
         span = trace.get_current_span()
+
         if span is None or not span.is_recording():
             ctx = self.highlight.trace
 
@@ -35,6 +41,7 @@ class H(object):
     REQUEST_HEADER = "X-Highlight-Request"
     OTLP_HTTP = "https://otel.highlight.io:4318"
     _instance: "H" = None
+    _logging_instrumented = False
 
     @classmethod
     def get_instance(cls) -> "H":
@@ -51,6 +58,8 @@ class H(object):
         otlp_endpoint: str = "",
         instrument_logging: bool = True,
         log_level=logging.DEBUG,
+        service_name: str = "",
+        service_version: str = "",
     ):
         """
         Setup Highlight backend instrumentation.
@@ -64,6 +73,8 @@ class H(object):
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
         :param instrument_logging: defaults to True. set False to disable auto-instrumentation of python `logging` methods.
         :param otlp_endpoint: set to a custom otlp destination
+        :param service_name: a string to name this app
+        :param service_version: a string to set this app's version (typically a Git deploy sha).
         :return: a configured H instance
         """
         H._instance = self
@@ -74,29 +85,35 @@ class H(object):
         if instrument_logging:
             self._instrument_logging()
 
-        self._trace_provider = TracerProvider()
+        resource = _build_resource(
+            service_name=service_name,
+            service_version=service_version,
+        )
+        self._trace_provider = TracerProvider(resource=resource)
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
                 OTLPSpanExporter(
                     f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                max_export_batch_size=64,
-                export_timeout_millis=5000,
+                max_export_batch_size=128,
+                max_queue_size=1024,
             )
         )
         trace.set_tracer_provider(self._trace_provider)
         self.tracer = trace.get_tracer(__name__)
 
-        self._log_provider = LoggerProvider()
+        self._log_provider = LoggerProvider(
+            resource=resource,
+        )
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
                 OTLPLogExporter(
                     f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                max_export_batch_size=64,
-                export_timeout_millis=5000,
+                max_export_batch_size=128,
+                max_queue_size=1024,
             )
         )
         _logs.set_logger_provider(self._log_provider)
@@ -114,7 +131,8 @@ class H(object):
         self,
         session_id: typing.Optional[str] = "",
         request_id: typing.Optional[str] = "",
-    ) -> None:
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
+    ) -> Span:
         """
         Catch exceptions raised by your app using this context manager.
         Exceptions will be recorded with the Highlight project and
@@ -125,26 +143,100 @@ class H(object):
             H = highlight_io.H('project_id', ...)
 
             def my_fn():
-                with H.guard(headers={'X-Highlight-Request': '...'}):
+                with H.trace(headers={'X-Highlight-Request': '...'}):
                     raise Exception('fake error!')
 
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
-        :return: None
+        :param attributes: additional attributes to attribute to this error.
+        :return: Span
         """
+        # in case the otel library is in a non-recording context, do nothing
+        if not hasattr(self, "tracer") or not self.tracer:
+            yield
+            return
+
         with self.tracer.start_as_current_span("highlight-ctx") as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})
             try:
-                yield
+                yield span
             except Exception as e:
-                self.record_exception(e)
+                self.record_exception(e, attributes=attributes)
                 raise
 
     @staticmethod
-    def record_exception(e: Exception) -> None:
+    def record_http_error(
+        status_code: int,
+        detail: str,
+        headers: typing.Dict[str, str],
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
+    ) -> None:
+        """
+        Record an http error from your app.
+
+        Example:
+            from fastapi import FastAPI, Request, HTTPException, APIRouter
+            import highlight_io
+
+            H = highlight_io.H('project_id', ...)
+
+            app = FastAPI()
+            app.add_middleware(FastAPIMiddleware)
+
+            router = APIRouter()
+
+
+            @router.get("/health")
+            def health_check():
+                with H.trace(session_id, request_id):
+                    logging.info('hello, world!')
+                    H.record_http_error(status_code=404)
+                    raise HTTPException(status_code=404, detail="Item not found")
+
+
+        :param status_code: the http status code to report
+        :param detail: the error status details
+        :param headers: the headers of the http request
+        :param attributes: additional metadata to attribute to this error.
+        :return: None
+        """
+        span = trace.get_current_span()
+        if not span:
+            raise RuntimeError("H.record_http_error called without a span context")
+
+        # try load json of the form `{"detail":"Item not found"}`
+        try:
+            body = json.loads(detail)
+            if "detail" in body:
+                detail = body["detail"]
+        except ValueError:
+            pass
+
+        if not detail:
+            detail = http.HTTPStatus(status_code).phrase
+
+        # we cannot use `span.record_exception()` here because that uses `traceback.format_exc()` which
+        # relies there being an exception raised. we manually `traceback.format_stack()` to get the current
+        # execution stack for recording an http exception.
+        attrs = {
+            "exception.type": "HTTPException",
+            "exception.message": detail,
+            "exception.stacktrace": "".join(traceback.format_stack()),
+            "http.status_code": status_code,
+        }
+        attrs.update(attributes or dict())
+        for k, v in headers.items():
+            if type(v) in [bool, str, bytes, int, float]:
+                attrs[f"http.headers.{k}"] = v
+        span.add_event(name="exception", attributes=attrs)
+
+    @staticmethod
+    def record_exception(
+        e: Exception, attributes: typing.Optional[typing.Dict[str, any]] = None
+    ) -> None:
         """
         Record arbitrary exceptions raised within your app.
 
@@ -162,13 +254,13 @@ class H(object):
 
 
         :param e: the exception to record. the contents and stacktrace will be recorded.
+        :param attributes: additional metadata to attribute to this error.
         :return: None
         """
         span = trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
-        span.record_exception(e)
-        logging.exception("Highlight caught an error", exc_info=e)
+        span.record_exception(e, attributes)
 
     @property
     def logging_handler(self) -> logging.Handler:
@@ -201,6 +293,20 @@ class H(object):
             attributes["code.filepath"] = record.pathname
             attributes["code.lineno"] = record.lineno
             attributes.update(record.args or {})
+
+            message = record.getMessage()
+            try:
+                # Handle loguru's serialize=True format
+                # See: https://loguru.readthedocs.io/en/stable/api/logger.html#record
+                obj = json.loads(message)
+                extra = obj["record"]["extra"]
+                message = obj["text"]
+
+                for key, value in extra.items():
+                    attributes[key] = value
+            except:
+                pass
+
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,
@@ -208,13 +314,49 @@ class H(object):
                 trace_flags=ctx.trace_flags,
                 severity_text=record.levelname,
                 severity_number=std_to_otel(record.levelno),
-                body=record.getMessage(),
+                body=message,
                 resource=span.resource,
                 attributes=attributes,
             )
             self.log.emit(r)
 
     def _instrument_logging(self):
+        if H._logging_instrumented:
+            return
+
         LoggingInstrumentor().instrument(
             set_logging_format=True, log_hook=self.log_hook
         )
+        otel_factory = logging.getLogRecordFactory()
+
+        def factory(*args, **kwargs) -> LogRecord:
+            span = trace.get_current_span()
+            if span != INVALID_SPAN:
+                manager = contextlib.nullcontext(enter_result=span)
+            else:
+                manager = self.trace()
+
+            try:
+                with manager:
+                    return otel_factory(*args, **kwargs)
+            except RecursionError:
+                # in case we are hitting a recursive log from the `self.trace()` invocation
+                # (happens when we exceed the otel log queue depth)
+                return otel_factory(*args, **kwargs)
+
+        logging.setLogRecordFactory(factory)
+        H._logging_instrumented = True
+
+
+def _build_resource(
+    service_name: str,
+    service_version: str,
+) -> Resource:
+    attrs = {}
+
+    if service_name:
+        attrs["service.name"] = service_name
+    if service_version:
+        attrs["service.version"] = service_version
+
+    return Resource.create(attrs)

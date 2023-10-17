@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as AriakitButton, ButtonProps } from 'ariakit/button'
+import { Button as AriakitButton, ButtonProps } from '@ariakit/react'
 import { Text, Props as TextProps } from '../Text/Text'
 
 import * as styles from './styles.css'
@@ -15,6 +15,7 @@ export type Props = ButtonProps &
 		iconRight?: React.ReactElement<IconProps>
 		className?: ClassValue | ClassValue[]
 		lines?: TextProps['lines']
+		wordBreak?: TextProps['break']
 		onIconLeftClick?: () => void
 		onIconRightClick?: () => void
 	}
@@ -35,9 +36,10 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	kind = styles.defaultKind,
+	lines,
+	wordBreak,
 	onIconLeftClick,
 	onIconRightClick,
-	lines,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -61,7 +63,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size })}
+					cssClass={styles.iconVariants({ size })}
 					onClick={onIconLeftClick}
 				>
 					{icon}
@@ -74,6 +76,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					userSelect="none"
 					color="inherit"
 					display="inline-flex"
+					break={wordBreak}
 				>
 					{children}
 				</Text>
@@ -82,7 +85,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size })}
+					cssClass={styles.iconVariants({ size })}
 					onClick={onIconRightClick}
 				>
 					{iconRight}

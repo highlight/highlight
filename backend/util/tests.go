@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -14,7 +13,11 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
-func RunTestWithDBWipe(t *testing.T, name string, db *gorm.DB, f func(t *testing.T)) {
+func RunTestWithDBWipe(t *testing.T, db *gorm.DB, f func(t *testing.T)) {
+	RunTestWithDBWipeWithName(t, db, t.Name(), f)
+}
+
+func RunTestWithDBWipeWithName(t *testing.T, db *gorm.DB, name string, f func(t *testing.T)) {
 	defer func(db *gorm.DB) {
 		err := ClearTablesInDB(db)
 		if err != nil {
@@ -69,18 +72,4 @@ func ClearTablesInDB(db *gorm.DB) error {
 		}
 	}
 	return nil
-}
-
-func MakeIntPointer(v int) *int {
-	return &v
-}
-
-func MakeStringPointer(v string) *string {
-	return &v
-}
-
-func MakeStringPointerFromInterface(v interface{}) *string {
-	exampleErrorTraceBytes, _ := json.Marshal(&v)
-	exampleErrorTraceString := string(exampleErrorTraceBytes)
-	return &exampleErrorTraceString
 }

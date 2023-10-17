@@ -1,35 +1,35 @@
+import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { LogLevel, ProductType } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
-import {
-	fifteenMinutesAgo,
-	LOG_TIME_PRESETS,
-	now,
-	thirtyDaysAgo,
-	TIME_MODE,
-} from '@pages/LogsPage/constants'
+import { Box, defaultPresets, getNow } from '@highlight-run/ui'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
-import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
+import { QueryParamConfig, useQueryParam } from 'use-query-params'
+
 import {
-	DateTimeParam,
-	QueryParamConfig,
-	StringParam,
-	useQueryParam,
-	withDefault,
-} from 'use-query-params'
-
+	TIME_FORMAT,
+	TIME_MODE,
+} from '@/components/Search/SearchForm/constants'
+import {
+	EndDateParam,
+	FixedRangeStartDateParam,
+	PermalinkStartDateParam,
+	QueryParam,
+	SearchForm,
+} from '@/components/Search/SearchForm/SearchForm'
+import {
+	useGetLogsHistogramQuery,
+	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
+} from '@/graph/generated/hooks'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
-
-export const QueryParam = withDefault(StringParam, '')
-const FixedRangeStartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
-const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
-const EndDateParam = withDefault(DateTimeParam, now.toDate())
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
@@ -58,6 +58,7 @@ type Props = {
 }
 
 const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
+	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -66,13 +67,12 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		'start_date',
 		startDateDefault,
 	)
-
-	const tableContainerRef = useRef<HTMLDivElement>(null)
-
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 
 	const {
 		logEdges,
+		moreLogs,
+		clearMoreLogs,
 		loading,
 		error,
 		loadingAfter,
@@ -112,6 +112,22 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		[fetchMoreForward, fetchMoreBackward],
 	)
 
+	const { projectId } = useNumericProjectId()
+	const { data: histogramData, loading: histogramLoading } =
+		useGetLogsHistogramQuery({
+			variables: {
+				project_id: project_id!,
+				params: {
+					query,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+				},
+			},
+			skip: !projectId,
+		})
+
 	return (
 		<>
 			<Helmet>
@@ -139,23 +155,41 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
-						presets={LOG_TIME_PRESETS}
-						minDate={thirtyDaysAgo}
+						presets={defaultPresets}
+						minDate={defaultPresets[5].startDate}
 						timeMode={timeMode}
+						fetchKeys={useGetLogsKeysQuery}
+						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<LogsCount
-						query={query}
 						startDate={startDate}
 						endDate={endDate}
-						presets={LOG_TIME_PRESETS}
+						presets={defaultPresets}
+						totalCount={histogramData?.logs_histogram.objectCount}
+						logCountLoading={histogramLoading}
 					/>
 					<LogsHistogram
-						query={query}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
+						loading={histogramLoading}
+						histogramBuckets={histogramData?.logs_histogram.buckets}
+						bucketCount={histogramData?.logs_histogram.totalCount}
 					/>
+					<Box width="full">
+						<AdditionalFeedResults
+							more={moreLogs}
+							type="logs"
+							onClick={() => {
+								clearMoreLogs()
+								handleDatesChange(
+									defaultPresets[0].startDate,
+									getNow().toDate(),
+								)
+							}}
+						/>
+					</Box>
 					<Box
 						borderTop="dividerWeak"
 						height="screen"

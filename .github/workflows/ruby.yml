@@ -1,0 +1,48 @@
+name: Ruby SDK
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
+        paths:
+            - 'sdk/highlight-ruby/**'
+            - '.github/workflows/ruby.yml'
+    merge_group:
+
+jobs:
+    build:
+        name: Ruby SDK
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-ruby/highlight
+        steps:
+            - uses: actions/checkout@v3
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      ruby-changed:
+                        - 'sdk/highlight-ruby/**'
+            - name: Install Ruby 2.6
+              uses: ruby/setup-ruby@v1
+              with:
+                  ruby-version: '2.6'
+            - name: Install dependencies
+              run: bundle install
+            - name: Test
+              run: bundle exec rake
+            - name: Rubocop
+              run: bundle exec rubocop
+            - name: Publish to RubyGems
+              if: github.ref == 'refs/heads/main' && steps.filter.outputs.ruby-changed == 'true'
+              run: |
+                  mkdir -p $HOME/.gem
+                  touch $HOME/.gem/credentials
+                  chmod 0600 $HOME/.gem/credentials
+                  printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
+                  gem build *.gemspec
+                  gem push *.gem
+              env:
+                  RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'

@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import React, { ReactNode } from 'react'
 
 import Button from '../Button/Button/Button'
-import styles from './CopyText.module.scss'
+import styles from './CopyText.module.css'
 
 interface Props {
 	text: string

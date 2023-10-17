@@ -1,6 +1,7 @@
 import BarChart from '@components/BarChart/BarChart'
 import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	IconSolidSparkles,
 	IconSolidUsers,
@@ -18,11 +19,13 @@ import moment from 'moment'
 import { Link } from 'react-router-dom'
 
 import * as style from './ErrorFeedCard.css'
+
+type ErrorGroupType = Maybe<Omit<ErrorGroup, 'metadata_log'>>
 interface Props {
-	errorGroup: Maybe<Omit<ErrorGroup, 'metadata_log'>>
-	urlParams?: string
+	errorGroup: ErrorGroupType
+	onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
-export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
+export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 	const { projectId } = useProjectId()
 	const { error_secure_id } = useParams<{
 		error_secure_id?: string
@@ -38,9 +41,15 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 
 	return (
 		<Link
-			to={`/${projectId}/errors/${errorGroup?.secure_id}${
-				urlParams || ''
-			}`}
+			to={
+				onClick
+					? {}
+					: {
+							pathname: `/${projectId}/errors/${errorGroup?.secure_id}`,
+							search: location.search,
+					  }
+			}
+			onClick={onClick}
 		>
 			<Box
 				paddingTop="8"
@@ -62,6 +71,8 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 					color="n12"
 					display="flex"
 					alignItems="center"
+					justifyContent="space-between"
+					gap="4"
 					cssClass={style.errorCardTitle}
 				>
 					<Text
@@ -73,6 +84,9 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 					>
 						{body}
 					</Text>
+					{recentlyCreated(errorGroup) && (
+						<Badge variant="yellow" label="New" size="medium" />
+					)}
 				</Box>
 				<Box display="flex" gap="12" justifyContent="space-between">
 					<Box
@@ -179,4 +193,9 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 			</Box>
 		</Link>
 	)
+}
+
+const recentlyCreated = (errorGroup: ErrorGroupType) => {
+	const createdAt = moment(errorGroup?.created_at)
+	return createdAt.isAfter(moment().subtract(3, 'day'))
 }

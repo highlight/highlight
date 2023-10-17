@@ -18,10 +18,12 @@ import {
 
 import { WorkspaceSettingsTab } from '@/hooks/useIsSettingsPath'
 import { EmailOptOutPanel } from '@/pages/EmailOptOut/EmailOptOut'
+import { HaroldAISettings } from '@/pages/HaroldAISettings/HaroldAISettings'
 import { ProjectColorLabel } from '@/pages/ProjectSettings/ProjectColorLabel/ProjectColorLabel'
 import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
+import { useGlobalContext } from '@/routers/ProjectRouter/context/GlobalContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'
@@ -39,6 +41,8 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Billing plans'
 		case 'upgrade-plan':
 			return 'Upgrade plan'
+		case 'harold-ai':
+			return 'Harold AI'
 		default:
 			return ''
 	}
@@ -58,6 +62,7 @@ export const SettingsRouter = () => {
 	}>()
 	const { allProjects, currentProject, currentWorkspace } =
 		useApplicationContext()
+	const { toggleShowBanner } = useGlobalContext()
 	const workspaceId = workspace_id || currentWorkspace?.id
 	const projectId = project_id || currentProject?.id
 	// Using useMatch instead of pulling from useParams because :page_id isn't
@@ -69,6 +74,8 @@ export const SettingsRouter = () => {
 		projectMatch?.params.page_id ||
 		sectionId ||
 		''
+
+	toggleShowBanner(false)
 
 	const billingContent = (
 		<Suspense fallback={null}>
@@ -98,6 +105,11 @@ export const SettingsRouter = () => {
 			key: 'current-plan',
 			title: getTitle('current-plan'),
 			panelContent: billingContent,
+		},
+		{
+			key: 'harold-ai',
+			title: getTitle('harold-ai'),
+			panelContent: <HaroldAISettings />,
 		},
 	]
 
@@ -228,7 +240,7 @@ export const SettingsRouter = () => {
 						{projectSettingTabs.map((project) => (
 							<NavLink
 								key={project.key}
-								to={`/${project.key}/settings/sessions`}
+								to={`/${project.key}/settings/general`}
 								className={clsx(styles.menuItem, {
 									[styles.menuItemActive]:
 										projectId === project.key,

@@ -3,32 +3,28 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
-import { LinkButton } from '@components/LinkButton'
 import LoadingBox from '@components/LoadingBox'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
-import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
+	Badge,
 	Box,
-	Heading,
+	Callout,
+	IconSolidCode,
+	IconSolidCog,
 	IconSolidExternalLink,
-	IconSolidLogs,
+	Stack,
+	Tag,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
+import { GitHubEnhancementSettings } from '@pages/ErrorsV2/GitHubEnhancementSettings/GitHubEnhancementSettings'
 import {
-	DEFAULT_LOGS_OPERATOR,
-	LogsSearchParam,
-	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
-import {
+	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
@@ -36,16 +32,27 @@ import {
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard } from '@util/string'
-import { buildQueryURLString } from '@util/url/params'
+import { copyToClipboard, validateEmail } from '@util/string'
+import {
+	buildQueryParams,
+	buildQueryStateString,
+	buildQueryURLString,
+} from '@util/url/params'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
-import { createSearchParams, useNavigate } from 'react-router-dom'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
+import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
+import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
-import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
+import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
+import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
+import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
+import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
+import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -58,52 +65,18 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
-const getLogsLink = (errorObject: ErrorObjectFragment): string => {
-	const queryParams: LogsSearchParam[] = []
-	let offsetStart = 1
-	if (errorObject.session?.secure_id) {
-		queryParams.push({
-			key: ReservedLogKey.SecureSessionId,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: errorObject.session?.secure_id,
-			offsetStart: offsetStart++,
-		})
-	}
-	if (errorObject.trace_id) {
-		queryParams.push({
-			key: ReservedLogKey.TraceId,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: errorObject.trace_id,
-			offsetStart: offsetStart++,
-		})
-	}
-	const query = stringifyLogsQuery(queryParams)
-	const logCursor = errorObject.log_cursor
-	const params = createSearchParams({
-		query,
-		start_date: moment(errorObject.timestamp)
-			.add(-5, 'minutes')
-			.toISOString(),
-		end_date: moment(errorObject.timestamp).add(5, 'minutes').toISOString(),
-	})
-	if (logCursor) {
-		return `/${errorObject.project_id}/logs/${logCursor}?${params}`
-	} else {
-		return `/${errorObject.project_id}/logs?${params}`
-	}
-}
-
-const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id, error_secure_id } = useParams<{
-		error_secure_id: string
-		error_object_id: string
-	}>()
-	const { projectId } = useProjectId()
-	const navigate = useNavigate()
+export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
+	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
-	const { isLoggedIn } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
+	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
 
-	const { loading, data } = useGetErrorInstanceQuery({
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
+
+	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id,
@@ -142,200 +115,78 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
-	const errorInstance = data?.error_instance
-
 	useEffect(() => analytics.page(), [])
 
-	useHotkeys(']', () => goToErrorInstance(errorInstance?.next_id, 'next'), [
-		errorInstance?.next_id,
-	])
-	useHotkeys(
-		'[',
-		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
-		[errorInstance?.previous_id],
-	)
-
-	const goToErrorInstance = (
-		errorInstanceId: Maybe<string> | undefined,
-		direction: 'next' | 'previous',
-	) => {
-		if (!errorInstanceId || Number(errorInstanceId) === 0) {
-			return
-		}
-
-		navigate({
-			pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstanceId}`,
-			search: window.location.search,
-		})
-
-		analytics.track('Viewed error instance', {
-			direction,
-		})
+	if (loading) {
+		return (
+			<Box mt="10">
+				<LoadingBox />
+			</Box>
+		)
 	}
 
-	if (!errorInstance || !errorInstance?.error_object) {
-		if (!loading) return null
-
+	const errorInstance = data?.error_instance
+	if (error || !errorInstance) {
 		return (
-			<Box id="error-instance-container">
-				<Box my="28" display="flex" justifyContent="space-between">
-					<Box display="flex" flexDirection="column" gap="16">
-						<Heading level="h4">Error Instance</Heading>
+			<Box m="auto" mt="10" style={{ maxWidth: 300 }}>
+				<Callout title="Failed to load error instance" kind="error">
+					<Box mb="6">
+						<Text color="moderate">
+							There was an error loading this error instance.
+						</Text>
 					</Box>
-
-					<Box>
-						<Box display="flex" gap="8" alignItems="center">
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-								trackingId="errorInstanceOlder"
-							>
-								Older
-							</Button>
-							<Box
-								borderRight="secondary"
-								style={{ height: 18 }}
-							/>
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-								trackingId="errorInstanceNewer"
-							>
-								Newer
-							</Button>
-							<Button
-								kind="primary"
-								emphasis="high"
-								disabled={true}
-								iconLeft={<IconSolidLogs />}
-								trackingId="errorInstanceShowLogs"
-							>
-								Show logs
-							</Button>
-							<ShowSessionButton />
-						</Box>
-					</Box>
-				</Box>
-
-				<Box display="flex" flexDirection="row" mb="40" gap="40">
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box>
-							<Box bb="secondary" pb="20" my="12">
-								<Text weight="bold" size="large">
-									Instance metadata
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box width="full">
-							<Box pb="20" mt="12">
-								<Text weight="bold" size="large">
-									User details
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-				</Box>
-
-				<Text size="large" weight="bold">
-					Stack trace
-				</Text>
-				<Box bt="secondary" mt="12" pt="16">
-					<Skeleton count={10} />
-				</Box>
+				</Callout>
 			</Box>
 		)
 	}
 
 	return (
 		<Box id="error-instance-container">
-			<Box my="28" display="flex" justifyContent="space-between">
-				<Box display="flex" flexDirection="column" gap="16">
-					<Heading level="h4">Error Instance</Heading>
-				</Box>
+			<Stack direction="row" my="12">
+				<Stack direction="row" flexGrow={1}>
+					<SeeAllInstances data={data} />
+					<PreviousNextInstance data={data} />
+				</Stack>
+				<Stack direction="row" gap="4">
+					<RelatedSession data={data} />
+					<RelatedLogs data={data} />
+				</Stack>
+			</Stack>
 
-				<Box>
-					<Box display="flex" gap="8" alignItems="center">
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.previous_id,
-											'previous',
-										)
-									}}
-									disabled={
-										Number(errorInstance.previous_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceOlder"
-								>
-									Older
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Previous" shortcut="[" />
-						</Tooltip>
-
-						<Box borderRight="secondary" style={{ height: 18 }} />
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.next_id,
-											'next',
-										)
-									}}
-									disabled={
-										Number(errorInstance.next_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceNewer"
-								>
-									Newer
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Next" shortcut="]" />
-						</Tooltip>
-						<LinkButton
-							kind="primary"
-							emphasis="high"
-							to={getLogsLink(errorInstance.error_object)}
-							disabled={
-								!isLoggedIn ||
-								!errorInstance.error_object.session
-							}
-							trackingId="error-related_logs_link"
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
-							>
-								<IconSolidLogs />
-								Show logs
-							</Box>
-						</LinkButton>
-						<ShowSessionButton
-							errorObject={errorInstance.error_object}
-						/>
-					</Box>
+			<Box py="16" px="16" mb="40" border="secondary" borderRadius="8">
+				<Box
+					mb="20"
+					display="flex"
+					gap="6"
+					alignItems="center"
+					color="weak"
+				>
+					<IconSolidCode />
+					<Text color="moderate">Instance Error Body</Text>
 				</Box>
+				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
 
-			<Box display="flex" flexDirection="column" mb="40" gap="40">
+			{workspaceSettingsData?.workspaceSettings?.ai_application && (
+				<Box display="flex" flexDirection="column" mb="40">
+					<Stack direction="row" align="center" pb="8" gap="8">
+						<Text size="large" weight="bold" color="strong">
+							Harold AI
+						</Text>
+						<Badge label="Beta" size="medium" variant="purple" />
+					</Stack>
+					<AiErrorSuggestion
+						errorObjectId={errorInstance.error_object.id}
+					/>
+				</Box>
+			)}
+
+			<Box
+				display="flex"
+				flexDirection={{ mobile: 'column', desktop: 'row' }}
+				mb="40"
+				gap="40"
+			>
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
 				</div>
@@ -361,16 +212,42 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			{(errorInstance.error_object.stack_trace !== '' &&
 				errorInstance.error_object.stack_trace !== 'null') ||
 			errorInstance.error_object.structured_stack_trace?.length ? (
-				<>
-					<Text size="large" weight="bold">
-						Stack trace
-					</Text>
-					<Box bt="secondary" mt="12" pt="16">
-						<ErrorStackTrace
-							errorObject={errorInstance.error_object}
-						/>
-					</Box>
-				</>
+				displayGitHubSettings ? (
+					<GitHubEnhancementSettings
+						onClose={() => setDisplayGitHubSettings(false)}
+						errorObject={errorInstance.error_object}
+					/>
+				) : (
+					<>
+						<Stack
+							direction="row"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text size="large" weight="bold" color="strong">
+								Stacktrace
+							</Text>
+							{errorInstance.error_object?.type === 'Backend' && (
+								<Button
+									kind="secondary"
+									emphasis="medium"
+									trackingId="errorInstanceGithubEnhancementSetup"
+									iconLeft={<IconSolidCog size={12} />}
+									onClick={() =>
+										setDisplayGitHubSettings(true)
+									}
+								>
+									Setup GitHub-enhanced stacktraces
+								</Button>
+							)}
+						</Stack>
+						<Box mt="12">
+							<ErrorStackTrace
+								errorObject={errorInstance.error_object}
+							/>
+						</Box>
+					</>
+				)
 			) : null}
 		</Box>
 	)
@@ -394,6 +271,8 @@ const Metadata: React.FC<{
 		{ key: 'environment', label: errorObject?.environment },
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
+		{ key: 'service', label: errorObject?.serviceName },
+		{ key: 'version', label: errorObject?.serviceVersion },
 		{ key: 'url', label: errorObject?.url },
 		{ key: 'timestamp', label: errorObject?.timestamp },
 		{
@@ -410,13 +289,13 @@ const Metadata: React.FC<{
 
 	return (
 		<Box>
-			<Box bb="secondary" pb="20" my="12">
-				<Text weight="bold" size="large">
+			<Box bb="secondary" pb="12">
+				<Text weight="bold" size="large" color="strong">
 					Instance metadata
 				</Text>
 			</Box>
 
-			<Box>
+			<Box mt="12">
 				{metadata.map((meta) => {
 					const value =
 						meta.key === 'timestamp'
@@ -427,43 +306,43 @@ const Metadata: React.FC<{
 					return (
 						<Box display="flex" gap="6" key={meta.key}>
 							<Box
-								py="10"
+								py="6"
 								cursor="pointer"
 								onClick={() => copyToClipboard(meta.key)}
 								style={{ width: '33%' }}
 							>
 								<Text
-									color="n11"
+									color="weak"
 									transform="capitalize"
 									align="left"
 									lines="1"
+									size="xSmall"
 								>
 									{METADATA_LABELS[meta.key] ??
 										meta.key.replace('_', ' ')}
 								</Text>
 							</Box>
-							<Box
-								cursor="pointer"
-								py="10"
-								onClick={() => {
-									if (typeof value === 'string') {
-										value && copyToClipboard(value)
-									}
-								}}
-								style={{ width: '67%' }}
-							>
-								<Text
-									align="left"
-									break="word"
+							<Box style={{ width: '67%' }}>
+								<Tag
+									kind="secondary"
+									emphasis="low"
+									shape="basic"
+									onClick={() => {
+										if (typeof value === 'string') {
+											value && copyToClipboard(value)
+										}
+									}}
 									lines={
 										typeof value === 'string'
 											? '4'
 											: undefined
 									}
 									title={String(value)}
+									style={{ width: '100%' }}
+									wordBreak="word"
 								>
 									{value}
-								</Text>
+								</Tag>
 							</Box>
 						</Box>
 					)
@@ -481,9 +360,26 @@ const User: React.FC<{
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
 
+	const { setSearchQuery } = useSearchContext()
+	const setUserSessionIdentifier = useCallback(() => {
+		if (!errorObject?.session) return
+
+		const displayName = getDisplayName(errorObject?.session)
+		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
+
+		setSearchQuery((query) => {
+			const qp = buildQueryParams({ query }, true)
+			qp.rules = qp.rules.filter((r) => !r[0].startsWith('user_'))
+			return buildQueryStateString({
+				query: JSON.stringify(qp),
+				[`user_${userParam}`]: displayName,
+			})
+		})
+	}, [errorObject?.session, setSearchQuery])
+
 	const userDetailsBox = (
-		<Box pb="20" mt="12">
-			<Text weight="bold" size="large">
+		<Box pb="12">
+			<Text weight="bold" size="large" color="strong">
 				User details
 			</Text>
 		</Box>
@@ -567,6 +463,7 @@ const User: React.FC<{
 									)
 								}
 
+								setUserSessionIdentifier()
 								navigate({
 									pathname: `/${projectId}/sessions`,
 									search: buildQueryURLString(searchParams),
@@ -585,62 +482,91 @@ const User: React.FC<{
 							{userDisplayPropertyKeys.map((key) => (
 								<Box display="flex" gap="6" key={key}>
 									<Box
-										py="10"
+										py="8"
 										overflow="hidden"
 										onClick={() => copyToClipboard(key)}
 										style={{ width: '33%' }}
 									>
 										<Text
-											color="n11"
+											color="weak"
 											align="left"
 											transform="capitalize"
 											lines="1"
 											title={key}
+											size="xSmall"
 										>
 											{METADATA_LABELS[key] ?? key}
 										</Text>
 									</Box>
 
 									<Box
-										py="10"
+										py="2"
 										display="flex"
 										overflow="hidden"
-										onClick={() =>
-											copyToClipboard(userProperties[key])
-										}
-										title={userProperties[key]}
 										style={{ width: '67%' }}
 									>
-										<Text lines="1" as="span">
+										<Tag
+											onClick={() =>
+												copyToClipboard(
+													userProperties[key],
+												)
+											}
+											title={userProperties[key]}
+											kind="secondary"
+											emphasis="low"
+											shape="basic"
+											style={{ width: '100%' }}
+										>
 											{userProperties[key]}
-										</Text>
+										</Tag>
 									</Box>
 								</Box>
 							))}
 
 							<Box display="flex" alignItems="center" gap="6">
-								<Box py="10" style={{ width: '33%' }}>
-									<Text color="n11" align="left">
+								<Box py="8" style={{ width: '33%' }}>
+									<Text
+										color="weak"
+										align="left"
+										transform="capitalize"
+										lines="1"
+										size="xSmall"
+									>
 										Location
 									</Text>
 								</Box>
 
-								<Box py="10" style={{ width: '67%' }}>
-									<Text>{location}</Text>
+								<Box
+									py="2"
+									style={{ width: '67%' }}
+									display="flex"
+									overflow="hidden"
+								>
+									<Tag
+										onClick={() =>
+											copyToClipboard(location)
+										}
+										title={location}
+										kind="secondary"
+										emphasis="low"
+										shape="basic"
+										style={{ width: '100%' }}
+									>
+										{location}
+									</Tag>
 								</Box>
 							</Box>
 						</Box>
 						{truncateable && (
-							<Box>
-								<Button
+							<Box mt="4" display="flex">
+								<Tag
 									onClick={() => setTruncated(!truncated)}
 									kind="secondary"
 									emphasis="medium"
-									size="xSmall"
-									trackingId="errorInstanceToggleProperties"
+									shape="basic"
 								>
 									Show {truncated ? 'more' : 'less'}
-								</Button>
+								</Tag>
 							</Box>
 						)}
 					</Box>
@@ -649,5 +575,3 @@ const User: React.FC<{
 		</Box>
 	)
 }
-
-export default ErrorInstance

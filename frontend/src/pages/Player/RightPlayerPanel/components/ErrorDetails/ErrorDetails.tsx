@@ -68,7 +68,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		loading,
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
-		variables: { secure_id: secureId },
+		variables: { secure_id: secureId, use_clickhouse: true },
 		skip: !secureId,
 		onCompleted: () => {
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })
@@ -298,7 +298,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 							</>
 						}
 					>
-						<ErrorBodyText errorGroup={errorGroup} />
+						<ErrorBodyText errorBody={event} />
 					</Stat>
 					{context ? (
 						<Stat

@@ -9,18 +9,21 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/go-oauth2/oauth2/v4"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 )
 
@@ -39,11 +42,15 @@ type AuthMode = string
 const (
 	Simple   AuthMode = "Simple"
 	Firebase AuthMode = "Firebase"
+	Password AuthMode = "Password"
 )
 
 func GetEnvAuthMode() AuthMode {
 	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Simple) {
 		return Simple
+	}
+	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Password) {
+		return Password
 	}
 	return Firebase
 }
@@ -54,6 +61,8 @@ type Client interface {
 }
 
 type SimpleAuthClient struct{}
+
+type PasswordAuthClient struct{}
 
 type FirebaseAuthClient struct {
 	AuthClient *auth.Client
@@ -90,6 +99,8 @@ func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.
 		AuthClient = &FirebaseAuthClient{AuthClient: client}
 	} else if authMode == Simple {
 		AuthClient = &SimpleAuthClient{}
+	} else if authMode == Password {
+		AuthClient = &PasswordAuthClient{}
 	} else {
 		log.WithContext(ctx).Fatalf("private graph auth client configured with unknown auth mode")
 	}
@@ -107,6 +118,55 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecor
 		},
 		EmailVerified: true,
 	}, nil
+}
+
+func authenticateToken(tokenString string) (jwt.MapClaims, error) {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtAccessSecret), nil
+	})
+	if err != nil {
+		return claims, e.Wrap(err, "invalid id token")
+	}
+
+	exp, ok := claims["exp"]
+	if !ok {
+		return claims, e.Wrap(err, "invalid exp claim")
+	}
+
+	expClaim := int64(exp.(float64))
+	if time.Now().After(time.Unix(expClaim, 0)) {
+		return claims, e.Wrap(err, "token expired")
+	}
+
+	return claims, nil
+}
+
+func (c *PasswordAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
+	return &auth.UserRecord{
+		UserInfo:      GetPasswordAuthUser("demo@example.com"),
+		EmailVerified: true,
+	}, nil
+}
+
+func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+	var uid string
+	email := ""
+
+	if token != "" {
+		claims, err := authenticateToken(token)
+
+		if err != nil {
+			return ctx, err
+		}
+
+		email = claims["email"].(string)
+		uid = claims["uid"].(string)
+	}
+
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, uid)
+	ctx = context.WithValue(ctx, model.ContextKeys.Email, email)
+	return ctx, nil
 }
 
 func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
@@ -162,39 +222,42 @@ func getSourcemapRequestToken(r *http.Request) string {
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		span, _ := tracer.StartSpanFromContext(ctx, "middleware.private")
+		span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
 		var err error
 		if token := r.Header.Get("token"); token != "" {
-			span.SetOperationName("tokenHeader")
+			span.SetAttribute("type", "tokenHeader")
 			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
-			span.SetOperationName("apiKeyHeader")
+			span.SetAttribute("type", "apiKeyHeader")
 			workspaceID, err := workspaceTokenHandler(ctx, apiKey)
 			if err != nil || workspaceID == nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
 		} else if sourcemapRequestToken := getSourcemapRequestToken(r); sourcemapRequestToken != "" {
-			span.SetOperationName("sourcemapBody")
+			span.SetAttribute("type", "sourcemapBody")
 			workspaceID, err := workspaceTokenHandler(ctx, sourcemapRequestToken)
 			if err != nil || workspaceID == nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
-		} else if OAuthServer.HasCookie(r) {
-			span.SetOperationName("oauth")
+		} else if OAuthServer.HasCookie(r) || OAuthServer.HasBearer(r) {
+			span.SetAttribute("type", "oauth")
 			var cookie *http.Cookie
-			ctx, _, cookie, err = OAuthServer.Validate(ctx, r)
+			var tokenInfo oauth2.TokenInfo
+			ctx, tokenInfo, cookie, err = OAuthServer.Validate(ctx, r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
 			http.SetCookie(w, cookie)
+			span.SetAttribute("client_id", tokenInfo.GetClientID())
+			span.SetAttribute("user_id", tokenInfo.GetUserID())
 		}
 		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
 		r = r.WithContext(ctx)

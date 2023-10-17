@@ -22,6 +22,11 @@ import { useEffect, useMemo } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import { useAuthContext } from '@/authentication/AuthContext'
+import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
+import { authRedirect } from '@/pages/Auth/utils'
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
+
 interface Props {
 	code: string
 	projectId?: string
@@ -30,7 +35,12 @@ interface Props {
 
 export const VercelSettingsModalWidth = 672
 
-const WorkspaceIntegrations = new Set<string>(['clickup', 'github', 'height'])
+const WorkspaceIntegrations = new Set<string>([
+	'clickup',
+	'github',
+	'height',
+	'jira',
+])
 
 const logError = (e: any) => {
 	H.consumeError(e)
@@ -147,7 +157,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 		next: StringParam,
 	})
 
-	const { data } = useGetProjectsAndWorkspacesQuery()
+	const { data, loading } = useGetProjectsAndWorkspacesQuery()
 
 	let projectId = ''
 	if (data?.projects && data.projects[0]) {
@@ -162,15 +172,25 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 		}
 	}, [addVercelIntegrationToProject, code, projectId])
 
+	const { isLoggedIn } = useAuthContext()
 	const { search } = useLocation()
+
+	if (loading) {
+		return null
+	}
 
 	// If there are no projects, redirect to create one
 	if (data?.projects?.length === 0) {
+		const callbackPath = `/callback/vercel${search}`
+
+		if (!isLoggedIn) {
+			authRedirect.set(callbackPath)
+			return <Navigate to={SIGN_IN_ROUTE} replace />
+		}
+
 		return (
 			<Navigate
-				to={`/new?next=${encodeURIComponent(
-					`/callback/vercel${search}`,
-				)}`}
+				to={`/new?next=${encodeURIComponent(callbackPath)}`}
 				replace
 			/>
 		)
@@ -192,6 +212,8 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 						<h3>Configuring Vercel Integration</h3>
 						<VercelIntegrationSettings
 							onSuccess={() => {
+								authRedirect.clear()
+
 								if (next) {
 									window.location.href = next
 								} else {
@@ -199,6 +221,8 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 								}
 							}}
 							onCancel={() => {
+								authRedirect.clear()
+
 								if (next) {
 									window.close()
 								} else {
@@ -216,14 +240,13 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	)
 }
 
-const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
+const DiscordIntegrationCallback = ({ code, projectId, next }: Props) => {
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 	const { addDiscordIntegrationToProject } = useDiscordIntegration()
 
 	useEffect(() => {
 		if (!projectId || !code) return
-		const next = `/${projectId}/integrations`
 		;(async () => {
 			try {
 				await addDiscordIntegrationToProject(code, projectId)
@@ -235,7 +258,7 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				navigate(next)
+				navigate(next ?? `/${projectId}/integrations`)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
@@ -245,6 +268,7 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 		code,
 		projectId,
 		navigate,
+		next,
 	])
 
 	return null
@@ -256,19 +280,25 @@ const WorkspaceIntegrationCallback = ({
 	name,
 	type,
 	addIntegration,
+	next,
 }: Props & {
 	name: string
 	type: string
 	addIntegration: (code: string) => Promise<unknown>
 }) => {
+	const codeSessionStorageKey = 'integration-callback-code'
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
 		if (!addIntegration || !code) return
-		const next = `/${projectId}/integrations/${type}`
+		const usedCode = sessionStorage.getItem(codeSessionStorageKey) === code
+		if (!!code && usedCode) return
+
+		const redirectUrl = next || `/${projectId}/integrations/${type}`
 		;(async () => {
 			try {
+				sessionStorage.setItem(codeSessionStorageKey, code)
 				await addIntegration(code)
 				message.success(`Highlight is now synced with ${name}!`, 5)
 			} catch (e: any) {
@@ -278,11 +308,21 @@ const WorkspaceIntegrationCallback = ({
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				navigate(next)
+				navigate(redirectUrl)
 				setLoadingState(AppLoadingState.LOADED)
+				sessionStorage.removeItem(codeSessionStorageKey)
 			}
 		})()
-	}, [setLoadingState, code, projectId, addIntegration, name, type, navigate])
+	}, [
+		setLoadingState,
+		code,
+		projectId,
+		addIntegration,
+		name,
+		type,
+		navigate,
+		next,
+	])
 
 	return null
 }
@@ -331,15 +371,31 @@ const GitHubIntegrationCallback = ({
 	)
 }
 
+const JiraIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useJiraIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="Jira"
+			type="jira"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
 	}>()
+	const { isAuthLoading } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
-		setLoadingState(AppLoadingState.EXTENDED_LOADING)
-	}, [setLoadingState])
+		if (isAuthLoading) {
+			setLoadingState(AppLoadingState.EXTENDED_LOADING)
+		}
+	}, [isAuthLoading, setLoadingState])
 
 	const { code, projectId, workspaceId, next, installationId, setupAction } =
 		useMemo(() => {
@@ -385,6 +441,14 @@ const IntegrationAuthCallbackPage = () => {
 					/>
 				)
 				break
+			case 'jira':
+				cb = (
+					<JiraIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
 			case 'height':
 				cb = (
 					<HeightIntegrationCallback
@@ -399,6 +463,7 @@ const IntegrationAuthCallbackPage = () => {
 						projectId={projectId}
 						installationId={installationId}
 						setupAction={setupAction}
+						next={next}
 					/>
 				)
 				break
@@ -446,7 +511,11 @@ const IntegrationAuthCallbackPage = () => {
 			return <VercelIntegrationCallback code={code} />
 		case 'discord':
 			return (
-				<DiscordIntegrationCallback code={code} projectId={projectId} />
+				<DiscordIntegrationCallback
+					code={code}
+					projectId={projectId}
+					next={next}
+				/>
 			)
 	}
 

@@ -4,6 +4,8 @@ on:
         branches:
             - 'main'
         paths:
+            - 'go.work'
+            - 'go.work.sum'
             - 'backend/**'
             - 'deploy/**'
             - '.github/workflows/deploy.yml'
@@ -60,17 +62,18 @@ jobs:
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionIdsByQuery \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name sendEmail \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
             - name: Deploy getSessionIdsByQuery
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -112,6 +115,57 @@ jobs:
                   function_name: sendEmail
                   zip_file: backend/sendEmail.zip
 
+    deploy-session-export-lambdas:
+        needs: migrate-database
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version-file: 'backend/go.mod'
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
+            - name: Build and zip
+              run: |
+                  cd backend/
+                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/saveSessionExport
+                  zip saveSessionExport.zip saveSessionExport
+                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/sendEmail
+                  zip sendEmail.zip sendEmail
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Update Lambda secrets
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+              run: |
+                  aws lambda update-function-configuration --function-name saveSessionExport \
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name sendSessionExportEmail \
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+            - name: Deploy saveSessionExport
+              uses: appleboy/lambda-action@v0.1.9
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: saveSessionExport
+                  zip_file: backend/saveSessionExport.zip
+            - name: Deploy sendSessionExportEmail
+              uses: appleboy/lambda-action@v0.1.9
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: sendSessionExportEmail
+                  zip_file: backend/sendEmail.zip
+
     deploy-digest-lambdas:
         needs: migrate-database
         runs-on: ubuntu-latest
@@ -142,13 +196,14 @@ jobs:
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getProjectIds \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name getDigestData \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name sendDigestEmails \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
             - name: Deploy getProjectIds
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -174,6 +229,96 @@ jobs:
                   function_name: sendDigestEmails
                   zip_file: backend/sendDigestEmails.zip
 
+    deploy-session-insights-lambdas:
+        needs: migrate-database
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version-file: 'backend/go.mod'
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
+            - name: Build and zip
+              run: |
+                  cd backend/
+                  CGO_ENABLED=0 go build ./lambda-functions/sessionInsights/getSessionInsightsData
+                  zip getSessionInsightsData.zip getSessionInsightsData
+                  CGO_ENABLED=0 go build ./lambda-functions/sessionInsights/sendSessionInsightsEmails
+                  zip sendSessionInsightsEmails.zip sendSessionInsightsEmails
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Update Lambda secrets
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+              run: |
+                  aws lambda update-function-configuration --function-name getSessionInsightsData \
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name sendSessionInsightsEmails \
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+            - name: Deploy getSessionInsightsData
+              uses: appleboy/lambda-action@v0.1.9
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: getSessionInsightsData
+                  zip_file: backend/getSessionInsightsData.zip
+            - name: Deploy sendSessionInsightsEmails
+              uses: appleboy/lambda-action@v0.1.9
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: sendSessionInsightsEmails
+                  zip_file: backend/sendSessionInsightsEmails.zip
+
+    deploy-user-journey-lambdas:
+        needs: migrate-database
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version-file: 'backend/go.mod'
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
+            - name: Build and zip
+              run: |
+                  cd backend/
+                  CGO_ENABLED=0 go build ./lambda-functions/journeys/updateNormalnessScores
+                  zip updateNormalnessScores.zip updateNormalnessScores
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Update Lambda secrets
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+              run: |
+                  aws lambda update-function-configuration --function-name updateNormalnessScores \
+                    --environment "$(doppler secrets download --no-file | jq ". + {REACT_APP_COMMIT_SHA: \"$REACT_APP_COMMIT_SHA\" }" | jq '{Variables: .}')"
+            - name: Deploy updateNormalnessScores
+              uses: appleboy/lambda-action@v0.1.9
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: updateNormalnessScores
+                  zip_file: backend/updateNormalnessScores.zip
+
     deploy_backend:
         needs: migrate-database
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
@@ -197,7 +342,7 @@ jobs:
                   ECR_REPOSITORY: highlight-production-ecr-repo
                   IMAGE_TAG: ${{ github.sha }}
               run: |
-                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
+                  docker buildx build --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
 
             # Edit and deploy private-graph
@@ -270,19 +415,61 @@ jobs:
                   task-definition: ${{ steps.image-log-alerts.outputs.task-definition }}
                   service: log-alerts-service
                   cluster: highlight-production-cluster
-            # Edit and deploy public worker
-            - name: Replace image label for public worker service
-              id: image-public-worker
+            # Edit and deploy public worker (main topic)
+            - name: Replace image label for public worker (main topic) service
+              id: image-public-worker-main
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
-                  task-definition: deploy/public-worker-service.json
+                  task-definition: deploy/public-worker-main-service.json
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS public worker service
+            - name: Deploy to Amazon ECS public worker (main topic) service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
-                  task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
-                  service: public-worker-service
+                  task-definition: ${{ steps.image-public-worker-main.outputs.task-definition }}
+                  service: public-worker-main-service
+                  cluster: highlight-production-cluster
+            # Edit and deploy public worker (batched topic)
+            - name: Replace image label for public worker (batched topic) service
+              id: image-public-worker-batched
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/public-worker-batched-service.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker (batched topic) service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-public-worker-batched.outputs.task-definition }}
+                  service: public-worker-batched-service
+                  cluster: highlight-production-cluster
+            # Edit and deploy public worker (datasync topic)
+            - name: Replace image label for public worker (datasync topic) service
+              id: image-public-worker-datasync
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/public-worker-datasync-service.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker (datasync topic) service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-public-worker-datasync.outputs.task-definition }}
+                  service: public-worker-datasync-service
+                  cluster: highlight-production-cluster
+            # Edit and deploy public worker (traces topic)
+            - name: Replace image label for public worker (traces topic) service
+              id: image-public-worker-traces
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/public-worker-traces-service.json
+                  container-name: highlight-backend
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS public worker (traces topic) service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-public-worker-traces.outputs.task-definition }}
+                  service: public-worker-traces-service
                   cluster: highlight-production-cluster
 
     deploy_opentelemetry_collector:

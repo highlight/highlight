@@ -2,7 +2,13 @@ package highlight
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"net/url"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -12,9 +18,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -29,6 +32,7 @@ const ProjectIDAttribute = "highlight.project_id"
 const SessionIDAttribute = "highlight.session_id"
 const RequestIDAttribute = "highlight.trace_id"
 const SourceAttribute = "highlight.source"
+const TraceTypeAttribute = "highlight.type"
 
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
@@ -38,30 +42,9 @@ const MetricEvent = "metric"
 const MetricEventName = "metric.name"
 const MetricEventValue = "metric.value"
 
-var InternalAttributePrefixes = []string{
-	DeprecatedProjectIDAttribute,
-	DeprecatedSessionIDAttribute,
-	DeprecatedRequestIDAttribute,
-	DeprecatedSourceAttribute,
-	ProjectIDAttribute,
-	SessionIDAttribute,
-	RequestIDAttribute,
-	SourceAttribute,
-	LogMessageAttribute,
-	LogSeverityAttribute,
-	// exception should be parsed as structured and not included as part of log attributes
-	"exception.message",
-	"exception.stacktrace",
-	"fluent.",
-}
+type TraceType string
 
-var BackendOnlyAttributePrefixes = []string{
-	"container.",
-	"host.",
-	"os.",
-	"process.",
-	"exception.",
-}
+const TraceTypeNetworkRequest TraceType = "http.request"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
@@ -82,13 +65,14 @@ var (
 
 func StartOTLP() (*OTLP, error) {
 	var options []otlptracehttp.Option
-	if strings.HasPrefix(otlpEndpoint, "http://") {
-		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[7:]), otlptracehttp.WithInsecure())
-	} else if strings.HasPrefix(otlpEndpoint, "https://") {
-		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[8:]))
+	if strings.HasPrefix(conf.otlpEndpoint, "http://") {
+		options = append(options, otlptracehttp.WithEndpoint(conf.otlpEndpoint[7:]), otlptracehttp.WithInsecure())
+	} else if strings.HasPrefix(conf.otlpEndpoint, "https://") {
+		options = append(options, otlptracehttp.WithEndpoint(conf.otlpEndpoint[8:]))
 	} else {
-		logger.Errorf("an invalid otlp endpoint was configured %s", otlpEndpoint)
+		logger.Errorf("an invalid otlp endpoint was configured %s", conf.otlpEndpoint)
 	}
+	options = append(options, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 	client := otlptracehttp.NewClient(options...)
 	exporter, err := otlptrace.New(context.Background(), client)
 	if err != nil {
@@ -100,6 +84,7 @@ func StartOTLP() (*OTLP, error) {
 		resource.WithContainer(),
 		resource.WithOS(),
 		resource.WithProcess(),
+		resource.WithAttributes(conf.resourceAttributes...),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
@@ -107,7 +92,11 @@ func StartOTLP() (*OTLP, error) {
 	h := &OTLP{
 		tracerProvider: sdktrace.NewTracerProvider(
 			sdktrace.WithSampler(sdktrace.AlwaysSample()),
-			sdktrace.WithBatcher(exporter),
+			sdktrace.WithBatcher(
+				exporter,
+				sdktrace.WithBatchTimeout(1000*time.Millisecond),
+				sdktrace.WithMaxExportBatchSize(128),
+				sdktrace.WithMaxQueueSize(1024)),
 			sdktrace.WithResource(resources),
 		),
 	}
@@ -116,23 +105,60 @@ func StartOTLP() (*OTLP, error) {
 }
 
 func (o *OTLP) shutdown() {
-	err := o.tracerProvider.Shutdown(context.Background())
+	err := o.tracerProvider.ForceFlush(context.Background())
+	if err != nil {
+		logger.Error(err)
+	}
+	err = o.tracerProvider.Shutdown(context.Background())
 	if err != nil {
 		logger.Error(err)
 	}
 }
 
-func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	sessionID, requestID, _ := validateRequest(ctx)
-	ctx, span := tracer.Start(ctx, name)
-	attrs := []attribute.KeyValue{
-		attribute.String(ProjectIDAttribute, projectID),
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if requestID != "" {
+		data, _ := base64.StdEncoding.DecodeString(requestID)
+		hex := fmt.Sprintf("%032x", data)
+		tid, _ := trace.TraceIDFromHex(hex)
+		spanCtx = spanCtx.WithTraceID(tid)
+	}
+	ctx, span := tracer.Start(trace.ContextWithSpanContext(ctx, spanCtx), name, trace.WithTimestamp(t))
+	span.SetAttributes(
+		attribute.String(ProjectIDAttribute, conf.projectID),
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID),
-	}
-	attrs = append(attrs, tags...)
-	span.SetAttributes(attrs...)
+	)
+	// prioritize values passed in tags for project, session, request ids
+	span.SetAttributes(tags...)
 	return span, ctx
+}
+
+func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	return StartTraceWithTimestamp(ctx, name, time.Now(), tags...)
+}
+
+func StartTraceWithoutResourceAttributes(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	resourceAttributes := []attribute.KeyValue{
+		semconv.ServiceNameKey.String(""),
+		semconv.ServiceVersionKey.String(""),
+		semconv.ContainerIDKey.String(""),
+		semconv.HostNameKey.String(""),
+		semconv.OSDescriptionKey.String(""),
+		semconv.OSTypeKey.String(""),
+		semconv.ProcessExecutableNameKey.String(""),
+		semconv.ProcessExecutablePathKey.String(""),
+		semconv.ProcessOwnerKey.String(""),
+		semconv.ProcessPIDKey.String(""),
+		semconv.ProcessRuntimeDescriptionKey.String(""),
+		semconv.ProcessRuntimeNameKey.String(""),
+		semconv.ProcessRuntimeVersionKey.String(""),
+	}
+
+	attrs := append(resourceAttributes, tags...)
+
+	return StartTrace(ctx, name, attrs...)
 }
 
 func EndTrace(span trace.Span) {
@@ -147,8 +173,7 @@ func EndTrace(span trace.Span) {
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
 	span, _ := StartTrace(ctx, "highlight-ctx", tags...)
 	defer EndTrace(span)
-	tags = append(tags, attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value))
-	span.AddEvent(MetricEvent, trace.WithAttributes(tags...))
+	span.AddEvent(MetricEvent, trace.WithAttributes(attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value)))
 }
 
 // RecordError processes `err` to be recorded as a part of the session or network request.
@@ -168,7 +193,8 @@ func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
 	}
 	span.SetAttributes(tags...)
 	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace
-	if stackErr, ok := err.(ErrorWithStack); ok {
+	var stackErr ErrorWithStack
+	if errors.As(err, &stackErr) {
 		RecordSpanErrorWithStack(span, stackErr)
 	} else {
 		span.RecordError(err, trace.WithStackTrace(true))

@@ -4,6 +4,7 @@ import { FullstorySpec } from './fullstory'
 import { HotjarSpec } from './hotjar'
 import { InspectletSpec } from './inspectlet'
 import { LogRocketSpec } from './logrocket'
+import { SentrySpec } from './sentry'
 import { SmartlookSpec } from './smartlook'
 
 export type ComparisonTableRow = {
@@ -42,4 +43,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-smartlook': SmartlookSpec,
 	'highlight-vs-inspectlet': InspectletSpec,
 	'highlight-vs-datadog': DatadogSpec,
+	'highlight-vs-sentry': SentrySpec,
 }

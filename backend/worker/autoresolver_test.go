@@ -6,9 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
+
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
@@ -26,7 +30,7 @@ func createAutoResolver() *AutoResolver {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store := store.NewStore(db, &opensearch.Client{})
+	store := store.NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})
 	return NewAutoResolver(store, db)
 }
 
@@ -34,11 +38,11 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 	autoResolver := createAutoResolver()
 	db := autoResolver.db
 
-	util.RunTestWithDBWipe(t, "AutoResolveStaleErrors", db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, db, func(t *testing.T) {
 		project := model.Project{}
 		db.Create(&project)
 
-		_, err := autoResolver.store.UpdateProjectFilterSettings(project, store.UpdateProjectFilterSettingsParams{
+		_, err := autoResolver.store.UpdateProjectFilterSettings(context.TODO(), project.ID, store.UpdateProjectFilterSettingsParams{
 			AutoResolveStaleErrorsDayInterval: ptr.Int(1),
 		})
 		assert.NoError(t, err)

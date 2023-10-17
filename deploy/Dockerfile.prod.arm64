@@ -1,4 +1,6 @@
 FROM golang:alpine as backend-builder
+ARG REACT_APP_COMMIT_SHA
+ENV REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
 RUN apk update && apk add git && apk add build-base
 RUN mkdir /build
 WORKDIR /build

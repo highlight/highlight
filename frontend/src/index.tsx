@@ -1,15 +1,11 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
-import './index.scss'
+import './index.css'
 import './style/tailwind.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
-import {
-	AuthContextProvider,
-	AuthRole,
-	isAuthLoading,
-} from '@authentication/AuthContext'
+import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
 import {
@@ -27,15 +23,13 @@ import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
-import * as Sentry from '@sentry/react'
-import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
 import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { showIntercom } from '@util/window'
+import { loadIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -52,17 +46,39 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
+import { AUTH_MODE, PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
+import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
 document.body.className = 'highlight-light-theme'
 
+const determinePrivacySetting = () => {
+	const value = Math.random() * 10
+	if (value < 1) {
+		return 'strict' // 10%
+	} else if (value < 4) {
+		return 'none' // 30%
+	} else {
+		return 'default' // 60%
+	}
+}
+
 analytics.initialize()
 const dev = import.meta.env.DEV
+const clientDebugKey = 'highlight-client-debug'
+const clientDebug = window.localStorage.getItem(clientDebugKey)
+if (!clientDebug) {
+	window.localStorage.setItem(clientDebugKey, 'false')
+}
+const shouldDebugLog = clientDebug === 'true'
 const options: HighlightOptions = {
-	debug: { clientInteractions: true, domRecording: true },
+	debug: shouldDebugLog
+		? { clientInteractions: true, domRecording: true }
+		: undefined,
+	backendUrl: PUBLIC_GRAPH_URI,
 	manualStart: true,
-	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
+	privacySetting: determinePrivacySetting(),
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
@@ -76,6 +92,7 @@ const options: HighlightOptions = {
 		urlBlocklist: [
 			'network-resources-compressed',
 			'session-contents-compressed',
+			'web-socket-events-compressed',
 		],
 	},
 	tracingOrigins: [
@@ -88,6 +105,9 @@ const options: HighlightOptions = {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
 		},
+		mixpanel: {
+			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
+		},
 	},
 	enableSegmentIntegration: true,
 	enableCanvasRecording: true,
@@ -99,12 +119,12 @@ const options: HighlightOptions = {
 	inlineStylesheet: true,
 	inlineImages: true,
 	sessionShortcut: 'alt+1,command+`,alt+esc',
-	version: import.meta.env.REACT_APP_COMMIT_SHA || undefined,
+	version: import.meta.env.REACT_APP_COMMIT_SHA ?? '1.0.0',
+	serviceName: 'frontend',
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 
@@ -118,26 +138,29 @@ if (dev) {
 	if (favicon) {
 		favicon.href = `/favicon-localhost.ico`
 	}
-} else if (window.location.href.includes('onrender')) {
+} else if (
+	window.location.href.includes('onrender') ||
+	window.location.href.includes('preview')
+) {
 	if (favicon) {
 		favicon.href = `/favicon-pr.ico`
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
+	options.scriptUrl = `https://static.highlight.io/dev-${
+		import.meta.env.REACT_APP_COMMIT_SHA
+	}/index.js`
+}
+if (import.meta.env.CYPRESS_CLIENT_VERSION) {
+	options.scriptUrl = `https://static.highlight.io/${
+		import.meta.env.CYPRESS_CLIENT_VERSION
+	}/index.js`
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
-	showIntercom({ hideMessage: true })
-
-	if (!dev) {
-		Sentry.init({
-			dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
-			integrations: [new BrowserTracing()],
-			tracesSampleRate: 1.0,
-		})
-	}
+	loadIntercom()
 }
 
 showHiringMessage()
@@ -261,7 +284,16 @@ const AuthenticationRoleRouter = () => {
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
 	const firebaseInitialized = useRef(false)
+	const isAuthLoading = authRole === AuthRole.LOADING
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
+
+	useEffect(() => {
+		const hasPasswordAuthorization = sessionStorage.getItem('passwordToken')
+		if (AUTH_MODE === 'password' && !hasPasswordAuthorization) {
+			auth.signOut()
+			navigate('/sign_in')
+		}
+	}, [navigate])
 
 	useEffect(() => {
 		if (adminData && user) {
@@ -331,7 +363,7 @@ const AuthenticationRoleRouter = () => {
 
 	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
-		if (!adminData || !projectId || isAuthLoading(authRole)) {
+		if (!adminData || !projectId || isAuthLoading) {
 			return
 		}
 
@@ -364,7 +396,7 @@ const AuthenticationRoleRouter = () => {
 				role: authRole,
 				admin: isLoggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
-				isAuthLoading: isAuthLoading(authRole),
+				isAuthLoading,
 				isLoggedIn,
 				isHighlightAdmin:
 					onlyAllowHighlightStaff(adminData) && enableStaffView,
@@ -381,6 +413,7 @@ const AuthenticationRoleRouter = () => {
 					analytics.track('Sign out')
 					setUser(null)
 					setAuthRole(AuthRole.UNAUTHENTICATED)
+					authRedirect.clear()
 				},
 			}}
 		>

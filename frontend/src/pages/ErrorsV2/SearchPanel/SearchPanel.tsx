@@ -2,14 +2,21 @@ import {
 	EmptySearchResults,
 	SearchResultsKind,
 } from '@components/EmptySearchResults/EmptySearchResults'
+import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
-	START_PAGE,
 } from '@components/SearchPagination/SearchPagination'
-import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
-import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import {
+	useGetErrorGroupsClickhouseLazyQuery,
+	useGetErrorGroupsClickhouseQuery,
+} from '@graph/hooks'
+import {
+	GetErrorGroupsClickhouseQuery,
+	GetErrorGroupsClickhouseQueryVariables,
+} from '@graph/operations'
+import { ClickhouseQuery, ErrorGroup, Maybe, ProductType } from '@graph/schemas'
+import { Box, getNow } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
@@ -18,8 +25,10 @@ import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfigur
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
+import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import moment from 'moment/moment'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -30,6 +39,7 @@ const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageConfiguration()
 	const { showBanner } = useGlobalContext()
 	const {
+		searchQuery,
 		backendSearchQuery,
 		page,
 		setPage,
@@ -38,14 +48,11 @@ const SearchPanel = () => {
 		setSearchResultsCount,
 		setSearchResultSecureIds,
 	} = useErrorSearchContext()
-
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
-	const useCachedErrors = searchResultsCount > PAGE_SIZE
-
-	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
+	const { data: fetchedData, loading } = useGetErrorGroupsClickhouseQuery({
 		variables: {
-			query: backendSearchQuery?.searchQuery || '',
+			query: JSON.parse(searchQuery),
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId!,
@@ -57,21 +64,71 @@ const SearchPanel = () => {
 		},
 		onCompleted: (r) => {
 			setSearchResultsLoading(false)
-			const results = r?.error_groups_opensearch
+			const results = r?.error_groups_clickhouse
 			setSearchResultsCount(results.totalCount)
 			setSearchResultSecureIds(
 				results.error_groups.map((eg) => eg.secure_id),
 			)
 		},
 		skip: !backendSearchQuery || !projectId,
-		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
+		fetchPolicy: 'network-only',
+	})
+
+	const [moreDataQuery] = useGetErrorGroupsClickhouseLazyQuery({
+		fetchPolicy: 'network-only',
+	})
+
+	const { numMore: moreErrors, reset: resetMoreErrors } = usePollQuery<
+		GetErrorGroupsClickhouseQuery,
+		GetErrorGroupsClickhouseQueryVariables
+	>({
+		variableFn: useCallback(() => {
+			const query = JSON.parse(backendSearchQuery?.searchQuery || '')
+			const lte =
+				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
+					?.should[0]?.range?.timestamp?.lte
+			// if the query end date is close to 'now',
+			// then we are using a default relative time range.
+			// otherwise, we are using a custom date range and should not poll
+			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
+				return
+			}
+			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
+			const newRules = clickhouseQuery.rules.filter(
+				(r) => r[0] !== 'error-field_timestamp',
+			)
+			const startDate = new Date(Date.parse(lte))
+			const endDate = new Date(Date.parse(lte) + 7 * 24 * 60 * 60 * 1000)
+			newRules.push([
+				'error-field_timestamp',
+				'between_date',
+				startDate.toISOString() + '_' + endDate.toISOString(),
+			])
+			clickhouseQuery.rules = newRules
+
+			return {
+				query: clickhouseQuery,
+				count: PAGE_SIZE,
+				page: 1,
+				project_id: projectId!,
+			}
+		}, [backendSearchQuery?.searchQuery, projectId, searchQuery]),
+		moreDataQuery,
+		getResultCount: useCallback(
+			(result) => result?.data?.error_groups_clickhouse.totalCount,
+			[],
+		),
 	})
 
 	useEffect(() => {
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
 
-	const showHistogram = loading || searchResultsCount > 0
+	useEffect(() => {
+		setSearchResultsCount(undefined)
+	}, [backendSearchQuery?.searchQuery, setSearchResultsCount])
+
+	const showHistogram = searchResultsCount !== 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
 
@@ -88,7 +145,7 @@ const SearchPanel = () => {
 		}
 	}, [loading])
 
-	const errorGroups = fetchedData?.error_groups_opensearch
+	const errorGroups = fetchedData?.error_groups_clickhouse
 	return (
 		<Box
 			display="flex"
@@ -108,7 +165,13 @@ const SearchPanel = () => {
 					<ErrorFeedHistogram />
 				</Box>
 			)}
+			<AdditionalFeedResults
+				more={moreErrors}
+				type="errors"
+				onClick={resetMoreErrors}
+			/>
 			<Box
+				paddingTop="4"
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
@@ -126,13 +189,7 @@ const SearchPanel = () => {
 						) : (
 							gqlSanitize(errorGroups).error_groups.map(
 								(eg: Maybe<ErrorGroup>, ind: number) => (
-									<ErrorFeedCard
-										key={ind}
-										errorGroup={eg}
-										urlParams={`?page=${
-											page || START_PAGE
-										}`}
-									/>
+									<ErrorFeedCard key={ind} errorGroup={eg} />
 								),
 							)
 						)}
@@ -142,7 +199,7 @@ const SearchPanel = () => {
 			<SearchPagination
 				page={page}
 				setPage={setPage}
-				totalCount={searchResultsCount}
+				totalCount={searchResultsCount ?? 0}
 				pageSize={PAGE_SIZE}
 			/>
 		</Box>

@@ -1,6 +1,7 @@
 import { keepsLines } from '@highlight-run/ui'
 import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
@@ -15,39 +16,35 @@ export const errorRowVariants = recipe({
 	base: {
 		borderRadius: 6,
 		color: colors.n11,
+		cursor: 'pointer',
 		display: 'grid',
 		gridTemplateColumns: '3fr 1fr auto 100px 20px',
 		gap: 8,
-		marginBottom: 1,
 		padding: 8,
 		selectors: {
 			'&:hover': {
-				backgroundColor: colors.n4,
-				borderBottom: `1px solid ${colors.n6}`,
-				boxShadow: shadows.grey,
-				marginBottom: 0,
+				backgroundColor: themeVars.interactive.overlay.secondary.hover,
 			},
 		},
 	},
 	variants: {
 		current: {
+			true: {},
+			false: {},
+		},
+
+		selected: {
 			true: {
-				backgroundColor: colors.n4,
-				borderBottom: `1px solid ${colors.n6}`,
+				backgroundColor:
+					themeVars.interactive.overlay.secondary.pressed,
 				boxShadow: shadows.grey,
-				marginBottom: 0,
 			},
 			false: {},
 		},
 	},
 })
 
-export const errorBody = style({
-	alignItems: 'center',
-	display: 'flex',
-	wordWrap: 'break-word',
-})
-
-export const singleLine = style({
+export const cellContent = style({
+	color: themeVars.interactive.fill.secondary.content.onEnabled,
 	...keepsLines(1),
 })

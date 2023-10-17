@@ -8,10 +8,11 @@ import {
 	Callout,
 	Form,
 	Heading,
-	IconSolidSparkles,
+	IconSolidGithub,
+	IconSolidGoogle,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -33,14 +34,28 @@ export const SignUp: React.FC = () => {
 	const { signIn } = useAuthContext()
 	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
-	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			email: initialEmail,
 			password: '',
 		},
 	})
+	const email = formStore.useValue('email')
+	const loading = formStore.useState('submitting')
+	formStore.useSubmit(async (formState) => {
+		auth.createUserWithEmailAndPassword(
+			formState.values.email,
+			formState.values.password,
+		)
+			.then(async (credential) => {
+				handleSubmit(credential)
+			})
+			.catch((error) => {
+				setError(error.message || error.toString())
+			})
+	})
+
 	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
@@ -52,7 +67,7 @@ export const SignUp: React.FC = () => {
 				data?.workspace_for_invite_link.invitee_email &&
 				!initialEmail
 			) {
-				formState.setValue(
+				formStore.setValue(
 					'email',
 					data?.workspace_for_invite_link.invitee_email,
 				)
@@ -69,6 +84,10 @@ export const SignUp: React.FC = () => {
 				})
 			}
 
+			if (!user?.emailVerified) {
+				auth.currentUser?.sendEmailVerification()
+			}
+
 			await createAdmin()
 			message.success('Account created succesfully!')
 
@@ -78,29 +97,25 @@ export const SignUp: React.FC = () => {
 		[createAdmin, navigate, signIn],
 	)
 
+	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
+		auth.signInWithPopup(provider)
+			.then(handleSubmit)
+			.catch((error: firebase.auth.MultiFactorError) => {
+				let errorMessage = error.message
+
+				if (error.code === 'auth/popup-closed-by-user') {
+					errorMessage =
+						'Pop-up closed without successfully authenticating. Please try again.'
+				}
+
+				setError(errorMessage)
+			})
+	}
+
 	useEffect(() => analytics.page(), [])
 
 	return (
-		<Form
-			state={formState}
-			resetOnSubmit={false}
-			onSubmit={() => {
-				setLoading(true)
-
-				auth.createUserWithEmailAndPassword(
-					formState.values.email,
-					formState.values.password,
-				)
-					.then(async (credential) => {
-						auth.currentUser?.sendEmailVerification()
-						handleSubmit(credential)
-					})
-					.catch((error) => {
-						setError(error.message || error.toString())
-						setLoading(false)
-					})
-			}}
-		>
+		<Form store={formStore} resetOnSubmit={false}>
 			<AuthHeader>
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
@@ -112,10 +127,7 @@ export const SignUp: React.FC = () => {
 						</Heading>
 						<Text>
 							Have an account?{' '}
-							<Link
-								to={SIGN_IN_ROUTE}
-								state={{ email: formState.values.email }}
-							>
+							<Link to={SIGN_IN_ROUTE} state={{ email }}>
 								Sign in
 							</Link>
 							.
@@ -126,14 +138,14 @@ export const SignUp: React.FC = () => {
 			<AuthBody>
 				<Stack gap="12">
 					<Form.Input
-						name={formState.names.email}
+						name={formStore.names.email}
 						label="Email"
 						type="email"
 						autoFocus
 						autoComplete="email"
 					/>
 					<Form.Input
-						name={formState.names.password}
+						name={formStore.names.password}
 						label="Password"
 						type="password"
 						autoComplete="new-password"
@@ -169,26 +181,26 @@ export const SignUp: React.FC = () => {
 						type="button"
 						trackingId="sign-up-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!)
-								.then(handleSubmit)
-								.catch(
-									(error: firebase.auth.MultiFactorError) => {
-										let errorMessage = error.message
-
-										if (
-											error.code ===
-											'auth/popup-closed-by-user'
-										) {
-											errorMessage =
-												'Pop-up closed without successfully authenticating. Please try again.'
-										}
-
-										setError(errorMessage)
-									},
-								)
+							handleExternalAuthClick(auth.googleProvider!)
 						}}
 					>
-						Sign up with Google <IconSolidSparkles />
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGoogle />
+							Sign up with Google
+						</Box>
+					</Button>
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-up-with-github"
+						onClick={() =>
+							handleExternalAuthClick(auth.githubProvider!)
+						}
+					>
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGithub />
+							Sign up with Github
+						</Box>
 					</Button>
 				</Stack>
 			</AuthFooter>

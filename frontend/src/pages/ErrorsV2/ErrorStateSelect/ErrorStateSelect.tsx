@@ -13,7 +13,6 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
-import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
@@ -49,6 +48,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 }) => {
 	const menuRef = React.useRef<HTMLDivElement | null>(null)
 	const menu = useMenu()
+	const mState = menu.getState()
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
@@ -57,9 +57,8 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const [updateErrorGroupState] = useUpdateErrorGroupStateMutation({
 		refetchQueries: [
 			namedOperations.Query.GetErrorGroup,
-			namedOperations.Query.GetErrorGroupsOpenSearch,
+			namedOperations.Query.GetErrorGroupsClickhouse,
 		],
-		onQueryUpdated: delayedRefetch,
 		awaitRefetchQueries: true,
 	})
 
@@ -85,13 +84,13 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				variables: {
 					secure_id: error_secure_id!,
 					state: newState,
-					snoozed_until: newSnoozedUntil,
+					snoozed_until: newSnoozedUntil ?? null,
 				},
 				optimisticResponse: {
 					updateErrorGroupState: {
 						secure_id: error_secure_id!,
 						state: newState,
-						snoozed_until: newSnoozedUntil,
+						snoozed_until: newSnoozedUntil ?? null,
 						__typename: 'ErrorGroup',
 					},
 				},
@@ -135,7 +134,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				setTimeout(() => {
 					setMenuState(MenuState.Snooze)
 					menu.setOpen(true)
-					menu.baseRef.current?.focus()
+					mState.baseElement?.focus()
 				}, 300)
 			} else {
 				const castedAction = action.toUpperCase() as ErrorState
@@ -160,18 +159,18 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 
 	// Reset menu state on close.
 	useEffect(() => {
-		if (!menu.open) {
+		if (!mState.open) {
 			setMenuState(MenuState.Default)
 		}
-	}, [menu.open])
+	}, [mState.open])
 
 	useHotkeys(
 		'e',
 		() => {
-			menu.setOpen(!menu.open)
-			menu.baseRef.current?.focus()
+			menu.setOpen(!mState.open)
+			mState.baseElement?.focus()
 		},
-		[menu.open, error_secure_id],
+		[mState.open, error_secure_id],
 	)
 
 	return (

@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import ReactNiceAvatar, { genConfig } from 'react-nice-avatar'
 
 import { generateRandomColor } from '../../util/color'
-import styles from './Avatar.module.scss'
+import styles from './Avatar.module.css'
 
 const { userAvatar, userAvatarBorder, userAvatarText, userAvatarWrapper } =
 	styles

@@ -43,7 +43,7 @@ const minDate = moment(defaultDataTimeRange.end_date)
 
 const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
 	const [customDateRange, setCustomDateRange] = useState<Date[]>([
-		presets[4].startDate,
+		presets[5].startDate,
 		moment().toDate(),
 	])
 	const { setTimeRange } = useDataTimeRange()

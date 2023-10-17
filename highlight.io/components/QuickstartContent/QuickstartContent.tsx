@@ -1,9 +1,11 @@
 import { siteUrl } from '../../utils/urls'
 import { GoChiContent } from './backend/go/chi'
+import { GoEchoContent } from './backend/go/echo'
 import { GoFiberContent } from './backend/go/fiber'
 import { GoGinContent } from './backend/go/gin'
 import { GoGqlgenContent } from './backend/go/go-gqlgen'
 import { GoMuxContent } from './backend/go/mux'
+import { JavaOtherContent } from './backend/java/other'
 import { JSApolloContent } from './backend/js/apollo'
 import { JSCloudflareContent } from './backend/js/cloudflare'
 import { JSExpressContent } from './backend/js/express'
@@ -25,6 +27,7 @@ import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
 import { OtherContext } from './frontend/other'
 import { ReactContent } from './frontend/react'
+import { RemixContent } from './frontend/remix'
 import { SvelteKitContent } from './frontend/sveltekit'
 import { VueContent } from './frontend/vue'
 import { GoFiberLogContent } from './logging/go/fiber'
@@ -34,17 +37,25 @@ import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
 
+import { JSAWSLambdaContent } from './backend/js/aws-lambda'
 import { DockerContent } from './logging/docker'
 import { FileContent } from './logging/file'
 import { FluentForwardContent } from './logging/fluentd'
+import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
+import { HostingRenderLogContent } from './logging/hosting/render'
+import { JavaOtherLogContent } from './logging/java/other'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
+import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
+import { SyslogContent } from './logging/syslog'
+import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { GoTracesContent } from './traces/go/go'
 
 export type QuickStartOptions = {
 	title: string
@@ -65,6 +76,7 @@ export type QuickStartCodeBlock = {
 	key?: string
 	text: string
 	language: string
+	copy?: string
 }
 
 export type QuickStartStep = {
@@ -77,6 +89,7 @@ export type QuickStartStep = {
 export enum QuickStartType {
 	Angular = 'angular',
 	React = 'react',
+	Remix = 'remix',
 	SvelteKit = 'svelte-kit',
 	Next = 'next',
 	Vue = 'vue',
@@ -89,31 +102,39 @@ export enum QuickStartType {
 	PythonFastAPI = 'fastapi',
 	PythonLoguru = 'loguru',
 	PythonOther = 'other',
-	PythonAWSFn = 'aws-lambda',
+	PythonAWSFn = 'aws-lambda-python',
 	PythonAzureFn = 'azure-functions',
 	PythonGCPFn = 'google-cloud-functions',
 	GoGqlgen = 'gqlgen',
 	GoFiber = 'fiber',
 	GoChi = 'chi',
+	GoEcho = 'echo',
 	GoMux = 'mux',
 	GoGin = 'gin',
 	GoLogrus = 'logrus',
 	GoOther = 'other',
 	JSApollo = 'apollo',
+	JSAWSFn = 'aws-lambda-node',
 	JSCloudflare = 'cloudflare',
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
 	JSNestjs = 'nestjs',
 	JSWinston = 'winston',
+	JSPino = 'pino',
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
+	Syslog = 'syslog',
+	Systemd = 'systemd',
 	FluentForward = 'fluent-forward',
 	Docker = 'docker',
 	File = 'file',
 	RubyOther = 'other',
 	RubyRails = 'rails',
+	JavaOther = 'other',
 	HostingVercel = 'vercel',
+	HostingFlyIO = 'fly-io',
+	HostingRender = 'render',
 }
 
 export const quickStartContent = {
@@ -129,6 +150,7 @@ export const quickStartContent = {
 			[QuickStartType.React]: ReactContent,
 			[QuickStartType.Angular]: AngularContent,
 			[QuickStartType.Next]: NextContent,
+			[QuickStartType.Remix]: RemixContent,
 			[QuickStartType.Vue]: VueContent,
 			[QuickStartType.SvelteKit]: SvelteKitContent,
 			[QuickStartType.Gatsby]: GatsbyContent,
@@ -159,6 +181,7 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoGqlgen]: GoGqlgenContent,
 			[QuickStartType.GoFiber]: GoFiberContent,
+			[QuickStartType.GoEcho]: GoEchoContent,
 			[QuickStartType.GoChi]: GoChiContent,
 			[QuickStartType.GoMux]: GoMuxContent,
 			[QuickStartType.GoGin]: GoGinContent,
@@ -169,6 +192,7 @@ export const quickStartContent = {
 				'Select your JavaScript framework to install error monitoring for your application.',
 			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSApollo]: JSApolloContent,
+			[QuickStartType.JSAWSFn]: JSAWSLambdaContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareContent,
 			[QuickStartType.JSExpress]: JSExpressContent,
 			[QuickStartType.JSFirebase]: JSFirebaseContent,
@@ -183,6 +207,13 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
+		},
+		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install error monitoring for your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			[QuickStartType.JavaOther]: JavaOtherContent,
 		},
 	},
 	'backend-logging': {
@@ -214,13 +245,8 @@ export const quickStartContent = {
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogContent,
+			[QuickStartType.JSPino]: JSPinoHTTPJSONLogContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
-		},
-		http: {
-			title: 'HTTPS curl',
-			subtitle:
-				'Get started with logging in your application via HTTP or OTLP.',
-			[QuickStartType.HTTPOTLP]: HTTPContent,
 		},
 		other: {
 			title: 'Infrastructure / Other',
@@ -229,6 +255,9 @@ export const quickStartContent = {
 			[QuickStartType.FluentForward]: FluentForwardContent,
 			[QuickStartType.File]: FileContent,
 			[QuickStartType.Docker]: DockerContent,
+			[QuickStartType.HTTPOTLP]: HTTPContent,
+			[QuickStartType.Syslog]: SyslogContent,
+			[QuickStartType.Systemd]: SystemdContent,
 		},
 		ruby: {
 			title: 'Ruby',
@@ -238,11 +267,31 @@ export const quickStartContent = {
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
+		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			[QuickStartType.JavaOther]: JavaOtherLogContent,
+		},
 		hosting: {
 			title: 'Cloud Hosting Provider',
 			subtitle:
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
+			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
+			[QuickStartType.HostingRender]: HostingRenderLogContent,
+		},
+	},
+	traces: {
+		title: 'Select your language',
+		subtitle:
+			'Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).',
+		go: {
+			title: 'Go',
+			subtitle: 'Install tracing in your Go application.',
+			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			[QuickStartType.GoOther]: GoTracesContent,
 		},
 	},
 	other: {

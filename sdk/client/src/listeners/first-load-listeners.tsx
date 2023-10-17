@@ -7,7 +7,11 @@ import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
 import { HighlightClassOptions } from '../index'
 import stringify from 'json-stringify-safe'
 import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
-import { RequestResponsePair } from './network-listener/utils/models'
+import {
+	RequestResponsePair,
+	WebSocketEvent,
+	WebSocketRequest,
+} from './network-listener/utils/models'
 import { NetworkListener } from './network-listener/network-listener'
 import {
 	matchPerformanceTimingsWithRequestResponsePair,
@@ -31,6 +35,9 @@ export class FirstLoadListeners {
 	enableRecordingNetworkContents!: boolean
 	xhrNetworkContents!: RequestResponsePair[]
 	fetchNetworkContents!: RequestResponsePair[]
+	disableRecordingWebSocketContents!: boolean
+	webSocketNetworkContents!: WebSocketRequest[] | undefined
+	webSocketEventContents!: WebSocketEvent[]
 	tracingOrigins!: boolean | (string | RegExp)[]
 	networkHeadersToRedact!: string[]
 	networkBodyKeysToRedact: string[] | undefined
@@ -108,7 +115,17 @@ export class FirstLoadListeners {
 			)
 		}
 		this.listeners.push(
-			ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e)),
+			ErrorListener((e: ErrorMessage) => {
+				if (
+					ERRORS_TO_IGNORE.includes(e.event) ||
+					ERROR_PATTERNS_TO_IGNORE.some((pattern) =>
+						e.event.includes(pattern),
+					)
+				) {
+					return
+				}
+				highlightThis.errors.push(e)
+			}),
 		)
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}
@@ -131,6 +148,8 @@ export class FirstLoadListeners {
 
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []
+		sThis.webSocketNetworkContents = []
+		sThis.webSocketEventContents = []
 		sThis.networkHeadersToRedact = []
 		sThis.urlBlocklist = []
 		sThis.tracingOrigins = options.tracingOrigins || []
@@ -139,6 +158,7 @@ export class FirstLoadListeners {
 		if (options?.disableNetworkRecording !== undefined) {
 			sThis.disableNetworkRecording = options?.disableNetworkRecording
 			sThis.enableRecordingNetworkContents = false
+			sThis.disableRecordingWebSocketContents = true
 			sThis.networkHeadersToRedact = []
 			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
@@ -147,6 +167,7 @@ export class FirstLoadListeners {
 		} else if (typeof options?.networkRecording === 'boolean') {
 			sThis.disableNetworkRecording = !options.networkRecording
 			sThis.enableRecordingNetworkContents = false
+			sThis.disableRecordingWebSocketContents = true
 			sThis.networkHeadersToRedact = []
 			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
@@ -159,6 +180,9 @@ export class FirstLoadListeners {
 			}
 			sThis.enableRecordingNetworkContents =
 				options.networkRecording?.recordHeadersAndBody || false
+			sThis.disableRecordingWebSocketContents =
+				options.networkRecording?.disableWebSocketEventRecordings ||
+				false
 			sThis.networkHeadersToRedact =
 				options.networkRecording?.networkHeadersToRedact?.map(
 					(header) => header.toLowerCase(),
@@ -211,6 +235,16 @@ export class FirstLoadListeners {
 					fetchCallback: (requestResponsePair) => {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
+					webSocketRequestCallback: (event) => {
+						if (sThis.webSocketNetworkContents) {
+							sThis.webSocketNetworkContents.push(event)
+						}
+					},
+					webSocketEventCallback: (event) => {
+						sThis.webSocketEventContents.push(event)
+					},
+					disableWebSocketRecording:
+						sThis.disableRecordingWebSocketContents,
 					headersToRedact: sThis.networkHeadersToRedact,
 					bodyKeysToRedact: sThis.networkBodyKeysToRedact,
 					backendUrl: sThis._backendUrl,
@@ -227,12 +261,14 @@ export class FirstLoadListeners {
 	static getRecordedNetworkResources(
 		sThis: FirstLoadListeners,
 		recordingStartTime: number,
-	): Array<PerformanceResourceTiming> {
-		let resources: Array<PerformanceResourceTiming> = []
+	): Array<PerformanceResourceTiming | WebSocketRequest> {
+		let httpResources: Array<PerformanceResourceTiming> = []
+		let webSocketResources: Array<WebSocketRequest> = []
+
 		if (!sThis.disableNetworkRecording) {
 			const documentTimeOrigin = window?.performance?.timeOrigin || 0
 			// get all resources that don't include 'api.highlight.run'
-			resources = performance.getEntriesByType(
+			httpResources = performance.getEntriesByType(
 				'resource',
 			) as PerformanceResourceTiming[]
 
@@ -240,7 +276,7 @@ export class FirstLoadListeners {
 			// Subtract diff to the times to do the offsets
 			const offset = (recordingStartTime - documentTimeOrigin) * 2
 
-			resources = resources
+			httpResources = httpResources
 				.filter((r) =>
 					shouldNetworkRequestBeRecorded(
 						r.name,
@@ -258,25 +294,47 @@ export class FirstLoadListeners {
 				})
 
 			if (sThis.enableRecordingNetworkContents) {
-				resources = matchPerformanceTimingsWithRequestResponsePair(
-					resources,
+				httpResources = matchPerformanceTimingsWithRequestResponsePair(
+					httpResources,
 					sThis.xhrNetworkContents,
 					'xmlhttprequest',
 				)
-				resources = matchPerformanceTimingsWithRequestResponsePair(
-					resources,
+				httpResources = matchPerformanceTimingsWithRequestResponsePair(
+					httpResources,
 					sThis.fetchNetworkContents,
 					'fetch',
 				)
 			}
 		}
-		return resources
+
+		if (!sThis.disableRecordingWebSocketContents) {
+			webSocketResources = sThis.webSocketNetworkContents || []
+		}
+
+		return [...httpResources, ...webSocketResources]
+	}
+
+	static getRecordedWebSocketEvents(
+		sThis: FirstLoadListeners,
+	): Array<WebSocketEvent> {
+		let webSocketEvents: Array<WebSocketEvent> = []
+
+		if (
+			!sThis.disableNetworkRecording &&
+			!sThis.disableRecordingWebSocketContents
+		) {
+			webSocketEvents = sThis.webSocketEventContents
+		}
+
+		return webSocketEvents
 	}
 
 	static clearRecordedNetworkResources(sThis: FirstLoadListeners): void {
 		if (!sThis.disableNetworkRecording) {
 			sThis.xhrNetworkContents = []
 			sThis.fetchNetworkContents = []
+			sThis.webSocketNetworkContents = []
+			sThis.webSocketEventContents = []
 			performance.clearResourceTimings()
 		}
 	}

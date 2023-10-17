@@ -20,9 +20,9 @@ import (
 	"github.com/rs/cors"
 	"github.com/samber/lo"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/andybalholm/brotli"
@@ -31,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
@@ -44,6 +45,7 @@ var (
 	S3SessionsStagingBucketName    = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
 	S3SourceMapBucketNameNew       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME_NEW")
 	S3ResourcesBucketName          = os.Getenv("AWS_S3_RESOURCES_BUCKET")
+	S3GithubBucketName             = os.Getenv("AWS_S3_GITHUB_BUCKET_NAME")
 	CloudfrontDomain               = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
 	CloudfrontPublicKeyID          = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
 	CloudfrontPrivateKey           = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
@@ -61,13 +63,15 @@ const (
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	TimelineIndicatorEvents    PayloadType = "timeline-indicator-events"
+	WebSocketEventsCompressed  PayloadType = "web-socket-events-compressed"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
 var StoredPayloadTypes = map[payload.FileType]PayloadType{
-	payload.EventsCompressed:        SessionContentsCompressed,
-	payload.ResourcesCompressed:     NetworkResourcesCompressed,
-	payload.TimelineIndicatorEvents: TimelineIndicatorEvents,
+	payload.EventsCompressed:          SessionContentsCompressed,
+	payload.ResourcesCompressed:       NetworkResourcesCompressed,
+	payload.TimelineIndicatorEvents:   TimelineIndicatorEvents,
+	payload.WebSocketEventsCompressed: WebSocketEventsCompressed,
 }
 
 func GetChunkedPayloadType(offset int) PayloadType {
@@ -86,9 +90,12 @@ type Client interface {
 	PushRawEvents(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
+	ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
 	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader) error
+	ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error)
+	PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error)
 }
 
 type FilesystemClient struct {
@@ -270,6 +277,15 @@ func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, pro
 	return resources, nil
 }
 
+func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	var webSocketEvents []interface{}
+	err := f.readCompressed(ctx, sessionId, projectId, WebSocketEventsCompressed, &webSocketEvents)
+	if err != nil {
+		return nil, err
+	}
+	return webSocketEvents, nil
+}
+
 func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
 	if version == nil {
 		unversioned := "unversioned"
@@ -320,6 +336,23 @@ func (f *FilesystemClient) handleUploadSourcemap(ctx context.Context, key string
 	file := parts[2]
 	_, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/sourcemaps/%s/%s/%s", f.fsRoot, projectID, version, file), body)
 	return err
+}
+
+func (f *FilesystemClient) ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error) {
+	if b, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%s/%s/%s", f.fsRoot, repoPath, version, fileName)); err == nil {
+		return b.Bytes(), nil
+	} else {
+		return nil, err
+	}
+}
+
+func (f *FilesystemClient) PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error) {
+	body := bytes.NewReader(fileBytes)
+	if n, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/%s/%s/%s", f.fsRoot, repoPath, version, fileName), body); err != nil {
+		return pointy.Int64(0), err
+	} else {
+		return &n, nil
+	}
 }
 
 func (f *FilesystemClient) readFSBytes(ctx context.Context, key string) (*bytes.Buffer, error) {
@@ -512,8 +545,8 @@ func (s *S3Client) pushFileToS3WithOptions(ctx context.Context, sessionId, proje
 // PushCompressedFile pushes a compressed file to S3, adding the relevant metadata
 func (s *S3Client) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
 	options := s3.PutObjectInput{
-		ContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ContentType:     ptr.String(MIME_TYPE_JSON),
+		ContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, payloadType, options)
 }
@@ -639,8 +672,8 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:                  bucket,
 		Key:                     bucketKey(sessionId, projectId, NetworkResourcesCompressed),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
 		// compressed file doesn't exist, fall back to reading uncompressed
@@ -661,6 +694,35 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 		return nil, errors.Wrap(err, "error decoding resource data")
 	}
 	return resources, nil
+}
+
+func (s *S3Client) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	client, bucket := s.getSessionClientAndBucket(sessionId)
+	output, err := client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket:                  bucket,
+		Key:                     bucketKey(sessionId, projectId, WebSocketEventsCompressed),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
+	})
+	if err != nil {
+		// compressed file doesn't exist, fall back to reading uncompressed
+		return s.ReadUncompressedResourcesFromS3(ctx, sessionId, projectId)
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	buf, err = decompress(buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
+	}
+
+	var webSocketEvents []interface{}
+	if err := json.Unmarshal(buf.Bytes(), &webSocketEvents); err != nil {
+		return nil, errors.Wrap(err, "error decoding web socket event data")
+	}
+	return webSocketEvents, nil
 }
 
 // ReadUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
@@ -701,8 +763,8 @@ func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId in
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:                  bucket,
 		Key:                     bucketKey(sessionId, projectId, TimelineIndicatorEvents),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "NoSuchKey") {
@@ -887,4 +949,51 @@ func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s
 	return lo.Map(output.CommonPrefixes, func(t s3Types.CommonPrefix, i int) string {
 		return *t.Prefix
 	}), nil
+}
+
+func (s *S3Client) githubBucketKey(repoPath string, version string, fileName string) *string {
+	var key string
+	if util.IsDevEnv() {
+		key = "dev/"
+	}
+	key += fmt.Sprintf("%s/%s/%s", repoPath, version, fileName)
+	return pointy.String(key)
+}
+
+func (s *S3Client) ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error) {
+	output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{Bucket: pointy.String(S3GithubBucketName),
+		Key: s.githubBucketKey(repoPath, version, fileName)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	return buf.Bytes(), nil
+}
+
+func (s *S3Client) PushGitHubFileReaderToS3(ctx context.Context, repoPath string, fileName string, version string, file io.Reader) (*int64, error) {
+	key := s.githubBucketKey(repoPath, version, fileName)
+	_, err := s.S3ClientEast2.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: pointy.String(S3GithubBucketName), Key: key, Body: file,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error 'put'ing github file in s3 bucket")
+	}
+	headObj := s3.HeadObjectInput{
+		Bucket: pointy.String(S3SourceMapBucketNameNew),
+		Key:    key,
+	}
+	result, err := s.S3ClientEast2.HeadObject(ctx, &headObj)
+	if err != nil {
+		return nil, errors.New("error retrieving head object")
+	}
+	return &result.ContentLength, nil
+}
+
+func (s *S3Client) PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error) {
+	body := bytes.NewReader(fileBytes)
+	return s.PushGitHubFileReaderToS3(ctx, repoPath, fileName, version, body)
 }

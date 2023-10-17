@@ -1,6 +1,6 @@
 import React from 'react'
 
-import styles from './Field.module.scss'
+import styles from './Field.module.css'
 
 const fieldColorMap = {
 	normal: '#F2EEFB',

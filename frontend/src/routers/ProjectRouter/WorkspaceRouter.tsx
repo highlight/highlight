@@ -7,17 +7,17 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
+import { Ariakit } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import { useDialogState } from 'ariakit/dialog'
 import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 
-import commonStyles from '../../Common.module.scss'
+import commonStyles from '../../Common.module.css'
 
 export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -56,7 +56,7 @@ export const WorkspaceRouter = () => {
 		}
 	}, [isLoggedIn, setLoadingState])
 
-	const commandBarDialog = useDialogState()
+	const commandBarDialog = Ariakit.useDialogStore()
 
 	if (loading) {
 		return null

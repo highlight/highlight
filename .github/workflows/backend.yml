@@ -87,7 +87,7 @@ jobs:
         runs-on: ubuntu-latest
         services:
             postgres:
-                image: postgres
+                image: ankane/pgvector
                 env:
                     POSTGRES_PASSWORD: postgres
                     POSTGRES_USER: postgres
@@ -100,9 +100,13 @@ jobs:
                 ports:
                     - 5432:5432
             clickhouse:
-                image: clickhouse/clickhouse-server
+                image: clickhouse/clickhouse-server:23.5.1.3174
                 ports:
                     - 9000:9000
+            redis:
+                image: redis
+                ports:
+                    - 6379:6379
         env:
             CLICKHOUSE_ADDRESS: 'localhost:9000'
             CLICKHOUSE_DATABASE: 'default'
@@ -124,3 +128,5 @@ jobs:
                   go-version-file: 'backend/go.mod'
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
+            - name: Run fuzz tests
+              run: cd backend && make fuzz

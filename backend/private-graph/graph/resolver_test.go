@@ -2,9 +2,18 @@ package graph
 
 import (
 	"context"
-	pointy "github.com/openlyinc/pointy"
 	"os"
+	"strconv"
 	"testing"
+
+	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
+	"github.com/stretchr/testify/assert"
+
+	pointy "github.com/openlyinc/pointy"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/workerpool"
@@ -26,6 +35,7 @@ func TestMain(m *testing.M) {
 	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
 	DB, err = util.CreateAndMigrateTestDB(dbName)
+	SetupAuthClient(context.Background(), Simple, nil, nil)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -44,7 +54,7 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 		1651074284153,
 		1651074417161,
 	}
-	util.RunTestWithDBWipe(t, "Test Chunk", DB, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 		// inserting the data
 		sessionsToInsert := []model.Session{
 			{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
@@ -78,7 +88,7 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 
 type HubspotMock struct{}
 
-func (h *HubspotMock) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error {
+func (h *HubspotMock) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) error {
 	return nil
 }
 
@@ -124,7 +134,7 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 		},
 	}
 	for testName, v := range tests {
-		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			// inserting the data
 			admin := model.Admin{
 				Model:         model.Model{ID: 1},
@@ -198,7 +208,7 @@ func TestMutationResolver_ChangeAdminRole(t *testing.T) {
 		},
 	}
 	for _, v := range tests {
-		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			// inserting the data
 			workspace := model.Workspace{
 				Name: ptr.String("test1"),
@@ -304,7 +314,7 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 		},
 	}
 	for _, v := range tests {
-		util.RunTestWithDBWipe(t, "Test DeleteInviteLinkFromWorkspace", DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			// inserting the data
 			workspace := model.Workspace{
 				Name: ptr.String("test1"),
@@ -396,8 +406,8 @@ func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 			expError: true,
 		},
 	}
-	for testName, v := range tests {
-		util.RunTestWithDBWipe(t, testName, DB, func(t *testing.T) {
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			workspace := model.Workspace{
 				Name:             ptr.String("test1"),
 				SlackAccessToken: v.accessToken,
@@ -407,7 +417,7 @@ func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 			}
 
 			ctx := context.Background()
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
 
 			_, num, err := r.GetSlackChannelsFromSlack(ctx, workspace.ID)
 			if v.expError != (err != nil) {
@@ -418,4 +428,150 @@ func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestResolver_canAdminViewSession(t *testing.T) {
+	tests := map[string]struct {
+		secureID string
+		expError bool
+		public   bool
+		demo     bool
+	}{
+		"valid session": {
+			secureID: "abc123",
+		},
+		"public session": {
+			secureID: "abc123",
+			public:   true,
+		},
+		"demo session": {
+			secureID: "abc123",
+			demo:     true,
+		},
+		"invalid session": {
+			secureID: "a1b2c3",
+			expError: true,
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			redisClient := redis.NewClient()
+			ctx := context.Background()
+			if err := redisClient.Cache.Delete(ctx, "session-secure-abc123"); err != nil {
+				t.Fatal(err)
+			}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redisClient, integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})}}
+
+			w := model.Workspace{}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			if !v.public {
+				admin, _ := r.getCurrentAdmin(ctx)
+				if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+					t.Fatal(e.Wrap(err, "error inserting workspace"))
+				}
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+			if v.demo {
+				_ = os.Setenv("DEMO_PROJECT_ID", strconv.Itoa(p.ID))
+			} else {
+				_ = os.Setenv("DEMO_PROJECT_ID", "0")
+			}
+
+			session := model.Session{
+				SecureID:  "abc123",
+				ProjectID: p.ID,
+				IsPublic:  v.public,
+			}
+			if err := DB.Create(&session).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting session"))
+			}
+
+			s, err := r.canAdminViewSession(ctx, v.secureID)
+			if v.expError {
+				if err == nil {
+					t.Fatal("error result invalid, saw nil")
+				}
+			} else if err != nil {
+				t.Fatalf("saw unexpected error %s", err)
+			} else if s.SecureID != v.secureID {
+				t.Fatalf("received invalid session %s, expected %s", s.SecureID, v.secureID)
+			}
+		})
+	}
+}
+
+func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
+	tests := map[string]struct {
+		expError bool
+	}{
+		"valid session": {
+			expError: false,
+		},
+		"invalid session": {
+			expError: true,
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			ctx := context.Background()
+			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+
+			w := model.Workspace{}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			admin, _ := r.getCurrentAdmin(ctx)
+			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			id := p.ID
+			if v.expError {
+				id += 1
+			}
+			pr, err := r.isAdminInProjectOrDemoProject(ctx, id)
+			if v.expError {
+				if err == nil {
+					t.Fatalf("error result invalid, saw %s", err)
+				}
+			} else if err != nil {
+				t.Fatalf("saw unexpected error %s", err)
+			} else if pr.ID != id {
+				t.Fatalf("received invalid project %d, expected %d", pr.ID, id)
+			}
+		})
+	}
+}
+
+func TestGetSlackChannelsFromSlack(t *testing.T) {
+	token := os.Getenv("TEST_SLACK_ACCESS_TOKEN")
+	if token == "" {
+		t.Skip("TEST_SLACK_ACCESS_TOKEN is not set")
+	}
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		w := model.Workspace{SlackAccessToken: pointy.String(token)}
+		if err := DB.Create(&w).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
+		channels, count, err := r.GetSlackChannelsFromSlack(context.Background(), w.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, channels)
+		assert.Greater(t, count, 0)
+		assert.Greater(t, len(*channels), 0)
+	})
 }

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React, { HTMLProps } from 'react'
 
-import styles from './ModalBody.module.scss'
+import styles from './ModalBody.module.css'
 
 /** ModalBody is used as a direct child from Modal. */
 const ModalBody: React.FC<

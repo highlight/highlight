@@ -1,6 +1,6 @@
 import { Series } from '@components/Histogram/Histogram'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
-import { useGetErrorsHistogramQuery } from '@graph/hooks'
+import { useGetErrorsHistogramClickhouseQuery } from '@graph/hooks'
 import { DateHistogramBucketSize } from '@graph/schemas'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useParams } from '@util/react-router/useParams'
@@ -13,11 +13,11 @@ import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 
 const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { backendSearchQuery, searchParams, setSearchParams } =
+	const { searchQuery, backendSearchQuery, setSearchQuery } =
 		useErrorSearchContext()
-	const { loading, data } = useGetErrorsHistogramQuery({
+	const { loading, data } = useGetErrorsHistogramClickhouseQuery({
 		variables: {
-			query: backendSearchQuery?.childSearchQuery as string,
+			query: JSON.parse(searchQuery),
 			project_id: project_id!,
 			histogram_options: {
 				bucket_size:
@@ -35,7 +35,7 @@ const ErrorFeedHistogram = React.memo(() => {
 			},
 		},
 		skip: !backendSearchQuery?.childSearchQuery || !project_id,
-		fetchPolicy: 'cache-first',
+		fetchPolicy: 'network-only',
 	})
 
 	const histogram: {
@@ -45,32 +45,31 @@ const ErrorFeedHistogram = React.memo(() => {
 		seriesList: [],
 		bucketTimes: [],
 	}
-	if (data?.errors_histogram) {
-		histogram.bucketTimes = data?.errors_histogram.bucket_times.map(
-			(startTime) => new Date(startTime).valueOf(),
-		)
+	if (data?.errors_histogram_clickhouse) {
+		histogram.bucketTimes =
+			data?.errors_histogram_clickhouse.bucket_times.map((startTime) =>
+				new Date(startTime).valueOf(),
+			)
 		histogram.seriesList = [
 			{
 				label: 'errors',
 				color: 'n9',
-				counts: data?.errors_histogram.error_objects,
+				counts: data?.errors_histogram_clickhouse.error_objects,
 			},
 		]
 	}
 
 	const updateTimeRange = useCallback(
 		(newStartTime: Date, newEndTime: Date) => {
-			const newSearchParams = {
-				...searchParams,
-				query: updateQueriedTimeRange(
-					searchParams.query || '',
+			setSearchQuery((query) =>
+				updateQueriedTimeRange(
+					query || '',
 					TIME_RANGE_FIELD,
 					serializeAbsoluteTimeRange(newStartTime, newEndTime),
 				),
-			}
-			setSearchParams(newSearchParams)
+			)
 		},
-		[searchParams, setSearchParams],
+		[setSearchQuery],
 	)
 
 	return (

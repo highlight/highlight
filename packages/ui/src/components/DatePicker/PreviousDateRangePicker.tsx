@@ -15,8 +15,19 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 import { TimeInput } from './TimeInput'
+import { DateInput } from './DateInput'
+import { Form } from '../Form/Form'
+import * as Ariakit from '@ariakit/react'
 
-export { getDefaultPresets } from './utils'
+export { defaultPresets, getNow, resetRelativeDates } from './utils'
+
+const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
+const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'
+const DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA = 'MMM D YYYY'
+const DATE_INPUT_FORMAT_WITH_NO_COMMA = 'MMM DD YYYY'
+const DATE_INPUT_FORMAT_WITH_SLASH = 'MM/DD/YYYY'
+const DATE_INPUT_FORMAT_WITH_DASH = 'MM-DD-YYYY'
+const DATE_INPUT_FORMAT_WITH_DOT = 'MM.DD.YYYY'
 
 const TIME_INPUT_FORMAT = 'HH:mm a'
 const TIME_INPUT_FORMAT_NO_SPACE = 'HH:mma'
@@ -134,6 +145,9 @@ const getTimeStringFromDate = (date: Date): string => {
  * @returns {string}
  */
 const formatDisplayedDate = (date: Date) => {
+	if (!date) {
+		return ''
+	}
 	return new Date(date).toLocaleDateString('en-US', {
 		month: 'short',
 		day: 'numeric',
@@ -156,7 +170,7 @@ export const getLabel = ({
 		return foundPreset.label
 	}
 
-	if (selectedDates.length == 2) {
+	if (selectedDates.length == 2 && selectedDates[1] && selectedDates[0]) {
 		const showYear =
 			selectedDates[1].getFullYear() > selectedDates[0].getFullYear()
 
@@ -174,11 +188,11 @@ type Props = {
 	onDatesChange: (selectedDates: Date[]) => void
 	presets: Preset[]
 	minDate: Date
-} & Omit<MenuButtonProps, 'ref'>
+} & Omit<MenuButtonProps, 'ref' | 'store'>
 
 export const PreviousDateRangePicker: React.FC<Props> = (props) => (
 	<Menu placement="bottom-end">
-		{/* Rendering inside wrapper so we can work with menu state via useMenu. */}
+		{/* Rendering inside wrapper so we can work with menu store via useMenu. */}
 		<PreviousDateRangePickerImpl {...props} />
 	</Menu>
 )
@@ -212,11 +226,14 @@ const PreviousDateRangePickerImpl = ({
 	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
 
 	const menu = useMenu()
+	const open = menu.getState().open
+	const formStore = Ariakit.useFormStore({})
+
 	useEffect(() => {
-		if (!menu.open) {
+		if (!open) {
 			setMenuState(MenuState.Default)
 		}
-	}, [menu.open])
+	}, [open])
 
 	// Close the time picker when the menu is closed
 	useEffect(() => {
@@ -232,6 +249,16 @@ const PreviousDateRangePickerImpl = ({
 		}
 	}, [showingTime])
 
+	const startDatePlaceholder = useMemo(
+		() => formatDisplayedDate(selectedDates[0]),
+		[selectedDates[0]],
+	)
+
+	const endDatePlaceholder = useMemo(
+		() => formatDisplayedDate(selectedDates[1]),
+		[selectedDates[1]],
+	)
+
 	const startTimePlaceholder = useMemo(
 		() => getTimeStringFromDate(selectedDates[0]),
 		[selectedDates[0]],
@@ -240,6 +267,11 @@ const PreviousDateRangePickerImpl = ({
 	const endTimePlaceholder = useMemo(
 		() => getTimeStringFromDate(selectedDates[1]),
 		[selectedDates[1]],
+	)
+
+	const isTimepickerDisabled = useMemo(
+		() => selectedDates.length != 2,
+		[selectedDates],
 	)
 
 	const [buttonLabel, setButtonLabel] = useState<string>(
@@ -256,6 +288,46 @@ const PreviousDateRangePickerImpl = ({
 		if (dates.length == 2) {
 			menu.setOpen(false)
 			setMenuState(MenuState.Default)
+		}
+	}
+
+	const handleStartDateInput = (value: string) => {
+		const isValidDateInput = [
+			DATE_INPUT_FORMAT_WITH_SLASH,
+			DATE_INPUT_FORMAT_WITH_DASH,
+			DATE_INPUT_FORMAT_WITH_DOT,
+			DATE_INPUT_FORMAT_WITH_COMMA,
+			DATE_INPUT_FORMAT_WITH_NO_COMMA,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY,
+		].some((format) => moment(value, format, true).isValid())
+
+		if (isValidDateInput) {
+			const newDate = moment(value).toDate()
+			const newDates = [newDate, selectedDates[1]]
+
+			onDatesChange(newDates)
+		}
+	}
+
+	const handleEndDateInput = (value: string) => {
+		const isValidDateInput = [
+			DATE_INPUT_FORMAT_WITH_SLASH,
+			DATE_INPUT_FORMAT_WITH_DASH,
+			DATE_INPUT_FORMAT_WITH_DOT,
+			DATE_INPUT_FORMAT_WITH_COMMA,
+			DATE_INPUT_FORMAT_WITH_NO_COMMA,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY,
+		]
+			.map((format) => moment(value, format, true).isValid())
+			.some((isValid) => isValid)
+
+		if (isValidDateInput) {
+			const newDate = moment(value).toDate()
+			const newDates = [selectedDates[0], newDate]
+
+			onDatesChange(newDates)
 		}
 	}
 
@@ -317,6 +389,13 @@ const PreviousDateRangePickerImpl = ({
 		}
 	}, [selectedDates[0]?.getTime(), selectedDates[1]?.getTime()])
 
+	const hasSelectedRange = useMemo(
+		() =>
+			selectedDates.length === 2 &&
+			selectedDates.filter((date) => moment(date).isValid()).length === 2,
+		[selectedDates],
+	)
+
 	return (
 		<DatePickerStateProvider
 			config={{
@@ -328,6 +407,10 @@ const PreviousDateRangePickerImpl = ({
 			<Menu.Button
 				kind="secondary"
 				iconRight={<IconSolidCheveronDown />}
+				style={{
+					whiteSpace: 'nowrap',
+					overflow: 'hidden',
+				}}
 				{...(props as Omit<MenuButtonProps, 'ref'>)}
 			>
 				{buttonLabel}
@@ -395,7 +478,7 @@ const PreviousDateRangePickerImpl = ({
 						</Menu.Item>
 					</>
 				) : (
-					<>
+					<Form store={formStore}>
 						<Box
 							borderBottom={'divider'}
 							pb={'4'}
@@ -406,10 +489,6 @@ const PreviousDateRangePickerImpl = ({
 							<Box style={{ width: 116 }}>
 								<Box
 									border={'secondary'}
-									py={'9'}
-									borderBottom={
-										startTimeIsValid ? 'secondary' : 'none'
-									}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
 									borderBottomLeftRadius={
@@ -418,15 +497,19 @@ const PreviousDateRangePickerImpl = ({
 									borderBottomRightRadius={
 										showingTime ? undefined : '6'
 									}
-									pl={'6'}
+									style={{
+										height: 28,
+									}}
 								>
-									<Text size="small">
-										{selectedDates[0]
-											? formatDisplayedDate(
-													selectedDates[0],
-											  )
-											: 'Start Date'}
-									</Text>
+									<DateInput
+										name="startDate"
+										placeholder={
+											startDatePlaceholder || 'Start date'
+										}
+										onDateChange={function (value: string) {
+											handleStartDateInput(value)
+										}}
+									/>
 								</Box>
 								{showingTime ? (
 									<Box
@@ -440,6 +523,9 @@ const PreviousDateRangePickerImpl = ({
 										}
 										borderBottomLeftRadius={'6'}
 										borderBottomRightRadius={'6'}
+										style={{
+											height: 28,
+										}}
 									>
 										<TimeInput
 											name="startTime"
@@ -454,11 +540,6 @@ const PreviousDateRangePickerImpl = ({
 							<Box style={{ width: 116 }}>
 								<Box
 									border={'secondary'}
-									py={'9'}
-									pl={'6'}
-									borderBottom={
-										endTimeIsValid ? 'secondary' : 'none'
-									}
 									borderTopLeftRadius={'6'}
 									borderTopRightRadius={'6'}
 									borderBottomLeftRadius={
@@ -467,14 +548,19 @@ const PreviousDateRangePickerImpl = ({
 									borderBottomRightRadius={
 										showingTime ? undefined : '6'
 									}
+									style={{
+										height: 28,
+									}}
 								>
-									<Text size="small">
-										{selectedDates[1]
-											? formatDisplayedDate(
-													selectedDates[1],
-											  )
-											: 'End Date'}
-									</Text>
+									<DateInput
+										name="endDate"
+										placeholder={
+											endDatePlaceholder || 'End date'
+										}
+										onDateChange={function (value: string) {
+											handleEndDateInput(value)
+										}}
+									/>
 								</Box>
 								{showingTime ? (
 									<Box
@@ -486,10 +572,12 @@ const PreviousDateRangePickerImpl = ({
 										borderTop={
 											endTimeIsValid ? 'none' : 'error'
 										}
-										pl={'6'}
 										borderBottomLeftRadius={'6'}
 										borderBottomRightRadius={'6'}
 										py="0"
+										style={{
+											height: 28,
+										}}
 									>
 										<TimeInput
 											name="endTime"
@@ -508,7 +596,11 @@ const PreviousDateRangePickerImpl = ({
 								p={'7'}
 								display={'flex'}
 								justifyContent={'center'}
-								cursor="pointer"
+								cursor={
+									isTimepickerDisabled
+										? 'not-allowed'
+										: 'pointer'
+								}
 								background={'n4'}
 								alignItems={'center'}
 								style={{
@@ -521,6 +613,7 @@ const PreviousDateRangePickerImpl = ({
 										? '0px -1px 0px rgba(0, 0, 0, 0.32) inset'
 										: undefined,
 								}}
+								disabled={isTimepickerDisabled}
 								onClick={handleShowingTimeToggle}
 							>
 								<IconSolidClock
@@ -540,9 +633,9 @@ const PreviousDateRangePickerImpl = ({
 								e.stopPropagation()
 							}}
 						>
-							<DatePicker />
+							<DatePicker hasSelectedRange={hasSelectedRange} />
 						</Menu.Item>
-					</>
+					</Form>
 				)}
 			</Menu.List>
 		</DatePickerStateProvider>

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"os"
+
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
@@ -15,8 +17,13 @@ func init() {
 
 func main() {
 	highlight.SetProjectID("1jdkoe52")
-	highlight.Start()
-	defer highlight.Stop()
+	highlight.Start(
+		highlight.WithServiceName("lambda-functions--deleteSessions-getSessionIdsByQuery"),
+		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+	)
 	hlog.Init()
-	lambda.Start(h.GetSessionIdsByQuery)
+	lambda.StartWithOptions(
+		h.GetSessionIdsByQuery,
+		lambda.WithEnableSIGTERM(highlight.Stop),
+	)
 }

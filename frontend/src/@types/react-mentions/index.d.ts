@@ -127,6 +127,7 @@ declare module '@highlight-run/react-mentions' {
 		style?: any
 		appendSpaceOnAdd?: boolean | undefined
 		regex?: RegExp | undefined
+		suggestionLimit?: number | undefined
 	}
 
 	/**

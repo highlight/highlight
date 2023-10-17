@@ -26,7 +26,7 @@ import (
 
 const ERROR_CONTEXT_LINES = 5
 const ERROR_CONTEXT_MAX_LENGTH = 1000
-const ERROR_STACK_MAX_FRAME_COUNT = 15
+const ERROR_STACK_MAX_FRAME_COUNT = 64
 const ERROR_STACK_MAX_FIELD_SIZE = 1000
 const SOURCE_MAP_MAX_FILE_SIZE = 128e6
 
@@ -234,7 +234,22 @@ func getURLSourcemap(ctx context.Context, projectId int, version *string, stackT
 		}
 	} else {
 		// construct sourcemap url from searched file
-		sourceMapURL = (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
+		if stackFileNameIndex <= len(stackTraceFileURL) {
+			sourceMapURL = (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
+		} else {
+			err := e.New("failed to construct sourcemap url from stack trace file")
+			log.WithContext(ctx).
+				WithError(err).
+				WithField("project_id", projectId).
+				WithField("sourcemap_url", sourceMapURL).
+				WithField("stacktrace_file_url", stackTraceFileURL).
+				WithField("sourcemap_file_name", sourceMapFileName).
+				WithField("stack_file_name_idx", stackFileNameIndex).
+				Error(err.Error())
+			stackTraceErrorCode = privateModel.SourceMappingErrorCodeErrorConstructingSourceMapURL
+			stackTraceError.ErrorCode = &stackTraceErrorCode
+			return "", nil, err
+		}
 		// get path from url
 		u2, err := url.Parse(sourceMapURL)
 		stackTraceError.SourceMapURL = &sourceMapURL

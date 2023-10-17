@@ -4,6 +4,14 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],
+	server: {
+		host: '0.0.0.0',
+		port: 8877,
+		strictPort: true,
+		hmr: {
+			clientPort: 8877,
+		},
+	},
 	build: {
 		target: 'es6',
 		lib: {
@@ -19,7 +27,6 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				exports: 'named',
-				entryFileNames: '[name].[format].js',
 			},
 		},
 	},

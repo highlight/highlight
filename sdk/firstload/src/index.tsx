@@ -1,29 +1,34 @@
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
 	AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude'
-import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
-import { initializeFetchListener } from './listeners/fetch'
-import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
-import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
-import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
+import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
 import type {
 	Highlight,
 	HighlightClassOptions,
 } from '@highlight-run/client/src'
-import type {
+import {
 	HighlightOptions,
 	HighlightPublicInterface,
 	Metadata,
 	Metric,
+	OnHighlightReadyOptions,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types'
+import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
+
+import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
+import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
-
-initializeFetchListener()
+import {
+	SessionData,
+	getPreviousSessionData,
+} from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
+import { initializeFetchListener } from './listeners/fetch'
+import { initializeWebSocketListener } from './listeners/web-socket'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -33,11 +38,11 @@ enum MetricCategory {
 }
 
 const HighlightWarning = (context: string, msg: any) => {
-	console.warn(`Highlight Warning: (${context}): `, msg)
+	console.warn(`highlight.run warning: (${context}): `, msg)
 }
 
 interface HighlightWindow extends Window {
-	Highlight: new (
+	HighlightIO: new (
 		options: HighlightClassOptions,
 		firstLoadListeners: FirstLoadListeners,
 	) => Highlight
@@ -47,12 +52,20 @@ interface HighlightWindow extends Window {
 	Intercom?: any
 }
 
+const READY_WAIT_LOOP_MS = 100
+
 declare var window: HighlightWindow
 
-var script: HTMLScriptElement
-var highlight_obj: Highlight
-var first_load_listeners: FirstLoadListeners
-var init_called = false
+let onHighlightReadyQueue: {
+	options?: OnHighlightReadyOptions
+	func: () => void | Promise<void>
+}[] = []
+let onHighlightReadyInterval: number | undefined = undefined
+
+let script: HTMLScriptElement
+let highlight_obj: Highlight
+let first_load_listeners: FirstLoadListeners
+let init_called = false
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -75,9 +88,26 @@ const H: HighlightPublicInterface = {
 				return
 			}
 
+			let previousSession = getPreviousSessionData()
+			let sessionSecureID = GenerateSecureID()
+			if (previousSession?.sessionSecureID) {
+				sessionSecureID = previousSession.sessionSecureID
+			} else {
+				const sessionData: SessionData = {
+					...previousSession,
+					projectID: +projectID,
+					sessionSecureID,
+				}
+
+				window.sessionStorage.setItem(
+					SESSION_STORAGE_KEYS.SESSION_DATA,
+					JSON.stringify(sessionData),
+				)
+			}
+
 			// `init` was already called, do not reinitialize
 			if (init_called) {
-				return
+				return { sessionSecureID }
 			}
 			init_called = true
 
@@ -89,11 +119,6 @@ const H: HighlightPublicInterface = {
 			script.setAttribute('type', 'text/javascript')
 			document.getElementsByTagName('head')[0].appendChild(script)
 
-			let previousSession = getPreviousSessionData()
-			let sessionSecureID = GenerateSecureID()
-			if (previousSession?.sessionSecureID) {
-				sessionSecureID = previousSession.sessionSecureID
-			}
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
 				debug: options?.debug,
@@ -107,7 +132,7 @@ const H: HighlightPublicInterface = {
 				reportConsoleErrors: options?.reportConsoleErrors,
 				consoleMethodsToRecord: options?.consoleMethodsToRecord,
 				enableSegmentIntegration: options?.enableSegmentIntegration,
-				enableStrictPrivacy: options?.enableStrictPrivacy,
+				privacySetting: options?.privacySetting,
 				enableCanvasRecording: options?.enableCanvasRecording,
 				enablePerformanceRecording: options?.enablePerformanceRecording,
 				samplingStrategy: options?.samplingStrategy,
@@ -117,8 +142,10 @@ const H: HighlightPublicInterface = {
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
+				serviceName: options?.serviceName,
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
+				storageMode: options?.storageMode,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
@@ -128,7 +155,7 @@ const H: HighlightPublicInterface = {
 			}
 			script.addEventListener('load', () => {
 				const startFunction = () => {
-					highlight_obj = new window.Highlight(
+					highlight_obj = new window.HighlightIO(
 						client_options,
 						first_load_listeners,
 					)
@@ -137,15 +164,15 @@ const H: HighlightPublicInterface = {
 					}
 				}
 
-				if ('Highlight' in window) {
+				if ('HighlightIO' in window) {
 					startFunction()
 				} else {
 					const interval = setInterval(() => {
-						if ('Highlight' in window) {
+						if ('HighlightIO' in window) {
 							startFunction()
 							clearInterval(interval)
 						}
-					}, 500)
+					}, READY_WAIT_LOOP_MS)
 				}
 			})
 
@@ -162,8 +189,19 @@ const H: HighlightPublicInterface = {
 			) {
 				setupAmplitudeIntegration(options.integrations.amplitude)
 			}
+
+			return { sessionSecureID }
 		} catch (e) {
 			HighlightWarning('init', e)
+		}
+	},
+	snapshot: async (element: HTMLCanvasElement) => {
+		try {
+			if (highlight_obj && highlight_obj.ready) {
+				return await highlight_obj.snapshot(element)
+			}
+		} catch (e) {
+			HighlightWarning('snapshot', e)
 		}
 	},
 	addSessionFeedback: ({
@@ -246,32 +284,31 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	start: (options) => {
-		try {
-			if (highlight_obj?.state === 'Recording') {
-				if (!options?.silent) {
-					console.warn(
-						'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
-					)
-				}
-				return
-			} else {
-				first_load_listeners.startListening()
-				var interval = setInterval(function () {
-					if (highlight_obj) {
-						clearInterval(interval)
-						highlight_obj.initialize(options)
-					}
-				}, 200)
+		if (highlight_obj?.state === 'Recording') {
+			if (!options?.silent) {
+				console.warn(
+					'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
+				)
 			}
-		} catch (e) {
-			HighlightWarning('start', e)
+		} else {
+			first_load_listeners.startListening()
+			H.onHighlightReady(
+				async () => {
+					await highlight_obj.initialize(options)
+				},
+				{ waitForReady: false },
+			)
 		}
 	},
-	stop: () => {
-		try {
+	stop: (options) => {
+		if (highlight_obj?.state !== 'Recording') {
+			if (!options?.silent) {
+				console.warn(
+					'Highlight is already stopped. Please call `H.start()`.',
+				)
+			}
+		} else {
 			H.onHighlightReady(() => highlight_obj.stopRecording(true))
-		} catch (e) {
-			HighlightWarning('stop', e)
 		}
 	},
 	identify: (identifier: string, metadata: Metadata = {}) => {
@@ -284,7 +321,15 @@ const H: HighlightPublicInterface = {
 		}
 		if (!H.options?.integrations?.mixpanel?.disabled) {
 			if (window.mixpanel?.identify) {
-				window.mixpanel.identify(identifier)
+				window.mixpanel.identify(
+					typeof metadata?.email === 'string'
+						? metadata?.email
+						: identifier,
+				)
+				if (metadata) {
+					window.mixpanel.track('identify', metadata)
+					window.mixpanel.people.set(metadata)
+				}
 			}
 		}
 
@@ -360,17 +405,39 @@ const H: HighlightPublicInterface = {
 			})
 		})
 	},
-	onHighlightReady: (func: () => void) => {
+	onHighlightReady: async (func, options) => {
 		try {
-			if (highlight_obj && highlight_obj.ready) {
-				func()
+			if (
+				highlight_obj &&
+				(options?.waitForReady === false || highlight_obj.ready)
+			) {
+				await func()
 			} else {
-				var interval = setInterval(function () {
-					if (highlight_obj && highlight_obj.ready) {
-						clearInterval(interval)
-						func()
-					}
-				}, 200)
+				onHighlightReadyQueue.push({ options, func })
+				if (onHighlightReadyInterval === undefined) {
+					onHighlightReadyInterval = setInterval(async () => {
+						const newOnHighlightReadyQueue: {
+							options?: OnHighlightReadyOptions
+							func: () => void | Promise<void>
+						}[] = []
+						for (const f of onHighlightReadyQueue) {
+							if (
+								highlight_obj &&
+								(f.options?.waitForReady === false ||
+									highlight_obj.ready)
+							) {
+								await f.func()
+							} else {
+								newOnHighlightReadyQueue.push(f)
+							}
+						}
+						onHighlightReadyQueue = newOnHighlightReadyQueue
+						if (onHighlightReadyQueue.length == 0) {
+							clearInterval(onHighlightReadyInterval)
+							onHighlightReadyInterval = undefined
+						}
+					}, READY_WAIT_LOOP_MS) as unknown as number
+				}
 			}
 		} catch (e) {
 			HighlightWarning('onHighlightReady', e)
@@ -383,6 +450,8 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage()
+initializeFetchListener()
+initializeWebSocketListener()
 
 export type { HighlightOptions }
 export {

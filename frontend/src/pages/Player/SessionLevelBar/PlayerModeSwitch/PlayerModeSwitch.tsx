@@ -5,6 +5,7 @@ import {
 	Stack,
 	Tooltip,
 } from '@highlight-run/ui'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import React from 'react'
 
 import { KeyboardShortcut } from '@/components/KeyboardShortcut/KeyboardShortcut'
@@ -25,12 +26,15 @@ export const PlayerModeSwitch: React.FC = () => {
 
 	return (
 		<Stack
-			border="secondary"
 			borderRadius="8"
 			p="2"
 			align="center"
 			direction="row"
 			gap="1"
+			style={{
+				// Use shadow instead of border to avoid expanding height of the bar
+				boxShadow: `0 0 0 1px ${themeVars.interactive.outline.secondary.enabled} inset`,
+			}}
 		>
 			<Tooltip
 				placement="bottom"
@@ -60,8 +64,8 @@ export const PlayerModeSwitch: React.FC = () => {
 						emphasis={mode === 'inspect' ? 'high' : 'low'}
 						size="xSmall"
 						onClick={() => {
-							setShowRightPanel(false)
 							setEnableInspectElement(true)
+							setShowRightPanel(false)
 						}}
 					/>
 				}

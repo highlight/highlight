@@ -1,0 +1,24 @@
+.container {
+	align-items: flex-start;
+	row-gap: var(--size-xxSmall);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	max-height: fit-content;
+	min-height: var(--size-xxLarge);
+}
+
+.switchClass {
+	flex-shrink: 0;
+}
+
+.select {
+	&:global(.ant-select-disabled .ant-select-selector) {
+		background-color: transparent !important;
+	}
+	:global(.ant-select-selector) {
+		padding: 0 !important;
+		border: 0px solid var(--color-gray-300) !important;
+		background-color: transparent !important;
+	}
+}

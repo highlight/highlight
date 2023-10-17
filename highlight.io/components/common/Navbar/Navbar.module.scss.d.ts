@@ -19,10 +19,12 @@ export const headerLeft: string
 export const headerLeftBlog: string
 export const headerPadding: string
 export const headerRight: string
+export const headerRightBlog: string
 export const hide: string
 export const hideNavbar: string
 export const innerGridContainer: string
 export const innerPopoverPanel: string
+export const launchWeekText: string
 export const loadingBar: string
 export const menuButtons: string
 export const menuDropdown: string

@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"golang.org/x/oauth2"
@@ -33,12 +34,20 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 		return height.GetOAuthConfig()
 	}
 
+	if integrationType == modelInputs.IntegrationTypeJira {
+		return jira.GetOAuthConfig()
+	}
+
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
 }
 
 func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrationType modelInputs.IntegrationType) (*oauth2.Token, error) {
 	if integrationType == modelInputs.IntegrationTypeHeight {
 		return height.GetRefreshToken(ctx, oldToken)
+	}
+
+	if integrationType == modelInputs.IntegrationTypeJira {
+		return jira.GetRefreshToken(ctx, oldToken)
 	}
 
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)
@@ -83,7 +92,7 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 	if err := c.db.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: integrationType,
-	}).First(&workspaceMapping).Error; err != nil {
+	}).Take(&workspaceMapping).Error; err != nil {
 		return nil, nil
 	}
 
@@ -121,7 +130,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 		if err := c.db.Where(&model.IntegrationProjectMapping{
 			ProjectID:       project.ID,
 			IntegrationType: integrationType,
-		}).First(&projectMapping).Error; err != nil {
+		}).Take(&projectMapping).Error; err != nil {
 			return false, nil
 		}
 
@@ -133,7 +142,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 	}
 
 	var workspace model.Workspace
-	if err := c.db.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
+	if err := c.db.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).Take(&workspace).Error; err != nil {
 		return false, nil
 	}
 
@@ -151,7 +160,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 	if err := c.db.Where(&model.IntegrationProjectMapping{
 		ProjectID:       project.ID,
 		IntegrationType: integrationType,
-	}).First(&projectMapping).Error; err != nil {
+	}).Take(&projectMapping).Error; err != nil {
 		return false, nil
 	}
 

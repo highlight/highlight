@@ -11,6 +11,24 @@ import (
 	"github.com/lib/pq"
 )
 
+type Connection interface {
+	IsConnection()
+	GetPageInfo() *PageInfo
+}
+
+type Edge interface {
+	IsEdge()
+	GetCursor() string
+}
+
+type AccessibleJiraResources struct {
+	ID        string   `json:"id"`
+	URL       string   `json:"url"`
+	Name      string   `json:"name"`
+	Scopes    []string `json:"scopes"`
+	AvatarURL string   `json:"avatarUrl"`
+}
+
 type Account struct {
 	ID                   int        `json:"id"`
 	Name                 string     `json:"name"`
@@ -48,18 +66,24 @@ type AccountDetailsMember struct {
 }
 
 type AdminAboutYouDetails struct {
-	FirstName          string  `json:"first_name"`
-	LastName           string  `json:"last_name"`
-	UserDefinedRole    string  `json:"user_defined_role"`
-	UserDefinedPersona string  `json:"user_defined_persona"`
-	Referral           string  `json:"referral"`
-	Phone              *string `json:"phone"`
+	FirstName               string  `json:"first_name"`
+	LastName                string  `json:"last_name"`
+	UserDefinedRole         string  `json:"user_defined_role"`
+	UserDefinedPersona      string  `json:"user_defined_persona"`
+	UserDefinedTeamSize     string  `json:"user_defined_team_size"`
+	HeardAbout              string  `json:"heard_about"`
+	PhoneHomeContactAllowed bool    `json:"phone_home_contact_allowed"`
+	Referral                string  `json:"referral"`
+	Phone                   *string `json:"phone"`
 }
 
 type AdminAndWorkspaceDetails struct {
 	FirstName                   string  `json:"first_name"`
 	LastName                    string  `json:"last_name"`
 	UserDefinedRole             string  `json:"user_defined_role"`
+	UserDefinedTeamSize         string  `json:"user_defined_team_size"`
+	HeardAbout                  string  `json:"heard_about"`
+	PhoneHomeContactAllowed     bool    `json:"phone_home_contact_allowed"`
 	Referral                    string  `json:"referral"`
 	WorkspaceName               string  `json:"workspace_name"`
 	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
@@ -79,10 +103,10 @@ type AllProjectSettings struct {
 	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds"`
 	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels"`
 	RageClickCount                    *int           `json:"rage_click_count"`
-	BackendDomains                    pq.StringArray `json:"backend_domains"`
 	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
 	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
 	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
+	Sampling                          *Sampling      `json:"sampling"`
 }
 
 type AverageSessionLength struct {
@@ -95,12 +119,15 @@ type BillingDetails struct {
 	MembersMeter         int64   `json:"membersMeter"`
 	ErrorsMeter          int64   `json:"errorsMeter"`
 	LogsMeter            int64   `json:"logsMeter"`
+	TracesMeter          int64   `json:"tracesMeter"`
 	SessionsDailyAverage float64 `json:"sessionsDailyAverage"`
 	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
 	LogsDailyAverage     float64 `json:"logsDailyAverage"`
+	TracesDailyAverage   float64 `json:"tracesDailyAverage"`
 	SessionsBillingLimit *int64  `json:"sessionsBillingLimit"`
 	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit"`
 	LogsBillingLimit     *int64  `json:"logsBillingLimit"`
+	TracesBillingLimit   *int64  `json:"tracesBillingLimit"`
 }
 
 type CategoryHistogramBucket struct {
@@ -147,6 +174,11 @@ type ClickUpTeam struct {
 	ID     string          `json:"id"`
 	Name   string          `json:"name"`
 	Spaces []*ClickUpSpace `json:"spaces"`
+}
+
+type ClickhouseQuery struct {
+	IsAnd bool       `json:"isAnd"`
+	Rules [][]string `json:"rules"`
 }
 
 type DashboardDefinition struct {
@@ -289,6 +321,40 @@ type ErrorMetadata struct {
 	Payload         *string    `json:"payload"`
 }
 
+type ErrorObjectConnection struct {
+	Edges    []*ErrorObjectEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+}
+
+func (ErrorObjectConnection) IsConnection()               {}
+func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ErrorObjectEdge struct {
+	Cursor string           `json:"cursor"`
+	Node   *ErrorObjectNode `json:"node"`
+}
+
+func (ErrorObjectEdge) IsEdge()                {}
+func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
+
+type ErrorObjectNode struct {
+	ID                 int                     `json:"id"`
+	CreatedAt          time.Time               `json:"createdAt"`
+	Event              string                  `json:"event"`
+	Timestamp          time.Time               `json:"timestamp"`
+	Session            *ErrorObjectNodeSession `json:"session"`
+	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
+	ServiceVersion     string                  `json:"serviceVersion"`
+	ServiceName        string                  `json:"serviceName"`
+}
+
+type ErrorObjectNodeSession struct {
+	SecureID    string  `json:"secureID"`
+	Email       *string `json:"email"`
+	Fingerprint *int    `json:"fingerprint"`
+	Excluded    bool    `json:"excluded"`
+}
+
 type ErrorSearchParamsInput struct {
 	DateRange  *DateRangeInput `json:"date_range"`
 	Os         *string         `json:"os"`
@@ -310,6 +376,9 @@ type ErrorTrace struct {
 	LineContent                *string             `json:"lineContent"`
 	LinesBefore                *string             `json:"linesBefore"`
 	LinesAfter                 *string             `json:"linesAfter"`
+	ExternalLink               *string             `json:"externalLink"`
+	EnhancementSource          *EnhancementSource  `json:"enhancementSource"`
+	EnhancementVersion         *string             `json:"enhancementVersion"`
 }
 
 type GitHubRepo struct {
@@ -380,6 +449,40 @@ type Invoice struct {
 	Status       *string    `json:"status"`
 }
 
+type JiraIssueType struct {
+	Self             string              `json:"self"`
+	ID               string              `json:"id"`
+	Description      string              `json:"description"`
+	IconURL          string              `json:"iconUrl"`
+	Name             string              `json:"name"`
+	UntranslatedName string              `json:"untranslatedName"`
+	Subtask          bool                `json:"subtask"`
+	Scope            *JiraIssueTypeScope `json:"scope"`
+}
+
+type JiraIssueTypeScope struct {
+	Type    string                 `json:"type"`
+	Project *JiraProjectIdentifier `json:"project"`
+}
+
+type JiraProject struct {
+	Name       string           `json:"name"`
+	Key        string           `json:"key"`
+	ID         string           `json:"id"`
+	Self       string           `json:"self"`
+	IssueTypes []*JiraIssueType `json:"issueTypes"`
+}
+
+type JiraProjectIdentifier struct {
+	ID string `json:"id"`
+}
+
+type JiraTeam struct {
+	TeamID string `json:"team_id"`
+	Name   string `json:"name"`
+	Key    string `json:"key"`
+}
+
 type LengthRangeInput struct {
 	Min *float64 `json:"min"`
 	Max *float64 `json:"max"`
@@ -401,6 +504,7 @@ type Log struct {
 	SecureSessionID *string                `json:"secureSessionID"`
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
+	ServiceVersion  *string                `json:"serviceVersion"`
 }
 
 type LogAlertInput struct {
@@ -415,27 +519,31 @@ type LogAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Query               string                        `json:"query"`
 }
+
+type LogConnection struct {
+	Edges    []*LogEdge `json:"edges"`
+	PageInfo *PageInfo  `json:"pageInfo"`
+}
+
+func (LogConnection) IsConnection()               {}
+func (this LogConnection) GetPageInfo() *PageInfo { return this.PageInfo }
 
 type LogEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Log   `json:"node"`
 }
 
-type LogKey struct {
-	Name string     `json:"name"`
-	Type LogKeyType `json:"type"`
-}
-
-type LogsConnection struct {
-	Edges    []*LogEdge `json:"edges"`
-	PageInfo *PageInfo  `json:"pageInfo"`
-}
+func (LogEdge) IsEdge()                {}
+func (this LogEdge) GetCursor() string { return this.Cursor }
 
 type LogsHistogram struct {
-	Buckets    []*LogsHistogramBucket `json:"buckets"`
-	TotalCount uint64                 `json:"totalCount"`
+	Buckets      []*LogsHistogramBucket `json:"buckets"`
+	TotalCount   uint64                 `json:"totalCount"`
+	ObjectCount  uint64                 `json:"objectCount"`
+	SampleFactor float64                `json:"sampleFactor"`
 }
 
 type LogsHistogramBucket struct {
@@ -448,9 +556,11 @@ type LogsHistogramBucketCount struct {
 	Level LogLevel `json:"level"`
 }
 
-type LogsParamsInput struct {
-	Query     string                  `json:"query"`
-	DateRange *DateRangeRequiredInput `json:"date_range"`
+type MatchedErrorTag struct {
+	ID          int     `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Score       float64 `json:"score"`
 }
 
 type MetricPreview struct {
@@ -504,6 +614,17 @@ type Plan struct {
 	MembersLimit *int                 `json:"membersLimit"`
 	ErrorsLimit  int                  `json:"errorsLimit"`
 	LogsLimit    int                  `json:"logsLimit"`
+	TracesLimit  int                  `json:"tracesLimit"`
+}
+
+type QueryInput struct {
+	Query     string                  `json:"query"`
+	DateRange *DateRangeRequiredInput `json:"date_range"`
+}
+
+type QueryKey struct {
+	Name string  `json:"name"`
+	Type KeyType `json:"type"`
 }
 
 type RageClickEventForProject struct {
@@ -521,6 +642,36 @@ type ReferrerTablePayload struct {
 
 type S3File struct {
 	Key *string `json:"key"`
+}
+
+type Sampling struct {
+	SessionSamplingRate    float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
+	LogSamplingRate        float64 `json:"log_sampling_rate"`
+	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
+	SessionMinuteRateLimit int64   `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   int64   `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     int64   `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   int64   `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string `json:"error_exclusion_query"`
+	LogExclusionQuery      *string `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string `json:"trace_exclusion_query"`
+}
+
+type SamplingInput struct {
+	SessionSamplingRate    *float64 `json:"session_sampling_rate"`
+	ErrorSamplingRate      *float64 `json:"error_sampling_rate"`
+	LogSamplingRate        *float64 `json:"log_sampling_rate"`
+	TraceSamplingRate      *float64 `json:"trace_sampling_rate"`
+	SessionMinuteRateLimit *int64   `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64   `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64   `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64   `json:"trace_minute_rate_limit"`
+	SessionExclusionQuery  *string  `json:"session_exclusion_query"`
+	ErrorExclusionQuery    *string  `json:"error_exclusion_query"`
+	LogExclusionQuery      *string  `json:"log_exclusion_query"`
+	TraceExclusionQuery    *string  `json:"trace_exclusion_query"`
 }
 
 type SanitizedAdmin struct {
@@ -567,6 +718,33 @@ type SearchParamsInput struct {
 	Query                   *string              `json:"query"`
 }
 
+type ServiceConnection struct {
+	Edges    []*ServiceEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+func (ServiceConnection) IsConnection()               {}
+func (this ServiceConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ServiceEdge struct {
+	Cursor string       `json:"cursor"`
+	Node   *ServiceNode `json:"node"`
+}
+
+func (ServiceEdge) IsEdge()                {}
+func (this ServiceEdge) GetCursor() string { return this.Cursor }
+
+type ServiceNode struct {
+	ID             int           `json:"id"`
+	ProjectID      int           `json:"projectID"`
+	Name           string        `json:"name"`
+	Status         ServiceStatus `json:"status"`
+	GithubRepoPath *string       `json:"githubRepoPath"`
+	BuildPrefix    *string       `json:"buildPrefix"`
+	GithubPrefix   *string       `json:"githubPrefix"`
+	ErrorDetails   []string      `json:"errorDetails"`
+}
+
 type SessionAlertInput struct {
 	ProjectID           int                           `json:"project_id"`
 	Name                string                        `json:"name"`
@@ -578,6 +756,7 @@ type SessionAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Type                SessionAlertType              `json:"type"`
 	UserProperties      []*UserPropertyInput          `json:"user_properties"`
 	ExcludeRules        []string                      `json:"exclude_rules"`
@@ -587,6 +766,21 @@ type SessionAlertInput struct {
 type SessionCommentTagInput struct {
 	ID   *int   `json:"id"`
 	Name string `json:"name"`
+}
+
+type SessionExportWithSession struct {
+	CreatedAt    time.Time `json:"created_at"`
+	Type         string    `json:"type"`
+	URL          string    `json:"url"`
+	Error        string    `json:"error"`
+	SecureID     string    `json:"secure_id"`
+	Identifier   string    `json:"identifier"`
+	ActiveLength *int      `json:"active_length"`
+}
+
+type SessionQuery struct {
+	ID        int `json:"id"`
+	ProjectID int `json:"project_id"`
 }
 
 type SlackSyncResponse struct {
@@ -620,6 +814,7 @@ type SubscriptionDetails struct {
 	DiscountPercent float64  `json:"discountPercent"`
 	DiscountAmount  int64    `json:"discountAmount"`
 	LastInvoice     *Invoice `json:"lastInvoice"`
+	BillingIssue    bool     `json:"billingIssue"`
 }
 
 type TopUsersPayload struct {
@@ -628,6 +823,84 @@ type TopUsersPayload struct {
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
 	UserProperties       string  `json:"user_properties"`
+}
+
+type Trace struct {
+	Timestamp       time.Time              `json:"timestamp"`
+	TraceID         string                 `json:"traceID"`
+	SpanID          string                 `json:"spanID"`
+	ParentSpanID    string                 `json:"parentSpanID"`
+	ProjectID       int                    `json:"projectID"`
+	SecureSessionID string                 `json:"secureSessionID"`
+	TraceState      string                 `json:"traceState"`
+	SpanName        string                 `json:"spanName"`
+	SpanKind        string                 `json:"spanKind"`
+	Duration        int                    `json:"duration"`
+	ServiceName     string                 `json:"serviceName"`
+	ServiceVersion  string                 `json:"serviceVersion"`
+	TraceAttributes map[string]interface{} `json:"traceAttributes"`
+	StatusCode      string                 `json:"statusCode"`
+	StatusMessage   string                 `json:"statusMessage"`
+	Events          []*TraceEvent          `json:"events"`
+	Links           []*TraceLink           `json:"links"`
+}
+
+type TraceConnection struct {
+	Edges    []*TraceEdge `json:"edges"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+}
+
+func (TraceConnection) IsConnection()               {}
+func (this TraceConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type TraceEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Trace `json:"node"`
+}
+
+func (TraceEdge) IsEdge()                {}
+func (this TraceEdge) GetCursor() string { return this.Cursor }
+
+type TraceError struct {
+	CreatedAt          time.Time `json:"created_at"`
+	TraceID            *string   `json:"trace_id"`
+	SpanID             *string   `json:"span_id"`
+	LogCursor          *string   `json:"log_cursor"`
+	Event              string    `json:"event"`
+	Type               string    `json:"type"`
+	Source             string    `json:"source"`
+	ErrorGroupSecureID string    `json:"error_group_secure_id"`
+	Timestamp          time.Time `json:"timestamp"`
+}
+
+type TraceEvent struct {
+	Timestamp  time.Time              `json:"timestamp"`
+	Name       string                 `json:"name"`
+	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TraceLink struct {
+	TraceID    string                 `json:"traceID"`
+	SpanID     string                 `json:"spanID"`
+	TraceState string                 `json:"traceState"`
+	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TracePayload struct {
+	Trace  []*Trace      `json:"trace"`
+	Errors []*TraceError `json:"errors"`
+}
+
+type TracesMetricBucket struct {
+	BucketID    uint64           `json:"bucket_id"`
+	MetricType  TracesMetricType `json:"metric_type"`
+	MetricValue float64          `json:"metric_value"`
+}
+
+type TracesMetrics struct {
+	Buckets      []*TracesMetricBucket `json:"buckets"`
+	BucketCount  uint64                `json:"bucket_count"`
+	SampleFactor float64               `json:"sample_factor"`
 }
 
 type TrackPropertyInput struct {
@@ -671,6 +944,15 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name"`
 	ProjectID       *int    `json:"project_id"`
+}
+
+type WebSocketEvent struct {
+	Message   string  `json:"message"`
+	Name      string  `json:"name"`
+	SocketID  string  `json:"socketId"`
+	Type      string  `json:"type"`
+	TimeStamp float64 `json:"timeStamp"`
+	Size      int     `json:"size"`
 }
 
 type WebhookDestinationInput struct {
@@ -733,20 +1015,22 @@ func (e DashboardChartType) MarshalGQL(w io.Writer) {
 type EmailOptOutCategory string
 
 const (
-	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
-	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
-	EmailOptOutCategoryBilling EmailOptOutCategory = "Billing"
+	EmailOptOutCategoryAll            EmailOptOutCategory = "All"
+	EmailOptOutCategoryDigests        EmailOptOutCategory = "Digests"
+	EmailOptOutCategoryBilling        EmailOptOutCategory = "Billing"
+	EmailOptOutCategorySessionDigests EmailOptOutCategory = "SessionDigests"
 )
 
 var AllEmailOptOutCategory = []EmailOptOutCategory{
 	EmailOptOutCategoryAll,
 	EmailOptOutCategoryDigests,
 	EmailOptOutCategoryBilling,
+	EmailOptOutCategorySessionDigests,
 }
 
 func (e EmailOptOutCategory) IsValid() bool {
 	switch e {
-	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling:
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling, EmailOptOutCategorySessionDigests:
 		return true
 	}
 	return false
@@ -770,6 +1054,47 @@ func (e *EmailOptOutCategory) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EmailOptOutCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EnhancementSource string
+
+const (
+	EnhancementSourceGithub    EnhancementSource = "github"
+	EnhancementSourceSourcemap EnhancementSource = "sourcemap"
+)
+
+var AllEnhancementSource = []EnhancementSource{
+	EnhancementSourceGithub,
+	EnhancementSourceSourcemap,
+}
+
+func (e EnhancementSource) IsValid() bool {
+	switch e {
+	case EnhancementSourceGithub, EnhancementSourceSourcemap:
+		return true
+	}
+	return false
+}
+
+func (e EnhancementSource) String() string {
+	return string(e)
+}
+
+func (e *EnhancementSource) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EnhancementSource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EnhancementSource", str)
+	}
+	return nil
+}
+
+func (e EnhancementSource) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -828,6 +1153,7 @@ const (
 	IntegrationTypeClickUp IntegrationType = "ClickUp"
 	IntegrationTypeHeight  IntegrationType = "Height"
 	IntegrationTypeGitHub  IntegrationType = "GitHub"
+	IntegrationTypeJira    IntegrationType = "Jira"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -840,11 +1166,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeClickUp,
 	IntegrationTypeHeight,
 	IntegrationTypeGitHub,
+	IntegrationTypeJira,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira:
 		return true
 	}
 	return false
@@ -871,83 +1198,42 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type LogDirection string
+type KeyType string
 
 const (
-	LogDirectionAsc  LogDirection = "ASC"
-	LogDirectionDesc LogDirection = "DESC"
+	KeyTypeString KeyType = "String"
 )
 
-var AllLogDirection = []LogDirection{
-	LogDirectionAsc,
-	LogDirectionDesc,
+var AllKeyType = []KeyType{
+	KeyTypeString,
 }
 
-func (e LogDirection) IsValid() bool {
+func (e KeyType) IsValid() bool {
 	switch e {
-	case LogDirectionAsc, LogDirectionDesc:
+	case KeyTypeString:
 		return true
 	}
 	return false
 }
 
-func (e LogDirection) String() string {
+func (e KeyType) String() string {
 	return string(e)
 }
 
-func (e *LogDirection) UnmarshalGQL(v interface{}) error {
+func (e *KeyType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = LogDirection(str)
+	*e = KeyType(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid LogDirection", str)
+		return fmt.Errorf("%s is not a valid KeyType", str)
 	}
 	return nil
 }
 
-func (e LogDirection) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type LogKeyType string
-
-const (
-	LogKeyTypeString LogKeyType = "String"
-)
-
-var AllLogKeyType = []LogKeyType{
-	LogKeyTypeString,
-}
-
-func (e LogKeyType) IsValid() bool {
-	switch e {
-	case LogKeyTypeString:
-		return true
-	}
-	return false
-}
-
-func (e LogKeyType) String() string {
-	return string(e)
-}
-
-func (e *LogKeyType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = LogKeyType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid LogKeyType", str)
-	}
-	return nil
-}
-
-func (e LogKeyType) MarshalGQL(w io.Writer) {
+func (e KeyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1349,17 +1635,19 @@ const (
 	ProductTypeSessions ProductType = "Sessions"
 	ProductTypeErrors   ProductType = "Errors"
 	ProductTypeLogs     ProductType = "Logs"
+	ProductTypeTraces   ProductType = "Traces"
 )
 
 var AllProductType = []ProductType{
 	ProductTypeSessions,
 	ProductTypeErrors,
 	ProductTypeLogs,
+	ProductTypeTraces,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces:
 		return true
 	}
 	return false
@@ -1386,6 +1674,71 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ReservedErrorObjectKey string
+
+const (
+	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
+	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
+	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
+	ReservedErrorObjectKeyRequestID       ReservedErrorObjectKey = "request_id"
+	ReservedErrorObjectKeyServiceName     ReservedErrorObjectKey = "service_name"
+	ReservedErrorObjectKeyServiceVersion  ReservedErrorObjectKey = "service_version"
+	ReservedErrorObjectKeySessionSecureID ReservedErrorObjectKey = "session_secure_id"
+	ReservedErrorObjectKeySource          ReservedErrorObjectKey = "source"
+	ReservedErrorObjectKeySpanID          ReservedErrorObjectKey = "span_id"
+	ReservedErrorObjectKeyStackTrace      ReservedErrorObjectKey = "stackTrace"
+	ReservedErrorObjectKeyTimestamp       ReservedErrorObjectKey = "timestamp"
+	ReservedErrorObjectKeyTraceID         ReservedErrorObjectKey = "trace_id"
+	ReservedErrorObjectKeyType            ReservedErrorObjectKey = "type"
+	ReservedErrorObjectKeyURL             ReservedErrorObjectKey = "url"
+)
+
+var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyEvent,
+	ReservedErrorObjectKeyLogCursor,
+	ReservedErrorObjectKeyPayload,
+	ReservedErrorObjectKeyRequestID,
+	ReservedErrorObjectKeyServiceName,
+	ReservedErrorObjectKeyServiceVersion,
+	ReservedErrorObjectKeySessionSecureID,
+	ReservedErrorObjectKeySource,
+	ReservedErrorObjectKeySpanID,
+	ReservedErrorObjectKeyStackTrace,
+	ReservedErrorObjectKeyTimestamp,
+	ReservedErrorObjectKeyTraceID,
+	ReservedErrorObjectKeyType,
+	ReservedErrorObjectKeyURL,
+}
+
+func (e ReservedErrorObjectKey) IsValid() bool {
+	switch e {
+	case ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+		return true
+	}
+	return false
+}
+
+func (e ReservedErrorObjectKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedErrorObjectKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedErrorObjectKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedErrorObjectKey", str)
+	}
+	return nil
+}
+
+func (e ReservedErrorObjectKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ReservedLogKey string
 
 const (
@@ -1397,6 +1750,7 @@ const (
 	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
 	ReservedLogKeySource          ReservedLogKey = "source"
 	ReservedLogKeyServiceName     ReservedLogKey = "service_name"
+	ReservedLogKeyServiceVersion  ReservedLogKey = "service_version"
 )
 
 var AllReservedLogKey = []ReservedLogKey{
@@ -1407,11 +1761,12 @@ var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeyTraceID,
 	ReservedLogKeySource,
 	ReservedLogKeyServiceName,
+	ReservedLogKeyServiceVersion,
 }
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
+	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false
@@ -1435,6 +1790,110 @@ func (e *ReservedLogKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReservedLogKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedSessionKey string
+
+const (
+	ReservedSessionKeyEnvironment ReservedSessionKey = "environment"
+	ReservedSessionKeyServiceName ReservedSessionKey = "service_name"
+	ReservedSessionKeyAppVersion  ReservedSessionKey = "app_version"
+)
+
+var AllReservedSessionKey = []ReservedSessionKey{
+	ReservedSessionKeyEnvironment,
+	ReservedSessionKeyServiceName,
+	ReservedSessionKeyAppVersion,
+}
+
+func (e ReservedSessionKey) IsValid() bool {
+	switch e {
+	case ReservedSessionKeyEnvironment, ReservedSessionKeyServiceName, ReservedSessionKeyAppVersion:
+		return true
+	}
+	return false
+}
+
+func (e ReservedSessionKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedSessionKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedSessionKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedSessionKey", str)
+	}
+	return nil
+}
+
+func (e ReservedSessionKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedTraceKey string
+
+const (
+	ReservedTraceKeyLevel           ReservedTraceKey = "level"
+	ReservedTraceKeyMessage         ReservedTraceKey = "message"
+	ReservedTraceKeySecureSessionID ReservedTraceKey = "secure_session_id"
+	ReservedTraceKeySpanID          ReservedTraceKey = "span_id"
+	ReservedTraceKeyTraceID         ReservedTraceKey = "trace_id"
+	ReservedTraceKeyParentSpanID    ReservedTraceKey = "parent_span_id"
+	ReservedTraceKeyTraceState      ReservedTraceKey = "trace_state"
+	ReservedTraceKeySpanName        ReservedTraceKey = "span_name"
+	ReservedTraceKeySpanKind        ReservedTraceKey = "span_kind"
+	ReservedTraceKeyDuration        ReservedTraceKey = "duration"
+	ReservedTraceKeyServiceName     ReservedTraceKey = "service_name"
+	ReservedTraceKeyServiceVersion  ReservedTraceKey = "service_version"
+)
+
+var AllReservedTraceKey = []ReservedTraceKey{
+	ReservedTraceKeyLevel,
+	ReservedTraceKeyMessage,
+	ReservedTraceKeySecureSessionID,
+	ReservedTraceKeySpanID,
+	ReservedTraceKeyTraceID,
+	ReservedTraceKeyParentSpanID,
+	ReservedTraceKeyTraceState,
+	ReservedTraceKeySpanName,
+	ReservedTraceKeySpanKind,
+	ReservedTraceKeyDuration,
+	ReservedTraceKeyServiceName,
+	ReservedTraceKeyServiceVersion,
+}
+
+func (e ReservedTraceKey) IsValid() bool {
+	switch e {
+	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+		return true
+	}
+	return false
+}
+
+func (e ReservedTraceKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedTraceKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedTraceKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedTraceKey", str)
+	}
+	return nil
+}
+
+func (e ReservedTraceKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1482,6 +1941,49 @@ func (e *RetentionPeriod) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RetentionPeriod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServiceStatus string
+
+const (
+	ServiceStatusHealthy ServiceStatus = "healthy"
+	ServiceStatusError   ServiceStatus = "error"
+	ServiceStatusCreated ServiceStatus = "created"
+)
+
+var AllServiceStatus = []ServiceStatus{
+	ServiceStatusHealthy,
+	ServiceStatusError,
+	ServiceStatusCreated,
+}
+
+func (e ServiceStatus) IsValid() bool {
+	switch e {
+	case ServiceStatusHealthy, ServiceStatusError, ServiceStatusCreated:
+		return true
+	}
+	return false
+}
+
+func (e ServiceStatus) String() string {
+	return string(e)
+}
+
+func (e *ServiceStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceStatus", str)
+	}
+	return nil
+}
+
+func (e ServiceStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1583,7 +2085,13 @@ const (
 	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
 	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
 	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonNoUserEvents              SessionExcludedReason = "NoUserEvents"
 	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
+	SessionExcludedReasonBillingQuotaExceeded      SessionExcludedReason = "BillingQuotaExceeded"
+	SessionExcludedReasonRetentionPeriodExceeded   SessionExcludedReason = "RetentionPeriodExceeded"
+	SessionExcludedReasonSampled                   SessionExcludedReason = "Sampled"
+	SessionExcludedReasonRateLimitMinute           SessionExcludedReason = "RateLimitMinute"
+	SessionExcludedReasonExclusionFilter           SessionExcludedReason = "ExclusionFilter"
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
@@ -1592,12 +2100,18 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonNoUserInteractionEvents,
 	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
+	SessionExcludedReasonNoUserEvents,
 	SessionExcludedReasonIgnoredUser,
+	SessionExcludedReasonBillingQuotaExceeded,
+	SessionExcludedReasonRetentionPeriodExceeded,
+	SessionExcludedReasonSampled,
+	SessionExcludedReasonRateLimitMinute,
+	SessionExcludedReasonExclusionFilter,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser, SessionExcludedReasonBillingQuotaExceeded, SessionExcludedReasonRetentionPeriodExceeded, SessionExcludedReasonSampled, SessionExcludedReasonRateLimitMinute, SessionExcludedReasonExclusionFilter:
 		return true
 	}
 	return false
@@ -1714,11 +2228,53 @@ func (e SocialType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type SortDirection string
+
+const (
+	SortDirectionAsc  SortDirection = "ASC"
+	SortDirectionDesc SortDirection = "DESC"
+)
+
+var AllSortDirection = []SortDirection{
+	SortDirectionAsc,
+	SortDirectionDesc,
+}
+
+func (e SortDirection) IsValid() bool {
+	switch e {
+	case SortDirectionAsc, SortDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e SortDirection) String() string {
+	return string(e)
+}
+
+func (e *SortDirection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SortDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SortDirection", str)
+	}
+	return nil
+}
+
+func (e SortDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SourceMappingErrorCode string
 
 const (
 	SourceMappingErrorCodeFileNameMissingFromSourcePath         SourceMappingErrorCode = "File_Name_Missing_From_Source_Path"
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL         SourceMappingErrorCode = "Error_Parsing_Stack_Trace_File_Url"
+	SourceMappingErrorCodeErrorConstructingSourceMapURL         SourceMappingErrorCode = "Error_Constructing_Source_Map_URL"
 	SourceMappingErrorCodeMissingSourceMapFileInS3              SourceMappingErrorCode = "Missing_Source_Map_File_In_S3"
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL         SourceMappingErrorCode = "Minified_File_Missing_In_S3_And_URL"
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL        SourceMappingErrorCode = "Sourcemap_File_Missing_In_S3_And_URL"
@@ -1732,6 +2288,7 @@ const (
 var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 	SourceMappingErrorCodeFileNameMissingFromSourcePath,
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL,
+	SourceMappingErrorCodeErrorConstructingSourceMapURL,
 	SourceMappingErrorCodeMissingSourceMapFileInS3,
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL,
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL,
@@ -1744,7 +2301,7 @@ var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 
 func (e SourceMappingErrorCode) IsValid() bool {
 	switch e {
-	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
+	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeErrorConstructingSourceMapURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
 		return true
 	}
 	return false
@@ -1809,5 +2366,48 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TracesMetricType string
+
+const (
+	TracesMetricTypeCount TracesMetricType = "count"
+	TracesMetricTypeP50   TracesMetricType = "p50"
+	TracesMetricTypeP90   TracesMetricType = "p90"
+)
+
+var AllTracesMetricType = []TracesMetricType{
+	TracesMetricTypeCount,
+	TracesMetricTypeP50,
+	TracesMetricTypeP90,
+}
+
+func (e TracesMetricType) IsValid() bool {
+	switch e {
+	case TracesMetricTypeCount, TracesMetricTypeP50, TracesMetricTypeP90:
+		return true
+	}
+	return false
+}
+
+func (e TracesMetricType) String() string {
+	return string(e)
+}
+
+func (e *TracesMetricType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TracesMetricType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TracesMetricType", str)
+	}
+	return nil
+}
+
+func (e TracesMetricType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

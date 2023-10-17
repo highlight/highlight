@@ -1,11 +1,33 @@
 {
-	"$schema": "https://unpkg.com/@changesets/config@2.1.1/schema.json",
+	"$schema": "https://unpkg.com/@changesets/config@2.3.1/schema.json",
 	"changelog": "@changesets/cli/changelog",
-	"commit": false,
+	"commit": true,
 	"fixed": [],
 	"linked": [],
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": []
+	"ignore": [
+		"@highlight-run/client",
+		"@highlight-run/frontend",
+		"@highlight-run/rrdom",
+		"@highlight-run/rrdom-nodejs",
+		"@highlight-run/rrweb",
+		"@highlight-run/rrweb-player",
+		"@highlight-run/rrweb-snapshot",
+		"@highlight-run/rrweb-types",
+		"@highlight-run/rrweb-web-extension",
+		"@highlight-run/ui",
+		"ai",
+		"cloudflare-worker",
+		"emails",
+		"functions",
+		"highlight.io",
+		"nestjs",
+		"nextjs",
+		"react-router",
+		"remix",
+		"render",
+		"rrvideo"
+	]
 }

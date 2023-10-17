@@ -42,6 +42,30 @@ def test_record_exception(mock_otlp, project_id, session_id, request_id):
     )
 
     for i in range(10):
+        logging.info(f"hey there! {i}")
         with h.trace(session_id, request_id):
             logging.info(f"trace! {i}")
-        h.record_exception(FileNotFoundError(f"test! {i}"))
+        h.record_exception(
+            FileNotFoundError(f"test! {i}"), attributes={"hello": "there"}
+        )
+
+
+def test_log_no_trace(mocker):
+    span = mocker.patch("highlight_io.sdk.OTLPSpanExporter")
+    log = mocker.patch("highlight_io.sdk.OTLPLogExporter")
+    sp = mocker.patch(
+        "highlight_io.sdk.BatchSpanProcessor", return_value=BatchSpanProcessor(span)
+    )
+    lg = mocker.patch(
+        "highlight_io.sdk.BatchLogRecordProcessor",
+        return_value=BatchLogRecordProcessor(log),
+    )
+    mock_trace = mocker.spy(highlight_io.H, "trace")
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    h = highlight_io.H("1", instrument_logging=True)
+    logger.info(f"hey there!")
+    h.flush()
+
+    assert mock_trace.call_args_list[0].args[1:] == ()

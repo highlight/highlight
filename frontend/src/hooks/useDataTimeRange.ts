@@ -4,7 +4,7 @@ import moment from 'moment'
 export const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 
 export const defaultEndDate = moment()
-export const defaultLookback = 24 * 60
+export const defaultLookback = 7 * 24 * 60
 export const defaultStartDate = moment(defaultEndDate).subtract(
 	defaultLookback,
 	'minutes',

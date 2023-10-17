@@ -1,9 +1,12 @@
-require_relative "./test_helper"
+require_relative './test_helper'
 
 class HighlightTest < Minitest::Test
   def test_logger
-    Highlight::H.new("qe9y4yg1")
-    logger = Highlight::Logger.new(STDOUT)
+    Highlight::H.new('qe9y4yg1') do |c|
+      c.service_name = 'my-app'
+      c.service_version = '1.0.0'
+    end
+    logger = Highlight::Logger.new($stdout)
     logger.add(Logger::INFO, 'ruby test log add!')
     logger.info('ruby test log info!')
     logger.info { 'ruby test log block!' }
@@ -11,20 +14,30 @@ class HighlightTest < Minitest::Test
   end
 
   def test_record_log
-    Highlight::H.new("qe9y4yg1")
+    Highlight::H.new('qe9y4yg1')
     Highlight::H.instance.record_log(nil, nil, Logger::INFO, 'ruby test record_log info!')
     Highlight::H.instance.record_log(nil, nil, Logger::ERROR, 'ruby test record_log error!')
     Highlight::H.instance.flush
   end
 
   def test_trace
+    mock = MiniTest::Mock.new
+    mock.expect :in_span, true do |attributes:|
+      attributes == { 'highlight.project_id' => 'qe9y4yg1', 'highlight.session_id' => 1, 'some.attribute' => 12 }
+    end
+
     begin
-      Highlight::H.new("qe9y4yg1")
-      Highlight::H.instance.trace(nil, nil) do
-          raise RuntimeError.new('ruby test error handler!')
+      OpenTelemetry::Trace::Tracer.stub :new, mock do
+        Highlight::H.new('qe9y4yg1')
+        Highlight::H.instance.trace(1, nil, { 'some.attribute' => 12 }) do
+          logger = Highlight::Logger.new($stdout)
+          logger.info('ruby test trace!')
+          raise 'ruby test error handler!'
+        end
+        Highlight::H.instance.flush
       end
-      Highlight::H.instance.flush
-    rescue
+    ensure
+      assert_mock mock
     end
   end
 end

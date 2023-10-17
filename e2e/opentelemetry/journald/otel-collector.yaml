@@ -1,0 +1,22 @@
+receivers:
+    journald:
+        directory: /var/log/journal
+exporters:
+    logging:
+        sampling_initial: 10
+        sampling_thereafter: 1000
+    otlp/highlight:
+        endpoint: 'https://otel.highlight.io:4317'
+processors:
+    attributes/highlight-project:
+        actions:
+            - key: highlight.project_id
+              value: '1jdkoe52'
+              action: insert
+    batch:
+service:
+    pipelines:
+        logs:
+            receivers: [journald]
+            processors: [attributes/highlight-project, batch]
+            exporters: [otlp/highlight, logging]

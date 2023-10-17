@@ -1,9 +1,14 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import {
+	CreateAlertButton,
+	Divider,
+} from '@components/CreateAlertButton/CreateAlertButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
+	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupQuery,
 	useGetProjectDropdownOptionsQuery,
 	useMarkErrorGroupAsViewedMutation,
@@ -37,18 +42,23 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { apiObject } from 'rudder-sdk-js'
+import { StringParam, useQueryParams } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
+import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
+import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
+import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './styles.css'
 
-type Params = { project_id: string; error_secure_id: string }
+type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
 export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
@@ -131,7 +141,11 @@ export default function ErrorsV2() {
 			</Helmet>
 
 			<Box cssClass={styles.container}>
-				{!isBlocked && <SearchPanel />}
+				{!isBlocked && (
+					<Box cssClass={styles.searchPanelContainer}>
+						<SearchPanel />
+					</Box>
+				)}
 
 				<div
 					className={clsx(styles.detailsContainer, {
@@ -149,6 +163,7 @@ export default function ErrorsV2() {
 						shadow="medium"
 					>
 						<TopBar
+							errorGroup={data?.error_group}
 							isLoggedIn={isLoggedIn}
 							isBlocked={isBlocked}
 							projectId={project_id}
@@ -174,12 +189,27 @@ export default function ErrorsV2() {
 }
 
 type TopBarProps = {
+	errorGroup: GetErrorGroupQuery['error_group']
 	isLoggedIn: boolean
 	isBlocked: boolean
 	navigation: ReturnType<typeof useNavigation>
 	projectId?: string
 }
-function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
+function TopBar({
+	errorGroup,
+	isLoggedIn,
+	isBlocked,
+	projectId,
+	navigation,
+}: TopBarProps) {
+	const { data: alertsData } = useGetAlertsPagePayloadQuery({
+		variables: {
+			project_id: projectId!,
+		},
+		skip: !projectId,
+	})
+	const showCreateAlertButton = alertsData?.error_alerts?.length === 0
+
 	const {
 		showLeftPanel,
 		setShowLeftPanel,
@@ -189,8 +219,15 @@ function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
 		previousSecureId,
 		goToErrorGroup,
 	} = navigation
+
 	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
-		<Box display="flex" alignItems="center" borderBottom="secondary" p="6">
+		<Box
+			display="flex"
+			alignItems="center"
+			borderBottom="secondary"
+			p="6"
+			justifyContent="space-between"
+		>
 			<Box display="flex" gap="8">
 				{!showLeftPanel && (
 					<Tooltip
@@ -218,6 +255,22 @@ function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
 					onPrev={() => goToErrorGroup(previousSecureId)}
 					onNext={() => goToErrorGroup(nextSecureId)}
 				/>
+			</Box>
+			<Box>
+				{errorGroup && (
+					<Box display="flex" gap="8" alignItems="center">
+						<ErrorShareButton errorGroup={errorGroup} />
+						{showCreateAlertButton ? (
+							<CreateAlertButton type="errors" />
+						) : null}
+						<Divider />
+						<ErrorStateSelect
+							state={errorGroup.state}
+							snoozedUntil={errorGroup.snoozed_until}
+						/>
+						<ErrorIssueButton errorGroup={errorGroup} />
+					</Box>
+				)}
 			</Box>
 		</Box>
 	) : null
@@ -304,7 +357,7 @@ function ErrorDisplay({
 							) : (
 								<>
 									<IntegrationCta />
-									<Box pt="16" pb="32">
+									<Box pt="24" pb="32">
 										<ErrorTitle errorGroup={errorGroup} />
 
 										<ErrorBody errorGroup={errorGroup} />
@@ -356,6 +409,9 @@ function ErrorDisplay({
 
 function useErrorGroup() {
 	const { error_secure_id } = useParams<Params>()
+	const [{ referrer }] = useQueryParams({
+		referrer: StringParam,
+	})
 	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 	const { isLoggedIn } = useAuthContext()
 	const {
@@ -363,7 +419,10 @@ function useErrorGroup() {
 		loading,
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
-		variables: { secure_id: error_secure_id! },
+		variables: {
+			secure_id: error_secure_id!,
+			use_clickhouse: true,
+		},
 		skip: !error_secure_id,
 		onCompleted: () => {
 			if (error_secure_id) {
@@ -374,7 +433,14 @@ function useErrorGroup() {
 					},
 				}).catch(console.error)
 			}
-			analytics.track('Viewed error', { is_guest: !isLoggedIn })
+			const properties: apiObject = {
+				is_guest: !isLoggedIn,
+			}
+			if (referrer) {
+				properties.referrer = referrer
+			}
+
+			analytics.track('Viewed error', properties)
 		},
 	})
 

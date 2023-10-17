@@ -26,6 +26,7 @@ export type BackendErrorObjectInput = {
 	log_cursor?: InputMaybe<Scalars['String']>
 	payload?: InputMaybe<Scalars['String']>
 	request_id?: InputMaybe<Scalars['String']>
+	service: ServiceInput
 	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
 	span_id?: InputMaybe<Scalars['String']>
@@ -113,6 +114,8 @@ export type MutationInitializeSessionArgs = {
 	firstloadVersion: Scalars['String']
 	network_recording_domains?: InputMaybe<Array<Scalars['String']>>
 	organization_verbose_id: Scalars['String']
+	privacy_setting?: InputMaybe<Scalars['String']>
+	serviceName?: InputMaybe<Scalars['String']>
 	session_secure_id: Scalars['String']
 }
 
@@ -141,6 +144,7 @@ export type MutationPushPayloadArgs = {
 	payload_id?: InputMaybe<Scalars['ID']>
 	resources: Scalars['String']
 	session_secure_id: Scalars['String']
+	web_socket_events?: InputMaybe<Scalars['String']>
 }
 
 export enum PublicGraphError {
@@ -165,6 +169,11 @@ export type ReplayEventInput = {
 
 export type ReplayEventsInput = {
 	events: Array<InputMaybe<ReplayEventInput>>
+}
+
+export type ServiceInput = {
+	name: Scalars['String']
+	version: Scalars['String']
 }
 
 export type Session = {

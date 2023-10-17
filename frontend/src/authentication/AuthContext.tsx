@@ -9,10 +9,6 @@ export enum AuthRole {
 	LOADING,
 }
 
-export const isAuthLoading = (role: AuthRole) => {
-	return role == AuthRole.LOADING
-}
-
 export const [useAuthContext, AuthContextProvider] = createContext<{
 	role: AuthRole
 	admin?: Admin

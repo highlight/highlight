@@ -1,5 +1,6 @@
 package io.highlight.sdk.common;
 
+import static io.opentelemetry.api.common.AttributeKey.longKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import io.opentelemetry.api.common.AttributeKey;
@@ -43,6 +44,31 @@ public class HighlightAttributes {
 	 * The attribute key for the java vendor date.
 	 */
 	public static final AttributeKey<String> TELEMETRY_JAVA_VERSION_DATE = stringKey("telemetry.java.date");
+
+	/**
+	 * The attribute key for the java vendor date.
+	 */
+	public static final AttributeKey<Long> HIGHLIGHT_JAVA_THREAD_ID = longKey("highlight.java.thread_id");
+
+	/**
+	 * The attribute key for the java logger name.
+	 */
+	public static final AttributeKey<String> HIGHLIGHT_JAVA_LOGGER_NAME = stringKey("highlight.java.logger_name");
+
+	/**
+	 * The attribute key for the java sequence number.
+	 */
+	public static final AttributeKey<Long> HIGHLIGHT_JAVA_SEQUENCE_NUMBER = longKey("highlight.java.sequence_number");
+
+	/**
+	 * The attribute key for the java source class name.
+	 */
+	public static final AttributeKey<String> HIGHLIGHT_JAVA_SOURCE_CLASS_NAME = stringKey("highlight.java.source_class_name");
+
+	/**
+	 * The attribute key for the java source method name.
+	 */
+	public static final AttributeKey<String> HIGHLIGHT_JAVA_SOURCE_METHOD_NAME = stringKey("highlight.java.source_method_name");
 
 	/**
 	 * Non accessible constructor because this class just providing static fields

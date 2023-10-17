@@ -12,13 +12,6 @@ mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 	}
 }
 
-mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
-	markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
-		secure_id
-		starred
-	}
-}
-
 mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
 	muteSessionCommentThread(id: $id, has_muted: $has_muted)
 }
@@ -216,7 +209,6 @@ mutation EditProject(
 	$rage_click_window_seconds: Int
 	$rage_click_radius_pixels: Int
 	$rage_click_count: Int
-	$backend_domains: StringArray
 ) {
 	editProject(
 		id: $id
@@ -229,7 +221,6 @@ mutation EditProject(
 		rage_click_window_seconds: $rage_click_window_seconds
 		rage_click_radius_pixels: $rage_click_radius_pixels
 		rage_click_count: $rage_click_count
-		backend_domains: $backend_domains
 	) {
 		id
 		name
@@ -241,7 +232,6 @@ mutation EditProject(
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 	}
 }
 
@@ -256,9 +246,9 @@ mutation EditProjectSettings(
 	$rage_click_window_seconds: Int
 	$rage_click_radius_pixels: Int
 	$rage_click_count: Int
-	$backend_domains: StringArray
 	$filterSessionsWithoutError: Boolean
 	$autoResolveStaleErrorsDayInterval: Int
+	$sampling: SamplingInput
 ) {
 	editProjectSettings(
 		projectId: $projectId
@@ -271,9 +261,9 @@ mutation EditProjectSettings(
 		rage_click_window_seconds: $rage_click_window_seconds
 		rage_click_radius_pixels: $rage_click_radius_pixels
 		rage_click_count: $rage_click_count
-		backend_domains: $backend_domains
 		filterSessionsWithoutError: $filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
+		sampling: $sampling
 	) {
 		id
 		name
@@ -285,9 +275,18 @@ mutation EditProjectSettings(
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
-		backend_domains
 		filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval
+		sampling {
+			session_sampling_rate
+			error_sampling_rate
+			log_sampling_rate
+			trace_sampling_rate
+			session_exclusion_query
+			error_exclusion_query
+			log_exclusion_query
+			trace_exclusion_query
+		}
 	}
 }
 
@@ -299,6 +298,22 @@ mutation EditWorkspace($id: ID!, $name: String) {
 	editWorkspace(id: $id, name: $name) {
 		id
 		name
+	}
+}
+
+mutation EditWorkspaceSettings(
+	$workspace_id: ID!
+	$ai_application: Boolean
+	$ai_insights: Boolean
+) {
+	editWorkspaceSettings(
+		workspace_id: $workspace_id
+		ai_application: $ai_application
+		ai_insights: $ai_insights
+	) {
+		workspace_id
+		ai_application
+		ai_insights
 	}
 }
 
@@ -662,6 +677,7 @@ mutation CreateErrorAlert(
 	$environments: [String]!
 	$regex_groups: [String]!
 	$frequency: Int!
+	$default: Boolean
 ) {
 	createErrorAlert(
 		project_id: $project_id
@@ -675,6 +691,7 @@ mutation CreateErrorAlert(
 		threshold_window: $threshold_window
 		regex_groups: $regex_groups
 		frequency: $frequency
+		default: $default
 	) {
 		id
 		ChannelsToNotify {
@@ -1075,7 +1092,7 @@ mutation DeleteDashboard($id: ID!) {
 
 mutation DeleteSessions(
 	$project_id: ID!
-	$query: String!
+	$query: ClickhouseQuery!
 	$sessionCount: Int!
 ) {
 	deleteSessions(
@@ -1083,6 +1100,10 @@ mutation DeleteSessions(
 		query: $query
 		sessionCount: $sessionCount
 	)
+}
+
+mutation ExportSession($session_secure_id: String!) {
+	exportSession(session_secure_id: $session_secure_id)
 }
 
 mutation UpdateVercelSettings(
@@ -1139,4 +1160,91 @@ mutation DeleteInviteLinkFromWorkspace(
 		workspace_id: $workspace_id
 		workspace_invite_link_id: $workspace_invite_link_id
 	)
+}
+
+mutation EditServiceGithubSettings(
+	$id: ID!
+	$project_id: ID!
+	$github_repo_path: String
+	$build_prefix: String
+	$github_prefix: String
+) {
+	editServiceGithubSettings(
+		id: $id
+		project_id: $project_id
+		github_repo_path: $github_repo_path
+		build_prefix: $build_prefix
+		github_prefix: $github_prefix
+	) {
+		id
+		projectID
+		name
+		status
+		githubRepoPath
+		buildPrefix
+		githubPrefix
+		errorDetails
+	}
+}
+
+mutation CreateErrorTag($title: String!, $description: String!) {
+	createErrorTag(title: $title, description: $description) {
+		id
+		created_at
+		title
+		description
+	}
+}
+
+mutation UpdateErrorTags {
+	updateErrorTags
+}
+
+mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
+	upsertSlackChannel(project_id: $project_id, name: $name) {
+		webhook_channel
+		webhook_channel_id
+	}
+}
+
+mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
+	upsertDiscordChannel(project_id: $project_id, name: $name) {
+		id
+		name
+	}
+}
+
+mutation testErrorEnhancement(
+	$error_object_id: ID!
+	$github_repo_path: String!
+	$github_prefix: String
+	$build_prefix: String
+	$save_error: Boolean
+) {
+	testErrorEnhancement(
+		error_object_id: $error_object_id
+		github_repo_path: $github_repo_path
+		github_prefix: $github_prefix
+		build_prefix: $build_prefix
+		save_error: $save_error
+	) {
+		id
+		type
+		serviceName
+		serviceVersion
+		stack_trace
+		structured_stack_trace {
+			columnNumber
+			enhancementSource
+			enhancementVersion
+			error
+			externalLink
+			fileName
+			functionName
+			lineContent
+			lineNumber
+			linesAfter
+			linesBefore
+		}
+	}
 }

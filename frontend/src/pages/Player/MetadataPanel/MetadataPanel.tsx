@@ -1,26 +1,21 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import CollapsibleSection from '@components/CollapsibleSection'
 import LoadingBox from '@components/LoadingBox'
 import { TableList, TableListItem } from '@components/TableList/TableList'
-import {
-	Box,
-	ButtonIcon,
-	ButtonLink,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
-	Text,
-} from '@highlight-run/ui'
+import { Box, ButtonLink } from '@highlight-run/ui'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
-import { useEffect, useState } from 'react'
+import { capitalize } from 'lodash'
+
+import CollapsibleSection from '@/components/CollapsibleSection'
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
 import { useReplayerContext } from '../ReplayerContext'
 import { formatSize } from '../Toolbar/DevToolsWindowV2/utils'
-import * as styles from './MetadataPanel.css'
+import * as style from './MetadataPanel.css'
 
 enum MetadataSection {
 	Session = 'Session',
@@ -36,26 +31,9 @@ type Field = {
 }
 
 const MetadataPanel = () => {
-	const [expanded, setExpanded] = useState<MetadataSection | undefined>(
-		MetadataSection.Session,
-	)
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { setSearchQuery, removeSelectedSegment } = useSearchContext()
 	const { isHighlightAdmin } = useAuthContext()
-
-	const [parsedFields, setParsedFields] = useState<Field[]>([])
-
-	useEffect(() => {
-		const fields = session?.fields?.filter((f) => {
-			return (
-				f &&
-				f.type === 'user' &&
-				f.name !== 'identifier' &&
-				f.value.length
-			)
-		}) as Field[]
-		setParsedFields(fields)
-	}, [session?.fields])
 
 	const sessionData: TableListItem[] = [
 		{
@@ -94,15 +72,17 @@ const MetadataPanel = () => {
 			),
 		},
 		{
-			keyDisplayValue: 'Strict Privacy',
-			valueDisplayValue: session?.enable_strict_privacy
-				? 'Enabled'
-				: 'Disabled',
+			keyDisplayValue: 'Privacy Settings',
+			valueDisplayValue: privacyModeValue(
+				session?.privacy_setting,
+				session?.enable_strict_privacy,
+			),
 			valueInfoTooltipMessage: (
 				<>
-					{session?.enable_strict_privacy
-						? 'Text and images in this session are obfuscated.'
-						: 'This session is recording all content on the page.'}{' '}
+					{privacyModeDescription(
+						session?.privacy_setting,
+						session?.enable_strict_privacy,
+					)}{' '}
 					<a
 						href="https://docs.highlight.run/privacy"
 						target="_blank"
@@ -200,13 +180,11 @@ const MetadataPanel = () => {
 		},
 	]
 
-	if (session?.city) {
-		userData.push({
-			keyDisplayValue: 'Location',
-			valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
-		})
-	}
-
+	const parsedFields = session?.fields?.filter((f) => {
+		return (
+			f && f.type === 'user' && f.name !== 'identifier' && f.value.length
+		)
+	}) as Field[]
 	parsedFields?.forEach((field) => {
 		if (field.name !== 'avatar') {
 			userData.push({
@@ -215,6 +193,26 @@ const MetadataPanel = () => {
 			})
 		}
 	})
+
+	if (session?.user_properties) {
+		for (const [k, v] of Object.entries(
+			JSON.parse(session?.user_properties),
+		)) {
+			if (k !== 'avatar') {
+				userData.push({
+					keyDisplayValue: k,
+					valueDisplayValue: v?.toString(),
+				})
+			}
+		}
+	}
+
+	if (session?.city) {
+		userData.push({
+			keyDisplayValue: 'Location',
+			valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
+		})
+	}
 
 	const deviceData: TableListItem[] = []
 
@@ -230,12 +228,12 @@ const MetadataPanel = () => {
 							`Showing sessions created by device #${session.fingerprint}`,
 						)
 						removeSelectedSegment()
-						setSearchParams({
-							query: buildQueryStateString({
+						setSearchQuery(
+							buildQueryStateString({
 								session_device_id:
 									session.fingerprint?.toString(),
 							}),
-						})
+						)
 					}}
 				>
 					#{session?.fingerprint}
@@ -271,78 +269,68 @@ const MetadataPanel = () => {
 	)
 
 	return (
-		<div className={styles.metadataPanel}>
+		<Box cssClass={style.container}>
 			{!session ? (
 				<LoadingBox />
 			) : (
-				Object.entries({
-					[MetadataSection.Session]: sessionData,
-					[MetadataSection.User]: userData,
-					[MetadataSection.Device]: deviceData,
-					[MetadataSection.Environment]: environmentData,
-				}).map(([key, value]) => {
-					const isExpanded = expanded === key
-					const title = (
-						<Box
-							py="8"
-							px="12"
-							bb={isExpanded ? undefined : 'secondary'}
-							display="flex"
-							justifyContent="space-between"
-							alignItems="center"
-						>
-							<Text
-								color="secondaryContentOnEnabled"
-								as="span"
-								size="small"
-								weight="medium"
-							>
-								{key}
-							</Text>
-
-							<Box display="flex" gap="4" alignItems="center">
-								<ButtonIcon
-									icon={
-										isExpanded ? (
-											<IconSolidCheveronUp size={12} />
-										) : (
-											<IconSolidCheveronDown size={12} />
-										)
-									}
-									kind="secondary"
-									size="minimal"
-									emphasis="low"
-								/>
-							</Box>
-						</Box>
-					)
-					return (
-						<CollapsibleSection
-							key={key}
-							title={title}
-							expanded={isExpanded}
-							setExpanded={(e) => {
-								if (e) {
-									setExpanded(key as MetadataSection)
-								} else {
-									setExpanded(undefined)
-								}
-							}}
-						>
-							<Box
-								px="12"
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-							>
-								<TableList data={value} />
-							</Box>
-						</CollapsibleSection>
-					)
-				})
+				<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
+					{Object.entries({
+						[MetadataSection.Session]: sessionData,
+						[MetadataSection.User]: userData,
+						[MetadataSection.Device]: deviceData,
+						[MetadataSection.Environment]: environmentData,
+					}).map(([key, value]) => {
+						return (
+							<CollapsibleSection key={key} title={key}>
+								<Box
+									px="12"
+									display="flex"
+									justifyContent="space-between"
+									alignItems="center"
+								>
+									<TableList data={value} />
+								</Box>
+							</CollapsibleSection>
+						)
+					})}
+				</Box>
 			)}
-		</div>
+		</Box>
 	)
+}
+
+const privacyModeValue = (
+	privacySetting?: string | null,
+	legacyPrivacyEnabled?: boolean | null,
+): string => {
+	if (!!privacySetting) {
+		return capitalize(privacySetting)
+	}
+
+	if (legacyPrivacyEnabled) {
+		return 'Strict Privacy Enabled (deprecated)'
+	} else {
+		return 'Strict Privacy Disabled (deprecated)'
+	}
+}
+
+const privacyModeDescription = (
+	privacySetting?: string | null,
+	legacyPrivacyEnabled?: boolean | null,
+): string => {
+	if (privacySetting === 'strict') {
+		return 'Text and images in this session are obfuscated.'
+	} else if (privacySetting === 'none') {
+		return 'This session is recording all content on the page.'
+	} else if (privacySetting === 'default') {
+		return 'This session is obfuscating personal identifiable information, but all images and other text is recoreded.'
+	}
+
+	if (legacyPrivacyEnabled) {
+		return 'Text and images in this session are obfuscated (deprecated).'
+	} else {
+		return 'This session is recording all content on the page (deprecated).'
+	}
 }
 
 export default MetadataPanel

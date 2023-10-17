@@ -1,23 +1,34 @@
 {
 	"name": "@highlight-run/cloudflare",
-	"version": "2.0.5",
+	"version": "2.1.3",
 	"packageManager": "yarn@3.2.3",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
-		"build": "tsup src/index.ts --format cjs,esm --dts"
+		"dev": "yarn build --watch",
+		"build": "tsup",
+		"typegen": "tsup src/index.ts --dts-only"
+	},
+	"type": "module",
+	"exports": {
+		".": {
+			"require": "./dist/index.cjs",
+			"import": "./dist/index.js"
+		}
 	},
 	"publishConfig": {
 		"access": "public"
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
 	"dependencies": {
-		"diary": "^0.4.4",
-		"opentelemetry-sdk-workers": "^0.6.2"
+		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
+		"@opentelemetry/resources": "1.17.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20230518.0",
+		"@cloudflare/workers-types": "^4.20230115.0",
 		"tsup": "^6.7.0"
 	}
 }

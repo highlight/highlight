@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './LeadAlignLayout.module.scss'
+import styles from './LeadAlignLayout.module.css'
 
 interface Props {
 	fullWidth?: boolean

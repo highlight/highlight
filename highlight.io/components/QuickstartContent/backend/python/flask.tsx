@@ -25,7 +25,32 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)`,
+
+# \`instrument_logging=True\` sets up logging instrumentation.
+# if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	integrations=[FlaskIntegration()],
+	instrument_logging=True,
+	service_name="my-flask-app",
+	service_version="git-sha",
+)`,
+					language: 'python',
+				},
+			],
+		},
+		{
+			title: 'Instrument manual error handlers.',
+			content:
+				'If you have existing error handlers, you need to instrument them manually to capture errors.',
+			code: [
+				{
+					text: `# you may have a custom error handler that formats an error response
+# make sure to report the error to highlight to capture it
+@app.errorhandler(Exception)
+def handle_general_exception(exc: Exception):
+	highlight_io.H.get_instance().record_exception(exc)
+	return jsonify(error="internal error", message=str(exc), trace=traceback.format_exc()), 503`,
 					language: 'python',
 				},
 			],
@@ -50,7 +75,16 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)
+
+# \`instrument_logging=True\` sets up logging instrumentation.
+# if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	integrations=[FlaskIntegration()],
+	instrument_logging=True,
+	service_name="my-flask-app",
+	service_version="git-sha",
+)
 
 
 @app.route("/hello")

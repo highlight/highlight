@@ -1,0 +1,15 @@
+diff --git a/lib/ansi-color.js b/lib/ansi-color.js
+index 1062c87b46c5515a2d0c813b38de333b88149d0b..4fc2847ace3bddc79b17720f99fec86952cd6f03 100644
+--- a/lib/ansi-color.js
++++ b/lib/ansi-color.js
+@@ -32,8 +32,8 @@ exports.set = function(str, color) {
+   var color_attrs = color.split("+");
+   var ansi_str = "";
+   for(var i=0, attr; attr = color_attrs[i]; i++) {
+-    ansi_str += "\033[" + ANSI_CODES[attr] + "m";
++    ansi_str += "\x1b[" + ANSI_CODES[attr] + "m";
+   }
+-  ansi_str += str + "\033[" + ANSI_CODES["off"] + "m";
++  ansi_str += str + "\x1b[" + ANSI_CODES["off"] + "m";
+   return ansi_str;
+ };

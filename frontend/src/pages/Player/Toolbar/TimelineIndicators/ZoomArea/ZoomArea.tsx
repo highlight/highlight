@@ -70,8 +70,6 @@ const ZoomArea = ({
 			setIsPanning(true)
 			setPanX(getRelativeX(event))
 		}
-
-		containerDiv.style.cursor = 'grabbing'
 	}
 
 	useHTMLElementEvent(
@@ -96,8 +94,6 @@ const ZoomArea = ({
 		if (!containerDiv) {
 			return
 		}
-
-		containerDiv.style.cursor = 'grab'
 	}
 
 	useWindowEvent('pointerup', onPointerUp, { passive: true })
@@ -158,6 +154,7 @@ const ZoomArea = ({
 		(percentWidth * containerWidth) / 100 > 2 * ZOOM_AREA_SIDE + 1
 	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
 	const handleWidth = isWide ? 3 : 0
+	const canDrag = percentWidth < 100
 
 	return (
 		<div
@@ -166,6 +163,7 @@ const ZoomArea = ({
 				width: `${percentWidth}%`,
 			}}
 			className={clsx(style.zoomArea, {
+				[style.zoomAreaDraggable]: canDrag,
 				[style.animated]: !doesNoAction,
 			})}
 		>

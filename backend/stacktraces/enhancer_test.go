@@ -2,13 +2,15 @@ package stacktraces
 
 import (
 	"context"
+	"github.com/openlyinc/pointy"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
-	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 )
 
@@ -23,42 +25,42 @@ type Testcase struct {
 var proper = Testcase{
 	stackFrameInput: []*publicModelInput.StackFrameInput{
 		{
-			FileName:     util.MakeStringPointer("./test-files/lodash.min.js?400"),
-			LineNumber:   util.MakeIntPointer(1),
-			ColumnNumber: util.MakeIntPointer(813),
+			FileName:     ptr.String("./test-files/lodash.min.js?400"),
+			LineNumber:   ptr.Int(1),
+			ColumnNumber: ptr.Int(813),
 		},
 		{
-			FileName:     util.MakeStringPointer("./test-files/lodash.min.js?ts=123&foo=bar"),
-			LineNumber:   util.MakeIntPointer(1),
-			ColumnNumber: util.MakeIntPointer(799),
+			FileName:     ptr.String("./test-files/lodash.min.js?ts=123&foo=bar"),
+			LineNumber:   ptr.Int(1),
+			ColumnNumber: ptr.Int(799),
 		},
 		{
-			FileName:     util.MakeStringPointer("./test-files/vendors.js"),
-			LineNumber:   util.MakeIntPointer(1),
-			ColumnNumber: util.MakeIntPointer(422367),
+			FileName:     ptr.String("./test-files/vendors.js"),
+			LineNumber:   ptr.Int(1),
+			ColumnNumber: ptr.Int(422367),
 		},
 	},
 	expectedStackTrace: []modelInput.ErrorTrace{
 		{
-			FileName:     util.MakeStringPointer("lodash.js"),
-			LineNumber:   util.MakeIntPointer(634),
-			ColumnNumber: util.MakeIntPointer(4),
-			FunctionName: util.MakeStringPointer(""),
+			FileName:     ptr.String("lodash.js"),
+			LineNumber:   ptr.Int(634),
+			ColumnNumber: ptr.Int(4),
+			FunctionName: ptr.String(""),
 		},
 		{
-			FileName:     util.MakeStringPointer("lodash.js"),
-			LineNumber:   util.MakeIntPointer(633),
-			ColumnNumber: util.MakeIntPointer(11),
-			FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+			FileName:     ptr.String("lodash.js"),
+			LineNumber:   ptr.Int(633),
+			ColumnNumber: ptr.Int(11),
+			FunctionName: ptr.String("arrayIncludesWith"),
 		},
 		{
-			FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
-			LineNumber:   util.MakeIntPointer(13),
-			ColumnNumber: util.MakeIntPointer(30),
-			LineContent:  util.MakeStringPointer("                        throw new Error('errors page');\n"),
-			FunctionName: util.MakeStringPointer(""),
-			LinesBefore:  util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
-			LinesAfter:   util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
+			FileName:     ptr.String("pages/Buttons/Buttons.tsx"),
+			LineNumber:   ptr.Int(13),
+			ColumnNumber: ptr.Int(30),
+			LineContent:  ptr.String("                        throw new Error('errors page');\n"),
+			FunctionName: ptr.String(""),
+			LinesBefore:  ptr.String("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
+			LinesAfter:   ptr.String("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
 		},
 	},
 	fetcher: DiskFetcher{},
@@ -78,28 +80,28 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping with proper stack trace with network fetcher": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
-					LineNumber:   util.MakeIntPointer(1),
-					ColumnNumber: util.MakeIntPointer(813),
+					FileName:     ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+					LineNumber:   ptr.Int(1),
+					ColumnNumber: ptr.Int(813),
 				},
 				{
-					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
-					LineNumber:   util.MakeIntPointer(1),
-					ColumnNumber: util.MakeIntPointer(799),
+					FileName:     ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+					LineNumber:   ptr.Int(1),
+					ColumnNumber: ptr.Int(799),
 				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
-					LineNumber:   util.MakeIntPointer(634),
-					ColumnNumber: util.MakeIntPointer(4),
-					FunctionName: util.MakeStringPointer(""),
+					FileName:     ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+					LineNumber:   ptr.Int(634),
+					ColumnNumber: ptr.Int(4),
+					FunctionName: ptr.String(""),
 				},
 				{
-					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
-					LineNumber:   util.MakeIntPointer(633),
-					ColumnNumber: util.MakeIntPointer(11),
-					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+					FileName:     ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+					LineNumber:   ptr.Int(633),
+					ColumnNumber: ptr.Int(11),
+					FunctionName: ptr.String("arrayIncludesWith"),
 				},
 			},
 			fetcher: NetworkFetcher{},
@@ -108,22 +110,22 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping invalid trace:no related source map": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("./test-files/foo.js"),
-					LineNumber:   util.MakeIntPointer(0),
-					ColumnNumber: util.MakeIntPointer(0),
+					FileName:     ptr.String("./test-files/foo.js"),
+					LineNumber:   ptr.Int(0),
+					ColumnNumber: ptr.Int(0),
 				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("./test-files/foo.js"),
-					LineNumber:   util.MakeIntPointer(0),
-					ColumnNumber: util.MakeIntPointer(0),
-					Error:        util.MakeStringPointer("error fetching file: ./test-files/foo.js: error fetching file from disk: open ./test-files/foo.js: no such file or directory"),
+					FileName:     ptr.String("./test-files/foo.js"),
+					LineNumber:   ptr.Int(0),
+					ColumnNumber: ptr.Int(0),
+					Error:        ptr.String("error fetching file: ./test-files/foo.js: error fetching file from disk: open ./test-files/foo.js: no such file or directory"),
 					SourceMappingErrorMetadata: &modelInput.SourceMappingError{
 						ErrorCode:                 &stackTraceErrorCode,
-						StackTraceFileURL:         util.MakeStringPointer("./test-files/foo.js"),
-						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
-						ActualMinifiedFetchedPath: util.MakeStringPointer("./test-files/foo.js"),
+						StackTraceFileURL:         ptr.String("./test-files/foo.js"),
+						MinifiedFetchStrategy:     ptr.String("S3 and URL"),
+						ActualMinifiedFetchedPath: ptr.String("./test-files/foo.js"),
 					},
 				},
 			},
@@ -133,22 +135,22 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping invalid trace:file doesn't exist": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
-					LineNumber:   util.MakeIntPointer(0),
-					ColumnNumber: util.MakeIntPointer(0),
+					FileName:     ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+					LineNumber:   ptr.Int(0),
+					ColumnNumber: ptr.Int(0),
 				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
-					LineNumber:   util.MakeIntPointer(0),
-					ColumnNumber: util.MakeIntPointer(0),
-					Error:        util.MakeStringPointer("error fetching file: https://cdnjs.cloudflare.com/ajax/libs/lodash.js: status code not OK"),
+					FileName:     ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+					LineNumber:   ptr.Int(0),
+					ColumnNumber: ptr.Int(0),
+					Error:        ptr.String("error fetching file: https://cdnjs.cloudflare.com/ajax/libs/lodash.js: status code not OK"),
 					SourceMappingErrorMetadata: &modelInput.SourceMappingError{
 						ErrorCode:                 &stackTraceErrorCode,
-						StackTraceFileURL:         util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
-						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
-						ActualMinifiedFetchedPath: util.MakeStringPointer("ajax/libs/lodash.js"),
+						StackTraceFileURL:         ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+						MinifiedFetchStrategy:     ptr.String("S3 and URL"),
+						ActualMinifiedFetchedPath: ptr.String("ajax/libs/lodash.js"),
 					},
 				},
 			},
@@ -158,22 +160,22 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping invalid trace:filename is not a url": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("/file/local/domain.js"),
-					LineNumber:   util.MakeIntPointer(0),
-					ColumnNumber: util.MakeIntPointer(0),
+					FileName:     ptr.String("/file/local/domain.js"),
+					LineNumber:   ptr.Int(0),
+					ColumnNumber: ptr.Int(0),
 				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("/file/local/domain.js"),
-					LineNumber:   util.MakeIntPointer(0),
-					ColumnNumber: util.MakeIntPointer(0),
-					Error:        util.MakeStringPointer(`error fetching file: /file/local/domain.js: error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
+					FileName:     ptr.String("/file/local/domain.js"),
+					LineNumber:   ptr.Int(0),
+					ColumnNumber: ptr.Int(0),
+					Error:        ptr.String(`error fetching file: /file/local/domain.js: error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 					SourceMappingErrorMetadata: &modelInput.SourceMappingError{
 						ErrorCode:                 &stackTraceErrorCode,
-						StackTraceFileURL:         util.MakeStringPointer("/file/local/domain.js"),
-						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
-						ActualMinifiedFetchedPath: util.MakeStringPointer("file/local/domain.js"),
+						StackTraceFileURL:         ptr.String("/file/local/domain.js"),
+						MinifiedFetchStrategy:     ptr.String("S3 and URL"),
+						ActualMinifiedFetchedPath: ptr.String("file/local/domain.js"),
 					},
 				},
 			},
@@ -195,20 +197,20 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test tsx mapping": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("./test-files/main.8344d167.chunk.js"),
-					LineNumber:   util.MakeIntPointer(1),
-					ColumnNumber: util.MakeIntPointer(422367),
+					FileName:     ptr.String("./test-files/main.8344d167.chunk.js"),
+					LineNumber:   ptr.Int(1),
+					ColumnNumber: ptr.Int(422367),
 				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
-					LineNumber:   util.MakeIntPointer(13),
-					ColumnNumber: util.MakeIntPointer(30),
-					FunctionName: util.MakeStringPointer(""),
-					LineContent:  util.MakeStringPointer("                        throw new Error('errors page');\n"),
-					LinesBefore:  util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
-					LinesAfter:   util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
+					FileName:     ptr.String("pages/Buttons/Buttons.tsx"),
+					LineNumber:   ptr.Int(13),
+					ColumnNumber: ptr.Int(30),
+					FunctionName: ptr.String(""),
+					LineContent:  ptr.String("                        throw new Error('errors page');\n"),
+					LinesBefore:  ptr.String("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
+					LinesAfter:   ptr.String("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
 				},
 			},
 			fetcher: DiskFetcher{},
@@ -251,4 +253,46 @@ func TestEnhanceStackTrace(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestGetURLSourcemap(t *testing.T) {
+	ctx := context.Background()
+	fsClient, err := storage.NewFSClient(ctx, "https://localhost:8082/public", "")
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
+	sm := modelInput.SourceMappingError{}
+	_, _, err = getURLSourcemap(ctx, 1, nil, "", "", 100, fsClient, &sm)
+	if err == nil {
+		t.Error("expected an error")
+	}
+}
+
+func TestEnhanceStackTraceProd(t *testing.T) {
+	// local only for troubleshooting stacktrace enhancement
+	t.Skip()
+	storage.S3SourceMapBucketNameNew = "highlight-source-maps"
+	ctx := context.TODO()
+
+	s3Client, err := storage.NewS3Client(ctx)
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
+
+	fetch = NetworkFetcher{}
+	mappedStackTrace, err := EnhanceStackTrace(ctx, []*publicModelInput.StackFrameInput{
+		{
+			FunctionName: nil,
+			FileName:     pointy.String("https://lifeat.io/bundle.js"),
+			LineNumber:   pointy.Int(3540),
+			ColumnNumber: pointy.Int(5784),
+			Source:       pointy.String("    at https://lifeat.io/bundle.js:3540:5784"),
+		},
+	}, 1703, pointy.String("dev"), s3Client)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error enhancing source map"))
+	}
+	assert.Equal(t, 1, len(mappedStackTrace))
+	assert.Equal(t, "normal", *mappedStackTrace[0].FunctionName)
+	assert.Equal(t, "    font-size: ${FontSize.normal};\n", *mappedStackTrace[0].LineContent)
 }

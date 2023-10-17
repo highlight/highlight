@@ -5,7 +5,7 @@ createdAt: 2022-01-21T22:53:59.000Z
 updatedAt: 2022-01-21T23:09:14.000Z
 ---
 
-All the data that Highlight collects is provded by running the Highlight snippet on your app. When the Highlight snippet runs, it monkey patches browser APIs in order to record things like:
+All the data that Highlight collects is provided by running the Highlight snippet on your app. When the Highlight snippet runs, it monkey patches browser APIs in order to record things like:
 
 - Errors
 

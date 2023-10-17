@@ -9,13 +9,16 @@ import (
 type ErrorAlertPayload struct {
 	ErrorCount      int64
 	ErrorTitle      string
+	SessionSecureID string
 	SessionURL      string
+	SessionExcluded bool
 	ErrorURL        string
 	ErrorResolveURL string
 	ErrorIgnoreURL  string
 	ErrorSnoozeURL  string
 	UserIdentifier  string
 	VisitedURL      string
+	FirstTimeAlert  bool
 }
 
 type NewUserAlertPayload struct {

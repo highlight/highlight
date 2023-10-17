@@ -63,6 +63,8 @@ const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 
 // assuming 120 fps
 export const FRAME_MS = 1000 / 120
+// update every 30 frames
+export const THROTTLED_UPDATE_MS = FRAME_MS * 30
 
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
 export const LOOKAHEAD_MS = 1000 * 60
@@ -71,7 +73,6 @@ export const MAX_CHUNK_COUNT = 8
 export enum SessionViewability {
 	VIEWABLE,
 	EMPTY_SESSION,
-	OVER_BILLING_QUOTA,
 	ERROR,
 }
 
@@ -145,7 +146,6 @@ export enum PlayerActionType {
 	seek,
 	setCurrentEvent,
 	setIsLiveMode,
-	setLastActiveString,
 	setScale,
 	setSessionResults,
 	setTime,
@@ -168,7 +168,6 @@ type PlayerAction =
 	| seek
 	| setCurrentEvent
 	| setIsLiveMode
-	| setLastActiveString
 	| setScale
 	| setSessionResults
 	| setTime
@@ -206,7 +205,6 @@ interface addLiveEvents {
 interface loadSession {
 	type: PlayerActionType.loadSession
 	data: GetSessionQuery
-	fetchEventChunkURL: FetchEventChunkURLFn
 }
 
 interface reset {
@@ -258,11 +256,6 @@ interface onSessionPayloadLoaded {
 		TimelineIndicatorEvent,
 		'timestamp' | 'data' | 'type' | 'sid'
 	>[]
-}
-
-interface setLastActiveString {
-	type: PlayerActionType.setLastActiveString
-	lastActiveString: SetStateAction<string | null>
 }
 
 interface setScale {
@@ -368,25 +361,16 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
-			s.fetchEventChunkURL = action.fetchEventChunkURL
 			if (action.data.session) {
 				s.session = action.data?.session as Session
 				s.isLiveMode = false
 			}
-			if (action.data.session === null) {
+			if (!action.data.session || action.data.session.excluded) {
 				s.sessionViewability = SessionViewability.ERROR
 			} else if (
 				action.data.session?.within_billing_quota ||
 				s.isHighlightAdmin
 			) {
-				if (
-					!action.data.session?.within_billing_quota &&
-					s.isHighlightAdmin
-				) {
-					alert(
-						"btw this session is outside of the project's billing quota.",
-					)
-				}
 				if (action.data.session?.last_user_interaction_time) {
 					s.lastActiveTimestamp = new Date(
 						action.data.session?.last_user_interaction_time,
@@ -408,7 +392,7 @@ export const PlayerReducer = (
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 			} else {
-				s.sessionViewability = SessionViewability.OVER_BILLING_QUOTA
+				s.sessionViewability = SessionViewability.ERROR
 			}
 			break
 		case PlayerActionType.reset:
@@ -466,9 +450,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onChunksLoad:
-			if (
-				s.sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
-			) {
+			if (s.sessionViewability !== SessionViewability.ERROR) {
 				s.sessionViewability = SessionViewability.VIEWABLE
 			}
 
@@ -494,36 +476,11 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
-			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
-			// Compute the string rather than number here, so that dependencies don't
-			// have to re-render on every tick
-			if (
-				s.isLiveMode &&
-				s.lastActiveTimestamp != 0 &&
-				s.lastActiveTimestamp < time - 5000
-			) {
-				if (s.lastActiveTimestamp > time - 1000 * 60) {
-					s.lastActiveString = 'less than a minute ago'
-				} else {
-					s.lastActiveString = moment(s.lastActiveTimestamp).from(
-						time,
-					)
-				}
-			} else if (s.lastActiveString !== null) {
-				s.lastActiveString = null
-			}
-
-			if (!s.isLiveMode && s.replayerState !== ReplayerState.Playing) {
-				break
-			}
-			s.time = time
-			if (s.time >= s.sessionMetadata.totalTime) {
-				s.replayerState = s.isLiveMode
-					? ReplayerState.Paused // Waiting for more data
-					: ReplayerState.SessionEnded
-			}
+			s = updatePlayerTime(s)
 			break
 		case PlayerActionType.onEvent:
+			if (!s.replayer) break
+			s = updatePlayerTime(s)
 			if (usefulEvent(action.event)) {
 				s.currentEvent = action.event.identifier
 			}
@@ -553,12 +510,6 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setScale:
 			s.scale = handleSetStateAction(s.scale, action.scale)
-			break
-		case PlayerActionType.setLastActiveString:
-			s.lastActiveString = handleSetStateAction(
-				s.lastActiveString,
-				action.lastActiveString,
-			)
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
@@ -728,6 +679,32 @@ const replayerAction = (
 			{ name: 'replayerState', value: ReplayerState[desiredState] },
 		],
 	)
+	return s
+}
+
+const updatePlayerTime = (s: PlayerState): PlayerState => {
+	const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
+	// Compute the string rather than number here, so that dependencies don't
+	// have to re-render on every tick
+	if (s.isLiveMode && s.lastActiveTimestamp != 0) {
+		if (s.lastActiveTimestamp > time - 1000 * 60) {
+			s.lastActiveString = 'less than 1 minute ago'
+		} else {
+			s.lastActiveString = moment(s.lastActiveTimestamp).from(time)
+		}
+	} else if (s.lastActiveString !== null) {
+		s.lastActiveString = null
+	}
+
+	if (!s.isLiveMode && s.replayerState !== ReplayerState.Playing) {
+		return s
+	}
+	s.time = time
+	if (s.time >= s.sessionMetadata.totalTime) {
+		s.replayerState = s.isLiveMode
+			? ReplayerState.Paused // Waiting for more data
+			: ReplayerState.SessionEnded
+	}
 	return s
 }
 
@@ -935,6 +912,8 @@ export const getTimeFromReplayer = function (
 	)
 }
 
+const MAX_SHORT_INT_SIZE = 65536
+
 export const getEvents = (
 	chunkEvents: Omit<
 		Map<number, HighlightEvent[]>,
@@ -946,8 +925,25 @@ export const getEvents = (
 		(a, b) => a[0] - b[0],
 	)) {
 		for (const val of v) {
-			events.push(val)
+			if (val) {
+				events.push(val)
+			}
 		}
+	}
+
+	// events are passed into an rrweb function which does an array.splice
+	// When the number of events is greater than MAX_SHORT_INT_SIZE, the browser can crash.
+	// Hence, we instead take a sample of events to ensure we stay under MAX_SHORT_INT_SIZE.
+	if (events.length + 1 >= MAX_SHORT_INT_SIZE) {
+		const stepSize = events.length / MAX_SHORT_INT_SIZE
+		const sampledEvents = []
+
+		for (let i = 0; i < events.length; i += stepSize) {
+			const index = Math.floor(i)
+			sampledEvents.push(events[index])
+		}
+
+		return sampledEvents
 	}
 	return events
 }

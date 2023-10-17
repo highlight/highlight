@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/embeddings"
+
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
@@ -34,7 +36,6 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -75,6 +76,7 @@ var (
 	stripeApiKey        = os.Getenv("STRIPE_API_KEY")
 	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
 	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
+	otlpEndpoint        = os.Getenv("OTLP_ENDPOINT")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
@@ -99,24 +101,24 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
 	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
-	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false})
-	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true})
+	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault})
+	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched})
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+		if err := queue.Submit(ctx, "", &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
 		}
-		if err := batchedQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+		if err := batchedQueue.Submit(ctx, "", &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka batched health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
 			return
 		}
 		if runtimeFlag != util.PublicGraph {
-			if err := enhancedHealthCheck(ctx, db, tdb, rClient, osClient, ccClient); err != nil {
+			if err := enhancedHealthCheck(ctx, db, tdb, rClient, ccClient); err != nil {
 				log.WithContext(ctx).Error(fmt.Sprintf("failed enhanced health check: %s", err))
 				http.Error(w, fmt.Sprintf("failed enhanced health check: %s", err), 500)
 				return
@@ -129,12 +131,12 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 	}
 }
 
-func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) error {
+func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, ccClient *clickhouse.Client) error {
 	const Timeout = 5 * time.Second
 
 	errors := make(chan error, 5)
 	wg := sync.WaitGroup{}
-	wg.Add(5)
+	wg.Add(4)
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
@@ -166,20 +168,6 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer cancel()
 		if err := rClient.SetIsPendingSession(ctx, "health-check-test-session", true); err != nil {
 			msg := fmt.Sprintf("failed to set redis flag: %s", err)
-			log.WithContext(ctx).Error(msg)
-			errors <- e.New(msg)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		ctx, cancel := context.WithTimeout(ctx, Timeout)
-		defer cancel()
-		if err := osClient.IndexSynchronous(ctx, opensearch.IndexParams{
-			Index:  opensearch.IndexSessions,
-			ID:     0,
-			Object: struct{}{},
-		}); err != nil {
-			msg := fmt.Sprintf("failed to perform opensearch index: %s", err)
 			log.WithContext(ctx).Error(msg)
 			errors <- e.New(msg)
 		}
@@ -228,14 +216,24 @@ func main() {
 
 	// setup highlight
 	highlight.SetProjectID("1jdkoe52")
-	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
+
+	// change OTLP endpoint when set in env
+	if otlpEndpoint != "" {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
-		highlight.SetOTLPEndpoint("http://localhost:4318")
-		if util.IsBackendInDocker() {
-			highlight.SetOTLPEndpoint("http://collector:4318")
+		highlight.SetOTLPEndpoint(otlpEndpoint)
+	}
+
+	serviceName := string(runtimeParsed)
+	if runtimeParsed == util.Worker {
+		if handlerFlag != nil {
+			serviceName = *handlerFlag
 		}
 	}
-	highlight.Start()
+
+	highlight.Start(
+		highlight.WithServiceName(serviceName),
+		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
 
@@ -311,13 +309,12 @@ func main() {
 		}
 	}
 
-	kafkaProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer)
-	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer)
-
-	opensearchClient, err := opensearch.NewOpensearchClient(db)
-	if err != nil {
-		log.WithContext(ctx).Fatalf("error creating opensearch client: %v", err)
-	}
+	kafkaProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, nil)
+	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, nil)
+	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, nil)
+	kafkaDataSyncProducer := kafkaqueue.New(ctx,
+		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
+		kafkaqueue.Producer, nil)
 
 	lambda, err := lambda.NewLambdaClient()
 	if err != nil {
@@ -353,16 +350,18 @@ func main() {
 		StripeClient:           stripeClient,
 		StorageClient:          storageClient,
 		LambdaClient:           lambda,
+		EmbeddingsClient:       embeddings.New(),
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
-		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Store:                  store.NewStore(db, opensearchClient),
+		Store:                  store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
+		DataSyncQueue:          kafkaDataSyncProducer,
+		TracesQueue:            kafkaTracesProducer,
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -383,7 +382,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
+	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,
@@ -417,6 +416,7 @@ func main() {
 			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
+		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
@@ -425,6 +425,8 @@ func main() {
 			}
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
+
+			r.Get("/validate-token", privateResolver.ValidateAuthToken)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
@@ -452,11 +454,11 @@ func main() {
 			privateServer.SetQueryCache(lru.New(1000))
 			privateServer.Use(extension.Introspection{})
 			privateServer.Use(extension.AutomaticPersistedQuery{
-				Cache: lru.New(100),
+				Cache: lru.New(10000),
 			})
-
-			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
 			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -473,17 +475,19 @@ func main() {
 			defer profiler.Stop()
 		}
 		publicResolver := &public.Resolver{
-			DB:            db,
-			TDB:           tdb,
-			ProducerQueue: kafkaProducer,
-			BatchedQueue:  kafkaBatchedProducer,
-			MailClient:    sendgrid.NewSendClient(sendgridKey),
-			StorageClient: storageClient,
-			OpenSearch:    opensearchClient,
-			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:         redisClient,
-			RH:            &rh,
-			Store:         store.NewStore(db, opensearchClient),
+			DB:               db,
+			TDB:              tdb,
+			ProducerQueue:    kafkaProducer,
+			BatchedQueue:     kafkaBatchedProducer,
+			DataSyncQueue:    kafkaDataSyncProducer,
+			TracesQueue:      kafkaTracesProducer,
+			MailClient:       sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient: embeddings.New(),
+			StorageClient:    storageClient,
+			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:            redisClient,
+			RH:               &rh,
+			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -497,8 +501,8 @@ func main() {
 				publicgen.Config{
 					Resolvers: publicResolver,
 				}))
-			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.Use(highlight.NewGraphqlTracer(string(util.PublicGraph)))
+			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -562,18 +566,20 @@ func main() {
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
 		publicResolver := &public.Resolver{
-			DB:            db,
-			TDB:           tdb,
-			ProducerQueue: kafkaProducer,
-			BatchedQueue:  kafkaBatchedProducer,
-			MailClient:    sendgrid.NewSendClient(sendgridKey),
-			StorageClient: storageClient,
-			OpenSearch:    opensearchClient,
-			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:         redisClient,
-			Clickhouse:    clickhouseClient,
-			RH:            &rh,
-			Store:         store.NewStore(db, opensearchClient),
+			DB:               db,
+			TDB:              tdb,
+			ProducerQueue:    kafkaProducer,
+			BatchedQueue:     kafkaBatchedProducer,
+			DataSyncQueue:    kafkaDataSyncProducer,
+			TracesQueue:      kafkaTracesProducer,
+			MailClient:       sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient: embeddings.New(),
+			StorageClient:    storageClient,
+			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:            redisClient,
+			Clickhouse:       clickhouseClient,
+			RH:               &rh,
+			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
@@ -589,7 +595,10 @@ func main() {
 				defer profiler.Stop()
 			}
 			if handlerFlag != nil && *handlerFlag != "" {
-				w.GetHandler(ctx, *handlerFlag)(ctx)
+				func() {
+					defer util.RecoverAndCrash()
+					w.GetHandler(ctx, *handlerFlag)(ctx)
+				}()
 			} else {
 				go func() {
 					w.Start(ctx)
@@ -604,8 +613,18 @@ func main() {
 			go func() {
 				w.Start(ctx)
 			}()
-			// for the 'All' worker, explicitly run the PublicWorker as well
-			go w.PublicWorker(ctx)
+			// for the 'All' worker, explicitly run all kafka workers
+			go w.GetPublicWorker(kafkaqueue.TopicTypeDefault)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
+			// in `all` mode, report stripe usage every hour
+			go func() {
+				w.ReportStripeUsage(ctx)
+				for range time.Tick(time.Hour) {
+					w.ReportStripeUsage(ctx)
+				}
+			}()
 			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)

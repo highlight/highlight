@@ -16,13 +16,21 @@ export declare interface Metric {
 	tags?: { name: string; value: string }[]
 }
 
+export type PrivacySettingOption = 'strict' | 'default' | 'none'
+
 export declare type SamplingStrategy = {
 	/**
 	 * 'all' will record every single canvas call.
-	 * a number between 1 and 60, will record an image snapshots in a web-worker a (maximum) number of times per second.
+	 * a number will record an image snapshots in a web-worker a (maximum) number of times per second.
 	 * Number is only supported where [`OffscreenCanvas`](http://mdn.io/offscreencanvas) is supported.
 	 */
 	canvas?: 'all' | number
+	/**
+	 * For manual usage of `H.snapshot(element) from your canvas rendering function.
+	 * See https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/canvas for setup.`
+	 * a number will record an image snapshots in a web-worker a (maximum) number of times per second.
+	 */
+	canvasManualSnapshot?: number
 	/**
 	 * A quality at which to take canvas snapshots. See https://developer.mozilla.org/en-US/docs/Web/API/createImageBitmap
 	 * @deprecated This value is no longer used.
@@ -40,6 +48,16 @@ export declare type SamplingStrategy = {
 	 * in either dimension (while preserving the original canvas aspect ratio).
 	 */
 	canvasMaxSnapshotDimension?: number
+	/**
+	 * Default behavior for WebGL canvas elements with `preserveDrawingBuffer: false` is to clear the buffer to
+	 * load the canvas into memory to avoid getting a transparent bitmap.
+	 * Set to false to disable the clearing (in case there are visual glitches in the canvas).
+	 */
+	canvasClearWebGLBuffer?: boolean
+	/**
+	 * Time (in milliseconds) to wait before the initial snapshot of canvas/video elements.
+	 */
+	canvasInitialSnapshotDelay?: number
 }
 
 export declare type HighlightOptions = {
@@ -102,7 +120,7 @@ export declare type HighlightOptions = {
 	disableSessionRecording?: boolean
 	/**
 	 * Specifies whether Highlight will report `console.error` invocations as Highlight Errors.
-	 * @default true
+	 * @default false
 	 */
 	reportConsoleErrors?: boolean
 	/**
@@ -125,13 +143,19 @@ export declare type HighlightOptions = {
 	 */
 	version?: string
 	/**
-	 * Specifies whether Highlight should redact data during recording.
-	 * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
-	 * @example
-	 * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
+	 * Specifies the name of your app.
+	 */
+	serviceName?: string
+	/**
+	 * Specifies how much data Highlight should redact during recording.
+	 * strict - Highlight will redact all text data on the page.
+	 * default - Highlight will redact text data on the page that is associated with personal identifiable data.
+	 * none - Highlight will not redact any text data on the page.
+	 * // Redacted text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
 	 * @see {@link https://docs.highlight.run/docs/privacy} for more information.
 	 */
-	enableStrictPrivacy?: boolean
+	privacySetting?: PrivacySettingOption
+
 	/**
 	 * Specifies whether to record canvas elements or not.
 	 * @default false
@@ -180,10 +204,20 @@ export declare type HighlightOptions = {
 	 * @see {@link https://docs.highlight.run/session-shortcut} for more information.
 	 */
 	sessionShortcut?: SessionShortcutOptions
+	/**
+	 * Set to `sessionStorage` to bypass all `window.localStorage` usage.
+	 * This can help with compliance for cookie-consent regulation.
+	 * Using `sessionStorage` will cause app close+reopens to start a new highlight session,
+	 * as the session ID will not persist.
+	 */
+	storageMode?: 'sessionStorage' | 'localStorage'
 }
 
 export declare interface HighlightPublicInterface {
-	init: (projectID?: string | number, debug?: HighlightOptions) => void
+	init: (
+		projectID?: string | number,
+		debug?: HighlightOptions,
+	) => { sessionSecureID: string } | undefined
 	/**
 	 * Calling this will assign an identifier to the session.
 	 * @example identify('teresa@acme.com', { accountAge: 3, cohort: 8 })
@@ -222,13 +256,17 @@ export declare interface HighlightPublicInterface {
 	getSessionDetails: () => Promise<SessionDetails>
 	start: (options?: StartOptions) => void
 	/** Stops the session and error recording. */
-	stop: () => void
-	onHighlightReady: (func: () => void) => void
+	stop: (options?: StartOptions) => void
+	onHighlightReady: (
+		func: () => void | Promise<void>,
+		options?: OnHighlightReadyOptions,
+	) => Promise<void>
 	options: HighlightOptions | undefined
 	/**
 	 * Calling this will add a feedback comment to the session.
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
+	snapshot: (element: HTMLCanvasElement) => Promise<void>
 }
 
 export declare interface SessionDetails {
@@ -256,4 +294,11 @@ export interface StartOptions {
 	 * Starts a new recording session even if one was stopped recently.
 	 */
 	forceNew?: boolean
+}
+
+export interface OnHighlightReadyOptions {
+	/**
+	 * Specifies whether to wait for recording to start
+	 */
+	waitForReady?: boolean
 }

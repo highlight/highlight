@@ -16,7 +16,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
 
-import styles from './PlayerCommentCanvas.module.scss'
+import styles from './PlayerCommentCanvas.module.css'
 
 export interface Coordinates2D {
 	x: number
@@ -52,8 +52,7 @@ const PlayerCommentCanvas = ({
 		enableInspectElement,
 	} = usePlayerConfiguration()
 
-	const { isPlayerReady, pause, isLoadingEvents, replayer } =
-		useReplayerContext()
+	const { isPlayerReady, pause, replayer } = useReplayerContext()
 
 	const location = useLocation()
 	const navigate = useNavigate()
@@ -131,7 +130,6 @@ const PlayerCommentCanvas = ({
 		<button
 			className={clsx({
 				[styles.commentButton]: isPlayerReady,
-				[styles.blurBackground]: isLoadingEvents,
 			})}
 			onClick={(e) => {
 				if (buttonRef?.current) {

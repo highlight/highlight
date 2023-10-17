@@ -12,26 +12,29 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
+import { TracePanel } from '@/pages/Traces/TracePanel'
+import { TracesPage } from '@/pages/Traces/TracesPage'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
 const ApplicationRouter: React.FC = () => {
 	const { projectId } = useNumericProjectId()
-	const { page, backendSearchQuery } = useSearchContext()
-	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
+	const { page, searchQuery } = useSearchContext()
+	const { page: errorPage, searchQuery: errorSearchQuery } =
 		useErrorSearchContext()
-	usePreloadSessions({ page: page || 1, backendSearchQuery })
+	usePreloadSessions({ page: page || 1, query: JSON.parse(searchQuery) })
 	usePreloadErrors({
 		page: errorPage || 1,
-		backendSearchQuery: errorBackendSearchQuery,
+		query: JSON.parse(errorSearchQuery),
 	})
-	const { isLoggedIn } = useAuthContext()
+	const { isHighlightAdmin, isLoggedIn } = useAuthContext()
 
 	return (
 		<Routes>
@@ -47,6 +50,14 @@ const ApplicationRouter: React.FC = () => {
 
 			{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
 				<>
+					{isHighlightAdmin && (
+						<Route path="traces" element={<TracesPage />}>
+							<Route
+								path=":trace_id/:span_id?"
+								element={<TracePanel />}
+							/>
+						</Route>
+					)}
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />
 					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
@@ -86,7 +97,7 @@ const ApplicationRouter: React.FC = () => {
 					<Route path="*" element={<DashboardsRouter />} />
 				</>
 			) : (
-				<Route path="*" element={<Navigate to="/" replace />} />
+				<Route path="*" element={<SignInRedirect />} />
 			)}
 		</Routes>
 	)

@@ -3,7 +3,7 @@ import { Button as AntDesignButton, ButtonProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './ToggleButton.module.scss'
+import styles from './ToggleButton.module.css'
 
 type Props = ButtonProps & {
 	/** The ID used for identifying that this button was clicked for analytics. */

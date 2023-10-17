@@ -13,8 +13,8 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import styles from './WorkspaceTeam.module.scss'
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
+import styles from './WorkspaceTeam.module.css'
 
 type MemberKeyType = 'members' | 'invites'
 
@@ -44,7 +44,19 @@ const WorkspaceTeam = () => {
 						roles!
 					</p>
 					<Authorization allowedRoles={[AdminRole.Admin]}>
-						<AutoJoinForm label="Auto join" labelFirst />
+						<AutoJoinForm
+							label="Auto join"
+							labelFirst
+							allowedEmailOrigins={
+								data?.workspace?.allowed_auto_join_email_origins
+									?.length
+									? JSON.parse(
+											data?.workspace
+												?.allowed_auto_join_email_origins,
+									  )
+									: undefined
+							}
+						/>
 					</Authorization>
 					<InviteMemberModal
 						workspaceId={workspace_id}
