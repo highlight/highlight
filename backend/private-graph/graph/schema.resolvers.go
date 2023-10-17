@@ -7876,7 +7876,7 @@ func (r *sessionResolver) SessionComments(ctx context.Context, obj *model.Sessio
 	}
 	sessionComments := []*model.SessionComment{}
 
-	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.SessionComment{SessionId: s.ID, SessionCommentType: SessionCommentType.Feedback}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
