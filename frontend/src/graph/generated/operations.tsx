@@ -3050,7 +3050,54 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 				| 'processed'
 				| 'excluded'
 				| 'excluded_reason'
-			>
+			> & {
+					session_comments?: Types.Maybe<
+						Array<
+							Types.Maybe<
+								{ __typename?: 'SessionComment' } & Pick<
+									Types.SessionComment,
+									| 'id'
+									| 'timestamp'
+									| 'session_id'
+									| 'session_secure_id'
+									| 'created_at'
+									| 'updated_at'
+									| 'project_id'
+									| 'text'
+									| 'x_coordinate'
+									| 'y_coordinate'
+									| 'type'
+									| 'metadata'
+									| 'tags'
+								> & {
+										author?: Types.Maybe<
+											{
+												__typename?: 'SanitizedAdmin'
+											} & Pick<
+												Types.SanitizedAdmin,
+												| 'id'
+												| 'name'
+												| 'email'
+												| 'photo_url'
+											>
+										>
+										attachments: Array<
+											Types.Maybe<
+												{
+													__typename?: 'ExternalAttachment'
+												} & Pick<
+													Types.ExternalAttachment,
+													| 'integration_type'
+													| 'external_id'
+													| 'title'
+												>
+											>
+										>
+									}
+							>
+						>
+					>
+				}
 		>
 		structured_stack_trace: Array<
 			Types.Maybe<

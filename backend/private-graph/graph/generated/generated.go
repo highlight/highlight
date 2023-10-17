@@ -1189,6 +1189,7 @@ type ComplexityRoot struct {
 		Processed                      func(childComplexity int) int
 		ResourcesURL                   func(childComplexity int) int
 		SecureID                       func(childComplexity int) int
+		SessionComments                func(childComplexity int) int
 		Starred                        func(childComplexity int) int
 		State                          func(childComplexity int) int
 		TimelineIndicatorsURL          func(childComplexity int) int
@@ -1825,6 +1826,8 @@ type SessionResolver interface {
 	WebSocketEventsURL(ctx context.Context, obj *model1.Session) (*string, error)
 	TimelineIndicatorsURL(ctx context.Context, obj *model1.Session) (*string, error)
 	DeviceMemory(ctx context.Context, obj *model1.Session) (*int, error)
+
+	SessionComments(ctx context.Context, obj *model1.Session) ([]*model1.SessionComment, error)
 }
 type SessionAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model.SanitizedSlackChannel, error)
@@ -8710,6 +8713,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.SecureID(childComplexity), true
 
+	case "Session.session_comments":
+		if e.complexity.Session.SessionComments == nil {
+			break
+		}
+
+		return e.complexity.Session.SessionComments(childComplexity), true
+
 	case "Session.starred":
 		if e.complexity.Session.Starred == nil {
 			break
@@ -10390,6 +10400,7 @@ type Session {
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
+	session_comments: [SessionComment]
 }
 
 type SessionInterval {
@@ -30382,6 +30393,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_last_user_interaction_time(ctx, field)
 			case "chunked":
 				return ec.fieldContext_Session_chunked(ctx, field)
+			case "session_comments":
+				return ec.fieldContext_Session_session_comments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
 		},
@@ -39683,6 +39696,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_last_user_interaction_time(ctx, field)
 			case "chunked":
 				return ec.fieldContext_Session_chunked(ctx, field)
+			case "session_comments":
+				return ec.fieldContext_Session_session_comments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
 		},
@@ -43292,6 +43307,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_last_user_interaction_time(ctx, field)
 			case "chunked":
 				return ec.fieldContext_Session_chunked(ctx, field)
+			case "session_comments":
+				return ec.fieldContext_Session_session_comments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
 		},
@@ -46007,6 +46024,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_last_user_interaction_time(ctx, field)
 			case "chunked":
 				return ec.fieldContext_Session_chunked(ctx, field)
+			case "session_comments":
+				return ec.fieldContext_Session_session_comments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
 		},
@@ -48629,6 +48648,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_last_user_interaction_time(ctx, field)
 			case "chunked":
 				return ec.fieldContext_Session_chunked(ctx, field)
+			case "session_comments":
+				return ec.fieldContext_Session_session_comments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
 		},
@@ -61183,6 +61204,81 @@ func (ec *executionContext) fieldContext_Session_chunked(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_session_comments(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_session_comments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Session().SessionComments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.SessionComment)
+	fc.Result = res
+	return ec.marshalOSessionComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_session_comments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SessionComment_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_SessionComment_project_id(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_SessionComment_timestamp(ctx, field)
+			case "created_at":
+				return ec.fieldContext_SessionComment_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_SessionComment_updated_at(ctx, field)
+			case "session_id":
+				return ec.fieldContext_SessionComment_session_id(ctx, field)
+			case "session_secure_id":
+				return ec.fieldContext_SessionComment_session_secure_id(ctx, field)
+			case "author":
+				return ec.fieldContext_SessionComment_author(ctx, field)
+			case "text":
+				return ec.fieldContext_SessionComment_text(ctx, field)
+			case "x_coordinate":
+				return ec.fieldContext_SessionComment_x_coordinate(ctx, field)
+			case "y_coordinate":
+				return ec.fieldContext_SessionComment_y_coordinate(ctx, field)
+			case "type":
+				return ec.fieldContext_SessionComment_type(ctx, field)
+			case "metadata":
+				return ec.fieldContext_SessionComment_metadata(ctx, field)
+			case "tags":
+				return ec.fieldContext_SessionComment_tags(ctx, field)
+			case "attachments":
+				return ec.fieldContext_SessionComment_attachments(ctx, field)
+			case "replies":
+				return ec.fieldContext_SessionComment_replies(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SessionComment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SessionAlert_id(ctx, field)
 	if err != nil {
@@ -64021,6 +64117,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_last_user_interaction_time(ctx, field)
 			case "chunked":
 				return ec.fieldContext_Session_chunked(ctx, field)
+			case "session_comments":
+				return ec.fieldContext_Session_session_comments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
 		},
@@ -83857,6 +83955,23 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_chunked(ctx, field, obj)
 
+		case "session_comments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Session_session_comments(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -93181,6 +93296,47 @@ func (ec *executionContext) marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑr
 
 func (ec *executionContext) marshalOSessionComment2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx context.Context, sel ast.SelectionSet, v model1.SessionComment) graphql.Marshaler {
 	return ec._SessionComment(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOSessionComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx context.Context, sel ast.SelectionSet, v []*model1.SessionComment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSessionComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOSessionComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx context.Context, sel ast.SelectionSet, v *model1.SessionComment) graphql.Marshaler {
