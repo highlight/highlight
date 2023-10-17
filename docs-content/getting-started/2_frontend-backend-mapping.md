@@ -59,6 +59,8 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 - [Python Backend Integration](4_backend-sdk/python)
 
+- [Java Backend Integration](4_backend-sdk/java)
+
 ## Distributed Tracing
 
 Your backend might be a distributed system with multiple services. Say, for example, a

@@ -1,6 +1,9 @@
 'use client'
 
 import { HighlightOptions, H as localH } from 'highlight.run'
+import type { NextPageContext } from 'next'
+
+import { ErrorProps } from 'next/error'
 
 import { useEffect } from 'react'
 
@@ -28,4 +31,17 @@ export function HighlightInit({
 	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 
 	return null
+}
+
+export type HighlightErrorProps = { errorMessage: string } & ErrorProps
+
+export function getHighlightErrorInitialProps({
+	res,
+	err,
+}: NextPageContext): HighlightErrorProps {
+	const statusCode = res?.statusCode ?? err?.statusCode ?? 500
+	const errorMessage =
+		res?.statusMessage ?? err?.message ?? 'An error occurred'
+
+	return { errorMessage, statusCode }
 }

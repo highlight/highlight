@@ -189,8 +189,7 @@ function NetworkResourceDetails({
 	return (
 		<>
 			<Box
-				pl="12"
-				pr="8"
+				px="8"
 				py="6"
 				display="flex"
 				alignItems="center"

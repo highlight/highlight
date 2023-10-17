@@ -248,6 +248,7 @@ mutation EditProjectSettings(
 	$rage_click_count: Int
 	$filterSessionsWithoutError: Boolean
 	$autoResolveStaleErrorsDayInterval: Int
+	$sampling: SamplingInput
 ) {
 	editProjectSettings(
 		projectId: $projectId
@@ -262,6 +263,7 @@ mutation EditProjectSettings(
 		rage_click_count: $rage_click_count
 		filterSessionsWithoutError: $filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
+		sampling: $sampling
 	) {
 		id
 		name
@@ -275,6 +277,16 @@ mutation EditProjectSettings(
 		rage_click_count
 		filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval
+		sampling {
+			session_sampling_rate
+			error_sampling_rate
+			log_sampling_rate
+			trace_sampling_rate
+			session_exclusion_query
+			error_exclusion_query
+			log_exclusion_query
+			trace_exclusion_query
+		}
 	}
 }
 
@@ -1184,6 +1196,10 @@ mutation CreateErrorTag($title: String!, $description: String!) {
 	}
 }
 
+mutation UpdateErrorTags {
+	updateErrorTags
+}
+
 mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
 	upsertSlackChannel(project_id: $project_id, name: $name) {
 		webhook_channel
@@ -1195,5 +1211,40 @@ mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
 	upsertDiscordChannel(project_id: $project_id, name: $name) {
 		id
 		name
+	}
+}
+
+mutation testErrorEnhancement(
+	$error_object_id: ID!
+	$github_repo_path: String!
+	$github_prefix: String
+	$build_prefix: String
+	$save_error: Boolean
+) {
+	testErrorEnhancement(
+		error_object_id: $error_object_id
+		github_repo_path: $github_repo_path
+		github_prefix: $github_prefix
+		build_prefix: $build_prefix
+		save_error: $save_error
+	) {
+		id
+		type
+		serviceName
+		serviceVersion
+		stack_trace
+		structured_stack_trace {
+			columnNumber
+			enhancementSource
+			enhancementVersion
+			error
+			externalLink
+			fileName
+			functionName
+			lineContent
+			lineNumber
+			linesAfter
+			linesBefore
+		}
 	}
 }

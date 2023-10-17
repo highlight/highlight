@@ -22,8 +22,7 @@ import (
 )
 
 const GITHUB_ERROR_CONTEXT_LINES = 5
-const MAX_ERROR_KILLSWITCH = 20
-const MAX_ENHANCED_DEPTH = 5
+const MAX_ERROR_KILLSWITCH = 5
 
 func (store *Store) GitHubFilePath(ctx context.Context, fileName string, buildPrefix *string, gitHubPrefix *string) string {
 	if buildPrefix != nil && gitHubPrefix != nil {
@@ -73,16 +72,7 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 		log.WithContext(ctx).WithField("GitHub Repo", *service.GithubRepoPath).Warn("GitHub rate limit hit")
 		_ = store.redis.SetGithubRateLimitExceeded(ctx, *service.GithubRepoPath, resp.Rate.Reset.Time)
 	}
-
 	if err != nil {
-		// put service in error state if too many errors occur within timeframe
-		errorCount, _ := store.redis.IncrementServiceErrorCount(ctx, service.ID)
-		if errorCount >= MAX_ERROR_KILLSWITCH {
-			err = store.UpdateServiceErrorState(ctx, service.ID, []string{"Too many errors enhancing errors - Check service configuration."})
-			if err != nil {
-				return nil, err
-			}
-		}
 		return nil, err
 	}
 
@@ -170,14 +160,53 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 	return &newStackTraceInput, nil
 }
 
-func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject) ([]*privateModel.ErrorTrace, error) {
+// returns (1) trace to be use, (2) if the trace was attempted to be enhanced, and (3) if the trace was successfully enhanced
+func (store *Store) EnhanceTrace(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, gitHubClient github.ClientInterface) (*privateModel.ErrorTrace, bool, bool) {
+	if trace.FileName == nil || trace.LineNumber == nil {
+		log.WithContext(ctx).WithField("frame", trace).Info(fmt.Errorf("Cannot enhance trace frame with GitHub with invalid values"))
+		return trace, false, false
+	}
+
+	fileName := store.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
+	for _, fileExpr := range ignoredFiles {
+		if regexp.MustCompile(fileExpr).MatchString(fileName) {
+			return trace, false, false
+		}
+	}
+
+	// check if we've previously errored on this file
+	previousError, _ := store.redis.GetGitHubFileError(ctx, *service.GithubRepoPath, serviceVersion, fileName)
+	if previousError {
+		return trace, false, false
+	}
+
+	enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, serviceVersion, fileName, gitHubClient)
+	if err != nil {
+		log.WithContext(ctx).WithField("frame", trace).Error(errors.Wrap(err, "Error enhancing stacktrace frame from GitHub"))
+		_ = store.redis.SetGitHubFileError(ctx, *service.GithubRepoPath, serviceVersion, fileName)
+	}
+
+	if enhancedTrace == nil {
+		return trace, true, false
+	}
+
+	return enhancedTrace, true, true
+}
+
+func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, validateService *model.Service) ([]*privateModel.ErrorTrace, error) {
 	if errorObj.ServiceName == "" {
 		return nil, nil
 	}
 
-	service, err := store.FindService(ctx, project.ID, errorObj.ServiceName)
-	if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
-		return nil, err
+	var service *model.Service
+	var err error
+	if validateService == nil {
+		service, err = store.FindService(ctx, project.ID, errorObj.ServiceName)
+		if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
+			return nil, err
+		}
+	} else {
+		service = validateService
 	}
 
 	gitHubAccessToken, err := store.integrationsClient.GetWorkspaceAccessToken(ctx, workspace, privateModel.IntegrationTypeGitHub)
@@ -201,43 +230,23 @@ func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*
 	}
 
 	newMappedStackTrace := []*privateModel.ErrorTrace{}
-	filesEnhanced := 0
+	enhanceable := false
+	failedAllEnhancements := true
 
 	for _, trace := range stackTrace {
-		if filesEnhanced >= MAX_ENHANCED_DEPTH {
-			newMappedStackTrace = append(newMappedStackTrace, trace)
-			continue
-		}
+		enhancedTrace, fileEnhancable, fileEnhanced := store.EnhanceTrace(ctx, trace, service, *validServiceVersion, cfg.IgnoredFiles, client)
 
-		if trace.FileName == nil || trace.LineNumber == nil {
-			log.WithContext(ctx).WithField("frame", trace).Info(fmt.Errorf("Cannot enhance trace frame with GitHub with invalid values"))
-			newMappedStackTrace = append(newMappedStackTrace, trace)
-			continue
-		}
+		newMappedStackTrace = append(newMappedStackTrace, enhancedTrace)
+		enhanceable = enhanceable || fileEnhancable
+		failedAllEnhancements = failedAllEnhancements && !fileEnhanced
+	}
 
-		fileName := store.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
-		shouldIgnoreFile := false
-		for _, fileExpr := range cfg.IgnoredFiles {
-			if regexp.MustCompile(fileExpr).MatchString(fileName) {
-				shouldIgnoreFile = true
-				break
-			}
-		}
-		if shouldIgnoreFile {
-			newMappedStackTrace = append(newMappedStackTrace, trace)
-			continue
-		}
-
-		filesEnhanced += 1
-		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, fileName, client)
-		if err != nil {
-			log.WithContext(ctx).WithField("frame", trace).Error(errors.Wrap(err, "Error enhancing stacktrace frame from GitHub"))
-		}
-
-		if enhancedTrace == nil {
-			newMappedStackTrace = append(newMappedStackTrace, trace)
+	if enhanceable && failedAllEnhancements {
+		errorCount, _ := store.redis.IncrementServiceErrorCount(ctx, service.ID)
+		if errorCount >= MAX_ERROR_KILLSWITCH {
+			_ = store.UpdateServiceErrorState(ctx, service.ID, []string{"Too many errors enhancing errors - Check service configuration."})
 		} else {
-			newMappedStackTrace = append(newMappedStackTrace, enhancedTrace)
+			_, _ = store.redis.ResetServiceErrorCount(ctx, service.ID)
 		}
 	}
 
@@ -256,14 +265,14 @@ func (store *Store) StructuredStackTrace(ctx context.Context, stackTrace string)
 }
 
 // should always return error stacktrace, returned error will be logged, return enhanced stacktrace string when successfully enhanced
-func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
+func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, validateService *model.Service) (*string, []*privateModel.ErrorTrace, error) {
 	structuredStackTrace, err := store.StructuredStackTrace(ctx, stackTrace)
 	if err != nil {
 		return nil, structuredStackTrace, errors.Wrap(err, "Error parsing stacktrace to enhance")
 	}
 
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := store.GitHubEnhancedStackTrace(ctx, structuredStackTrace, workspace, project, errorObj)
+	mappedStackTrace, err := store.GitHubEnhancedStackTrace(ctx, structuredStackTrace, workspace, project, errorObj, validateService)
 	if err != nil {
 		return nil, structuredStackTrace, errors.Wrap(err, "Error enhancing stacktrace")
 	}

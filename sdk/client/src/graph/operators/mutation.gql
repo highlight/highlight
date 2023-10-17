@@ -70,6 +70,7 @@ mutation initializeSession(
 	$session_secure_id: String!
 	$organization_verbose_id: String!
 	$enable_strict_privacy: Boolean!
+	$privacy_setting: String!
 	$enable_recording_network_contents: Boolean!
 	$clientVersion: String!
 	$firstloadVersion: String!
@@ -97,6 +98,7 @@ mutation initializeSession(
 		client_id: $client_id
 		network_recording_domains: $network_recording_domains
 		disable_session_recording: $disable_session_recording
+		privacy_setting: $privacy_setting
 	) {
 		secure_id
 		project_id

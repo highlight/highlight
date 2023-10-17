@@ -22,6 +22,7 @@ import (
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
@@ -738,7 +739,7 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
 	eg := &model.ErrorGroup{}
 
-	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).Take(&eg).Error; err != nil {
+	if err := r.DB.Joins("ErrorTag").Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).Take(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
@@ -931,46 +932,46 @@ func (r *Resolver) SendEmailAlert(
 	return nil
 }
 
-func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) (blockSet slack.Blocks) {
+func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) ([]slack.Block, *slack.Attachment) {
 	determiner := "a"
 	if subjectScope == "error" {
 		determiner = "an"
 	}
 
 	// Header
-	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
+	var headerBlockSet []slack.Block
+
+	message := fmt.Sprintf("*You were %s in %s %s comment.*", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
+		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Email, action, determiner, subjectScope)
 	}
 	if admin.Name != nil && *admin.Name != "" {
-		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
+		message = fmt.Sprintf("*%s %s you in %s %s comment.*", *admin.Name, action, determiner, subjectScope)
 	}
+
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, message, false, false)
+	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 	// comment message
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
-			nil, nil,
-		),
-	)
+	var bodyBlockSet []slack.Block
 
+	commentBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("> %s", commentText), false, false)
+
+	detailsString := ""
 	// info on the session/error
 	if subjectScope == "error" {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Error*: %s\n %s", viewLink, *additionalContext)},
-				nil, nil,
-			),
-		)
+		detailsString = fmt.Sprintf("*Error* %s", viewLink)
 	} else if subjectScope == "session" {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Session*: %s\n%s", viewLink, *additionalContext)},
-				nil, nil,
-			),
-		)
+		detailsString = fmt.Sprintf("*Session* %s", viewLink)
 	}
+	if additionalContext != nil {
+		detailsString = fmt.Sprintf("%s\n%s", detailsString, *additionalContext)
+	}
+
+	detailsBlock := slack.NewTextBlockObject(slack.MarkdownType, detailsString, false, false)
+
+	// button
+	var actionBlocks []slack.BlockElement
 
 	button := slack.NewButtonBlockElement(
 		"",
@@ -982,14 +983,20 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 			false,
 		),
 	)
-	button.WithStyle("primary")
 	button.URL = viewLink
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewActionBlock("action_block", button),
-	)
 
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	return
+	actionBlocks = append(actionBlocks, button)
+
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(commentBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(detailsBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+
+	attachment := &slack.Attachment{
+		Color:  "#6c37f4",
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
+	}
+
+	return headerBlockSet, attachment
 }
 
 func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Workspace, admin *model.Admin, viewLink, commentText, action string, subjectScope string, threadIDs []int) error {
@@ -997,14 +1004,15 @@ func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Wo
 		return nil
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
+	headerBlock, bodyAttachment := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
 	for _, threadID := range threadIDs {
 		thread := &model.CommentSlackThread{}
 		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).Take(&thread).Error; err != nil {
 			return e.Wrap(err, "error querying slack thread")
 		}
 		opts := []slack.MsgOption{
-			slack.MsgOptionBlocks(blocks.BlockSet...),
+			slack.MsgOptionBlocks(headerBlock...),
+			slack.MsgOptionAttachments(*bodyAttachment),
 			slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 			slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
 			slack.MsgOptionTS(thread.ThreadTS),
@@ -1025,7 +1033,7 @@ func (r *Resolver) SendSlackAlertToUser(ctx context.Context, workspace *model.Wo
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
 
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
+	headerBlock, bodyAttachment := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
 
 	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
@@ -1065,7 +1073,8 @@ func (r *Resolver) SendSlackAlertToUser(ctx context.Context, workspace *model.Wo
 				log.WithContext(ctx).Warn(e.Wrap(err, "failed to join slack channel"))
 			}
 			opts := []slack.MsgOption{
-				slack.MsgOptionBlocks(blocks.BlockSet...),
+				slack.MsgOptionBlocks(headerBlock...),
+				slack.MsgOptionAttachments(*bodyAttachment),
 				slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
 			}
@@ -1965,6 +1974,35 @@ func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.W
 	return nil
 }
 
+func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	err := r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeJira, code)
+	if err != nil {
+		return err
+	}
+
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return err
+	}
+
+	jiraSite, err := jira.GetJiraSite(*accessToken)
+
+	if err != nil {
+		return err
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  &jiraSite.URL,
+		JiraCloudID: &jiraSite.ID,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
@@ -2114,6 +2152,31 @@ func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: modelInputs.IntegrationTypeJira,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "workspace does not have a Jira integration")
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "error deleting workspace Jira integration")
+	}
+
+	updates := &model.Workspace{
+		JiraDomain:  nil,
+		JiraCloudID: nil,
+	}
+
+	if err := r.DB.Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
 	}
 
 	return nil
@@ -2591,6 +2654,49 @@ func (r *Resolver) CreateHeightTaskAndAttachment(
 
 	attachment.ExternalID = task.ID
 	attachment.Title = task.Name
+	if err := r.DB.Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateJiraTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	projectId string,
+) error {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No Jira integration access token found.")
+	}
+
+	jiraIssuePayload := jira.JiraCreateIssueFields{
+		Description: issueDescription,
+		Summary:     issueTitle,
+		Project:     jira.JiraIssueProjectData{Id: projectId},
+		IssueType:   jira.JiraIssueTypeData{Id: "10001"},
+	}
+
+	jiraCreateIssueData := jira.JiraCreateIssuePayload{
+		Fields: jiraIssuePayload,
+	}
+
+	task, err := jira.CreateJiraTask(workspace, *accessToken, jiraCreateIssueData)
+
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task)
+	attachment.Title = issueTitle
 	if err := r.DB.Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
 	}
@@ -3481,6 +3587,30 @@ func (r *Resolver) CreateErrorTag(ctx context.Context, title string, description
 	return errorTag, nil
 }
 
+func (r *Resolver) UpdateErrorTags(ctx context.Context) error {
+	var tags []*model.ErrorTag
+	if err := r.DB.Model(&model.ErrorTag{}).Scan(&tags).Error; err != nil {
+		return err
+	}
+	for _, tag := range tags {
+		emb, err := r.EmbeddingsClient.GetErrorTagEmbedding(ctx, tag.Title, tag.Description)
+		if err != nil {
+			log.WithContext(ctx).Error(err, "UpdateErrorTag: Error creating tag embedding")
+			return err
+		}
+		if err := r.DB.Model(&model.ErrorTag{}).Where(
+			&model.ErrorTag{Model: model.Model{ID: tag.ID}},
+		).Updates(
+			&model.ErrorTag{Embedding: emb.Embedding},
+		).Error; err != nil {
+			log.WithContext(ctx).Error(err, "UpdateErrorTag: Error updating embedding")
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 	var errorTags []*model.ErrorTag
 
@@ -3492,27 +3622,7 @@ func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 }
 
 func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
-	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
-
-	if err != nil {
-		return nil, e.Wrap(err, "500: failed to get string embedding")
-	}
-
-	var matchedErrorTags []*modelInputs.MatchedErrorTag
-	if err := r.DB.Raw(`
-		select error_tags.embedding <-> @string_embedding as score,
-					error_tags.id as id,
-					error_tags.title as title,
-					error_tags.description as description
-		from error_tags
-		order by score
-		limit 5;
-	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
-		Scan(&matchedErrorTags).Error; err != nil {
-		return nil, e.Wrap(err, "error querying nearest ErrorTag")
-	}
-
-	return matchedErrorTags, nil
+	return embeddings.MatchErrorTag(ctx, r.DB, r.EmbeddingsClient, query)
 }
 
 func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
@@ -3538,4 +3648,20 @@ func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*mode
 	}
 
 	return matchedErrorObjects, nil
+}
+
+func (r *Resolver) GetJiraProjects(
+	ctx context.Context,
+	workspace *model.Workspace,
+) ([]*modelInputs.JiraProject, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, nil
+	}
+
+	return jira.GetJiraProjects(workspace, *accessToken)
 }

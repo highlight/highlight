@@ -4,6 +4,7 @@ import {
 	IconSolidExternalLink,
 	IconSolidGithub,
 	IconSolidHeight,
+	IconSolidJira,
 	IconSolidLinear,
 	Tag,
 	Text,
@@ -24,6 +25,8 @@ const getIcon = (a: Maybe<ExternalAttachment>) => {
 			return <IconSolidHeight />
 		case IntegrationType.GitHub:
 			return <IconSolidGithub />
+		case IntegrationType.Jira:
+			return <IconSolidJira />
 	}
 	return <></>
 }
@@ -37,6 +40,8 @@ export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 		case IntegrationType.Height:
 			return `https://height.app/${a.external_id}`
 		case IntegrationType.GitHub:
+			return a.external_id
+		case IntegrationType.Jira:
 			return a.external_id
 	}
 	return ''

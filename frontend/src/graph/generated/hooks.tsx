@@ -1475,6 +1475,7 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_count: Int
 		$filterSessionsWithoutError: Boolean
 		$autoResolveStaleErrorsDayInterval: Int
+		$sampling: SamplingInput
 	) {
 		editProjectSettings(
 			projectId: $projectId
@@ -1489,6 +1490,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count: $rage_click_count
 			filterSessionsWithoutError: $filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
+			sampling: $sampling
 		) {
 			id
 			name
@@ -1502,6 +1504,16 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
+			sampling {
+				session_sampling_rate
+				error_sampling_rate
+				log_sampling_rate
+				trace_sampling_rate
+				session_exclusion_query
+				error_exclusion_query
+				log_exclusion_query
+				trace_exclusion_query
+			}
 		}
 	}
 `
@@ -1535,6 +1547,7 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  *      rage_click_count: // value for 'rage_click_count'
  *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
  *      autoResolveStaleErrorsDayInterval: // value for 'autoResolveStaleErrorsDayInterval'
+ *      sampling: // value for 'sampling'
  *   },
  * });
  */
@@ -4972,6 +4985,52 @@ export type CreateErrorTagMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateErrorTagMutation,
 	Types.CreateErrorTagMutationVariables
 >
+export const UpdateErrorTagsDocument = gql`
+	mutation UpdateErrorTags {
+		updateErrorTags
+	}
+`
+export type UpdateErrorTagsMutationFn = Apollo.MutationFunction<
+	Types.UpdateErrorTagsMutation,
+	Types.UpdateErrorTagsMutationVariables
+>
+
+/**
+ * __useUpdateErrorTagsMutation__
+ *
+ * To run a mutation, you first call `useUpdateErrorTagsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateErrorTagsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateErrorTagsMutation, { data, loading, error }] = useUpdateErrorTagsMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUpdateErrorTagsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateErrorTagsMutation,
+		Types.UpdateErrorTagsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateErrorTagsMutation,
+		Types.UpdateErrorTagsMutationVariables
+	>(UpdateErrorTagsDocument, baseOptions)
+}
+export type UpdateErrorTagsMutationHookResult = ReturnType<
+	typeof useUpdateErrorTagsMutation
+>
+export type UpdateErrorTagsMutationResult =
+	Apollo.MutationResult<Types.UpdateErrorTagsMutation>
+export type UpdateErrorTagsMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateErrorTagsMutation,
+	Types.UpdateErrorTagsMutationVariables
+>
 export const UpsertSlackChannelDocument = gql`
 	mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
 		upsertSlackChannel(project_id: $project_id, name: $name) {
@@ -5073,6 +5132,88 @@ export type UpsertDiscordChannelMutationResult =
 export type UpsertDiscordChannelMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpsertDiscordChannelMutation,
 	Types.UpsertDiscordChannelMutationVariables
+>
+export const TestErrorEnhancementDocument = gql`
+	mutation testErrorEnhancement(
+		$error_object_id: ID!
+		$github_repo_path: String!
+		$github_prefix: String
+		$build_prefix: String
+		$save_error: Boolean
+	) {
+		testErrorEnhancement(
+			error_object_id: $error_object_id
+			github_repo_path: $github_repo_path
+			github_prefix: $github_prefix
+			build_prefix: $build_prefix
+			save_error: $save_error
+		) {
+			id
+			type
+			serviceName
+			serviceVersion
+			stack_trace
+			structured_stack_trace {
+				columnNumber
+				enhancementSource
+				enhancementVersion
+				error
+				externalLink
+				fileName
+				functionName
+				lineContent
+				lineNumber
+				linesAfter
+				linesBefore
+			}
+		}
+	}
+`
+export type TestErrorEnhancementMutationFn = Apollo.MutationFunction<
+	Types.TestErrorEnhancementMutation,
+	Types.TestErrorEnhancementMutationVariables
+>
+
+/**
+ * __useTestErrorEnhancementMutation__
+ *
+ * To run a mutation, you first call `useTestErrorEnhancementMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTestErrorEnhancementMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [testErrorEnhancementMutation, { data, loading, error }] = useTestErrorEnhancementMutation({
+ *   variables: {
+ *      error_object_id: // value for 'error_object_id'
+ *      github_repo_path: // value for 'github_repo_path'
+ *      github_prefix: // value for 'github_prefix'
+ *      build_prefix: // value for 'build_prefix'
+ *      save_error: // value for 'save_error'
+ *   },
+ * });
+ */
+export function useTestErrorEnhancementMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.TestErrorEnhancementMutation,
+		Types.TestErrorEnhancementMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.TestErrorEnhancementMutation,
+		Types.TestErrorEnhancementMutationVariables
+	>(TestErrorEnhancementDocument, baseOptions)
+}
+export type TestErrorEnhancementMutationHookResult = ReturnType<
+	typeof useTestErrorEnhancementMutation
+>
+export type TestErrorEnhancementMutationResult =
+	Apollo.MutationResult<Types.TestErrorEnhancementMutation>
+export type TestErrorEnhancementMutationOptions = Apollo.BaseMutationOptions<
+	Types.TestErrorEnhancementMutation,
+	Types.TestErrorEnhancementMutationVariables
 >
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
@@ -5583,6 +5724,7 @@ export const GetSessionDocument = gql`
 			client_id
 			starred
 			enable_strict_privacy
+			privacy_setting
 			enable_recording_network_contents
 			field_group
 			fields {
@@ -7222,6 +7364,12 @@ export const GetErrorGroupsClickhouseDocument = gql`
 				}
 				is_public
 				project_id
+				error_tag {
+					id
+					created_at
+					title
+					description
+				}
 			}
 			totalCount
 		}
@@ -8259,14 +8407,17 @@ export const GetBillingDetailsForProjectDocument = gql`
 				membersLimit
 				errorsLimit
 				logsLimit
+				tracesLimit
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
+			tracesMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
+			tracesBillingLimit
 		}
 		workspace_for_project(project_id: $project_id) {
 			id
@@ -8441,6 +8592,7 @@ export const GetSubscriptionDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
 		}
 	}
 `
@@ -8532,6 +8684,12 @@ export const GetErrorGroupDocument = gql`
 			last_occurrence
 			first_occurrence
 			serviceName
+			error_tag {
+				id
+				created_at
+				title
+				description
+			}
 		}
 	}
 `
@@ -9847,6 +10005,64 @@ export type GetLogsIntegrationQueryResult = Apollo.QueryResult<
 	Types.GetLogsIntegrationQuery,
 	Types.GetLogsIntegrationQueryVariables
 >
+export const GetTracesIntegrationDocument = gql`
+	query GetTracesIntegration($project_id: ID!) {
+		tracesIntegration(project_id: $project_id) {
+			integrated
+			resourceType
+			createdAt
+		}
+	}
+`
+
+/**
+ * __useGetTracesIntegrationQuery__
+ *
+ * To run a query within a React component, call `useGetTracesIntegrationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesIntegrationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesIntegrationQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetTracesIntegrationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>(GetTracesIntegrationDocument, baseOptions)
+}
+export function useGetTracesIntegrationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>(GetTracesIntegrationDocument, baseOptions)
+}
+export type GetTracesIntegrationQueryHookResult = ReturnType<
+	typeof useGetTracesIntegrationQuery
+>
+export type GetTracesIntegrationLazyQueryHookResult = ReturnType<
+	typeof useGetTracesIntegrationLazyQuery
+>
+export type GetTracesIntegrationQueryResult = Apollo.QueryResult<
+	Types.GetTracesIntegrationQuery,
+	Types.GetTracesIntegrationQueryVariables
+>
 export const GetKeyPerformanceIndicatorsDocument = gql`
 	query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 		unprocessedSessionsCount(project_id: $project_id)
@@ -10816,6 +11032,68 @@ export type GetWorkspaceIsIntegratedWithVercelLazyQueryHookResult = ReturnType<
 export type GetWorkspaceIsIntegratedWithVercelQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithVercelQuery,
 	Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+>
+export const GetJiraIntegrationSettingsDocument = gql`
+	query GetJiraIntegrationSettings($workspace_id: ID!) {
+		is_integrated: is_workspace_integrated_with(
+			integration_type: Jira
+			workspace_id: $workspace_id
+		)
+		jira_projects(workspace_id: $workspace_id) {
+			id
+			name
+			key
+		}
+	}
+`
+
+/**
+ * __useGetJiraIntegrationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetJiraIntegrationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetJiraIntegrationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetJiraIntegrationSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetJiraIntegrationSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>(GetJiraIntegrationSettingsDocument, baseOptions)
+}
+export function useGetJiraIntegrationSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>(GetJiraIntegrationSettingsDocument, baseOptions)
+}
+export type GetJiraIntegrationSettingsQueryHookResult = ReturnType<
+	typeof useGetJiraIntegrationSettingsQuery
+>
+export type GetJiraIntegrationSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetJiraIntegrationSettingsLazyQuery
+>
+export type GetJiraIntegrationSettingsQueryResult = Apollo.QueryResult<
+	Types.GetJiraIntegrationSettingsQuery,
+	Types.GetJiraIntegrationSettingsQueryVariables
 >
 export const GetClickUpIntegrationSettingsDocument = gql`
 	query GetClickUpIntegrationSettings($workspace_id: ID!) {
@@ -13082,6 +13360,16 @@ export const GetProjectSettingsDocument = gql`
 			rage_click_count
 			filterSessionsWithoutError
 			autoResolveStaleErrorsDayInterval
+			sampling {
+				session_sampling_rate
+				error_sampling_rate
+				log_sampling_rate
+				trace_sampling_rate
+				session_exclusion_query
+				error_exclusion_query
+				log_exclusion_query
+				trace_exclusion_query
+			}
 		}
 	}
 `
@@ -13254,6 +13542,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			ai_application
 			ai_insights
 			enable_session_export
+			enable_unlisted_sharing
 		}
 	}
 `
@@ -13384,6 +13673,7 @@ export const GetErrorObjectsDocument = gql`
 					timestamp
 					errorGroupSecureID
 					serviceVersion
+					serviceName
 					session {
 						secureID
 						email
@@ -13537,6 +13827,70 @@ export type GetServicesLazyQueryHookResult = ReturnType<
 export type GetServicesQueryResult = Apollo.QueryResult<
 	Types.GetServicesQuery,
 	Types.GetServicesQueryVariables
+>
+export const GetServiceByNameDocument = gql`
+	query GetServiceByName($project_id: ID!, $name: String!) {
+		serviceByName(project_id: $project_id, name: $name) {
+			id
+			projectID
+			name
+			status
+			githubRepoPath
+			buildPrefix
+			githubPrefix
+			errorDetails
+		}
+	}
+`
+
+/**
+ * __useGetServiceByNameQuery__
+ *
+ * To run a query within a React component, call `useGetServiceByNameQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServiceByNameQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServiceByNameQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useGetServiceByNameQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>(GetServiceByNameDocument, baseOptions)
+}
+export function useGetServiceByNameLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServiceByNameQuery,
+		Types.GetServiceByNameQueryVariables
+	>(GetServiceByNameDocument, baseOptions)
+}
+export type GetServiceByNameQueryHookResult = ReturnType<
+	typeof useGetServiceByNameQuery
+>
+export type GetServiceByNameLazyQueryHookResult = ReturnType<
+	typeof useGetServiceByNameLazyQuery
+>
+export type GetServiceByNameQueryResult = Apollo.QueryResult<
+	Types.GetServiceByNameQuery,
+	Types.GetServiceByNameQueryVariables
 >
 export const GetErrorTagsDocument = gql`
 	query GetErrorTags {
@@ -13713,6 +14067,88 @@ export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
 	Types.FindSimilarErrorsQuery,
 	Types.FindSimilarErrorsQueryVariables
 >
+export const GetTraceDocument = gql`
+	query GetTrace($project_id: ID!, $trace_id: String!) {
+		trace(project_id: $project_id, trace_id: $trace_id) {
+			trace {
+				timestamp
+				traceID
+				spanID
+				parentSpanID
+				projectID
+				secureSessionID
+				traceState
+				spanName
+				spanKind
+				duration
+				serviceName
+				serviceVersion
+				traceAttributes
+				statusCode
+				statusMessage
+			}
+			errors {
+				created_at
+				trace_id
+				span_id
+				log_cursor
+				event
+				type
+				source
+				timestamp
+				error_group_secure_id
+			}
+		}
+	}
+`
+
+/**
+ * __useGetTraceQuery__
+ *
+ * To run a query within a React component, call `useGetTraceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTraceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTraceQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      trace_id: // value for 'trace_id'
+ *   },
+ * });
+ */
+export function useGetTraceQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTraceQuery,
+		Types.GetTraceQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetTraceQuery, Types.GetTraceQueryVariables>(
+		GetTraceDocument,
+		baseOptions,
+	)
+}
+export function useGetTraceLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTraceQuery,
+		Types.GetTraceQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTraceQuery,
+		Types.GetTraceQueryVariables
+	>(GetTraceDocument, baseOptions)
+}
+export type GetTraceQueryHookResult = ReturnType<typeof useGetTraceQuery>
+export type GetTraceLazyQueryHookResult = ReturnType<
+	typeof useGetTraceLazyQuery
+>
+export type GetTraceQueryResult = Apollo.QueryResult<
+	Types.GetTraceQuery,
+	Types.GetTraceQueryVariables
+>
 export const GetTracesDocument = gql`
 	query GetTraces(
 		$project_id: ID!
@@ -13810,6 +14246,78 @@ export type GetTracesLazyQueryHookResult = ReturnType<
 export type GetTracesQueryResult = Apollo.QueryResult<
 	Types.GetTracesQuery,
 	Types.GetTracesQueryVariables
+>
+export const GetTracesMetricsDocument = gql`
+	query GetTracesMetrics(
+		$project_id: ID!
+		$params: QueryInput!
+		$metric_types: [TracesMetricType!]!
+	) {
+		traces_metrics(
+			project_id: $project_id
+			params: $params
+			metric_types: $metric_types
+		) {
+			buckets {
+				bucket_id
+				metric_type
+				metric_value
+			}
+			bucket_count
+			sample_factor
+		}
+	}
+`
+
+/**
+ * __useGetTracesMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetTracesMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesMetricsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      metric_types: // value for 'metric_types'
+ *   },
+ * });
+ */
+export function useGetTracesMetricsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>(GetTracesMetricsDocument, baseOptions)
+}
+export function useGetTracesMetricsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesMetricsQuery,
+		Types.GetTracesMetricsQueryVariables
+	>(GetTracesMetricsDocument, baseOptions)
+}
+export type GetTracesMetricsQueryHookResult = ReturnType<
+	typeof useGetTracesMetricsQuery
+>
+export type GetTracesMetricsLazyQueryHookResult = ReturnType<
+	typeof useGetTracesMetricsLazyQuery
+>
+export type GetTracesMetricsQueryResult = Apollo.QueryResult<
+	Types.GetTracesMetricsQuery,
+	Types.GetTracesMetricsQueryVariables
 >
 export const GetTracesKeysDocument = gql`
 	query GetTracesKeys(

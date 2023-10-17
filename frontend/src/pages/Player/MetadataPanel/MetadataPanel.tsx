@@ -7,6 +7,7 @@ import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils
 import { bytesToPrettyString } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
+import { capitalize } from 'lodash'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -71,15 +72,17 @@ const MetadataPanel = () => {
 			),
 		},
 		{
-			keyDisplayValue: 'Strict Privacy',
-			valueDisplayValue: session?.enable_strict_privacy
-				? 'Enabled'
-				: 'Disabled',
+			keyDisplayValue: 'Privacy Settings',
+			valueDisplayValue: privacyModeValue(
+				session?.privacy_setting,
+				session?.enable_strict_privacy,
+			),
 			valueInfoTooltipMessage: (
 				<>
-					{session?.enable_strict_privacy
-						? 'Text and images in this session are obfuscated.'
-						: 'This session is recording all content on the page.'}{' '}
+					{privacyModeDescription(
+						session?.privacy_setting,
+						session?.enable_strict_privacy,
+					)}{' '}
 					<a
 						href="https://docs.highlight.run/privacy"
 						target="_blank"
@@ -294,6 +297,40 @@ const MetadataPanel = () => {
 			)}
 		</Box>
 	)
+}
+
+const privacyModeValue = (
+	privacySetting?: string | null,
+	legacyPrivacyEnabled?: boolean | null,
+): string => {
+	if (!!privacySetting) {
+		return capitalize(privacySetting)
+	}
+
+	if (legacyPrivacyEnabled) {
+		return 'Strict Privacy Enabled (deprecated)'
+	} else {
+		return 'Strict Privacy Disabled (deprecated)'
+	}
+}
+
+const privacyModeDescription = (
+	privacySetting?: string | null,
+	legacyPrivacyEnabled?: boolean | null,
+): string => {
+	if (privacySetting === 'strict') {
+		return 'Text and images in this session are obfuscated.'
+	} else if (privacySetting === 'none') {
+		return 'This session is recording all content on the page.'
+	} else if (privacySetting === 'default') {
+		return 'This session is obfuscating personal identifiable information, but all images and other text is recoreded.'
+	}
+
+	if (legacyPrivacyEnabled) {
+		return 'Text and images in this session are obfuscated (deprecated).'
+	} else {
+		return 'This session is recording all content on the page (deprecated).'
+	}
 }
 
 export default MetadataPanel

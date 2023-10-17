@@ -24,7 +24,7 @@ import (
 )
 
 // InitializeSession is the resolver for the initializeSession field.
-func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*customModels.InitializeSessionResponse, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) (*customModels.InitializeSessionResponse, error) {
 	s, _ := util.StartSpanFromContext(ctx, "InitializeSession", util.ResourceName("gql.initializeSession"))
 	s.SetAttribute("secure_id", sessionSecureID)
 	s.SetAttribute("client_version", clientVersion)
@@ -45,6 +45,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				CreatedAt:                      time.Now(),
 				ProjectVerboseID:               organizationVerboseID,
 				EnableStrictPrivacy:            enableStrictPrivacy,
+				PrivacySetting:                 privacySetting,
 				EnableRecordingNetworkContents: enableRecordingNetworkContents,
 				ClientVersion:                  clientVersion,
 				FirstloadVersion:               firstloadVersion,
@@ -135,6 +136,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 	for _, backendError := range errors {
 		errorsBySecureID[backendError.SessionSecureID] = append(errorsBySecureID[backendError.SessionSecureID], backendError)
 	}
+	var messages []*kafkaqueue.Message
 	for secureID, backendErrors := range errorsBySecureID {
 		var partitionKey string
 		if secureID != nil {
@@ -142,13 +144,16 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 		} else if projectID != nil {
 			partitionKey = uuid.New().String()
 		}
-		err := r.ProducerQueue.Submit(ctx, partitionKey, &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				ProjectVerboseID: projectID,
-				SessionSecureID:  secureID,
-				Errors:           backendErrors,
-			}})
+		for _, backendError := range backendErrors {
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					ProjectVerboseID: projectID,
+					SessionSecureID:  secureID,
+					Errors:           []*customModels.BackendErrorObjectInput{backendError},
+				}})
+		}
+		err := r.ProducerQueue.Submit(ctx, partitionKey, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID, "secure_id": secureID}).
 				Error(e.Wrap(err, "failed to send kafka message for push backend payload."))

@@ -24,9 +24,16 @@
 }
 
 .button {
+	width: 100%;
+	height: 30px;
 	display: flex;
-	margin-bottom: 0;
-	margin-top: 0;
+	flex-direction: row;
+	align-items: center;
+	max-width: max-content;
+	padding-top: 1px !important;
+	padding-left: 6px !important;
+	padding-right: 6px !important;
+	padding-bottom: 1px !important;
 
 	& .workspaceCount {
 		color: var(--color-white);
@@ -37,8 +44,22 @@
 	}
 }
 
+.transparent {
+	background-color: transparent !important;
+	border: 1px solid var(--color-gray-300) !important;
+}
+
 .cardForm {
-	grid-row-gap: 20px;
+	grid-row-gap: 0px;
+	padding-bottom: 0px;
+}
+
+.createDisabled {
+	border: 0px !important;
+	& > span {
+		color: #20104D5C !important;
+	}
+	background-color: #744ED43D !important;
 }
 
 .inputLabel {
@@ -50,8 +71,16 @@
 }
 
 .promoCodeToggle {
-	color: var(--color-purple);
 	cursor: pointer;
-	margin-top: -6px;
-	width: fit-content;
+}
+
+.inputField {
+	margin-top: 8px;
+	background: white !important;
+	border: 1px solid var(--color-gray-300) !important;
+}
+
+.noPaddingMargin {
+	margin: 0 !important;
+	padding-bottom: 0 !important;
 }

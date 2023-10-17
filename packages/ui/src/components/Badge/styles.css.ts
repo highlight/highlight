@@ -3,14 +3,13 @@ import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 
 export const variants = recipe({
-	base: [
-		{
-			alignItems: 'center',
-			display: 'inline-flex',
-			userSelect: 'none',
-			width: 'max-content',
-		},
-	],
+	base: {
+		alignItems: 'center',
+		boxSizing: 'content-box',
+		display: 'inline-flex',
+		userSelect: 'none',
+		width: 'max-content',
+	},
 
 	variants: {
 		size: {

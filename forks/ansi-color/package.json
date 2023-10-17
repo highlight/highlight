@@ -1,5 +1,0 @@
-{
-	"name": "ansi-color",
-	"packageManager": "yarn@3.3.1",
-	"main": "ansi-color.js"
-}

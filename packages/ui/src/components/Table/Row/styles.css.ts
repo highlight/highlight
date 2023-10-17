@@ -13,7 +13,7 @@ export const row = style({
 
 	selectors: {
 		'&:hover': {
-			background: vars.theme.static.surface.sentiment.neutral,
+			background: vars.theme.static.surface.raised,
 		},
 
 		// Borders
@@ -28,7 +28,7 @@ export const row = style({
 		[`${headStyles.head} &`]: {
 			background: 'none',
 		},
-		[`${tableStyles.table}:not(${tableStyles.noBorder}) ${headStyles.head} &:first-of-type`]:
+		[`${tableStyles.table}:not(${tableStyles.noBorder}):not(${tableStyles.withSearch}) ${headStyles.head} &:first-of-type`]:
 			{
 				borderTop: BORDER,
 				borderTopLeftRadius: 8,

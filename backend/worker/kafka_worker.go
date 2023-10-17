@@ -26,14 +26,14 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.M
 	log.WithContext(ctx).
 		WithError(err).
 		WithField("type", task.Type).
-		WithField("duration", time.Since(start)).
+		WithField("duration", time.Since(start).Seconds()).
 		Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
 		log.WithContext(ctx).
 			WithError(err).
 			WithField("type", task.Type).
 			WithField("failures", task.Failures).
-			WithField("duration", time.Since(start)).
+			WithField("duration", time.Since(start).Seconds()).
 			Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
@@ -137,7 +137,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	}
 	k.messages = []*kafkaqueue.Message{}
 
-	readSpan.SetAttribute("MaxIngestDelay", time.Since(oldestMsg))
+	readSpan.SetAttribute("MaxIngestDelay", time.Since(oldestMsg).Seconds())
 	readSpan.Finish()
 
 	workSpan, wCtx := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.work", k.Name)))
@@ -327,6 +327,20 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 		span.Finish(err)
 		return err
 	}
+	markBackendSetupProjectIds := map[uint32]struct{}{}
+	for _, trace := range traceRows {
+		// Skip traces with a `http.method` attribute as likely autoinstrumented frontend traces
+		if _, found := trace.TraceAttributes["http.method"]; !found {
+			markBackendSetupProjectIds[trace.ProjectId] = struct{}{}
+		}
+	}
+	for projectId := range markBackendSetupProjectIds {
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, int(projectId), model.MarkBackendSetupTypeTraces)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend traces setup")
+			return err
+		}
+	}
 	return nil
 }
 
@@ -373,6 +387,16 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 				session.Fields = lo.Map(sessionToFields[session.ID], func(sf *sessionField, _ int) *model.Field {
 					return fieldsById[sf.FieldID]
 				})
+				// fields are populated, so calculate whether session is excluded
+				if k.Worker.PublicResolver.IsSessionExcludedByFilter(ctx, session) {
+					reason := privateModel.SessionExcludedReasonExclusionFilter
+					session.Excluded = true
+					session.ExcludedReason = &reason
+					if err := k.Worker.PublicResolver.DB.Model(&model.Session{Model: model.Model{ID: session.ID}}).
+						Select("Excluded", "ExcludedReason").Updates(&session).Error; err != nil {
+						return err
+					}
+				}
 			}
 
 			allSessionObjs = append(allSessionObjs, sessionObjs...)
@@ -393,7 +417,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		for _, chunk := range errorGroupIdChunks {
 			errorGroups := []*model.ErrorGroup{}
 			errorGroupSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorGroups"))
-			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorGroup{}).Where("id in ?", chunk).Find(&errorGroups).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorGroup{}).Joins("ErrorTag").Where("error_groups.id in ?", chunk).Find(&errorGroups).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}
@@ -482,7 +506,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			k.messages = append(k.messages, task)
 
 			if time.Since(k.lastFlush) > k.BatchedFlushTimeout || len(k.messages) >= k.BatchFlushSize {
-				s.SetAttribute("FlushDelay", time.Since(k.lastFlush))
+				s.SetAttribute("FlushDelay", time.Since(k.lastFlush).Seconds())
 
 				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
 					if err := k.flush(ctx); err != nil {

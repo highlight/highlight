@@ -33,13 +33,14 @@ type Props = React.PropsWithChildren & {
 	integrationData?: IntegrationStatus
 }
 
-type Area = 'client' | 'backend' | 'backend-logging' | 'alerts'
+type Area = 'client' | 'backend' | 'backend-logging' | 'alerts' | 'traces'
 
 const AREA_TITLE_MAP: { [key in Area]: string } = {
 	client: 'Frontend monitoring + session replay',
 	backend: 'Backend monitoring',
 	'backend-logging': 'Backend logging',
 	alerts: 'Alerts',
+	traces: 'Traces',
 }
 
 const CTA_TITLE_MAP: { [key in Area]: string } = {
@@ -47,6 +48,7 @@ const CTA_TITLE_MAP: { [key in Area]: string } = {
 	backend: 'View an error',
 	'backend-logging': 'View logs',
 	alerts: 'Configure an alert',
+	traces: 'View traces',
 }
 
 const CTA_PATH_MAP: { [key in Area]: string } = {
@@ -54,6 +56,7 @@ const CTA_PATH_MAP: { [key in Area]: string } = {
 	backend: 'errors',
 	'backend-logging': 'logs',
 	alerts: 'alerts',
+	traces: 'traces',
 }
 
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
@@ -189,7 +192,7 @@ const buildResourcePath = (
 
 	if (resource?.secure_id) {
 		path = `${basePath}/${resource.secure_id}`
-	} else if (area === 'backend-logging') {
+	} else if (area === 'backend-logging' || area === 'traces') {
 		const logDate = moment(resource?.created_at)
 		// Show logs with a 2 minute buffer of when the setup event was created.
 		const startDate = moment(logDate).subtract(2, 'minutes')

@@ -36,7 +36,7 @@ jobs:
             - name: Rubocop
               run: bundle exec rubocop
             - name: Publish to RubyGems
-              if: github.ref == 'refs/heads/main' && steps.filter.outputs.ruby-changed
+              if: github.ref == 'refs/heads/main' && steps.filter.outputs.ruby-changed == 'true'
               run: |
                   mkdir -p $HOME/.gem
                   touch $HOME/.gem/credentials

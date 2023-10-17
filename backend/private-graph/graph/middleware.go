@@ -20,6 +20,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/go-oauth2/oauth2/v4"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/util"
@@ -221,39 +222,42 @@ func getSourcemapRequestToken(r *http.Request) string {
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		span, _ := util.StartSpanFromContext(ctx, "middleware.private")
+		span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
 		var err error
 		if token := r.Header.Get("token"); token != "" {
-			span.SetOperationName("tokenHeader")
+			span.SetAttribute("type", "tokenHeader")
 			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
-			span.SetOperationName("apiKeyHeader")
+			span.SetAttribute("type", "apiKeyHeader")
 			workspaceID, err := workspaceTokenHandler(ctx, apiKey)
 			if err != nil || workspaceID == nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
 		} else if sourcemapRequestToken := getSourcemapRequestToken(r); sourcemapRequestToken != "" {
-			span.SetOperationName("sourcemapBody")
+			span.SetAttribute("type", "sourcemapBody")
 			workspaceID, err := workspaceTokenHandler(ctx, sourcemapRequestToken)
 			if err != nil || workspaceID == nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
-		} else if OAuthServer.HasCookie(r) {
-			span.SetOperationName("oauth")
+		} else if OAuthServer.HasCookie(r) || OAuthServer.HasBearer(r) {
+			span.SetAttribute("type", "oauth")
 			var cookie *http.Cookie
-			ctx, _, cookie, err = OAuthServer.Validate(ctx, r)
+			var tokenInfo oauth2.TokenInfo
+			ctx, tokenInfo, cookie, err = OAuthServer.Validate(ctx, r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
 			http.SetCookie(w, cookie)
+			span.SetAttribute("client_id", tokenInfo.GetClientID())
+			span.SetAttribute("user_id", tokenInfo.GetUserID())
 		}
 		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
 		r = r.WithContext(ctx)

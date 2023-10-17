@@ -9,6 +9,7 @@ import {
 	useGetSegmentsQuery,
 } from '@graph/hooks'
 import {
+	GetErrorTagsQuery,
 	GetFieldTypesClickhouseQuery,
 	namedOperations,
 } from '@graph/operations'
@@ -69,9 +70,8 @@ import clsx, { ClassValue } from 'clsx'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useLocalStorage, useToggle } from 'react-use'
+import { useToggle } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import LoadingBox from '@/components/LoadingBox'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -834,6 +834,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
+	has_session: 'Has Sessions',
 	pages_visited: 'Pages Visited',
 	landing_page: 'Landing Page',
 	exit_page: 'Exit Page',
@@ -1022,10 +1023,14 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidTag />
 		case 'error_Type':
 			return <IconSolidCube />
+		case 'error_Tag':
+			return <IconSolidTag />
 		case 'error-field_visited_url':
 			return <IconSolidLink />
 		case 'error-field_service_name':
 			return <IconSolidCubeTransparent />
+		case 'error-field_has_session':
+			return <IconSolidDesktopComputer />
 	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type
@@ -1105,6 +1110,7 @@ interface QueryBuilderProps {
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesClickhouseQuery
+	errorTagData?: GetErrorTagsQuery
 	readonly?: boolean
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
@@ -1142,6 +1148,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		customFields,
 		fetchFields,
 		fieldData,
+		errorTagData,
 		readonly,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
@@ -1395,12 +1402,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}
 
-	const { isHighlightAdmin } = useAuthContext()
-	const [chLocalStorage] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
-
 	const getValueOptionsCallback = useCallback(
 		(field: SelectOption | undefined) => {
 			return async (input: string): Promise<Option[] | undefined> => {
@@ -1437,6 +1438,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 						label: v,
 						value: v,
 					}))
+				} else if (field.value === 'error_Tag') {
+					options =
+						errorTagData?.error_tags?.map((et) => ({
+							label: et?.title ?? '',
+							value: et?.title ?? '',
+						})) ?? []
 				} else if (getCustomFieldOptions(field)?.type === 'boolean') {
 					options = ['true', 'false'].map((v) => ({
 						label: v,
@@ -1460,11 +1467,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 				}
 
 				const fieldType = getType(field.value)
-				// Use clickhouse for error fields only if local storage flag is on
-				const useClickhouse =
-					fieldType === 'error' || fieldType === 'error-field'
-						? chLocalStorage
-						: true
 
 				return await fetchFields({
 					project_id: projectId,
@@ -1474,7 +1476,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					query: input,
 					start_date: moment(dateRange[0]).toISOString(),
 					end_date: moment(dateRange[1]).toISOString(),
-					use_clickhouse: useClickhouse,
+					use_clickhouse: true,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1485,11 +1487,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		},
 		[
 			getCustomFieldOptions,
-			chLocalStorage,
 			fetchFields,
 			projectId,
 			dateRange,
 			appVersionData?.app_version_suggestion,
+			errorTagData?.error_tags,
 		],
 	)
 

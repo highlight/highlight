@@ -1,6 +1,7 @@
+// src/app/api/edge-test/route.ts
 import { H } from '@highlight-run/next/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
-import { withEdgeHighlight } from '@/app/utils/edge-highlight.config'
+import { withEdgeHighlight } from '@/app/_utils/edge-highlight.config'
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'

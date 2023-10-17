@@ -5,9 +5,15 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/integrations"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strings"
@@ -55,6 +61,15 @@ func TestHandler_HandleLog(t *testing.T) {
 }
 
 func TestHandler_HandleTrace(t *testing.T) {
+	dbName := "highlight_testing_db"
+	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	var err error
+	db, err := util.CreateAndMigrateTestDB(dbName)
+	if err != nil {
+		testLogger.Error(e.Wrap(err, "error creating testdb"))
+	}
+
+	red := redis.NewClient()
 	for file, tc := range map[string]struct {
 		expectedMessageCounts map[kafkaqueue.PayloadType]int
 		expectedLogCounts     map[model.LogSource]int
@@ -64,7 +79,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}{
 		"./samples/traces.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
-				kafkaqueue.PushBackendPayload: 1,
+				kafkaqueue.PushBackendPayload: 4,   // 4 exceptions, pushed as individual messages
 				kafkaqueue.PushLogs:           15,  // 4 exceptions, 11 logs
 				kafkaqueue.PushTraces:         501, // 512 spans - 11 logs
 			},
@@ -118,15 +133,19 @@ func TestHandler_HandleTrace(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		producer := MockKafkaProducer{}
 		w := &MockResponseWriter{}
 		r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
+
+		producer := MockKafkaProducer{}
+		resolver := &public.Resolver{
+			Redis:         red,
+			Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer),
+			ProducerQueue: &producer,
+			BatchedQueue:  &producer,
+			TracesQueue:   &producer,
+		}
 		h := Handler{
-			resolver: &public.Resolver{
-				ProducerQueue: &producer,
-				BatchedQueue:  &producer,
-				TracesQueue:   &producer,
-			},
+			resolver: resolver,
 		}
 		h.HandleTrace(w, r)
 
@@ -137,8 +156,8 @@ func TestHandler_HandleTrace(t *testing.T) {
 		for _, message := range producer.messages {
 			messageCountsByType[message.Type]++
 			if message.Type == kafkaqueue.PushLogs {
-				log := message.PushLogs.LogRow
-				logCountsBySource[log.Source]++
+				lg := message.PushLogs.LogRow
+				logCountsBySource[lg.Source]++
 			} else if message.Type == kafkaqueue.PushBackendPayload {
 				appDirError = message.PushBackendPayload.Errors[0]
 				numErrors += len(message.PushBackendPayload.Errors)

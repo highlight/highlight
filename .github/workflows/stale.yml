@@ -9,8 +9,10 @@ jobs:
         steps:
             - uses: actions/stale@v8
               with:
-                  any-of-labels: 'external bug / request'
+                  exempt-issue-labels: 'external bug / request'
+                  exempt-all-milestones: true
+                  exempt-all-assignees: true
                   stale-issue-message: 'This issue is stale because it has been open for 30 days with no activity. Remove stale label or comment to avoid issue being closed in 5 days.'
                   close-issue-message: 'This issue was closed because it has been stale for 5 days with no activity.'
                   days-before-issue-stale: 30
-                  days-before-issue-close: 5
+                  days-before-issue-close: 30

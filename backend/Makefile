@@ -11,17 +11,32 @@ public-gen:
 private-gen:
 		(cd ./private-graph; go run github.com/99designs/gqlgen)
 private-test:
-		(cd ./private-graph/graph; ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./private-graph/graph; CLICKHOUSE_ADDRESS=localhost:9000 CLICKHOUSE_DATABASE=default CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
 public-test:
-		(cd ./public-graph/graph; ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./public-graph/graph; CLICKHOUSE_ADDRESS=localhost:9000 CLICKHOUSE_DATABASE=default CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
 model-test:
-		(cd ./model; ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./model; CLICKHOUSE_ADDRESS=localhost:9000 CLICKHOUSE_DATABASE=default CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
 payload-test:
-		(cd ./payload; ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./payload; CLICKHOUSE_ADDRESS=localhost:9000 CLICKHOUSE_DATABASE=default CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
 worker-test:
-		(cd ./worker; ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./worker; CLICKHOUSE_ADDRESS=localhost:9000 CLICKHOUSE_DATABASE=default CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
 test-and-coverage:
-		(ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test -p 1 -covermode=atomic -coverprofile=coverage.out ./... -v)
+		(CLICKHOUSE_ADDRESS=localhost:9000 CLICKHOUSE_DATABASE=default CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test -p 1 -covermode=atomic -coverprofile=coverage.out ./... -v)
+test:
+		(CLICKHOUSE_ADDRESS=localhost:9000 CLICKHOUSE_DATABASE=default CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test -p 1 --race ./... -v)
+fuzz:
+	for file in $$(grep -r --include='**_test.go' --files-with-matches 'func Fuzz' .); do \
+	  funcs=$$(grep -oP 'func \K(Fuzz\w*)' $$file); \
+	  for func in $${funcs}; do \
+		  echo "Fuzzing $$func in $$file"; \
+		  parentDir=$$(dirname $$file); \
+		  CLICKHOUSE_ADDRESS='localhost:9000' CLICKHOUSE_DATABASE=default \
+		  CLICKHOUSE_TEST_DATABASE=test CLICKHOUSE_USERNAME=default \
+		  ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 \
+		  PSQL_USER=postgres PSQL_PASSWORD=postgres \
+		  go test $$parentDir -run=$$func -fuzz=$$func -fuzztime=5s || exit 1; \
+	  done \
+	done
 report-stripe-usage:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=report-stripe-usage)
 start-metric-monitor-watch:

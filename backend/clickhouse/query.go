@@ -3,6 +3,8 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,8 +18,13 @@ import (
 	"github.com/samber/lo"
 )
 
+const SamplingRows = 20_000_000
+const KeysMaxRows = 1_000_000
+const KeyValuesMaxRows = 1_000_000
+
 type tableConfig[TReservedKey ~string] struct {
 	tableName        string
+	bodyColumn       string
 	attributesColumn string
 	keysToColumns    map[TReservedKey]string
 	reservedKeys     []TReservedKey
@@ -152,9 +159,10 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, proje
 	// of where to place the raw SQL later when it is being built.
 	// In this case, we are placing the marker after the `FROM` clause
 	preWheres := []string{}
+	bodyQuery := ""
 	for _, body := range filters.body {
 		if strings.Contains(body, "%") {
-			sb.Where("Body ILIKE" + sb.Var(body))
+			bodyQuery = "Body ILIKE" + sb.Var(body)
 		} else {
 			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(body)+")")
 		}
@@ -162,6 +170,9 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, proje
 
 	if len(preWheres) > 0 {
 		sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
+	}
+	if bodyQuery != "" {
+		sb.Where(bodyQuery)
 	}
 
 	sb.Where(sb.Equal("ProjectId", projectID))
@@ -300,112 +311,9 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	return out
 }
 
-func Keys[T ~string](ctx context.Context, client *Client, config tableConfig[T], projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(fmt.Sprintf("arrayJoin(%s.keys) as key, count() as cnt", config.attributesColumn)).
-		From(config.tableName).
-		Where(sb.Equal("ProjectId", projectID)).
-		GroupBy("key").
-		OrderBy("cnt DESC").
-		Where(sb.LessEqualThan("Timestamp", endDate)).
-		Where(sb.GreaterEqualThan("Timestamp", startDate))
-
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	span, _ := util.StartSpanFromContext(ctx, "tableName", util.ResourceName("Keys"))
-	span.SetAttribute("Query", sql)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-
-	if err != nil {
-		return nil, err
-	}
-
-	keys := []*modelInputs.QueryKey{}
-	for rows.Next() {
-		var (
-			Key   string
-			Count uint64
-		)
-		if err := rows.Scan(&Key, &Count); err != nil {
-			return nil, err
-		}
-
-		keys = append(keys, &modelInputs.QueryKey{
-			Name: Key,
-			Type: modelInputs.KeyTypeString, // For now, assume everything is a string
-		})
-	}
-
-	reservedKeys := config.reservedKeys
-	for _, key := range reservedKeys {
-		keys = append(keys, &modelInputs.QueryKey{
-			Name: string(key),
-			Type: modelInputs.KeyTypeString,
-		})
-	}
-
-	rows.Close()
-
-	span.Finish(rows.Err())
-	return keys, rows.Err()
-}
-
-func KeyValues[T ~string](ctx context.Context, client *Client, config tableConfig[T], projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-
-	col := config.attributesColumn
-	for key, c := range config.keysToColumns {
-		if string(key) == keyName {
-			col = c
-			break
-		}
-	}
-
-	if col == config.attributesColumn {
-		sb.Select("DISTINCT " + col + " [" + sb.Var(keyName) + "] as value").
-			From(config.tableName).
-			Where(sb.Equal("ProjectId", projectID)).
-			Where("mapContains(" + col + ", " + sb.Var(keyName) + ")").
-			Limit(KeyValuesLimit)
-	} else {
-		sb.Select("DISTINCT " + col + " value").
-			From(config.tableName).
-			Where(sb.Equal("ProjectId", projectID)).
-			Where(sb.NotEqual("value", "")).
-			Limit(KeyValuesLimit)
-	}
-
-	sb.Where(sb.LessEqualThan("Timestamp", endDate)).
-		Where(sb.GreaterEqualThan("Timestamp", startDate))
-
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	values := []string{}
-	for rows.Next() {
-		var (
-			Value string
-		)
-		if err := rows.Scan(&Value); err != nil {
-			return nil, err
-		}
-
-		values = append(values, Value)
-	}
-
-	rows.Close()
-
-	return values, rows.Err()
-}
-
 func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"max_rows_to_read": 1_000_000,
+		"max_rows_to_read": KeysMaxRows,
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
@@ -453,7 +361,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"max_rows_to_read": 1_000_000,
+		"max_rows_to_read": KeyValuesMaxRows,
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
@@ -494,4 +402,81 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 
 	span.Finish(rows.Err())
 	return values, rows.Err()
+}
+
+// clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
+var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
+
+func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tableConfig[TReservedKey], filters *queryparser.Filters) bool {
+	v := reflect.ValueOf(*row)
+
+	rowBodyTerms := map[string]bool{}
+	if config.bodyColumn != "" && len(filters.Body) > 0 {
+		body := v.FieldByName(config.bodyColumn).String()
+		for _, field := range nonAlphaNumericChars.Split(body, -1) {
+			if field != "" {
+				rowBodyTerms[field] = true
+			}
+		}
+		for _, body := range filters.Body {
+			if strings.Contains(body, "%") {
+				pat, err := regexp.Compile(strings.ReplaceAll(regexp.QuoteMeta(body), "%", ".*"))
+				// this may over match if the expression cannot be compiled,
+				// but we'd prefer to over match as this fn is used to determine sampling
+				if err == nil {
+					if !pat.MatchString(body) {
+						return false
+					}
+				}
+			} else if !rowBodyTerms[body] {
+				return false
+			}
+		}
+	}
+	for key, values := range filters.Attributes {
+		var rowValue string
+		if chKey, ok := config.keysToColumns[TReservedKey(key)]; ok {
+			if strings.Contains(chKey, ".") {
+				var value = v
+				for _, part := range strings.Split(chKey, ".") {
+					value = value.FieldByName(part)
+					if value.Kind() == reflect.Pointer {
+						value = value.Elem()
+					}
+				}
+				rowValue = value.String()
+			} else {
+				rowValue = v.FieldByName(chKey).String()
+			}
+		} else if config.attributesColumn != "" {
+			value := v.FieldByName(config.attributesColumn)
+			if value.Kind() == reflect.Map {
+				rowValue = value.MapIndex(reflect.ValueOf(key)).String()
+			} else if value.Kind() == reflect.Slice {
+				// assume that the key is a 'field' in `type_name` format
+				fieldParts := strings.SplitN(key, "_", 2)
+				for i := 0; i < value.Len(); i++ {
+					fieldType := value.Index(i).Elem().FieldByName("Type").String()
+					name := value.Index(i).Elem().FieldByName("Name").String()
+					if fieldType == fieldParts[0] && name == fieldParts[1] {
+						rowValue = value.Index(i).Elem().FieldByName("Value").String()
+						break
+					}
+				}
+			}
+		} else {
+			continue
+		}
+		for _, v := range values {
+			if strings.Contains(v, "%") {
+				if matched, _ := regexp.Match(strings.ReplaceAll(v, "%", ".*"), []byte(rowValue)); !matched {
+					return false
+				}
+			} else if v != rowValue {
+				return false
+			}
+
+		}
+	}
+	return true
 }

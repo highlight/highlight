@@ -5,6 +5,8 @@
 		<title>unpkg.com highlight.run bundle</title>
 		<script src="https://unpkg.com/highlight.run"></script>
 		<script>
+			// should print console warning
+			H.stop()
 			H.init('1', {
 				backendUrl: 'https://localhost:8082/public',
 				scriptUrl: 'http://localhost:8080/dist/index.js',
@@ -14,6 +16,15 @@
 					recordHeadersAndBody: true,
 				},
 			})
+			// starts new session, even though `H.init` may not have yet completed loading the script
+			H.start({ forceNew: true })
+			H.identify('vadim@highlight.io', { id: 'abc123' })
+			// stops session
+			H.stop()
+			// forces a new session
+			H.start({ forceNew: true })
+			H.identify('jay@highlight.io', { id: 'def456' })
+			// should continue to recording, with PushPayloads being sent every 2 seconds
 		</script>
 	</head>
 	<body></body>

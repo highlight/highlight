@@ -24,6 +24,9 @@ enum SessionExcludedReason {
 	IgnoredUser
 	BillingQuotaExceeded
 	RetentionPeriodExceeded
+	Sampled
+	RateLimitMinute
+	ExclusionFilter
 }
 
 type Session {
@@ -65,6 +68,7 @@ type Session {
 	first_time: Boolean
 	field_group: String
 	enable_strict_privacy: Boolean
+	privacy_setting: String
 	enable_recording_network_contents: Boolean
 	object_storage_enabled: Boolean
 	payload_size: Int64
@@ -127,12 +131,15 @@ type BillingDetails {
 	membersMeter: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	tracesMeter: Int64!
 	sessionsDailyAverage: Float!
 	errorsDailyAverage: Float!
 	logsDailyAverage: Float!
+	tracesDailyAverage: Float!
 	sessionsBillingLimit: Int64
 	errorsBillingLimit: Int64
 	logsBillingLimit: Int64
+	tracesBillingLimit: Int64
 }
 
 type Invoice {
@@ -149,6 +156,7 @@ type SubscriptionDetails {
 	discountPercent: Float!
 	discountAmount: Int64!
 	lastInvoice: Invoice
+	billingIssue: Boolean!
 }
 
 type Plan {
@@ -158,6 +166,7 @@ type Plan {
 	membersLimit: Int
 	errorsLimit: Int!
 	logsLimit: Int!
+	tracesLimit: Int!
 }
 
 enum PlanType {
@@ -173,6 +182,7 @@ enum ProductType {
 	Sessions
 	Errors
 	Logs
+	Traces
 }
 
 enum SubscriptionInterval {
@@ -211,6 +221,48 @@ type LinearTeam {
 	team_id: String!
 	name: String!
 	key: String!
+}
+
+type JiraTeam {
+	team_id: String!
+	name: String!
+	key: String!
+}
+
+type JiraProjectIdentifier {
+	id: String!
+}
+
+type JiraIssueTypeScope {
+	type: String!
+	project: JiraProjectIdentifier
+}
+
+type AccessibleJiraResources {
+	id: String!
+	url: String!
+	name: String!
+	scopes: [String!]
+	avatarUrl: String!
+}
+
+type JiraIssueType {
+	self: String!
+	id: String!
+	description: String!
+	iconUrl: String!
+	name: String!
+	untranslatedName: String!
+	subtask: Boolean!
+	scope: JiraIssueTypeScope
+}
+
+type JiraProject {
+	name: String!
+	key: String!
+	id: String!
+	self: String!
+	issueTypes: [JiraIssueType]
 }
 
 type GitHubRepo {
@@ -275,6 +327,36 @@ type HeightTask {
 	name: String!
 }
 
+type Sampling {
+	session_sampling_rate: Float!
+	error_sampling_rate: Float!
+	log_sampling_rate: Float!
+	trace_sampling_rate: Float!
+	session_minute_rate_limit: Int64!
+	error_minute_rate_limit: Int64!
+	log_minute_rate_limit: Int64!
+	trace_minute_rate_limit: Int64!
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
+}
+
+input SamplingInput {
+	session_sampling_rate: Float
+	error_sampling_rate: Float
+	log_sampling_rate: Float
+	trace_sampling_rate: Float
+	session_minute_rate_limit: Int64
+	error_minute_rate_limit: Int64
+	log_minute_rate_limit: Int64
+	trace_minute_rate_limit: Int64
+	session_exclusion_query: String
+	error_exclusion_query: String
+	log_exclusion_query: String
+	trace_exclusion_query: String
+}
+
 type SocialLink {
 	type: SocialType!
 	link: String
@@ -298,6 +380,7 @@ enum IntegrationType {
 	ClickUp
 	Height
 	GitHub
+	Jira
 }
 
 enum ErrorState {
@@ -385,6 +468,7 @@ type AllProjectSettings {
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
+	sampling: Sampling!
 }
 
 type AllWorkspaceSettings {
@@ -392,6 +476,7 @@ type AllWorkspaceSettings {
 	ai_application: Boolean!
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
+	enable_unlisted_sharing: Boolean!
 }
 
 type Account {
@@ -480,7 +565,6 @@ type ErrorObject {
 	session_id: Int
 	trace_id: String
 	span_id: String
-	error_tag_id: String
 	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
@@ -538,6 +622,7 @@ type ErrorGroup {
 	last_occurrence: Timestamp
 	viewed: Boolean
 	serviceName: String
+	error_tag: ErrorTag
 }
 
 type ErrorMetadata {
@@ -676,6 +761,23 @@ type Trace {
 	links: [TraceLink]
 }
 
+type TracePayload {
+	trace: [Trace!]!
+	errors: [TraceError!]!
+}
+
+type TraceError {
+	created_at: Timestamp!
+	trace_id: String
+	span_id: String
+	log_cursor: String
+	event: String!
+	type: String!
+	source: String!
+	error_group_secure_id: String!
+	timestamp: Timestamp!
+}
+
 type TraceEvent {
 	timestamp: Timestamp!
 	name: String!
@@ -714,6 +816,7 @@ type ErrorObjectNode {
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
 	serviceVersion: String!
+	serviceName: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -793,6 +896,29 @@ enum ReservedTraceKey {
 	service_version
 }
 
+enum ReservedErrorObjectKey {
+	event
+	log_cursor
+	payload
+	request_id
+	service_name
+	service_version
+	session_secure_id
+	source
+	span_id
+	stackTrace
+	timestamp
+	trace_id
+	type
+	url
+}
+
+enum ReservedSessionKey {
+	environment
+	service_name
+	app_version
+}
+
 enum LogSource {
 	frontend
 	backend
@@ -817,6 +943,24 @@ type LogsHistogram {
 	totalCount: UInt64!
 	objectCount: UInt64!
 	sampleFactor: Float!
+}
+
+enum TracesMetricType {
+	count
+	p50
+	p90
+}
+
+type TracesMetricBucket {
+	bucket_id: UInt64!
+	metric_type: TracesMetricType!
+	metric_value: Float!
+}
+
+type TracesMetrics {
+	buckets: [TracesMetricBucket!]!
+	bucket_count: UInt64!
+	sample_factor: Float!
 }
 
 type QueryKey {
@@ -1679,6 +1823,7 @@ type Query {
 	clientIntegration(project_id: ID!): IntegrationStatus!
 	serverIntegration(project_id: ID!): IntegrationStatus!
 	logsIntegration(project_id: ID!): IntegrationStatus!
+	tracesIntegration(project_id: ID!): IntegrationStatus!
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean
@@ -1809,6 +1954,7 @@ type Query {
 		integration_type: IntegrationType
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
+	jira_projects(workspace_id: ID!): [JiraProject!]
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
@@ -1889,9 +2035,11 @@ type Query {
 		before: String
 		query: String
 	): ServiceConnection
+	serviceByName(project_id: ID!, name: String!): Service
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
+	trace(project_id: ID!, trace_id: String!): TracePayload
 	traces(
 		project_id: ID!
 		params: QueryInput!
@@ -1900,6 +2048,11 @@ type Query {
 		at: String
 		direction: SortDirection!
 	): TraceConnection!
+	traces_metrics(
+		project_id: ID!
+		params: QueryInput!
+		metric_types: [TracesMetricType!]!
+	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
@@ -1944,6 +2097,7 @@ type Mutation {
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
 		autoResolveStaleErrorsDayInterval: Int
+		sampling: SamplingInput
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(
@@ -2280,8 +2434,16 @@ type Mutation {
 		github_prefix: String
 	): Service
 	createErrorTag(title: String!, description: String!): ErrorTag!
+	updateErrorTags: Boolean!
 	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
 	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
+	testErrorEnhancement(
+		error_object_id: ID!
+		github_repo_path: String!
+		github_prefix: String
+		build_prefix: String
+		save_error: Boolean
+	): ErrorObject
 }
 
 type Subscription {

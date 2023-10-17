@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/queryparser"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -71,6 +73,7 @@ func TestWriteSession(t *testing.T) {
 		Starred:                        new(bool),
 		FieldGroup:                     new(string),
 		EnableStrictPrivacy:            new(bool),
+		PrivacySetting:                 new(string),
 		EnableRecordingNetworkContents: new(bool),
 		ClientVersion:                  "",
 		FirstloadVersion:               "",
@@ -93,4 +96,57 @@ func TestWriteSession(t *testing.T) {
 		AvoidPostgresStorage:           false,
 		Normalness:                     new(float64),
 	}}))
+}
+
+func Test_SessionMatchesQuery(t *testing.T) {
+	session := model.Session{}
+	filters := queryparser.Parse("environment:prod* user_email:*@highlight.io custom_email:bar@highlight.io session_visited-url:example.com user_age:123 service_name:all custom_created_at:when")
+	matches := SessionMatchesQuery(&session, &filters)
+	assert.False(t, matches)
+
+	session = model.Session{
+		ServiceName: "all",
+		Environment: "production",
+		Fields: []*model.Field{
+			{
+				Type:  "user",
+				Name:  "email",
+				Value: "vadim@highlight.io",
+			},
+			{
+				Type:  "custom",
+				Name:  "email",
+				Value: "bar@highlight.io",
+			},
+			{
+				Type:  "custom",
+				Name:  "created_at",
+				Value: "when",
+			},
+			{
+				Type:  "session",
+				Name:  "visited-url",
+				Value: "example.com",
+			},
+			{
+				Type:  "user",
+				Name:  "age",
+				Value: "123",
+			},
+		},
+	}
+	matches = SessionMatchesQuery(&session, &filters)
+	assert.True(t, matches)
+
+	filters = queryparser.Parse("environment:development email:*@highlight.io age:123 service_name:all")
+	matches = SessionMatchesQuery(&session, &filters)
+	assert.False(t, matches)
+
+	filters = queryparser.Parse("environment:*prod* user_email:vadim@highlight.io")
+	matches = SessionMatchesQuery(&session, &filters)
+	assert.True(t, matches)
+
+	filters = queryparser.Parse("environment:*prod* user_email:bar@highlight.io")
+	matches = SessionMatchesQuery(&session, &filters)
+	assert.False(t, matches)
 }

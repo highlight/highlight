@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ var fieldMap map[string]string = map[string]string{
 	"processed":       "Processed",
 	"has_rage_clicks": "HasRageClicks",
 	"has_errors":      "HasErrors",
+	"has_session":     "HasSession",
 	"length":          "Length",
 	"active_length":   "ActiveLength",
 	"environment":     "Environment",
@@ -50,6 +52,7 @@ var fieldMap map[string]string = map[string]string{
 	"timestamp":       "Timestamp",
 	"secure_id":       "ErrorGroupSecureID",
 	"service_name":    "ServiceName",
+	"Tag":             "ErrorTagTitle",
 }
 
 type ClickhouseSession struct {
@@ -220,8 +223,8 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		return r.Field == timeRangeField
 	})
 	if !found {
-		end := time.Now()
-		start := end.AddDate(0, 0, -30)
+		end := time.Now().UTC()
+		start := end.AddDate(0, 0, -30).UTC()
 		timeRangeRule = Rule{
 			Field: timeRangeField,
 			Op:    BetweenDate,
@@ -422,4 +425,19 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	return client.conn.Exec(ctx, sql, args...)
+}
+
+var sessionsTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
+	tableName: SessionsTable,
+	keysToColumns: map[modelInputs.ReservedSessionKey]string{
+		modelInputs.ReservedSessionKeyEnvironment: "Environment",
+		modelInputs.ReservedSessionKeyServiceName: "ServiceName",
+		modelInputs.ReservedSessionKeyAppVersion:  "AppVersion",
+	},
+	attributesColumn: "Fields",
+	reservedKeys:     modelInputs.AllReservedSessionKey,
+}
+
+func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) bool {
+	return matchesQuery(session, sessionsTableConfig, filters)
 }

@@ -2,6 +2,7 @@ import {
 	useEditErrorSegmentMutation,
 	useGetErrorFieldsClickhouseQuery,
 	useGetErrorSegmentsQuery,
+	useGetErrorTagsQuery,
 } from '@graph/hooks'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useCallback } from 'react'
@@ -45,6 +46,13 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		},
 	},
 	{
+		type: ERROR_TYPE,
+		name: 'Tag',
+		options: {
+			type: 'text',
+		},
+	},
+	{
 		type: ERROR_FIELD_TYPE,
 		name: 'browser',
 		options: {
@@ -79,9 +87,18 @@ export const CUSTOM_FIELDS: CustomField[] = [
 			type: 'text',
 		},
 	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'has_session',
+		options: {
+			operators: ['is', 'is_not'],
+			type: 'boolean',
+		},
+	},
 ]
 
 const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
+	const { data } = useGetErrorTagsQuery()
 	const { refetch } = useGetErrorFieldsClickhouseQuery({
 		skip: true,
 	})
@@ -97,6 +114,7 @@ const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
 			timeRangeField={TIME_RANGE_FIELD}
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
+			errorTagData={data}
 			useEditAnySegmentMutation={useEditErrorSegmentMutation}
 			useGetAnySegmentsQuery={useGetErrorSegmentsQuery}
 			CreateAnySegmentModal={CreateErrorSegmentModal}

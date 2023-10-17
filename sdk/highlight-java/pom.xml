@@ -43,7 +43,9 @@
 		<maven.compiler.target>17</maven.compiler.target>
 
 		<maven.install.skip>true</maven.install.skip>
-		<skipStaging>true</skipStaging>
+		<maven.deploy.skip>true</maven.deploy.skip>
+        <skipStaging>true</skipStaging>
+		<deployAtEnd>true</deployAtEnd>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -106,6 +108,12 @@
 				<version>${dependency.opentelemetry-alpha.version}</version> <!-- waiting for final release -->
 			</dependency>
 			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
+				<version>3.0.6</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter</artifactId>
 				<version>${dependency.junit.version}</version>
@@ -126,6 +134,10 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${plugin.surefire.version}</version>
+				<configuration>
+					<junitArtifactName>org.junit.jupiter:junit-jupiter</junitArtifactName>
+					<trimStackTrace>false</trimStackTrace>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -227,6 +239,7 @@
 					<serverId>ossrh</serverId>
 					<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -250,5 +263,6 @@
 		<module>highlight-sdk</module>
 		<module>highlight-log</module>
 		<module>highlight-common</module>
+		<module>highlight-framework</module>
 	</modules>
 </project>

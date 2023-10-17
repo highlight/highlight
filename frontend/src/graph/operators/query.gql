@@ -241,6 +241,7 @@ query GetSession($secure_id: String!) {
 		client_id
 		starred
 		enable_strict_privacy
+		privacy_setting
 		enable_recording_network_contents
 		field_group
 		fields {
@@ -718,6 +719,12 @@ query GetErrorGroupsClickhouse(
 			}
 			is_public
 			project_id
+			error_tag {
+				id
+				created_at
+				title
+				description
+			}
 		}
 		totalCount
 	}
@@ -960,14 +967,17 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			membersLimit
 			errorsLimit
 			logsLimit
+			tracesLimit
 		}
 		meter
 		membersMeter
 		errorsMeter
 		logsMeter
+		tracesMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
+		tracesBillingLimit
 	}
 	workspace_for_project(project_id: $project_id) {
 		id
@@ -1042,6 +1052,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			url
 			status
 		}
+		billingIssue
 	}
 }
 
@@ -1083,6 +1094,12 @@ query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
 		last_occurrence
 		first_occurrence
 		serviceName
+		error_tag {
+			id
+			created_at
+			title
+			description
+		}
 	}
 }
 
@@ -1391,6 +1408,14 @@ query GetLogsIntegration($project_id: ID!) {
 	}
 }
 
+query GetTracesIntegration($project_id: ID!) {
+	tracesIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		createdAt
+	}
+}
+
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
@@ -1541,6 +1566,18 @@ query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 	vercel_project_mappings(project_id: $project_id) {
 		vercel_project_id
 		project_id
+	}
+}
+
+query GetJiraIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: Jira
+		workspace_id: $workspace_id
+	)
+	jira_projects(workspace_id: $workspace_id) {
+		id
+		name
+		key
 	}
 }
 
@@ -2095,6 +2132,16 @@ query GetProjectSettings($projectId: ID!) {
 		rage_click_count
 		filterSessionsWithoutError
 		autoResolveStaleErrorsDayInterval
+		sampling {
+			session_sampling_rate
+			error_sampling_rate
+			log_sampling_rate
+			trace_sampling_rate
+			session_exclusion_query
+			error_exclusion_query
+			log_exclusion_query
+			trace_exclusion_query
+		}
 	}
 }
 
@@ -2117,6 +2164,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		ai_application
 		ai_insights
 		enable_session_export
+		enable_unlisted_sharing
 	}
 }
 
@@ -2148,6 +2196,7 @@ query GetErrorObjects(
 				timestamp
 				errorGroupSecureID
 				serviceVersion
+				serviceName
 				session {
 					secureID
 					email
@@ -2199,6 +2248,19 @@ query GetServices(
 	}
 }
 
+query GetServiceByName($project_id: ID!, $name: String!) {
+	serviceByName(project_id: $project_id, name: $name) {
+		id
+		projectID
+		name
+		status
+		githubRepoPath
+		buildPrefix
+		githubPrefix
+		errorDetails
+	}
+}
+
 fragment ErrorTag on ErrorTag {
 	id
 	created_at
@@ -2228,6 +2290,39 @@ query FindSimilarErrors($query: String!) {
 		event
 		stack_trace
 		score
+	}
+}
+
+query GetTrace($project_id: ID!, $trace_id: String!) {
+	trace(project_id: $project_id, trace_id: $trace_id) {
+		trace {
+			timestamp
+			traceID
+			spanID
+			parentSpanID
+			projectID
+			secureSessionID
+			traceState
+			spanName
+			spanKind
+			duration
+			serviceName
+			serviceVersion
+			traceAttributes
+			statusCode
+			statusMessage
+		}
+		errors {
+			created_at
+			trace_id
+			span_id
+			log_cursor
+			event
+			type
+			source
+			timestamp
+			error_group_secure_id
+		}
 	}
 }
 
@@ -2273,6 +2368,26 @@ query GetTraces(
 			startCursor
 			endCursor
 		}
+	}
+}
+
+query GetTracesMetrics(
+	$project_id: ID!
+	$params: QueryInput!
+	$metric_types: [TracesMetricType!]!
+) {
+	traces_metrics(
+		project_id: $project_id
+		params: $params
+		metric_types: $metric_types
+	) {
+		buckets {
+			bucket_id
+			metric_type
+			metric_value
+		}
+		bucket_count
+		sample_factor
 	}
 }
 

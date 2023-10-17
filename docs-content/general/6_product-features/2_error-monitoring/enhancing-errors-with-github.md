@@ -41,13 +41,15 @@ Enable GitHub on Highlight by going to the [integrations](https://app.highlight.
 More information on the GitHub Integration can be found at [GitHub Integration](../../7_integrations/github-integration.md).
 
 ## Link your service to a GitHub repo
-Once a service is created, it should be visible in your project settings, under the "Services" table. The last step to enable stacktrace enhancements is to link your service to
+Once a service is created, the service will be visible in the metadata of your error. The last step to enable stacktrace enhancements is to link your service to
 its respective GitHub repo, the one that should be used to enhance your errors. In addition to linking the repo, there are two fields to configure file path mappings from your
 deployment process to the correct file in GitHub.
 
 1. <b>Build path prefix</b> - This path prefix represents a path added in your deployment process, and is also the path in your server that contains your files.
 After removing this path (and possibly adding something else), you should be able to point this string to a GitHub file.
 2. <b>GitHub path prefix</b> - This path prefix is a string that can be appended to the front of the stacktracepath, and will be prepended to your files in order to correctly find the file in GitHub.
+
+It is recommended to complete with the form while viewing an error, to be able to test your configuration on the viewed error. This can also be completed from the [services table](https://app.highlight.io/settings/services), where all your services can be viewed and managed.
 
 ![Service Configuration Form](/images/features/enhancingErrorsWithGithub.png)
 

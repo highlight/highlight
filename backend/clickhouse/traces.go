@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/queryparser"
+
+	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -15,22 +18,28 @@ import (
 )
 
 const TracesTable = "traces"
+const TracesSamplingTable = "traces_sampling"
+const TraceKeysTable = "trace_keys"
+const TraceKeyValuesTable = "trace_key_values"
+
+var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
+	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
+	modelInputs.ReservedTraceKeySpanID:          "SpanId",
+	modelInputs.ReservedTraceKeyTraceID:         "TraceId",
+	modelInputs.ReservedTraceKeyParentSpanID:    "ParentSpanId",
+	modelInputs.ReservedTraceKeyTraceState:      "TraceState",
+	modelInputs.ReservedTraceKeySpanName:        "SpanName",
+	modelInputs.ReservedTraceKeySpanKind:        "SpanKind",
+	modelInputs.ReservedTraceKeyDuration:        "Duration",
+	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
+	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
+}
 
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
-	tableName: TracesTable,
-	keysToColumns: map[modelInputs.ReservedTraceKey]string{
-		modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
-		modelInputs.ReservedTraceKeySpanID:          "SpanId",
-		modelInputs.ReservedTraceKeyTraceID:         "TraceId",
-		modelInputs.ReservedTraceKeyParentSpanID:    "ParentSpanId",
-		modelInputs.ReservedTraceKeyTraceState:      "TraceState",
-		modelInputs.ReservedTraceKeySpanName:        "SpanName",
-		modelInputs.ReservedTraceKeySpanKind:        "SpanKind",
-		modelInputs.ReservedTraceKeyDuration:        "Duration",
-		modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
-		modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
-	},
+	tableName:        TracesTable,
+	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
+	bodyColumn:       "Body",
 	attributesColumn: "TraceAttributes",
 	selectColumns: []string{
 		"Timestamp",
@@ -50,6 +59,13 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 		"StatusCode",
 		"StatusMessage",
 	},
+}
+
+var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
+	tableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	keysToColumns:    traceKeysToColumns,
+	reservedKeys:     modelInputs.AllReservedTraceKey,
+	attributesColumn: "TraceAttributes",
 }
 
 type ClickhouseTraceRow struct {
@@ -215,10 +231,190 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 	}, nil
 }
 
+func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID string) ([]*modelInputs.Trace, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	var err error
+	var args []interface{}
+
+	sb.From("traces").
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
+		Where(sb.Equal("ProjectId", projectID)).
+		Where(sb.Equal("TraceId", traceID)).
+		OrderBy("Timestamp ASC")
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(ctx, "traces", util.ResourceName("ReadTrace"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	rows, err := client.conn.Query(ctx, query)
+	if err != nil {
+		span.Finish(err)
+		return nil, err
+	}
+
+	var traces []*modelInputs.Trace
+	for rows.Next() {
+		var result ClickhouseTraceRow
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		traces = append(traces, &modelInputs.Trace{
+			Timestamp:       result.Timestamp,
+			TraceID:         result.TraceId,
+			SpanID:          result.SpanId,
+			ParentSpanID:    result.ParentSpanId,
+			ProjectID:       int(result.ProjectId),
+			SecureSessionID: result.SecureSessionId,
+			TraceState:      result.TraceState,
+			SpanName:        result.SpanName,
+			SpanKind:        result.SpanKind,
+			Duration:        int(result.Duration),
+			ServiceName:     result.ServiceName,
+			ServiceVersion:  result.ServiceVersion,
+			TraceAttributes: expandJSON(result.TraceAttributes),
+			StatusCode:      result.StatusCode,
+			StatusMessage:   result.StatusMessage,
+		})
+	}
+
+	rows.Close()
+	span.Finish(rows.Err())
+
+	return traces, rows.Err()
+}
+
+func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, nBuckets int) (*modelInputs.TracesMetrics, error) {
+	startTimestamp := uint64(params.DateRange.StartDate.Unix())
+	endTimestamp := uint64(params.DateRange.EndDate.Unix())
+	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
+
+	fnStr := ""
+	for _, metricType := range metricTypes {
+		switch metricType {
+		case modelInputs.TracesMetricTypeCount:
+			if useSampling {
+				fnStr += ", round(count() * any(_sample_factor))"
+			} else {
+				fnStr += ", toFloat64(count())"
+			}
+		case modelInputs.TracesMetricTypeP50:
+			fnStr += ", quantile(.5)(Duration)"
+		case modelInputs.TracesMetricTypeP90:
+			fnStr += ", quantile(.9)(Duration)"
+		}
+	}
+
+	var fromSb *sqlbuilder.SelectBuilder
+	var err error
+	if useSampling {
+		fromSb, err = makeSelectBuilder(
+			tracesSamplingTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+				fnStr,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	} else {
+		fromSb, err = makeSelectBuilder(
+			tracesTableConfig,
+			fmt.Sprintf(
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
+				nBuckets,
+				startTimestamp,
+				endTimestamp,
+				startTimestamp,
+				fnStr,
+			),
+			projectID,
+			params,
+			Pagination{CountOnly: true},
+			OrderBackwardNatural,
+			OrderForwardNatural,
+		)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	fromSb.GroupBy("1")
+
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	metrics := &modelInputs.TracesMetrics{
+		Buckets: []*modelInputs.TracesMetricBucket{},
+	}
+
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		groupKey     uint64
+		sampleFactor float64
+	)
+
+	metricResults := make([]float64, len(metricTypes))
+	scanResults := make([]interface{}, 2+len(metricTypes))
+	scanResults[0] = &groupKey
+	scanResults[1] = &sampleFactor
+	for idx := range metricTypes {
+		scanResults[2+idx] = &metricResults[idx]
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(scanResults...); err != nil {
+			return nil, err
+		}
+
+		bucketId := groupKey
+		if bucketId >= uint64(nBuckets) {
+			continue
+		}
+
+		for idx, metricType := range metricTypes {
+			metrics.Buckets = append(metrics.Buckets, &modelInputs.TracesMetricBucket{
+				BucketID:    bucketId,
+				MetricType:  metricType,
+				MetricValue: metricResults[idx],
+			})
+		}
+	}
+
+	metrics.SampleFactor = sampleFactor
+	metrics.BucketCount = uint64(nBuckets)
+
+	return metrics, err
+}
+
 func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return Keys(ctx, client, tracesTableConfig, projectID, startDate, endDate)
+	return KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
 }
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValues(ctx, client, tracesTableConfig, projectID, keyName, startDate, endDate)
+	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+}
+
+func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {
+	return matchesQuery(trace, tracesTableConfig, filters)
 }

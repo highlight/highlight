@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/trace"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -160,17 +161,17 @@ type NetworkResource struct {
 }
 
 func (re *NetworkResource) Start(sessionStart time.Time) time.Time {
-	start := time.UnixMicro(int64(re.StartTimeAbs))
+	start := time.UnixMicro(int64(1000. * re.StartTimeAbs))
 	if start.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
-		start = sessionStart.Add(time.Millisecond * time.Duration(re.StartTime))
+		start = sessionStart.Add(time.Microsecond * time.Duration(1000.*re.StartTime))
 	}
 	return start
 }
 
 func (re *NetworkResource) End(sessionStart time.Time) time.Time {
-	end := time.UnixMicro(int64(re.ResponseEndAbs))
+	end := time.UnixMicro(int64(1000. * re.ResponseEndAbs))
 	if end.Before(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)) {
-		end = sessionStart.Add(time.Millisecond * time.Duration(re.ResponseEnd))
+		end = sessionStart.Add(time.Microsecond * time.Duration(1000.*re.ResponseEnd))
 	}
 	return end
 }
@@ -366,7 +367,21 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error)) (*model.ErrorGroup, error) {
+func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObject) *int {
+	eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
+	defer cancel()
+
+	query := embeddings.GetErrorObjectQuery(errorObj)
+	tags, err := embeddings.MatchErrorTag(eMatchCtx, r.DB, r.EmbeddingsClient, query)
+	if err == nil && len(tags) > 0 {
+		return &tags[0].ID
+	} else {
+		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings for error group tag")
+	}
+	return nil
+}
+
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), tagGroup bool) (*model.ErrorGroup, error) {
 	match, err := matchFn()
 	if err != nil {
 		return nil, err
@@ -406,6 +421,11 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Environments:     environmentsString,
 			ServiceName:      errorObj.ServiceName,
 		}
+
+		if tagGroup {
+			newErrorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
+		}
+
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
@@ -428,6 +448,10 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			updatedState = privateModel.ErrorStateOpen
 		}
 
+		if errorGroup.ErrorTagID == nil && tagGroup {
+			errorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
+		}
+
 		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{
 			StackTrace:       *errorObj.StackTrace,
 			MappedStackTrace: errorObj.MappedStackTrace,
@@ -435,6 +459,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Event:            errorObj.Event,
 			State:            updatedState,
 			ServiceName:      errorObj.ServiceName,
+			ErrorTagID:       errorGroup.ErrorTagID,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}
@@ -740,30 +765,22 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	var errorGroup, errorGroupAlt *model.ErrorGroup
-	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-		match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting top error group match")
-		}
-		return match, err
-	})
-	if err != nil {
-		return nil, e.Wrap(err, "Error getting or creating error group")
-	}
+	var errorGroup *model.ErrorGroup
 
 	var settings *model.AllWorkspaceSettings
 	if workspace != nil {
-		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+		if settings, err = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err != nil {
+			return nil, err
+		}
 	}
+
 	var embedding *model.ErrorObjectEmbeddings
 	if settings != nil && settings.ErrorEmbeddingsGroup {
-		// keep the classic match as the alternative error group
-		errorGroup, errorGroupAlt = nil, errorGroup
-		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
+		eCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
+		defer cancel()
+		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
-			errorObj.ErrorGroupID = errorGroupAlt.ID
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 		} else {
 			embedding = emb[0]
@@ -773,18 +790,29 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
 				return match, err
-			})
+			}, settings.ErrorEmbeddingsTagGroup)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			errorObj.ErrorGroupID = errorGroup.ID
-			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
 	} else {
-		errorObj.ErrorGroupID = errorGroup.ID
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
 	}
+	if errorGroup == nil {
+		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to create error group by embedding; using classic match")
+		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+			match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
+			if err != nil {
+				return nil, e.Wrap(err, "Error getting top error group match")
+			}
+			return match, err
+		}, settings != nil && settings.ErrorEmbeddingsTagGroup)
+		if err != nil {
+			return nil, e.Wrap(err, "Error getting or creating error group")
+		}
+	}
+	errorObj.ErrorGroupID = errorGroup.ID
 
 	if err := r.DB.Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
@@ -956,6 +984,24 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
+func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Session) error {
+	sessionProperties := map[string]string{
+		"os_name":         session.OSName,
+		"os_version":      session.OSVersion,
+		"browser_name":    session.BrowserName,
+		"browser_version": session.BrowserVersion,
+		"environment":     session.Environment,
+		"device_id":       strconv.Itoa(session.Fingerprint),
+		"city":            session.City,
+		"country":         session.Country,
+		"ip":              session.IP,
+	}
+	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
+	}
+	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
+}
+
 func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secureID string) (*model.Session, error) {
 	existingSessionObj := &model.Session{}
 	if err := r.DB.Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Take(&existingSessionObj).Error; err != nil {
@@ -1004,12 +1050,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		return nil, err
 	}
 	if existingSession != nil {
-		if err := r.DataSyncQueue.Submit(ctx,
-			strconv.Itoa(existingSession.ID),
-			&kafka_queue.Message{
-				Type: kafka_queue.SessionDataSync,
-				SessionDataSync: &kafka_queue.SessionDataSyncArgs{
-					SessionID: existingSession.ID}}); err != nil {
+		if err := r.IndexSessionClickhouse(ctx, existingSession); err != nil {
 			return nil, err
 		}
 
@@ -1051,6 +1092,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		Processed:                      &model.F,
 		Viewed:                         &model.F,
 		EnableStrictPrivacy:            &input.EnableStrictPrivacy,
+		PrivacySetting:                 input.PrivacySetting,
 		EnableRecordingNetworkContents: &input.EnableRecordingNetworkContents,
 		FirstloadVersion:               input.FirstloadVersion,
 		ClientVersion:                  input.ClientVersion,
@@ -1187,12 +1229,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.WithContext(ctx).Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx,
-		strconv.Itoa(session.ID),
-		&kafka_queue.Message{
-			Type: kafka_queue.SessionDataSync,
-			SessionDataSync: &kafka_queue.SessionDataSyncArgs{
-				SessionID: session.ID}}); err != nil {
+	if err := r.IndexSessionClickhouse(ctx, session); err != nil {
 		return nil, err
 	}
 
@@ -1609,6 +1646,7 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return int64(limit)
 		},
 	},
+	// TODO(vkorolik) include trace pricing once we have that in place
 }
 
 func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
@@ -1657,6 +1695,11 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		pricing.RetentionMultiplier(retentionPeriod)
 
 	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
+}
+
+type AlertCountsGroupedByRecent struct {
+	Count       int64 `gorm:"column:count"`
+	RecentAlert bool  `gorm:"column:recent_alert"`
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
@@ -1752,9 +1795,9 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				continue
 			}
 
-			numAlerts := int64(-1)
+			var alertCounts []AlertCountsGroupedByRecent
 			if err := r.DB.Raw(`
-				SELECT COUNT(*)
+				SELECT ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND') AS recent_alert, COUNT(*)
 				FROM error_alert_events ev
 				INNER JOIN error_objects obj
 				ON obj.id = ev.error_object_id
@@ -1762,12 +1805,30 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 					(obj.error_group_id IS NOT NULL
 						AND obj.error_group_id=?)
 					AND ev.error_alert_id=?
-					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
+				GROUP BY recent_alert
+			`, errorAlert.Frequency, group.ID, errorAlert.ID).Scan(&alertCounts).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Frequency))
 				continue
 			}
-			if numAlerts > 0 {
+
+			recentAlertCount := int64(-1)
+			totalAlertCount := int64(-1)
+
+			if len(alertCounts) >= 2 {
+				totalAlertCount = alertCounts[0].Count + alertCounts[1].Count
+				if alertCounts[0].RecentAlert {
+					recentAlertCount = alertCounts[0].Count
+				} else {
+					recentAlertCount = alertCounts[1].Count
+				}
+			} else if len(alertCounts) == 1 {
+				totalAlertCount = alertCounts[0].Count
+				if alertCounts[0].RecentAlert {
+					recentAlertCount = alertCounts[0].Count
+				}
+			}
+
+			if recentAlertCount > 0 {
 				log.WithContext(ctx).Warnf("num alerts > 0 for project_id=%d, error_group_id=%d", projectID, group.ID)
 				continue
 			}
@@ -1793,19 +1854,21 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 
 			if err := alerts.SendErrorAlert(ctx, alerts.SendErrorAlertEvent{
-				Session:     sessionObj,
-				ErrorAlert:  errorAlert,
-				ErrorGroup:  group,
-				ErrorObject: errorObject,
-				Workspace:   workspace,
-				ErrorCount:  numErrors,
-				VisitedURL:  visitedUrl,
+				Session:         sessionObj,
+				ErrorAlert:      errorAlert,
+				ErrorGroup:      group,
+				ErrorObject:     errorObject,
+				Workspace:       workspace,
+				ErrorCount:      numErrors,
+				FirstErrorAlert: totalAlertCount <= 0,
+				VisitedURL:      visitedUrl,
 			}); err != nil {
 				log.WithContext(ctx).Error(err)
 			}
 
 			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 				Workspace:       workspace,
+				Project:         &project,
 				SessionSecureID: sessionObj.SecureID,
 				SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 				UserIdentifier:  sessionObj.Identifier,
@@ -1813,6 +1876,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				ErrorObject:     errorObject,
 				URL:             &visitedUrl,
 				ErrorsCount:     &numErrors,
+				FirstErrorAlert: totalAlertCount <= 0,
 				UserObject:      sessionObj.UserObject,
 			})
 		}
@@ -1832,12 +1896,16 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 	}
 
 	for secureID, metrics := range sessionMetrics {
-		err := r.ProducerQueue.Submit(ctx, secureID, &kafka_queue.Message{
-			Type: kafka_queue.PushMetrics,
-			PushMetrics: &kafka_queue.PushMetricsArgs{
-				SessionSecureID: secureID,
-				Metrics:         metrics,
-			}})
+		var messages []*kafka_queue.Message
+		for _, metric := range metrics {
+			messages = append(messages, &kafka_queue.Message{
+				Type: kafka_queue.PushMetrics,
+				PushMetrics: &kafka_queue.PushMetricsArgs{
+					SessionSecureID: secureID,
+					Metrics:         []*publicModel.MetricInput{metric},
+				}})
+		}
+		err := r.ProducerQueue.Submit(ctx, secureID, messages...)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
@@ -2061,13 +2129,12 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
-	// Filter out empty errors
+	// Filter out ignored errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
-			continue
+		if r.IsErrorIngested(ctx, project.ID, errorObject) {
+			filteredErrors = append(filteredErrors, errorObject)
 		}
-		filteredErrors = append(filteredErrors, errorObject)
 	}
 	errorObjects = filteredErrors
 
@@ -2133,7 +2200,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
-		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
+		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
 
 		if err != nil {
 			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
@@ -2549,8 +2616,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return e.Wrap(err, "error saving resources data")
 		}
 
-		settings, _ := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
-		if settings.EnableNetworkTraces {
+		settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+		if err == nil && settings.EnableNetworkTraces {
 			resourcesParsed := make(map[string][]NetworkResource)
 			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 				return nil
@@ -2598,7 +2665,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			if !r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, errorObject) {
 				continue
 			}
 			seenEvents[errorObject.Event] = errorObject
@@ -2741,7 +2808,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	updateSpan, updateSpanCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
-	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
+	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
@@ -2967,6 +3034,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 		end := re.End(sessionObj.CreatedAt)
 		attributes := []attribute.KeyValue{
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeNetworkRequest)),
+			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
@@ -2987,7 +3055,10 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			}
 		}
 
-		span, _ := highlight.StartTraceWithTimestamp(context.Background(), strings.Join([]string{method, re.Name}, " "), start, attributes...)
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionObj.SecureID)
+		ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, re.RequestResponsePairs.Request.ID)
+		span, _ := highlight.StartTraceWithTimestamp(ctx, strings.Join([]string{method, re.Name}, " "), start, attributes...)
 		span.End(trace.WithTimestamp(end))
 	}
 	return nil
@@ -3269,111 +3340,4 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 		}
 	}
 	return nil
-}
-
-func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
-	var excluded bool
-	var reason privateModel.SessionExcludedReason
-
-	var project model.Project
-	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false, nil
-	}
-
-	if r.isSessionUserExcluded(ctx, s, project) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonIgnoredUser
-	}
-
-	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonNoError
-	}
-
-	if r.isSessionExcludedForNoUserEvents(ctx, s) {
-		excluded = true
-		reason = privateModel.SessionExcludedReasonNoUserEvents
-	}
-
-	return excluded, &reason
-}
-
-func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
-	return s.LastUserInteractionTime.Unix() == 0
-}
-
-func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(project)
-
-	if projectFilterSettings.FilterSessionsWithoutError {
-		return !sessionHasErrors
-	}
-
-	return false
-}
-
-func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project model.Project) bool {
-	if project.ExcludedUsers == nil {
-		return false
-	}
-	var email string
-	if s.UserProperties != "" {
-		encodedProperties := []byte(s.UserProperties)
-		decodedProperties := map[string]string{}
-		err := json.Unmarshal(encodedProperties, &decodedProperties)
-		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
-			return false
-		}
-		email = decodedProperties["email"]
-	}
-	for _, value := range []string{s.Identifier, email} {
-		if value == "" {
-			continue
-		}
-		for _, excludedExpr := range project.ExcludedUsers {
-			matched, err := regexp.MatchString(excludedExpr, value)
-			if err != nil {
-				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
-				return false
-			} else if matched {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
-	if errorEvent == "[{}]" {
-		log.WithContext(ctx).
-			WithField("project_id", projectID).
-			Warn("ignoring empty error")
-		return true
-	}
-
-	if cfg, err := r.Store.GetSystemConfiguration(ctx); err == nil {
-		errorFilters = append(errorFilters, cfg.ErrorFilters...)
-	}
-
-	// Filter out by project.ErrorFilters, aka regexp filters
-	var err error
-	matchedRegexp := false
-	for _, errorFilter := range errorFilters {
-		matchedRegexp, err = regexp.MatchString(errorFilter, errorEvent)
-		if err != nil {
-			log.WithContext(ctx).
-				WithField("project_id", projectID).
-				WithField("regex", errorFilter).
-				WithError(err).
-				Error("invalid regex: failed to parse backend error filter")
-			continue
-		}
-
-		if matchedRegexp {
-			return true
-		}
-	}
-	return false
 }

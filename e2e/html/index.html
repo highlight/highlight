@@ -11,21 +11,22 @@
 		<script src="http://localhost:8877/dist/index.umd.cjs"></script>
 		<script>
 			// See https://www.highlight.io/docs/getting-started/client-sdk/other
+			H.stop()
 			H.init('2', {
 				// Get your project ID from https://app.highlight.io/setup
 				environment: 'production',
 				scriptUrl: 'http://localhost:8080/dist/index.js',
+				manualStart: true,
 				networkRecording: {
 					enabled: true,
 					recordHeadersAndBody: true,
-					urlBlocklist: [
-						// insert full or partial urls that you don't want to record here
-						// Out of the box, Highlight will not record these URLs (they can be safely removed):
-						'https://www.googleapis.com/identitytoolkit',
-						'https://securetoken.googleapis.com',
-					],
 				},
 			})
+			H.start({ forceNew: true })
+			H.identify('vadim@highlight.io', { id: 'abc123' })
+			H.stop()
+			H.start({ forceNew: true })
+			H.identify('vadim@highlight.io', { id: 'def456' })
 		</script>
 	</head>
 

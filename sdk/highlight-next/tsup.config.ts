@@ -1,9 +1,14 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-	entry: ['src/server.edge.ts', 'src/server.ts', 'src/next-client.tsx'],
+	entry: [
+		'src/next-client.tsx',
+		'src/config.ts',
+		'src/server.edge.ts',
+		'src/server.ts',
+	],
 	format: ['cjs', 'esm'],
-	minify: 'terser',
 	dts: true,
 	sourcemap: true,
+	noExternal: [],
 })

@@ -348,6 +348,7 @@ export const LogAlertPage = () => {
 							})
 								.then(() => {
 									message.success(`Log alert ${createStr}d!`)
+									navigate(`/${project_id}/alerts`)
 								})
 								.catch(() => {
 									message.error(
@@ -508,7 +509,14 @@ export const LogAlertPage = () => {
 											threshold={threshold}
 											belowThreshold={belowThreshold}
 											frequencySeconds={frequency}
-											histogramData={histogramData}
+											histogramBuckets={
+												histogramData?.logs_histogram
+													.buckets
+											}
+											bucketCount={
+												histogramData?.logs_histogram
+													.totalCount
+											}
 											loading={histogramLoading}
 										/>
 									</Box>

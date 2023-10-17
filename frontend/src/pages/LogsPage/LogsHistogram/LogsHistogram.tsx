@@ -8,7 +8,6 @@ import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'
-import { GetLogsHistogramQuery } from '@/graph/generated/operations'
 
 import * as styles from './LogsHistogram.css'
 
@@ -30,12 +29,15 @@ type LogsHistogramProps = Omit<
 	| 'maxBucketCount'
 	| 'loadingState'
 > & {
-	histogramData: GetLogsHistogramQuery | undefined
+	histogramBuckets: { bucketId: number; counts: LogCount[] }[] | undefined
+	bucketCount: number
 	loading: boolean
 	outline?: boolean
 	threshold?: number
 	belowThreshold?: boolean
 	frequencySeconds?: number
+	barColor?: string
+	noPadding?: boolean
 } & BoxProps
 
 type LoadingState = 'skeleton' | 'spinner'
@@ -49,6 +51,8 @@ interface LogsHistogramChartProps {
 	maxBucketCount: number
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	onLevelChange?: (level: Level) => void
+	barColor?: string
+	noPadding?: boolean
 }
 
 const LogsHistogram = ({
@@ -60,19 +64,20 @@ const LogsHistogram = ({
 	threshold,
 	belowThreshold,
 	frequencySeconds,
-	histogramData,
+	histogramBuckets,
+	bucketCount,
 	loading,
+	barColor,
+	noPadding,
 	...props
 }: LogsHistogramProps) => {
 	const maxBucketCount = useMemo(() => {
-		if (!histogramData?.logs_histogram) {
+		if (histogramBuckets === undefined) {
 			return 0
 		}
 
-		const { buckets } = histogramData.logs_histogram
-
 		let maxBucketCount = 0
-		buckets.forEach((bucket) => {
+		histogramBuckets.forEach((bucket) => {
 			const { counts } = bucket
 			const bucketTotal = counts.reduce(
 				(acc, count) => acc + count.count,
@@ -82,18 +87,16 @@ const LogsHistogram = ({
 		})
 
 		return maxBucketCount
-	}, [histogramData?.logs_histogram])
+	}, [histogramBuckets])
 
 	const buckets = useMemo(() => {
-		if (!histogramData?.logs_histogram) {
+		if (histogramBuckets === undefined) {
 			return []
 		}
 
-		const { totalCount, buckets } = histogramData.logs_histogram
-
 		const bucketData = new Map<number, LogCount[]>()
 
-		buckets.forEach((bucket) => {
+		histogramBuckets.forEach((bucket) => {
 			const { bucketId, counts } = bucket
 			const bucketTotal = counts.reduce(
 				(acc, count) => acc + count.count,
@@ -109,9 +112,9 @@ const LogsHistogram = ({
 		})
 
 		const bucketStep =
-			(endDate.getTime() - startDate.getTime()) / totalCount
+			(endDate.getTime() - startDate.getTime()) / bucketCount
 
-		return [...Array(totalCount)].map((_, bucketId) => {
+		return [...Array(bucketCount)].map((_, bucketId) => {
 			const counts = bucketData.get(bucketId)
 			const bucket = {
 				startDate: new Date(
@@ -120,12 +123,12 @@ const LogsHistogram = ({
 				endDate: new Date(
 					startDate.getTime() + (bucketId + 1) * bucketStep,
 				),
-				width: 100 / totalCount,
+				width: 100 / bucketCount,
 				counts,
 			} as HistogramBucket
 			return bucket
 		})
-	}, [histogramData?.logs_histogram, endDate, maxBucketCount, startDate])
+	}, [histogramBuckets, endDate, startDate, bucketCount, maxBucketCount])
 
 	const tickValues = useMemo(() => {
 		// return the axis with up to 5 ticks based on maxBucketCount
@@ -197,7 +200,7 @@ const LogsHistogram = ({
 
 	const showLoadingState =
 		loading ||
-		(!outline && (!histogramData?.logs_histogram || !maxBucketCount))
+		(!outline && (histogramBuckets === undefined || !maxBucketCount))
 
 	if (!loading && !maxBucketCount && !outline) {
 		return (
@@ -265,6 +268,8 @@ const LogsHistogram = ({
 							onLevelChange={onLevelChange}
 							totalCount={buckets.length}
 							maxBucketCount={maxBucketCount}
+							barColor={barColor}
+							noPadding={noPadding}
 						/>
 					</>
 				) : (
@@ -294,6 +299,8 @@ const LogsHistogramChart = ({
 	loadingState,
 	totalCount,
 	maxBucketCount,
+	barColor,
+	noPadding,
 }: LogsHistogramChartProps) => {
 	const [dragStart, setDragStart] = useState<number | undefined>()
 	const [dragEnd, setDragEnd] = useState<number | undefined>()
@@ -317,11 +324,13 @@ const LogsHistogramChart = ({
 					isDragging={
 						dragLeft !== undefined && dragRight !== undefined
 					}
+					barColor={barColor}
 				/>
 			)
 		})
 	}, [
 		buckets,
+		barColor,
 		dragLeft,
 		dragRight,
 		maxBucketCount,
@@ -339,8 +348,8 @@ const LogsHistogramChart = ({
 			height="full"
 			width="full"
 			position="relative"
-			px="12"
-			py="4"
+			px={noPadding ? '0' : '12'}
+			py={noPadding ? '0' : '4'}
 			ref={containerRef}
 			onMouseDown={(e: any) => {
 				if (!e || !containerRef.current || loadingState) {
@@ -408,6 +417,7 @@ const LogBucketBar = ({
 	onLevelChange,
 	isDragging,
 	loading,
+	barColor,
 }: {
 	bucket?: HistogramBucket
 	maxBucketCount: number
@@ -416,6 +426,7 @@ const LogBucketBar = ({
 	onLevelChange?: (level: Level) => void
 	isDragging?: boolean
 	loading?: boolean
+	barColor?: string
 }) => {
 	const [open, setOpen] = useState(false)
 	useHotkeys('esc', () => {
@@ -446,7 +457,8 @@ const LogBucketBar = ({
 							style={{
 								backgroundColor: loading
 									? '#F3F3F4'
-									: COLOR_MAPPING[bar.level as Level],
+									: barColor ??
+									  COLOR_MAPPING[bar.level as Level],
 								height: `${Math.max(
 									(bar.count / maxBucketCount) * 100,
 									2,
@@ -459,7 +471,7 @@ const LogBucketBar = ({
 				})}
 			</Popover.BoxTrigger>
 		)
-	}, [bucket?.counts, width, isDragging, loading, maxBucketCount])
+	}, [loading, isDragging, width, bucket?.counts, barColor, maxBucketCount])
 
 	const content = useMemo(() => {
 		if (loading) {
@@ -514,6 +526,7 @@ const LogBucketBar = ({
 									borderRadius="round"
 									style={{
 										backgroundColor:
+											barColor ??
 											COLOR_MAPPING[bar.level as Level],
 										height: 8,
 										width: 8,
@@ -544,6 +557,7 @@ const LogBucketBar = ({
 		bucket?.counts,
 		bucket?.endDate,
 		bucket?.startDate,
+		barColor,
 		loading,
 		onDatesChange,
 		onLevelChange,

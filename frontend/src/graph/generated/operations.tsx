@@ -278,6 +278,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
 	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
+	sampling?: Types.Maybe<Types.SamplingInput>
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
@@ -296,7 +297,19 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
-		>
+		> & {
+				sampling: { __typename?: 'Sampling' } & Pick<
+					Types.Sampling,
+					| 'session_sampling_rate'
+					| 'error_sampling_rate'
+					| 'log_sampling_rate'
+					| 'trace_sampling_rate'
+					| 'session_exclusion_query'
+					| 'error_exclusion_query'
+					| 'log_exclusion_query'
+					| 'trace_exclusion_query'
+				>
+			}
 	>
 }
 
@@ -1382,6 +1395,15 @@ export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateErrorTagsMutationVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type UpdateErrorTagsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateErrorTags'
+>
+
 export type UpsertSlackChannelMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -1403,6 +1425,42 @@ export type UpsertDiscordChannelMutation = { __typename?: 'Mutation' } & {
 	upsertDiscordChannel: { __typename?: 'DiscordChannel' } & Pick<
 		Types.DiscordChannel,
 		'id' | 'name'
+	>
+}
+
+export type TestErrorEnhancementMutationVariables = Types.Exact<{
+	error_object_id: Types.Scalars['ID']
+	github_repo_path: Types.Scalars['String']
+	github_prefix?: Types.Maybe<Types.Scalars['String']>
+	build_prefix?: Types.Maybe<Types.Scalars['String']>
+	save_error?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
+	testErrorEnhancement?: Types.Maybe<
+		{ __typename?: 'ErrorObject' } & Pick<
+			Types.ErrorObject,
+			'id' | 'type' | 'serviceName' | 'serviceVersion' | 'stack_trace'
+		> & {
+				structured_stack_trace: Array<
+					Types.Maybe<
+						{ __typename?: 'ErrorTrace' } & Pick<
+							Types.ErrorTrace,
+							| 'columnNumber'
+							| 'enhancementSource'
+							| 'enhancementVersion'
+							| 'error'
+							| 'externalLink'
+							| 'fileName'
+							| 'functionName'
+							| 'lineContent'
+							| 'lineNumber'
+							| 'linesAfter'
+							| 'linesBefore'
+						>
+					>
+				>
+			}
 	>
 }
 
@@ -1746,6 +1804,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'client_id'
 			| 'starred'
 			| 'enable_strict_privacy'
+			| 'privacy_setting'
 			| 'enable_recording_network_contents'
 			| 'field_group'
 			| 'object_storage_enabled'
@@ -2351,6 +2410,12 @@ export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
 								'error_group_id' | 'date' | 'name' | 'value'
 							>
 						>
+						error_tag?: Types.Maybe<
+							{ __typename?: 'ErrorTag' } & Pick<
+								Types.ErrorTag,
+								'id' | 'created_at' | 'title' | 'description'
+							>
+						>
 					}
 			>
 		}
@@ -2749,9 +2814,11 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'membersMeter'
 			| 'errorsMeter'
 			| 'logsMeter'
+			| 'tracesMeter'
 			| 'sessionsBillingLimit'
 			| 'errorsBillingLimit'
 			| 'logsBillingLimit'
+			| 'tracesBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2761,6 +2828,7 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'membersLimit'
 					| 'errorsLimit'
 					| 'logsLimit'
+					| 'tracesLimit'
 				>
 			}
 	>
@@ -2847,7 +2915,7 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'discountAmount' | 'discountPercent'
+		'baseAmount' | 'discountAmount' | 'discountPercent' | 'billingIssue'
 	> & {
 			lastInvoice?: Types.Maybe<
 				{ __typename?: 'Invoice' } & Pick<
@@ -2918,6 +2986,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 					{ __typename?: 'ErrorDistributionItem' } & Pick<
 						Types.ErrorDistributionItem,
 						'error_group_id' | 'date' | 'name' | 'value'
+					>
+				>
+				error_tag?: Types.Maybe<
+					{ __typename?: 'ErrorTag' } & Pick<
+						Types.ErrorTag,
+						'id' | 'created_at' | 'title' | 'description'
 					>
 				>
 			}
@@ -3407,6 +3481,17 @@ export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetTracesIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
+	tracesIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'createdAt'
+	>
+}
+
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	lookBackPeriod: Types.Scalars['Int']
@@ -3636,6 +3721,23 @@ export type GetWorkspaceIsIntegratedWithVercelQuery = {
 		{ __typename?: 'VercelProjectMapping' } & Pick<
 			Types.VercelProjectMapping,
 			'vercel_project_id' | 'project_id'
+		>
+	>
+}
+
+export type GetJiraIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	jira_projects?: Types.Maybe<
+		Array<
+			{ __typename?: 'JiraProject' } & Pick<
+				Types.JiraProject,
+				'id' | 'name' | 'key'
+			>
 		>
 	>
 }
@@ -4413,7 +4515,19 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_count'
 			| 'filterSessionsWithoutError'
 			| 'autoResolveStaleErrorsDayInterval'
-		>
+		> & {
+				sampling: { __typename?: 'Sampling' } & Pick<
+					Types.Sampling,
+					| 'session_sampling_rate'
+					| 'error_sampling_rate'
+					| 'log_sampling_rate'
+					| 'trace_sampling_rate'
+					| 'session_exclusion_query'
+					| 'error_exclusion_query'
+					| 'log_exclusion_query'
+					| 'trace_exclusion_query'
+				>
+			}
 	>
 }
 
@@ -4453,6 +4567,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_application'
 			| 'ai_insights'
 			| 'enable_session_export'
+			| 'enable_unlisted_sharing'
 		>
 	>
 }
@@ -4490,6 +4605,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 						| 'timestamp'
 						| 'errorGroupSecureID'
 						| 'serviceVersion'
+						| 'serviceName'
 					> & {
 							session?: Types.Maybe<
 								{
@@ -4550,6 +4666,27 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetServiceByNameQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+}>
+
+export type GetServiceByNameQuery = { __typename?: 'Query' } & {
+	serviceByName?: Types.Maybe<
+		{ __typename?: 'Service' } & Pick<
+			Types.Service,
+			| 'id'
+			| 'projectID'
+			| 'name'
+			| 'status'
+			| 'githubRepoPath'
+			| 'buildPrefix'
+			| 'githubPrefix'
+			| 'errorDetails'
+		>
+	>
+}
+
 export type ErrorTagFragment = { __typename?: 'ErrorTag' } & Pick<
 	Types.ErrorTag,
 	'id' | 'created_at' | 'title' | 'description'
@@ -4597,6 +4734,52 @@ export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetTraceQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	trace_id: Types.Scalars['String']
+}>
+
+export type GetTraceQuery = { __typename?: 'Query' } & {
+	trace?: Types.Maybe<
+		{ __typename?: 'TracePayload' } & {
+			trace: Array<
+				{ __typename?: 'Trace' } & Pick<
+					Types.Trace,
+					| 'timestamp'
+					| 'traceID'
+					| 'spanID'
+					| 'parentSpanID'
+					| 'projectID'
+					| 'secureSessionID'
+					| 'traceState'
+					| 'spanName'
+					| 'spanKind'
+					| 'duration'
+					| 'serviceName'
+					| 'serviceVersion'
+					| 'traceAttributes'
+					| 'statusCode'
+					| 'statusMessage'
+				>
+			>
+			errors: Array<
+				{ __typename?: 'TraceError' } & Pick<
+					Types.TraceError,
+					| 'created_at'
+					| 'trace_id'
+					| 'span_id'
+					| 'log_cursor'
+					| 'event'
+					| 'type'
+					| 'source'
+					| 'timestamp'
+					| 'error_group_secure_id'
+				>
+			>
+		}
+	>
+}
+
 export type GetTracesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
@@ -4635,6 +4818,26 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
 		>
 	}
+}
+
+export type GetTracesMetricsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.QueryInput
+	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+}>
+
+export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
+	traces_metrics: { __typename?: 'TracesMetrics' } & Pick<
+		Types.TracesMetrics,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'TracesMetricBucket' } & Pick<
+					Types.TracesMetricBucket,
+					'bucket_id' | 'metric_type' | 'metric_value'
+				>
+			>
+		}
 }
 
 export type GetTracesKeysQueryVariables = Types.Exact<{
@@ -4730,6 +4933,7 @@ export const namedOperations = {
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
 		GetLogsIntegration: 'GetLogsIntegration' as const,
+		GetTracesIntegration: 'GetTracesIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,
@@ -4752,6 +4956,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
+		GetJiraIntegrationSettings: 'GetJiraIntegrationSettings' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,
@@ -4793,10 +4998,13 @@ export const namedOperations = {
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
+		GetServiceByName: 'GetServiceByName' as const,
 		GetErrorTags: 'GetErrorTags' as const,
 		MatchErrorTag: 'MatchErrorTag' as const,
 		FindSimilarErrors: 'FindSimilarErrors' as const,
+		GetTrace: 'GetTrace' as const,
 		GetTraces: 'GetTraces' as const,
+		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
 	},
@@ -4882,8 +5090,10 @@ export const namedOperations = {
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
 		CreateErrorTag: 'CreateErrorTag' as const,
+		UpdateErrorTags: 'UpdateErrorTags' as const,
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
+		testErrorEnhancement: 'testErrorEnhancement' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

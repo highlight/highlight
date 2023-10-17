@@ -417,6 +417,13 @@ export const Buttons = () => {
 					>
 						POST xhr('https://pokeapi.co/api/v2/pokemon/ditto')
 					</button>
+					<button
+						onClick={async () => {
+							await fetch('https://github.com/api')
+						}}
+					>
+						GET fetch('https://github.com/api')
+					</button>
 				</div>
 				<div>
 					<button

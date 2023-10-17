@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"strings"
 	"time"
 
@@ -16,19 +18,23 @@ import (
 )
 
 type ClickhouseErrorGroup struct {
-	ProjectID int32
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	ID        int64
-	Event     string
-	Status    string
-	Type      string
+	ProjectID           int32
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	ID                  int64
+	Event               string
+	Status              string
+	Type                string
+	ErrorTagID          int64
+	ErrorTagTitle       string
+	ErrorTagDescription string
 }
 
 type ClickhouseErrorObject struct {
 	ProjectID      int32
 	Timestamp      time.Time
 	ErrorGroupID   int64
+	HasSession     bool
 	ID             int64
 	Browser        string
 	Environment    string
@@ -59,6 +65,11 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			Event:     group.Event,
 			Status:    string(group.State),
 			Type:      group.Type,
+		}
+		if group.ErrorTag != nil {
+			chEg.ErrorTagID = int64(group.ErrorTag.ID)
+			chEg.ErrorTagTitle = group.ErrorTag.Title
+			chEg.ErrorTagDescription = group.ErrorTag.Description
 		}
 
 		chGroups = append(chGroups, &chEg)
@@ -92,11 +103,13 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			return errors.New("nil object")
 		}
 
+		hasSession := false
 		clientId := ""
 		if object.SessionID != nil {
 			relatedSession := sessionsById[*object.SessionID]
 			if relatedSession != nil {
 				clientId = relatedSession.ClientID
+				hasSession = !relatedSession.Excluded
 			}
 		}
 
@@ -104,6 +117,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			ProjectID:      int32(object.ProjectID),
 			Timestamp:      object.Timestamp,
 			ErrorGroupID:   int64(object.ErrorGroupID),
+			HasSession:     hasSession,
 			ID:             int64(object.ID),
 			Browser:        object.Browser,
 			Environment:    object.Environment,
@@ -540,4 +554,30 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 	}
 
 	return bucketTimes, totals, nil
+}
+
+var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
+	tableName: ErrorObjectsTable,
+	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+		modelInputs.ReservedErrorObjectKeySessionSecureID: "SessionSecureID",
+		modelInputs.ReservedErrorObjectKeyRequestID:       "RequestID",
+		modelInputs.ReservedErrorObjectKeyTraceID:         "TraceID",
+		modelInputs.ReservedErrorObjectKeySpanID:          "SpanID",
+		modelInputs.ReservedErrorObjectKeyLogCursor:       "LogCursor",
+		modelInputs.ReservedErrorObjectKeyEvent:           "Event",
+		modelInputs.ReservedErrorObjectKeyType:            "Type",
+		modelInputs.ReservedErrorObjectKeyURL:             "URL",
+		modelInputs.ReservedErrorObjectKeySource:          "Source",
+		modelInputs.ReservedErrorObjectKeyStackTrace:      "StackTrace",
+		modelInputs.ReservedErrorObjectKeyTimestamp:       "Timestamp",
+		modelInputs.ReservedErrorObjectKeyPayload:         "Payload",
+		modelInputs.ReservedErrorObjectKeyServiceName:     "Service.Name",
+		modelInputs.ReservedErrorObjectKeyServiceVersion:  "Service.Version",
+	},
+	bodyColumn:   "Event",
+	reservedKeys: modelInputs.AllReservedErrorObjectKey,
+}
+
+func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters *queryparser.Filters) bool {
+	return matchesQuery(errorObject, errorObjectsTableConfig, filters)
 }

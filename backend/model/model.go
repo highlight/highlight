@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -39,9 +40,25 @@ import (
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
+
+var (
+	env     = os.Getenv("ENVIRONMENT")
+	DevEnv  = "dev"
+	TestEnv = "test"
+)
+
+func IsDevEnv() bool {
+	return env == DevEnv
+}
+
+func IsTestEnv() bool {
+	return env == TestEnv
+}
+
+func IsDevOrTestEnv() bool {
+	return IsTestEnv() || IsDevEnv()
+}
 
 var (
 	DB                *gorm.DB
@@ -104,6 +121,7 @@ var ContextKeys = struct {
 	UserAgent      contextString
 	AcceptLanguage contextString
 	UID            contextString
+	OAuthClientID  contextString
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
@@ -175,6 +193,7 @@ var Models = []interface{}{
 	&DeleteSessionsTask{},
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
+	&OAuthOperation{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
 	&IntegrationWorkspaceMapping{},
@@ -252,6 +271,8 @@ type Workspace struct {
 	SlackWebhookURL             *string
 	SlackWebhookChannel         *string
 	SlackWebhookChannelID       *string
+	JiraDomain                  *string
+	JiraCloudID                 *string
 	SlackChannels               *string
 	LinearAccessToken           *string
 	VercelAccessToken           *string
@@ -360,6 +381,7 @@ const (
 	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
 	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
 	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+	MarkBackendSetupTypeTraces  MarkBackendSetupType = "traces"
 )
 
 type SetupEvent struct {
@@ -373,8 +395,20 @@ type ProjectFilterSettings struct {
 	Model
 	Project                           *Project
 	ProjectID                         int
-	FilterSessionsWithoutError        bool `gorm:"default:false"`
-	AutoResolveStaleErrorsDayInterval int  `gorm:"default:0"`
+	FilterSessionsWithoutError        bool    `gorm:"default:false"`
+	AutoResolveStaleErrorsDayInterval int     `gorm:"default:0"`
+	SessionSamplingRate               float64 `gorm:"default:1"`
+	ErrorSamplingRate                 float64 `gorm:"default:1"`
+	LogSamplingRate                   float64 `gorm:"default:1"`
+	TraceSamplingRate                 float64 `gorm:"default:1"`
+	SessionMinuteRateLimit            int64   `gorm:"default:1000"`
+	ErrorMinuteRateLimit              int64   `gorm:"default:10000"`
+	LogMinuteRateLimit                int64   `gorm:"default:100000"`
+	TraceMinuteRateLimit              int64   `gorm:"default:1000000"`
+	SessionExclusionQuery             *string
+	ErrorExclusionQuery               *string
+	LogExclusionQuery                 *string
+	TraceExclusionQuery               *string
 }
 
 type AllWorkspaceSettings struct {
@@ -382,15 +416,21 @@ type AllWorkspaceSettings struct {
 	WorkspaceID   int  `gorm:"uniqueIndex"`
 	AIApplication bool `gorm:"default:true"`
 	AIInsights    bool `gorm:"default:false"`
+
 	// store embeddings for errors in this workspace
 	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
-	ErrorEmbeddingsGroup     bool    `gorm:"default:false"`
-	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
-	ReplaceAssets            bool    `gorm:"default:false"`
-	StoreIP                  bool    `gorm:"default:false"`
-	EnableSessionExport      bool    `gorm:"default:false"`
-	EnableNetworkTraces      bool    `gorm:"default:false"`
+	ErrorEmbeddingsGroup bool `gorm:"default:true"`
+	// use embeddings to tag error groups in this workspace
+	ErrorEmbeddingsTagGroup bool `gorm:"default:true"`
+
+	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
+	ReplaceAssets             bool    `gorm:"default:false"`
+	StoreIP                   bool    `gorm:"default:false"`
+	EnableSessionExport       bool    `gorm:"default:false"`
+	EnableUnlistedSharing     bool    `gorm:"default:true"`
+	EnableNetworkTraces       bool    `gorm:"default:false"`
+	CanShowBillingIssueBanner bool    `gorm:"default:true"`
 }
 
 type HasSecret interface {
@@ -645,6 +685,7 @@ type Session struct {
 	Starred                        *bool   `json:"starred"`
 	FieldGroup                     *string `json:"field_group"`
 	EnableStrictPrivacy            *bool   `json:"enable_strict_privacy"`
+	PrivacySetting                 *string `json:"privacy_setting"`
 	EnableRecordingNetworkContents *bool   `json:"enable_recording_network_contents"`
 	// The version of Highlight's Client.
 	ClientVersion string `json:"client_version"`
@@ -970,7 +1011,6 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
-	ErrorTagID              *string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -1006,6 +1046,10 @@ type ErrorGroup struct {
 	ErrorObjects     []ErrorObject
 	ServiceName      string
 
+	// manually migrate as gorm wants to make this have a default value otherwise
+	ErrorTagID *int      `gorm:"-:migration"`
+	ErrorTag   *ErrorTag `gorm:"-:migration"`
+
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
@@ -1013,7 +1057,7 @@ type ErrorGroup struct {
 
 type ErrorTag struct {
 	Model
-	Title       string
+	Title       string `gorm:"uniqueIndex;not null"`
 	Description string
 	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
 }
@@ -1244,6 +1288,18 @@ type OAuthClientStore struct {
 	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
 	AppName   string
+
+	AdminID int
+	Admin   *Admin
+
+	Operations []*OAuthOperation `gorm:"foreignKey:ClientID"`
+}
+
+type OAuthOperation struct {
+	Model
+	ClientID                   string
+	AuthorizedGraphQLOperation string
+	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
 var ErrorType = struct {
@@ -1294,12 +1350,15 @@ type SystemConfiguration struct {
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
 	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
+	LogsQueueSize     int            `gorm:"type:bigint;default:10000"`
 	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
 	DataSyncWorkers   int            `gorm:"default:1"`
 	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
+	DataSyncQueueSize int            `gorm:"type:bigint;default:10000"`
 	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
 	TraceWorkers      int            `gorm:"default:1"`
 	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
+	TraceQueueSize    int            `gorm:"type:bigint;default:10000"`
 	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
 }
 
@@ -1582,17 +1641,43 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error selecting max project id")
 	}
 
-	// Make sure partitions are created for the next 1k projects
-	for i := 0; i < lastVal+1000; i++ {
-		sql := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
-			PARTITION OF error_object_embeddings_partitioned
-			FOR VALUES IN ('%d');
-		`, i, i)
+	var lastCreatedPart int
+	// ignore errors - an error means that there are no partitions, so we can safely use the zero-value.
+	DB.Raw("select split_part(relname, '_', 5) from pg_stat_all_tables where relname like 'error_object_embeddings_partitioned%' order by relid desc limit 1").Scan(&lastCreatedPart)
 
-		if err := DB.Exec(sql).Error; err != nil {
+	endPart := lastVal + 1000
+	if IsDevOrTestEnv() {
+		// limit the number of partitions created in dev or test to limit disk usage
+		endPart = lastVal + 10
+	}
+	if IsTestEnv() {
+		// create a 0 partition for tests
+		lastCreatedPart = -1
+	}
+
+	// Make sure partitions are created for the next N projects, starting with the next partition needed
+	for i := lastCreatedPart + 1; i < endPart; i++ {
+		if err := DB.Exec(fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
+			(LIKE error_object_embeddings_partitioned INCLUDING DEFAULTS INCLUDING IDENTITY);
+		`, i)).Error; err != nil {
 			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
 		}
+
+		if err := DB.Exec(fmt.Sprintf(`
+			CREATE INDEX ON error_object_embeddings_partitioned_%d
+			USING ivfflat (gte_large_embedding vector_l2_ops) WITH (lists = 1000);
+		`, i)).Error; err != nil {
+			return false, e.Wrapf(err, "Error creating index error_object_embeddings for index %d", i)
+		}
+
+		// in case this partition was already attached by a previous failed migration, this will fail.
+		// ignore errors
+		DB.Exec(fmt.Sprintf(`
+			ALTER TABLE error_object_embeddings_partitioned 
+			ATTACH PARTITION error_object_embeddings_partitioned_%d
+			FOR VALUES IN ('%d');
+		`, i, i))
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
@@ -1636,6 +1721,13 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
+
+	if err := DB.Exec(`alter table error_groups add column IF NOT EXISTS error_tag_id integer`).Error; err != nil {
+		return false, e.Wrap(err, "Error adding error_tag_id to error_groups")
+	}
+	// in case gorm still sets a default / not null constraint
+	DB.Exec(`alter table error_groups alter column error_tag_id drop default`)
+	DB.Exec(`alter table error_groups alter column error_tag_id drop not null`)
 
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 
@@ -2437,7 +2529,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+							log.WithContext(ctx).WithFields(log.Fields{"project_id": input.Project.ID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2503,7 +2595,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2525,7 +2617,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 }
 
 type SendSlackAlertForLogAlertInput struct {
-	Message   string
+	Body      string
 	Workspace *Workspace
 	StartDate time.Time
 	EndDate   time.Time
@@ -2563,12 +2655,42 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 
 	alertUrl := GetLogAlertURL(obj.ProjectID, obj.Query, input.StartDate, input.EndDate)
 
+	previewText := fmt.Sprintf("%s fired!", obj.Name)
+
+	var headerBlockSet []slack.Block
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s* fired!", obj.Name), false, false)
+	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+	var bodyBlockSet []slack.Block
+	logBlock := slack.NewTextBlockObject(slack.MarkdownType, input.Body, false, false)
+
+	var actionBlocks []slack.BlockElement
+	button := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"View Logs",
+			false,
+			false,
+		),
+	)
+	button.URL = alertUrl
+	actionBlocks = append(actionBlocks, button)
+
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(logBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+
+	attachment := &slack.Attachment{
+		Color:  RED_ALERT,
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
+	}
+
 	log.WithContext(ctx).Info("Sending Slack Alert for Log Alert")
 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
-			message := fmt.Sprintf("%s\n<%s|View Logs>", input.Message, alertUrl)
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 
@@ -2578,15 +2700,15 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
-				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
+				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(headerBlockSet...), slack.MsgOptionAttachments(*attachment),
 					slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 					slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 				)
 				if err != nil {
-					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": previewText}).
 						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
 				}
 
@@ -2618,6 +2740,10 @@ type SendSlackAlertInput struct {
 	URL *string
 	// ErrorsCount is a required parameter for Error alerts
 	ErrorsCount *int64
+	// FirstErrorAlert is a required parameter for Error alerts
+	FirstErrorAlert bool
+	// Project is a required parameter for Error alerts
+	Project *Project
 	// MatchedFields is a required parameter for Track Properties and User Properties alerts
 	MatchedFields []*Field
 	// RelatedFields is an optional parameter for Track Properties and User Properties alerts
@@ -2640,11 +2766,6 @@ type SendSlackAlertInput struct {
 
 func getUserPropertiesBlock(identifier string, userProperties map[string]string) ([]*slack.TextBlockObject, *slack.Accessory) {
 	messageBlock := []*slack.TextBlockObject{}
-	if identifier != "" {
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
-	} else {
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n_unidentified_", false, false))
-	}
 	var accessory *slack.Accessory
 	for k, v := range userProperties {
 		if k == "" {
@@ -2659,16 +2780,57 @@ func getUserPropertiesBlock(identifier string, userProperties map[string]string)
 			_, err := url.ParseRequestURI(v)
 			if err != nil {
 				// If not a valid URL, append to the body like any other property
-				messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", key, v), false, false))
+				messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s*\n%s", key, v), false, false))
 			} else {
 				// If it is valid, create an accessory from the image
 				accessory = slack.NewAccessory(slack.NewImageBlockElement(v, "avatar"))
 			}
 		} else {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", key, v), false, false))
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s*\n%s", key, v), false, false))
 		}
 	}
 	return messageBlock, accessory
+}
+
+var FILE_NAME_LENGTH_LIMIT = 75
+
+var RED_ALERT = "#961e13"
+var YELLOW_ALERT = "#f2c94c"
+var GREEN_ALERT = "#2eb886"
+var BLUE_ALERT = "#1e40af"
+
+func getAlertColor(alertType string) string {
+	switch alertType {
+	case AlertType.ERROR, AlertType.RAGE_CLICK, AlertType.ERROR_FEEDBACK:
+		return RED_ALERT
+	case AlertType.NEW_USER, AlertType.NEW_SESSION:
+		return GREEN_ALERT
+	case AlertType.TRACK_PROPERTIES, AlertType.USER_PROPERTIES:
+		return BLUE_ALERT
+	default:
+		return YELLOW_ALERT
+	}
+}
+
+func getPreviewText(alertType string) string {
+	switch alertType {
+	case AlertType.ERROR:
+		return "Temporary - overwritten"
+	case AlertType.RAGE_CLICK:
+		return "Rage Clicks Alert"
+	case AlertType.NEW_USER:
+		return "New User Alert"
+	case AlertType.NEW_SESSION:
+		return "New Session Created"
+	case AlertType.TRACK_PROPERTIES:
+		return "Track Properties Alert"
+	case AlertType.USER_PROPERTIES:
+		return "User Properties Alert"
+	case AlertType.ERROR_FEEDBACK:
+		return "Crash Report Alert"
+	default:
+		return "Alert"
+	}
 }
 
 func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
@@ -2693,11 +2855,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		return nil
 	}
 
-	var blockSet []slack.Block
-	var textBlock *slack.TextBlockObject
-	var msg slack.WebhookMessage
-	var messageBlock []*slack.TextBlockObject
-
 	frontendURL := os.Getenv("FRONTEND_URI")
 	suffix := ""
 	if input.QueryParams == nil {
@@ -2717,13 +2874,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		}
 	}
 
-	if input.SessionSecureID == "" || input.SessionExcluded {
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\nNo recorded session", false, false))
-	} else {
-		sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
-	}
-
 	identifier := input.UserIdentifier
 	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
 		identifier = val
@@ -2732,7 +2882,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		identifier = val
 	}
 
-	var previewText string
 	if obj.Type == nil {
 		if input.Group != nil {
 			obj.Type = &AlertType.ERROR
@@ -2740,24 +2889,70 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			obj.Type = &AlertType.NEW_USER
 		}
 	}
+
+	previewText := getPreviewText(*obj.Type)
+	attachmentColor := getAlertColor(*obj.Type)
+
+	var headerBlockSet []slack.Block
+
+	var bodyBlockSet []slack.Block
+	var attachment *slack.Attachment
+
+	var sessionString string
+	if input.SessionSecureID == "" || input.SessionExcluded {
+		if identifier == "" {
+			sessionString = "*Session* No recorded session"
+		} else {
+			sessionString = fmt.Sprintf("*Session* No recorded session (%s)", identifier)
+		}
+	} else {
+		sessionUserIdentifier := identifier
+		if sessionUserIdentifier == "" {
+			sessionUserIdentifier = "_unidentified_ user"
+		}
+
+		sessionLink := fmt.Sprintf("%s/%d/sessions/%s%s", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
+		sessionText := fmt.Sprintf("#%s (%s)", input.SessionSecureID, sessionUserIdentifier)
+		sessionString = fmt.Sprintf("*Session* <%s|%s>", sessionLink, sessionText)
+	}
+
 	switch *obj.Type {
 	case AlertType.ERROR:
-		shortEvent := input.Group.Event
-		if len(input.Group.Event) > 50 {
-			shortEvent = input.Group.Event[:50] + "..."
+		previewEvent := input.Group.Event
+		if len(input.Group.Event) > 100 {
+			previewEvent = input.Group.Event[:100] + "..."
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 		errorLink = routing.AttachReferrer(ctx, errorLink, routing.Slack)
+
 		// construct Slack message
-		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
-		if input.URL != nil && *input.URL != "" {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
+		// header
+		var headerBlock *slack.TextBlockObject
+		if input.FirstErrorAlert {
+			previewText = fmt.Sprintf("New Error Alert: %s", previewEvent)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Error Alert: %d Recent Occurrences ❇️*", *input.ErrorsCount), false, false)
+			attachmentColor = YELLOW_ALERT
+		} else {
+			previewText = fmt.Sprintf("Error Alert: %s", previewEvent)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
 		}
+		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+		// body
+		locationName := *input.Project.Name
+		if input.ErrorObject.ServiceName != "" {
+			locationName = input.ErrorObject.ServiceName + " - " + locationName
+		}
+
+		errorEvent := input.Group.Event
+		if len(errorEvent) > 250 {
+			errorEvent = errorEvent[:250] + "..."
+		}
+
+		eventBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*<%s|Error event in %s>*\n```%s```\n%s", errorLink, locationName, errorEvent, sessionString), false, false)
+
+		var actionBlocks []slack.BlockElement
 		caser := cases.Title(language.AmericanEnglish)
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
-		var actionBlock []slack.BlockElement
 		for _, action := range modelInputs.AllErrorState {
 			if input.Group.State == action {
 				continue
@@ -2772,13 +2967,13 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				"click",
 				slack.NewTextBlockObject(
 					slack.PlainTextType,
-					caser.String(strings.ToLower(titleStr))+" Error",
+					caser.String(strings.ToLower(titleStr)),
 					false,
 					false,
 				),
 			)
 			button.URL = routing.AttachQueryParam(ctx, errorLink, "action", strings.ToLower(string(action)))
-			actionBlock = append(actionBlock, button)
+			actionBlocks = append(actionBlocks, button)
 		}
 
 		snoozeButton := slack.NewButtonBlockElement(
@@ -2786,34 +2981,64 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			"click",
 			slack.NewTextBlockObject(
 				slack.PlainTextType,
-				"Snooze Error",
+				"Snooze",
 				false,
 				false,
 			),
 		)
 		snoozeButton.URL = routing.AttachQueryParam(ctx, errorLink, "action", "snooze")
-		actionBlock = append(actionBlock, snoozeButton)
+		actionBlocks = append(actionBlocks, snoozeButton)
 
-		blockSet = append(blockSet, slack.NewActionBlock(
-			"",
-			actionBlock...,
-		))
-		blockSet = append(blockSet, slack.NewDividerBlock())
-		msg.Attachments = []slack.Attachment{
-			{
-				Color:  "#961e13",
-				Blocks: slack.Blocks{BlockSet: blockSet},
-			},
+		var stackTrace []*modelInputs.ErrorTrace
+		var stackTraceBlock *slack.TextBlockObject
+
+		stackTraceString := input.ErrorObject.MappedStackTrace
+		if stackTraceString == nil {
+			stackTraceString = input.ErrorObject.StackTrace
+		}
+
+		if err := json.Unmarshal([]byte(*stackTraceString), &stackTrace); err == nil {
+			firstTrace := stackTrace[0]
+
+			var fileLocation string
+			if firstTrace.LineNumber != nil {
+				fileLocation = fmt.Sprintf("%s:%d", *firstTrace.FileName, *firstTrace.LineNumber)
+			} else if firstTrace.FileName != nil {
+				fileLocation = *firstTrace.FileName
+			} else {
+				fileLocation = "File unknown"
+			}
+
+			if len(fileLocation) > FILE_NAME_LENGTH_LIMIT {
+				cutoffIndex := len(fileLocation) - FILE_NAME_LENGTH_LIMIT
+				substringIndex := strings.Index(fileLocation[cutoffIndex:], "/")
+				if substringIndex > -1 {
+					finalCutoffIndex := cutoffIndex + substringIndex
+					fileLocation = "..." + fileLocation[finalCutoffIndex:]
+				}
+			}
+
+			stackTraceBlock = slack.NewTextBlockObject(slack.PlainTextType, fileLocation, false, false)
+		}
+
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(eventBlock, nil, nil))
+		bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+		if stackTraceBlock != nil {
+			highlightLogo := *slack.NewImageBlockElement("https://app.highlight.io/logo192.png", "Highlight logo")
+			bodyBlockSet = append(bodyBlockSet, slack.NewContextBlock("", highlightLogo, stackTraceBlock))
 		}
 	case AlertType.NEW_USER:
-		// construct Slack message
-		previewText = "Highlight: New User Alert"
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
+		// header
+		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, "*New User Alert*", false, false)
+		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+		// body
+		var attributeBlocks []*slack.TextBlockObject
 		userPropertiesBlock, accessory := getUserPropertiesBlock(identifier, input.UserProperties)
-		messageBlock = append(messageBlock, userPropertiesBlock...)
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, accessory))
-		blockSet = append(blockSet, slack.NewDividerBlock())
-		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+		attributeBlocks = append(attributeBlocks, userPropertiesBlock...)
+
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, accessory))
 	case AlertType.TRACK_PROPERTIES:
 		// format matched properties
 		var matchedFormattedFields string
@@ -2824,62 +3049,82 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		for index, addr := range input.RelatedFields {
 			relatedFormattedFields = relatedFormattedFields + fmt.Sprintf("%d. *%s*: `%s`\n", index+1, addr.Name, addr.Value)
 		}
-		// construct Slack message
-		previewText = fmt.Sprintf("Highlight: Track Properties Alert (%s)", identifier)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Track Properties Alert (`%s`):*\n\n", identifier), false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", matchedFormattedFields), false, false))
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Related Track Properties:*\n%+v", relatedFormattedFields), false, false))
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
-		blockSet = append(blockSet, slack.NewDividerBlock())
-		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+
+		// header
+		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, "*Track Properties Alert*", false, false)
+		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+		// body
+		var attributeBlocks []*slack.TextBlockObject
+		attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties*\n%+v", matchedFormattedFields), false, false))
+		attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Related Track Properties*\n%+v", relatedFormattedFields), false, false))
+
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, nil))
 	case AlertType.USER_PROPERTIES:
 		// format matched properties
-		var formattedFields []string
-		for _, addr := range input.MatchedFields {
-			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+		var formattedFields string
+		for index, addr := range input.MatchedFields {
+			formattedFields = formattedFields + fmt.Sprintf("%d. *%s*: `%s`\n", index+1, addr.Name, addr.Value)
 		}
-		// construct Slack message
-		previewText = "Highlight: User Properties Alert"
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
-		blockSet = append(blockSet, slack.NewDividerBlock())
-		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+
+		// header
+		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, "*User Properties Alert*", false, false)
+		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+		// body
+		var attributeBlocks []*slack.TextBlockObject
+		attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties*\n%+v", formattedFields), false, false))
+
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, nil))
 	case AlertType.ERROR_FEEDBACK:
-		previewText = "Highlight: Error Feedback Alert"
+		// header
 		if identifier == "" {
 			identifier = "User"
 		}
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", identifier, input.CommentText), false, false)
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
-		blockSet = append(blockSet, slack.NewDividerBlock())
-		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left a Crash Report*", identifier), false, false)
+		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+		// body
+		feedbackBlock := slack.NewTextBlockObject(slack.MarkdownType, input.CommentText, false, false)
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(feedbackBlock, nil, nil))
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
 	case AlertType.RAGE_CLICK:
-		previewText = "Highlight: Rage Clicks Alert"
+		// header
 		if input.RageClicksCount == nil {
 			return nil
 		}
-		if identifier != "" {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*User Identifier:*\n%s", identifier), false, false))
-		}
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
-		blockSet = append(blockSet, slack.NewDividerBlock())
-		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
+		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+		// body
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
 	case AlertType.NEW_SESSION:
-		previewText = "Highlight: New Session Created"
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*New Session Created:*\n\n", false, false)
+		// header
+		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, "*New Session Created*", false, false)
+		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+		// body
+		var attributeBlocks []*slack.TextBlockObject
 		userPropertiesBlock, accessory := getUserPropertiesBlock(identifier, input.UserProperties)
-		messageBlock = append(messageBlock, userPropertiesBlock...)
+		attributeBlocks = append(attributeBlocks, userPropertiesBlock...)
 		if input.URL != nil {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Visited URL:*\n%s", *input.URL), false, false))
+			attributeBlocks = append(attributeBlocks, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Visited URL*\n%s", *input.URL), false, false))
 		}
-		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, accessory))
-		blockSet = append(blockSet, slack.NewDividerBlock())
-		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+
+		sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, attributeBlocks, accessory))
 	}
 
-	msg.Text = previewText
+	// move body within line attachment
+	attachment = &slack.Attachment{
+		Color:  attachmentColor,
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
+	}
 
 	var slackClient *slack.Client
 	if input.Workspace.SlackAccessToken != nil {
@@ -2890,28 +3135,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
-			var slackWebhookURL string
-			isWebhookChannel := false
-
-			// Find the webhook URL
-			for _, ch := range integratedSlackChannels {
-				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
-					slackWebhookURL = ch.WebhookURL
-
-					if ch.WebhookAccessToken != "" {
-						isWebhookChannel = true
-					}
-					break
-				}
-			}
-
-			if slackWebhookURL == "" && isWebhookChannel {
-				log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
-					Error("requested channel has no matching slackWebhookURL")
-				continue
-			}
-
-			msg.Channel = *channel.WebhookChannel
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 
@@ -2923,32 +3146,20 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 						log.WithContext(ctx).Errorf("panic: %+v\n%s", rec, buf)
 					}
 				}()
-				if isWebhookChannel {
-					log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
-					err := slack.PostWebhook(
-						slackWebhookURL,
-						&msg,
-					)
-					if err != nil {
-						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-							Error(e.Wrap(err, "error sending slack msg via webhook"))
-						return
-					}
-				} else if slackClient != nil {
-					log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", msg.Text)
+				if slackClient != nil {
+					log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Bot Message with preview_text: %s", previewText)
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
 							log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel"))
-							return
 						}
 					}
-					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),
+					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(headerBlockSet...), slack.MsgOptionAttachments(*attachment),
 						slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 					)
 					if err != nil {
-						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
+						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": previewText}).
 							Error(e.Wrap(err, "error sending slack msg via bot api"))
 						return
 					}

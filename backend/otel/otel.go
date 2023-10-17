@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	model2 "github.com/highlight-run/highlight/backend/model"
 	"io"
 	"net/http"
 	"strings"
@@ -46,8 +47,9 @@ func lg(ctx context.Context, fields *extractedFields) *log.Entry {
 }
 
 func cast[T string | int64 | float64](v interface{}, fallback T) T {
+	var empty T
 	c, ok := v.(T)
-	if !ok {
+	if !ok || c == empty {
 		return fallback
 	}
 	return c
@@ -145,8 +147,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
-	var projectSpans = make(map[int][]*clickhouse.TraceRow)
 
+	var traceSpans = make(map[string][]*clickhouse.TraceRow)
 	var traceMetrics = make(map[string][]*model.MetricInput)
 
 	spans := req.Traces().ResourceSpans()
@@ -171,60 +173,26 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
+				fields, err := extractFields(ctx, extractFieldsParams{
+					resource: &resource,
+					span:     &span,
+				})
+				if err != nil {
+					lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
+					continue
+				}
+				traceID := cast(fields.requestID, span.TraceID().String())
+				spanID := span.SpanID().String()
+
 				isLog := false
-				for l := 0; l < events.Len() && !isLog; l++ {
-					e := events.At(l)
-					if e.Name() == "log" {
-						isLog = true
-					}
-				}
-
-				// Only process spans that are not logs
-				if !isLog {
-					fields, err := extractFields(ctx, extractFieldsParams{
-						resource: &resource,
-						span:     &span,
-					})
-					if err != nil {
-						lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
-						continue
-					}
-
-					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
-						WithSecureSessionId(fields.sessionID).
-						WithTraceId(span.TraceID().String()).
-						WithSpanId(span.SpanID().String()).
-						WithParentSpanId(span.ParentSpanID().String()).
-						WithTraceState(span.TraceState().AsRaw()).
-						WithSpanName(span.Name()).
-						WithSpanKind(span.Kind().String()).
-						WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
-						WithServiceName(fields.serviceName).
-						WithServiceVersion(fields.serviceVersion).
-						WithStatusCode(span.Status().Code().String()).
-						WithStatusMessage(span.Status().Message()).
-						WithTraceAttributes(fields.attrs).
-						WithEvents(fields.events).
-						WithLinks(fields.links)
-
-					projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
-				}
-
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
-
 					fields, err := extractFields(ctx, extractFieldsParams{
 						resource: &resource,
 						span:     &span,
 						event:    &event,
 					})
-					if err != nil {
-						lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
-						continue
-					}
 
-					traceID := cast(fields.requestID, span.TraceID().String())
-					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
 						if fields.external {
 							lg(ctx, fields).WithError(err).Info("dropping external exception")
@@ -259,6 +227,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 					} else if event.Name() == highlight.LogEvent {
+						isLog = true
 						if fields.logMessage == "" {
 							lg(ctx, fields).Warn("otel received log with no message")
 							continue
@@ -294,17 +263,45 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						lg(ctx, fields).Warnf("otel received unknown event %s", event.Name())
 					}
 				}
+
+				if !isLog {
+					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
+						WithSecureSessionId(fields.sessionID).
+						WithTraceId(traceID).
+						WithSpanId(spanID).
+						WithParentSpanId(span.ParentSpanID().String()).
+						WithTraceState(span.TraceState().AsRaw()).
+						WithSpanName(span.Name()).
+						WithSpanKind(span.Kind().String()).
+						WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+						WithServiceName(fields.serviceName).
+						WithServiceVersion(fields.serviceVersion).
+						WithStatusCode(span.Status().Code().String()).
+						WithStatusMessage(span.Status().Message()).
+						WithTraceAttributes(fields.attrs).
+						WithEvents(fields.events).
+						WithLinks(fields.links)
+
+					traceSpans[traceID] = append(traceSpans[traceID], traceRow)
+				}
 			}
 		}
 	}
 
 	for sessionID, errors := range traceErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				SessionSecureID: &sessionID,
-				Errors:          errors,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, errorObject := range errors {
+			if !o.resolver.IsErrorIngested(ctx, 0, errorObject) {
+				continue
+			}
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					SessionSecureID: &sessionID,
+					Errors:          []*model.BackendErrorObjectInput{errorObject},
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel session errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -313,12 +310,21 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, errors := range projectErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, "", &kafkaqueue.Message{
-			Type: kafkaqueue.PushBackendPayload,
-			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				ProjectVerboseID: &projectID,
-				Errors:           errors,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, errorObject := range errors {
+			// cannot return error since we already perform this check for all project errors in `extractFields`
+			projectIDInt, _ := model2.FromVerboseID(projectID)
+			if !o.resolver.IsErrorIngested(ctx, projectIDInt, errorObject) {
+				continue
+			}
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushBackendPayload,
+				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+					ProjectVerboseID: &projectID,
+					Errors:           []*model.BackendErrorObjectInput{errorObject},
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, "", messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -327,12 +333,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, metrics := range traceMetrics {
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
-			Type: kafkaqueue.PushMetrics,
-			PushMetrics: &kafkaqueue.PushMetricsArgs{
-				SessionSecureID: sessionID,
-				Metrics:         metrics,
-			}})
+		var messages []*kafkaqueue.Message
+		for _, metric := range metrics {
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushMetrics,
+				PushMetrics: &kafkaqueue.PushMetricsArgs{
+					SessionSecureID: sessionID,
+					Metrics:         []*model.MetricInput{metric},
+				}})
+		}
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -340,7 +350,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := o.submitProjectSpans(ctx, projectSpans); err != nil {
+	if err := o.submitTraceSpans(ctx, traceSpans); err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to submit otel project spans")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
@@ -446,6 +456,9 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	for _, logRows := range projectLogs {
 		var messages []*kafkaqueue.Message
 		for _, logRow := range logRows {
+			if !o.resolver.IsLogIngested(ctx, logRow) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushLogs,
 				PushLogs: &kafkaqueue.PushLogsArgs{
@@ -460,15 +473,13 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	return nil
 }
 
-func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[int][]*clickhouse.TraceRow) error {
-	for projectID, traceRows := range projectTraceRows {
-		// Only enable for Highlight's main project
-		if projectID != 1 {
-			continue
-		}
-
+func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*clickhouse.TraceRow) error {
+	for traceID, traceRows := range traceRows {
 		var messages []*kafkaqueue.Message
 		for _, traceRow := range traceRows {
+			if !o.resolver.IsTraceIngested(ctx, traceRow) {
+				continue
+			}
 			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushTraces,
 				PushTraces: &kafkaqueue.PushTracesArgs{
@@ -477,7 +488,7 @@ func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[i
 			})
 		}
 
-		err := o.resolver.TracesQueue.Submit(ctx, "", messages...)
+		err := o.resolver.TracesQueue.Submit(ctx, traceID, messages...)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
 		}

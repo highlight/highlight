@@ -587,7 +587,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectSettings is the resolver for the editProjectSettings field.
-func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*modelInputs.AllProjectSettings, error) {
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *modelInputs.SamplingInput) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, filterChromeExtension)
 	if err != nil {
 		return nil, err
@@ -606,9 +606,10 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 		RageClickCount:         &project.RageClickCount,
 	}
 
-	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, store.UpdateProjectFilterSettingsParams{
+	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(ctx, project.ID, store.UpdateProjectFilterSettingsParams{
 		FilterSessionsWithoutError:        filterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: autoResolveStaleErrorsDayInterval,
+		Sampling:                          sampling,
 	})
 	if err != nil {
 		return nil, err
@@ -1613,6 +1614,19 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				title,
+				desc,
+				*issueTeamID,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1684,6 +1698,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		} else if *s == modelInputs.IntegrationTypeGitHub {
 			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2002,6 +2022,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2173,6 +2199,12 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2320,6 +2352,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddLinearToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
@@ -2357,6 +2393,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 
 	if *integrationType == modelInputs.IntegrationTypeLinear {
 		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
@@ -2409,6 +2449,10 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddGitHubToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2429,6 +2473,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitHub {
 		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
+			return false, err
+		}
+	} else if integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -3069,7 +3117,7 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 
 	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
 		Where("project_id = ?", input.ProjectID).
-		Save(alert).Error; err != nil {
+		Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating log alert")
 	}
 
@@ -3196,6 +3244,13 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 	session, err := r.canAdminModifySession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
+	}
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	if !settings.EnableUnlistedSharing {
+		return nil, AuthorizationError
 	}
 	if err := r.DB.Model(session).Updates(&model.Session{
 		IsPublic: isPublic,
@@ -3792,6 +3847,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 		return nil, updateErr
 	}
 
+	_ = r.Store.DeleteServiceCache(ctx, service.Name, service.ProjectID)
 	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
 }
@@ -3799,6 +3855,14 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 // CreateErrorTag is the resolver for the createErrorTag field.
 func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
 	return r.Resolver.CreateErrorTag(ctx, title, description)
+}
+
+// UpdateErrorTags is the resolver for the updateErrorTags field.
+func (r *mutationResolver) UpdateErrorTags(ctx context.Context) (bool, error) {
+	if err := r.Resolver.UpdateErrorTags(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // UpsertSlackChannel is the resolver for the upsertSlackChannel field.
@@ -3845,6 +3909,51 @@ func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID i
 	}
 
 	return r.Resolver.UpsertDiscordChannel(project.WorkspaceID, name)
+}
+
+// TestErrorEnhancement is the resolver for the testErrorEnhancement field.
+func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model.ErrorObject, error) {
+	errorObject := model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
+		Preload("ErrorGroup").
+		Take(&errorObject).Error; err != nil {
+		return nil, err
+	}
+
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorObject.ProjectID}}).Take(&project).Error; err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	testService := &model.Service{
+		Name:           errorObject.ServiceName,
+		Status:         modelInputs.ServiceStatusHealthy,
+		ProjectID:      project.ID,
+		GithubRepoPath: &githubRepoPath,
+		BuildPrefix:    buildPrefix,
+		GithubPrefix:   githubPrefix,
+	}
+
+	mappedStackTrace, _, err := r.Store.EnhancedStackTrace(ctx, *errorObject.StackTrace, workspace, &project, &errorObject, testService)
+	if err != nil {
+		return nil, err
+	}
+	if mappedStackTrace != nil {
+		errorObject.MappedStackTrace = mappedStackTrace
+	}
+
+	if saveError != nil && *saveError {
+		if err := r.DB.Save(&errorObject).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return &errorObject, nil
 }
 
 // Accounts is the resolver for the accounts field.
@@ -4249,9 +4358,10 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 
 	var results []*model.ErrorGroup
 	if err := r.DB.Model(&model.ErrorGroup{}).
-		Where("id in ?", ids).
-		Where("project_id = ?", projectID).
-		Order("updated_at DESC").
+		Joins("ErrorTag").
+		Where("error_groups.id in ?", ids).
+		Where("error_groups.project_id = ?", projectID).
+		Order("error_groups.updated_at DESC").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
@@ -4906,6 +5016,33 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	return integration, nil
 }
 
+// TracesIntegration is the resolver for the tracesIntegration field.
+func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:   false,
+		ResourceType: "Trace",
+	}
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	setupEvent := model.SetupEvent{}
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeTraces).Take(&setupEvent).Error
+	if err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying logging setup event")
+		}
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
+
+	return integration, nil
+}
+
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -5485,6 +5622,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	if workspace.MonthlyLogsLimit != nil {
 		logsIncluded = *workspace.MonthlyLogsLimit
 	}
+
+	// TODO(vkorolik) include trace pricing once we have that in place
 
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	if workspace.RetentionPeriod != nil {
@@ -6288,6 +6427,16 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 	return ret, nil
 }
 
+// JiraProjects is the resolver for the jira_projects field.
+func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*modelInputs.JiraProject, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetJiraProjects(ctx, workspace)
+}
+
 // GithubRepos is the resolver for the github_repos field.
 func (r *queryResolver) GithubRepos(ctx context.Context, workspaceID int) ([]*modelInputs.GitHubRepo, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
@@ -6332,7 +6481,7 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -6344,12 +6493,26 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		ExcludedUsers:                     project.ExcludedUsers,
 		ErrorFilters:                      project.ErrorFilters,
 		ErrorJSONPaths:                    project.ErrorJsonPaths,
-		FilterChromeExtension:             project.FilterChromeExtension,
 		RageClickWindowSeconds:            &project.RageClickWindowSeconds,
 		RageClickRadiusPixels:             &project.RageClickRadiusPixels,
 		RageClickCount:                    &project.RageClickCount,
+		FilterChromeExtension:             project.FilterChromeExtension,
 		FilterSessionsWithoutError:        projectFilterSettings.FilterSessionsWithoutError,
 		AutoResolveStaleErrorsDayInterval: projectFilterSettings.AutoResolveStaleErrorsDayInterval,
+		Sampling: &modelInputs.Sampling{
+			SessionSamplingRate:    projectFilterSettings.SessionSamplingRate,
+			ErrorSamplingRate:      projectFilterSettings.ErrorSamplingRate,
+			LogSamplingRate:        projectFilterSettings.LogSamplingRate,
+			TraceSamplingRate:      projectFilterSettings.TraceSamplingRate,
+			SessionMinuteRateLimit: projectFilterSettings.SessionMinuteRateLimit,
+			ErrorMinuteRateLimit:   projectFilterSettings.ErrorMinuteRateLimit,
+			LogMinuteRateLimit:     projectFilterSettings.LogMinuteRateLimit,
+			TraceMinuteRateLimit:   projectFilterSettings.TraceMinuteRateLimit,
+			SessionExclusionQuery:  projectFilterSettings.SessionExclusionQuery,
+			ErrorExclusionQuery:    projectFilterSettings.ErrorExclusionQuery,
+			LogExclusionQuery:      projectFilterSettings.LogExclusionQuery,
+			TraceExclusionQuery:    projectFilterSettings.TraceExclusionQuery,
+		},
 	}
 
 	return &allProjectSettings, nil
@@ -6760,6 +6923,11 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
+		settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+		if err != nil {
+			return nil, err
+		}
+		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
 	}
 
 	return details, nil
@@ -7486,6 +7654,16 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	return &connection, err
 }
 
+// ServiceByName is the resolver for the serviceByName field.
+func (r *queryResolver) ServiceByName(ctx context.Context, projectID int, name string) (*model.Service, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Store.FindService(ctx, projectID, name)
+}
+
 // ErrorTags is the resolver for the error_tags field.
 func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error) {
 	return r.GetErrorTags()
@@ -7501,6 +7679,35 @@ func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]
 	return r.Resolver.FindSimilarErrors(ctx, query)
 }
 
+// Trace is the resolver for the trace field.
+func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string) (*modelInputs.TracePayload, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	trace, err := r.ClickhouseClient.ReadTrace(ctx, project.ID, traceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var errors = []*modelInputs.TraceError{}
+	err = r.DB.Model(&model.ErrorObject{}).
+		Joins("JOIN error_groups ON error_objects.error_group_id = error_groups.id").
+		Where("error_objects.trace_id = ? AND error_objects.project_id = ?", traceID, project.ID).
+		Order("error_objects.timestamp DESC").
+		Select("error_objects.*, error_groups.secure_id as error_group_secure_id").
+		Find(&errors).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &modelInputs.TracePayload{
+		Trace:  trace,
+		Errors: errors,
+	}, nil
+}
+
 // Traces is the resolver for the traces field.
 func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -7514,6 +7721,16 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 		At:        at,
 		Direction: direction,
 	})
+}
+
+// TracesMetrics is the resolver for the traces_metrics field.
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType) (*modelInputs.TracesMetrics, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, 48)
 }
 
 // TracesKeys is the resolver for the traces_keys field.

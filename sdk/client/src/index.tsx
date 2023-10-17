@@ -24,6 +24,7 @@ import {
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
+	PrivacySettingOption,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -37,6 +38,7 @@ import {
 import StackTrace from 'stacktrace-js'
 import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
+import { determineMaskInputOptions } from './utils/privacy'
 
 import { ViewportResizeListener } from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
@@ -100,7 +102,7 @@ export type HighlightClassOptions = {
 	reportConsoleErrors?: boolean
 	consoleMethodsToRecord?: ConsoleMethods[]
 	enableSegmentIntegration?: boolean
-	enableStrictPrivacy?: boolean
+	privacySetting?: PrivacySettingOption
 	enableCanvasRecording?: boolean
 	enablePerformanceRecording?: boolean
 	samplingStrategy?: SamplingStrategy
@@ -175,7 +177,7 @@ export class Highlight {
 	state!: 'NotRecording' | 'Recording'
 	logger!: Logger
 	enableSegmentIntegration!: boolean
-	enableStrictPrivacy!: boolean
+	privacySetting!: PrivacySettingOption
 	enableCanvasRecording!: boolean
 	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy
@@ -350,7 +352,7 @@ export class Highlight {
 		this.state = 'NotRecording'
 		this.manualStopped = false
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
-		this.enableStrictPrivacy = options.enableStrictPrivacy ?? false
+		this.privacySetting = options.privacySetting ?? 'default'
 		this.enableCanvasRecording = options.enableCanvasRecording ?? false
 		this.enablePerformanceRecording =
 			options.enablePerformanceRecording ?? true
@@ -587,7 +589,8 @@ export class Highlight {
 			} else {
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
-					enable_strict_privacy: this.enableStrictPrivacy,
+					enable_strict_privacy: this.privacySetting === 'strict',
+					privacy_setting: this.privacySetting,
 					enable_recording_network_contents: enableNetworkRecording,
 					clientVersion: this.firstloadVersion,
 					firstloadVersion: this.firstloadVersion,
@@ -718,14 +721,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						warn: HighlightWarning,
 					}
 				}
+				const [maskAllInputs, maskInputOptions] =
+					determineMaskInputOptions(this.privacySetting)
+
 				this._recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
 					recordCrossOriginIframes:
 						this.options.recordCrossOriginIframe,
-					enableStrictPrivacy: this.enableStrictPrivacy,
-					maskAllInputs: this.enableStrictPrivacy,
+					privacySetting: this.privacySetting,
+					maskAllInputs,
+					maskInputOptions: maskInputOptions,
 					recordCanvas: this.enableCanvasRecording,
 					sampling: {
 						canvas: {

@@ -454,9 +454,9 @@ func main() {
 			privateServer.SetQueryCache(lru.New(1000))
 			privateServer.Use(extension.Introspection{})
 			privateServer.Use(extension.AutomaticPersistedQuery{
-				Cache: lru.New(100),
+				Cache: lru.New(10000),
 			})
-
+			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
 			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))
@@ -595,7 +595,10 @@ func main() {
 				defer profiler.Stop()
 			}
 			if handlerFlag != nil && *handlerFlag != "" {
-				w.GetHandler(ctx, *handlerFlag)(ctx)
+				func() {
+					defer util.RecoverAndCrash()
+					w.GetHandler(ctx, *handlerFlag)(ctx)
+				}()
 			} else {
 				go func() {
 					w.Start(ctx)
@@ -610,8 +613,11 @@ func main() {
 			go func() {
 				w.Start(ctx)
 			}()
-			// for the 'All' worker, explicitly run the PublicWorker as well
-			go w.PublicWorker(ctx)
+			// for the 'All' worker, explicitly run all kafka workers
+			go w.GetPublicWorker(kafkaqueue.TopicTypeDefault)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
 			// in `all` mode, report stripe usage every hour
 			go func() {
 				w.ReportStripeUsage(ctx)

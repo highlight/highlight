@@ -5,6 +5,7 @@ import { GoFiberContent } from './backend/go/fiber'
 import { GoGinContent } from './backend/go/gin'
 import { GoGqlgenContent } from './backend/go/go-gqlgen'
 import { GoMuxContent } from './backend/go/mux'
+import { JavaOtherContent } from './backend/java/other'
 import { JSApolloContent } from './backend/js/apollo'
 import { JSCloudflareContent } from './backend/js/cloudflare'
 import { JSExpressContent } from './backend/js/express'
@@ -41,17 +42,20 @@ import { DockerContent } from './logging/docker'
 import { FileContent } from './logging/file'
 import { FluentForwardContent } from './logging/fluentd'
 import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
+import { HostingRenderLogContent } from './logging/hosting/render'
+import { JavaOtherLogContent } from './logging/java/other'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
+import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
+import { SyslogContent } from './logging/syslog'
+import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
-import { HostingRenderLogContent } from './logging/hosting/render'
-import { SyslogContent } from './logging/syslog'
-import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
+import { GoTracesContent } from './traces/go/go'
 
 export type QuickStartOptions = {
 	title: string
@@ -121,11 +125,13 @@ export enum QuickStartType {
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
 	Syslog = 'syslog',
+	Systemd = 'systemd',
 	FluentForward = 'fluent-forward',
 	Docker = 'docker',
 	File = 'file',
 	RubyOther = 'other',
 	RubyRails = 'rails',
+	JavaOther = 'other',
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
 	HostingRender = 'render',
@@ -202,6 +208,13 @@ export const quickStartContent = {
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
 		},
+		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install error monitoring for your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			[QuickStartType.JavaOther]: JavaOtherContent,
+		},
 	},
 	'backend-logging': {
 		title: 'Select your language',
@@ -235,17 +248,6 @@ export const quickStartContent = {
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
-		http: {
-			title: 'HTTPS curl',
-			subtitle:
-				'Get started with logging in your application via HTTP or OTLP.',
-			[QuickStartType.HTTPOTLP]: HTTPContent,
-		},
-		syslog: {
-			title: 'Syslog RFC5424',
-			subtitle: 'Send syslog RFC5424 logs to highlight.io.',
-			[QuickStartType.Syslog]: SyslogContent,
-		},
 		other: {
 			title: 'Infrastructure / Other',
 			subtitle:
@@ -253,6 +255,9 @@ export const quickStartContent = {
 			[QuickStartType.FluentForward]: FluentForwardContent,
 			[QuickStartType.File]: FileContent,
 			[QuickStartType.Docker]: DockerContent,
+			[QuickStartType.HTTPOTLP]: HTTPContent,
+			[QuickStartType.Syslog]: SyslogContent,
+			[QuickStartType.Systemd]: SystemdContent,
 		},
 		ruby: {
 			title: 'Ruby',
@@ -262,6 +267,13 @@ export const quickStartContent = {
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
+		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			[QuickStartType.JavaOther]: JavaOtherLogContent,
+		},
 		hosting: {
 			title: 'Cloud Hosting Provider',
 			subtitle:
@@ -269,6 +281,17 @@ export const quickStartContent = {
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
+		},
+	},
+	traces: {
+		title: 'Select your language',
+		subtitle:
+			'Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).',
+		go: {
+			title: 'Go',
+			subtitle: 'Install tracing in your Go application.',
+			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			[QuickStartType.GoOther]: GoTracesContent,
 		},
 	},
 	other: {
