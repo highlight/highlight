@@ -29,7 +29,7 @@ Once the data is collected we expose it contextually (e.g. on a network request 
 
 ## Why It Matters
 
-Digging into trace details in Highlight can help you identify hot spots in your codebase where you run into a lot of errors or are experiencing performance bottlenecks. By understanding these performance characteristics of your application you can make data-driven decisions to focus your effort to improve performance and enhance your UX.
+Digging into trace details in Highlight can help you identify hot spots in your codebase where you run into errors or performance bottlenecks. For example, you could analyze a trace for one of your API handlers to get a breakdown of the all methods called, the arguments passed to them, how long execution took for each method, and any errors associated with a method call. By understanding these performance characteristics of your application you can make data-driven decisions to focus your effort to improve performance and enhance your UX.
 
 ## Get Started
 
