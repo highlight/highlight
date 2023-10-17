@@ -31,14 +31,16 @@ const CardOverlay = ({
 				)}
 			</Typography>
 
-			<div className="absolute bottom-10">
-				<PrimaryButton
-					className="hover:border-white w-full bg-black border border-darker-copy-on-dark text-white py-2 px-4 transition-all"
-					href={buttonLink}
-				>
-					{buttonText}
-				</PrimaryButton>
-			</div>
+			{buttonLink && buttonText && (
+				<div className="absolute bottom-10">
+					<PrimaryButton
+						className="hover:border-white w-full bg-black border border-darker-copy-on-dark text-white py-2 px-4 transition-all"
+						href={buttonLink}
+					>
+						{buttonText}
+					</PrimaryButton>
+				</div>
+			)}
 		</div>
 	)
 }

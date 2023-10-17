@@ -84,11 +84,7 @@ const DayTwo = () => {
 							width="590"
 						/>
 
-						<CardOverlay
-							header="Introducing services and service filters."
-							buttonText="View Blog Post"
-							buttonLink="/blog/github-enhanced-stacktraces"
-						/>
+						<CardOverlay header="Introducing services and service filters." />
 					</div>
 				</div>
 			</div>
