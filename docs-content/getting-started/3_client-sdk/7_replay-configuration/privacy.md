@@ -41,6 +41,8 @@ For sensitive input fields that your team would like to ignore user input for, y
 
 By default, Highlight will obfuscate any text or input data that matches commonly used Regex expressions and input names of personally identifiable information. This offers a base level protection from recording info such as addresses, phone numbers, social security numbers, and more. It will not obfuscate any images or media content. It is possible that other, non PII text is obfuscated if it matches the expressions for larger number, or contact information on the site. If you want to turn this off, you can set `privacySetting` to `none` when calling [`H.init()`](../../../sdk/client.md#Hinit).
 
+Note: This mode is only available in SDK versions 8.0.0 and later.
+
 Here are a list of the regex expressions used in default privacy mode:
 ```
 Email: "[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*"
