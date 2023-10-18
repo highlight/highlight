@@ -39,7 +39,18 @@ For sensitive input fields that your team would like to ignore user input for, y
 
 ## Default Privacy Mode
 
-By default, Highlight will obfuscate any text or input data that matches commonly used Regex expressions and input names of personally identifiable information. This offers a base level protection from recording info such as addresses, phone numbers, social security numbers, and more. It will not obfuscate any images or media content. It is possible that other, non PII text is obfuscated if it matches the expressions for larger number, or contact information on the site. If you want to turn this off, you can set `privacySetting` to `none` when calling [`H.init()`](../../../sdk/client.md#Hinit). 
+By default, Highlight will obfuscate any text or input data that matches commonly used Regex expressions and input names of personally identifiable information. This offers a base level protection from recording info such as addresses, phone numbers, social security numbers, and more. It will not obfuscate any images or media content. It is possible that other, non PII text is obfuscated if it matches the expressions for larger number, or contact information on the site. If you want to turn this off, you can set `privacySetting` to `none` when calling [`H.init()`](../../../sdk/client.md#Hinit).
+
+Here are a list of the regex expressions used in default privacy mode:
+```
+Email: "[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*"
+SSNs: '[0-9]{3}-?[0-9]{2}-?[0-9]{4}'
+Phone numbers: '[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}'
+Credit cards: '[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}'
+Unformatted SSN, phone number, credit cards: '[0-9]{9,16}'
+Addresses: '[0-9]{1,5}.?[0-9]{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}'
+IP addresses: '(?:[0-9]{1,3}.){3}[0-9]{1,3}'
+```
 
 ## Strict Privacy Mode
 
