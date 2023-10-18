@@ -5724,6 +5724,7 @@ export const GetSessionDocument = gql`
 			client_id
 			starred
 			enable_strict_privacy
+			privacy_setting
 			enable_recording_network_contents
 			field_group
 			fields {
@@ -10004,6 +10005,64 @@ export type GetLogsIntegrationQueryResult = Apollo.QueryResult<
 	Types.GetLogsIntegrationQuery,
 	Types.GetLogsIntegrationQueryVariables
 >
+export const GetTracesIntegrationDocument = gql`
+	query GetTracesIntegration($project_id: ID!) {
+		tracesIntegration(project_id: $project_id) {
+			integrated
+			resourceType
+			createdAt
+		}
+	}
+`
+
+/**
+ * __useGetTracesIntegrationQuery__
+ *
+ * To run a query within a React component, call `useGetTracesIntegrationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesIntegrationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesIntegrationQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetTracesIntegrationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>(GetTracesIntegrationDocument, baseOptions)
+}
+export function useGetTracesIntegrationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesIntegrationQuery,
+		Types.GetTracesIntegrationQueryVariables
+	>(GetTracesIntegrationDocument, baseOptions)
+}
+export type GetTracesIntegrationQueryHookResult = ReturnType<
+	typeof useGetTracesIntegrationQuery
+>
+export type GetTracesIntegrationLazyQueryHookResult = ReturnType<
+	typeof useGetTracesIntegrationLazyQuery
+>
+export type GetTracesIntegrationQueryResult = Apollo.QueryResult<
+	Types.GetTracesIntegrationQuery,
+	Types.GetTracesIntegrationQueryVariables
+>
 export const GetKeyPerformanceIndicatorsDocument = gql`
 	query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 		unprocessedSessionsCount(project_id: $project_id)
@@ -10973,6 +11032,68 @@ export type GetWorkspaceIsIntegratedWithVercelLazyQueryHookResult = ReturnType<
 export type GetWorkspaceIsIntegratedWithVercelQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithVercelQuery,
 	Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+>
+export const GetJiraIntegrationSettingsDocument = gql`
+	query GetJiraIntegrationSettings($workspace_id: ID!) {
+		is_integrated: is_workspace_integrated_with(
+			integration_type: Jira
+			workspace_id: $workspace_id
+		)
+		jira_projects(workspace_id: $workspace_id) {
+			id
+			name
+			key
+		}
+	}
+`
+
+/**
+ * __useGetJiraIntegrationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetJiraIntegrationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetJiraIntegrationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetJiraIntegrationSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetJiraIntegrationSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>(GetJiraIntegrationSettingsDocument, baseOptions)
+}
+export function useGetJiraIntegrationSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetJiraIntegrationSettingsQuery,
+		Types.GetJiraIntegrationSettingsQueryVariables
+	>(GetJiraIntegrationSettingsDocument, baseOptions)
+}
+export type GetJiraIntegrationSettingsQueryHookResult = ReturnType<
+	typeof useGetJiraIntegrationSettingsQuery
+>
+export type GetJiraIntegrationSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetJiraIntegrationSettingsLazyQuery
+>
+export type GetJiraIntegrationSettingsQueryResult = Apollo.QueryResult<
+	Types.GetJiraIntegrationSettingsQuery,
+	Types.GetJiraIntegrationSettingsQueryVariables
 >
 export const GetClickUpIntegrationSettingsDocument = gql`
 	query GetClickUpIntegrationSettings($workspace_id: ID!) {

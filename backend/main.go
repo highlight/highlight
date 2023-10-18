@@ -454,9 +454,9 @@ func main() {
 			privateServer.SetQueryCache(lru.New(1000))
 			privateServer.Use(extension.Introspection{})
 			privateServer.Use(extension.AutomaticPersistedQuery{
-				Cache: lru.New(100),
+				Cache: lru.New(10000),
 			})
-
+			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
 			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))

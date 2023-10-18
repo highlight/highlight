@@ -975,8 +975,8 @@ const BillingBanner: React.FC = () => {
 
 	if (!bannerMessage && !hasTrial) {
 		const isLaunchWeek = moment().isBetween(
-			'2023-07-17T00:00:00Z',
-			'2023-07-22T00:00:00Z',
+			'2023-10-16T16:00:00Z', // 10/16/2023 9AM PST
+			'2023-10-21T16:00:00Z',
 		)
 		if (isLaunchWeek) {
 			return <LaunchWeekBanner />
@@ -1080,20 +1080,14 @@ const MaintenanceBanner = () => {
 
 const LaunchWeekBanner = () => {
 	const { toggleShowBanner } = useGlobalContext()
-
-	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
-	if (day < 1 || day > 5) {
-		toggleShowBanner(false)
-		return null
-	}
 	toggleShowBanner(true)
 
 	const bannerMessage = (
 		<span>
-			Launch Week 2 is here.{' '}
+			Launch Week 3 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/launch-week-2"
+				href="https://www.highlight.io/launch/week-3"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

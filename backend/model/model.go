@@ -121,6 +121,7 @@ var ContextKeys = struct {
 	UserAgent      contextString
 	AcceptLanguage contextString
 	UID            contextString
+	OAuthClientID  contextString
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
@@ -192,6 +193,7 @@ var Models = []interface{}{
 	&DeleteSessionsTask{},
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
+	&OAuthOperation{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
 	&IntegrationWorkspaceMapping{},
@@ -269,6 +271,8 @@ type Workspace struct {
 	SlackWebhookURL             *string
 	SlackWebhookChannel         *string
 	SlackWebhookChannelID       *string
+	JiraDomain                  *string
+	JiraCloudID                 *string
 	SlackChannels               *string
 	LinearAccessToken           *string
 	VercelAccessToken           *string
@@ -377,6 +381,7 @@ const (
 	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
 	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
 	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+	MarkBackendSetupTypeTraces  MarkBackendSetupType = "traces"
 )
 
 type SetupEvent struct {
@@ -680,6 +685,7 @@ type Session struct {
 	Starred                        *bool   `json:"starred"`
 	FieldGroup                     *string `json:"field_group"`
 	EnableStrictPrivacy            *bool   `json:"enable_strict_privacy"`
+	PrivacySetting                 *string `json:"privacy_setting"`
 	EnableRecordingNetworkContents *bool   `json:"enable_recording_network_contents"`
 	// The version of Highlight's Client.
 	ClientVersion string `json:"client_version"`
@@ -1282,6 +1288,18 @@ type OAuthClientStore struct {
 	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
 	AppName   string
+
+	AdminID int
+	Admin   *Admin
+
+	Operations []*OAuthOperation `gorm:"foreignKey:ClientID"`
+}
+
+type OAuthOperation struct {
+	Model
+	ClientID                   string
+	AuthorizedGraphQLOperation string
+	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
 var ErrorType = struct {

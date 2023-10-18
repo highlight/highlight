@@ -1614,6 +1614,19 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				title,
+				desc,
+				*issueTeamID,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1685,6 +1698,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		} else if *s == modelInputs.IntegrationTypeGitHub {
 			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2003,6 +2022,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2174,6 +2199,12 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeJira {
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2321,6 +2352,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddLinearToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
@@ -2358,6 +2393,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 
 	if *integrationType == modelInputs.IntegrationTypeLinear {
 		if err := r.RemoveLinearFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
@@ -2410,6 +2449,10 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddGitHubToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2430,6 +2473,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		}
 	} else if integrationType == modelInputs.IntegrationTypeGitHub {
 		if err := r.RemoveGitHubFromWorkspace(ctx, workspace); err != nil {
+			return false, err
+		}
+	} else if integrationType == modelInputs.IntegrationTypeJira {
+		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -3070,7 +3117,7 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 
 	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
 		Where("project_id = ?", input.ProjectID).
-		Save(alert).Error; err != nil {
+		Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating log alert")
 	}
 
@@ -4969,6 +5016,33 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	return integration, nil
 }
 
+// TracesIntegration is the resolver for the tracesIntegration field.
+func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:   false,
+		ResourceType: "Trace",
+	}
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	setupEvent := model.SetupEvent{}
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeTraces).Take(&setupEvent).Error
+	if err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying logging setup event")
+		}
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
+
+	return integration, nil
+}
+
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -6353,6 +6427,16 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 	return ret, nil
 }
 
+// JiraProjects is the resolver for the jira_projects field.
+func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*modelInputs.JiraProject, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetJiraProjects(ctx, workspace)
+}
+
 // GithubRepos is the resolver for the github_repos field.
 func (r *queryResolver) GithubRepos(ctx context.Context, workspaceID int) ([]*modelInputs.GitHubRepo, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
@@ -7610,7 +7694,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 	var errors = []*modelInputs.TraceError{}
 	err = r.DB.Model(&model.ErrorObject{}).
 		Joins("JOIN error_groups ON error_objects.error_group_id = error_groups.id").
-		Where("error_objects.trace_id = ?", traceID).
+		Where("error_objects.trace_id = ? AND error_objects.project_id = ?", traceID, project.ID).
 		Order("error_objects.timestamp DESC").
 		Select("error_objects.*, error_groups.secure_id as error_group_secure_id").
 		Find(&errors).Error

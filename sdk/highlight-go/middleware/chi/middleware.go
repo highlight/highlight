@@ -17,11 +17,10 @@ func Middleware(next http.Handler) http.Handler {
 	middleware.CheckStatus()
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := highlight.InterceptRequest(r)
-		r = r.WithContext(ctx)
-
-		span, _ := highlight.StartTrace(ctx, "highlight/chi")
+		span, ctx := highlight.StartTrace(ctx, "highlight/chi")
 		defer highlight.EndTrace(span)
 
+		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 
 		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoChiMiddleware"))

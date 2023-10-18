@@ -48,18 +48,19 @@ const Navbar = ({
 	hideBanner,
 	fixed,
 	title,
+	bg,
 }: {
 	hideFreeTrialText?: boolean
 	isDocsPage?: boolean
 	hideBanner?: boolean
 	fixed?: boolean
 	title?: string
+	bg?: string
 }) => {
 	const [scrolled, setScrolled] = useState(false)
+	const [atTop, setAtTop] = useState(true)
 	const [isOpen, setIsOpen] = useState(false)
 	const [prevY, setPrevY] = useState(0)
-
-	hideBanner = true
 
 	const changeBackground = () => {
 		const currentScrollPos = window.pageYOffset
@@ -68,6 +69,13 @@ const Navbar = ({
 		} else if (window.scrollY > 60 && prevY > currentScrollPos) {
 			setScrolled(false)
 		}
+
+		if (window.scrollY > 60) {
+			setAtTop(false)
+		} else {
+			setAtTop(true)
+		}
+
 		setPrevY(currentScrollPos)
 	}
 
@@ -81,7 +89,7 @@ const Navbar = ({
 			<GithubPopup />
 			{!hideBanner && (
 				<Link
-					href="/launch-week-2"
+					href="/launch/week-3"
 					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 				>
 					<Typography type="copy3">
@@ -104,6 +112,9 @@ const Navbar = ({
 						className={classNames(
 							styles.header,
 							styles.headerInner,
+							`bg-${bg ? bg : ''} transition-all ${
+								bg && atTop ? 'bg-opacity-10' : 'bg-opacity-100'
+							}`,
 							{
 								[styles.openHeader]: isOpen,
 								[styles.headerBorder]: prevY != 0,

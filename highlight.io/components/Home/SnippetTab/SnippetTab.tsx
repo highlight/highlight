@@ -94,7 +94,7 @@ import { H } from 'highlight.run';
 
 H.init('your-api-key', {
   environment: 'production',
-  enableStrictPrivacy: false,
+  privacySetting: 'default',
 });
 
 createApp(App).mount('#app');`}

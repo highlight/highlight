@@ -241,6 +241,7 @@ query GetSession($secure_id: String!) {
 		client_id
 		starred
 		enable_strict_privacy
+		privacy_setting
 		enable_recording_network_contents
 		field_group
 		fields {
@@ -1407,6 +1408,14 @@ query GetLogsIntegration($project_id: ID!) {
 	}
 }
 
+query GetTracesIntegration($project_id: ID!) {
+	tracesIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		createdAt
+	}
+}
+
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
@@ -1557,6 +1566,18 @@ query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 	vercel_project_mappings(project_id: $project_id) {
 		vercel_project_id
 		project_id
+	}
+}
+
+query GetJiraIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: Jira
+		workspace_id: $workspace_id
+	)
+	jira_projects(workspace_id: $workspace_id) {
+		id
+		name
+		key
 	}
 }
 

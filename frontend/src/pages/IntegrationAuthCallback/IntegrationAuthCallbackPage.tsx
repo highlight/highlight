@@ -25,6 +25,7 @@ import { StringParam, useQueryParams } from 'use-query-params'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 interface Props {
 	code: string
@@ -34,7 +35,12 @@ interface Props {
 
 export const VercelSettingsModalWidth = 672
 
-const WorkspaceIntegrations = new Set<string>(['clickup', 'github', 'height'])
+const WorkspaceIntegrations = new Set<string>([
+	'clickup',
+	'github',
+	'height',
+	'jira',
+])
 
 const logError = (e: any) => {
 	H.consumeError(e)
@@ -280,14 +286,19 @@ const WorkspaceIntegrationCallback = ({
 	type: string
 	addIntegration: (code: string) => Promise<unknown>
 }) => {
+	const codeSessionStorageKey = 'integration-callback-code'
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
 		if (!addIntegration || !code) return
+		const usedCode = sessionStorage.getItem(codeSessionStorageKey) === code
+		if (!!code && usedCode) return
+
 		const redirectUrl = next || `/${projectId}/integrations/${type}`
 		;(async () => {
 			try {
+				sessionStorage.setItem(codeSessionStorageKey, code)
 				await addIntegration(code)
 				message.success(`Highlight is now synced with ${name}!`, 5)
 			} catch (e: any) {
@@ -299,6 +310,7 @@ const WorkspaceIntegrationCallback = ({
 			} finally {
 				navigate(redirectUrl)
 				setLoadingState(AppLoadingState.LOADED)
+				sessionStorage.removeItem(codeSessionStorageKey)
 			}
 		})()
 	}, [
@@ -359,6 +371,19 @@ const GitHubIntegrationCallback = ({
 	)
 }
 
+const JiraIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useJiraIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="Jira"
+			type="jira"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -411,6 +436,14 @@ const IntegrationAuthCallbackPage = () => {
 			case 'clickup':
 				cb = (
 					<ClickUpIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'jira':
+				cb = (
+					<JiraIntegrationCallback
 						code={code}
 						projectId={projectId}
 					/>

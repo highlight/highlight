@@ -25,6 +25,15 @@ export type Scalars = {
 	Upload: any
 }
 
+export type AccessibleJiraResources = {
+	__typename?: 'AccessibleJiraResources'
+	avatarUrl: Scalars['String']
+	id: Scalars['String']
+	name: Scalars['String']
+	scopes?: Maybe<Array<Scalars['String']>>
+	url: Scalars['String']
+}
+
 export type Account = {
 	__typename?: 'Account'
 	email: Scalars['String']
@@ -754,6 +763,7 @@ export enum IntegrationType {
 	Front = 'Front',
 	GitHub = 'GitHub',
 	Height = 'Height',
+	Jira = 'Jira',
 	Linear = 'Linear',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
@@ -768,6 +778,45 @@ export type Invoice = {
 	date?: Maybe<Scalars['Timestamp']>
 	status?: Maybe<Scalars['String']>
 	url?: Maybe<Scalars['String']>
+}
+
+export type JiraIssueType = {
+	__typename?: 'JiraIssueType'
+	description: Scalars['String']
+	iconUrl: Scalars['String']
+	id: Scalars['String']
+	name: Scalars['String']
+	scope?: Maybe<JiraIssueTypeScope>
+	self: Scalars['String']
+	subtask: Scalars['Boolean']
+	untranslatedName: Scalars['String']
+}
+
+export type JiraIssueTypeScope = {
+	__typename?: 'JiraIssueTypeScope'
+	project?: Maybe<JiraProjectIdentifier>
+	type: Scalars['String']
+}
+
+export type JiraProject = {
+	__typename?: 'JiraProject'
+	id: Scalars['String']
+	issueTypes?: Maybe<Array<Maybe<JiraIssueType>>>
+	key: Scalars['String']
+	name: Scalars['String']
+	self: Scalars['String']
+}
+
+export type JiraProjectIdentifier = {
+	__typename?: 'JiraProjectIdentifier'
+	id: Scalars['String']
+}
+
+export type JiraTeam = {
+	__typename?: 'JiraTeam'
+	key: Scalars['String']
+	name: Scalars['String']
+	team_id: Scalars['String']
 }
 
 export enum KeyType {
@@ -1772,6 +1821,7 @@ export type Query = {
 	is_integrated_with: Scalars['Boolean']
 	is_project_integrated_with: Scalars['Boolean']
 	is_workspace_integrated_with: Scalars['Boolean']
+	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
@@ -1831,6 +1881,7 @@ export type Query = {
 	topUsers: Array<Maybe<TopUsersPayload>>
 	trace?: Maybe<TracePayload>
 	traces: TraceConnection
+	tracesIntegration: IntegrationStatus
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
 	traces_metrics: TracesMetrics
@@ -2149,6 +2200,10 @@ export type QueryIs_Workspace_Integrated_WithArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type QueryJira_ProjectsArgs = {
+	workspace_id: Scalars['ID']
+}
+
 export type QueryLinear_TeamsArgs = {
 	project_id: Scalars['ID']
 }
@@ -2411,6 +2466,10 @@ export type QueryTracesArgs = {
 	before?: InputMaybe<Scalars['String']>
 	direction: SortDirection
 	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTracesIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2786,6 +2845,7 @@ export type Session = {
 	payload_size?: Maybe<Scalars['Int64']>
 	payload_updated_at: Scalars['Timestamp']
 	postal: Scalars['String']
+	privacy_setting?: Maybe<Scalars['String']>
 	processed?: Maybe<Scalars['Boolean']>
 	resources_url?: Maybe<Scalars['String']>
 	secure_id: Scalars['String']

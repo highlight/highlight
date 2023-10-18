@@ -16,6 +16,8 @@ export declare interface Metric {
 	tags?: { name: string; value: string }[]
 }
 
+export type PrivacySettingOption = 'strict' | 'default' | 'none'
+
 export declare type SamplingStrategy = {
 	/**
 	 * 'all' will record every single canvas call.
@@ -145,13 +147,15 @@ export declare type HighlightOptions = {
 	 */
 	serviceName?: string
 	/**
-	 * Specifies whether Highlight should redact data during recording.
-	 * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
-	 * @example
-	 * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
+	 * Specifies how much data Highlight should redact during recording.
+	 * strict - Highlight will redact all text data on the page.
+	 * default - Highlight will redact text data on the page that is associated with personal identifiable data.
+	 * none - Highlight will not redact any text data on the page.
+	 * // Redacted text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
 	 * @see {@link https://docs.highlight.run/docs/privacy} for more information.
 	 */
-	enableStrictPrivacy?: boolean
+	privacySetting?: PrivacySettingOption
+
 	/**
 	 * Specifies whether to record canvas elements or not.
 	 * @default false
