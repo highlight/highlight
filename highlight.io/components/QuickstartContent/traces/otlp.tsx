@@ -8,13 +8,25 @@ export const OTLPTracesContent: QuickStartContent = {
 		{
 			title: 'Export your traces to the highlight.io collector.',
 			content:
-				'We host an OpenTelemetry collector endpoint at https://otel.highlight.io:4318/v1/traces. Configure your OpenTelemetry SDK to send traces via OTLP HTTPS to this endpoint. This will depend on which SDK you use in your app.',
+				'We host an OpenTelemetry collector endpoint at https://otel.highlight.io:4318/v1/traces. Configure your OpenTelemetry SDK to send traces via OTLP HTTPS to this endpoint. Your Highlight Project ID should be included as an attribute with the `highlight.project_id` key. This configuration will depend on which SDK you use in your app.',
 			code: [
 				{
 					text: `import * as opentelemetry from '@opentelemetry/sdk-node';
+import type { Attributes } from '@opentelemetry/api'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 
+const attributes: Attributes = {}
+attributes['highlight.project_id'] = '<YOUR_PROJECT_ID>'
+
 const sdk = new opentelemetry.NodeSDK({
+	resource: {
+		attributes,
+		merge: (resource) =>
+			new Resource({
+				...(resource?.attributes ?? {}),
+				...attributes,
+			}),
+	},
 	traceExporter: new OTLPTraceExporter({
 		url: 'https://otel.highlight.io:4318/v1/traces',
 	}),
