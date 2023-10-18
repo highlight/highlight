@@ -311,25 +311,20 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		}
 	}
 
-	groupStr := ""
-	for _, group := range groupBy {
-		groupStr += fmt.Sprintf("toString(TraceAttributes['%s']), ", group)
-	}
-
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
 	if useSampling {
 		fromSb, err = makeSelectBuilder(
 			tracesSamplingTableConfig,
 			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), %sany(_sample_factor)%s",
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
 				nBuckets,
 				startTimestamp,
 				endTimestamp,
 				startTimestamp,
-				groupStr,
 				fnStr,
 			),
+			groupBy,
 			projectID,
 			params,
 			Pagination{CountOnly: true},
@@ -340,14 +335,14 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		fromSb, err = makeSelectBuilder(
 			tracesTableConfig,
 			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), %s1.0%s",
+				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
 				nBuckets,
 				startTimestamp,
 				endTimestamp,
 				startTimestamp,
-				groupStr,
 				fnStr,
 			),
+			groupBy,
 			projectID,
 			params,
 			Pagination{CountOnly: true},
@@ -360,7 +355,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	}
 
 	groupByCols := []string{"1"}
-	for i := 2; i < 2+len(groupBy); i++ {
+	for i := 4; i < 4+len(groupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
 	fromSb.GroupBy(groupByCols...)
@@ -391,12 +386,12 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	metricResults := make([]float64, len(metricTypes))
 	scanResults := make([]interface{}, 2+len(groupByColResults) + +len(metricResults))
 	scanResults[0] = &groupKey
-	for idx := range groupByColResults {
-		scanResults[1+idx] = &groupByColResults[idx]
-	}
-	scanResults[1+len(groupByColResults)] = &sampleFactor
+	scanResults[1] = &sampleFactor
 	for idx := range metricTypes {
-		scanResults[2+len(groupByColResults)+idx] = &metricResults[idx]
+		scanResults[2+idx] = &metricResults[idx]
+	}
+	for idx := range groupByColResults {
+		scanResults[2+len(metricTypes)+idx] = &groupByColResults[idx]
 	}
 
 	for rows.Next() {

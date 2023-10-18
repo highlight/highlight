@@ -52,6 +52,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		beforeSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -67,6 +68,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		atSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -81,6 +83,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		afterSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -103,6 +106,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		fromSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			projectID,
 			params,
 			pagination,
@@ -149,10 +153,16 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	return getConnection(edges, pagination), nil
 }
 
-func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
+func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
+	groupBy []string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
 	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns))
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(selectStr).From(config.tableName)
+	cols := []string{selectStr}
+	for _, group := range groupBy {
+		cols = append(cols, "toString(TraceAttributes["+sb.Var(group)+"])")
+	}
+	sb.Select(cols...)
+	sb.From(config.tableName)
 
 	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
 	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
