@@ -99,7 +99,7 @@ const SessionComment = ({
 					{tag}
 				</Box>
 			</Box>
-			<Text lines="1" align="left" size="small">
+			<Text lines="1" align="left" size="small" color="default">
 				{sessionComment.text}
 			</Text>
 		</Box>
