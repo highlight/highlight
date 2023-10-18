@@ -46,20 +46,21 @@ const CarouselFeatures = ({ feature }: { feature: Feature }) => {
 		>
 			<div className="flex flex-col gap-4 justify-start md:pt-8 text-left">
 				<div className="flex flex-col gap-2">
-					{feature.beta && (
-						<div className="absolute bg-highlight-yellow w-fit py-0.5 px-3 -translate-y-2 rounded-full">
-							<Typography
-								type="copy4"
-								emphasis
-								className="text-dark-background"
-							>
-								Private Beta
-							</Typography>
-						</div>
-					)}
-
-					<h5 className="hidden sm:flex">{feature.title}</h5>
-					<h4 className="sm:hidden">{feature.title}</h4>
+					<div className="flex gap-2 items-center">
+						<h5 className="hidden sm:flex m-0">{feature.title}</h5>
+						<h4 className="sm:hidden m-0">{feature.title}</h4>
+						{feature.beta && (
+							<div className="bg-[#72E4FC] py-0.5 px-3 rounded-full">
+								<Typography
+									type="copy4"
+									emphasis
+									className="text-dark-background"
+								>
+									Beta
+								</Typography>
+							</div>
+						)}
+					</div>
 					<Typography
 						type="copy3"
 						className="text-copy-on-dark md:text-[18px]"

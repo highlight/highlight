@@ -11,15 +11,17 @@ import {
 	HiCode,
 	HiDatabase,
 	HiDocumentSearch,
-	HiEye,
+	HiExclamationCircle,
 	HiFilm,
+	HiGlobe,
 	HiLightningBolt,
 	HiPhoneOutgoing,
+	HiSparkles,
+	HiTemplate,
 	HiTerminal,
 	HiUserGroup,
 	HiViewBoards,
 } from 'react-icons/hi'
-import { IoTelescope } from 'react-icons/io5'
 import errorMonitoring from '../../../public/images/error-monitoring.png'
 import fullstackLogging from '../../../public/images/fullstack-logging.png'
 import githubscreenshot from '../../../public/images/githubscreenshot.png'
@@ -28,6 +30,8 @@ import monitoringscreenshot from '../../../public/images/monitoringscreenshot.pn
 import openSource from '../../../public/images/open-source.png'
 import sessionReplay from '../../../public/images/session-replay.png'
 import sessionscreenshot from '../../../public/images/sessionscreenshot.png'
+import traces from '../../../public/images/traces.svg'
+import tracesscreenshot from '../../../public/images/tracesmobile.svg'
 import { PrimaryButton } from '../../common/Buttons/PrimaryButton'
 import { Typography } from '../../common/Typography/Typography'
 import styles from '../Home.module.scss'
@@ -117,19 +121,19 @@ const features: Feature[] = [
 		title: 'Traces',
 		description:
 			'Get performance insights on requests and transactions throughout your web application stack.',
-		thumbnail: <HiLightningBolt className="h-[35px] w-[35px]" />,
-		desktopImage: fullstackLogging,
-		mobileImage: loggingscreenshot,
+		thumbnail: <HiSparkles className="h-[35px] w-[35px]" />,
+		desktopImage: traces,
+		mobileImage: tracesscreenshot,
 		right: true,
 		shortenWidth: true,
 		beta: true,
 		feature1: 'Powerful Visualization Capabilities',
-		featureImage1: <HiEye className="h-[20px] w-[20px]" />,
-		feature2: 'OpenTelemetry Support',
-		featureImage2: <IoTelescope className="h-[20px] w-[20px]" />,
-		feature3: 'Distributed Tracing Support',
-		featureImage3: <HiDatabase className="h-[20px] w-[20px]" />,
-		link: '/logging',
+		featureImage1: <HiTemplate className="h-[20px] w-[20px]" />,
+		feature2: 'Distributed Tracing Support',
+		featureImage2: <HiGlobe className="h-[20px] w-[20px]" />,
+		feature3: 'OpenTelemetry Support',
+		featureImage3: <HiExclamationCircle className="h-[20px] w-[20px]" />,
+		link: '/docs/getting-started/tracing',
 	},
 
 	{
