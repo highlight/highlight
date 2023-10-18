@@ -63,11 +63,7 @@ const DayThree = () => {
 						/>
 					</div>
 
-					<CardOverlay
-						header="Session Downloads."
-						buttonText="View Blogpost"
-						buttonLink="/blog/ai-grouping-for-errors"
-					/>
+					<CardOverlay header="Session Downloads." />
 				</div>
 				<div
 					className={classNames(
@@ -88,7 +84,7 @@ const DayThree = () => {
 					<CardOverlay
 						header="Default privacy mode."
 						buttonText="View Blogpost"
-						buttonLink="/blog/ai-grouping-for-errors"
+						buttonLink="/blog/default-privacy-mode"
 					/>
 				</div>
 				<div
