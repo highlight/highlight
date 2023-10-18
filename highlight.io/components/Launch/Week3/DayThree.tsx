@@ -7,7 +7,7 @@ import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import CardOverlay from './CardOverlay'
 import styles from './Launch.module.scss'
 
-const DayOne = () => {
+const DayThree = () => {
 	const [copy, setCopy] = useState(false)
 
 	function handleCopy(str: string) {
@@ -22,7 +22,7 @@ const DayOne = () => {
 	}
 
 	return (
-		<div id="day-1" className="w-full max-w-[550px] md:max-w-none z-50">
+		<div id="day-3" className="w-full max-w-[550px] md:max-w-none z-50">
 			<div
 				onClick={() => handleCopy('#day-1')}
 				className="group flex items-center gap-2 cursor-pointer"
@@ -32,7 +32,7 @@ const DayOne = () => {
 					type="copy3"
 					emphasis
 				>
-					Day 1: October 16th
+					Day 3: October 18th
 				</Typography>
 				{!copy && (
 					<AiOutlineLink className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
@@ -49,73 +49,69 @@ const DayOne = () => {
 			>
 				<div
 					className={classNames(
-						'md:w-1/3 lg:w-1/4 max-h-[450px]',
+						'md:w-1/3 max-h-[450px]',
 						styles.gridItem,
 					)}
 				>
 					<div className="object-cover">
 						<Image
-							className="hidden md:flex object-fit"
-							src="/images/launch/week-3/harold.svg"
+							className="flex object-fit"
+							src="/images/launch/week-3/downloads.svg"
 							alt=""
 							height="448"
-							width="300"
+							width="387"
 						/>
+					</div>
 
+					<CardOverlay header="Session Downloads." />
+				</div>
+				<div
+					className={classNames(
+						'md:w-1/3 max-h-[450px]',
+						styles.gridItem,
+					)}
+				>
+					<div className="object-cover">
 						<Image
-							className="md:hidden object-fit"
-							src="/images/launch/week-3/harold.svg"
+							className="flex object-fit"
+							src="/images/launch/week-3/privacy.svg"
 							alt=""
 							height="448"
-							width="500"
+							width="387"
 						/>
 					</div>
 
 					<CardOverlay
-						header="Updates to Harold AI."
-						subheader="Harold can now identify error types!"
+						header="Default privacy mode."
 						buttonText="View Blogpost"
-						buttonLink="/blog/ai-grouping-for-errors"
+						buttonLink="/blog/default-privacy-mode"
 					/>
 				</div>
-				<div className="flex flex-col md:w-2/3 lg:w-3/4 gap-2 max-h-[450px]">
-					<div
-						className={classNames(
-							'group h-full w-full min-h-[350px]',
-							styles.gridItem,
-						)}
-					>
+				<div
+					className={classNames(
+						'md:w-1/3 max-h-[450px]',
+						styles.gridItem,
+					)}
+				>
+					<div className="object-cover">
 						<Image
-							className="hidden lg:flex object-fit"
-							src="/images/launch/week-3/githubtraces.svg"
+							className="flex object-fit"
+							src="/images/launch/week-3/perf.svg"
 							alt=""
 							height="448"
-							width="900"
-						/>
-						<Image
-							className="hidden md:block lg:hidden object-fit"
-							src="/images/launch/week-3/githubtracesmobile.svg"
-							alt=""
-							height="250"
-							width="625"
-						/>
-						<Image
-							className="lg:hidden object-fit"
-							src="/images/launch/week-3/githubtracesmobile.svg"
-							alt=""
-							height="448"
-							width="550"
-						/>
-
-						<CardOverlay
-							header="GitHub-enhanced stacktraces."
-							buttonText="View Blog Post"
-							buttonLink="/blog/github-enhanced-stacktraces"
+							width="387"
 						/>
 					</div>
+
+					<CardOverlay
+						header="Understanding session replay performance."
+						subheader="Check out how session replay affects web apps."
+						buttonText="View Blogpost"
+						buttonLink="/blog/session-replay-performance"
+					/>
 				</div>
 			</div>
 		</div>
 	)
 }
-export default DayOne
+export default DayThree
