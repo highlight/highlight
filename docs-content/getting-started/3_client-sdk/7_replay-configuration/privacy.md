@@ -43,7 +43,7 @@ By default, Highlight will obfuscate any text or input data that matches commonl
 
 Note: This mode is only available in SDK versions 8.0.0 and later.
 
-Here are a list of the regex expressions used in default privacy mode:
+Here are a list of the [regex expressions used in default privacy mode](https://github.com/highlight/rrweb/blob/e6a375a554dac9de984a18bfb8ba6e3beb4bd961/packages/rrweb-snapshot/src/utils.ts#L267-L295):
 ```
 Email: "[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*"
 SSN: '[0-9]{3}-?[0-9]{2}-?[0-9]{4}'
