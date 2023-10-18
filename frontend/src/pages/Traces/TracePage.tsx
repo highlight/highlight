@@ -11,6 +11,7 @@ import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
 import { TraceLogs } from '@/pages/Traces/TraceLogs'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 import {
+	FlameGraphSpan,
 	getFirstSpan,
 	getTraceDuration,
 	getTraceDurationString,
@@ -41,9 +42,9 @@ export const TracePage: React.FC<Props> = () => {
 		span_id?: string
 	}>()
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
-	const [selectedSpan, setSelectedSpan] = useState<Trace>()
-	const [hoveredSpan, setHoveredSpan] = useState<Trace>()
-	const [zoom, setZoom] = useState(100)
+	const [selectedSpan, setSelectedSpan] = useState<FlameGraphSpan | Trace>()
+	const [hoveredSpan, setHoveredSpan] = useState<FlameGraphSpan>()
+	const [zoom, setZoom] = useState(10)
 	const highlightedSpan = hoveredSpan || selectedSpan
 
 	const { data, loading } = useGetTraceQuery({
@@ -73,6 +74,7 @@ export const TracePage: React.FC<Props> = () => {
 			setSelectedSpan(firstSpan)
 		}
 
+		// TODO: Figure out how we're ending up with multiple root spans...
 		return organizeSpans(sortableTraces)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace])
@@ -90,7 +92,7 @@ export const TracePage: React.FC<Props> = () => {
 	const totalDuration = getTraceDuration(data.trace.trace)
 	const firstSpan = getFirstSpan(data.trace.trace)
 	const traceName = firstSpan?.spanName
-	const startTime = moment(firstSpan.timestamp)
+	const startTime = firstSpan.timestamp
 	const errors = data.trace?.errors
 	const durationString = getTraceDurationString(totalDuration)
 	const ticks = Array.from({ length: MAX_TICKS }).map((_, index) => {
@@ -103,6 +105,9 @@ export const TracePage: React.FC<Props> = () => {
 			percent,
 		}
 	})
+
+	const height = 260
+	const width = 648
 	console.log('::: traces', traces)
 
 	return (
@@ -117,13 +122,13 @@ export const TracePage: React.FC<Props> = () => {
 						gap="8"
 					>
 						<Text color="moderate">
-							{startTime.format('MMM D HH:mm:ss.SSS')}
+							{moment(startTime).format('MMM D HH:mm:ss.SSS')}
 						</Text>
 						<Text weight="bold">{durationString}</Text>
 					</Box>
 
-					<button onClick={() => setZoom(zoom - 10)}>Zoom In</button>
-					<button onClick={() => setZoom(zoom + 10)}>Zoom Out</button>
+					<button onClick={() => setZoom(zoom + 1)}>Zoom In</button>
+					<button onClick={() => setZoom(zoom - 1)}>Zoom Out</button>
 				</Stack>
 
 				<Box
@@ -176,10 +181,9 @@ export const TracePage: React.FC<Props> = () => {
 						}}
 					>
 						<svg
-							viewBox={`0 0 ${zoom} ${zoom}`}
 							xmlns="http://www.w3.org/2000/svg"
-							height="100%"
-							width="100%"
+							height={height}
+							width={width * zoom}
 						>
 							{traces.map((span, index) => {
 								return (
@@ -190,6 +194,13 @@ export const TracePage: React.FC<Props> = () => {
 										totalDuration={totalDuration}
 										startTime={startTime}
 										depth={0}
+										height={height}
+										width={width}
+										zoom={zoom}
+										hoveredSpan={hoveredSpan}
+										selectedSpan={selectedSpan}
+										setHoveredSpan={setHoveredSpan}
+										setSelectedSpan={setSelectedSpan}
 									/>
 								)
 							})}
