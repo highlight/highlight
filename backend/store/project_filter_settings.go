@@ -32,7 +32,11 @@ type UpdateProjectFilterSettingsParams struct {
 
 func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID int, updates UpdateProjectFilterSettingsParams) (*model.ProjectFilterSettings, error) {
 	projectFilterSettings, err := store.GetProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		return projectFilterSettings, err
+	}
 
+	workspaceSettings, err := store.GetAllWorkspaceSettingsByProject(ctx, projectID)
 	if err != nil {
 		return projectFilterSettings, err
 	}
@@ -45,7 +49,7 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
 	}
 
-	if updates.Sampling != nil {
+	if workspaceSettings.EnableIngestFilters && updates.Sampling != nil {
 		if updates.Sampling.SessionSamplingRate != nil {
 			projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
 		}

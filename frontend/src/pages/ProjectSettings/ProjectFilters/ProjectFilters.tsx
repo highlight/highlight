@@ -9,6 +9,7 @@ import {
 	useGetTracesKeysQuery,
 	useGetTracesKeyValuesLazyQuery,
 	useGetTracesMetricsQuery,
+	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { ProductType, Sampling, TracesMetricType } from '@graph/schemas'
@@ -33,7 +34,11 @@ import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuild
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import analytics from '@util/analytics'
 import { buildQueryStateString } from '@util/url/params'
+import { showIntercomMessage } from '@util/window'
+import { message } from 'antd'
 import _, { upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
@@ -119,6 +124,7 @@ export const ProjectProductFilters: React.FC<{
 	const navigate = useNavigate()
 	const { setSearchQuery } = useSearchContext()
 	const { setSearchQuery: setErrorSearchQuery } = useErrorSearchContext()
+	const { currentWorkspace } = useApplicationContext()
 	const [dateRange, setDateRange] = React.useState<DateRange>({
 		start: defaultPresets[1].startDate,
 		end: getNow().toDate(),
@@ -128,6 +134,10 @@ export const ProjectProductFilters: React.FC<{
 			projectId: projectId!,
 		},
 		skip: !projectId,
+	})
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
 	})
 	const [editProjectSettingsMutation, { loading: saveLoading }] =
 		useEditProjectSettingsMutation({
@@ -141,6 +151,27 @@ export const ProjectProductFilters: React.FC<{
 			minuteRateLimit: 1_000_000,
 		},
 	})
+
+	const canSaveIngestFilters = React.useCallback(async () => {
+		if (!workspaceSettingsData?.workspaceSettings?.enable_ingest_filters) {
+			analytics.track('Project Filters Upgrade', {
+				product,
+				workspaceId: currentWorkspace?.id,
+			})
+			await message.warn(
+				'Setting up ingest filters is only available on annual commitment plans.',
+			)
+			showIntercomMessage(
+				'Hi! I would like to use the ingest filter feature.',
+			)
+			return false
+		}
+		return true
+	}, [
+		currentWorkspace?.id,
+		product,
+		workspaceSettingsData?.workspaceSettings?.enable_ingest_filters,
+	])
 
 	const resetConfig = React.useCallback(() => {
 		const c = {
@@ -218,6 +249,10 @@ export const ProjectProductFilters: React.FC<{
 
 	const label = upperFirst(product.slice(0, -1))
 	const onSave = async () => {
+		if (!(await canSaveIngestFilters())) {
+			return
+		}
+
 		const sampling = {
 			[`${product.toLowerCase().slice(0, -1)}_exclusion_query`]:
 				formStore.getValue('exclusionQuery'),
@@ -318,7 +353,10 @@ export const ProjectProductFilters: React.FC<{
 								size="small"
 								emphasis="medium"
 								iconRight={<IconSolidPencil />}
-								onClick={() => {
+								onClick={async () => {
+									if (!(await canSaveIngestFilters())) {
+										return
+									}
 									navigate(product.toLowerCase())
 								}}
 							>
