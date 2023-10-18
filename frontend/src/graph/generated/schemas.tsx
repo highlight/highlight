@@ -25,6 +25,15 @@ export type Scalars = {
 	Upload: any
 }
 
+export type AccessibleJiraResources = {
+	__typename?: 'AccessibleJiraResources'
+	avatarUrl: Scalars['String']
+	id: Scalars['String']
+	name: Scalars['String']
+	scopes?: Maybe<Array<Scalars['String']>>
+	url: Scalars['String']
+}
+
 export type Account = {
 	__typename?: 'Account'
 	email: Scalars['String']
@@ -454,6 +463,7 @@ export type ErrorGroup = {
 	environments?: Maybe<Scalars['String']>
 	error_frequency: Array<Scalars['Int64']>
 	error_metrics: Array<ErrorDistributionItem>
+	error_tag?: Maybe<ErrorTag>
 	event: Array<Maybe<Scalars['String']>>
 	fields?: Maybe<Array<Maybe<ErrorField>>>
 	first_occurrence?: Maybe<Scalars['Timestamp']>
@@ -524,7 +534,6 @@ export type ErrorObject = {
 	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
-	error_tag_id?: Maybe<Scalars['String']>
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
@@ -754,6 +763,7 @@ export enum IntegrationType {
 	Front = 'Front',
 	GitHub = 'GitHub',
 	Height = 'Height',
+	Jira = 'Jira',
 	Linear = 'Linear',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
@@ -768,6 +778,45 @@ export type Invoice = {
 	date?: Maybe<Scalars['Timestamp']>
 	status?: Maybe<Scalars['String']>
 	url?: Maybe<Scalars['String']>
+}
+
+export type JiraIssueType = {
+	__typename?: 'JiraIssueType'
+	description: Scalars['String']
+	iconUrl: Scalars['String']
+	id: Scalars['String']
+	name: Scalars['String']
+	scope?: Maybe<JiraIssueTypeScope>
+	self: Scalars['String']
+	subtask: Scalars['Boolean']
+	untranslatedName: Scalars['String']
+}
+
+export type JiraIssueTypeScope = {
+	__typename?: 'JiraIssueTypeScope'
+	project?: Maybe<JiraProjectIdentifier>
+	type: Scalars['String']
+}
+
+export type JiraProject = {
+	__typename?: 'JiraProject'
+	id: Scalars['String']
+	issueTypes?: Maybe<Array<Maybe<JiraIssueType>>>
+	key: Scalars['String']
+	name: Scalars['String']
+	self: Scalars['String']
+}
+
+export type JiraProjectIdentifier = {
+	__typename?: 'JiraProjectIdentifier'
+	id: Scalars['String']
+}
+
+export type JiraTeam = {
+	__typename?: 'JiraTeam'
+	key: Scalars['String']
+	name: Scalars['String']
+	team_id: Scalars['String']
 }
 
 export enum KeyType {
@@ -1049,6 +1098,7 @@ export type Mutation = {
 	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateErrorGroupState?: Maybe<ErrorGroup>
+	updateErrorTags: Scalars['Boolean']
 	updateIntegrationProjectMappings: Scalars['Boolean']
 	updateLogAlert?: Maybe<LogAlert>
 	updateLogAlertIsDisabled?: Maybe<LogAlert>
@@ -1771,6 +1821,7 @@ export type Query = {
 	is_integrated_with: Scalars['Boolean']
 	is_project_integrated_with: Scalars['Boolean']
 	is_workspace_integrated_with: Scalars['Boolean']
+	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
@@ -1828,8 +1879,9 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
-	trace?: Maybe<Array<Trace>>
+	trace?: Maybe<TracePayload>
 	traces: TraceConnection
+	tracesIntegration: IntegrationStatus
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
 	traces_metrics: TracesMetrics
@@ -2148,6 +2200,10 @@ export type QueryIs_Workspace_Integrated_WithArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type QueryJira_ProjectsArgs = {
+	workspace_id: Scalars['ID']
+}
+
 export type QueryLinear_TeamsArgs = {
 	project_id: Scalars['ID']
 }
@@ -2410,6 +2466,10 @@ export type QueryTracesArgs = {
 	before?: InputMaybe<Scalars['String']>
 	direction: SortDirection
 	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTracesIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2785,6 +2845,7 @@ export type Session = {
 	payload_size?: Maybe<Scalars['Int64']>
 	payload_updated_at: Scalars['Timestamp']
 	postal: Scalars['String']
+	privacy_setting?: Maybe<Scalars['String']>
 	processed?: Maybe<Scalars['Boolean']>
 	resources_url?: Maybe<Scalars['String']>
 	secure_id: Scalars['String']
@@ -3097,6 +3158,19 @@ export type TraceEdge = Edge & {
 	node: Trace
 }
 
+export type TraceError = {
+	__typename?: 'TraceError'
+	created_at: Scalars['Timestamp']
+	error_group_secure_id: Scalars['String']
+	event: Scalars['String']
+	log_cursor?: Maybe<Scalars['String']>
+	source: Scalars['String']
+	span_id?: Maybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
+	trace_id?: Maybe<Scalars['String']>
+	type: Scalars['String']
+}
+
 export type TraceEvent = {
 	__typename?: 'TraceEvent'
 	attributes: Scalars['Map']
@@ -3110,6 +3184,12 @@ export type TraceLink = {
 	spanID: Scalars['String']
 	traceID: Scalars['String']
 	traceState: Scalars['String']
+}
+
+export type TracePayload = {
+	__typename?: 'TracePayload'
+	errors: Array<TraceError>
+	trace: Array<Trace>
 }
 
 export type TracesMetricBucket = {

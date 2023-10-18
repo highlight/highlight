@@ -51,6 +51,7 @@ const OAuthApprovalPage = () => {
 
 	const validate = async (accessToken: string) => {
 		const auth = await fetch(`${OAuthBackend}/oauth/validate`, {
+			method: 'POST',
 			headers: { Authorization: `Bearer ${accessToken}` },
 			credentials: 'include',
 		})
@@ -64,7 +65,7 @@ const OAuthApprovalPage = () => {
 		const redirectUri = `${HighlightFrontend}/oauth/authorize`
 		const a = await fetch(
 			`${OAuthBackend}/oauth/authorize?response_type=code&redirect_uri=${redirectUri}&client_id=${oauthParams.client_id}&state=${state}`,
-			{ headers: { token: userToken } },
+			{ method: 'POST', headers: { token: userToken } },
 		)
 		const { code, state: returnedState } = new Proxy(
 			new URLSearchParams(new URL(a.url).search),

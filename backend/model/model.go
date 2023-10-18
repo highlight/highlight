@@ -121,6 +121,7 @@ var ContextKeys = struct {
 	UserAgent      contextString
 	AcceptLanguage contextString
 	UID            contextString
+	OAuthClientID  contextString
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
 	Email          contextString
 	AcceptEncoding contextString
@@ -192,6 +193,7 @@ var Models = []interface{}{
 	&DeleteSessionsTask{},
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
+	&OAuthOperation{},
 	&ResthookSubscription{},
 	&IntegrationProjectMapping{},
 	&IntegrationWorkspaceMapping{},
@@ -269,6 +271,8 @@ type Workspace struct {
 	SlackWebhookURL             *string
 	SlackWebhookChannel         *string
 	SlackWebhookChannelID       *string
+	JiraDomain                  *string
+	JiraCloudID                 *string
 	SlackChannels               *string
 	LinearAccessToken           *string
 	VercelAccessToken           *string
@@ -377,6 +381,7 @@ const (
 	MarkBackendSetupTypeSession MarkBackendSetupType = "session"
 	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
 	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
+	MarkBackendSetupTypeTraces  MarkBackendSetupType = "traces"
 )
 
 type SetupEvent struct {
@@ -411,10 +416,14 @@ type AllWorkspaceSettings struct {
 	WorkspaceID   int  `gorm:"uniqueIndex"`
 	AIApplication bool `gorm:"default:true"`
 	AIInsights    bool `gorm:"default:false"`
+
 	// store embeddings for errors in this workspace
 	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
-	ErrorEmbeddingsGroup      bool    `gorm:"default:false"`
+	ErrorEmbeddingsGroup bool `gorm:"default:true"`
+	// use embeddings to tag error groups in this workspace
+	ErrorEmbeddingsTagGroup bool `gorm:"default:true"`
+
 	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
@@ -676,6 +685,7 @@ type Session struct {
 	Starred                        *bool   `json:"starred"`
 	FieldGroup                     *string `json:"field_group"`
 	EnableStrictPrivacy            *bool   `json:"enable_strict_privacy"`
+	PrivacySetting                 *string `json:"privacy_setting"`
 	EnableRecordingNetworkContents *bool   `json:"enable_recording_network_contents"`
 	// The version of Highlight's Client.
 	ClientVersion string `json:"client_version"`
@@ -1001,7 +1011,6 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
-	ErrorTagID              *string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -1037,6 +1046,10 @@ type ErrorGroup struct {
 	ErrorObjects     []ErrorObject
 	ServiceName      string
 
+	// manually migrate as gorm wants to make this have a default value otherwise
+	ErrorTagID *int      `gorm:"-:migration"`
+	ErrorTag   *ErrorTag `gorm:"-:migration"`
+
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
@@ -1044,7 +1057,7 @@ type ErrorGroup struct {
 
 type ErrorTag struct {
 	Model
-	Title       string
+	Title       string `gorm:"uniqueIndex;not null"`
 	Description string
 	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
 }
@@ -1275,6 +1288,18 @@ type OAuthClientStore struct {
 	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
 	AppName   string
+
+	AdminID int
+	Admin   *Admin
+
+	Operations []*OAuthOperation `gorm:"foreignKey:ClientID"`
+}
+
+type OAuthOperation struct {
+	Model
+	ClientID                   string
+	AuthorizedGraphQLOperation string
+	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
 var ErrorType = struct {
@@ -1625,6 +1650,10 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		// limit the number of partitions created in dev or test to limit disk usage
 		endPart = lastVal + 10
 	}
+	if IsTestEnv() {
+		// create a 0 partition for tests
+		lastCreatedPart = -1
+	}
 
 	// Make sure partitions are created for the next N projects, starting with the next partition needed
 	for i := lastCreatedPart + 1; i < endPart; i++ {
@@ -1692,6 +1721,13 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
+
+	if err := DB.Exec(`alter table error_groups add column IF NOT EXISTS error_tag_id integer`).Error; err != nil {
+		return false, e.Wrap(err, "Error adding error_tag_id to error_groups")
+	}
+	// in case gorm still sets a default / not null constraint
+	DB.Exec(`alter table error_groups alter column error_tag_id drop default`)
+	DB.Exec(`alter table error_groups alter column error_tag_id drop not null`)
 
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 
@@ -2581,7 +2617,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 }
 
 type SendSlackAlertForLogAlertInput struct {
-	Message   string
+	Body      string
 	Workspace *Workspace
 	StartDate time.Time
 	EndDate   time.Time
@@ -2619,12 +2655,42 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 
 	alertUrl := GetLogAlertURL(obj.ProjectID, obj.Query, input.StartDate, input.EndDate)
 
+	previewText := fmt.Sprintf("%s fired!", obj.Name)
+
+	var headerBlockSet []slack.Block
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s* fired!", obj.Name), false, false)
+	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+	var bodyBlockSet []slack.Block
+	logBlock := slack.NewTextBlockObject(slack.MarkdownType, input.Body, false, false)
+
+	var actionBlocks []slack.BlockElement
+	button := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"View Logs",
+			false,
+			false,
+		),
+	)
+	button.URL = alertUrl
+	actionBlocks = append(actionBlocks, button)
+
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(logBlock, nil, nil))
+	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+
+	attachment := &slack.Attachment{
+		Color:  RED_ALERT,
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
+	}
+
 	log.WithContext(ctx).Info("Sending Slack Alert for Log Alert")
 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
-			message := fmt.Sprintf("%s\n<%s|View Logs>", input.Message, alertUrl)
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 
@@ -2637,12 +2703,12 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *Sen
 						log.WithContext(ctx).WithFields(log.Fields{"project_id": obj.ProjectID}).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
 					}
 				}
-				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
+				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(headerBlockSet...), slack.MsgOptionAttachments(*attachment),
 					slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 					slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 				)
 				if err != nil {
-					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": previewText}).
 						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
 				}
 
@@ -2674,6 +2740,8 @@ type SendSlackAlertInput struct {
 	URL *string
 	// ErrorsCount is a required parameter for Error alerts
 	ErrorsCount *int64
+	// FirstErrorAlert is a required parameter for Error alerts
+	FirstErrorAlert bool
 	// Project is a required parameter for Error alerts
 	Project *Project
 	// MatchedFields is a required parameter for Track Properties and User Properties alerts
@@ -2823,6 +2891,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 	}
 
 	previewText := getPreviewText(*obj.Type)
+	attachmentColor := getAlertColor(*obj.Type)
 
 	var headerBlockSet []slack.Block
 
@@ -2857,10 +2926,16 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		errorLink = routing.AttachReferrer(ctx, errorLink, routing.Slack)
 
 		// construct Slack message
-		previewText = fmt.Sprintf("Error event: %s", previewEvent)
-
 		// header
-		headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
+		var headerBlock *slack.TextBlockObject
+		if input.FirstErrorAlert {
+			previewText = fmt.Sprintf("New Error Alert: %s", previewEvent)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Error Alert: %d Recent Occurrences ❇️*", *input.ErrorsCount), false, false)
+			attachmentColor = YELLOW_ALERT
+		} else {
+			previewText = fmt.Sprintf("Error Alert: %s", previewEvent)
+			headerBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Error Alert: %d Recent Occurrences*", *input.ErrorsCount), false, false)
+		}
 		headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 		// body
@@ -2943,7 +3018,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				}
 			}
 
-			stackTraceBlock = slack.NewTextBlockObject(slack.MarkdownType, fileLocation, false, false)
+			stackTraceBlock = slack.NewTextBlockObject(slack.PlainTextType, fileLocation, false, false)
 		}
 
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(eventBlock, nil, nil))
@@ -3047,7 +3122,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 
 	// move body within line attachment
 	attachment = &slack.Attachment{
-		Color:  getAlertColor(*obj.Type),
+		Color:  attachmentColor,
 		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
 	}
 

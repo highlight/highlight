@@ -5,6 +5,7 @@ import { GoFiberContent } from './backend/go/fiber'
 import { GoGinContent } from './backend/go/gin'
 import { GoGqlgenContent } from './backend/go/go-gqlgen'
 import { GoMuxContent } from './backend/go/mux'
+import { JavaOtherContent } from './backend/java/other'
 import { JSApolloContent } from './backend/js/apollo'
 import { JSCloudflareContent } from './backend/js/cloudflare'
 import { JSExpressContent } from './backend/js/express'
@@ -21,7 +22,6 @@ import { PythonGCPContext } from './backend/python/gcp'
 import { PythonOtherContext } from './backend/python/other'
 import { RubyOtherContent } from './backend/ruby/other'
 import { RubyRailsContent } from './backend/ruby/rails'
-import { JavaOtherContent } from './backend/java/other'
 import { AngularContent } from './frontend/angular'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
@@ -42,19 +42,20 @@ import { DockerContent } from './logging/docker'
 import { FileContent } from './logging/file'
 import { FluentForwardContent } from './logging/fluentd'
 import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
+import { HostingRenderLogContent } from './logging/hosting/render'
+import { JavaOtherLogContent } from './logging/java/other'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
+import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
-import { JavaOtherLogContent } from './logging/java/other'
-import { DevDeploymentContent } from './self-host/dev-deploy'
-import { SelfHostContent } from './self-host/self-host'
-import { HostingRenderLogContent } from './logging/hosting/render'
 import { SyslogContent } from './logging/syslog'
 import { SystemdContent } from './logging/systemd'
-import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
+import { DevDeploymentContent } from './self-host/dev-deploy'
+import { SelfHostContent } from './self-host/self-host'
+import { GoTracesContent } from './traces/go/go'
 
 export type QuickStartOptions = {
 	title: string
@@ -280,6 +281,17 @@ export const quickStartContent = {
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
+		},
+	},
+	traces: {
+		title: 'Select your language',
+		subtitle:
+			'Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).',
+		go: {
+			title: 'Go',
+			subtitle: 'Install tracing in your Go application.',
+			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			[QuickStartType.GoOther]: GoTracesContent,
 		},
 	},
 	other: {

@@ -1,5 +1,24 @@
 # @highlight-run/next
 
+## 7.0.0
+
+### Patch Changes
+
+-   Updated dependencies [4f4e5aa4f]
+    -   highlight.run@8.0.0
+    -   @highlight-run/node@3.4.4
+
+## 6.0.0
+
+### Patch Changes
+
+-   683330896: update opentelemetry dependencies to remove jaeger
+-   48e39492d: Handling undefined NEXT_RUNTIME
+-   Updated dependencies [e264f6a61]
+-   Updated dependencies [683330896]
+    -   highlight.run@7.6.0
+    -   @highlight-run/node@3.4.3
+
 ## 5.0.1
 
 ### Patch Changes

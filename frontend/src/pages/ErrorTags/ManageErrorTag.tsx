@@ -1,20 +1,36 @@
-import { Box, Form, Heading, Stack, Table } from '@highlight-run/ui'
-import { useState } from 'react'
+import { Button } from '@components/Button'
+import {
+	Box,
+	Form,
+	Heading,
+	Stack,
+	Table,
+	useFormStore,
+} from '@highlight-run/ui'
 
 import {
 	useCreateErrorTagMutation,
 	useGetErrorTagsQuery,
+	useUpdateErrorTagsMutation,
 } from '@/graph/generated/hooks'
 
 export function ManageErrorTags() {
 	const { data: errorTags } = useGetErrorTagsQuery()
 	const [createErrorTag, { loading }] = useCreateErrorTagMutation()
-	const [title, setTitle] = useState('')
-	const [description, setDescription] = useState('')
+	const [updateErrorTags, { loading: updateErrorTagsLoading }] =
+		useUpdateErrorTagsMutation()
+
+	const store = useFormStore({
+		defaultValues: {
+			title: '',
+			description: '',
+		},
+	})
 
 	async function onCreateErrorTagSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
-
+		const title = store.getValue(store.names.title)
+		const description = store.getValue(store.names.description)
 		if (!title || !description) {
 			throw new Error('Title and description are required')
 		}
@@ -24,8 +40,7 @@ export function ManageErrorTags() {
 			refetchQueries: ['GetErrorTags'],
 		})
 
-		setTitle('')
-		setDescription('')
+		store.reset()
 	}
 
 	return (
@@ -65,29 +80,37 @@ export function ManageErrorTags() {
 					<Heading level="h4">Create Error Tag</Heading>
 				</Box>
 
-				<form onSubmit={onCreateErrorTagSubmit}>
+				<Form store={store} onSubmit={onCreateErrorTagSubmit}>
 					<Stack gap="8">
-						<Form.Field
+						<Form.Input
 							label="Title"
 							type="text"
-							name="title"
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
+							name={store.names.title}
 						/>
-						<Form.Field
+						<Form.Input
 							label="Description"
 							type="text"
-							name="description"
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
+							name={store.names.description}
 						/>
 						<Box>
 							<Form.Submit type="submit" disabled={loading}>
 								Add Tag
 							</Form.Submit>
 						</Box>
+						<Box py="16">
+							<Button
+								trackingId="error-tag-admin-update-embeddings"
+								type="button"
+								loading={updateErrorTagsLoading}
+								onClick={async () => {
+									await updateErrorTags()
+								}}
+							>
+								Update Embeddings
+							</Button>
+						</Box>
 					</Stack>
-				</form>
+				</Form>
 			</Box>
 		</Stack>
 	)

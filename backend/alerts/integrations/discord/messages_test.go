@@ -58,6 +58,7 @@ func (suite *DiscordChannelsTestSuite) TestSendErrorAlert() {
 		ErrorSnoozeURL:  "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?action=snooze",
 		VisitedURL:      "http://google.com",
 		UserIdentifier:  "chilly@mcwilly.com",
+		FirstTimeAlert:  false,
 	})
 
 	if err != nil {

@@ -1,1 +1,1 @@
-import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var r=a({defaultClassName:"",variantClassNames:{lines:{1:"_15exe0r0",2:"_15exe0r1",3:"_15exe0r2",4:"_15exe0r3"}},defaultVariants:{},compoundVariants:[]});export{r as variants};
+import{createRuntimeFn as e}from"@vanilla-extract/recipes/createRuntimeFn";var r=e({defaultClassName:"_15exe0r0",variantClassNames:{lines:{1:"_15exe0r1",2:"_15exe0r2",3:"_15exe0r3",4:"_15exe0r4"}},defaultVariants:{},compoundVariants:[]});export{r as variants};

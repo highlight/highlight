@@ -102,6 +102,7 @@ type Mutation {
 		client_id: String!
 		network_recording_domains: [String!]
 		disable_session_recording: Boolean
+		privacy_setting: String
 	): InitializeSessionResponse!
 	identifySession(
 		session_secure_id: String!

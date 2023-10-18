@@ -327,6 +327,20 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 		span.Finish(err)
 		return err
 	}
+	markBackendSetupProjectIds := map[uint32]struct{}{}
+	for _, trace := range traceRows {
+		// Skip traces with a `http.method` attribute as likely autoinstrumented frontend traces
+		if _, found := trace.TraceAttributes["http.method"]; !found {
+			markBackendSetupProjectIds[trace.ProjectId] = struct{}{}
+		}
+	}
+	for projectId := range markBackendSetupProjectIds {
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, int(projectId), model.MarkBackendSetupTypeTraces)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend traces setup")
+			return err
+		}
+	}
 	return nil
 }
 
@@ -403,7 +417,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		for _, chunk := range errorGroupIdChunks {
 			errorGroups := []*model.ErrorGroup{}
 			errorGroupSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorGroups"))
-			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorGroup{}).Where("id in ?", chunk).Find(&errorGroups).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorGroup{}).Joins("ErrorTag").Where("error_groups.id in ?", chunk).Find(&errorGroups).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}

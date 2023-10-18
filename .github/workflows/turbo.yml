@@ -140,7 +140,7 @@ jobs:
               with:
                   # This expects you to have a script called release which does a build for your packages and calls changeset publish
                   version: yarn changeset version
-                  publish: yarn publish
+                  publish: yarn publish:turbo
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -170,6 +170,19 @@ jobs:
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
+
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
 
             - name: Login to Docker Hub
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
@@ -215,6 +228,13 @@ jobs:
 
                   # run cypress tests
                   yarn cy:run;
+
+                  # run python backend functional tests
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest .
+                  popd
 
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)

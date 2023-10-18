@@ -10,3 +10,16 @@ export const linkStyle = style({
 		},
 	},
 })
+
+export const betaTag = style({
+	marginLeft: '4px',
+	paddingLeft: '4px',
+	paddingRight: '4px',
+	backgroundColor: vars.color.p5,
+	color: vars.color.p11,
+	fontSize: '11px',
+	height: '16px',
+	lineHeight: '16px',
+	borderRadius: '3px',
+	alignSelf: 'center',
+})
