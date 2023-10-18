@@ -11,7 +11,7 @@ import {
 	useGetTracesMetricsQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { KeyType, ProductType, TracesMetricType } from '@graph/schemas'
+import { ProductType, Sampling, TracesMetricType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -28,7 +28,12 @@ import {
 	useFormStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
+import { buildQueryStateString } from '@util/url/params'
 import _, { upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
@@ -90,37 +95,15 @@ export const Header: React.FC<{
 export const ProjectFilters: React.FC = () => {
 	return (
 		<Stack width="full">
-			<ProjectProductFilters
-				product={ProductType.Sessions}
-				noHeader
-				disabled
-			/>
+			<ProjectProductFilters view product={ProductType.Sessions} />
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters
-				product={ProductType.Errors}
-				noHeader
-				disabled
-			/>
+			<ProjectProductFilters view product={ProductType.Errors} />
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters
-				product={ProductType.Logs}
-				noHeader
-				disabled
-			/>
+			<ProjectProductFilters view product={ProductType.Logs} />
 			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters
-				product={ProductType.Traces}
-				noHeader
-				disabled
-			/>
+			<ProjectProductFilters view product={ProductType.Traces} />
 		</Stack>
 	)
-}
-
-interface Config {
-	exclusion_query: string
-	sampling_rate: number
-	minute_rate_limit: number
 }
 
 interface DateRange {
@@ -130,11 +113,12 @@ interface DateRange {
 
 export const ProjectProductFilters: React.FC<{
 	product: ProductType
-	noHeader?: boolean
-	disabled?: boolean
-}> = ({ product, noHeader, disabled }) => {
+	view?: boolean
+}> = ({ product, view }) => {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
+	const { setSearchQuery } = useSearchContext()
+	const { setSearchQuery: setErrorSearchQuery } = useErrorSearchContext()
 	const [dateRange, setDateRange] = React.useState<DateRange>({
 		start: defaultPresets[1].startDate,
 		end: getNow().toDate(),
@@ -149,116 +133,99 @@ export const ProjectProductFilters: React.FC<{
 		useEditProjectSettingsMutation({
 			refetchQueries: [namedOperations.Query.GetProjectSettings],
 		})
-	const [config, setConfig] = React.useState<Config>()
-
-	const resetConfig = React.useCallback(() => {
-		const c =
-			product === ProductType.Sessions
-				? {
-						exclusion_query:
-							data?.projectSettings?.sampling
-								.session_exclusion_query,
-						sampling_rate:
-							data?.projectSettings?.sampling
-								.session_sampling_rate,
-						minute_rate_limit:
-							data?.projectSettings?.sampling
-								.session_minute_rate_limit,
-				  }
-				: product === ProductType.Errors
-				? {
-						exclusion_query:
-							data?.projectSettings?.sampling
-								.error_exclusion_query,
-						sampling_rate:
-							data?.projectSettings?.sampling.error_sampling_rate,
-						minute_rate_limit:
-							data?.projectSettings?.sampling
-								.error_minute_rate_limit,
-				  }
-				: product === ProductType.Logs
-				? {
-						exclusion_query:
-							data?.projectSettings?.sampling.log_exclusion_query,
-						sampling_rate:
-							data?.projectSettings?.sampling.log_sampling_rate,
-						minute_rate_limit:
-							data?.projectSettings?.sampling
-								.log_minute_rate_limit,
-				  }
-				: product === ProductType.Traces
-				? {
-						exclusion_query:
-							data?.projectSettings?.sampling
-								.trace_exclusion_query,
-						sampling_rate:
-							data?.projectSettings?.sampling.trace_sampling_rate,
-						minute_rate_limit:
-							data?.projectSettings?.sampling
-								.trace_minute_rate_limit,
-				  }
-				: undefined
-		setConfig({
-			exclusion_query: c?.exclusion_query ?? '',
-			sampling_rate: c?.sampling_rate ?? 1,
-			minute_rate_limit: c?.minute_rate_limit ?? 1_000_000,
-		})
-	}, [data?.projectSettings?.sampling, product])
-
-	React.useEffect(resetConfig, [resetConfig])
 
 	const formStore = useFormStore({
 		defaultValues: {
-			samplingRate: 100 * (config?.sampling_rate ?? 1),
-			minuteRateLimit: config?.minute_rate_limit,
+			exclusionQuery: '',
+			samplingRate: 1,
+			minuteRateLimit: 1_000_000,
 		},
 	})
 
-	if (!product || !config) {
+	const resetConfig = React.useCallback(() => {
+		const c = {
+			exclusion_query:
+				data?.projectSettings?.sampling[
+					`${product
+						.toLowerCase()
+						.slice(0, -1)}_exclusion_query` as keyof Pick<
+						Sampling,
+						| 'session_exclusion_query'
+						| 'error_exclusion_query'
+						| 'log_exclusion_query'
+						| 'trace_exclusion_query'
+					>
+				],
+			sampling_rate:
+				data?.projectSettings?.sampling[
+					`${product
+						.toLowerCase()
+						.slice(0, -1)}_sampling_rate` as keyof Pick<
+						Sampling,
+						| 'session_sampling_rate'
+						| 'error_sampling_rate'
+						| 'log_sampling_rate'
+						| 'trace_sampling_rate'
+					>
+				],
+			minute_rate_limit:
+				data?.projectSettings?.sampling[
+					`${product
+						.toLowerCase()
+						.slice(0, -1)}_minute_rate_limit` as keyof Pick<
+						Sampling,
+						| 'session_minute_rate_limit'
+						| 'error_minute_rate_limit'
+						| 'log_minute_rate_limit'
+						| 'trace_minute_rate_limit'
+					>
+				],
+		}
+		formStore.setValues({
+			exclusionQuery: c?.exclusion_query ?? '',
+			samplingRate: c?.sampling_rate ?? 1,
+			minuteRateLimit: c?.minute_rate_limit ?? 1_000_000,
+		})
+
+		if (c?.exclusion_query && product === ProductType.Sessions) {
+			const params = {} as { [key: string]: string }
+			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
+				const [key, value] = pair.split(':')
+				params[`session_${key}`] = `is:${value}`
+			}
+			setSearchQuery(buildQueryStateString(params))
+		} else if (c?.exclusion_query && product === ProductType.Errors) {
+			const params = {} as { [key: string]: string }
+			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
+				const [key, value] = pair.split(':')
+				params[`error_${key}`] = `is:${value}`
+			}
+			setErrorSearchQuery(buildQueryStateString(params))
+		}
+	}, [
+		data?.projectSettings?.sampling,
+		formStore,
+		product,
+		setErrorSearchQuery,
+		setSearchQuery,
+	])
+
+	React.useEffect(resetConfig, [resetConfig])
+
+	if (!product) {
 		return null
 	}
 
 	const label = upperFirst(product.slice(0, -1))
-	const onChange = (c: Partial<Config>) => {
-		setConfig((cfg) =>
-			cfg
-				? {
-						exclusion_query:
-							c?.exclusion_query ?? cfg?.exclusion_query,
-						sampling_rate: c?.sampling_rate ?? cfg?.sampling_rate,
-						minute_rate_limit:
-							c?.minute_rate_limit ?? cfg?.minute_rate_limit,
-				  }
-				: undefined,
-		)
-	}
 	const onSave = async () => {
-		const sampling =
-			product === ProductType.Sessions
-				? {
-						session_exclusion_query: config.exclusion_query,
-						session_sampling_rate: config.sampling_rate,
-						session_minute_rate_limit: config.minute_rate_limit,
-				  }
-				: product === ProductType.Errors
-				? {
-						error_exclusion_query: config.exclusion_query,
-						error_sampling_rate: config.sampling_rate,
-						error_minute_rate_limit: config.minute_rate_limit,
-				  }
-				: product === ProductType.Logs
-				? {
-						log_exclusion_query: config.exclusion_query,
-						log_sampling_rate: config.sampling_rate,
-						log_minute_rate_limit: config.minute_rate_limit,
-				  }
-				: product === ProductType.Traces
-				? {
-						trace_exclusion_query: config.exclusion_query,
-						trace_sampling_rate: config.sampling_rate,
-						trace_minute_rate_limit: config.minute_rate_limit,
-				  }
-				: {}
+		const sampling = {
+			[`${product.toLowerCase().slice(0, -1)}_exclusion_query`]:
+				formStore.getValue('exclusionQuery'),
+			[`${product.toLowerCase().slice(0, -1)}_sampling_rate`]:
+				formStore.getValue('samplingRate'),
+			[`${product.toLowerCase().slice(0, -1)}_minute_rate_limit`]:
+				formStore.getValue('minuteRateLimit'),
+		}
 		await editProjectSettingsMutation({
 			variables: {
 				projectId,
@@ -268,10 +235,10 @@ export const ProjectProductFilters: React.FC<{
 	}
 	return (
 		<Box width="full">
-			{noHeader ? null : (
+			{view ? null : (
 				<Header product={product} title={`${label} filters`} />
 			)}
-			<Box display="flex" flexDirection="column" gap="12">
+			<Box display="flex" flexDirection="column" gap="6">
 				<Box
 					display="flex"
 					justifyContent="space-between"
@@ -279,7 +246,7 @@ export const ProjectProductFilters: React.FC<{
 					width="full"
 				>
 					<Text>{label} filters</Text>
-					{noHeader ? null : (
+					{view ? null : (
 						<Box display="flex" alignItems="center" gap="6">
 							<Button
 								trackingId={`project-filters-${product}-discard`}
@@ -303,105 +270,87 @@ export const ProjectProductFilters: React.FC<{
 						</Box>
 					)}
 				</Box>
-				<Box display="flex" width="full" py="12" gap="6">
-					<Box width="full">
-						<SearchForm
-							initialQuery={config.exclusion_query}
-							onFormSubmit={(value) =>
-								onChange({ exclusion_query: value })
-							}
-							hideDatePicker
-							hideCreateAlert
-							startDate={dateRange.start}
-							endDate={dateRange.end}
-							onDatesChange={() => {}}
-							presets={defaultPresets}
-							minDate={defaultPresets[5].startDate}
-							timeMode="fixed-range"
-							fetchKeys={
-								product === ProductType.Logs
-									? useGetLogsKeysQuery
-									: product === ProductType.Traces
-									? useGetTracesKeysQuery
-									: () => ({
-											loading: false,
-											data: {
-												keys: [
-													{
-														name: 'TODO(vkorolik)',
-														type: KeyType.String,
-													},
-												],
-											},
-									  })
-							}
-							fetchValuesLazyQuery={
-								product === ProductType.Logs
-									? useGetLogsKeyValuesLazyQuery
-									: product === ProductType.Traces
-									? useGetTracesKeyValuesLazyQuery
-									: () => [
-											() => {},
-											{
-												loading: false,
-												data: {
-													key_values: [
-														'TODO(vkorolik)',
-													],
-												},
-											},
-									  ]
-							}
-						/>
+				<Stack gap="6" py="6">
+					<Box display="flex" width="full" gap="6">
+						<Box width="full" style={{ minHeight: 20 }}>
+							{product === ProductType.Logs ||
+							product === ProductType.Traces ? (
+								<SearchForm
+									initialQuery={formStore.getValue(
+										'exclusionQuery',
+									)}
+									onFormSubmit={(value: string) => {
+										formStore.setValue(
+											'exclusionQuery',
+											value,
+										)
+									}}
+									disableSearch={view}
+									hideDatePicker
+									hideCreateAlert
+									startDate={dateRange.start}
+									endDate={dateRange.end}
+									onDatesChange={() => {}}
+									presets={defaultPresets}
+									minDate={defaultPresets[5].startDate}
+									timeMode="fixed-range"
+									fetchKeys={
+										product === ProductType.Logs
+											? useGetLogsKeysQuery
+											: useGetTracesKeysQuery
+									}
+									fetchValuesLazyQuery={
+										product === ProductType.Logs
+											? useGetLogsKeyValuesLazyQuery
+											: useGetTracesKeyValuesLazyQuery
+									}
+								/>
+							) : product === ProductType.Sessions ? (
+								<SessionQueryBuilder minimal readonly={view} />
+							) : (
+								<ErrorQueryBuilder minimal readonly={view} />
+							)}
+						</Box>
+						{view ? (
+							<Button
+								trackingId={`project-filters-${product}-edit`}
+								kind="secondary"
+								size="small"
+								emphasis="medium"
+								iconRight={<IconSolidPencil />}
+								onClick={() => {
+									navigate(product.toLowerCase())
+								}}
+							>
+								Edit
+							</Button>
+						) : null}
 					</Box>
-					{noHeader ? (
-						<Button
-							trackingId={`project-filters-${product}-edit`}
-							kind="secondary"
-							size="small"
-							emphasis="medium"
-							iconRight={<IconSolidPencil />}
-							onClick={() => {
-								navigate(product)
-							}}
-						>
-							Edit
-						</Button>
+					{view ? (
+						<Box display="flex" alignItems="center" gap="4">
+							<Tag shape="basic" kind="secondary" emphasis="high">
+								Sampling:{' '}
+								{(
+									100 * formStore.getValue('samplingRate') ??
+									1
+								)?.toLocaleString()}
+								%
+							</Tag>
+							<Tag shape="basic" kind="secondary" emphasis="high">
+								Max ingest:{' '}
+								{formStore
+									.getValue('minuteRateLimit')
+									?.toLocaleString()}{' '}
+								/ minute
+							</Tag>
+						</Box>
 					) : null}
-				</Box>
-				<Form store={formStore}>
-					<Stack>
-						<Box width="full">
-							<Form.Label
-								label={`${label} sampling %`}
-								name={formStore.names.samplingRate}
-							/>
-							<Form.Input
-								name={formStore.names.samplingRate}
-								type="number"
-								disabled={disabled}
-							/>
-						</Box>
-						<Box width="full">
-							<Form.Label
-								label={`Max ingested ${product} /
-							minute`}
-								name={formStore.names.samplingRate}
-							/>
-							<Form.Input
-								name={formStore.names.minuteRateLimit}
-								type="number"
-								disabled={disabled}
-							/>
-						</Box>
-					</Stack>
-				</Form>
+				</Stack>
 				<Box
 					display="flex"
 					alignItems="center"
 					justifyContent="space-between"
 					width="full"
-					py="12"
 				>
 					<Text weight="medium" size="xSmall" color="weak">
 						{label}s
@@ -421,9 +370,47 @@ export const ProjectProductFilters: React.FC<{
 						emphasis="low"
 					/>
 				</Box>
-				<Box display="flex" width="full" py="12">
+				<Box display="flex" width="full">
 					<IngestTimeline product={product} dateRange={dateRange} />
 				</Box>
+				<Form store={formStore}>
+					<Box display="flex" width="full">
+						{view ? null : (
+							<Box display="flex" width="full" gap="8">
+								<Box
+									width="full"
+									display="flex"
+									flexDirection="column"
+									gap="4"
+								>
+									<Form.Label
+										label="Sampling %"
+										name={formStore.names.samplingRate}
+									/>
+									<Form.Input
+										name={formStore.names.samplingRate}
+										type="number"
+									/>
+								</Box>
+								<Box
+									width="full"
+									display="flex"
+									flexDirection="column"
+									gap="4"
+								>
+									<Form.Label
+										label="Max ingest per minute"
+										name={formStore.names.minuteRateLimit}
+									/>
+									<Form.Input
+										name={formStore.names.minuteRateLimit}
+										type="number"
+									/>
+								</Box>
+							</Box>
+						)}
+					</Box>
+				</Form>
 			</Box>
 		</Box>
 	)
@@ -478,6 +465,7 @@ const IngestTimeline: React.FC<{
 				histogramBuckets={histogramBuckets}
 				bucketCount={data?.traces_metrics.bucket_count}
 				loading={loading}
+				legend
 			/>
 		</Box>
 	)

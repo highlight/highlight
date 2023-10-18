@@ -29,4 +29,10 @@
 			padding: 0;
 		}
 	}
+
+	&.border {
+		:global(.ant-tabs-nav) {
+			border-bottom: #E4E2E4 solid 1px !important;
+		}
+	}
 }

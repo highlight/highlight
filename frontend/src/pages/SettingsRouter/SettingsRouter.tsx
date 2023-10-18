@@ -1,8 +1,6 @@
+import { ProductType } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui'
-import {
-	Product,
-	ProjectProductFilters,
-} from '@pages/ProjectSettings/ProjectFilters/ProjectFilters'
+import { ProjectProductFilters } from '@pages/ProjectSettings/ProjectFilters/ProjectFilters'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
@@ -334,9 +332,12 @@ export const SettingsRouter = () => {
 												.product && (
 												<ProjectProductFilters
 													product={
-														productFilterMatch
-															?.params
-															.product as Product
+														(productFilterMatch?.params.product
+															?.charAt(0)
+															.toUpperCase() +
+															productFilterMatch?.params.product
+																?.slice(1)
+																.toLowerCase()) as ProductType
 													}
 												/>
 											)}

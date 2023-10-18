@@ -1,4 +1,5 @@
 import { LogLevel } from '@graph/schemas'
+import { vars } from '@highlight-run/ui'
 
 export const COLOR_MAPPING: {
 	[key in LogLevel | 'Ingested' | 'Dropped']: string
@@ -10,6 +11,6 @@ export const COLOR_MAPPING: {
 	[LogLevel.Error]: '#E5484D',
 	[LogLevel.Fatal]: '#CD2B31',
 	[LogLevel.Trace]: '#1a1523',
-	Ingested: '#60a030',
-	Dropped: '#5220ab',
+	Ingested: vars.theme.static.content.moderate,
+	Dropped: vars.theme.static.divider.weak,
 }

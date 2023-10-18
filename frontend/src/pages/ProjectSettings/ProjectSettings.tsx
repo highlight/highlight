@@ -117,6 +117,7 @@ const ProjectSettings = () => {
 							onChange={(key) => {
 								navigate(`/${project_id}/settings/${key}`)
 							}}
+							border
 							noHeaderPadding
 							noPadding
 							id="settingsTabs"
