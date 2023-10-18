@@ -245,7 +245,8 @@ export const ErrorAlertPage = () => {
 						}
 
 						const nameErr = !input.name
-						const thresholdErr = !input.count_threshold
+						const thresholdErr =
+							!input.count_threshold || input.count_threshold < 1
 						if (nameErr || thresholdErr) {
 							const errs = []
 							if (nameErr) {
@@ -259,7 +260,7 @@ export const ErrorAlertPage = () => {
 							if (thresholdErr) {
 								formStore.setError(
 									formStore.names.threshold,
-									'Threshold is required',
+									'Threshold cannot be less than 1',
 								)
 								errs.push('threshold')
 							}

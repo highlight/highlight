@@ -92,6 +92,7 @@ export default async function handler(req: NextRequest) {
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
+								width: '200px',
 							}}
 						>
 							Highlight Blog

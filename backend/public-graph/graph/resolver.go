@@ -1092,6 +1092,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		Processed:                      &model.F,
 		Viewed:                         &model.F,
 		EnableStrictPrivacy:            &input.EnableStrictPrivacy,
+		PrivacySetting:                 input.PrivacySetting,
 		EnableRecordingNetworkContents: &input.EnableRecordingNetworkContents,
 		FirstloadVersion:               input.FirstloadVersion,
 		ClientVersion:                  input.ClientVersion,

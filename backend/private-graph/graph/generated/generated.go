@@ -1186,6 +1186,7 @@ type ComplexityRoot struct {
 		PayloadSize                    func(childComplexity int) int
 		PayloadUpdatedAt               func(childComplexity int) int
 		Postal                         func(childComplexity int) int
+		PrivacySetting                 func(childComplexity int) int
 		Processed                      func(childComplexity int) int
 		ResourcesURL                   func(childComplexity int) int
 		SecureID                       func(childComplexity int) int
@@ -8689,6 +8690,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Postal(childComplexity), true
 
+	case "Session.privacy_setting":
+		if e.complexity.Session.PrivacySetting == nil {
+			break
+		}
+
+		return e.complexity.Session.PrivacySetting(childComplexity), true
+
 	case "Session.processed":
 		if e.complexity.Session.Processed == nil {
 			break
@@ -10377,6 +10385,7 @@ type Session {
 	first_time: Boolean
 	field_group: String
 	enable_strict_privacy: Boolean
+	privacy_setting: String
 	enable_recording_network_contents: Boolean
 	object_storage_enabled: Boolean
 	payload_size: Int64
@@ -30356,6 +30365,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_field_group(ctx, field)
 			case "enable_strict_privacy":
 				return ec.fieldContext_Session_enable_strict_privacy(ctx, field)
+			case "privacy_setting":
+				return ec.fieldContext_Session_privacy_setting(ctx, field)
 			case "enable_recording_network_contents":
 				return ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
 			case "object_storage_enabled":
@@ -39657,6 +39668,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_field_group(ctx, field)
 			case "enable_strict_privacy":
 				return ec.fieldContext_Session_enable_strict_privacy(ctx, field)
+			case "privacy_setting":
+				return ec.fieldContext_Session_privacy_setting(ctx, field)
 			case "enable_recording_network_contents":
 				return ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
 			case "object_storage_enabled":
@@ -43266,6 +43279,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_field_group(ctx, field)
 			case "enable_strict_privacy":
 				return ec.fieldContext_Session_enable_strict_privacy(ctx, field)
+			case "privacy_setting":
+				return ec.fieldContext_Session_privacy_setting(ctx, field)
 			case "enable_recording_network_contents":
 				return ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
 			case "object_storage_enabled":
@@ -45981,6 +45996,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_field_group(ctx, field)
 			case "enable_strict_privacy":
 				return ec.fieldContext_Session_enable_strict_privacy(ctx, field)
+			case "privacy_setting":
+				return ec.fieldContext_Session_privacy_setting(ctx, field)
 			case "enable_recording_network_contents":
 				return ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
 			case "object_storage_enabled":
@@ -48603,6 +48620,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_field_group(ctx, field)
 			case "enable_strict_privacy":
 				return ec.fieldContext_Session_enable_strict_privacy(ctx, field)
+			case "privacy_setting":
+				return ec.fieldContext_Session_privacy_setting(ctx, field)
 			case "enable_recording_network_contents":
 				return ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
 			case "object_storage_enabled":
@@ -60644,6 +60663,47 @@ func (ec *executionContext) fieldContext_Session_enable_strict_privacy(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_privacy_setting(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_privacy_setting(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrivacySetting, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_privacy_setting(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Session_enable_recording_network_contents(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
 	if err != nil {
@@ -63995,6 +64055,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_field_group(ctx, field)
 			case "enable_strict_privacy":
 				return ec.fieldContext_Session_enable_strict_privacy(ctx, field)
+			case "privacy_setting":
+				return ec.fieldContext_Session_privacy_setting(ctx, field)
 			case "enable_recording_network_contents":
 				return ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
 			case "object_storage_enabled":
@@ -83733,6 +83795,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 		case "enable_strict_privacy":
 
 			out.Values[i] = ec._Session_enable_strict_privacy(ctx, field, obj)
+
+		case "privacy_setting":
+
+			out.Values[i] = ec._Session_privacy_setting(ctx, field, obj)
 
 		case "enable_recording_network_contents":
 

@@ -2845,6 +2845,7 @@ export type Session = {
 	payload_size?: Maybe<Scalars['Int64']>
 	payload_updated_at: Scalars['Timestamp']
 	postal: Scalars['String']
+	privacy_setting?: Maybe<Scalars['String']>
 	processed?: Maybe<Scalars['Boolean']>
 	resources_url?: Maybe<Scalars['String']>
 	secure_id: Scalars['String']
