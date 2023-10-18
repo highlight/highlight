@@ -56,24 +56,35 @@ const SessionComment = ({
 		</Link>
 	)
 	const timeAgo = moment(sessionComment.created_at).fromNow()
+	const feebackNumber = index + 1
+	const feedbackNumberPrefix = feebackNumber < 10 ? '0' : ''
+	const formattedFeedbackNumber = `#${feedbackNumberPrefix}${feebackNumber}`
+
 	return (
 		<Box
-			bt={index !== 0 ? 'secondary' : undefined}
-			pb="8"
+			bt="secondary"
+			backgroundColor="nested"
+			pt="8"
+			pb="12"
+			px="12"
 			display="flex"
 			justifyContent="center"
 			flexDirection="column"
 		>
 			<Box
-				py="4"
+				pb="4"
 				alignItems="center"
 				display="flex"
 				justifyContent="space-between"
-				gap="4"
 			>
-				<Box alignItems="flex-start" display="flex" gap="8">
+				<Box
+					alignItems="flex-start"
+					display="flex"
+					gap="6"
+					flexGrow={1}
+				>
 					<Text lines="1" color="weak" size="small">
-						Feedback #{index + 1}
+						Feedback {formattedFeedbackNumber}
 					</Text>
 					<Text
 						size="small"
@@ -88,7 +99,7 @@ const SessionComment = ({
 					{tag}
 				</Box>
 			</Box>
-			<Text lines="1" align="left" size="xSmall">
+			<Text lines="1" align="left" size="small">
 				{sessionComment.text}
 			</Text>
 		</Box>
@@ -116,11 +127,7 @@ export const ErrorBoundaryFeedback = ({ data: errorObject }: Props) => {
 					/>
 				),
 		)
-		return (
-			<Box px="12" bb="secondary" bt="secondary">
-				{comments}
-			</Box>
-		)
+		return <>{comments}</>
 	}
 	return null
 }
