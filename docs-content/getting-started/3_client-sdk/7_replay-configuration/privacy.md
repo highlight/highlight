@@ -44,12 +44,12 @@ By default, Highlight will obfuscate any text or input data that matches commonl
 Here are a list of the regex expressions used in default privacy mode:
 ```
 Email: "[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*"
-SSNs: '[0-9]{3}-?[0-9]{2}-?[0-9]{4}'
-Phone numbers: '[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}'
-Credit cards: '[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}'
-Unformatted SSN, phone number, credit cards: '[0-9]{9,16}'
-Addresses: '[0-9]{1,5}.?[0-9]{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}'
-IP addresses: '(?:[0-9]{1,3}.){3}[0-9]{1,3}'
+SSN: '[0-9]{3}-?[0-9]{2}-?[0-9]{4}'
+Phone number: '[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}'
+Credit card: '[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}'
+Unformatted SSN, phone number, credit card: '[0-9]{9,16}'
+Address: '[0-9]{1,5}.?[0-9]{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}'
+IP address: '(?:[0-9]{1,3}.){3}[0-9]{1,3}'
 ```
 
 ## Strict Privacy Mode
