@@ -19,7 +19,7 @@ The Highlight snippet will in-turn measure the dimensions of the ignored element
 
 ## Obfuscating Elements
 
-Alternatively, you can obfuscate specific HTML elements by adding the `highlight-mask` CSS class. The effect is the same of setting `enableStrictPrivacy` (the randomized text in the photo above) but applies to the specific HTML element that you mask.
+Alternatively, you can obfuscate specific HTML elements by adding the `highlight-mask` CSS class. The effect is the same of setting `privacySetting: 'strict'` (the randomized text in the photo above) but applies to the specific HTML element that you mask.
 
 ```html
 <div class="highlight-mask">This is some sensitive data <button>Important Button</button></div>
@@ -37,9 +37,13 @@ For sensitive input fields that your team would like to ignore user input for, y
 <input class="highlight-ignore" name="social security number" />
 ```
 
+## Default Privacy Mode
+
+By default, Highlight will obfuscate any text or input data that matches commonly used Regex expressions and input names of personally identifiable information. This offers a base level protection from recording info such as addresses, phone numbers, social security numbers, and more. It will not obfuscate any images or media content. It is possible that other, non PII text is obfuscated if it matches the expressions for larger number, or contact information on the site. If you want to turn this off, you can set `privacySetting` to `none` when calling [`H.init()`](../../../sdk/client.md#Hinit). 
+
 ## Strict Privacy Mode
 
-If you don't want to manually annotate what elements to not record then you can set `enableStrictPrivacy` to `true` when calling [`H.init()`](../../../sdk/client.md#Hinit). Strict Privacy Mode will obfuscate all text and images. The text obfuscation is not reversible and is done on the client.
+If you don't want to manually annotate what elements to not record then you can set `privacySetting` to `strict` when calling [`H.init()`](../../../sdk/client.md#Hinit). Strict Privacy Mode will obfuscate all text and images. The text obfuscation is not reversible and is done on the client.
 
 Here are some examples:
 
@@ -60,3 +64,5 @@ Here are some examples:
   ></iframe
 >
 ```
+
+

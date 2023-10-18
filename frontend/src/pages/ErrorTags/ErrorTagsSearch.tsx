@@ -7,7 +7,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { Skeleton } from '@/components/Skeleton'
@@ -37,7 +37,7 @@ export function ErrorTagsSearch() {
 	return (
 		<Stack py="32" gap="32">
 			<Box style={{ display: 'flex', justifyContent: 'space-between' }}>
-				<a href="/error-tags">
+				<Link to="/error-tags">
 					<Button
 						trackingId="error-tags-search-go-back"
 						iconLeft={<IconSolidCheveronLeft />}
@@ -46,7 +46,7 @@ export function ErrorTagsSearch() {
 					>
 						Go back
 					</Button>
-				</a>
+				</Link>
 				<ShareButton />
 			</Box>
 
@@ -208,7 +208,7 @@ function Score({ score = 0 }: { score?: number }) {
 }
 
 function roundScore(score: number) {
-	return score ? Math.round(score * 10) / 10 : 0
+	return score ? Math.round(score * 100) / 100 : 0
 }
 
 function NoResults() {

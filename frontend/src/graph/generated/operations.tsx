@@ -1395,6 +1395,15 @@ export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateErrorTagsMutationVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type UpdateErrorTagsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateErrorTags'
+>
+
 export type UpsertSlackChannelMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -1795,6 +1804,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'client_id'
 			| 'starred'
 			| 'enable_strict_privacy'
+			| 'privacy_setting'
 			| 'enable_recording_network_contents'
 			| 'field_group'
 			| 'object_storage_enabled'
@@ -2400,6 +2410,12 @@ export type GetErrorGroupsClickhouseQuery = { __typename?: 'Query' } & {
 								'error_group_id' | 'date' | 'name' | 'value'
 							>
 						>
+						error_tag?: Types.Maybe<
+							{ __typename?: 'ErrorTag' } & Pick<
+								Types.ErrorTag,
+								'id' | 'created_at' | 'title' | 'description'
+							>
+						>
 					}
 			>
 		}
@@ -2972,6 +2988,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 						'error_group_id' | 'date' | 'name' | 'value'
 					>
 				>
+				error_tag?: Types.Maybe<
+					{ __typename?: 'ErrorTag' } & Pick<
+						Types.ErrorTag,
+						'id' | 'created_at' | 'title' | 'description'
+					>
+				>
 			}
 	>
 }
@@ -3459,6 +3481,17 @@ export type GetLogsIntegrationQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetTracesIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
+	tracesIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'createdAt'
+	>
+}
+
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	lookBackPeriod: Types.Scalars['Int']
@@ -3688,6 +3721,23 @@ export type GetWorkspaceIsIntegratedWithVercelQuery = {
 		{ __typename?: 'VercelProjectMapping' } & Pick<
 			Types.VercelProjectMapping,
 			'vercel_project_id' | 'project_id'
+		>
+	>
+}
+
+export type GetJiraIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	jira_projects?: Types.Maybe<
+		Array<
+			{ __typename?: 'JiraProject' } & Pick<
+				Types.JiraProject,
+				'id' | 'name' | 'key'
+			>
 		>
 	>
 }
@@ -4691,26 +4741,42 @@ export type GetTraceQueryVariables = Types.Exact<{
 
 export type GetTraceQuery = { __typename?: 'Query' } & {
 	trace?: Types.Maybe<
-		Array<
-			{ __typename?: 'Trace' } & Pick<
-				Types.Trace,
-				| 'timestamp'
-				| 'traceID'
-				| 'spanID'
-				| 'parentSpanID'
-				| 'projectID'
-				| 'secureSessionID'
-				| 'traceState'
-				| 'spanName'
-				| 'spanKind'
-				| 'duration'
-				| 'serviceName'
-				| 'serviceVersion'
-				| 'traceAttributes'
-				| 'statusCode'
-				| 'statusMessage'
+		{ __typename?: 'TracePayload' } & {
+			trace: Array<
+				{ __typename?: 'Trace' } & Pick<
+					Types.Trace,
+					| 'timestamp'
+					| 'traceID'
+					| 'spanID'
+					| 'parentSpanID'
+					| 'projectID'
+					| 'secureSessionID'
+					| 'traceState'
+					| 'spanName'
+					| 'spanKind'
+					| 'duration'
+					| 'serviceName'
+					| 'serviceVersion'
+					| 'traceAttributes'
+					| 'statusCode'
+					| 'statusMessage'
+				>
 			>
-		>
+			errors: Array<
+				{ __typename?: 'TraceError' } & Pick<
+					Types.TraceError,
+					| 'created_at'
+					| 'trace_id'
+					| 'span_id'
+					| 'log_cursor'
+					| 'event'
+					| 'type'
+					| 'source'
+					| 'timestamp'
+					| 'error_group_secure_id'
+				>
+			>
+		}
 	>
 }
 
@@ -4867,6 +4933,7 @@ export const namedOperations = {
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,
 		GetLogsIntegration: 'GetLogsIntegration' as const,
+		GetTracesIntegration: 'GetTracesIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,
@@ -4889,6 +4956,7 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
+		GetJiraIntegrationSettings: 'GetJiraIntegrationSettings' as const,
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,
@@ -5022,6 +5090,7 @@ export const namedOperations = {
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
 		CreateErrorTag: 'CreateErrorTag' as const,
+		UpdateErrorTags: 'UpdateErrorTags' as const,
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		testErrorEnhancement: 'testErrorEnhancement' as const,

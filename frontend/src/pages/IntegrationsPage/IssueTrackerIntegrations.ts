@@ -4,6 +4,7 @@ import {
 	GITHUB_INTEGRATION,
 	HEIGHT_INTEGRATION,
 	Integration,
+	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import React from 'react'
@@ -25,6 +26,7 @@ const ISSUE_TRACKER_INTEGRATIONS: IssueTrackerIntegration[] = [
 	CLICKUP_INTEGRATION,
 	HEIGHT_INTEGRATION,
 	GITHUB_INTEGRATION,
+	JIRA_INTEGRATION,
 ]
 
 export default ISSUE_TRACKER_INTEGRATIONS

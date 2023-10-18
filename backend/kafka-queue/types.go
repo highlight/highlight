@@ -56,6 +56,7 @@ type InitializeSessionArgs struct {
 	CreatedAt                      time.Time
 	ProjectVerboseID               string
 	EnableStrictPrivacy            bool
+	PrivacySetting                 *string
 	EnableRecordingNetworkContents bool
 	ClientVersion                  string
 	FirstloadVersion               string

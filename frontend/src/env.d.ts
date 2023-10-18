@@ -19,6 +19,7 @@ interface ImportMetaEnv {
 	readonly DISCORD_CLIENT_ID: string
 	readonly GITHUB_CLIENT_ID: string
 	readonly LINEAR_CLIENT_ID: string
+	readonly JIRA_CLIENT_ID: string
 	readonly SLACK_CLIENT_ID: string
 }
 

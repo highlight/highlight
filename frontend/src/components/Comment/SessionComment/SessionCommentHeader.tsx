@@ -17,6 +17,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import {
 	CLICKUP_INTEGRATION,
 	HEIGHT_INTEGRATION,
+	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -37,6 +38,7 @@ import {
 	useDeleteComment,
 	useNavigateToComment,
 } from '@/components/Comment/utils/utils'
+import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 interface Props {
 	comment: ParsedSessionComment
@@ -49,6 +51,9 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const deleteComment = useDeleteComment(comment)
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
+
+	const { settings: jiraSettings } = useJiraIntegration()
+
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
 	)
@@ -73,6 +78,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const issueTrackers: [boolean | undefined, IssueTrackerIntegration][] = [
 		[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
 		[isClickupIntegrated, CLICKUP_INTEGRATION],
+		[jiraSettings.isIntegrated, JIRA_INTEGRATION],
 		[isHeightIntegrated, HEIGHT_INTEGRATION],
 	]
 

@@ -217,6 +217,7 @@ export const SessionLevelBarV2: React.FC<
 								variant="gray"
 								size="medium"
 								iconStart={
+									session.privacy_setting === 'strict' ||
 									session?.enable_strict_privacy ? (
 										<IconSolidLockClosed
 											color={colors.n9}
@@ -226,6 +227,7 @@ export const SessionLevelBarV2: React.FC<
 									)
 								}
 								title={
+									session.privacy_setting === 'strict' ||
 									session?.enable_strict_privacy
 										? 'Strict privacy on'
 										: 'Strict privacy off'

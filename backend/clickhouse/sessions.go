@@ -52,6 +52,7 @@ var fieldMap map[string]string = map[string]string{
 	"timestamp":       "Timestamp",
 	"secure_id":       "ErrorGroupSecureID",
 	"service_name":    "ServiceName",
+	"Tag":             "ErrorTagTitle",
 }
 
 type ClickhouseSession struct {
@@ -222,8 +223,8 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		return r.Field == timeRangeField
 	})
 	if !found {
-		end := time.Now()
-		start := end.AddDate(0, 0, -30)
+		end := time.Now().UTC()
+		start := end.AddDate(0, 0, -30).UTC()
 		timeRangeRule = Rule{
 			Field: timeRangeField,
 			Op:    BetweenDate,

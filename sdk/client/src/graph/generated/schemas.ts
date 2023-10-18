@@ -114,6 +114,7 @@ export type MutationInitializeSessionArgs = {
 	firstloadVersion: Scalars['String']
 	network_recording_domains?: InputMaybe<Array<Scalars['String']>>
 	organization_verbose_id: Scalars['String']
+	privacy_setting?: InputMaybe<Scalars['String']>
 	serviceName?: InputMaybe<Scalars['String']>
 	session_secure_id: Scalars['String']
 }

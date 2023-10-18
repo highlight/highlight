@@ -13,7 +13,7 @@ export const row = style({
 
 	selectors: {
 		'&:hover': {
-			background: vars.theme.static.surface.sentiment.neutral,
+			background: vars.theme.static.surface.raised,
 		},
 
 		// Borders

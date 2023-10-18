@@ -1196,6 +1196,10 @@ mutation CreateErrorTag($title: String!, $description: String!) {
 	}
 }
 
+mutation UpdateErrorTags {
+	updateErrorTags
+}
+
 mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
 	upsertSlackChannel(project_id: $project_id, name: $name) {
 		webhook_channel

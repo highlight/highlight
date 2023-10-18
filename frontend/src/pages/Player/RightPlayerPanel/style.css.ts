@@ -2,6 +2,11 @@ import { style } from '@vanilla-extract/css'
 
 export const RIGHT_PANEL_WIDTH = 300
 
+export const playerRightColumn = style({
+	height: `calc(100vh - 108px)`,
+	overflowY: 'scroll',
+})
+
 export const playerRightPanelContainerBannerShown = style({
 	height: `calc(100vh - 108px - var(--banner-height))`,
 })

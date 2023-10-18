@@ -21,6 +21,14 @@ type Edge interface {
 	GetCursor() string
 }
 
+type AccessibleJiraResources struct {
+	ID        string   `json:"id"`
+	URL       string   `json:"url"`
+	Name      string   `json:"name"`
+	Scopes    []string `json:"scopes"`
+	AvatarURL string   `json:"avatarUrl"`
+}
+
 type Account struct {
 	ID                   int        `json:"id"`
 	Name                 string     `json:"name"`
@@ -441,6 +449,40 @@ type Invoice struct {
 	Status       *string    `json:"status"`
 }
 
+type JiraIssueType struct {
+	Self             string              `json:"self"`
+	ID               string              `json:"id"`
+	Description      string              `json:"description"`
+	IconURL          string              `json:"iconUrl"`
+	Name             string              `json:"name"`
+	UntranslatedName string              `json:"untranslatedName"`
+	Subtask          bool                `json:"subtask"`
+	Scope            *JiraIssueTypeScope `json:"scope"`
+}
+
+type JiraIssueTypeScope struct {
+	Type    string                 `json:"type"`
+	Project *JiraProjectIdentifier `json:"project"`
+}
+
+type JiraProject struct {
+	Name       string           `json:"name"`
+	Key        string           `json:"key"`
+	ID         string           `json:"id"`
+	Self       string           `json:"self"`
+	IssueTypes []*JiraIssueType `json:"issueTypes"`
+}
+
+type JiraProjectIdentifier struct {
+	ID string `json:"id"`
+}
+
+type JiraTeam struct {
+	TeamID string `json:"team_id"`
+	Name   string `json:"name"`
+	Key    string `json:"key"`
+}
+
 type LengthRangeInput struct {
 	Min *float64 `json:"min"`
 	Max *float64 `json:"max"`
@@ -819,6 +861,18 @@ type TraceEdge struct {
 func (TraceEdge) IsEdge()                {}
 func (this TraceEdge) GetCursor() string { return this.Cursor }
 
+type TraceError struct {
+	CreatedAt          time.Time `json:"created_at"`
+	TraceID            *string   `json:"trace_id"`
+	SpanID             *string   `json:"span_id"`
+	LogCursor          *string   `json:"log_cursor"`
+	Event              string    `json:"event"`
+	Type               string    `json:"type"`
+	Source             string    `json:"source"`
+	ErrorGroupSecureID string    `json:"error_group_secure_id"`
+	Timestamp          time.Time `json:"timestamp"`
+}
+
 type TraceEvent struct {
 	Timestamp  time.Time              `json:"timestamp"`
 	Name       string                 `json:"name"`
@@ -830,6 +884,11 @@ type TraceLink struct {
 	SpanID     string                 `json:"spanID"`
 	TraceState string                 `json:"traceState"`
 	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TracePayload struct {
+	Trace  []*Trace      `json:"trace"`
+	Errors []*TraceError `json:"errors"`
 }
 
 type TracesMetricBucket struct {
@@ -1094,6 +1153,7 @@ const (
 	IntegrationTypeClickUp IntegrationType = "ClickUp"
 	IntegrationTypeHeight  IntegrationType = "Height"
 	IntegrationTypeGitHub  IntegrationType = "GitHub"
+	IntegrationTypeJira    IntegrationType = "Jira"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1106,11 +1166,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeClickUp,
 	IntegrationTypeHeight,
 	IntegrationTypeGitHub,
+	IntegrationTypeJira,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira:
 		return true
 	}
 	return false
