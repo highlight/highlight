@@ -124,27 +124,10 @@ export const ErrorObjectFragmentDoc = gql`
 			session_comments {
 				id
 				timestamp
-				session_id
-				session_secure_id
 				created_at
 				updated_at
 				project_id
 				text
-				author {
-					id
-					name
-					email
-					photo_url
-				}
-				attachments {
-					integration_type
-					external_id
-					title
-				}
-				x_coordinate
-				y_coordinate
-				type
-				metadata
 			}
 		}
 		error_group_id
