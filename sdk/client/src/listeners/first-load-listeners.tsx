@@ -44,6 +44,9 @@ export class FirstLoadListeners {
 	networkBodyKeysToRecord: string[] | undefined
 	networkHeaderKeysToRecord: string[] | undefined
 	urlBlocklist!: string[]
+	requestSanitizer?: (
+		requestResponsePair: RequestResponsePair,
+	) => RequestResponsePair | null
 
 	constructor(options: HighlightClassOptions) {
 		this.options = options
@@ -200,6 +203,8 @@ export class FirstLoadListeners {
 				...DEFAULT_URL_BLOCKLIST,
 			]
 
+			sThis.requestSanitizer = options.networkRecording?.requestSanitizer
+
 			sThis.networkHeaderKeysToRecord =
 				options.networkRecording?.headerKeysToRecord
 			// `headerKeysToRecord` override `networkHeadersToRedact`.
@@ -253,6 +258,7 @@ export class FirstLoadListeners {
 					sessionSecureID: options.sessionSecureID,
 					headerKeysToRecord: sThis.networkHeaderKeysToRecord,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
+					requestSanitizer: sThis.requestSanitizer,
 				}),
 			)
 		}

@@ -25,7 +25,10 @@ type NetworkListenerArguments = {
 	tracingOrigins: boolean | (string | RegExp)[]
 	urlBlocklist: string[]
 	sessionSecureID: string
-} & Pick<NetworkRecordingOptions, 'bodyKeysToRecord' | 'headerKeysToRecord'>
+} & Pick<
+	NetworkRecordingOptions,
+	'bodyKeysToRecord' | 'headerKeysToRecord' | 'requestSanitizer'
+>
 
 export const NetworkListener = ({
 	xhrCallback,
@@ -41,16 +44,23 @@ export const NetworkListener = ({
 	sessionSecureID,
 	bodyKeysToRecord,
 	headerKeysToRecord,
+	requestSanitizer,
 }: NetworkListenerArguments) => {
 	const removeXHRListener = XHRListener(
 		(requestResponsePair) => {
-			xhrCallback(
-				sanitizeRequestResponsePair(
-					requestResponsePair,
-					headersToRedact,
-					headerKeysToRecord,
-				),
-			)
+			const sanitizedRequestResponsePair = requestSanitizer
+				? requestSanitizer(requestResponsePair)
+				: requestResponsePair
+
+			if (sanitizedRequestResponsePair) {
+				xhrCallback(
+					sanitizeRequestResponsePair(
+						requestResponsePair,
+						headersToRedact,
+						headerKeysToRecord,
+					),
+				)
+			}
 		},
 		backendUrl,
 		tracingOrigins,
@@ -61,13 +71,19 @@ export const NetworkListener = ({
 	)
 	const removeFetchListener = FetchListener(
 		(requestResponsePair) => {
-			fetchCallback(
-				sanitizeRequestResponsePair(
-					requestResponsePair,
-					headersToRedact,
-					headerKeysToRecord,
-				),
-			)
+			const sanitizedRequestResponsePair = requestSanitizer
+				? requestSanitizer(requestResponsePair)
+				: requestResponsePair
+
+			if (sanitizedRequestResponsePair) {
+				fetchCallback(
+					sanitizeRequestResponsePair(
+						sanitizedRequestResponsePair,
+						headersToRedact,
+						headerKeysToRecord,
+					),
+				)
+			}
 		},
 		backendUrl,
 		tracingOrigins,
