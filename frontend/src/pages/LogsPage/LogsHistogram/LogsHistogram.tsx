@@ -15,6 +15,7 @@ import * as styles from './LogsHistogram.css'
 type LogCount = {
 	level: string
 	count: number
+	unit?: string
 }
 interface HistogramBucket {
 	startDate: Date
@@ -595,6 +596,7 @@ const LogBucketBar = ({
 										weight="medium"
 									>
 										{bar.count}
+										{bar.unit?.length ? bar.unit : null}
 									</Text>
 								</Box>
 							</Box>

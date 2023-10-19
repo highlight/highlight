@@ -1115,6 +1115,7 @@ export interface QueryBuilderProps {
 	errorTagData?: GetErrorTagsQuery
 	readonly?: boolean
 	minimal?: boolean
+	setDefault?: boolean
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
 		| typeof useEditErrorSegmentMutation
@@ -1154,6 +1155,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		errorTagData,
 		readonly,
 		minimal,
+		setDefault,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
 		CreateAnySegmentModal,
@@ -1527,10 +1529,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// Not sure if this is desired behavior in the long term, but
 	// this matches the current prod behavior.
 	useEffect(() => {
-		return () => {
-			removeSelectedSegment()
+		if (setDefault !== false) {
+			return () => {
+				removeSelectedSegment()
+			}
 		}
-	}, [removeSelectedSegment])
+	}, [removeSelectedSegment, setDefault])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 

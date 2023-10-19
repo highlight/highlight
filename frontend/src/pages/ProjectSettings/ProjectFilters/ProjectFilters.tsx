@@ -122,14 +122,17 @@ export const ProjectProductFilters: React.FC<{
 }> = ({ product, view }) => {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
-	const { setSearchQuery } = useSearchContext()
-	const { setSearchQuery: setErrorSearchQuery } = useErrorSearchContext()
+	const { searchQuery, setSearchQuery } = useSearchContext()
+	const {
+		searchQuery: errorSearchQuery,
+		setSearchQuery: setErrorSearchQuery,
+	} = useErrorSearchContext()
 	const { currentWorkspace } = useApplicationContext()
 	const [dateRange, setDateRange] = React.useState<DateRange>({
 		start: defaultPresets[1].startDate,
 		end: getNow().toDate(),
 	})
-	const { data } = useGetProjectSettingsQuery({
+	const { data, loading } = useGetProjectSettingsQuery({
 		variables: {
 			projectId: projectId!,
 		},
@@ -147,7 +150,7 @@ export const ProjectProductFilters: React.FC<{
 	const formStore = useFormStore({
 		defaultValues: {
 			exclusionQuery: '',
-			samplingRate: 1,
+			samplingPercent: 100,
 			minuteRateLimit: 1_000_000,
 		},
 	})
@@ -174,6 +177,7 @@ export const ProjectProductFilters: React.FC<{
 	])
 
 	const resetConfig = React.useCallback(() => {
+		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
 		const c = {
 			exclusion_query:
 				data?.projectSettings?.sampling[
@@ -214,24 +218,24 @@ export const ProjectProductFilters: React.FC<{
 		}
 		formStore.setValues({
 			exclusionQuery: c?.exclusion_query ?? '',
-			samplingRate: c?.sampling_rate ?? 1,
+			samplingPercent: 100 * (c?.sampling_rate ?? 1),
 			minuteRateLimit: c?.minute_rate_limit ?? 1_000_000,
 		})
 
-		if (c?.exclusion_query && product === ProductType.Sessions) {
+		if (
+			c?.exclusion_query &&
+			(product === ProductType.Sessions || product === ProductType.Errors)
+		) {
 			const params = {} as { [key: string]: string }
 			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
 				const [key, value] = pair.split(':')
-				params[`session_${key}`] = `is:${value}`
+				params[
+					`${product.toLowerCase().slice(0, -1)}_${key}`
+				] = `is:${value}`
 			}
-			setSearchQuery(buildQueryStateString(params))
-		} else if (c?.exclusion_query && product === ProductType.Errors) {
-			const params = {} as { [key: string]: string }
-			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
-				const [key, value] = pair.split(':')
-				params[`error_${key}`] = `is:${value}`
-			}
-			setErrorSearchQuery(buildQueryStateString(params))
+			;(product === ProductType.Sessions
+				? setSearchQuery
+				: setErrorSearchQuery)(buildQueryStateString(params))
 		}
 	}, [
 		data?.projectSettings?.sampling,
@@ -241,9 +245,40 @@ export const ProjectProductFilters: React.FC<{
 		setSearchQuery,
 	])
 
+	React.useEffect(() => {
+		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
+		const rules = []
+		if (
+			product === ProductType.Sessions ||
+			product === ProductType.Errors
+		) {
+			for (const [key, _, v] of JSON.parse(
+				product === ProductType.Sessions
+					? searchQuery
+					: product === ProductType.Errors
+					? errorSearchQuery
+					: JSON.stringify({ rules: [] }),
+			).rules) {
+				const [type, k] = key.split(/_(.*)/s)
+				if (product === ProductType.Sessions && type !== 'session')
+					continue
+				if (product === ProductType.Errors && type !== 'error-field')
+					continue
+				if (product === ProductType.Errors && k === 'timestamp')
+					continue
+				if (v.indexOf(' ') !== -1) {
+					rules.push(`${k}:"${v}"`)
+				} else {
+					rules.push(`${k}:${v}`)
+				}
+			}
+		}
+		formStore.setValue('exclusionQuery', rules.join(' '))
+	}, [errorSearchQuery, formStore, product, searchQuery])
+
 	React.useEffect(resetConfig, [resetConfig])
 
-	if (!product) {
+	if (!product || loading) {
 		return null
 	}
 
@@ -257,7 +292,7 @@ export const ProjectProductFilters: React.FC<{
 			[`${product.toLowerCase().slice(0, -1)}_exclusion_query`]:
 				formStore.getValue('exclusionQuery'),
 			[`${product.toLowerCase().slice(0, -1)}_sampling_rate`]:
-				formStore.getValue('samplingRate'),
+				formStore.getValue('samplingPercent') / 100,
 			[`${product.toLowerCase().slice(0, -1)}_minute_rate_limit`]:
 				formStore.getValue('minuteRateLimit'),
 		}
@@ -341,9 +376,17 @@ export const ProjectProductFilters: React.FC<{
 									}
 								/>
 							) : product === ProductType.Sessions ? (
-								<SessionQueryBuilder minimal readonly={view} />
+								<SessionQueryBuilder
+									minimal
+									readonly={view}
+									setDefault={false}
+								/>
 							) : (
-								<ErrorQueryBuilder minimal readonly={view} />
+								<ErrorQueryBuilder
+									minimal
+									readonly={view}
+									setDefault={false}
+								/>
 							)}
 						</Box>
 						{view ? (
@@ -368,17 +411,16 @@ export const ProjectProductFilters: React.FC<{
 						<Box display="flex" alignItems="center" gap="4">
 							<Tag shape="basic" kind="secondary" emphasis="high">
 								Sampling:{' '}
-								{(
-									100 * formStore.getValue('samplingRate') ??
-									1
-								)?.toLocaleString()}
+								{formStore
+									.getValue('samplingPercent')
+									.toLocaleString()}
 								%
 							</Tag>
 							<Tag shape="basic" kind="secondary" emphasis="high">
 								Max ingest:{' '}
 								{formStore
 									.getValue('minuteRateLimit')
-									?.toLocaleString()}{' '}
+									.toLocaleString()}{' '}
 								/ minute
 							</Tag>
 						</Box>
@@ -423,10 +465,10 @@ export const ProjectProductFilters: React.FC<{
 								>
 									<Form.Label
 										label="Sampling %"
-										name={formStore.names.samplingRate}
+										name={formStore.names.samplingPercent}
 									/>
 									<Form.Input
-										name={formStore.names.samplingRate}
+										name={formStore.names.samplingPercent}
 										type="number"
 									/>
 								</Box>
@@ -485,11 +527,21 @@ const IngestTimeline: React.FC<{
 		counts: [
 			{
 				level: 'Ingested',
-				count: groupedByBucket[b.bucket_id][0]?.metric_value ?? 0,
+				count:
+					(100 *
+						(groupedByBucket[b.bucket_id][0]?.metric_value ?? 0)) /
+					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
+						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
+				unit: '%',
 			},
 			{
 				level: 'Dropped',
-				count: groupedByBucket[b.bucket_id][1]?.metric_value ?? 0,
+				count:
+					(100 *
+						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)) /
+					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
+						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
+				unit: '%',
 			},
 		],
 	}))

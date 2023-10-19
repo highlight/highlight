@@ -74,10 +74,18 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		if updates.Sampling.TraceMinuteRateLimit != nil {
 			projectFilterSettings.TraceMinuteRateLimit = *updates.Sampling.TraceMinuteRateLimit
 		}
-		projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery
-		projectFilterSettings.ErrorExclusionQuery = updates.Sampling.ErrorExclusionQuery
-		projectFilterSettings.LogExclusionQuery = updates.Sampling.LogExclusionQuery
-		projectFilterSettings.TraceExclusionQuery = updates.Sampling.TraceExclusionQuery
+		if projectFilterSettings.SessionExclusionQuery != nil {
+			projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery
+		}
+		if projectFilterSettings.ErrorExclusionQuery != nil {
+			projectFilterSettings.ErrorExclusionQuery = updates.Sampling.ErrorExclusionQuery
+		}
+		if projectFilterSettings.LogExclusionQuery != nil {
+			projectFilterSettings.LogExclusionQuery = updates.Sampling.LogExclusionQuery
+		}
+		if projectFilterSettings.TraceExclusionQuery != nil {
+			projectFilterSettings.TraceExclusionQuery = updates.Sampling.TraceExclusionQuery
+		}
 	}
 
 	result := store.db.Save(&projectFilterSettings)
