@@ -110,7 +110,7 @@ const DayFour = () => {
 						<CardOverlay
 							header="Clickhouse migration."
 							buttonText="View Blog Post"
-							buttonLink="/blog/migrating-opensearch-to-clickhouse.md"
+							buttonLink="/blog/migrating-opensearch-to-clickhouse"
 						/>
 					</div>
 				</div>
