@@ -60,38 +60,45 @@ const SessionComment = ({
 	const formattedFeedbackNumber = `#${feedbackNumberPrefix}${feebackNumber}`
 
 	return (
-		<Box
-			bt="secondary"
-			backgroundColor="nested"
-			pt="8"
-			pb="12"
-			px="12"
-			display="flex"
-			justifyContent="center"
-			flexDirection="column"
-			borderBottomLeftRadius="6"
-			borderBottomRightRadius="6"
-		>
-			<Box pb="4" display="flex" justifyContent="space-between">
-				<Box alignItems="center" display="flex" gap="6" flexGrow={1}>
-					<Text lines="1" color="weak" size="small">
-						Feedback {formattedFeedbackNumber}
-					</Text>
-					<Text
-						size="small"
-						color="secondaryContentOnDisabled"
-						lines="1"
+		<>
+			{index !== 0 && <Box borderTop="dividerWeak" mx="12" />}
+			<Box
+				backgroundColor="nested"
+				pt="8"
+				pb="12"
+				px="12"
+				display="flex"
+				justifyContent="center"
+				flexDirection="column"
+				borderBottomLeftRadius="6"
+				borderBottomRightRadius="6"
+			>
+				<Box pb="4" display="flex" justifyContent="space-between">
+					<Box
+						alignItems="center"
+						display="flex"
+						gap="6"
+						flexGrow={1}
 					>
-						{timeAgo}
-					</Text>
-				</Box>
+						<Text lines="1" color="weak" size="small">
+							Feedback {formattedFeedbackNumber}
+						</Text>
+						<Text
+							size="small"
+							color="secondaryContentOnDisabled"
+							lines="1"
+						>
+							{timeAgo}
+						</Text>
+					</Box>
 
-				{tag}
+					{tag}
+				</Box>
+				<Text lines="1" align="left" size="small" color="default">
+					{sessionComment.text}
+				</Text>
 			</Box>
-			<Text lines="1" align="left" size="small" color="default">
-				{sessionComment.text}
-			</Text>
-		</Box>
+		</>
 	)
 }
 
@@ -116,7 +123,7 @@ export const ErrorBoundaryFeedback = ({ data: errorObject }: Props) => {
 					/>
 				),
 		)
-		return <>{comments}</>
+		return <Box bt="secondary">{comments}</Box>
 	}
 	return null
 }
