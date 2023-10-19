@@ -11,15 +11,15 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
 import styles from '../../components/Home/Home.module.scss'
+import DayFive from '../../components/Launch/Week3/DayFive'
 import DayFour from '../../components/Launch/Week3/DayFour'
 import DayOne from '../../components/Launch/Week3/DayOne'
 import DayThree from '../../components/Launch/Week3/DayThree'
 import DayTwo from '../../components/Launch/Week3/DayTwo'
-import HiddenDay from '../../components/Launch/Week3/HiddenDay'
 import preview from '../../public/images/launch/week-3/ogimage.png'
 
 const LaunchPage = () => {
-	const day = 4
+	const day = 5
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
@@ -69,7 +69,7 @@ const LaunchPage = () => {
 							scrollToDay(day)
 						}}
 						href={'/launch-week-2#day-' + day.toString()}
-						className="z-50 flex justify-between items-center text-copy-on-dark p-4 w-full bg-black border-[1px] border-[#1C1C1C] rounded-md flex-shrink-0 hover:border-white transition-all"
+						className="z-50 flex justify-between items-center text-copy-on-dark p-4 w-full bg-black border-[1px] border-[#34343A] rounded-md flex-shrink-0 hover:border-white transition-all"
 					>
 						<Typography type="copy4" emphasis>
 							Go to Day {day}
@@ -88,7 +88,7 @@ const LaunchPage = () => {
 
 					<Link
 						href="https://twitter.com/highlightio?lang=en"
-						className="z-50 flex justify-between items-center text-copy-on-dark p-4 w-full bg-black border-[1px] border-[#1C1C1C] rounded-md flex-shrink-0 hover:border-white transition-all"
+						className="z-50 flex justify-between items-center text-copy-on-dark p-4 w-full bg-black border-[1px] border-[#34343A] rounded-md flex-shrink-0 hover:border-white transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<BsTwitter className="w-6 h-6" />
@@ -105,7 +105,7 @@ const LaunchPage = () => {
 
 					<Link
 						href="https://news.ycombinator.com/item?id=37675894"
-						className="z-50 flex justify-between items-center text-copy-on-dark p-4 w-full bg-black border-[1px] border-[#1C1C1C] rounded-md flex-shrink-0 hover:border-white transition-all"
+						className="z-50 flex justify-between items-center text-copy-on-dark p-4 w-full bg-black border-[1px] border-[#34343A] rounded-md flex-shrink-0 hover:border-white transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<Image
@@ -130,7 +130,7 @@ const LaunchPage = () => {
 					<DayTwo />
 					<DayThree />
 					<DayFour />
-					<HiddenDay title="Day 5: October 20th" />
+					<DayFive />
 				</div>
 				<Section>
 					<CompaniesReel />
