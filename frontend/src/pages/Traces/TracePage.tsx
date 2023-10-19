@@ -44,7 +44,11 @@ export const TracePage: React.FC<Props> = () => {
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
 	const [selectedSpan, setSelectedSpan] = useState<FlameGraphSpan | Trace>()
 	const [hoveredSpan, setHoveredSpan] = useState<FlameGraphSpan>()
-	const [zoom, setZoom] = useState(10)
+	const [tooltipCoordinates, setTooltipCoordinates] = useState({
+		x: 0,
+		y: 0,
+	})
+	const [zoom, setZoom] = useState(1)
 	const highlightedSpan = hoveredSpan || selectedSpan
 
 	const { data, loading } = useGetTraceQuery({
@@ -64,6 +68,17 @@ export const TracePage: React.FC<Props> = () => {
 		},
 		skip: !projectId || !traceId,
 	})
+
+	const setTooltipCoordinatesImpl = React.useCallback(
+		(e: React.MouseEvent) => {
+			const elementBounds = e.currentTarget.getBoundingClientRect()
+			const y = elementBounds.top - 60
+			const x = e.clientX
+
+			setTooltipCoordinates({ x, y })
+		},
+		[],
+	)
 
 	const traces = React.useMemo(() => {
 		if (!data?.trace?.trace) return []
@@ -106,9 +121,10 @@ export const TracePage: React.FC<Props> = () => {
 		}
 	})
 
+	// TODO: Make dynamic. Consider using auto sizer.
 	const height = 260
 	const width = 648
-	console.log('::: traces', traces)
+	// console.log('::: traces', traces)
 
 	return (
 		<Box overflow="scroll">
@@ -201,10 +217,47 @@ export const TracePage: React.FC<Props> = () => {
 										selectedSpan={selectedSpan}
 										setHoveredSpan={setHoveredSpan}
 										setSelectedSpan={setSelectedSpan}
+										setTooltipCoordinates={
+											setTooltipCoordinatesImpl
+										}
 									/>
 								)
 							})}
 						</svg>
+						{hoveredSpan && (
+							<Box
+								position="fixed"
+								display="flex"
+								flexDirection="column"
+								gap="6"
+								style={{
+									left: tooltipCoordinates.x - 10,
+									top: tooltipCoordinates.y + 5,
+									backgroundColor: '#fff',
+									padding: '4px 8px',
+									borderRadius: '4px',
+									zIndex: 1000,
+								}}
+								shadow="small"
+								border="dividerWeak"
+							>
+								<Text weight="bold" lines="1">
+									{hoveredSpan.spanName}
+								</Text>
+								<Text lines="1">
+									Duration:{' '}
+									{getTraceDurationString(
+										hoveredSpan.duration,
+									)}
+								</Text>
+								<Text lines="1">
+									Start:{' '}
+									{getTraceDurationString(
+										hoveredSpan.start,
+									) || '0ms'}
+								</Text>
+							</Box>
+						)}
 					</Box>
 				</Box>
 

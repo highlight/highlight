@@ -1,6 +1,6 @@
 import { FlameChartNode } from 'flame-chart-js'
 
-import { Trace, TraceError } from '@/graph/generated/schemas'
+import { Trace } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
 	return trace.reduce((acc, span) => {
@@ -45,6 +45,7 @@ export const getTraceDurationString = (duration: number) => {
 	const minuteString = minutes > 0 ? `${minutes % 60}m` : ''
 	const secondString = seconds > 0 ? `${seconds % 60}s` : ''
 	const millisecondString = milliseconds > 0 ? `${milliseconds % 1000}ms` : ''
+	const nanosecondString = nanoseconds > 0 ? `${nanoseconds % 1000000}ns` : ''
 
 	if (dayString) {
 		return `${dayString} ${hourString} ${minuteString} ${secondString}`
@@ -54,31 +55,31 @@ export const getTraceDurationString = (duration: number) => {
 		return `${minuteString} ${secondString}`
 	} else if (secondString) {
 		return `${secondString} ${millisecondString}`
+	} else if (millisecondString) {
+		return millisecondString
 	} else {
-		return `${millisecondString}`
+		return nanosecondString
 	}
 }
 
 export type FlameGraphSpan = {
+	start: number // nanoseconds since start of trace
 	children?: FlameGraphSpan[]
 } & Trace &
 	FlameChartNode
 
-export const organizeSpans = (
-	spans: Trace[],
-	errors?: TraceError[],
-	selectedSpan?: Trace,
-) => {
+// TODO: Organize in rows and set overlapping spans next to each other. Possibly
+// make another method to handle this.
+export const organizeSpans = (spans: Trace[]) => {
 	// Object is not modifieable, so we need to clone it to add children
+	const startTime = new Date(spans[0].timestamp).getTime() * 1000000
 	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
 
 	const sortedTrace = tempSpans.reduce((acc, span) => {
 		const parentSpanID = span.parentSpanID
-		const isSelected = selectedSpan?.spanID === span.spanID
-		const hasErrors = errors?.some((e) => e.span_id === span.spanID)
 		span.name = span.spanName
-		// span.color = isSelected ? '#744ED4' : '#E7DEFC'
-		// span.color = hasErrors ? '#ff0000' : span.color
+		const spanStart = new Date(span.timestamp).getTime() * 1000000
+		span.start = spanStart - startTime
 
 		if (parentSpanID) {
 			const parentSpan = tempSpans.find(
