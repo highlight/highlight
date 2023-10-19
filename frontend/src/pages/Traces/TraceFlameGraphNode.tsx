@@ -1,11 +1,11 @@
 import { memo } from 'react'
 
-import { Trace, TraceError } from '@/graph/generated/schemas'
+import { TraceError } from '@/graph/generated/schemas'
 import {
 	lineHeight,
 	outsidePadding,
 	ticksHeight,
-} from '@/pages/Traces/TracePage'
+} from '@/pages/Traces/TraceFlameGraph'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
 type Props = {
@@ -16,36 +16,16 @@ type Props = {
 	totalDuration: number
 	height: number
 	width: number
-	selectedSpan: FlameGraphSpan | Trace | undefined
+	selectedSpan: FlameGraphSpan | undefined
 	zoom: number
 	setHoveredSpan: (span?: FlameGraphSpan) => void
 	setSelectedSpan: (span?: FlameGraphSpan) => void
 	setTooltipCoordinates: (e: React.MouseEvent) => void
 }
 
-// const minWidthToDisplay = 1
 const minWidthToDisplayText = 20
 const fontSize = 10
 
-// function useTraceUpdate(props) {
-// 	const prev = useRef(props)
-// 	useEffect(() => {
-// 		const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-// 			if (prev.current[k] !== v) {
-// 				ps[k] = [prev.current[k], v]
-// 			}
-// 			return ps
-// 		}, {})
-
-// 		if (Object.keys(changedProps).length > 0) {
-// 			console.log('Changed props:', changedProps)
-// 		}
-
-// 		prev.current = props
-// 	})
-// }
-
-// TODO: Add ability to zoom into an area on the graph.
 export const TraceFlameGraphNode = memo<Props>(
 	({
 		depth,
@@ -62,20 +42,7 @@ export const TraceFlameGraphNode = memo<Props>(
 		setTooltipCoordinates,
 	}) => {
 		width = width - outsidePadding * 2
-		// useTraceUpdate(props)
-		// TODO: Handle overlapping spans... GetErrorGroupsClickhouse is a good one to
-		// test with since it has a lot of spans and many with the same parent.
-		// Consider looking at https://react-flame-graph.vercel.app/ again.
-		// Demo: https://stackblitz.com/edit/stackblitz-starters-ashwqh?description=React%20%20%20TypeScript%20starter%20project&file=src%2Ftrace.ts,src%2FApp.tsx&title=React%20Starter
-		// This other compnoent seems to handle overlapping spans better.
 		const spanWidth = (span.duration / totalDuration) * width * zoom
-		// TODO: Think about setting the offset based on the previous child's width,
-		// similar to what they do in react-flame-graph:
-		// https://github.com/bvaughn/react-flame-graph/blob/0f270600d9baaaca4458b8e96e5ab5bfbb347732/src/utils.js#L77
-		// The other option would be to move overlapping spans to the next level. This
-		// is what Datadog does. We could also just leave the spans overlapping and
-		// render them similar to flame-chart-js:
-		// https://stackblitz.com/edit/typescript-qwaeeb?file=trace.ts,index.html,index.ts
 		const offsetX =
 			(span.start / totalDuration) * width * zoom + outsidePadding
 		const offsetY = depth
