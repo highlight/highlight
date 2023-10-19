@@ -17,7 +17,7 @@ func Middleware(next http.Handler) http.Handler {
 	middleware.CheckStatus()
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := highlight.InterceptRequest(r)
-		span, ctx := highlight.StartTrace(ctx, "highlight/chi")
+		span, ctx := highlight.StartTrace(ctx, "highlight.chi")
 		defer highlight.EndTrace(span)
 
 		r = r.WithContext(ctx)
