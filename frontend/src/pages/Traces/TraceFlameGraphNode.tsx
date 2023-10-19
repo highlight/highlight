@@ -1,5 +1,4 @@
 import moment from 'moment'
-import { useEffect, useRef } from 'react'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
@@ -19,28 +18,28 @@ type Props = {
 	setTooltipCoordinates: (e: React.MouseEvent) => void
 }
 
-const minWidthToDisplay = 1
+// const minWidthToDisplay = 1
 const minWidthToDisplayText = 20
 const lineHeight = 18
 const fontSize = 10
 
-function useTraceUpdate(props) {
-	const prev = useRef(props)
-	useEffect(() => {
-		const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-			if (prev.current[k] !== v) {
-				ps[k] = [prev.current[k], v]
-			}
-			return ps
-		}, {})
+// function useTraceUpdate(props) {
+// 	const prev = useRef(props)
+// 	useEffect(() => {
+// 		const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+// 			if (prev.current[k] !== v) {
+// 				ps[k] = [prev.current[k], v]
+// 			}
+// 			return ps
+// 		}, {})
 
-		if (Object.keys(changedProps).length > 0) {
-			console.log('Changed props:', changedProps)
-		}
+// 		if (Object.keys(changedProps).length > 0) {
+// 			console.log('Changed props:', changedProps)
+// 		}
 
-		prev.current = props
-	})
-}
+// 		prev.current = props
+// 	})
+// }
 
 // TODO: Add ability to zoom into an area on the graph.
 export const TraceFlameGraphNode: React.FC<Props> = (props) => {
