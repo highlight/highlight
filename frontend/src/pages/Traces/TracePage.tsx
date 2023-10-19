@@ -71,12 +71,11 @@ export const TracePage: React.FC<Props> = () => {
 
 	const setTooltipCoordinatesImpl = React.useCallback(
 		(e: React.MouseEvent) => {
-			return null
-			// const elementBounds = e.currentTarget.getBoundingClientRect()
-			// const y = elementBounds.top - 60
-			// const x = e.clientX
+			const elementBounds = e.currentTarget.getBoundingClientRect()
+			const y = elementBounds.top - 60
+			const x = e.clientX
 
-			// setTooltipCoordinates({ x, y })
+			setTooltipCoordinates({ x, y })
 		},
 		[],
 	)
