@@ -166,6 +166,9 @@ export const TraceFlameGraphNode = memo<Props>(
 		)
 	},
 	(prevProps, nextProps) => {
-		return prevProps.selectedSpan?.spanID === nextProps.selectedSpan?.spanID
+		return (
+			prevProps.zoom === nextProps.zoom &&
+			prevProps.selectedSpan?.spanID === nextProps.selectedSpan?.spanID
+		)
 	},
 )
