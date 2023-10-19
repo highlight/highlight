@@ -13,7 +13,7 @@ const CardOverlay = ({
 	buttonLink?: string
 }) => {
 	return (
-		<div className="absolute px-3 top-4 left-2 flex-row h-full justify-between">
+		<div className="absolute px-3 top-4 left-2 flex-row h-full justify-between w-full">
 			<Typography
 				className="text-white leading-[28px]"
 				type="copy2"
