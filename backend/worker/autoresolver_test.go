@@ -39,7 +39,13 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 	db := autoResolver.db
 
 	util.RunTestWithDBWipe(t, db, func(t *testing.T) {
-		project := model.Project{}
+		workspace := model.Workspace{}
+		db.Create(&workspace)
+
+		settings := model.AllWorkspaceSettings{WorkspaceID: workspace.ID}
+		db.Create(&settings)
+
+		project := model.Project{WorkspaceID: workspace.ID}
 		db.Create(&project)
 
 		_, err := autoResolver.store.UpdateProjectFilterSettings(context.TODO(), project.ID, store.UpdateProjectFilterSettingsParams{

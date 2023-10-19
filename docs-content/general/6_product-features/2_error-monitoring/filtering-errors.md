@@ -13,6 +13,18 @@ Filtered errors do not count towards your billing quota.
 
 There are several options for filtering errors, all of which can be found in the "Error Monitoring" tab of your [project settings](https://app.highlight.io/settings). Details on each option are below.
 
+## Set up ingestion filters
+
+You can set up ingestion filters by product to limit the number of data points recorded. You can filter sessions, errors, logs, or traces in the following ways:
+1. Sample a percentage of all data.
+   For example, you may configure ingestion of 1% of all errors. For each session we receive, we will make a randomized decision that will result in storing only 1% of those. The random decision is based on the identifier of that product model for consistency. With traces, the `Trace ID` is used to make sure all children of the same trace are also ingested.
+2. Rate limit the maximum number of data points ingested in a 1 minute window.
+   For example, you may configure a rate limit of 100 errors per minute. This will allow you to limit the number of errors recorded in case of a significant spike in usage of your product.
+3. Set up an exclusion query.
+   For example, you may configure an exclusion query of `environment: development`. This will avoid ingesting all errors tagged with the `development` environment.
+
+With these filters, we will only bill you for data actually retained. For instance, setting up ingestion of only 1% of all errors will mean that you will be billed only for 1% of all errors.
+
 ## Show errors that have an associated frontend session recorded.
 You can use the `disableSessionRecording` setting to record frontend errors without recording a session. 
 

@@ -37,7 +37,6 @@ import {
 	useMatch,
 } from 'react-router-dom'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
 import {
 	useAlertsIntegration,
@@ -52,7 +51,6 @@ import { AlertsSetup } from './AlertsSetup'
 import * as styles from './SetupRouter.css'
 
 export const SetupRouter = () => {
-	const { isHighlightAdmin } = useAuthContext()
 	const { toggleShowBanner } = useGlobalContext()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'
@@ -195,37 +193,35 @@ export const SetupRouter = () => {
 							)}
 						</Stack>
 					</NavLink>
-					{isHighlightAdmin && (
-						<NavLink
-							to="traces"
-							className={({ isActive }) =>
-								clsx(styles.menuItem, {
-									[styles.menuItemActive]: isActive,
-								})
-							}
+					<NavLink
+						to="traces"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
+						<Stack
+							direction="row"
+							align="center"
+							justify="space-between"
+							pr="8"
 						>
-							<Stack
-								direction="row"
-								align="center"
-								justify="space-between"
-								pr="8"
-							>
-								<Stack direction="row" align="center" gap="4">
-									<IconSolidSparkles />
-									<Text>Traces</Text>
-									<Badge
-										size="small"
-										shape="basic"
-										label="Beta"
-										variant="purple"
-									/>
-								</Stack>
-								{tracesIntegration?.integrated && (
-									<IconSolidCheckCircle />
-								)}
+							<Stack direction="row" align="center" gap="4">
+								<IconSolidSparkles />
+								<Text>Traces</Text>
+								<Badge
+									size="small"
+									shape="basic"
+									label="Beta"
+									variant="purple"
+								/>
 							</Stack>
-						</NavLink>
-					)}
+							{tracesIntegration?.integrated && (
+								<IconSolidCheckCircle />
+							)}
+						</Stack>
+					</NavLink>
 					<NavLink
 						to="alerts"
 						className={({ isActive }) =>

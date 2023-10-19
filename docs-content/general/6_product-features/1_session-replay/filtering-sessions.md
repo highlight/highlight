@@ -12,6 +12,18 @@ updatedAt: 2022-06-27T03:34:47.000Z
 Filtered sessions do not count towards your billing quota.
 ```
 
+## Set up ingestion filters
+
+You can set up ingestion filters by product to limit the number of data points recorded. You can filter sessions, errors, logs, or traces in the following ways:
+1. Sample a percentage of all data.
+For example, you may configure ingestion of 1% of all sessions. For each session we receive, we will make a randomized decision that will result in storing only 1% of those. The random decision is based on the identifier of that product model for consistency. With traces, the `Trace ID` is used to make sure all children of the same trace are also ingested. 
+2. Rate limit the maximum number of data points ingested in a 1 minute window.
+For example, you may configure a rate limit of 100 sessions per minute. This will allow you to limit the number of sessions recorded in case of a significant spike in usage of your product.
+3. Set up an exclusion query.
+For example, you may configure an exclusion query of `environment: development`. This will avoid ingesting all sessions tagged with the `development` environment.
+
+With these filters, we will only bill you for data actually retained. For instance, setting up ingestion of only 1% of all sessions will mean that you will be billed only for 1% of all sessions (as measured by [our definition of a session](events-and-users.md#definition-of-a-session)).
+
 ## Filter sessions by user identifier
 In some cases, you may want to filter sessions from a specific user. You can do this by adding the user identifier to the "Filtered Sessions" input under the "Session Replay" tab in your [project settings](https://app.highlight.io/settings). Please note that we use the `identifier` (or first argument) sent in your `H.identify` method to filter against (SDK docs [here](../../../sdk/client.md)).
 

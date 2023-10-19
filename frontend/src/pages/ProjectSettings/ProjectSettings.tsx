@@ -5,6 +5,7 @@ import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorF
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
 import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/ExcludedUsersForm'
 import { FilterExtensionForm } from '@pages/ProjectSettings/FilterExtensionForm/FilterExtensionForm'
+import { ProjectFilters } from '@pages/ProjectSettings/ProjectFilters/ProjectFilters'
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm'
 import { ServicesTable } from '@pages/ProjectSettings/ServicesTable/ServicesTable'
 import { SessionExportForm } from '@pages/ProjectSettings/SessionExportForm/SessionExportForm'
@@ -93,7 +94,6 @@ const ProjectSettings = () => {
 		return <LoadingRightPanel show={true} />
 	}
 
-	// TODO(vkorolik) build UI for adjusting sampling settings
 	return (
 		<>
 			<Helmet>
@@ -117,6 +117,7 @@ const ProjectSettings = () => {
 							onChange={(key) => {
 								navigate(`/${project_id}/settings/${key}`)
 							}}
+							border
 							noHeaderPadding
 							noPadding
 							id="settingsTabs"
@@ -224,6 +225,11 @@ const ProjectSettings = () => {
 									key: 'services',
 									title: 'Services',
 									panelContent: <ServicesTable />,
+								},
+								{
+									key: 'filters',
+									title: 'Filters',
+									panelContent: <ProjectFilters />,
 								},
 							]}
 						/>

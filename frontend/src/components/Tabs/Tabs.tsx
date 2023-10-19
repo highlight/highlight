@@ -29,6 +29,7 @@ type Props = Pick<
 	unsetOverflowY?: boolean
 	/** Whether the tab headers have the default padding. */
 	noHeaderPadding?: boolean
+	border?: boolean
 	/** An HTML id to attach to the tabs. */
 	tabsHtmlId?: string
 	className?: string
@@ -41,6 +42,7 @@ const Tabs = ({
 	id,
 	noPadding = false,
 	noHeaderPadding = false,
+	border = false,
 	unsetOverflowY = false,
 	tabBarExtraContent,
 	tabsHtmlId,
@@ -104,6 +106,7 @@ const Tabs = ({
 			id={tabsHtmlId}
 			className={clsx(styles.tabs, className, {
 				[styles.noHeaderPadding]: noHeaderPadding,
+				[styles.border]: border,
 			})}
 		>
 			{tabs.map(({ panelContent, title, key, disabled, hidden }) => {

@@ -5,6 +5,7 @@ import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
 import clsx from 'clsx'
 import { memo, useMemo, useRef, useState } from 'react'
+import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -14,6 +15,7 @@ import * as styles from './LogsHistogram.css'
 type LogCount = {
 	level: string
 	count: number
+	unit?: string
 }
 interface HistogramBucket {
 	startDate: Date
@@ -33,6 +35,7 @@ type LogsHistogramProps = Omit<
 	bucketCount: number
 	loading: boolean
 	outline?: boolean
+	legend?: boolean
 	threshold?: number
 	belowThreshold?: boolean
 	frequencySeconds?: number
@@ -53,10 +56,12 @@ interface LogsHistogramChartProps {
 	onLevelChange?: (level: Level) => void
 	barColor?: string
 	noPadding?: boolean
+	legend?: boolean
 }
 
 const LogsHistogram = ({
 	outline,
+	legend,
 	startDate,
 	endDate,
 	onDatesChange,
@@ -116,7 +121,7 @@ const LogsHistogram = ({
 
 		return [...Array(bucketCount)].map((_, bucketId) => {
 			const counts = bucketData.get(bucketId)
-			const bucket = {
+			return {
 				startDate: new Date(
 					startDate.getTime() + bucketId * bucketStep,
 				),
@@ -126,7 +131,6 @@ const LogsHistogram = ({
 				width: 100 / bucketCount,
 				counts,
 			} as HistogramBucket
-			return bucket
 		})
 	}, [histogramBuckets, endDate, startDate, bucketCount, maxBucketCount])
 
@@ -136,8 +140,7 @@ const LogsHistogram = ({
 		return [
 			...new Set(
 				[...Array(count + 1)].map((_, idx) => {
-					const tick = Math.ceil(maxBucketCount / count) * idx
-					return tick
+					return Math.ceil(maxBucketCount / count) * idx
 				}),
 			),
 		]
@@ -228,8 +231,9 @@ const LogsHistogram = ({
 			alignItems="center"
 			gap="4"
 			cssClass={clsx({
-				[styles.regularHeight]: !outline,
-				[styles.outlineHeight]: outline,
+				[styles.regularHeight]: !legend && !outline,
+				[styles.outlineHeight]: !legend && outline,
+				[styles.legendHeight]: legend,
 			})}
 			{...props}
 		>
@@ -270,6 +274,7 @@ const LogsHistogram = ({
 							maxBucketCount={maxBucketCount}
 							barColor={barColor}
 							noPadding={noPadding}
+							legend={legend}
 						/>
 					</>
 				) : (
@@ -301,6 +306,7 @@ const LogsHistogramChart = ({
 	maxBucketCount,
 	barColor,
 	noPadding,
+	legend,
 }: LogsHistogramChartProps) => {
 	const [dragStart, setDragStart] = useState<number | undefined>()
 	const [dragEnd, setDragEnd] = useState<number | undefined>()
@@ -339,72 +345,117 @@ const LogsHistogramChart = ({
 		totalCount,
 	])
 
+	const legendContent = useMemo(() => {
+		return Array.from(
+			new Set<string>(
+				Array.from(
+					(buckets
+						?.at(0)
+						?.counts?.map((c) => c.level)
+						?.filter((l) => l) ?? []) as Iterable<string>,
+				),
+			),
+		).map((level, idx) => {
+			return (
+				<Box display="flex" gap="6" key={idx}>
+					<svg
+						width="8px"
+						height="8px"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<circle
+							cx={4}
+							cy={4}
+							r={4}
+							fill={COLOR_MAPPING[level as Level]}
+						/>
+					</svg>
+					<Text>{level}</Text>
+				</Box>
+			)
+		})
+	}, [buckets])
+
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	return (
-		<Box
-			display="flex"
-			alignItems="flex-end"
-			height="full"
-			width="full"
-			position="relative"
-			px={noPadding ? '0' : '12'}
-			py={noPadding ? '0' : '4'}
-			ref={containerRef}
-			onMouseDown={(e: any) => {
-				if (!e || !containerRef.current || loadingState) {
-					return
-				}
-				const rect = containerRef.current.getBoundingClientRect()
-				const pos = ((e.clientX - rect.left) / rect.width) * 100
-				setDragStart(pos)
-			}}
-			onMouseMove={(e: any) => {
-				if (!e || !containerRef.current || loadingState) {
-					return
-				}
-				if (dragStart !== undefined) {
+		<Box display="flex" flexDirection="column" height="full">
+			<Box
+				display="flex"
+				alignItems="flex-end"
+				height="full"
+				width="full"
+				position="relative"
+				px={noPadding ? '0' : '12'}
+				py={noPadding ? '0' : '4'}
+				ref={containerRef}
+				onMouseDown={(e: any) => {
+					if (!e || !containerRef.current || loadingState) {
+						return
+					}
 					const rect = containerRef.current.getBoundingClientRect()
 					const pos = ((e.clientX - rect.left) / rect.width) * 100
-					setDragEnd(pos)
-				}
-			}}
-			onMouseUp={() => {
-				if (dragLeft !== undefined && dragRight !== undefined) {
-					const range = endDate.getTime() - startDate.getTime()
-					const start = new Date(
-						startDate.getTime() + (dragLeft / 100) * range,
-					)
-					const end = new Date(
-						startDate.getTime() + (dragRight / 100) * range,
-					)
-					if (isSignificantDateRange(start, end)) {
-						onDatesChange?.(start, end)
+					setDragStart(pos)
+				}}
+				onMouseMove={(e: any) => {
+					if (!e || !containerRef.current || loadingState) {
+						return
 					}
-				}
+					if (dragStart !== undefined) {
+						const rect =
+							containerRef.current.getBoundingClientRect()
+						const pos = ((e.clientX - rect.left) / rect.width) * 100
+						setDragEnd(pos)
+					}
+				}}
+				onMouseUp={() => {
+					if (dragLeft !== undefined && dragRight !== undefined) {
+						const range = endDate.getTime() - startDate.getTime()
+						const start = new Date(
+							startDate.getTime() + (dragLeft / 100) * range,
+						)
+						const end = new Date(
+							startDate.getTime() + (dragRight / 100) * range,
+						)
+						if (isSignificantDateRange(start, end)) {
+							onDatesChange?.(start, end)
+						}
+					}
 
-				setDragStart(undefined)
-				setDragEnd(undefined)
-			}}
-			onMouseLeave={() => {
-				setDragStart(undefined)
-				setDragEnd(undefined)
-			}}
-		>
-			{loadingState === 'skeleton' && <LoadingState />}
-			{loadingState === 'spinner' && <LoadingBox />}
-			{!loadingState && content}
-			{dragLeft !== undefined && dragRight !== undefined && (
+					setDragStart(undefined)
+					setDragEnd(undefined)
+				}}
+				onMouseLeave={() => {
+					setDragStart(undefined)
+					setDragEnd(undefined)
+				}}
+			>
+				{loadingState === 'skeleton' && <LoadingState />}
+				{loadingState === 'spinner' && <LoadingBox />}
+				{!loadingState && content}
+				{dragLeft !== undefined && dragRight !== undefined && (
+					<Box
+						position="absolute"
+						height="full"
+						style={{
+							left: `${dragLeft}%`,
+							width: `${dragRight - dragLeft}%`,
+						}}
+						cssClass={styles.dragSelection}
+					/>
+				)}
+			</Box>
+			{legend ? (
 				<Box
-					position="absolute"
-					height="full"
-					style={{
-						left: `${dragLeft}%`,
-						width: `${dragRight - dragLeft}%`,
-					}}
-					cssClass={styles.dragSelection}
-				/>
-			)}
+					display="flex"
+					alignItems="center"
+					px={noPadding ? '0' : '12'}
+					py={noPadding ? '0' : '4'}
+					gap="16"
+				>
+					{legendContent}
+				</Box>
+			) : null}
 		</Box>
 	)
 }
@@ -544,7 +595,8 @@ const LogBucketBar = ({
 										size="small"
 										weight="medium"
 									>
-										{bar.count}
+										{Number(bar.count).toFixed(1)}
+										{bar.unit?.length ? bar.unit : null}
 									</Text>
 								</Box>
 							</Box>
