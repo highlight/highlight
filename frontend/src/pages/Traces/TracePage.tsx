@@ -12,6 +12,7 @@ import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 import {
 	FlameGraphSpan,
 	getFirstSpan,
+	getMaxDepth,
 	getTraceDurationString,
 	getTraceTimes,
 	organizeSpans,
@@ -29,8 +30,9 @@ enum TraceTabs {
 type Props = {}
 
 const MAX_TICKS = 6
-export const ticksHeight = 25
+export const ticksHeight = 24
 export const outsidePadding = 4
+export const lineHeight = 18
 
 export const TracePage: React.FC<Props> = () => {
 	const {
@@ -53,9 +55,7 @@ export const TracePage: React.FC<Props> = () => {
 	const highlightedSpan = hoveredSpan || selectedSpan
 
 	// TODO: Make dynamic. Consider using auto sizer.
-	const height = 260
 	const width = 660
-	const innerWidth = width - outsidePadding * 2
 
 	const { data, loading } = useGetTraceQuery({
 		variables: {
@@ -115,7 +115,19 @@ export const TracePage: React.FC<Props> = () => {
 
 		return getFirstSpan(data.trace.trace)
 	}, [data?.trace])
-	const traceName = firstSpan?.spanName ?? ''
+
+	const traceName = useMemo(
+		() => (firstSpan ? firstSpan.spanName : ''),
+		[firstSpan],
+	)
+
+	const height = useMemo(() => {
+		if (!traces.length) return 260
+
+		const maxDepth = getMaxDepth(traces)
+		const lineHeightWithPadding = lineHeight + 4
+		return maxDepth * lineHeightWithPadding + ticksHeight + outsidePadding
+	}, [traces])
 
 	const errors = useMemo(() => {
 		if (!data?.trace?.errors) {
@@ -134,10 +146,6 @@ export const TracePage: React.FC<Props> = () => {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
 			const time = getTraceDurationString(tickDuration)
-
-			if (index === length - 1) {
-				debugger
-			}
 
 			return {
 				time: time.trim() === '' ? '0ms' : time,
@@ -194,13 +202,14 @@ export const TracePage: React.FC<Props> = () => {
 							xmlns="http://www.w3.org/2000/svg"
 							height={height}
 							width={width * zoom}
+							style={{ display: 'block' }}
 						>
 							<line
 								stroke="#e4e2e4"
 								x1={0}
-								y1={ticksHeight - 2}
+								y1={ticksHeight}
 								x2={width * zoom}
-								y2={ticksHeight - 2}
+								y2={ticksHeight}
 							/>
 
 							{ticks.map((tick) => {

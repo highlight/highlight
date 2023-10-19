@@ -107,3 +107,21 @@ export const organizeSpans = (spans: Trace[]) => {
 
 	return sortedTrace
 }
+
+export const getMaxDepth = (spans: FlameGraphSpan[]) => {
+	return spans.reduce((acc, span) => {
+		const depth = getDepth(span)
+		return depth > acc ? depth : acc
+	}, 1)
+}
+
+const getDepth = (span: FlameGraphSpan, depth = 1): number => {
+	if (span.children) {
+		return span.children.reduce((acc, child) => {
+			const childDepth = getDepth(child, depth + 1)
+			return childDepth > acc ? childDepth : acc
+		}, depth)
+	} else {
+		return depth
+	}
+}

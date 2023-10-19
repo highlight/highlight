@@ -1,7 +1,11 @@
 import { memo } from 'react'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
-import { outsidePadding, ticksHeight } from '@/pages/Traces/TracePage'
+import {
+	lineHeight,
+	outsidePadding,
+	ticksHeight,
+} from '@/pages/Traces/TracePage'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
 type Props = {
@@ -21,7 +25,6 @@ type Props = {
 
 // const minWidthToDisplay = 1
 const minWidthToDisplayText = 20
-const lineHeight = 18
 const fontSize = 10
 
 // function useTraceUpdate(props) {
@@ -58,6 +61,7 @@ export const TraceFlameGraphNode = memo<Props>(
 		setSelectedSpan,
 		setTooltipCoordinates,
 	}) => {
+		width = width - outsidePadding * 2
 		// useTraceUpdate(props)
 		// TODO: Handle overlapping spans... GetErrorGroupsClickhouse is a good one to
 		// test with since it has a lot of spans and many with the same parent.
@@ -75,8 +79,8 @@ export const TraceFlameGraphNode = memo<Props>(
 		const offsetX =
 			(span.start / totalDuration) * width * zoom + outsidePadding
 		const offsetY = depth
-			? depth * (lineHeight + 4 + ticksHeight)
-			: ticksHeight
+			? depth * (lineHeight + 4) + (ticksHeight + outsidePadding)
+			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
 		const fill = isSelectedSpan ? '#744ed4' : '#e7defc'
