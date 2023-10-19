@@ -66,8 +66,6 @@ const DayFour = () => {
 					<CardOverlay
 						header="Ingest filtering."
 						subheader="You can now ingest per product!"
-						buttonText="View Blogpost"
-						buttonLink="/blog/ai-grouping-for-errors"
 					/>
 				</div>
 				<div className="flex flex-col md:w-2/5 gap-2 max-h-[450px]">
@@ -109,9 +107,8 @@ const DayFour = () => {
 
 						<CardOverlay
 							header="Clickhouse migration."
-							subheader="Highlight migrated to Clickhouse."
 							buttonText="View Blog Post"
-							buttonLink="/blog/github-enhanced-stacktraces"
+							buttonLink="/blog/migrating-opensearch-to-clickhouse.md"
 						/>
 					</div>
 				</div>
