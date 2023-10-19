@@ -66,6 +66,8 @@ const DayFour = () => {
 					<CardOverlay
 						header="Ingest filtering."
 						subheader="You can now ingest per product!"
+						buttonText="View Blog Post"
+						buttonLink="/blog/filtering-and-sampling-ingest"
 					/>
 				</div>
 				<div className="flex flex-col md:w-2/5 gap-2 max-h-[450px]">
