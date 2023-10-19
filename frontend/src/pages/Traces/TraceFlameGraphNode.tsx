@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { memo } from 'react'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
@@ -42,7 +43,7 @@ const fontSize = 10
 // }
 
 // TODO: Add ability to zoom into an area on the graph.
-export const TraceFlameGraphNode: React.FC<Props> = (props) => {
+export const TraceFlameGraphNode = memo<Props>((props) => {
 	const {
 		depth,
 		errors,
@@ -161,4 +162,4 @@ export const TraceFlameGraphNode: React.FC<Props> = (props) => {
 			))}
 		</>
 	)
-}
+})
