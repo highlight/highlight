@@ -931,7 +931,7 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 }
 
 func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err error) {
-	s, ctx := util.StartSpanFromContext(ctx, "public-graph.GetLocationFromIP",
+	s, _ := util.StartSpanFromContext(ctx, "public-graph.GetLocationFromIP",
 		util.ResourceName("getLocationFromIP"))
 	defer s.Finish()
 	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
