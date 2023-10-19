@@ -1,4 +1,4 @@
-import { Box, Dialog } from '@highlight-run/ui'
+import { Dialog } from '@highlight-run/ui'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -32,9 +32,7 @@ export const TracePanel: React.FC = () => {
 			autoFocusOnShow={false}
 			className={styles.dialog}
 		>
-			<Box p="8">
-				<TracePage />
-			</Box>
+			<TracePage />
 		</Dialog>
 	)
 }

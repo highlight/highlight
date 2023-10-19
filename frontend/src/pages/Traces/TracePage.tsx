@@ -1,5 +1,4 @@
 import { Badge, Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 
@@ -13,8 +12,8 @@ import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 import {
 	FlameGraphSpan,
 	getFirstSpan,
-	getTraceDuration,
 	getTraceDurationString,
+	getTraceTimes,
 	organizeSpans,
 } from '@/pages/Traces/utils'
 import { useParams } from '@/util/react-router/useParams'
@@ -30,6 +29,8 @@ enum TraceTabs {
 type Props = {}
 
 const MAX_TICKS = 6
+export const ticksHeight = 25
+export const outsidePadding = 4
 
 export const TracePage: React.FC<Props> = () => {
 	const {
@@ -50,6 +51,11 @@ export const TracePage: React.FC<Props> = () => {
 	})
 	const [zoom, setZoom] = useState(1)
 	const highlightedSpan = hoveredSpan || selectedSpan
+
+	// TODO: Make dynamic. Consider using auto sizer.
+	const height = 260
+	const width = 660
+	const innerWidth = width - outsidePadding * 2
 
 	const { data, loading } = useGetTraceQuery({
 		variables: {
@@ -94,12 +100,12 @@ export const TracePage: React.FC<Props> = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace])
 
-	const totalDuration = useMemo(() => {
+	const { startTime, totalDuration } = useMemo(() => {
 		if (!data?.trace) {
-			return 0
+			return { startTime: 0, endTime: 0, totalDuration: 0 }
 		}
 
-		return getTraceDuration(data.trace.trace)
+		return getTraceTimes(data.trace.trace)
 	}, [data?.trace])
 
 	const firstSpan = useMemo(() => {
@@ -110,7 +116,6 @@ export const TracePage: React.FC<Props> = () => {
 		return getFirstSpan(data.trace.trace)
 	}, [data?.trace])
 	const traceName = firstSpan?.spanName ?? ''
-	const startTime = firstSpan?.timestamp ?? ''
 
 	const errors = useMemo(() => {
 		if (!data?.trace?.errors) {
@@ -124,17 +129,23 @@ export const TracePage: React.FC<Props> = () => {
 	const ticks = useMemo(() => {
 		if (!totalDuration) return []
 
-		return Array.from({ length: MAX_TICKS }).map((_, index) => {
-			const percent = index / (MAX_TICKS - 1)
+		const length = Math.round(MAX_TICKS * zoom)
+		return Array.from({ length }).map((_, index) => {
+			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
 			const time = getTraceDurationString(tickDuration)
+
+			if (index === length - 1) {
+				debugger
+			}
 
 			return {
 				time: time.trim() === '' ? '0ms' : time,
 				percent,
+				x: width * percent * zoom,
 			}
 		})
-	}, [totalDuration])
+	}, [totalDuration, zoom, width])
 
 	if (!data?.trace || !data?.trace?.trace?.length) {
 		return loading ? (
@@ -145,13 +156,6 @@ export const TracePage: React.FC<Props> = () => {
 			</Box>
 		)
 	}
-
-	console.log('::: graph rerender')
-
-	// TODO: Make dynamic. Consider using auto sizer.
-	const height = 260
-	const width = 648
-	// console.log('::: traces', traces)
 
 	return (
 		<Box overflow="scroll">
@@ -180,54 +184,62 @@ export const TracePage: React.FC<Props> = () => {
 					border="dividerWeak"
 				>
 					<Box
-						borderBottom="dividerWeak"
-						pt="6"
-						px="4"
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						justifyContent="space-between"
-						style={{
-							height: 21,
-						}}
-					>
-						{ticks.map((tick) => (
-							<Box key={tick.time} position="relative" pb="8">
-								<Text color="weak" size="xxSmall">
-									{tick.time ?? '0ms'}
-								</Text>
-								<Box
-									backgroundColor="weak"
-									position="absolute"
-									style={{
-										backgroundColor:
-											themeVars.static.divider.weak,
-										bottom: 0,
-										height: 6,
-										left:
-											tick.percent === 0
-												? 0
-												: tick.percent < 1
-												? '50%'
-												: '100%',
-										width: 1,
-									}}
-								/>
-							</Box>
-						))}
-					</Box>
-					<Box
-						p="6"
 						style={{
 							maxHeight: 300,
 							overflowY: 'scroll',
 						}}
 					>
+						{/* TODO: Consider using D3 for rendering the SVG. */}
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							height={height}
 							width={width * zoom}
 						>
+							<line
+								stroke="#e4e2e4"
+								x1={0}
+								y1={ticksHeight - 2}
+								x2={width * zoom}
+								y2={ticksHeight - 2}
+							/>
+
+							{ticks.map((tick) => {
+								const isFirstTick = tick.percent === 0
+								const isLastTick = tick.percent === 1
+								const x = isFirstTick
+									? outsidePadding
+									: isLastTick
+									? tick.x - outsidePadding
+									: tick.x
+
+								return (
+									<g key={tick.time}>
+										<line
+											x1={x}
+											y1={ticksHeight - 8}
+											x2={x}
+											y2={ticksHeight - 2}
+											stroke="#e4e2e4"
+										/>
+
+										<text
+											x={x}
+											y={12}
+											fill="#6f6e77"
+											fontSize={10}
+											textAnchor={
+												isFirstTick
+													? 'start'
+													: isLastTick
+													? 'end'
+													: 'middle'
+											}
+										>
+											{tick.time}
+										</text>
+									</g>
+								)
+							})}
 							{traces.map((span, index) => {
 								return (
 									<TraceFlameGraphNode

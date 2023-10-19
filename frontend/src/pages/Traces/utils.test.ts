@@ -2,12 +2,12 @@ import { cloneDeep } from 'lodash'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
 
-import { getTraceDuration, organizeSpans } from './utils'
+import { getTraceTimes, organizeSpans } from './utils'
 import { trace } from './utils.fixture'
 
 describe('getTraceDuration', () => {
 	it('should return the duration between the start and end times', () => {
-		const totalDuration = getTraceDuration(trace)
+		const totalDuration = getTraceTimes(trace)
 		expect(totalDuration).toEqual(594375375)
 	})
 })

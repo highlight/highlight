@@ -1,14 +1,14 @@
-import moment from 'moment'
 import { memo } from 'react'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
+import { outsidePadding, ticksHeight } from '@/pages/Traces/TracePage'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
 type Props = {
 	depth: number
 	errors: TraceError[]
 	span: FlameGraphSpan
-	startTime: string
+	startTime: number
 	totalDuration: number
 	height: number
 	width: number
@@ -44,21 +44,20 @@ const fontSize = 10
 
 // TODO: Add ability to zoom into an area on the graph.
 export const TraceFlameGraphNode = memo<Props>(
-	(props) => {
-		const {
-			depth,
-			errors,
-			span,
-			startTime,
-			totalDuration,
-			height,
-			width,
-			selectedSpan,
-			zoom,
-			setHoveredSpan,
-			setSelectedSpan,
-			setTooltipCoordinates,
-		} = props
+	({
+		depth,
+		errors,
+		span,
+		startTime,
+		totalDuration,
+		height,
+		width,
+		selectedSpan,
+		zoom,
+		setHoveredSpan,
+		setSelectedSpan,
+		setTooltipCoordinates,
+	}) => {
 		// useTraceUpdate(props)
 		// TODO: Handle overlapping spans... GetErrorGroupsClickhouse is a good one to
 		// test with since it has a lot of spans and many with the same parent.
@@ -66,10 +65,6 @@ export const TraceFlameGraphNode = memo<Props>(
 		// Demo: https://stackblitz.com/edit/stackblitz-starters-ashwqh?description=React%20%20%20TypeScript%20starter%20project&file=src%2Ftrace.ts,src%2FApp.tsx&title=React%20Starter
 		// This other compnoent seems to handle overlapping spans better.
 		const spanWidth = (span.duration / totalDuration) * width * zoom
-		// TODO: Get nanosecond precision
-		const diff =
-			moment(span.timestamp).diff(moment(startTime), 'ms').valueOf() *
-			1000000
 		// TODO: Think about setting the offset based on the previous child's width,
 		// similar to what they do in react-flame-graph:
 		// https://github.com/bvaughn/react-flame-graph/blob/0f270600d9baaaca4458b8e96e5ab5bfbb347732/src/utils.js#L77
@@ -77,8 +72,11 @@ export const TraceFlameGraphNode = memo<Props>(
 		// is what Datadog does. We could also just leave the spans overlapping and
 		// render them similar to flame-chart-js:
 		// https://stackblitz.com/edit/typescript-qwaeeb?file=trace.ts,index.html,index.ts
-		const offsetX = (diff / totalDuration) * width * zoom
-		const offsetY = depth ? depth * (lineHeight + 4) : 0
+		const offsetX =
+			(span.start / totalDuration) * width * zoom + outsidePadding
+		const offsetY = depth
+			? depth * (lineHeight + 4 + ticksHeight)
+			: ticksHeight
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
 		const fill = isSelectedSpan ? '#744ed4' : '#e7defc'

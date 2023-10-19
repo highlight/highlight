@@ -9,6 +9,7 @@ export const dialog = style([
 		border: 'dividerWeak',
 		borderRadius: '6',
 		boxShadow: 'small',
+		padding: '8',
 		overflow: 'scroll',
 	}),
 	{

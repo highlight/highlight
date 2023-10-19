@@ -3,11 +3,7 @@ import { FlameChartNode } from 'flame-chart-js'
 import { Trace } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
-	return trace.reduce((acc, span) => {
-		const spanTime = new Date(span.timestamp)
-		const accTime = acc.timestamp ? new Date(acc.timestamp) : new Date()
-		return spanTime < accTime ? span : acc
-	}, {} as Trace)
+	return trace.find((span) => !span.parentSpanID)
 }
 
 export const getFinalSpan = (trace: Trace[]) => {
@@ -22,14 +18,22 @@ export const getFinalSpan = (trace: Trace[]) => {
 }
 
 // Returns the trace duration in milliseconds
-export const getTraceDuration = (trace: Trace[]) => {
-	const firstSpan = getFirstSpan(trace)
-	const firstSpanStartMs = new Date(firstSpan.timestamp).getTime()
-	const finalSpan = getFinalSpan(trace)
-	const finalSpanMs =
-		new Date(finalSpan.timestamp).getTime() + finalSpan.duration
+export const getTraceTimes = (trace: Trace[]) => {
+	const startTime = Math.min(
+		...trace.map((span) => new Date(span.timestamp).getTime()),
+	)
+	const endTime = Math.max(
+		...trace.map((span) => {
+			const endTime = new Date(span.timestamp).getTime()
+			return endTime + span.duration
+		}),
+	)
 
-	return Math.round(finalSpanMs - firstSpanStartMs)
+	return {
+		startTime,
+		endTime,
+		totalDuration: endTime - startTime,
+	}
 }
 
 export const getTraceDurationString = (duration: number) => {
