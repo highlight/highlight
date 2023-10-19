@@ -66,6 +66,9 @@ func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
 	workspace := model.Workspace{}
 	store.db.Create(&workspace)
 
+	settings := model.AllWorkspaceSettings{WorkspaceID: workspace.ID}
+	store.db.Create(&settings)
+
 	project1 := model.Project{WorkspaceID: workspace.ID}
 	store.db.Create(&project1)
 

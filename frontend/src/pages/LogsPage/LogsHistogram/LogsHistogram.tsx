@@ -595,7 +595,7 @@ const LogBucketBar = ({
 										size="small"
 										weight="medium"
 									>
-										{bar.count}
+										{Number(bar.count).toFixed(1)}
 										{bar.unit?.length ? bar.unit : null}
 									</Text>
 								</Box>
