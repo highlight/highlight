@@ -1,4 +1,14 @@
-import { Badge, Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	ButtonIcon,
+	Heading,
+	IconSolidZoomIn,
+	IconSolidZoomOut,
+	Stack,
+	Tabs,
+	Text,
+} from '@highlight-run/ui'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 
@@ -44,6 +54,7 @@ export const TracePage: React.FC<Props> = () => {
 		trace_id: string
 		span_id?: string
 	}>()
+	const svgContainerRef = React.useRef<HTMLDivElement>(null)
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
 	const [selectedSpan, setSelectedSpan] = useState<FlameGraphSpan | Trace>()
 	const [hoveredSpan, setHoveredSpan] = useState<FlameGraphSpan>()
@@ -165,6 +176,32 @@ export const TracePage: React.FC<Props> = () => {
 		)
 	}
 
+	const handleZoom = (
+		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+		additionalZoom: number,
+	) => {
+		e.preventDefault()
+		e.stopPropagation()
+
+		const newZoom = Math.max(1, Math.round(zoom + additionalZoom))
+		const currentScrollPosition = svgContainerRef.current?.scrollLeft ?? 0
+		const visibleCenter = currentScrollPosition + width / 2
+		const newVisibleCenter = visibleCenter * (newZoom / zoom)
+		const isScrolledAllTheWayToTheLeft = currentScrollPosition <= 1
+		const isScrolledAllTheWayToTheRight =
+			currentScrollPosition >= width * zoom - (width + 2)
+		const newScrollPosition = isScrolledAllTheWayToTheRight
+			? width * newZoom - width
+			: isScrolledAllTheWayToTheLeft
+			? currentScrollPosition
+			: newVisibleCenter - width / 2
+
+		setZoom(newZoom)
+		setTimeout(() => {
+			svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+		})
+	}
+
 	return (
 		<Box overflow="scroll">
 			<Box cssClass={styles.container}>
@@ -181,23 +218,47 @@ export const TracePage: React.FC<Props> = () => {
 						</Text>
 						<Text weight="bold">{durationString}</Text>
 					</Box>
-
-					<button onClick={() => setZoom(zoom + 1)}>Zoom In</button>
-					<button onClick={() => setZoom(zoom - 1)}>Zoom Out</button>
 				</Stack>
 
 				<Box
 					backgroundColor="raised"
 					borderRadius="6"
 					border="dividerWeak"
+					position="relative"
 				>
 					<Box
+						display="flex"
+						gap="2"
+						position="absolute"
 						style={{
-							maxHeight: 300,
-							overflowY: 'scroll',
+							bottom: 4,
+							left: 4,
 						}}
 					>
-						{/* TODO: Consider using D3 for rendering the SVG. */}
+						<ButtonIcon
+							size="xSmall"
+							kind="secondary"
+							icon={<IconSolidZoomIn />}
+							onClick={(e) => handleZoom(e, 1)}
+						>
+							Zoom In
+						</ButtonIcon>
+						<ButtonIcon
+							size="xSmall"
+							kind="secondary"
+							icon={<IconSolidZoomOut />}
+							onClick={(e) => handleZoom(e, -1)}
+						>
+							Zoom Out
+						</ButtonIcon>
+					</Box>
+					<Box
+						ref={svgContainerRef}
+						overflowY="scroll"
+						style={{
+							maxHeight: 300,
+						}}
+					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							height={height}

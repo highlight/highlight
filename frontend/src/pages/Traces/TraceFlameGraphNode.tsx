@@ -116,7 +116,7 @@ export const TraceFlameGraphNode = memo<Props>(
 							height={lineHeight}
 							width={spanWidth}
 							style={{
-								transition: 'all ease-in-out 200ms',
+								transition: 'color ease-in-out 200ms',
 								display: 'block',
 								pointerEvents: 'none',
 							}}
