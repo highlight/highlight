@@ -155,8 +155,8 @@ func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sess
 	var excluded bool
 	var reason privateModel.SessionExcludedReason
 
-	var project model.Project
-	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
+	project, err := r.Store.GetProject(ctx, s.ProjectID)
+	if err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
 		return false, nil
 	}
@@ -166,7 +166,7 @@ func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonIgnoredUser
 	}
 
-	if r.isSessionExcludedForNoError(ctx, s, &project, sessionHasErrors) {
+	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
 		excluded = true
 		reason = privateModel.SessionExcludedReasonNoError
 	}
@@ -220,7 +220,7 @@ func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Ses
 	return false
 }
 
-func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project model.Project) bool {
+func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project *model.Project) bool {
 	if project.ExcludedUsers == nil {
 		return false
 	}
