@@ -104,25 +104,20 @@ describe('organizeSpans', () => {
 		const expectedSpans: any = cloneDeep(expectedSortedTrace)
 		expectedSpans.children[1].children[1].children[0].errors = [errors[0]]
 
-		const sortedSpans = organizeSpans(unsortedSpans, errors)
+		const sortedSpans = organizeSpans(unsortedSpans)
 		expect(JSON.stringify(sortedSpans)).toEqual(
 			JSON.stringify(expectedSpans),
 		)
 	})
 
 	it('assigns attributes to selected span', () => {
-		const selectedSpan = unsortedSpans[5]
 		const expectedSpans: any = cloneDeep(expectedSortedTrace)
 		expectedSpans.children[1].children[1].children[0].selected = true
 		expectedSpans.children[1].children[1].children[0].color = '#fff'
 		expectedSpans.children[1].children[1].children[0].backgroundColor =
 			'#744ED4'
 
-		const organizedSpans = organizeSpans(
-			unsortedSpans,
-			undefined,
-			selectedSpan,
-		)
+		const organizedSpans = organizeSpans(unsortedSpans)
 		expect(organizedSpans).toMatchObject(expectedSpans)
 	})
 })
