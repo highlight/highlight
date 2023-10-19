@@ -1,9 +1,9 @@
 import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
+import { useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { Link } from '@/components/Link'
 import { ErrorObjectFragment } from '@/graph/generated/operations'
 import { SessionComment } from '@/graph/generated/schemas'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
@@ -40,20 +40,19 @@ const SessionComment = ({
 	index,
 }: SessionCommentProps) => {
 	const sessionLink = getSessionLink(errorObject)
-
+	const navigate = useNavigate()
 	const tag = (
-		<Link to={sessionLink}>
-			<Tag
-				kind="secondary"
-				emphasis="low"
-				size="medium"
-				shape="basic"
-				disabled={!isLoggedIn || sessionLink === ''}
-				iconRight={<IconSolidArrowCircleRight />}
-			>
-				Go to
-			</Tag>
-		</Link>
+		<Tag
+			kind="secondary"
+			emphasis="low"
+			size="medium"
+			shape="basic"
+			disabled={!isLoggedIn || sessionLink === ''}
+			iconRight={<IconSolidArrowCircleRight />}
+			onClick={() => navigate(sessionLink)}
+		>
+			Go to
+		</Tag>
 	)
 	const timeAgo = moment(sessionComment.created_at).fromNow()
 	const feebackNumber = index + 1
@@ -70,19 +69,11 @@ const SessionComment = ({
 			display="flex"
 			justifyContent="center"
 			flexDirection="column"
+			borderBottomLeftRadius="6"
+			borderBottomRightRadius="6"
 		>
-			<Box
-				pb="4"
-				alignItems="center"
-				display="flex"
-				justifyContent="space-between"
-			>
-				<Box
-					alignItems="flex-start"
-					display="flex"
-					gap="6"
-					flexGrow={1}
-				>
+			<Box pb="4" display="flex" justifyContent="space-between">
+				<Box alignItems="center" display="flex" gap="6" flexGrow={1}>
 					<Text lines="1" color="weak" size="small">
 						Feedback {formattedFeedbackNumber}
 					</Text>
@@ -95,9 +86,7 @@ const SessionComment = ({
 					</Text>
 				</Box>
 
-				<Box flexShrink={0} display="flex">
-					{tag}
-				</Box>
+				{tag}
 			</Box>
 			<Text lines="1" align="left" size="small" color="default">
 				{sessionComment.text}
