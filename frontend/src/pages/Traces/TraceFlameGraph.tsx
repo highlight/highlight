@@ -60,7 +60,7 @@ export const TraceFlameGraph: React.FC<Props> = ({
 			const firstSpan = getFirstSpan(sortableTraces)
 
 			if (firstSpan) {
-				onSpanSelect(firstSpan)
+				onSpanSelect(firstSpan as FlameGraphSpan)
 			}
 		}
 

@@ -1,6 +1,6 @@
 import { memo } from 'react'
 
-import { TraceError } from '@/graph/generated/schemas'
+import { Trace, TraceError } from '@/graph/generated/schemas'
 import {
 	lineHeight,
 	outsidePadding,
@@ -16,7 +16,7 @@ type Props = {
 	totalDuration: number
 	height: number
 	width: number
-	selectedSpan: FlameGraphSpan | undefined
+	selectedSpan: FlameGraphSpan | Trace | undefined
 	zoom: number
 	setHoveredSpan: (span?: FlameGraphSpan) => void
 	setSelectedSpan: (span?: FlameGraphSpan) => void
