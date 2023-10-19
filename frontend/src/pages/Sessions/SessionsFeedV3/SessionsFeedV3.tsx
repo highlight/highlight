@@ -65,88 +65,92 @@ import * as style from './SessionFeedV3.css'
 import { SessionFeedConfigurationContextProvider } from './SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from './SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 
-export const SessionsHistogram: React.FC = React.memo(() => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-	const { setSearchQuery, backendSearchQuery, searchQuery } =
-		useSearchContext()
+export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
+	({ readonly }) => {
+		const { project_id } = useParams<{
+			project_id: string
+		}>()
+		const { setSearchQuery, backendSearchQuery, searchQuery } =
+			useSearchContext()
 
-	const { loading, data } = useGetSessionsHistogramClickhouseQuery({
-		variables: {
-			project_id: project_id!,
-			query: JSON.parse(searchQuery),
-			histogram_options: {
-				bucket_size:
-					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
-				time_zone:
-					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
-				bounds: {
-					start_date: roundFeedDate(
-						backendSearchQuery?.startDate.toISOString() ?? null,
-					).format(),
-					end_date: roundFeedDate(
-						backendSearchQuery?.endDate.toISOString() ?? null,
-					).format(),
+		const { loading, data } = useGetSessionsHistogramClickhouseQuery({
+			variables: {
+				project_id: project_id!,
+				query: JSON.parse(searchQuery),
+				histogram_options: {
+					bucket_size:
+						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+					time_zone:
+						Intl.DateTimeFormat().resolvedOptions().timeZone ??
+						'UTC',
+					bounds: {
+						start_date: roundFeedDate(
+							backendSearchQuery?.startDate.toISOString() ?? null,
+						).format(),
+						end_date: roundFeedDate(
+							backendSearchQuery?.endDate.toISOString() ?? null,
+						).format(),
+					},
 				},
 			},
-		},
-		skip: !backendSearchQuery || !project_id,
-		fetchPolicy: 'network-only',
-	})
+			skip: !backendSearchQuery || !project_id,
+			fetchPolicy: 'network-only',
+		})
 
-	const histogram: {
-		seriesList: Series[]
-		bucketTimes: number[]
-	} = {
-		seriesList: [],
-		bucketTimes: [],
-	}
-	if (data?.sessions_histogram_clickhouse) {
-		histogram.bucketTimes =
-			data?.sessions_histogram_clickhouse.bucket_times.map((startTime) =>
-				new Date(startTime).valueOf(),
-			)
-		histogram.seriesList = [
-			{
-				label: 'sessions',
-				color: 'n11',
-				counts: data?.sessions_histogram_clickhouse
-					.sessions_without_errors,
+		const histogram: {
+			seriesList: Series[]
+			bucketTimes: number[]
+		} = {
+			seriesList: [],
+			bucketTimes: [],
+		}
+		if (data?.sessions_histogram_clickhouse) {
+			histogram.bucketTimes =
+				data?.sessions_histogram_clickhouse.bucket_times.map(
+					(startTime) => new Date(startTime).valueOf(),
+				)
+			histogram.seriesList = [
+				{
+					label: 'sessions',
+					color: 'n11',
+					counts: data?.sessions_histogram_clickhouse
+						.sessions_without_errors,
+				},
+				{
+					label: 'w/errors',
+					color: 'p11',
+					counts: data?.sessions_histogram_clickhouse
+						.sessions_with_errors,
+				},
+			]
+		}
+
+		const updateTimeRange = useCallback(
+			(newStartTime: Date, newEndTime: Date) => {
+				setSearchQuery((query) =>
+					updateQueriedTimeRange(
+						query || '',
+						TIME_RANGE_FIELD,
+						serializeAbsoluteTimeRange(newStartTime, newEndTime),
+					),
+				)
 			},
-			{
-				label: 'w/errors',
-				color: 'p11',
-				counts: data?.sessions_histogram_clickhouse
-					.sessions_with_errors,
-			},
-		]
-	}
+			[setSearchQuery],
+		)
 
-	const updateTimeRange = useCallback(
-		(newStartTime: Date, newEndTime: Date) => {
-			setSearchQuery((query) =>
-				updateQueriedTimeRange(
-					query || '',
-					TIME_RANGE_FIELD,
-					serializeAbsoluteTimeRange(newStartTime, newEndTime),
-				),
-			)
-		},
-		[setSearchQuery],
-	)
-
-	return (
-		<SearchResultsHistogram
-			seriesList={histogram.seriesList}
-			bucketTimes={histogram.bucketTimes}
-			bucketSize={backendSearchQuery?.histogramBucketSize}
-			loading={loading}
-			updateTimeRange={updateTimeRange}
-			barGap={2.4}
-		/>
-	)
-})
+		return (
+			<SearchResultsHistogram
+				seriesList={histogram.seriesList}
+				bucketTimes={histogram.bucketTimes}
+				bucketSize={backendSearchQuery?.histogramBucketSize}
+				loading={loading}
+				updateTimeRange={updateTimeRange}
+				barGap={2.4}
+				readonly={readonly}
+			/>
+		)
+	},
+)
 
 export const SessionFeedV3 = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()

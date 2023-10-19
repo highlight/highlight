@@ -97,6 +97,7 @@ export const SearchResultsHistogram = React.memo(
 		bucketSize,
 		barGap,
 		updateTimeRange,
+		readonly,
 	}: {
 		seriesList: Series[]
 		bucketTimes: number[]
@@ -104,16 +105,18 @@ export const SearchResultsHistogram = React.memo(
 		bucketSize?: DateHistogramBucketSize
 		barGap?: number
 		updateTimeRange: (startTime: Date, endTime: Date) => void
+		readonly?: boolean
 	}) => {
 		const onAreaChanged = useCallback(
 			(left: number, right: number) => {
+				if (readonly) return
 				// bucketTimes should always be one longer than the number of buckets
 				if (bucketTimes.length <= right + 1) return
 				const newStartTime = new Date(bucketTimes[left])
 				const newEndTime = new Date(bucketTimes[right + 1])
 				updateTimeRange(newStartTime, newEndTime)
 			},
-			[bucketTimes, updateTimeRange],
+			[bucketTimes, readonly, updateTimeRange],
 		)
 		const onBucketClicked = useCallback(
 			(bucketIndex: number) => {

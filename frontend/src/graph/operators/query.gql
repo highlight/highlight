@@ -2141,6 +2141,10 @@ query GetProjectSettings($projectId: ID!) {
 			error_exclusion_query
 			log_exclusion_query
 			trace_exclusion_query
+			session_minute_rate_limit
+			error_minute_rate_limit
+			log_minute_rate_limit
+			trace_minute_rate_limit
 		}
 	}
 }
@@ -2165,6 +2169,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		ai_insights
 		enable_session_export
 		enable_unlisted_sharing
+		enable_ingest_filters
 	}
 }
 
@@ -2375,14 +2380,17 @@ query GetTracesMetrics(
 	$project_id: ID!
 	$params: QueryInput!
 	$metric_types: [TracesMetricType!]!
+	$group_by: [String!]!
 ) {
 	traces_metrics(
 		project_id: $project_id
 		params: $params
 		metric_types: $metric_types
+		group_by: $group_by
 	) {
 		buckets {
 			bucket_id
+			group
 			metric_type
 			metric_value
 		}

@@ -12,6 +12,7 @@ import QueryBuilder, {
 	ERROR_FIELD_TYPE,
 	ERROR_TYPE,
 	FetchFieldVariables,
+	QueryBuilderProps,
 	SelectOption,
 } from '@/components/QueryBuilder/QueryBuilder'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
@@ -97,7 +98,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 	},
 ]
 
-const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
+const ErrorQueryBuilder = (props: Partial<QueryBuilderProps>) => {
 	const { data } = useGetErrorTagsQuery()
 	const { refetch } = useGetErrorFieldsClickhouseQuery({
 		skip: true,

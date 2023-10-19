@@ -168,6 +168,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 	sb, err := makeSelectBuilder(
 		logsTableConfig,
 		selectStr,
+		nil,
 		projectID,
 		params,
 		Pagination{},
@@ -226,6 +227,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	sb, err := makeSelectBuilder(
 		logsTableConfig,
 		"COUNT(*)",
+		nil,
 		projectID,
 		params,
 		Pagination{CountOnly: true},
@@ -304,6 +306,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 				endTimestamp,
 				startTimestamp,
 			),
+			nil,
 			projectID,
 			params,
 			Pagination{CountOnly: true},
@@ -320,6 +323,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 				endTimestamp,
 				startTimestamp,
 			),
+			nil,
 			projectID,
 			params,
 			Pagination{CountOnly: true},

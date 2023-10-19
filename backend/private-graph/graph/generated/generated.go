@@ -147,6 +147,7 @@ type ComplexityRoot struct {
 	AllWorkspaceSettings struct {
 		AIApplication         func(childComplexity int) int
 		AIInsights            func(childComplexity int) int
+		EnableIngestFilters   func(childComplexity int) int
 		EnableSessionExport   func(childComplexity int) int
 		EnableUnlistedSharing func(childComplexity int) int
 		WorkspaceID           func(childComplexity int) int
@@ -1006,7 +1007,7 @@ type ComplexityRoot struct {
 		TracesIntegration            func(childComplexity int, projectID int) int
 		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput) int
-		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType) int
+		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
 		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -1415,6 +1416,7 @@ type ComplexityRoot struct {
 
 	TracesMetricBucket struct {
 		BucketID    func(childComplexity int) int
+		Group       func(childComplexity int) int
 		MetricType  func(childComplexity int) int
 		MetricValue func(childComplexity int) int
 	}
@@ -1808,7 +1810,7 @@ type QueryResolver interface {
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
-	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType) (*model.TracesMetrics, error)
+	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) (*model.TracesMetrics, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
@@ -2316,6 +2318,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.AIInsights(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_ingest_filters":
+		if e.complexity.AllWorkspaceSettings.EnableIngestFilters == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableIngestFilters(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_session_export":
 		if e.complexity.AllWorkspaceSettings.EnableSessionExport == nil {
@@ -7670,7 +7679,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["metric_types"].([]model.TracesMetricType)), true
+		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["metric_types"].([]model.TracesMetricType), args["group_by"].([]string)), true
 
 	case "Query.track_properties_alerts":
 		if e.complexity.Query.TrackPropertiesAlerts == nil {
@@ -9752,6 +9761,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TracesMetricBucket.BucketID(childComplexity), true
 
+	case "TracesMetricBucket.group":
+		if e.complexity.TracesMetricBucket.Group == nil {
+			break
+		}
+
+		return e.complexity.TracesMetricBucket.Group(childComplexity), true
+
 	case "TracesMetricBucket.metric_type":
 		if e.complexity.TracesMetricBucket.MetricType == nil {
 			break
@@ -10502,6 +10518,12 @@ enum ProductType {
 	Traces
 }
 
+enum IngestReason {
+	Sample
+	Rate
+	Filter
+}
+
 enum SubscriptionInterval {
 	Monthly
 	Annual
@@ -10794,6 +10816,7 @@ type AllWorkspaceSettings {
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
+	enable_ingest_filters: Boolean!
 }
 
 type Account {
@@ -11270,6 +11293,7 @@ enum TracesMetricType {
 
 type TracesMetricBucket {
 	bucket_id: UInt64!
+	group: [String!]!
 	metric_type: TracesMetricType!
 	metric_value: Float!
 }
@@ -12369,6 +12393,7 @@ type Query {
 		project_id: ID!
 		params: QueryInput!
 		metric_types: [TracesMetricType!]!
+		group_by: [String!]!
 	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
@@ -18678,6 +18703,15 @@ func (ec *executionContext) field_Query_traces_metrics_args(ctx context.Context,
 		}
 	}
 	args["metric_types"] = arg2
+	var arg3 []string
+	if tmp, ok := rawArgs["group_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
+		arg3, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["group_by"] = arg3
 	return args, nil
 }
 
@@ -21901,6 +21935,50 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_unlisted_sharing(ctx co
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_ingest_filters(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableIngestFilters, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -39386,6 +39464,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
+			case "enable_ingest_filters":
+				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -52791,6 +52871,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
+			case "enable_ingest_filters":
+				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -55397,7 +55479,7 @@ func (ec *executionContext) _Query_traces_metrics(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["metric_types"].([]model.TracesMetricType))
+		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["metric_types"].([]model.TracesMetricType), fc.Args["group_by"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -67714,6 +67796,50 @@ func (ec *executionContext) fieldContext_TracesMetricBucket_bucket_id(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _TracesMetricBucket_group(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracesMetricBucket_group(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Group, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TracesMetricBucket_group(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TracesMetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TracesMetricBucket_metric_type(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
 	if err != nil {
@@ -67843,6 +67969,8 @@ func (ec *executionContext) fieldContext_TracesMetrics_buckets(ctx context.Conte
 			switch field.Name {
 			case "bucket_id":
 				return ec.fieldContext_TracesMetricBucket_bucket_id(ctx, field)
+			case "group":
+				return ec.fieldContext_TracesMetricBucket_group(ctx, field)
 			case "metric_type":
 				return ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
 			case "metric_value":
@@ -74833,6 +74961,13 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 		case "enable_unlisted_sharing":
 
 			out.Values[i] = ec._AllWorkspaceSettings_enable_unlisted_sharing(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "enable_ingest_filters":
+
+			out.Values[i] = ec._AllWorkspaceSettings_enable_ingest_filters(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -85516,6 +85651,13 @@ func (ec *executionContext) _TracesMetricBucket(ctx context.Context, sel ast.Sel
 		case "bucket_id":
 
 			out.Values[i] = ec._TracesMetricBucket_bucket_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "group":
+
+			out.Values[i] = ec._TracesMetricBucket_group(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

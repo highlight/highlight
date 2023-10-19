@@ -616,6 +616,20 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 	}
 	allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
 	allProjectSettings.AutoResolveStaleErrorsDayInterval = projectFilterSettings.AutoResolveStaleErrorsDayInterval
+	allProjectSettings.Sampling = &modelInputs.Sampling{
+		SessionSamplingRate:    projectFilterSettings.SessionSamplingRate,
+		ErrorSamplingRate:      projectFilterSettings.SessionSamplingRate,
+		LogSamplingRate:        projectFilterSettings.SessionSamplingRate,
+		TraceSamplingRate:      projectFilterSettings.SessionSamplingRate,
+		SessionMinuteRateLimit: projectFilterSettings.SessionMinuteRateLimit,
+		ErrorMinuteRateLimit:   projectFilterSettings.ErrorMinuteRateLimit,
+		LogMinuteRateLimit:     projectFilterSettings.LogMinuteRateLimit,
+		TraceMinuteRateLimit:   projectFilterSettings.TraceMinuteRateLimit,
+		SessionExclusionQuery:  projectFilterSettings.SessionExclusionQuery,
+		ErrorExclusionQuery:    projectFilterSettings.ErrorExclusionQuery,
+		LogExclusionQuery:      projectFilterSettings.LogExclusionQuery,
+		TraceExclusionQuery:    projectFilterSettings.TraceExclusionQuery,
+	}
 
 	return &allProjectSettings, nil
 }
@@ -7724,13 +7738,13 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 }
 
 // TracesMetrics is the resolver for the traces_metrics field.
-func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType) (*modelInputs.TracesMetrics, error) {
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string) (*modelInputs.TracesMetrics, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, 48)
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, groupBy, 48)
 }
 
 // TracesKeys is the resolver for the traces_keys field.
