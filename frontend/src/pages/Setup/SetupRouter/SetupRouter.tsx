@@ -37,7 +37,6 @@ import {
 	useMatch,
 } from 'react-router-dom'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
 import {
 	useAlertsIntegration,
@@ -52,7 +51,6 @@ import { AlertsSetup } from './AlertsSetup'
 import * as styles from './SetupRouter.css'
 
 export const SetupRouter = () => {
-	const { isHighlightAdmin } = useAuthContext()
 	const { toggleShowBanner } = useGlobalContext()
 	const areaMatch = useMatch('/:project_id/setup/:area/*')
 	const area = areaMatch?.params.area || 'client'

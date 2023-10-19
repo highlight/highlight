@@ -118,7 +118,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const { projectId } = useProjectId()
-	const { isHighlightAdmin, isLoggedIn, signOut } = useAuthContext()
+	const { isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
