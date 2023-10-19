@@ -290,7 +290,7 @@ export const ProjectProductFilters: React.FC<{
 
 		const sampling = {
 			[`${product.toLowerCase().slice(0, -1)}_exclusion_query`]:
-				formStore.getValue('exclusionQuery'),
+				formStore.getValue('exclusionQuery') || undefined,
 			[`${product.toLowerCase().slice(0, -1)}_sampling_rate`]:
 				formStore.getValue('samplingPercent') / 100,
 			[`${product.toLowerCase().slice(0, -1)}_minute_rate_limit`]:
