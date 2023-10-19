@@ -1,7 +1,7 @@
 import { Badge, Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import moment from 'moment'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useGetTraceQuery } from '@/graph/generated/hooks'
@@ -94,6 +94,48 @@ export const TracePage: React.FC<Props> = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace])
 
+	const totalDuration = useMemo(() => {
+		if (!data?.trace) {
+			return 0
+		}
+
+		return getTraceDuration(data.trace.trace)
+	}, [data?.trace])
+
+	const firstSpan = useMemo(() => {
+		if (!data?.trace) {
+			return undefined
+		}
+
+		return getFirstSpan(data.trace.trace)
+	}, [data?.trace])
+	const traceName = firstSpan?.spanName ?? ''
+	const startTime = firstSpan?.timestamp ?? ''
+
+	const errors = useMemo(() => {
+		if (!data?.trace?.errors) {
+			return [] as TraceError[]
+		}
+
+		return data.trace.errors
+	}, [data?.trace?.errors])
+
+	const durationString = getTraceDurationString(totalDuration)
+	const ticks = useMemo(() => {
+		if (!totalDuration) return []
+
+		return Array.from({ length: MAX_TICKS }).map((_, index) => {
+			const percent = index / (MAX_TICKS - 1)
+			const tickDuration = totalDuration * percent
+			const time = getTraceDurationString(tickDuration)
+
+			return {
+				time: time.trim() === '' ? '0ms' : time,
+				percent,
+			}
+		})
+	}, [totalDuration])
+
 	if (!data?.trace || !data?.trace?.trace?.length) {
 		return loading ? (
 			<LoadingBox />
@@ -104,22 +146,7 @@ export const TracePage: React.FC<Props> = () => {
 		)
 	}
 
-	const totalDuration = getTraceDuration(data.trace.trace)
-	const firstSpan = getFirstSpan(data.trace.trace)
-	const traceName = firstSpan?.spanName
-	const startTime = firstSpan.timestamp
-	const errors = data.trace?.errors
-	const durationString = getTraceDurationString(totalDuration)
-	const ticks = Array.from({ length: MAX_TICKS }).map((_, index) => {
-		const percent = index / (MAX_TICKS - 1)
-		const tickDuration = totalDuration * percent
-		const time = getTraceDurationString(tickDuration)
-
-		return {
-			time: time.trim() === '' ? '0ms' : time,
-			percent,
-		}
-	})
+	console.log('::: graph rerender')
 
 	// TODO: Make dynamic. Consider using auto sizer.
 	const height = 260
@@ -213,7 +240,6 @@ export const TracePage: React.FC<Props> = () => {
 										height={height}
 										width={width}
 										zoom={zoom}
-										hoveredSpan={hoveredSpan}
 										selectedSpan={selectedSpan}
 										setHoveredSpan={setHoveredSpan}
 										setSelectedSpan={setSelectedSpan}
@@ -225,6 +251,7 @@ export const TracePage: React.FC<Props> = () => {
 							})}
 						</svg>
 						{hoveredSpan && (
+							// TODO: Move tooltip component outside the graph to prevent rerenders.
 							<Box
 								position="fixed"
 								display="flex"

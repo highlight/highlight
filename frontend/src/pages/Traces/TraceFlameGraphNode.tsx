@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { useEffect, useRef } from 'react'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
@@ -11,7 +12,6 @@ type Props = {
 	totalDuration: number
 	height: number
 	width: number
-	hoveredSpan: FlameGraphSpan | undefined
 	selectedSpan: FlameGraphSpan | Trace | undefined
 	zoom: number
 	setHoveredSpan: (span?: FlameGraphSpan) => void
@@ -24,22 +24,41 @@ const minWidthToDisplayText = 20
 const lineHeight = 18
 const fontSize = 10
 
+function useTraceUpdate(props) {
+	const prev = useRef(props)
+	useEffect(() => {
+		const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+			if (prev.current[k] !== v) {
+				ps[k] = [prev.current[k], v]
+			}
+			return ps
+		}, {})
+
+		if (Object.keys(changedProps).length > 0) {
+			console.log('Changed props:', changedProps)
+		}
+
+		prev.current = props
+	})
+}
+
 // TODO: Add ability to zoom into an area on the graph.
-export const TraceFlameGraphNode: React.FC<Props> = ({
-	depth,
-	errors,
-	span,
-	startTime,
-	totalDuration,
-	height,
-	width,
-	hoveredSpan,
-	selectedSpan,
-	zoom,
-	setHoveredSpan,
-	setSelectedSpan,
-	setTooltipCoordinates,
-}) => {
+export const TraceFlameGraphNode: React.FC<Props> = (props) => {
+	const {
+		depth,
+		errors,
+		span,
+		startTime,
+		totalDuration,
+		height,
+		width,
+		selectedSpan,
+		zoom,
+		setHoveredSpan,
+		setSelectedSpan,
+		setTooltipCoordinates,
+	} = props
+	// useTraceUpdate(props)
 	// TODO: Handle overlapping spans... GetErrorGroupsClickhouse is a good one to
 	// test with since it has a lot of spans and many with the same parent.
 	// Consider looking at https://react-flame-graph.vercel.app/ again.
@@ -58,17 +77,11 @@ export const TraceFlameGraphNode: React.FC<Props> = ({
 	// https://stackblitz.com/edit/typescript-qwaeeb?file=trace.ts,index.html,index.ts
 	const offsetX = (diff / totalDuration) * width * zoom
 	const offsetY = depth ? depth * (lineHeight + 4) : 0
-	const isHoveredSpan = hoveredSpan?.spanID === span.spanID
 	const isSelectedSpan = selectedSpan?.spanID === span.spanID
 	const error = errors.find((error) => error.span_id === span.spanID)
 	const fill = isSelectedSpan ? '#744ed4' : '#e7defc'
 	const color = isSelectedSpan ? '#fff' : '#744ed4'
 	const stroke = error ? '#f00' : '#f9f8f9'
-
-	if (spanWidth < minWidthToDisplay) {
-		console.log('::: span not displayed', span.spanName, spanWidth)
-		return null
-	}
 
 	return (
 		<>
@@ -140,7 +153,6 @@ export const TraceFlameGraphNode: React.FC<Props> = ({
 					totalDuration={totalDuration}
 					height={height}
 					width={width}
-					hoveredSpan={hoveredSpan}
 					selectedSpan={selectedSpan}
 					zoom={zoom}
 					setHoveredSpan={setHoveredSpan}
