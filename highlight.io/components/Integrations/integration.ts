@@ -16,6 +16,12 @@ export const INTEGRATIONS: {
 			image: '/images/companies/icons/amplitude.png',
 		},
 		{
+			name: 'Pendo',
+			description: 'Instrument highlight.io to send Pendo events.',
+			link: '/docs/general/integrations/pendo-integration',
+			image: '/images/companies/icons/pendo.png',
+		},
+		{
 			name: 'Mixpanel',
 			description: 'Instrument highlight.io to sent Mixpanel events.',
 			link: '/docs/general/integrations/mixpanel-integration',
