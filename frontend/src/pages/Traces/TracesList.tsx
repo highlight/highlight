@@ -202,7 +202,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 
 						<Box alignSelf="center" display="flex">
 							<LinkButton
-								to="https://www.highlight.io/docs/general/product-features/tracing/overview"
+								to="https://www.highlight.io/docs/getting-started/tracing/overview"
 								kind="primary"
 								size="small"
 								trackingId="tracing-empty-state_learn-more-setup"
