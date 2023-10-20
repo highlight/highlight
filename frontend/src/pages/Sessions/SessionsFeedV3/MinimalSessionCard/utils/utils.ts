@@ -2,8 +2,13 @@ import { Maybe, Session } from '@graph/schemas'
 import { H } from 'highlight.run'
 import validator from 'validator'
 
+type SessionWithIdentityInformation = Pick<
+	Session,
+	'user_properties' | 'identifier' | 'fingerprint'
+>
+
 export const getIdentifiedUserProfileImage = (
-	session?: Maybe<Partial<Session>>,
+	session?: Maybe<SessionWithIdentityInformation>,
 ): string | undefined => {
 	if (!session || !session.user_properties) {
 		return undefined
@@ -37,7 +42,7 @@ export const getUserProperties = (
 
 // Fallback logic for the display name shown for the session card
 export const getDisplayNameAndField = (
-	session?: Maybe<Partial<Session>>,
+	session?: Maybe<SessionWithIdentityInformation>,
 ): [string, string | null] => {
 	const userProperties = getUserProperties(session?.user_properties)
 
@@ -55,6 +60,8 @@ export const getDisplayNameAndField = (
 }
 
 // Fallback logic for the display name shown for the session card
-export const getDisplayName = (session?: Maybe<Partial<Session>>): string => {
+export const getDisplayName = (
+	session?: Maybe<SessionWithIdentityInformation>,
+): string => {
 	return getDisplayNameAndField(session)[0]
 }

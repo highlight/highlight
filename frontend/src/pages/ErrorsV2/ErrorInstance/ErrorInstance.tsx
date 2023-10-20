@@ -45,6 +45,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
+import { ErrorBoundaryFeedback } from '@/pages/ErrorsV2/ErrorInstance/ErrorBoundaryFeedback'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
 import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
 import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
@@ -571,6 +572,7 @@ const User: React.FC<{
 						)}
 					</Box>
 				</Box>
+				{errorObject && <ErrorBoundaryFeedback data={errorObject} />}
 			</Box>
 		</Box>
 	)

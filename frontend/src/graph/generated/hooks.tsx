@@ -121,6 +121,14 @@ export const ErrorObjectFragmentDoc = gql`
 			processed
 			excluded
 			excluded_reason
+			session_feedback {
+				id
+				timestamp
+				created_at
+				updated_at
+				project_id
+				text
+			}
 		}
 		error_group_id
 		error_group_secure_id

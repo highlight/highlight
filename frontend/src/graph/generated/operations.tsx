@@ -3051,7 +3051,21 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 				| 'processed'
 				| 'excluded'
 				| 'excluded_reason'
-			>
+			> & {
+					session_feedback?: Types.Maybe<
+						Array<
+							{ __typename?: 'SessionComment' } & Pick<
+								Types.SessionComment,
+								| 'id'
+								| 'timestamp'
+								| 'created_at'
+								| 'updated_at'
+								| 'project_id'
+								| 'text'
+							>
+						>
+					>
+				}
 		>
 		structured_stack_trace: Array<
 			Types.Maybe<

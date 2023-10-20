@@ -82,6 +82,7 @@ type Session {
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
+	session_feedback: [SessionComment!]
 }
 
 type SessionInterval {

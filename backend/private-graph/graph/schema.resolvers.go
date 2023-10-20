@@ -7873,6 +7873,24 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	return deviceMemory, nil
 }
 
+// SessionFeedback is the resolver for the session_feedback field.
+func (r *sessionResolver) SessionFeedback(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
+	if util.IsDevEnv() && obj.SecureID == "repro" {
+		sessionFeedback := []*model.SessionComment{}
+		return sessionFeedback, nil
+	}
+	s, err := r.canAdminViewSession(ctx, obj.SecureID)
+	if err != nil {
+		return nil, err
+	}
+	sessionFeedback := []*model.SessionComment{}
+
+	if err := r.DB.Where(model.SessionComment{SessionId: s.ID, Type: model.SessionCommentTypes.FEEDBACK}).Order("timestamp asc").Find(&sessionFeedback).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comments for session")
+	}
+	return sessionFeedback, nil
+}
+
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
