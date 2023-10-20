@@ -87,7 +87,6 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'issue',
 	containerSelection: (opts) => <JiraProjectAndIssueTypeSelector {...opts} />,
 	Icon: IconSolidJira,
-	onlyShowForHighlightAdmin: true,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {

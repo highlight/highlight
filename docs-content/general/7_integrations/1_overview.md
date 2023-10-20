@@ -32,6 +32,9 @@ Read more about highlight.io's integrations! Have a questions or want to request
     <DocsCard title="Height."  href="./height-integration.md">
         {"Create height tickets within highlight.io"}
     </DocsCard>
+    <DocsCard title="Jira."  href="./jira-integration.md">
+        {"Create Jira tasks within highlight.io"}
+    </DocsCard>
     <DocsCard title="Intercom."  href="./intercom-integration.md">
         {"Access highlight.io sessions within your intercom dashboard."}
     </DocsCard>
