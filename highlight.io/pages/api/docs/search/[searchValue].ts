@@ -22,6 +22,7 @@ export default async function handler(
 	res: NextApiResponse,
 ) {
 	const searchValue = [req.query.searchValue].flat().join('').toLowerCase()
+	console.log('running api docs search query', { searchValue })
 	const docPaths = await getDocsPaths(fsp, undefined)
 	const paths: SearchResult[] = await Promise.all(
 		docPaths.map(async (doc) => {
