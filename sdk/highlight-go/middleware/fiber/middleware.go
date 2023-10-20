@@ -28,7 +28,7 @@ func Middleware() fiber.Handler {
 			ctx.SetUserValue(highlight.ContextKeys.RequestID, ids[1])
 		}
 
-		span, hCtx := highlight.StartTrace(ctx, "highlight/fiber")
+		span, hCtx := highlight.StartTrace(ctx, "highlight.fiber")
 		defer highlight.EndTrace(span)
 
 		c.SetUserContext(hCtx)
