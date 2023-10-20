@@ -61,19 +61,6 @@ const LaunchPage = () => {
 					<h2 className="text-white z-50 leading-none">
 						Launch Week 3
 					</h2>
-
-					<div className="flex justify-center mt-12">
-						<div className="p-2 flex border border-darker-copy-on-dark border-opacity-60">
-							<div className="p-2 border-2 border-[#34343A]">
-								<Link
-									href="https://youtube.com"
-									className="p-2 text-white"
-								>
-									View Launch Videos
-								</Link>
-							</div>
-						</div>
-					</div>
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-20 max-w-[550px] md:max-w-[1200px] mx-auto px-8 ">
 					<Link
