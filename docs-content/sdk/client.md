@@ -77,7 +77,7 @@ slug: client
           1. 'strict' - Redact all text and images on the page. This is the safest way to ensure you are not recording any personally identifiable information without having to manually add annotations to elements you don't want to be recorded.
           2. 'default' - Highlight will redact any text or input data that matches common regex expressions and input names of personally identifiable information. No images or media will be redacted.
           3. 'none' - All text and content will be recorded as it is displayed on the page.  
-          See [Privacy](../general/6_product-features/1_session-replay/privacy.md) to learn more about the privacy options. The default value is 'default'.</p>
+          See [Privacy](../getting-started/3_client-sdk/7_replay-configuration/privacy.md) to learn more about the privacy options. The default value is 'default'.</p>
         </aside>
         <aside className="parameter">
           <h5>integrations <code>IntegrationOptions</code> <code>optional</code></h5>
