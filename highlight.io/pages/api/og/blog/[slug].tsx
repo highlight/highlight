@@ -29,6 +29,12 @@ const handler = async function (req: NextRequest) {
 	const firstName = url.searchParams.get('fname')
 	const lastName = url.searchParams.get('lname')
 	const role = url.searchParams.get('role')
+	console.log('highlight og image for blog', {
+		title,
+		firstName,
+		lastName,
+		role,
+	})
 
 	return new ImageResponse(
 		(

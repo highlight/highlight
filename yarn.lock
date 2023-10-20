@@ -8483,6 +8483,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:^4.20231016.0":
+  version: 4.20231016.0
+  resolution: "@cloudflare/workers-types@npm:4.20231016.0"
+  checksum: b18387fffd2000e183bccae6f1f906920b2b16c46e1f0c73524b8b7ec4740539993c3c1e105f1c7f6062c05feed2307bd3c13915ac69dce4a9a3d7bb433d17e1
+  languageName: node
+  linkType: hard
+
 "@colors/colors@npm:1.5.0":
   version: 1.5.0
   resolution: "@colors/colors@npm:1.5.0"
@@ -12786,7 +12793,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/next@workspace:sdk/highlight-next"
   dependencies:
-    "@cloudflare/workers-types": ^4.20230115.0
+    "@cloudflare/workers-types": ^4.20231016.0
     "@highlight-run/cloudflare": "workspace:*"
     "@highlight-run/node": "workspace:*"
     "@highlight-run/opentelemetry-sdk-workers": "workspace:*"
@@ -37064,8 +37071,7 @@ __metadata:
     prettier: ^2.7.1
     pretty-quick: ^3.1.3
     readdirp: ^3.6.0
-    turbo: ^1.10.13
-    typescript: ^5.1.6
+    turbo: 1.10.16
   languageName: unknown
   linkType: soft
 
@@ -55860,58 +55866,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo-darwin-64@npm:1.10.13":
-  version: 1.10.13
-  resolution: "turbo-darwin-64@npm:1.10.13"
+"turbo-darwin-64@npm:1.10.16":
+  version: 1.10.16
+  resolution: "turbo-darwin-64@npm:1.10.16"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-darwin-arm64@npm:1.10.13":
-  version: 1.10.13
-  resolution: "turbo-darwin-arm64@npm:1.10.13"
+"turbo-darwin-arm64@npm:1.10.16":
+  version: 1.10.16
+  resolution: "turbo-darwin-arm64@npm:1.10.16"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-linux-64@npm:1.10.13":
-  version: 1.10.13
-  resolution: "turbo-linux-64@npm:1.10.13"
+"turbo-linux-64@npm:1.10.16":
+  version: 1.10.16
+  resolution: "turbo-linux-64@npm:1.10.16"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-linux-arm64@npm:1.10.13":
-  version: 1.10.13
-  resolution: "turbo-linux-arm64@npm:1.10.13"
+"turbo-linux-arm64@npm:1.10.16":
+  version: 1.10.16
+  resolution: "turbo-linux-arm64@npm:1.10.16"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-windows-64@npm:1.10.13":
-  version: 1.10.13
-  resolution: "turbo-windows-64@npm:1.10.13"
+"turbo-windows-64@npm:1.10.16":
+  version: 1.10.16
+  resolution: "turbo-windows-64@npm:1.10.16"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-windows-arm64@npm:1.10.13":
-  version: 1.10.13
-  resolution: "turbo-windows-arm64@npm:1.10.13"
+"turbo-windows-arm64@npm:1.10.16":
+  version: 1.10.16
+  resolution: "turbo-windows-arm64@npm:1.10.16"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo@npm:^1.10.13":
-  version: 1.10.13
-  resolution: "turbo@npm:1.10.13"
+"turbo@npm:1.10.16":
+  version: 1.10.16
+  resolution: "turbo@npm:1.10.16"
   dependencies:
-    turbo-darwin-64: 1.10.13
-    turbo-darwin-arm64: 1.10.13
-    turbo-linux-64: 1.10.13
-    turbo-linux-arm64: 1.10.13
-    turbo-windows-64: 1.10.13
-    turbo-windows-arm64: 1.10.13
+    turbo-darwin-64: 1.10.16
+    turbo-darwin-arm64: 1.10.16
+    turbo-linux-64: 1.10.16
+    turbo-linux-arm64: 1.10.16
+    turbo-windows-64: 1.10.16
+    turbo-windows-arm64: 1.10.16
   dependenciesMeta:
     turbo-darwin-64:
       optional: true
@@ -55927,7 +55933,7 @@ __metadata:
       optional: true
   bin:
     turbo: bin/turbo
-  checksum: 0c000c671534c8c80270c6d1fc77646df0e44164c0db561a85b3fefadd4bda6d5920626d067abb09af38613024e3984fb8d8bc5be922dae6236eda6aab9447a2
+  checksum: 69d1892593449b264e0bd48b851317a743016ab62cf470e7293b2cc3781240e863c48232c89f65a5a4ce97eb791ca550b201593449350da073db07703a19cfa5
   languageName: node
   linkType: hard
 
@@ -56195,37 +56201,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:*, typescript@npm:^4.8.4":
-  version: 4.8.4
-  resolution: "typescript@npm:4.8.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 3e4f061658e0c8f36c820802fa809e0fd812b85687a9a2f5430bc3d0368e37d1c9605c3ce9b39df9a05af2ece67b1d844f9f6ea8ff42819f13bcb80f85629af0
-  languageName: node
-  linkType: hard
-
-"typescript@npm:4.9.5, typescript@npm:^4.0.2, typescript@npm:^4.7.3, typescript@npm:^4.9.0, typescript@npm:^4.9.4, typescript@npm:^4.9.5":
-  version: 4.9.5
-  resolution: "typescript@npm:4.9.5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
-  languageName: node
-  linkType: hard
-
-"typescript@npm:5.1.0-dev.20230502":
-  version: 5.1.0-dev.20230502
-  resolution: "typescript@npm:5.1.0-dev.20230502"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: c28e6fd09a2b0ea90dd7417147517e9b14a5188d05f7dd6b9428a8ded7f974268255ee4a30046db741f02eb1a0278ce37617e6bea3becc2434796fa1042b3cac
-  languageName: node
-  linkType: hard
-
-"typescript@npm:5.2.2, typescript@npm:^5.2.2":
+"typescript@npm:5.2.2":
   version: 5.2.2
   resolution: "typescript@npm:5.2.2"
   bin:
@@ -56235,103 +56211,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.0.2":
-  version: 5.0.2
-  resolution: "typescript@npm:5.0.2"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: bef1dcd166acfc6934b2ec4d72f93edb8961a5fab36b8dd2aaf6f4f4cd5c0210f2e0850aef4724f3b4913d5aef203a94a28ded731b370880c8bcff7e4ff91fc1
-  languageName: node
-  linkType: hard
-
-"typescript@npm:^5.0.4, typescript@npm:~5.0.4":
-  version: 5.0.4
-  resolution: "typescript@npm:5.0.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 82b94da3f4604a8946da585f7d6c3025fff8410779e5bde2855ab130d05e4fd08938b9e593b6ebed165bda6ad9292b230984f10952cf82f0a0ca07bbeaa08172
-  languageName: node
-  linkType: hard
-
-"typescript@npm:^5.1.6":
-  version: 5.1.6
-  resolution: "typescript@npm:5.1.6"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: b2f2c35096035fe1f5facd1e38922ccb8558996331405eb00a5111cc948b2e733163cc22fab5db46992aba7dd520fff637f2c1df4996ff0e134e77d3249a7350
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@*#~builtin<compat/typescript>, typescript@patch:typescript@^4.8.4#~builtin<compat/typescript>":
-  version: 4.8.4
-  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=1a91c8"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: c981e82b77a5acdcc4e69af9c56cdecf5b934a87a08e7b52120596701e389a878b8e3f860e73ffb287bf649cc47a8c741262ce058148f71de4cdd88bb9c75153
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.0.2#~builtin<compat/typescript>, typescript@patch:typescript@^4.7.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
-  version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@5.1.0-dev.20230502#~builtin<compat/typescript>":
-  version: 5.1.0-dev.20230502
-  resolution: "typescript@patch:typescript@npm%3A5.1.0-dev.20230502#~builtin<compat/typescript>::version=5.1.0-dev.20230502&hash=85af82"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: af5c31d852836d61e7197e43e4802f634856487d2accf5b85c2cd0fa08876b499c224d9dcb95e8a6df958c7dafb62695c575135d6cd5b967bcbd16145f0cc6cb
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@5.2.2#~builtin<compat/typescript>, typescript@patch:typescript@^5.2.2#~builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>":
   version: 5.2.2
   resolution: "typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=85af82"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 07106822b4305de3f22835cbba949a2b35451cad50888759b6818421290ff95d522b38ef7919e70fb381c5fe9c1c643d7dea22c8b31652a717ddbd57b7f4d554
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^5.0.2#~builtin<compat/typescript>":
-  version: 5.0.2
-  resolution: "typescript@patch:typescript@npm%3A5.0.2#~builtin<compat/typescript>::version=5.0.2&hash=85af82"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: b63cb742fbb9aeb3085e002ad8f10d5fd963606aa4d6b3b65b4e76c396ff09739f03b5dbae08e1698c3bce9d5619d3f67aeb7ee470ed4016bd345b3cfe37b54a
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^5.0.4#~builtin<compat/typescript>, typescript@patch:typescript@~5.0.4#~builtin<compat/typescript>":
-  version: 5.0.4
-  resolution: "typescript@patch:typescript@npm%3A5.0.4#~builtin<compat/typescript>::version=5.0.4&hash=85af82"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: bb309d320c59a26565fb3793dba550576ab861018ff3fd1b7fccabbe46ae4a35546bc45f342c0a0b6f265c801ccdf64ffd68f548f117ceb7f0eac4b805cd52a9
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^5.1.6#~builtin<compat/typescript>":
-  version: 5.1.6
-  resolution: "typescript@patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=85af82"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 21e88b0a0c0226f9cb9fd25b9626fb05b4c0f3fddac521844a13e1f30beb8f14e90bd409a9ac43c812c5946d714d6e0dee12d5d02dfc1c562c5aacfa1f49b606
   languageName: node
   linkType: hard
 

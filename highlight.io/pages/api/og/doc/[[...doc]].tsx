@@ -42,6 +42,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 	)
 	const crumbs = readablePaths?.slice(-3, -1)
 	const title = readablePaths?.at(-1)
+	console.log('highlight og image for doc', { title, crumbs, docPath })
 
 	return new ImageResponse(
 		(
