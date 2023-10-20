@@ -1,13 +1,8 @@
-import {
-	Box,
-	ButtonIcon,
-	IconSolidZoomIn,
-	IconSolidZoomOut,
-	Text,
-} from '@highlight-run/ui'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { Box, Text } from '@highlight-run/ui'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { Trace, TraceError } from '@/graph/generated/schemas'
+import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
 import {
 	FlameGraphSpan,
@@ -17,10 +12,19 @@ import {
 	organizeSpans,
 } from '@/pages/Traces/utils'
 
+const ZOOM_SCALING_FACTOR = 100
 const MAX_TICKS = 6
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
+const defaultCanvasWidth = 660
+const timeUnits = [
+	{ unit: 'h', divider: 1000000000000000 },
+	{ unit: 'm', divider: 1000000000000 },
+	{ unit: 's', divider: 1000000000 },
+	{ unit: 'ms', divider: 1000000 },
+	{ unit: 'ns', divider: 1 },
+]
 
 type Props = {
 	errors: TraceError[]
@@ -44,13 +48,18 @@ export const TraceFlameGraph: React.FC<Props> = ({
 	onSpanMouseEnter,
 }) => {
 	const svgContainerRef = useRef<HTMLDivElement>(null)
+	const [zoom, setZoom] = useState(1)
+	const [width, setWidth] = useState(defaultCanvasWidth)
 	const [tooltipCoordinates, setTooltipCoordinates] = useState({
 		x: 0,
 		y: 0,
 	})
-	const [zoom, setZoom] = useState(1)
-	// TODO: Make dynamic. Consider using auto sizer.
-	const width = 660
+
+	useLayoutEffect(() => {
+		if (svgContainerRef.current?.clientWidth) {
+			setWidth(svgContainerRef.current?.clientWidth)
+		}
+	}, [])
 
 	const traces = useMemo(() => {
 		if (!trace) return []
@@ -80,13 +89,20 @@ export const TraceFlameGraph: React.FC<Props> = ({
 		if (!totalDuration) return []
 
 		const length = Math.round(MAX_TICKS * zoom)
+		const timeUnit = timeUnits.find(
+			({ divider }) => totalDuration / divider > 1,
+		)
 		return Array.from({ length }).map((_, index) => {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
-			const time = getTraceDurationString(tickDuration)
+			const displayDuration =
+				timeUnit!.unit === 'ns'
+					? tickDuration / timeUnit!.divider
+					: Math.round((tickDuration / timeUnit!.divider) * 10) / 10
+			const time = `${displayDuration}${timeUnit!.unit}` ?? '0ms'
 
 			return {
-				time: time.trim() === '' ? '0ms' : time,
+				time,
 				percent,
 				x: width * percent * zoom,
 			}
@@ -101,31 +117,38 @@ export const TraceFlameGraph: React.FC<Props> = ({
 		setTooltipCoordinates({ x, y })
 	}, [])
 
-	const handleZoom = (
-		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-		additionalZoom: number,
-	) => {
-		e.preventDefault()
-		e.stopPropagation()
+	const handleZoom = useCallback((dz: number) => {
+		setZoom((prevZoom) => {
+			const newZoom = Math.max(1, prevZoom + dz)
+			const newScrollPosition =
+				(svgContainerRef.current?.scrollLeft ?? 0) *
+				(newZoom / prevZoom)
 
-		const newZoom = Math.max(1, Math.round(zoom + additionalZoom))
-		const currentScrollPosition = svgContainerRef.current?.scrollLeft ?? 0
-		const visibleCenter = currentScrollPosition + width / 2
-		const newVisibleCenter = visibleCenter * (newZoom / zoom)
-		const isScrolledAllTheWayToTheLeft = currentScrollPosition <= 1
-		const isScrolledAllTheWayToTheRight =
-			currentScrollPosition >= width * zoom - (width + 2)
-		const newScrollPosition = isScrolledAllTheWayToTheRight
-			? width * newZoom - width
-			: isScrolledAllTheWayToTheLeft
-			? currentScrollPosition
-			: newVisibleCenter - width / 2
+			setTimeout(() => {
+				svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+			}, 0)
 
-		setZoom(newZoom)
-		setTimeout(() => {
-			svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+			return newZoom
 		})
-	}
+	}, [])
+
+	useHTMLElementEvent(
+		svgContainerRef.current,
+		'wheel',
+		(event: WheelEvent) => {
+			const { deltaY, ctrlKey, metaKey } = event
+			console.log('wheel', deltaY)
+
+			if (ctrlKey || metaKey) {
+				event.preventDefault()
+				event.stopPropagation()
+
+				const dz = deltaY / ZOOM_SCALING_FACTOR
+				handleZoom(dz)
+			}
+		},
+		{ passive: false },
+	)
 
 	return (
 		<Box
@@ -135,41 +158,15 @@ export const TraceFlameGraph: React.FC<Props> = ({
 			position="relative"
 		>
 			<Box
-				display="flex"
-				gap="2"
-				position="absolute"
-				style={{
-					bottom: 4,
-					left: 4,
-				}}
-			>
-				<ButtonIcon
-					size="xSmall"
-					kind="secondary"
-					icon={<IconSolidZoomIn />}
-					onClick={(e) => handleZoom(e, 1)}
-				>
-					Zoom In
-				</ButtonIcon>
-				<ButtonIcon
-					size="xSmall"
-					kind="secondary"
-					icon={<IconSolidZoomOut />}
-					onClick={(e) => handleZoom(e, -1)}
-				>
-					Zoom Out
-				</ButtonIcon>
-			</Box>
-			<Box
 				ref={svgContainerRef}
-				overflowY="scroll"
+				overflowX="scroll"
 				style={{
 					maxHeight: 300,
 				}}
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
-					height={height}
+					height={height + 20}
 					width={width * zoom}
 					style={{ display: 'block' }}
 				>
@@ -181,7 +178,7 @@ export const TraceFlameGraph: React.FC<Props> = ({
 						y2={ticksHeight}
 					/>
 
-					{ticks.map((tick) => {
+					{ticks.map((tick, index) => {
 						const isFirstTick = tick.percent === 0
 						const isLastTick = tick.percent === 1
 						const x = isFirstTick
@@ -191,7 +188,7 @@ export const TraceFlameGraph: React.FC<Props> = ({
 							: tick.x
 
 						return (
-							<g key={tick.time}>
+							<g key={`${tick.time}-${index}`}>
 								<line
 									x1={x}
 									y1={ticksHeight - 8}
@@ -240,8 +237,8 @@ export const TraceFlameGraph: React.FC<Props> = ({
 						)
 					})}
 				</svg>
+
 				{hoveredSpan && (
-					// TODO: Move tooltip component outside the graph to prevent rerenders.
 					<Box
 						position="fixed"
 						display="flex"

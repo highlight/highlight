@@ -46,7 +46,7 @@ export const TraceFlameGraphNode = memo<Props>(
 		const offsetX =
 			(span.start / totalDuration) * width * zoom + outsidePadding
 		const offsetY = depth
-			? depth * (lineHeight + 4) + (ticksHeight + outsidePadding)
+			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
@@ -57,6 +57,7 @@ export const TraceFlameGraphNode = memo<Props>(
 		return (
 			<>
 				<g
+					transform={`translate(${offsetX}, ${offsetY})`}
 					onClick={() => setSelectedSpan(span)}
 					onMouseOver={() => setHoveredSpan(span)}
 					onMouseOut={() => setHoveredSpan(undefined)}
@@ -64,8 +65,6 @@ export const TraceFlameGraphNode = memo<Props>(
 				>
 					<rect
 						key={span.spanID}
-						x={offsetX}
-						y={offsetY}
 						fill={fill}
 						stroke={stroke}
 						strokeWidth="1"
@@ -77,8 +76,6 @@ export const TraceFlameGraphNode = memo<Props>(
 
 					{spanWidth > minWidthToDisplayText && (
 						<foreignObject
-							x={offsetX + lineHeight / 3}
-							y={offsetY}
 							fontSize={fontSize}
 							height={lineHeight}
 							width={spanWidth}
