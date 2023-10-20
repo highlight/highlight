@@ -913,7 +913,7 @@ export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
 const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
 	custom_processed: getProcessedLabel,
 	custom_created_at: getDateLabel,
-	custom_active_length: getLengthLabel,
+	custom_active_length: getTimeLabel,
 	custom_pages_visited: getLengthLabel,
 	error_state: getStateLabel,
 	'error-field_timestamp': getDateLabel,
