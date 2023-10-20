@@ -36,7 +36,7 @@ func main() {
 	publicResolver := &public.Resolver{
 		DB:            db,
 		DataSyncQueue: kafkaDataSyncProducer,
-		Store:         store.NewStore(db, redisClient, nil, nil, kafkaDataSyncProducer),
+		Store:         store.NewStore(db, redisClient, nil, nil, kafkaDataSyncProducer, nil),
 	}
 
 	var sessionIds []int
