@@ -1870,7 +1870,7 @@ export type Query = {
 	session?: Maybe<Session>
 	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
-	session_comments: Array<Maybe<SessionComment>>
+	session_comments: Array<SessionComment>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
 	session_exports: Array<SessionExportWithSession>

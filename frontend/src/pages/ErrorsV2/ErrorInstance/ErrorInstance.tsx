@@ -54,6 +54,8 @@ import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
 import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
+import { ErrorFeedback } from '@/pages/ErrorsV2/ErrorInstance/ErrorFeedback'
+
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -571,6 +573,7 @@ const User: React.FC<{
 						)}
 					</Box>
 				</Box>
+				<ErrorFeedback session={errorObject.session} />
 			</Box>
 		</Box>
 	)
