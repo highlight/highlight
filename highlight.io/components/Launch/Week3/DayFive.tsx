@@ -66,8 +66,8 @@ const DayFive = () => {
 					<CardOverlay
 						header="OTEL Vendor."
 						subheader="Highlight is officially an OTEL vendor."
-						buttonText="View Blogpost"
-						buttonLink="/"
+						buttonText="View Page"
+						buttonLink="https://opentelemetry.io/ecosystem/vendors/"
 					/>
 				</div>
 
@@ -112,8 +112,8 @@ const DayFive = () => {
 						<CardOverlay
 							header="Algora Bounties"
 							subheader="Contribute and get paid!"
-							buttonText="View Blog Post"
-							buttonLink="/"
+							buttonText="View Page"
+							buttonLink="https://console.algora.io/org/highlight"
 						/>
 					</div>
 				</div>
