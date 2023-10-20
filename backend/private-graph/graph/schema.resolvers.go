@@ -7864,22 +7864,22 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	return deviceMemory, nil
 }
 
-// SessionComments is the resolver for the session_comments field.
-func (r *sessionResolver) SessionComments(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
+// SessionFeedback is the resolver for the session_feedback field.
+func (r *sessionResolver) SessionFeedback(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
 	if util.IsDevEnv() && obj.SecureID == "repro" {
-		sessionComments := []*model.SessionComment{}
-		return sessionComments, nil
+		sessionFeedback := []*model.SessionComment{}
+		return sessionFeedback, nil
 	}
 	s, err := r.canAdminViewSession(ctx, obj.SecureID)
 	if err != nil {
 		return nil, err
 	}
-	sessionComments := []*model.SessionComment{}
+	sessionFeedback := []*model.SessionComment{}
 
-	if err := r.DB.Preload("Attachments").Preload("Replies").Where(model.SessionComment{SessionId: s.ID, Type: model.SessionCommentTypes.FEEDBACK}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+	if err := r.DB.Where(model.SessionComment{SessionId: s.ID, Type: model.SessionCommentTypes.FEEDBACK}).Order("timestamp asc").Find(&sessionFeedback).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
-	return sessionComments, nil
+	return sessionFeedback, nil
 }
 
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.

@@ -121,7 +121,7 @@ export const ErrorObjectFragmentDoc = gql`
 			processed
 			excluded
 			excluded_reason
-			session_comments {
+			session_feedback {
 				id
 				timestamp
 				created_at

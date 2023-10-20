@@ -3051,18 +3051,16 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 				| 'excluded'
 				| 'excluded_reason'
 			> & {
-					session_comments?: Types.Maybe<
+					session_feedback?: Types.Maybe<
 						Array<
-							Types.Maybe<
-								{ __typename?: 'SessionComment' } & Pick<
-									Types.SessionComment,
-									| 'id'
-									| 'timestamp'
-									| 'created_at'
-									| 'updated_at'
-									| 'project_id'
-									| 'text'
-								>
+							{ __typename?: 'SessionComment' } & Pick<
+								Types.SessionComment,
+								| 'id'
+								| 'timestamp'
+								| 'created_at'
+								| 'updated_at'
+								| 'project_id'
+								| 'text'
 							>
 						>
 					>

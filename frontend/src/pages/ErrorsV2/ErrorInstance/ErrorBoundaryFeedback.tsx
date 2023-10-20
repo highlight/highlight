@@ -33,7 +33,7 @@ const getSessionLink = (
 	return `/${errorObject.project_id}/sessions/${errorObject.session?.secure_id}?${params}`
 }
 
-const SessionComment = ({
+const SessionFeedback = ({
 	sessionComment,
 	isLoggedIn,
 	errorObject,
@@ -107,22 +107,19 @@ export const ErrorBoundaryFeedback = ({ data: errorObject }: Props) => {
 	const { session } = errorObject
 
 	if (session) {
-		const { session_comments = [] } = session
-		if (!session_comments?.length) {
+		const { session_feedback = [] } = session
+		if (!session_feedback?.length) {
 			return null
 		}
-		const comments = session_comments.map(
-			(sessionComment, index) =>
-				sessionComment && (
-					<SessionComment
-						key={sessionComment.id}
-						isLoggedIn={isLoggedIn}
-						sessionComment={sessionComment}
-						errorObject={errorObject}
-						index={index}
-					/>
-				),
-		)
+		const comments = session_feedback.map((sessionComment, index) => (
+			<SessionFeedback
+				key={sessionComment.id}
+				isLoggedIn={isLoggedIn}
+				sessionComment={sessionComment}
+				errorObject={errorObject}
+				index={index}
+			/>
+		))
 		return <Box bt="secondary">{comments}</Box>
 	}
 	return null
