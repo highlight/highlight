@@ -2,8 +2,8 @@ import { promises as fsp } from 'fs'
 import path from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
-import RangeTuple from 'fuse.js'
 import removeMd from 'remove-markdown'
+import { withPageRouterHighlight } from '../../../../highlight.config'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 
@@ -17,7 +17,7 @@ export interface SearchResult {
 	contentMatch?: Array<[number, number]> | undefined
 }
 
-export default async function handler(
+const handler = withPageRouterHighlight(async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
@@ -64,4 +64,5 @@ export default async function handler(
 	})
 
 	return res.json(searchResults)
-}
+})
+export default handler

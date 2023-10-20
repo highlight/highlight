@@ -3,7 +3,7 @@ import { FooterCallToAction } from '../components/common/CallToAction/FooterCall
 import Footer from '../components/common/Footer/Footer'
 import React from 'react'
 import { Typography } from '../components/common/Typography/Typography'
-import { Button, Input } from 'antd'
+import { Button } from 'antd'
 
 export default function Highlight404() {
 	const [query, setQuery] = React.useState<string>()
@@ -14,12 +14,12 @@ export default function Highlight404() {
 			<Navbar />
 			<main>
 				<div className="m-36 gap-4 max-w-max mx-auto">
-					<div className="flex items-center flex-col gap-4">
+					<div className="flex items-center flex-col gap-8">
 						<Typography type="copy1">
-							Try query our backend to generate some logs
+							Search for docs to generate some logs
 						</Typography>
-						<Input
-							value={query}
+						<input
+							className="bg-blue-cta text-black px-3 py-1 rounded-lg"
 							onChange={(e) => {
 								console.log('vadim', { e })
 								setQuery(e.target.value)
@@ -35,22 +35,25 @@ export default function Highlight404() {
 									const r = await fetch(
 										`/api/docs/search/${query}`,
 									)
-									setResult(await r.text())
+									const results = (await r.json()) as any[]
+									if (results.length) {
+										setResult(results[0]['title'])
+									}
 								} finally {
 									setLoading(false)
 								}
 							}}
 						>
 							<Typography type="copy3" emphasis={true}>
-								Query Sitemap
+								Query Docs
 							</Typography>
 						</Button>
+						{result && (
+							<div>
+								<Typography type="copy1">{result}</Typography>
+							</div>
+						)}
 					</div>
-					{result && (
-						<div>
-							<Typography type="copy1">{result}</Typography>
-						</div>
-					)}
 				</div>
 				<FooterCallToAction />
 			</main>
