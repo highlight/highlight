@@ -48,7 +48,6 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -1450,8 +1449,8 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		XCoordinate:     xCoordinate,
 		YCoordinate:     yCoordinate,
 	}
-	createSessionCommentSpan, _ := util.StartSpanFromContext(ctx, "resolver.createSessionComment",
-		util.ResourceName("db.createSessionComment"), util.Tag("project_id", projectID))
+	createSessionCommentSpan, _ := util.StartSpanFromContext(ctx, "db.createSessionComment",
+		util.ResourceName("resolver.createSessionComment"), util.Tag("project_id", projectID))
 	if err := r.DB.Create(sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment")
 	}
@@ -1828,8 +1827,8 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 		AdminId:          admin.ID,
 		Text:             text,
 	}
-	createSessionCommentReplySpan, _ := util.StartSpanFromContext(ctx, "resolver.createSessionCommentReply",
-		util.ResourceName("db.createSessionCommentReply"), util.Tag("project_id", sessionComment.ProjectID))
+	createSessionCommentReplySpan, _ := util.StartSpanFromContext(ctx, "db.createSessionCommentReply",
+		util.ResourceName("resolver.createSessionCommentReply"), util.Tag("project_id", sessionComment.ProjectID))
 	if err := r.DB.Create(commentReply).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment reply")
 	}
@@ -1937,8 +1936,8 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		Text:          text,
 	}
 
-	createErrorCommentSpan, _ := util.StartSpanFromContext(ctx, "resolver.createErrorComment",
-		util.ResourceName("db.createErrorComment"), util.Tag("project_id", projectID))
+	createErrorCommentSpan, _ := util.StartSpanFromContext(ctx, "db.createErrorComment",
+		util.ResourceName("resolver.createErrorComment"), util.Tag("project_id", projectID))
 
 	if err := r.DB.Create(errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error comment")
@@ -2279,8 +2278,8 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 		AdminId:        admin.ID,
 		Text:           text,
 	}
-	createErrorCommentReplySpan, _ := util.StartSpanFromContext(ctx, "resolver.createErrorCommentReply",
-		util.ResourceName("db.createErrorCommentReply"), util.Tag("project_id", errorComment.ProjectID))
+	createErrorCommentReplySpan, _ := util.StartSpanFromContext(ctx, "db.createErrorCommentReply",
+		util.ResourceName("resolver.createErrorCommentReply"), util.Tag("project_id", errorComment.ProjectID))
 	if err := r.DB.Create(commentReply).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error comment reply")
 	}
@@ -3346,7 +3345,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	// RequestAccessMinimumDelay is the minimum time required between requests from an admin (across workspaces)
 	const RequestAccessMinimumDelay = time.Minute * 10
 
-	span, _ := util.StartSpanFromContext(ctx, "private-graph.RequestAccess", util.ResourceName("handler"), util.Tag("project_id", projectID))
+	span, ctx := util.StartSpanFromContext(ctx, "private-graph.RequestAccess", util.ResourceName("handler"), util.Tag("project_id", projectID))
 	defer span.Finish()
 	// sleep up to 10 ms to avoid leaking metadata about whether the project exists or not (how many queries deep we went).
 	time.Sleep(time.Millisecond * time.Duration(10*rand.Float64()))
@@ -4318,8 +4317,9 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 	rageClicks := []*modelInputs.RageClickEventForProject{}
 
-	rageClicksSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal",
-		util.ResourceName("db.RageClicksForProject"), util.Tag("project_id", projectID))
+	rageClicksSpan, ctx := util.StartSpanFromContext(ctx, "db.RageClicksForProject",
+		util.ResourceName("resolver.internal"), util.Tag("project_id", projectID))
+	defer rageClicksSpan.Finish()
 	if err := r.DB.Raw(`
 	SELECT
 		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
@@ -4346,7 +4346,6 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving rage clicks for project")
 	}
-	rageClicksSpan.Finish()
 
 	return rageClicks, nil
 }
@@ -4585,7 +4584,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
 			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
-			clearbitApiRequestSpan, ctx := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
+			clearbitApiRequestSpan, _ := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
 				util.ResourceName("clearbit.api.request"),
 				util.Tag("session_id", s.ID), util.Tag("workspace_id", w.ID), util.Tag("project_id", p.ID), util.Tag("plan_tier", w.PlanTier))
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
@@ -4670,8 +4669,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 	if err != nil {
 		return nil, err
 	}
-	eventsQuerySpan, _ := util.StartSpanFromContext(ctx, "resolver.internal",
-		util.ResourceName("db.errorObjectsQuery"), util.Tag("project_id", s.ProjectID))
+	eventsQuerySpan, ctx := util.StartSpanFromContext(ctx, "db.errorObjectsQuery",
+		util.ResourceName("resolver.internal"), util.Tag("project_id", s.ProjectID))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
 	if err := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: &s.ID}).Find(&errorsObj).Error; err != nil {
@@ -5278,8 +5277,9 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	}
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
-	topUsersSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal",
-		util.ResourceName("db.topUsers"), util.Tag("project_id", projectID))
+	topUsersSpan, ctx := util.StartSpanFromContext(ctx, "db.topUsers",
+		util.ResourceName("resolver.internal"), util.Tag("project_id", projectID))
+	defer topUsersSpan.Finish()
 	if err := r.DB.Raw(`
 	SELECT *
 	FROM (
@@ -5388,8 +5388,9 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	}
 
 	var count int64
-	span, _ := util.StartSpanFromContext(ctx, "resolver.internal",
-		util.ResourceName("db.userFingerprintCount"), util.Tag("project_id", projectID))
+	span, ctx := util.StartSpanFromContext(ctx, "db.userFingerprintCount",
+		util.ResourceName("resolver.internal"), util.Tag("project_id", projectID))
+	defer span.Finish()
 	if err := r.DB.Raw(`
 		SELECT
 			COUNT(DISTINCT fingerprint)
@@ -5403,7 +5404,6 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 		`, lookBackPeriod, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
 	}
-	span.Finish()
 
 	return &modelInputs.UserFingerprintCount{Count: count}, nil
 }
@@ -6717,7 +6717,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 
 	// Check email verification status
 	if admin.EmailVerified != nil && !*admin.EmailVerified {
-		firebaseSpan, _ := util.StartSpanFromContext(ctx, "resolver.getAdmin", util.ResourceName("db.updateAdminFromFirebaseForEmailVerification"),
+		firebaseSpan, _ := util.StartSpanFromContext(ctx, "db.updateAdminFromFirebaseForEmailVerification", util.ResourceName("resolver.getAdmin"),
 			util.Tag("admin_uid", *admin.UID))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
 		if err != nil {
@@ -7025,7 +7025,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		  |> distinct(column: "_field")
 		  |> yield(name: "distinct")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
-	tdbQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
+	tdbQuerySpan, ctx := util.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
 	tdbQuerySpan.SetAttribute("projectID", projectID)
 	results, err := r.TDB.Query(ctx, query)
 	tdbQuerySpan.Finish()
@@ -7048,10 +7048,10 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		import "influxdata/influxdb/schema"
 		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
-	tdbQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryMetricTags")
+	tdbQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryMetricTags")
 	tdbQuerySpan.SetAttribute("projectID", projectID)
 	tdbQuerySpan.SetAttribute("metricName", metricName)
-	results, err := r.TDB.Query(ctx, query)
+	results, err := r.TDB.Query(spanCtx, query)
 	tdbQuerySpan.Finish()
 	if err != nil {
 		return nil, err
@@ -7078,7 +7078,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 		import "influxdata/influxdb/schema"
 		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
-	tdbQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
+	tdbQuerySpan, ctx := util.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
 	tdbQuerySpan.SetAttribute("projectID", projectID)
 	tdbQuerySpan.SetAttribute("metricName", metricName)
 	tdbQuerySpan.SetAttribute("tagName", tagName)
@@ -7134,10 +7134,10 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	  ])
 		  |> sort()
   `, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, div, minPercentile, maxPercentile)
-		histogramRangeQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
+		histogramRangeQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
 		histogramRangeQuerySpan.SetAttribute("projectID", projectID)
 		histogramRangeQuerySpan.SetAttribute("metricName", metricName)
-		results, err := r.TDB.Query(ctx, query)
+		results, err := r.TDB.Query(spanCtx, query)
 		histogramRangeQuerySpan.Finish()
 		if err != nil {
 			return nil, err
@@ -7180,11 +7180,11 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
 	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
-	histogramQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
+	histogramQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetAttribute("projectID", projectID)
 	histogramQuerySpan.SetAttribute("metricName", metricName)
 	histogramQuerySpan.SetAttribute("buckets", params.Buckets)
-	results, err := r.TDB.Query(ctx, query)
+	results, err := r.TDB.Query(spanCtx, query)
 	histogramQuerySpan.Finish()
 	if err != nil {
 		return nil, err
@@ -7242,7 +7242,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
           |> limit(n: 10)
 		  |> yield(name: "count")
 	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
-	networkHistogramSpan, _ := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
+	networkHistogramSpan, ctx := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	networkHistogramSpan.SetAttribute("projectID", projectID)
 	networkHistogramSpan.SetAttribute("attribute", params.Attribute.String())
 	networkHistogramSpan.SetAttribute("lookbackDays", params.LookbackDays)
@@ -7511,19 +7511,14 @@ func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyNam
 
 // LogsErrorObjects is the resolver for the logs_error_objects field.
 func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model.ErrorObject, error) {
-	ddS, _ := util.StartSpanFromContext(ctx, "resolver.LogsErrorObjects",
-		util.ResourceName("DB.Query"), util.Tag("NumLogCursors", len(logCursors)))
-	s, ctx := highlight.StartTrace(ctx, "LogsErrorObjects.DB.Query", attribute.Int("NumLogCursors", len(logCursors)))
+	span, ctx := util.StartSpanFromContext(ctx, "LogsErrorObjects.DB.Query", util.Tag("NumLogCursors", len(logCursors)))
+	defer span.Finish()
 
 	var errorObjects []*model.ErrorObject
 	if err := r.DB.Model(&model.ErrorObject{}).Where("log_cursor IN ?", logCursors).Scan(&errorObjects).Error; err != nil {
-		s.RecordError(err)
-		highlight.EndTrace(s)
-		ddS.Finish(err)
+		span.Finish(err)
 		return nil, e.Wrap(err, "failed to find errors for log cursors")
 	}
-	highlight.EndTrace(s)
-	ddS.Finish()
 	return errorObjects, nil
 }
 

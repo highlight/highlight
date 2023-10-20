@@ -1,7 +1,7 @@
 ---
-title: An honest, open source, session replay benchmark
+title: An open-source session replay benchmark
 createdAt: 2023-10-17T12:00:00Z
-readingTime: 13
+readingTime: 14
 authorFirstName: Abhishek
 authorLastName: More
 authorTitle: Software Engineer
@@ -14,15 +14,17 @@ tags: Highlight Engineering
 metaTitle: The Overhead of Session Replay 
 ---
 
-Session Replay allows you to record and replay user sessions to understand how users interact, analyze performance regressions, and generally understand why users are falling off. However, in some cases, it can come at a cost to the performance of your web application. In this post, we'll discuss the overhead of session replay in several scenarios, and how it can affect your web app at large.
+At highlight.io, our first product was an open-source session replay tool built on [rrweb](https://github.com/rrweb-io/rrweb). Session Replay enables our customers to replay user sessions to analyze performance regressions and understand how users interact with a site.
 
-If you’re interested in trying out the experiment detailed below, you can find it [here](https://github.com/highlight/session-replay-performance-benchmark).
+Despite the benefits, as our customer base grew, more and more teams asked about the performance implications of using this technology on their site. After all, additional computation must happen to record exactly what is shown in the browser. In this post, we'll discuss the overhead of session replay with respect to resource consumption and interaction latency in several scenarios.
+
+It is important to note that we did not measure Web Vitals, as these metrics can easily be manipulated by changing when javascript is executed on the client. Instead, we focused on metrics that affect the browser while session replay records data. If you’re interested in trying out the experiment detailed below or want to learn more about how it works, you can find it [here](https://github.com/highlight/session-replay-performance-benchmark).
 
 ## The Setup
 
 To test session replay against a realistic web application, we created two applications that go hand in hand: A simple [React application](https://github.com/highlight/session-replay-performance-benchmark/tree/main/replay-perf-app) and a [Node.JS application](https://github.com/highlight/session-replay-performance-benchmark/tree/main/replay-perf-puppet) which automates and profiles interactions.
 
-The React application accepts URL parameters which determine the number of elements to render in a list, with an optional parameter to enable session replay.  For the purpose of these experiments, we used [rrweb](https://github.com/rrweb-io/rrweb), an open-source session replay library (adopted by companies such as Highlight, PostHog and Datadog), to simulate the session replay recording.
+The React application accepts URL parameters which determine the number of elements to render in a list, with an optional parameter to enable session replay. When enabled, we would start [rrweb recording](https://github.com/rrweb-io/rrweb), the open-source session replay library adopted by companies such as Highlight, PostHog and Datadog, to produce the session events needed to replay the session.
 
 ```
 import { record } from ‘rrweb’;
@@ -85,6 +87,6 @@ On average, there is a **60 MB increase** in memory usage when using session rep
 
 From the above data, while there is a difference in metrics when enabling session replay, we’ve noticed that there isn’t a very large hit to user experience, even on an extreme web app which renders hundreds of components at a time.
 
-We have published this experiment [on Github](https://github.com/highlight/session-replay-performance-benchmark) and we encourage you to run it yourself and share benchmarks on your respective devices. 
+You may wonder how Session Replay can be so efficient. The secret lies in the optimal implementation in modern browsers which do the hard work of efficiently calculating how the DOM changes. Using the [HTML Mutation Observer API](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver) to set up a callback doesn’t add much overhead to your javascript runtime; the only complicated bit is serializing the modified DOM nodes into a format that can be replayed.
 
-And related to Session replay, as you continue to explore the benefits of session replay, we highly recommend checking out Highlight.io, an open-source session replay tool. [Highlight.io](https://highlight.io) offers a comprehensive solution to help you gain valuable insights into how your users interact with your application, enabling you to debug issues on your application, make data-driven enhancements and create a more user-centric environment.
+One feature we wish to get to is profiling the inner workings of the Mutation Observer API itself to break down which parts of session replay (in rrweb specifically) actually cause the overhead we see. We’ve published this experiment [on Github](https://github.com/highlight/session-replay-performance-benchmark) and we encourage you to run it yourself and share benchmarks on your respective devices. We’d love to see folks contribute as well!
