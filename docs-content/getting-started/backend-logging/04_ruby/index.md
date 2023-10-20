@@ -1,4 +1,0 @@
----
-title: Ruby
-slug: ruby
----

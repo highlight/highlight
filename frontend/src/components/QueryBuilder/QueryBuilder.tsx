@@ -119,6 +119,7 @@ interface RuleSettings {
 	updateRule: UpdateRule
 	removeRule: RemoveRule
 	readonly: boolean
+	minimal: boolean
 }
 
 type PopoutType =
@@ -614,6 +615,7 @@ const QueryRule = ({
 	removeRule,
 	updateRule,
 	readonly,
+	minimal,
 	getCustomFieldOptions,
 	getDefaultOperator,
 }: { rule: RuleProps } & RuleSettings) => {
@@ -704,7 +706,7 @@ const QueryRule = ({
 					]}
 				/>
 			)}
-			{!readonly && (
+			{!readonly && !minimal ? (
 				<Tag
 					size="medium"
 					kind="secondary"
@@ -715,7 +717,7 @@ const QueryRule = ({
 					}}
 					iconRight={<IconSolidX size={12} />}
 				/>
-			)}
+			) : null}
 		</Box>
 	)
 }
@@ -1104,7 +1106,7 @@ export type FetchFieldVariables =
 	  >
 	| undefined
 
-interface QueryBuilderProps {
+export interface QueryBuilderProps {
 	searchContext: BaseSearchContext
 	timeRangeField: SelectOption
 	customFields: CustomField[]
@@ -1112,6 +1114,8 @@ interface QueryBuilderProps {
 	fieldData?: GetFieldTypesClickhouseQuery
 	errorTagData?: GetErrorTagsQuery
 	readonly?: boolean
+	minimal?: boolean
+	setDefault?: boolean
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
 		| typeof useEditErrorSegmentMutation
@@ -1150,6 +1154,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fieldData,
 		errorTagData,
 		readonly,
+		minimal,
+		setDefault,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
 		CreateAnySegmentModal,
@@ -1523,10 +1529,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// Not sure if this is desired behavior in the long term, but
 	// this matches the current prod behavior.
 	useEffect(() => {
-		return () => {
-			removeSelectedSegment()
+		if (setDefault !== false) {
+			return () => {
+				removeSelectedSegment()
+			}
 		}
-	}, [removeSelectedSegment])
+	}, [removeSelectedSegment, setDefault])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
@@ -1823,7 +1831,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}
 				}}
 			/>
-			{!readonly && controlBar}
+			{!readonly && !minimal ? controlBar : null}
 			<Box
 				border="secondary"
 				borderRadius="8"
@@ -1831,14 +1839,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 				flexDirection="column"
 				overflow="hidden"
 				flexShrink={0}
-				m={readonly ? undefined : '8'}
-				shadow="medium"
+				m={readonly || minimal ? undefined : '8'}
+				shadow={minimal ? undefined : 'medium'}
 			>
 				<Box
 					p="4"
-					paddingBottom="8"
 					background="white"
-					borderBottom={readonly ? undefined : 'secondary'}
+					borderBottom={readonly || minimal ? undefined : 'secondary'}
 					display="flex"
 					alignItems="center"
 					flexWrap="wrap"
@@ -1871,12 +1878,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 							getValueOptionsCallback={getValueOptionsCallback}
 							removeRule={removeRule}
 							readonly={readonly ?? false}
+							minimal={minimal ?? false}
 							updateRule={updateRule}
 						/>,
 					])}
 					{addFilterButton}
 				</Box>
-				{!readonly && (
+				{!readonly && !minimal ? (
 					<Box
 						display="flex"
 						p="8"
@@ -2050,7 +2058,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 							</Menu>
 						</Box>
 					</Box>
-				)}
+				) : null}
 			</Box>
 		</>
 	)

@@ -118,7 +118,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const { projectId } = useProjectId()
-	const { isHighlightAdmin, isLoggedIn, signOut } = useAuthContext()
+	const { isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
@@ -148,7 +148,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'traces',
 			icon: IconSolidSparkles,
-			highlightAdminOnly: true,
 			isBeta: true,
 		},
 		{
@@ -218,54 +217,48 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							<ProjectPicker />
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
-									{pages
-										.filter(
-											(p) =>
-												!p.highlightAdminOnly ||
-												isHighlightAdmin,
+									{pages.map((p) => {
+										return (
+											<LinkButton
+												iconLeft={
+													<p.icon
+														size={14}
+														color={
+															currentPage ===
+															p.key
+																? undefined
+																: vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+														}
+													/>
+												}
+												emphasis={
+													currentPage === p.key
+														? 'high'
+														: 'low'
+												}
+												kind={
+													currentPage === p.key
+														? 'primary'
+														: 'secondary'
+												}
+												to={`/${projectId}/${p.key}`}
+												key={p.key}
+												trackingId={`header-link-click-${p.key}`}
+											>
+												{titleCaseString(p.key)}
+												{p.isBeta ? (
+													<Box cssClass={betaTag}>
+														Beta
+													</Box>
+												) : null}
+											</LinkButton>
 										)
-										.map((p) => {
-											return (
-												<LinkButton
-													iconLeft={
-														<p.icon
-															size={14}
-															color={
-																currentPage ===
-																p.key
-																	? undefined
-																	: vars.theme
-																			.interactive
-																			.fill
-																			.secondary
-																			.content
-																			.text
-															}
-														/>
-													}
-													emphasis={
-														currentPage === p.key
-															? 'high'
-															: 'low'
-													}
-													kind={
-														currentPage === p.key
-															? 'primary'
-															: 'secondary'
-													}
-													to={`/${projectId}/${p.key}`}
-													key={p.key}
-													trackingId={`header-link-click-${p.key}`}
-												>
-													{titleCaseString(p.key)}
-													{p.isBeta ? (
-														<Box cssClass={betaTag}>
-															Beta
-														</Box>
-													) : null}
-												</LinkButton>
-											)
-										})}
+									})}
 									<Menu>
 										<Menu.Button
 											icon={

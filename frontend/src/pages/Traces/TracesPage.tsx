@@ -71,6 +71,7 @@ export const TracesPage: React.FC = () => {
 		useGetTracesMetricsQuery({
 			variables: {
 				project_id: projectId!,
+				group_by: [],
 				params: {
 					query: serverQuery,
 					date_range: {

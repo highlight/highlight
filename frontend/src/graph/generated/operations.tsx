@@ -4526,6 +4526,10 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 					| 'error_exclusion_query'
 					| 'log_exclusion_query'
 					| 'trace_exclusion_query'
+					| 'session_minute_rate_limit'
+					| 'error_minute_rate_limit'
+					| 'log_minute_rate_limit'
+					| 'trace_minute_rate_limit'
 				>
 			}
 	>
@@ -4568,6 +4572,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_insights'
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
+			| 'enable_ingest_filters'
 		>
 	>
 }
@@ -4824,6 +4829,7 @@ export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
 	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 }>
 
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
@@ -4834,7 +4840,7 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 			buckets: Array<
 				{ __typename?: 'TracesMetricBucket' } & Pick<
 					Types.TracesMetricBucket,
-					'bucket_id' | 'metric_type' | 'metric_value'
+					'bucket_id' | 'group' | 'metric_type' | 'metric_value'
 				>
 			>
 		}

@@ -9,7 +9,13 @@ import FooterLeftImage from '../../../public/images/safety-security-section.gif'
 import { PrimaryButton } from '../Buttons/PrimaryButton'
 import { Typography } from '../Typography/Typography'
 
-export const FooterCallToAction = () => {
+export const FooterCallToAction = ({
+	buttonText,
+	buttonLink,
+}: {
+	buttonText?: string
+	buttonLink?: string
+}) => {
 	return (
 		<div className={styles.callToActionBackground}>
 			<div
@@ -34,9 +40,15 @@ export const FooterCallToAction = () => {
 						styles.tryButtonContainer,
 					)}
 				>
-					<PrimaryButton href="https://app.highlight.io/sign_up">
+					<PrimaryButton
+						href={
+							buttonLink
+								? buttonLink
+								: 'https://app.highlight.io/sign_up'
+						}
+					>
 						<Typography type="copy2" emphasis={true}>
-							Get started for free
+							{buttonText ? buttonText : 'Get started for free'}
 						</Typography>
 					</PrimaryButton>
 				</div>

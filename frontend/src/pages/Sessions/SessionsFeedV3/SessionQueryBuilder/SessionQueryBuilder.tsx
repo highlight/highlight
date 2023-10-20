@@ -16,6 +16,7 @@ import QueryBuilder, {
 	FetchFieldVariables,
 	getAbsoluteEndTime,
 	getAbsoluteStartTime,
+	QueryBuilderProps,
 	RANGE_OPERATORS,
 	SelectOption,
 	TIME_OPERATORS,
@@ -131,7 +132,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 	},
 ]
 
-const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
+const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 	const { refetch } = useGetFieldsClickhouseQuery({
 		skip: true,
 	})

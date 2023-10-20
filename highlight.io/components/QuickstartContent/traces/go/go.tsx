@@ -1,4 +1,5 @@
 import { siteUrl } from '../../../../utils/urls'
+import { goGetSnippet, initializeGoSdk } from '../../backend/go/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
 
@@ -8,14 +9,16 @@ export const GoTracesContent: QuickStartContent = {
 		'Learn how to set up highlight.io tracing for your Go application.',
 	logoUrl: siteUrl('/images/quickstart/go.svg'),
 	entries: [
+		goGetSnippet,
+		initializeGoSdk,
 		{
-			title: 'Wrap your traced code using the Go SDK.',
+			title: 'Wrap your code using the Go SDK.',
 			content:
-				'By wrapping your code with `StartTrace` and `EndTrace`, the Highlight Go SDK will record trace duration, parent/child relationships, and service properties.',
+				'By wrapping your code with `StartTrace` and `EndTrace`, the Highlight Go SDK will record a span. You can create more child spans using the child context or add custom attributes to each span.',
 			code: [
 				{
 					text: `import (
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 )
 

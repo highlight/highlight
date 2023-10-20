@@ -304,24 +304,26 @@ export class Highlight {
 	}
 
 	// Start a new session
-	async _reset() {
+	async _reset({ forceNew }: { forceNew?: boolean }) {
 		if (this.pushPayloadTimerId) {
 			clearTimeout(this.pushPayloadTimerId)
 			this.pushPayloadTimerId = undefined
 		}
 
 		let user_identifier, user_object
-		try {
-			user_identifier = window.sessionStorage.getItem(
-				SESSION_STORAGE_KEYS.USER_IDENTIFIER,
-			)
-			const user_object_string = window.sessionStorage.getItem(
-				SESSION_STORAGE_KEYS.USER_OBJECT,
-			)
-			if (user_object_string) {
-				user_object = JSON.parse(user_object_string)
-			}
-		} catch (err) {}
+		if (!forceNew) {
+			try {
+				user_identifier = window.sessionStorage.getItem(
+					SESSION_STORAGE_KEYS.USER_IDENTIFIER,
+				)
+				const user_object_string = window.sessionStorage.getItem(
+					SESSION_STORAGE_KEYS.USER_OBJECT,
+				)
+				if (user_object_string) {
+					user_object = JSON.parse(user_object_string)
+				}
+			} catch (err) {}
+		}
 		for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
 			window.sessionStorage.removeItem(storageKeyName)
 		}
@@ -532,7 +534,7 @@ export class Highlight {
 			}
 
 			if (options?.forceNew) {
-				await this._reset()
+				await this._reset(options)
 				// effectively 'restart' recording by starting the new payload with a full snapshot
 				this.takeFullSnapshot()
 				return
@@ -1260,7 +1262,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.sessionData.sessionStartTime &&
 				Date.now() - this.sessionData.sessionStartTime > maxLength
 			) {
-				await this._reset()
+				await this._reset({})
 			}
 			await this._sendPayload({ isBeacon: false })
 			this.hasPushedData = true

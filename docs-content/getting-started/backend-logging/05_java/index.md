@@ -1,4 +1,0 @@
----
-title: Java
-slug: java
----
