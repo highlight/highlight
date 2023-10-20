@@ -111,7 +111,7 @@ export const TraceFlameGraphNode = memo<Props>(
 					)}
 				</g>
 
-				{span.children?.map((childSpan) => (
+				{span.children?.map((childSpan: FlameGraphSpan) => (
 					<TraceFlameGraphNode
 						key={childSpan.spanID}
 						depth={depth + 1}

@@ -67,9 +67,9 @@ export const TracePage: React.FC<Props> = () => {
 		skip: !projectId || !traceId,
 	})
 
-	const { startTime, totalDuration } = useMemo(() => {
+	const { startTime, duration: totalDuration } = useMemo(() => {
 		if (!data?.trace) {
-			return { startTime: 0, endTime: 0, totalDuration: 0 }
+			return { startTime: 0, endTime: 0, duration: 0 }
 		}
 
 		return getTraceTimes(data.trace.trace)

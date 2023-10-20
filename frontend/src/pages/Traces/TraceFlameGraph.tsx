@@ -137,7 +137,6 @@ export const TraceFlameGraph: React.FC<Props> = ({
 		'wheel',
 		(event: WheelEvent) => {
 			const { deltaY, ctrlKey, metaKey } = event
-			console.log('wheel', deltaY)
 
 			if (ctrlKey || metaKey) {
 				event.preventDefault()
@@ -215,7 +214,7 @@ export const TraceFlameGraph: React.FC<Props> = ({
 							</g>
 						)
 					})}
-					{traces.map((span, index) => {
+					{Object.entries(traces).map(([index, span]) => {
 						return (
 							<TraceFlameGraphNode
 								key={index}

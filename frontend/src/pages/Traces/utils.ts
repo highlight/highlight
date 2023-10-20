@@ -1,5 +1,3 @@
-import { FlameChartNode } from 'flame-chart-js'
-
 import { Trace } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
@@ -32,7 +30,7 @@ export const getTraceTimes = (trace: Trace[]) => {
 	return {
 		startTime,
 		endTime,
-		totalDuration: endTime - startTime,
+		duration: endTime - startTime,
 	}
 }
 
@@ -67,10 +65,10 @@ export const getTraceDurationString = (duration: number) => {
 }
 
 export type FlameGraphSpan = {
+	name: string
 	start: number // nanoseconds since start of trace
 	children?: FlameGraphSpan[]
-} & Trace &
-	FlameChartNode
+} & Trace
 
 // TODO: Organize in rows and set overlapping spans next to each other. Possibly
 // make another method to handle this.
