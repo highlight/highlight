@@ -70,8 +70,6 @@ export type FlameGraphSpan = {
 	children?: FlameGraphSpan[]
 } & Trace
 
-// TODO: Organize in rows and set overlapping spans next to each other. Possibly
-// make another method to handle this.
 export const organizeSpans = (spans: Trace[]) => {
 	// Object is not modifieable, so we need to clone it to add children
 	const startTime = new Date(spans[0].timestamp).getTime() * 1000000
