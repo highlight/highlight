@@ -32,7 +32,11 @@ type UpdateProjectFilterSettingsParams struct {
 
 func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID int, updates UpdateProjectFilterSettingsParams) (*model.ProjectFilterSettings, error) {
 	projectFilterSettings, err := store.GetProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		return projectFilterSettings, err
+	}
 
+	workspaceSettings, err := store.GetAllWorkspaceSettingsByProject(ctx, projectID)
 	if err != nil {
 		return projectFilterSettings, err
 	}
@@ -45,7 +49,7 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
 	}
 
-	if updates.Sampling != nil {
+	if workspaceSettings.EnableIngestFilters && updates.Sampling != nil {
 		if updates.Sampling.SessionSamplingRate != nil {
 			projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
 		}
@@ -70,10 +74,18 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		if updates.Sampling.TraceMinuteRateLimit != nil {
 			projectFilterSettings.TraceMinuteRateLimit = *updates.Sampling.TraceMinuteRateLimit
 		}
-		projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery
-		projectFilterSettings.ErrorExclusionQuery = updates.Sampling.ErrorExclusionQuery
-		projectFilterSettings.LogExclusionQuery = updates.Sampling.LogExclusionQuery
-		projectFilterSettings.TraceExclusionQuery = updates.Sampling.TraceExclusionQuery
+		if updates.Sampling.SessionExclusionQuery != nil {
+			projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery
+		}
+		if updates.Sampling.ErrorExclusionQuery != nil {
+			projectFilterSettings.ErrorExclusionQuery = updates.Sampling.ErrorExclusionQuery
+		}
+		if updates.Sampling.LogExclusionQuery != nil {
+			projectFilterSettings.LogExclusionQuery = updates.Sampling.LogExclusionQuery
+		}
+		if updates.Sampling.TraceExclusionQuery != nil {
+			projectFilterSettings.TraceExclusionQuery = updates.Sampling.TraceExclusionQuery
+		}
 	}
 
 	result := store.db.Save(&projectFilterSettings)

@@ -11,77 +11,81 @@ import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
 
 import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 
-const ErrorFeedHistogram = React.memo(() => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const { searchQuery, backendSearchQuery, setSearchQuery } =
-		useErrorSearchContext()
-	const { loading, data } = useGetErrorsHistogramClickhouseQuery({
-		variables: {
-			query: JSON.parse(searchQuery),
-			project_id: project_id!,
-			histogram_options: {
-				bucket_size:
-					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
-				time_zone:
-					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
-				bounds: {
-					start_date: roundFeedDate(
-						backendSearchQuery?.startDate.toISOString() ?? null,
-					).format(),
-					end_date: roundFeedDate(
-						backendSearchQuery?.endDate.toISOString() ?? null,
-					).format(),
+const ErrorFeedHistogram: React.FC<{ readonly?: boolean }> = React.memo(
+	({ readonly }) => {
+		const { project_id } = useParams<{ project_id: string }>()
+		const { searchQuery, backendSearchQuery, setSearchQuery } =
+			useErrorSearchContext()
+		const { loading, data } = useGetErrorsHistogramClickhouseQuery({
+			variables: {
+				query: JSON.parse(searchQuery),
+				project_id: project_id!,
+				histogram_options: {
+					bucket_size:
+						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+					time_zone:
+						Intl.DateTimeFormat().resolvedOptions().timeZone ??
+						'UTC',
+					bounds: {
+						start_date: roundFeedDate(
+							backendSearchQuery?.startDate.toISOString() ?? null,
+						).format(),
+						end_date: roundFeedDate(
+							backendSearchQuery?.endDate.toISOString() ?? null,
+						).format(),
+					},
 				},
 			},
-		},
-		skip: !backendSearchQuery?.childSearchQuery || !project_id,
-		fetchPolicy: 'network-only',
-	})
+			skip: !backendSearchQuery?.childSearchQuery || !project_id,
+			fetchPolicy: 'network-only',
+		})
 
-	const histogram: {
-		seriesList: Series[]
-		bucketTimes: number[]
-	} = {
-		seriesList: [],
-		bucketTimes: [],
-	}
-	if (data?.errors_histogram_clickhouse) {
-		histogram.bucketTimes =
-			data?.errors_histogram_clickhouse.bucket_times.map((startTime) =>
-				new Date(startTime).valueOf(),
-			)
-		histogram.seriesList = [
-			{
-				label: 'errors',
-				color: 'n9',
-				counts: data?.errors_histogram_clickhouse.error_objects,
+		const histogram: {
+			seriesList: Series[]
+			bucketTimes: number[]
+		} = {
+			seriesList: [],
+			bucketTimes: [],
+		}
+		if (data?.errors_histogram_clickhouse) {
+			histogram.bucketTimes =
+				data?.errors_histogram_clickhouse.bucket_times.map(
+					(startTime) => new Date(startTime).valueOf(),
+				)
+			histogram.seriesList = [
+				{
+					label: 'errors',
+					color: 'n9',
+					counts: data?.errors_histogram_clickhouse.error_objects,
+				},
+			]
+		}
+
+		const updateTimeRange = useCallback(
+			(newStartTime: Date, newEndTime: Date) => {
+				setSearchQuery((query) =>
+					updateQueriedTimeRange(
+						query || '',
+						TIME_RANGE_FIELD,
+						serializeAbsoluteTimeRange(newStartTime, newEndTime),
+					),
+				)
 			},
-		]
-	}
+			[setSearchQuery],
+		)
 
-	const updateTimeRange = useCallback(
-		(newStartTime: Date, newEndTime: Date) => {
-			setSearchQuery((query) =>
-				updateQueriedTimeRange(
-					query || '',
-					TIME_RANGE_FIELD,
-					serializeAbsoluteTimeRange(newStartTime, newEndTime),
-				),
-			)
-		},
-		[setSearchQuery],
-	)
-
-	return (
-		<SearchResultsHistogram
-			seriesList={histogram.seriesList}
-			bucketTimes={histogram.bucketTimes}
-			bucketSize={backendSearchQuery?.histogramBucketSize}
-			loading={loading}
-			updateTimeRange={updateTimeRange}
-			barGap={2.4}
-		/>
-	)
-})
+		return (
+			<SearchResultsHistogram
+				seriesList={histogram.seriesList}
+				bucketTimes={histogram.bucketTimes}
+				bucketSize={backendSearchQuery?.histogramBucketSize}
+				loading={loading}
+				updateTimeRange={updateTimeRange}
+				barGap={2.4}
+				readonly={readonly}
+			/>
+		)
+	},
+)
 
 export default ErrorFeedHistogram

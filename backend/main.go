@@ -405,6 +405,7 @@ func main() {
 		}
 
 		r.Route("/oauth", func(r chi.Router) {
+			r.Use(highlightChi.Middleware)
 			r.Use(private.PrivateMiddleware)
 			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
 			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
@@ -418,8 +419,8 @@ func main() {
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 		r.Route(privateEndpoint, func(r chi.Router) {
-			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
+			r.Use(private.PrivateMiddleware)
 			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
 				fsClient.SetupHTTPSListener(r)
 			}
@@ -494,8 +495,8 @@ func main() {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
-			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
+			r.Use(public.PublicMiddleware)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{

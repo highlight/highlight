@@ -29,7 +29,7 @@ func Middleware() echo.MiddlewareFunc {
 				ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, ids[1])
 			}
 
-			span, hCtx := highlight.StartTrace(ctx, "highlight/echo")
+			span, hCtx := highlight.StartTrace(ctx, "highlight.echo")
 			defer highlight.EndTrace(span)
 
 			c.SetRequest(c.Request().WithContext(hCtx))

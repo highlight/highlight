@@ -5,6 +5,7 @@ import { style } from '@vanilla-extract/css'
 
 export const OUTLINE_HISTOGRAM_HEIGHT = 120
 export const OUTLINE_PADDING = 2
+export const LEGEND_HISTOGRAM_HEIGHT = 98
 
 export const regularHeight = style({
 	height: '4.16rem', // computed as 52px in Chrome,
@@ -12,6 +13,10 @@ export const regularHeight = style({
 
 export const outlineHeight = style({
 	height: OUTLINE_HISTOGRAM_HEIGHT,
+})
+
+export const legendHeight = style({
+	height: LEGEND_HISTOGRAM_HEIGHT,
 })
 
 export const hover = style({

@@ -893,6 +893,7 @@ type TracePayload struct {
 
 type TracesMetricBucket struct {
 	BucketID    uint64           `json:"bucket_id"`
+	Group       []string         `json:"group"`
 	MetricType  TracesMetricType `json:"metric_type"`
 	MetricValue float64          `json:"metric_value"`
 }
@@ -1138,6 +1139,49 @@ func (e *ErrorState) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ErrorState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type IngestReason string
+
+const (
+	IngestReasonSample IngestReason = "Sample"
+	IngestReasonRate   IngestReason = "Rate"
+	IngestReasonFilter IngestReason = "Filter"
+)
+
+var AllIngestReason = []IngestReason{
+	IngestReasonSample,
+	IngestReasonRate,
+	IngestReasonFilter,
+}
+
+func (e IngestReason) IsValid() bool {
+	switch e {
+	case IngestReasonSample, IngestReasonRate, IngestReasonFilter:
+		return true
+	}
+	return false
+}
+
+func (e IngestReason) String() string {
+	return string(e)
+}
+
+func (e *IngestReason) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IngestReason(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IngestReason", str)
+	}
+	return nil
+}
+
+func (e IngestReason) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -28,3 +28,7 @@ Your client will send Highlight telemetry about every 3 seconds. We've taken ext
 1.  Only 1 request will be in-flight at a given time
 
 2.  Responsive to your end user's network speed
+
+## Session Replay
+
+Concerned about session replay impacting your web application? Read our blog post about it [here](https://highlight.io/blog/session-replay-performance).

@@ -1,4 +1,6 @@
+import { ProductType } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui'
+import { ProjectProductFilters } from '@pages/ProjectSettings/ProjectFilters/ProjectFilters'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
@@ -69,6 +71,9 @@ export const SettingsRouter = () => {
 	// defined in a route anywhere, it's only used by the tabs.
 	const workspaceMatch = useMatch('/w/:workspace_id/:section_id/:page_id?')
 	const projectMatch = useMatch('/:project_id/settings/:page_id?')
+	const productFilterMatch = useMatch(
+		'/:project_id/settings/filters/:product',
+	)
 	const pageId =
 		workspaceMatch?.params.page_id ||
 		projectMatch?.params.page_id ||
@@ -314,6 +319,30 @@ export const SettingsRouter = () => {
 								<Route
 									path=":tab?"
 									element={<ProjectSettings />}
+								/>
+								<Route
+									path="filters/:product"
+									element={
+										<Box
+											style={{ maxWidth: 560 }}
+											my="40"
+											mx="auto"
+										>
+											{productFilterMatch?.params
+												.product && (
+												<ProjectProductFilters
+													product={
+														(productFilterMatch?.params.product
+															?.charAt(0)
+															.toUpperCase() +
+															productFilterMatch?.params.product
+																?.slice(1)
+																.toLowerCase()) as ProductType
+													}
+												/>
+											)}
+										</Box>
+									}
 								/>
 							</Routes>
 						</Box>

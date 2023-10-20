@@ -15,7 +15,7 @@ export const goGetSnippet: QuickStartStep = {
 export const initializeGoSdk: QuickStartStep = {
 	title: 'Initialize the Highlight Go SDK.',
 	content:
-		"`highlight.Start` starts a goroutine for recording and sending backend errors. Setting your project id lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
+		"`highlight.Start` starts a goroutine for recording and sending backend traces and errors. Setting your project id lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
 	code: [
 		{
 			text: `import (

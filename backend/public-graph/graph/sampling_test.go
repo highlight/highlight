@@ -98,7 +98,22 @@ func Test_isIngestedByRate(t *testing.T) {
 
 func Test_IsSessionExcluded(t *testing.T) {
 	ctx := context.TODO()
-	_, err := resolver.Store.UpdateProjectFilterSettings(ctx, 1, store.UpdateProjectFilterSettingsParams{
+
+	err := resolver.Redis.FlushDB(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+
+	workspace := model.Workspace{}
+	resolver.DB.Create(&workspace)
+
+	settings := model.AllWorkspaceSettings{WorkspaceID: workspace.ID, EnableIngestFilters: true}
+	resolver.DB.Create(&settings)
+
+	project := model.Project{WorkspaceID: workspace.ID}
+	resolver.DB.Create(&project)
+
+	_, err = resolver.Store.UpdateProjectFilterSettings(ctx, project.ID, store.UpdateProjectFilterSettingsParams{
 		Sampling: &modelInputs.SamplingInput{
 			SessionSamplingRate:    pointy.Float64(1. / 100_000),
 			SessionMinuteRateLimit: pointy.Int64(1),
@@ -108,20 +123,17 @@ func Test_IsSessionExcluded(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = resolver.Redis.FlushDB(ctx)
-	if err != nil {
-		t.Error(err)
-	}
 
 	// key is always included by sampling with the given rate (1 / 100_000)
 	rare := "53b0c406-c655-407a-817f-edefcddc7428"
-	s := model.Session{ProjectID: 1, SecureID: rare}
+	when := time.Now()
+	s := model.Session{ProjectID: project.ID, SecureID: rare, Model: model.Model{CreatedAt: when}}
 	excluded, reason := resolver.IsSessionExcluded(ctx, &s, false)
 	assert.False(t, excluded)
 	assert.Equal(t, "", reason.String())
 	for i := 0; i < 100; i++ {
 		for _, hasErrors := range []bool{false, true} {
-			s := model.Session{ProjectID: 1, SecureID: rare}
+			s := model.Session{ProjectID: project.ID, SecureID: rare, Model: model.Model{CreatedAt: when}}
 			excluded, reason := resolver.IsSessionExcluded(ctx, &s, hasErrors)
 			assert.True(t, excluded)
 			assert.Equal(t, modelInputs.SessionExcludedReasonRateLimitMinute, *reason)
