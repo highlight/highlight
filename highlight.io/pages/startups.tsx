@@ -5,11 +5,13 @@ import { HiCheckCircle } from 'react-icons/hi'
 import { PrimaryButton } from '../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
+import { Meta } from '../components/common/Head/Meta'
 import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import { Typography } from '../components/common/Typography/Typography'
 import { CustomerReel } from '../components/Home/CompaniesReel/CustomerReel'
 import swag from '../public/images/highlightswag.svg'
+import meta from '../public/images/startupherometa.png'
 import hero from '../public/images/startupshero.svg'
 
 const StartupsPage = () => {
@@ -17,6 +19,12 @@ const StartupsPage = () => {
 
 	return (
 		<div>
+			<Meta
+				title="Highlight for Startups"
+				description="If your startup has raised less than 2M in funding, you may qualify for up to 1 year of free Highlight usage."
+				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${meta.src}`}
+				canonical={`/startups`}
+			/>
 			<Navbar />
 			<main className="md:mt-16">
 				<Section>
@@ -34,9 +42,9 @@ const StartupsPage = () => {
 								type="copy1"
 								className="text-darker-copy-on-dark"
 							>
-								If you&apos;re a startup with less than 2M in
-								funding, apply for $5k worth of credits and some
-								Highlight swag!
+								If your startup has raised less than 2M in
+								funding, you may qualify for up to 1 year of
+								free Highlight usage.
 							</Typography>
 							<div className="flex items-center flex-grow gap-1 p-2 pl-4 mt-4 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light">
 								<input
@@ -85,7 +93,7 @@ const StartupsPage = () => {
 							/>
 						</div>
 						<div className="flex flex-col justify-center md:w-1/2 gap-2">
-							<h3>Program Benefits</h3>
+							<h3 className="m-0">Program Benefits</h3>
 							<Typography
 								type="copy1"
 								className="text-darker-copy-on-dark mb-3"
@@ -150,7 +158,7 @@ const StartupsPage = () => {
 					</div>
 				</Section>
 				<Section>
-					<div className="flex flex-col items-center text-center w-full">
+					<div className="flex flex-col items-center text-center w-full md:mt-32">
 						<h3>Startups ❤️ Highlight</h3>
 						<div className="flex justify-center max-w-[600px]">
 							<Typography
