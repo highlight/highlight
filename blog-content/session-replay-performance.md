@@ -1,7 +1,7 @@
 ---
 title: An open-source session replay benchmark
 createdAt: 2023-10-17T12:00:00Z
-readingTime: 13
+readingTime: 14
 authorFirstName: Abhishek
 authorLastName: More
 authorTitle: Software Engineer
@@ -14,17 +14,17 @@ tags: Highlight Engineering
 metaTitle: The Overhead of Session Replay 
 ---
 
-Session Replay allows you to record and replay user sessions to analyze performance regressions and understand how users generally interact with your site. It allows you to glean product insight in frustrating frontend experiences or letting you dig into how a user may have dropped off. It also lets you debug rendering issues by showing how the page looked. 
+At highlight.io, our first product was an open-source session replay tool built on [rrweb](https://github.com/rrweb-io/rrweb). Session Replay enables our customers to replay user sessions to analyze performance regressions and understand how users interact with a site.
 
-However, with the pixel-perfect reproduction, you might expect it to come at a cost. After all, something must perform additional computational work to record exactly what was shown on the browser. In this post, we'll discuss the overhead of session replay in several scenarios. We’ll be testing a large web app and compare it to an extreme case where session replay may have a significant toll. At the end, we’ll explain a bit on how session replay works and show you how it can be so efficient.
+Despite the benefits, as our customer base grew, more and more teams asked about the performance implications of using this technology on their site. After all, additional computation must happen to record exactly what is shown in the browser. In this post, we'll discuss the overhead of session replay with respect to resource consumption and interaction latency in several scenarios.
 
-If you’re interested in trying out the experiment detailed below, you can find it [here](https://github.com/highlight/session-replay-performance-benchmark).
+It is important to note that we did not measure Web Vitals, as these metrics can easily be manipulated by changing when javascript is executed on the client. Instead, we focused on metrics that affect the browser while session replay records data. If you’re interested in trying out the experiment detailed below or want to learn more about how it works, you can find it [here](https://github.com/highlight/session-replay-performance-benchmark).
 
 ## The Setup
 
 To test session replay against a realistic web application, we created two applications that go hand in hand: A simple [React application](https://github.com/highlight/session-replay-performance-benchmark/tree/main/replay-perf-app) and a [Node.JS application](https://github.com/highlight/session-replay-performance-benchmark/tree/main/replay-perf-puppet) which automates and profiles interactions.
 
-The React application accepts URL parameters which determine the number of elements to render in a list, with an optional parameter to enable session replay.  For the purpose of these experiments, we used [rrweb](https://github.com/rrweb-io/rrweb), an open-source session replay library (adopted by companies such as Highlight, PostHog and Datadog), to simulate the session replay recording.
+The React application accepts URL parameters which determine the number of elements to render in a list, with an optional parameter to enable session replay. When enabled, we would start [rrweb recording](https://github.com/rrweb-io/rrweb), the open-source session replay library adopted by companies such as Highlight, PostHog and Datadog, to produce the session events needed to replay the session.
 
 ```
 import { record } from ‘rrweb’;
