@@ -44,4 +44,7 @@ Read more about highlight.io's integrations! Have a questions or want to request
     <DocsCard title="Discord."  href="./discord-integration.md">
         {"Create discord tickets within highlight.io"}
     </DocsCard>
+    <DocsCard title="Pendo."  href="./pendo-integration.md">
+        {"Instrument highlight.io to send pendo events."}
+    </DocsCard>
 </DocsCardGroup>
