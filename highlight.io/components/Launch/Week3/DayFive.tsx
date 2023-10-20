@@ -1,12 +1,11 @@
 import classNames from 'classnames'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useState } from 'react'
+import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import { HiPlay } from 'react-icons/hi2'
 
 import { Typography } from '../../common/Typography/Typography'
 
-import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import CardOverlay from './CardOverlay'
 import styles from './Launch.module.scss'
 
@@ -26,10 +25,7 @@ const DayFive = () => {
 
 	return (
 		<div id="day-5" className="w-full max-w-[550px] md:max-w-none z-50">
-			<div
-				onClick={() => handleCopy('#day-5')}
-				className="flex justify-between items-center"
-			>
+			<div className="flex justify-between items-center">
 				<div className="group flex items-center gap-2 w-1/2 cursor-pointer">
 					<Typography
 						className="text-darker-copy-on-dark"
@@ -38,28 +34,37 @@ const DayFive = () => {
 					>
 						Day 5: October 20th
 					</Typography>
+
+					<a
+						className="flex items-center gap-1 border border-[#34343A] text-darker-copy-on-dark px-4 py-1 rounded-full"
+						href="https://drive.google.com/file/d/1D13VqO4u4QfYq1Lz8xIIpd_OIjAddkYf/view?usp=sharing"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<HiPlay />
+
+						<Typography
+							className="text-darker-copy-on-dark"
+							type="copy4"
+							emphasis
+						>
+							Watch video
+						</Typography>
+					</a>
+				</div>
+				<div
+					onClick={() => handleCopy('#day-5')}
+					className="group flex justify-end w-1/2"
+				>
 					{!copy && (
-						<AiOutlineLink className="text-copy-on-light h-5 w-5 group-hover:visible" />
+						<AiOutlineLink className="text-copy-on-light h-5 w-5" />
 					)}
 					{copy && (
-						<AiFillCheckCircle className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
+						<AiFillCheckCircle className="text-copy-on-light h-5 w-5" />
 					)}
 				</div>
-				<Link
-					className="flex items-center gap-1 border border-[#34343A] text-darker-copy-on-dark px-4 py-1 rounded-full"
-					href="https://youtube.com"
-				>
-					<HiPlay />
-
-					<Typography
-						className="text-darker-copy-on-dark"
-						type="copy4"
-						emphasis
-					>
-						Watch video
-					</Typography>
-				</Link>
 			</div>
+
 			<div
 				className={classNames(
 					'flex flex-col md:flex-row gap-5 max-w-[550px] md:max-w-none mx-auto mt-3',
@@ -84,8 +89,8 @@ const DayFive = () => {
 					<CardOverlay
 						header="OTEL Vendor."
 						subheader="Highlight is officially an OTEL vendor."
-						buttonText="View Blogpost"
-						buttonLink="/"
+						buttonText="View Page"
+						buttonLink="https://opentelemetry.io/ecosystem/vendors/"
 					/>
 				</div>
 
@@ -130,8 +135,8 @@ const DayFive = () => {
 						<CardOverlay
 							header="Algora Bounties"
 							subheader="Contribute and get paid!"
-							buttonText="View Blog Post"
-							buttonLink="/"
+							buttonText="View Page"
+							buttonLink="https://console.algora.io/org/highlight"
 						/>
 					</div>
 				</div>
