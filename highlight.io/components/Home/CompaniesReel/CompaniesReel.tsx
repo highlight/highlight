@@ -10,9 +10,7 @@ export const CompaniesReel = () => {
 				<h2 className="mb-2">{`Our customers`}</h2>
 				<Typography type="copy2" onDark>
 					Highlight powers forward-thinking companies.{' '}
-					<Link href="/customers">
-						Find out more about our customers →
-					</Link>
+					<Link href="/customers">More about our customers →</Link>
 				</Typography>
 			</div>
 			<CustomerReel />

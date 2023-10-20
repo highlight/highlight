@@ -18,16 +18,20 @@ const StartupsPage = () => {
 	return (
 		<div>
 			<Navbar />
-			<main>
+			<main className="md:mt-16">
 				<Section>
 					<div className="flex flex-col lg:flex-row w-full justify-between items-center">
-						<div className="flex flex-col gap-4 lg:w-1/2">
-							<Typography type="copy3" emphasis>
-								Highlight for Startups
+						<div className="flex flex-col gap-4 lg:w-5/12">
+							<Typography
+								type="copy3"
+								className="text-copy-on-dark"
+								emphasis
+							>
+								Apply Today
 							</Typography>
 							<h2 className="m-0">Highlight for Startups</h2>
 							<Typography
-								type="copy2"
+								type="copy1"
 								className="text-darker-copy-on-dark"
 							>
 								If you&apos;re a startup with less than 2M in
@@ -70,17 +74,17 @@ const StartupsPage = () => {
 					</div>
 				</Section>
 				<Section>
-					<div className="flex justify-center items-center w-full gap-16">
-						<div className="flex justify-end w-1/2">
+					<div className="flex flex-col md:flex-row justify-center items-center w-full md:gap-16 md:mt-32">
+						<div className="flex justify-end md:w-1/2">
 							<Image
 								alt=""
 								src={swag}
 								height="424"
 								width="568"
-								className="max-w-[425px]"
+								className="max-w-[425px] scale-75 md:scale-100"
 							/>
 						</div>
-						<div className="flex flex-col justify-center w-1/2 gap-2">
+						<div className="flex flex-col justify-center md:w-1/2 gap-2">
 							<h3>Program Benefits</h3>
 							<Typography
 								type="copy1"
@@ -97,7 +101,7 @@ const StartupsPage = () => {
 										className="text-copy-on-dark"
 										emphasis
 									>
-										Free Highlight.io Mug
+										Free Highlight.io mug
 									</Typography>
 								</div>
 
@@ -108,7 +112,7 @@ const StartupsPage = () => {
 										className="text-copy-on-dark"
 										emphasis
 									>
-										Free Highlight.io T-shirt
+										Free Highlight.io t-shirt
 									</Typography>
 								</div>
 								<div className="flex items-center gap-2">
@@ -121,6 +125,26 @@ const StartupsPage = () => {
 										4 Airtags
 									</Typography>
 								</div>
+								<div className="flex items-center gap-2">
+									<HiCheckCircle className="w-5 h-5 text-color-selected-light" />
+									<Typography
+										type="copy2"
+										className="text-copy-on-dark"
+										emphasis
+									>
+										Shared slack channel for 1:1 support
+									</Typography>
+								</div>
+								<div className="flex items-center gap-2">
+									<HiCheckCircle className="w-5 h-5 text-color-selected-light" />
+									<Typography
+										type="copy2"
+										className="text-copy-on-dark"
+										emphasis
+									>
+										Eternal love from the Highlight team
+									</Typography>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -128,81 +152,23 @@ const StartupsPage = () => {
 				<Section>
 					<div className="flex flex-col items-center text-center w-full">
 						<h3>Startups ❤️ Highlight</h3>
-						<div className="flex justify-center ">
+						<div className="flex justify-center max-w-[600px]">
 							<Typography
 								type="copy1"
 								className="max-w-[800px] mt-4 text-darker-copy-on-dark"
 							>
-								From Series D to garage startups, Highlight is
-								leveraged by many different types of startups.
+								From Seed to Series C, Highlight is loved by
+								Startups across the globe.
 								<Link href="/customers">
 									{' '}
-									Find out more about our customers →
+									More about our customers →
 								</Link>
 							</Typography>
 						</div>
 					</div>
 				</Section>
 				<CustomerReel />
-				<Section>
-					<div className="flex flex-col items-center text-center w-full">
-						<h3>We cover all your observability needs.</h3>
-						<div className="flex justify-center ">
-							<Typography
-								type="copy1"
-								className="max-w-[800px] mt-4 text-darker-copy-on-dark"
-							>
-								Monitor your app more efficiently by bringing
-								your developers together in Highlight&apos;s
-								full-stack monitoring tool.
-							</Typography>
-						</div>
-						<div className="flex flex-col md:flex-row justify-center gap-8 mt-8">
-							<div className="text-start max-w-[300px]">
-								<div className="aspect-square w-full border border-divider-on-dark rounded-md"></div>
-								<h5 className="text-darker-copy-on-dark">
-									Error Monitoring
-								</h5>
-								<Typography
-									type="copy2"
-									className="mt-6 text-darker-copy-on-dark"
-								>
-									Monitor your app more efficiently by
-									bringing your developers together in
-									Highlight&apos;s full-stack monitoring tool.
-								</Typography>
-							</div>{' '}
-							<div className="text-start max-w-[300px]">
-								<div className="aspect-square w-full border border-divider-on-dark rounded-md"></div>
-								<h5 className="text-darker-copy-on-dark">
-									Session Replay
-								</h5>
-								<Typography
-									type="copy2"
-									className="mt-6 text-darker-copy-on-dark"
-								>
-									Monitor your app more efficiently by
-									bringing your developers together in
-									Highlight&apos;s full-stack monitoring tool.
-								</Typography>
-							</div>{' '}
-							<div className="text-start max-w-[300px]">
-								<div className="aspect-square w-full border border-divider-on-dark rounded-md"></div>
-								<h5 className="text-darker-copy-on-dark">
-									Logging
-								</h5>
-								<Typography
-									type="copy2"
-									className="mt-6 text-darker-copy-on-dark"
-								>
-									Monitor your app more efficiently by
-									bringing your developers together in
-									Highlight&apos;s full-stack monitoring tool.
-								</Typography>
-							</div>{' '}
-						</div>
-					</div>
-				</Section>
+				<div className="mt-32" />
 				<FooterCallToAction buttonLink="https://8fonvna4lyz.typeform.com/to/K0WXGewT#email=xxxxx" />
 			</main>
 			<Footer />
