@@ -239,12 +239,12 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 			if err != nil {
 				return "", err
 			}
-			start *= 1000
+			start *= 60000
 			end, err := strconv.ParseFloat(after, 64)
 			if err != nil {
 				return "", err
 			}
-			end *= 1000
+			end *= 60000
 			// If the slider is at the maximum, allow any length length greater than the min
 			if after == "60" {
 				end = math.Inf(1)
