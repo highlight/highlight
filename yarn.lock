@@ -12538,6 +12538,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@highlight-run/ai@workspace:packages/ai":
+  version: 0.0.0-use.local
+  resolution: "@highlight-run/ai@workspace:packages/ai"
+  dependencies:
+    "@types/aws-lambda": ^8.10.119
+    "@types/express": ^4.17.17
+    "@types/node": ^20.2.5
+    cors: ^2.8.5
+    express: ^4.18.2
+    nodemon: ^2.0.22
+    openai: ^3.2.1
+    ts-node: ^10.9.1
+    typescript: ^5.0.4
+  languageName: unknown
+  linkType: soft
+
 "@highlight-run/apollo@workspace:sdk/highlight-apollo":
   version: 0.0.0-use.local
   resolution: "@highlight-run/apollo@workspace:sdk/highlight-apollo"
@@ -24857,22 +24873,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@workspace:packages/ai":
-  version: 0.0.0-use.local
-  resolution: "ai@workspace:packages/ai"
-  dependencies:
-    "@types/aws-lambda": ^8.10.119
-    "@types/express": ^4.17.17
-    "@types/node": ^20.2.5
-    cors: ^2.8.5
-    express: ^4.18.2
-    nodemon: ^2.0.22
-    openai: ^3.2.1
-    ts-node: ^10.9.1
-    typescript: ^5.0.4
-  languageName: unknown
-  linkType: soft
-
 "ajv-formats@npm:2.1.1":
   version: 2.1.1
   resolution: "ajv-formats@npm:2.1.1"
@@ -30630,6 +30630,15 @@ __metadata:
   checksum: 964376c61c0e92f6ed0694b3ba97c84f199413dc40ab8dfdaef80b7a7f4982fcabf796214e28ed614a5bc1ec45488a29b81e7d46fa3f5ddf65bcb118c20145ad
   languageName: node
   linkType: hard
+
+"e2e-express@workspace:e2e/express":
+  version: 0.0.0-use.local
+  resolution: "e2e-express@workspace:e2e/express"
+  dependencies:
+    "@highlight-run/node": "workspace:*"
+    express: ^4.18.2
+  languageName: unknown
+  linkType: soft
 
 "eastasianwidth@npm:^0.2.0":
   version: 0.2.0

@@ -64,7 +64,7 @@
 		"private-gen": "cd backend && make private-gen",
 		"public-gen": "cd backend && make public-gen",
 		"publish:all": "run-p --print-label publish:ai publish:client publish:turbo publish:render",
-		"publish:ai": "yarn workspace ai publish",
+		"publish:ai": "yarn workspace @highlight-run/ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish && yarn workspace @highlight-run/opentelemetry-sdk-workers npm publish --access public --tolerate-republish",

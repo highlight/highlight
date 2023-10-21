@@ -8,6 +8,8 @@ export default defineConfig({
 		'src/server.ts',
 	],
 	format: ['cjs', 'esm'],
+	target: 'esnext',
+	minify: true,
 	dts: true,
 	sourcemap: true,
 	noExternal: [],

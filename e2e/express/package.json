@@ -1,0 +1,17 @@
+{
+	"name": "e2e-express",
+	"version": "1.0.0",
+	"private": true,
+	"description": "",
+	"main": "src/index.mjs",
+	"scripts": {
+		"dev": "node src/index.mjs"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@highlight-run/node": "workspace:*",
+		"express": "^4.18.2"
+	}
+}
