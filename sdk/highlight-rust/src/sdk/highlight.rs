@@ -50,7 +50,8 @@ impl Highlight {
         global::set_logger_provider(logger_provider);
         log::set_max_level(log::Level::Error.to_level_filter());        
         let highlight_logger = OpenTelemetryLogBridge::new(&global::logger_provider());
-        let res = log::set_boxed_logger(Box::new(highlight_logger));
+        log::set_boxed_logger(Box::new(highlight_logger)).
+            expect("Failed to install logger.");
     }
 
     fn init_tracer(backend: &str, resource: Resource) {
@@ -79,7 +80,7 @@ impl Highlight {
         // let subscriber = Registry::default().with(telemetry);
         let subscriber = tracing_subscriber::FmtSubscriber::new().with(telemetry);
         tracing::subscriber::set_global_default(subscriber)
-            .expect("Failed to install `tracing` subscriber.");
+            .expect("Failed to install tracing subscriber.");
     } 
 
     fn detect_resources(options: HighlightOptions) -> Resource {
