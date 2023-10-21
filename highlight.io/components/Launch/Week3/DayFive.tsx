@@ -1,9 +1,11 @@
 import classNames from 'classnames'
 import Image from 'next/image'
 import { useState } from 'react'
+import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
+import { HiPlay } from 'react-icons/hi2'
+
 import { Typography } from '../../common/Typography/Typography'
 
-import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import CardOverlay from './CardOverlay'
 import styles from './Launch.module.scss'
 
@@ -23,23 +25,44 @@ const DayFive = () => {
 
 	return (
 		<div id="day-5" className="w-full max-w-[550px] md:max-w-none z-50">
-			<div
-				onClick={() => handleCopy('#day-5')}
-				className="group flex items-center gap-2 cursor-pointer"
-			>
-				<Typography
-					className="text-darker-copy-on-dark"
-					type="copy3"
-					emphasis
+			<div className="flex justify-between items-center">
+				<div className="group flex items-center gap-2 w-1/2 cursor-pointer">
+					<Typography
+						className="text-darker-copy-on-dark"
+						type="copy3"
+						emphasis
+					>
+						Day 5: October 20th
+					</Typography>
+
+					<a
+						className="flex items-center gap-1 border border-[#34343A] text-darker-copy-on-dark px-4 py-1 rounded-full"
+						href="https://www.youtube.com/watch?v=UZB1myGQykw"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<HiPlay />
+
+						<Typography
+							className="text-darker-copy-on-dark"
+							type="copy4"
+							emphasis
+						>
+							Watch video
+						</Typography>
+					</a>
+				</div>
+				<div
+					onClick={() => handleCopy('#day-5')}
+					className="group flex justify-end w-1/2"
 				>
-					Day 5: October 20th
-				</Typography>
-				{!copy && (
-					<AiOutlineLink className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
-				)}
-				{copy && (
-					<AiFillCheckCircle className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
-				)}
+					{!copy && (
+						<AiOutlineLink className="text-copy-on-light h-5 w-5" />
+					)}
+					{copy && (
+						<AiFillCheckCircle className="text-copy-on-light h-5 w-5" />
+					)}
+				</div>
 			</div>
 
 			<div
