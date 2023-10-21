@@ -90,6 +90,13 @@ export const CUSTOM_FIELDS: CustomField[] = [
 	},
 	{
 		type: ERROR_FIELD_TYPE,
+		name: 'service_version',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: ERROR_FIELD_TYPE,
 		name: 'has_session',
 		options: {
 			operators: ['is', 'is_not'],

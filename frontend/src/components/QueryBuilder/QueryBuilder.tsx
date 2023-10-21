@@ -842,6 +842,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	exit_page: 'Exit Page',
 	has_comments: 'Has Comments',
 	service_name: 'Service',
+	service_version: 'Service Version',
 }
 
 const getOperator = (
@@ -967,6 +968,10 @@ const getIcon = (value: string): JSX.Element | undefined => {
 	switch (value) {
 		case 'custom_app_version':
 			return <IconSolidDesktopComputer />
+		case 'session_service_name':
+			return <IconSolidCubeTransparent />
+		case 'session_service_version':
+			return <IconSolidCubeTransparent />
 		case 'session_browser_name':
 			return <IconSolidGlobeAlt />
 		case 'session_browser_version':
@@ -1030,6 +1035,8 @@ const getIcon = (value: string): JSX.Element | undefined => {
 		case 'error-field_visited_url':
 			return <IconSolidLink />
 		case 'error-field_service_name':
+			return <IconSolidCubeTransparent />
+		case 'error-field_service_version':
 			return <IconSolidCubeTransparent />
 		case 'error-field_has_session':
 			return <IconSolidDesktopComputer />
