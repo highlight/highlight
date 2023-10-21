@@ -31,8 +31,6 @@ H.init('<YOUR_PROJECT_ID>', {
 })
 ```
 
-![](https://archbee-image-uploads.s3.amazonaws.com/XPwQFz8tul7ogqGkmtA0y/HMhiHwF_jifyGh-RXMJHk_network-recording.gif)
-
 ## Redacting URLs
 
 You may have APIs that you know will always return secrets in the headers, body, or both. In this case, you can choose URLs to redact from. If a URL matches one of the URLs you specify, the header and body will not be recorded.
