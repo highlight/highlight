@@ -37,7 +37,7 @@ const DayOne = () => {
 
 					<a
 						className="flex items-center gap-1 border border-[#34343A] text-darker-copy-on-dark px-4 py-1 rounded-full"
-						href="https://drive.google.com/file/d/15o1kZHjist7_lEIhP4nAYE3JNecN3yX8/view?usp=sharing"
+						href="https://www.youtube.com/watch?v=TQ3IKckZCn0"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
