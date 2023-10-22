@@ -98,6 +98,5 @@ impl Highlight {
             resource::HOST_ARCH.string(meta::os::HOST_ARCH)
         ];
         Resource::new([&attributes[..], &options.attributes.unwrap_or_default()[..]].concat())
-    }  
-
+    }
 }
