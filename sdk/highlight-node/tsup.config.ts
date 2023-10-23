@@ -9,8 +9,4 @@ export default defineConfig({
 	dts: true,
 	sourcemap: true,
 	noExternal: [new RegExp('@opentelemetry/.*')],
-	// https://github.com/evanw/esbuild/issues/1921
-	banner: {
-		js: `const require = (await import("node:module")).createRequire(import.meta.url);`,
-	},
 })

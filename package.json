@@ -99,7 +99,6 @@
 		"@opentelemetry/core": "1.17.1",
 		"@opentelemetry/exporter-jaeger": "1.17.1",
 		"@opentelemetry/exporter-trace-otlp-http": "0.44.0",
-		"@opentelemetry/instrumentation": "0.44.0",
 		"@opentelemetry/resources": "1.17.1",
 		"@opentelemetry/sdk-node": "0.44.0",
 		"@opentelemetry/sdk-trace-base": "1.17.1",
