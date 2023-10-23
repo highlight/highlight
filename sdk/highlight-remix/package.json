@@ -34,7 +34,6 @@
 		"build": "tsup"
 	},
 	"peerDependencies": {
-		"highlight.run": ">=8.0.0",
 		"react": ">=18"
 	},
 	"dependencies": {
