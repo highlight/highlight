@@ -1,18 +1,17 @@
 import { BufferConfig, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-
 import type { Attributes, Tracer } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
-import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { hookConsole } from './hooks'
-import log from './log'
-import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
+
+import log from './log'
+import { NodeOptions } from './types.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 

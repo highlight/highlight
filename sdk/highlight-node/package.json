@@ -12,9 +12,9 @@
 		}
 	},
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
+		"typegen": "tsc -d --emitDeclarationOnly",
 		"dev": "yarn build --watch",
-		"build": "tsup",
+		"build": "rollup --config rollup.config.js --configPlugin @rollup/plugin-typescript",
 		"test": "jest"
 	},
 	"installConfig": {
@@ -36,12 +36,17 @@
 	},
 	"devDependencies": {
 		"@opentelemetry/exporter-jaeger": "^1.17.1",
+		"@rollup/plugin-commonjs": "^25.0.7",
+		"@rollup/plugin-json": "^6.0.1",
+		"@rollup/plugin-node-resolve": "^15.2.3",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@rollup/plugin-typescript": "^11.1.5",
 		"@types/jest": "^29.2.0",
 		"@types/lru-cache": "^7.10.10",
 		"@types/node": "17.0.13",
 		"jest": "^29.2.2",
+		"rollup": "^4.1.4",
 		"ts-jest": "^29.0.3",
-		"tsup": "^6.2.3",
 		"typescript": "^5.0.4"
 	}
 }
