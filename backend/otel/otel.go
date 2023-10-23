@@ -5,11 +5,12 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	model2 "github.com/highlight-run/highlight/backend/model"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	model2 "github.com/highlight-run/highlight/backend/model"
 
 	"github.com/samber/lo"
 
@@ -197,6 +198,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						if fields.external {
 							lg(ctx, fields).WithError(err).Info("dropping external exception")
 							continue
+						}
+
+						if fields.exceptionMessage == "" {
+							lg(ctx, fields).
+								WithField("event", event.Attributes().AsRaw()).
+								Info("unexpected empty exception message")
 						}
 
 						var logCursor *string
