@@ -40,7 +40,7 @@
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/react": "workspace:*",
-		"@opentelemetry/instrumentation": "0.43.0",
+		"@opentelemetry/instrumentation": "0.44.0",
 		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.5"
 	},

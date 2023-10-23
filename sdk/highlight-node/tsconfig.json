@@ -3,16 +3,17 @@
 		"allowSyntheticDefaultImports": true,
 		"declaration": true,
 		"declarationDir": "dist",
-		"esModuleInterop": true,
+		"declarationMap": true,
 		"forceConsistentCasingInFileNames": true,
-		"jsx": "react",
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"module": "ESNext",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
+		"lib": ["ES6"],
+		"module": "ES6",
+		"target": "ES6",
+		"moduleResolution": "Node",
 		"skipLibCheck": true,
-		"strict": true,
-		"target": "ESNext"
+		"strict": true
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"references": [{
+		"path": "../firstload"
+	}]
 }
