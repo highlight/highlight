@@ -6,30 +6,28 @@ import terser from '@rollup/plugin-terser'
 
 const config = {
 	input: 'src/index.ts',
+	context: 'global',
 	plugins: [
 		json(),
 		commonjs({
-			strictRequires: true,
 			transformMixedEsModules: true,
-			esmExternals: true,
 		}),
-		resolve({
-			browser: false,
-			preferBuiltins: true,
-		}),
+		resolve(),
 		typescript(),
 		terser(),
 	],
 	output: [
 		{
-			file: 'dist/index.mjs',
+			file: 'dist/index.js',
 			format: 'es',
 			sourcemap: true,
+			exports: 'named',
 		},
 		{
-			file: 'dist/index.js',
+			file: 'dist/index.cjs',
 			format: 'cjs',
 			sourcemap: true,
+			exports: 'named',
 		},
 	],
 }
