@@ -204,6 +204,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							lg(ctx, fields).
 								WithField("event", event.Attributes().AsRaw()).
 								Info("unexpected empty exception message")
+							continue
 						}
 
 						var logCursor *string
