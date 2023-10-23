@@ -9,7 +9,7 @@
 	"scripts": {
 		"typegen": "tsc -d --emitDeclarationOnly",
 		"dev": "yarn build --watch",
-		"build": "rollup --config rollup.config.js --configPlugin @rollup/plugin-typescript",
+		"build": "rollup --config rollup.config.js",
 		"test": "jest"
 	},
 	"installConfig": {
