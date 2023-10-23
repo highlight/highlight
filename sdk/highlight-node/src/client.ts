@@ -75,7 +75,6 @@ export class Highlight {
 		this.tracer = trace.getTracer('highlight-node')
 
 		const exporter = new OTLPTraceExporter({
-			compression: CompressionAlgorithm.GZIP,
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
