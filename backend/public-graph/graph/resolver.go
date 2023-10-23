@@ -995,6 +995,10 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 		"city":            session.City,
 		"country":         session.Country,
 		"ip":              session.IP,
+		"service_name":    session.ServiceName,
+	}
+	if session.AppVersion != nil {
+		sessionProperties["service_version"] = *session.AppVersion
 	}
 	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
