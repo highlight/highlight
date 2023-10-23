@@ -8,6 +8,7 @@
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
 	"ignore": [
+		"@highlight-run/ai",
 		"@highlight-run/client",
 		"@highlight-run/frontend",
 		"@highlight-run/rrdom",
@@ -18,9 +19,9 @@
 		"@highlight-run/rrweb-types",
 		"@highlight-run/rrweb-web-extension",
 		"@highlight-run/ui",
-		"ai",
 		"cloudflare-worker",
 		"emails",
+		"e2e-express",
 		"functions",
 		"highlight.io",
 		"nestjs",
