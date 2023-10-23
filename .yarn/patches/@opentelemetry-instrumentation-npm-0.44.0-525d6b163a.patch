@@ -1,8 +1,8 @@
 diff --git a/build/esm/platform/node/instrumentation.js b/build/esm/platform/node/instrumentation.js
-index f497f63ce4a43686767c28b2c4c520179d46395c..de5d586f5615c72d69ccad861fb1016b4e44da5c 100644
+index f497f63ce4a43686767c28b2c4c520179d46395c..66db4376b78c2dbe0c0f5ff64df4e86435dbb0e9 100644
 --- a/build/esm/platform/node/instrumentation.js
 +++ b/build/esm/platform/node/instrumentation.js
-@@ -39,15 +39,19 @@ var __values = (this && this.__values) || function(o) {
+@@ -39,15 +39,20 @@ var __values = (this && this.__values) || function(o) {
      };
      throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
  };
@@ -21,9 +21,21 @@ index f497f63ce4a43686767c28b2c4c520179d46395c..de5d586f5615c72d69ccad861fb1016b
 -import * as ImportInTheMiddle from 'import-in-the-middle';
  import { diag } from '@opentelemetry/api';
 -import { Hook } from 'require-in-the-middle';
++import fs from 'fs';
 +import { satisfies } from 'semver';
 +import { types as utilTypes } from 'util';
 +
  /**
   * Base abstract class for instrumenting node plugins
   */
+@@ -149,8 +154,8 @@ var InstrumentationBase = /** @class */ (function (_super) {
+     };
+     InstrumentationBase.prototype._extractPackageVersion = function (baseDir) {
+         try {
+-            // eslint-disable-next-line @typescript-eslint/no-var-requires
+-            var version = require(path.join(baseDir, 'package.json')).version;
++            var packageJson = JSON.parse(fs.readFileSync(path.join(baseDir, 'package.json'), 'utf8'));
++            var version = packageJson.version;
+             return typeof version === 'string' ? version : undefined;
+         }
+         catch (error) {
