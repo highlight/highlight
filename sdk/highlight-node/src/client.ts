@@ -3,11 +3,10 @@ import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/
 import type { Attributes, Tracer } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
-import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
 import { clearInterval } from 'timers'
 
@@ -77,7 +76,6 @@ export class Highlight {
 		this.tracer = trace.getTracer('highlight-node')
 
 		const exporter = new OTLPTraceExporter({
-			compression: CompressionAlgorithm.GZIP,
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
