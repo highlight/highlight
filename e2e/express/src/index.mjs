@@ -9,9 +9,10 @@ H.init({ projectID: '1' })
 
 const app = express()
 const port = 3001
+let counter = 0
 
 app.get('/', (req, res) => {
-	res.send('Hello World!')
+	res.send(`Hello World! ${counter++}`)
 })
 
 app.listen(port, () => {
