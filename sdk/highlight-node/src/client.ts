@@ -5,12 +5,15 @@ import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { hookConsole } from './hooks'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
+import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
+import { clearInterval } from 'timers'
+
+import { NodeOptions } from './types'
+import { hookConsole } from './hooks'
 import log from './log'
-import { NodeOptions } from './types.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -74,6 +77,7 @@ export class Highlight {
 		this.tracer = trace.getTracer('highlight-node')
 
 		const exporter = new OTLPTraceExporter({
+			compression: CompressionAlgorithm.GZIP,
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
