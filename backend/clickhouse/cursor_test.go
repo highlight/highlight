@@ -181,7 +181,7 @@ func TestEncodeDecode(t *testing.T) {
 
 func TestClickhouseDecode(t *testing.T) {
 	ctx := context.Background()
-	client, err := setupClickhouseTestDB()
+	client, err := SetupClickhouseTestDB()
 
 	assert.NoError(t, err)
 

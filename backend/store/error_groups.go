@@ -240,6 +240,15 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 		return errorGroup, err
 	}
 
+	// For user-driven state updates, write the error group directly to Clickhouse.
+	// Write to the data sync queue as well to guarantee eventual consistency.
+	if admin != nil {
+		err = store.clickhouseClient.WriteErrorGroups(ctx, []*model.ErrorGroup{&errorGroup})
+		if err != nil {
+			return errorGroup, err
+		}
+	}
+
 	if err := store.dataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
 		return errorGroup, err
 	}

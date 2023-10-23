@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func setupClickhouseTestDB() (*Client, error) {
+func SetupClickhouseTestDB() (*Client, error) {
 	client, err := NewClient(PrimaryDatabase)
 	if err != nil {
 		return nil, err
