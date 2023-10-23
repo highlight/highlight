@@ -10,6 +10,7 @@ const config = {
 	plugins: [
 		json(),
 		commonjs({
+			// required for @opentelemetry/resources which pretends to be an ESM build while using dynamic `require()`
 			transformMixedEsModules: true,
 		}),
 		resolve(),
