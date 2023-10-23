@@ -12843,9 +12843,9 @@ __metadata:
     "@cloudflare/workers-types": ^4.20230115.0
     "@opentelemetry/api": ^1.6.0
     "@opentelemetry/core": ^1.17.0
-    "@opentelemetry/instrumentation": ^0.43.0
-    "@opentelemetry/otlp-exporter-base": ^0.43.0
-    "@opentelemetry/otlp-transformer": ^0.43.0
+    "@opentelemetry/instrumentation": 0.44.0
+    "@opentelemetry/otlp-exporter-base": 0.44.0
+    "@opentelemetry/otlp-transformer": 0.44.0
     "@opentelemetry/resources": ^1.17.0
     "@opentelemetry/sdk-trace-base": ^1.17.0
     "@opentelemetry/semantic-conventions": ^1.17.0
@@ -12907,7 +12907,7 @@ __metadata:
   dependencies:
     "@highlight-run/node": "workspace:*"
     "@highlight-run/react": "workspace:*"
-    "@opentelemetry/instrumentation": 0.43.0
+    "@opentelemetry/instrumentation": 0.44.0
     "@remix-run/react": ^1.18.1
     highlight.run: "workspace:*"
     js-cookie: ^3.0.5
@@ -15227,15 +15227,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/api-logs@npm:0.43.0":
-  version: 0.43.0
-  resolution: "@opentelemetry/api-logs@npm:0.43.0"
-  dependencies:
-    "@opentelemetry/api": ^1.0.0
-  checksum: 55f327fa93cc37a8803adbef9511cf42df69bd36cd6a9c9ea35f4d8df0cd318ccae1ad86b067343e380f376173e91f412cc3660312359bf53251e08bc3f7a754
-  languageName: node
-  linkType: hard
-
 "@opentelemetry/api-logs@npm:0.44.0":
   version: 0.44.0
   resolution: "@opentelemetry/api-logs@npm:0.44.0"
@@ -15890,6 +15881,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@opentelemetry/instrumentation@patch:@opentelemetry/instrumentation@npm%3A0.44.0#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch::locator=highlight%40workspace%3A.":
+  version: 0.44.0
+  resolution: "@opentelemetry/instrumentation@patch:@opentelemetry/instrumentation@npm%3A0.44.0#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch::version=0.44.0&hash=c22088&locator=highlight%40workspace%3A."
+  dependencies:
+    "@types/shimmer": ^1.0.2
+    import-in-the-middle: 1.4.2
+    require-in-the-middle: ^7.1.1
+    semver: ^7.5.2
+    shimmer: ^1.2.1
+  peerDependencies:
+    "@opentelemetry/api": ^1.3.0
+  checksum: 81a1b1f24b866a8e5612baafb44f4dece5678c28c997d75e3d15d7918c38b42c5011d72ccd5a16c3af0792f534b069550fb085b8f9c4d8a8149bfcf71d27d150
+  languageName: node
+  linkType: hard
+
 "@opentelemetry/otlp-exporter-base@npm:0.44.0":
   version: 0.44.0
   resolution: "@opentelemetry/otlp-exporter-base@npm:0.44.0"
@@ -15898,17 +15904,6 @@ __metadata:
   peerDependencies:
     "@opentelemetry/api": ^1.0.0
   checksum: e9dd8b4ccc93728bf898d434303a74020d0e71ce15116a2e8d30259a0d4769a475b33a521c63f3db33de0b4338d141b49e7aa7b0414242b45ea5614d88481199
-  languageName: node
-  linkType: hard
-
-"@opentelemetry/otlp-exporter-base@npm:^0.43.0":
-  version: 0.43.0
-  resolution: "@opentelemetry/otlp-exporter-base@npm:0.43.0"
-  dependencies:
-    "@opentelemetry/core": 1.17.0
-  peerDependencies:
-    "@opentelemetry/api": ^1.0.0
-  checksum: 4fdd70b6ec301126b98cc81d39c08c21a53598eac580c12578b7d617233c3ba46eaf21aac3a64d65d30eed72caea39b72c4438abd3f38d1e8f5e62156236b0ae
   languageName: node
   linkType: hard
 
@@ -15952,22 +15947,6 @@ __metadata:
   peerDependencies:
     "@opentelemetry/api": ">=1.3.0 <1.7.0"
   checksum: 74f826f9d33eb8de72c8e698d9d5e680936e09b63e26ffa5e080f455bf070a08fd6d0768bdb9e7e43a352d0ef8fd90183193ea85e8498005734005e75d8d232a
-  languageName: node
-  linkType: hard
-
-"@opentelemetry/otlp-transformer@npm:^0.43.0":
-  version: 0.43.0
-  resolution: "@opentelemetry/otlp-transformer@npm:0.43.0"
-  dependencies:
-    "@opentelemetry/api-logs": 0.43.0
-    "@opentelemetry/core": 1.17.0
-    "@opentelemetry/resources": 1.17.0
-    "@opentelemetry/sdk-logs": 0.43.0
-    "@opentelemetry/sdk-metrics": 1.17.0
-    "@opentelemetry/sdk-trace-base": 1.17.0
-  peerDependencies:
-    "@opentelemetry/api": ">=1.3.0 <1.7.0"
-  checksum: b5b3875b188833661419c2bec1ea2dd81bffa6f4f44938a96ee8009e601010c5963cca5bffee9583d83860996100c1e839d580e466e50332cc97c3a026436e5c
   languageName: node
   linkType: hard
 
@@ -16083,19 +16062,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/sdk-logs@npm:0.43.0":
-  version: 0.43.0
-  resolution: "@opentelemetry/sdk-logs@npm:0.43.0"
-  dependencies:
-    "@opentelemetry/core": 1.17.0
-    "@opentelemetry/resources": 1.17.0
-  peerDependencies:
-    "@opentelemetry/api": ">=1.4.0 <1.7.0"
-    "@opentelemetry/api-logs": ">=0.39.1"
-  checksum: b162e71245329bd0c7a2f91c2d761a2ae10285079c447ae899d79d7a6db82369347f0015f2bf61dac9a71598763df09f94d5ab358347d9d6f3cf137aa348e390
-  languageName: node
-  linkType: hard
-
 "@opentelemetry/sdk-logs@npm:0.44.0":
   version: 0.44.0
   resolution: "@opentelemetry/sdk-logs@npm:0.44.0"
@@ -16106,19 +16072,6 @@ __metadata:
     "@opentelemetry/api": ">=1.4.0 <1.7.0"
     "@opentelemetry/api-logs": ">=0.39.1"
   checksum: 627dec80cd1d6c8836235c8f1f1c912f2322883c5855918f16b36cbc22d58f46ca408f3fa9ff826b534a3a0baa03c780258c60703bf3373e3857a38addeba892
-  languageName: node
-  linkType: hard
-
-"@opentelemetry/sdk-metrics@npm:1.17.0":
-  version: 1.17.0
-  resolution: "@opentelemetry/sdk-metrics@npm:1.17.0"
-  dependencies:
-    "@opentelemetry/core": 1.17.0
-    "@opentelemetry/resources": 1.17.0
-    lodash.merge: ^4.6.2
-  peerDependencies:
-    "@opentelemetry/api": ">=1.3.0 <1.7.0"
-  checksum: 4f42e7be9c9425f1f2442d1ab333287d42f196b1295ac996aa28e2b414a4a1a034a8857f08ce23a6f32567735682421620f6b63de7c4592d0dc1dd4f487ce8ef
   languageName: node
   linkType: hard
 
@@ -30631,15 +30584,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"e2e-express@workspace:e2e/express":
-  version: 0.0.0-use.local
-  resolution: "e2e-express@workspace:e2e/express"
-  dependencies:
-    "@highlight-run/node": "workspace:*"
-    express: ^4.18.2
-  languageName: unknown
-  linkType: soft
-
 "eastasianwidth@npm:^0.2.0":
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
@@ -34125,6 +34069,15 @@ __metadata:
   checksum: c3d44c92e48226ef32ec978becfedb0ecf0ca21316bfd33674b3c5d20459840584f2325726a4f17f33d9c99f769636f728982d1c5433a5b6fe6eb95b8cf0c854
   languageName: node
   linkType: hard
+
+"express@workspace:e2e/express":
+  version: 0.0.0-use.local
+  resolution: "express@workspace:e2e/express"
+  dependencies:
+    "@highlight-run/node": "workspace:*"
+    express: ^4.18.2
+  languageName: unknown
+  linkType: soft
 
 "ext@npm:^1.1.2":
   version: 1.7.0
