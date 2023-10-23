@@ -48,6 +48,7 @@
 		"dev:redis": "redis-server",
 		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
 		"e2e:cloudflare": "yarn turbo run dev --filter cloudflare-worker...",
+		"e2e:express": "yarn turbo run dev --filter express...",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
 		"e2e:nextjs": "yarn turbo run dev --filter nextjs... --filter=!@highlight-run/client --filter=!highlight.run --filter=!@highlight-run/opentelemetry-sdk-workers",
 		"e2e:remix": "yarn turbo run dev --filter remix...",
