@@ -8,7 +8,6 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { hookConsole } from './hooks'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
-import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
 import log from './log'
 import { NodeOptions } from './types.js'
