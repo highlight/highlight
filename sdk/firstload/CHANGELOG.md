@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.0.1
+
+### Patch Changes
+
+-   e7fa17ac7: make H.init({forceNew: true}) reset the user identifier of the new session
+
 ## 8.0.0
 
 ### Major Changes

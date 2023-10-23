@@ -1,5 +1,15 @@
 # @highlight-run/next
 
+## 7.0.1
+
+### Patch Changes
+
+-   bc2dac154: fix export from @highlight-run/next/config
+-   Updated dependencies [4607eae20]
+-   Updated dependencies [e7fa17ac7]
+    -   @highlight-run/node@3.5.0
+    -   highlight.run@8.0.1
+
 ## 7.0.0
 
 ### Patch Changes
