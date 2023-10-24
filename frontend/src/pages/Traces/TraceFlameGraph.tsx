@@ -7,16 +7,15 @@ import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { getMaxDepth, getTraceDurationString } from '@/pages/Traces/utils'
 
-const ZOOM_SCALING_FACTOR = 100
 const MAX_TICKS = 6
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
 const defaultCanvasWidth = 660
 const timeUnits = [
-	{ unit: 'h', divider: 1000000000000000 },
-	{ unit: 'm', divider: 1000000000000 },
-	{ unit: 's', divider: 1000000000 },
+	{ unit: 'h', divider: 1e9 * 60 * 60 },
+	{ unit: 'm', divider: 1e9 * 60 },
+	{ unit: 's', divider: 1e9 },
 	{ unit: 'ms', divider: 1000000 },
 	{ unit: 'μs', divider: 1000 },
 ]
@@ -102,8 +101,7 @@ export const TraceFlameGraph: React.FC = () => {
 				event.preventDefault()
 				event.stopPropagation()
 
-				const dz = deltaY / ZOOM_SCALING_FACTOR
-				throttledZoom.current(dz)
+				throttledZoom.current(deltaY)
 			}
 		},
 		{ passive: false },
@@ -217,7 +215,8 @@ export const TraceFlameGraph: React.FC = () => {
 						</Text>
 						<Text lines="1">
 							Start:{' '}
-							{getTraceDurationString(hoveredSpan.start) || '0ms'}
+							{getTraceDurationString(hoveredSpan.startTime) ||
+								'0ms'}
 						</Text>
 					</Box>
 				)}

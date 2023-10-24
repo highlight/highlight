@@ -1,6 +1,6 @@
 import { Trace } from '@/graph/generated/schemas'
 
-import { getTraceTimes, organizeSpans } from './utils'
+import { dateToNanoseconds, getTraceTimes, organizeSpans } from './utils'
 import { trace } from './utils.fixture'
 
 describe('getTraceDuration', () => {
@@ -20,49 +20,42 @@ const unsortedSpans = [
 		spanName: 'a',
 		parentSpanID: null,
 		duration: 100,
-		timestamp: '2023-10-24T17:44:11.989705633Z',
 	},
 	{
 		spanID: 'b',
 		spanName: 'b',
 		parentSpanID: 'a',
 		duration: 200,
-		timestamp: '2023-10-24T17:44:11.989705633Z',
 	},
 	{
 		spanID: 'c',
 		spanName: 'c',
 		parentSpanID: 'd',
 		duration: 300,
-		timestamp: '2023-10-24T17:44:11.989705633Z',
 	},
 	{
 		spanID: 'd',
 		spanName: 'd',
 		parentSpanID: 'a',
 		duration: 400,
-		timestamp: '2023-10-24T17:44:11.989705633Z',
 	},
 	{
 		spanID: 'e',
 		spanName: 'e',
 		parentSpanID: 'd',
 		duration: 500,
-		timestamp: '2023-10-24T17:44:11.989705633Z',
 	},
 	{
 		spanID: 'f',
 		spanName: 'f',
 		parentSpanID: 'e',
 		duration: 600,
-		timestamp: '2023-10-24T17:44:11.989705633Z',
 	},
 	{
 		spanID: 'g',
 		spanName: 'g',
 		parentSpanID: 'b',
 		duration: 600,
-		timestamp: '2023-10-24T17:44:11.989705633Z',
 	},
 ] as Trace[]
 
@@ -73,7 +66,6 @@ const expectedSortedTrace = [
 		parentSpanID: null,
 		duration: 100,
 		name: 'a',
-		start: null,
 		children: [
 			{
 				spanID: 'b',
@@ -81,7 +73,6 @@ const expectedSortedTrace = [
 				parentSpanID: 'a',
 				duration: 200,
 				name: 'b',
-				start: null,
 				children: [
 					{
 						spanID: 'g',
@@ -89,7 +80,6 @@ const expectedSortedTrace = [
 						parentSpanID: 'b',
 						duration: 600,
 						name: 'g',
-						start: null,
 					},
 				],
 			},
@@ -105,7 +95,6 @@ const expectedSortedTrace = [
 						parentSpanID: 'd',
 						duration: 300,
 						name: 'c',
-						start: null,
 					},
 					{
 						spanID: 'e',
@@ -113,7 +102,6 @@ const expectedSortedTrace = [
 						parentSpanID: 'd',
 						duration: 500,
 						name: 'e',
-						start: null,
 						children: [
 							{
 								spanID: 'f',
@@ -121,13 +109,11 @@ const expectedSortedTrace = [
 								parentSpanID: 'e',
 								duration: 600,
 								name: 'f',
-								start: null,
 							},
 						],
 					},
 				],
 				name: 'd',
-				start: null,
 			},
 		],
 	},
@@ -142,14 +128,9 @@ describe('organizeSpans', () => {
 	})
 })
 
-const unsortedSpans = [
-	{ spanID: 'a', spanName: 'a', parentSpanID: null, duration: 100 },
-	{ spanID: 'b', spanName: 'b', parentSpanID: 'a', duration: 200 },
-	{ spanID: 'c', spanName: 'c', parentSpanID: 'd', duration: 300 },
-	{ spanID: 'd', spanName: 'd', parentSpanID: 'a', duration: 400 },
-	{ spanID: 'e', spanName: 'e', parentSpanID: 'd', duration: 500 },
-	{ spanID: 'f', spanName: 'f', parentSpanID: 'e', duration: 600 },
-	{ spanID: 'g', spanName: 'g', parentSpanID: 'b', duration: 600 },
-] as Trace[]
-
-const expectedRenderedSpans = []
+describe('dateToNanoseconds', () => {
+	it('converts a date string to nanoseconds', () => {
+		const date = '2023-10-24T16:00:31.295908Z'
+		expect(dateToNanoseconds(date)).toEqual(1698163231295908000)
+	})
+})

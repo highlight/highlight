@@ -7711,6 +7711,19 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 		return nil, err
 	}
 
+	// Find the earlier span start time
+	traceStartTime := trace[0].Timestamp
+	for _, span := range trace {
+		if span.Timestamp.Before(traceStartTime) {
+			traceStartTime = span.Timestamp
+		}
+	}
+
+	// Iterate over each span and add a start time that is the nanoseconds since the trace's start time
+	for _, span := range trace {
+		span.StartTime = int(span.Timestamp.UnixNano() - traceStartTime.UnixNano())
+	}
+
 	return &modelInputs.TracePayload{
 		Trace:  trace,
 		Errors: errors,

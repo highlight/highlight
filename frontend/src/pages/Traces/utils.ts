@@ -18,12 +18,12 @@ export const getFinalSpan = (trace: Trace[]) => {
 // Returns the trace duration in milliseconds
 export const getTraceTimes = (trace: Trace[]) => {
 	const startTime = Math.min(
-		...trace.map((span) => new Date(span.timestamp).getTime()),
+		...trace.map((span) => new Date(span.timestamp).getTime() * 1000000),
 	)
 	const endTime = Math.max(
 		...trace.map((span) => {
-			const endTime = new Date(span.timestamp).getTime()
-			return endTime + span.duration
+			const startTime = new Date(span.timestamp).getTime() * 1000000
+			return startTime + span.duration
 		}),
 	)
 
@@ -71,16 +71,25 @@ export type FlameGraphSpan = {
 	children?: FlameGraphSpan[]
 } & Trace
 
+export const dateToNanoseconds = (date: string) => {
+	if (!date) return 0
+
+	const dateMicroseconds = Number(
+		date.split('.')[1].replace('Z', '').slice(3),
+	)
+	const dateInMicroseconds =
+		new Date(date).valueOf() * 1000 + dateMicroseconds
+
+	return dateInMicroseconds * 1000
+}
+
 export const organizeSpans = (spans: Trace[]) => {
 	// Object is not modifieable, so we need to clone it to add children
-	const startTime = new Date(spans[0].timestamp).getTime() * 1000000
 	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
 
 	const sortedTrace = tempSpans.reduce((acc, span) => {
 		const parentSpanID = span.parentSpanID
 		span.name = span.spanName
-		const spanStart = new Date(span.timestamp).getTime() * 1000000
-		span.start = spanStart - startTime
 
 		if (parentSpanID) {
 			const parentSpan = tempSpans.find(

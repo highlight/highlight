@@ -32,7 +32,7 @@ export const TraceFlameGraphNode = memo<Props>(
 		} = useTrace()
 		const spanWidth = (span.duration / totalDuration) * width * zoom
 		const offsetX =
-			(span.start / totalDuration) * width * zoom + outsidePadding
+			(span.startTime / totalDuration) * width * zoom + outsidePadding
 		const offsetY = depth
 			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
@@ -101,7 +101,7 @@ export const TraceFlameGraphNode = memo<Props>(
 
 				{span.children?.map((childSpan: FlameGraphSpan) => (
 					<TraceFlameGraphNode
-						key={childSpan.spanID}
+						key={`${childSpan.parentSpanID}-${childSpan.spanID}`}
 						depth={depth + 1}
 						span={childSpan}
 						height={height}

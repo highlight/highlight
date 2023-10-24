@@ -41,7 +41,7 @@ export const TracePanel: React.FC = () => {
 		>
 			<TraceProvider
 				projectId={projectId!}
-				traceId={traceId}
+				traceId={traceId!}
 				spanId={spanId}
 			>
 				<TracePage />

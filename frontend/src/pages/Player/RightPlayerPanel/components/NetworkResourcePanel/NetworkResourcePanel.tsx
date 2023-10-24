@@ -126,7 +126,7 @@ export const NetworkResourcePanel = () => {
 				(resource.initiatorType === 'websocket' ? (
 					<WebSocketDetails resource={resource} hide={hide} />
 				) : (
-					<TraceProvider projectId={projectId} traceId={traceId}>
+					<TraceProvider projectId={projectId} traceId={traceId!}>
 						<NetworkResourceDetails
 							resource={resource}
 							hide={hide}
