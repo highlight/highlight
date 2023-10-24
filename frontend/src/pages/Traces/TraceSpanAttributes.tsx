@@ -1,5 +1,4 @@
 import { Box } from '@highlight-run/ui'
-import React from 'react'
 
 import JsonViewer from '@/components/JsonViewer/JsonViewer'
 import { Trace } from '@/graph/generated/schemas'
@@ -14,7 +13,7 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 
 	return (
 		<Box mt="10">
-			<JsonViewer src={attributes} collapsed={false} />
+			<JsonViewer src={attributes} collapsed={2} />
 		</Box>
 	)
 }
