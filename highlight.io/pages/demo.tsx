@@ -5,7 +5,7 @@ import React from 'react'
 import { Typography } from '../components/common/Typography/Typography'
 import { Button } from 'antd'
 
-export default function Highlight404() {
+export default function HighlightDemo() {
 	const [query, setQuery] = React.useState<string>()
 	const [result, setResult] = React.useState<string>()
 	const [loading, setLoading] = React.useState<boolean>(false)
@@ -21,7 +21,9 @@ export default function Highlight404() {
 						<input
 							className="bg-blue-cta text-black px-3 py-1 rounded-lg"
 							onChange={(e) => {
-								console.log('vadim', { e })
+								console.log('set query', {
+									value: e.target.value,
+								})
 								setQuery(e.target.value)
 							}}
 						/>
