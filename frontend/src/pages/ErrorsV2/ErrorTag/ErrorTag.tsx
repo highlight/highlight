@@ -35,11 +35,14 @@ const ErrorTag = React.memo(
 					shape="basic"
 					lines="1"
 				>
-					<Text>
-						{errorGroup.serviceName && errorGroup.serviceName != ''
-							? errorGroup.serviceName
-							: errorGroup.type}
-					</Text>
+					<Box display="inline-block">
+						<Text>
+							{errorGroup.serviceName &&
+							errorGroup.serviceName != ''
+								? errorGroup.serviceName
+								: errorGroup.type}
+						</Text>
+					</Box>
 				</Tag>
 
 				<IconSolidCheveronRight />
@@ -50,7 +53,9 @@ const ErrorTag = React.memo(
 						emphasis="medium"
 						iconLeft={<IconSolidDesktopComputer size={12} />}
 					>
-						<Text>{errorGroup.error_tag.title}</Text>
+						<Box display="inline-block">
+							<Text>{errorGroup.error_tag.title}</Text>
+						</Box>
 					</Tag>
 				) : null}
 				<Text size="small" weight="medium" color="moderate" lines="1">
