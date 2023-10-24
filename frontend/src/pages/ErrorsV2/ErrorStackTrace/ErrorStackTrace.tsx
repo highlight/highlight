@@ -316,18 +316,26 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						<IconSolidExternalLink size={16} />
 					</LinkButton>
 				)}
-				<Text cssClass={styles.name} color="n11" as="span">
-					{functionName ? ' in ' : ''}
-				</Text>
-				<Text cssClass={styles.name} as="span">
-					{functionName}
-				</Text>
-				<Text cssClass={styles.name} color="n11" as="span">
-					{lineNumber ? ' at line ' : ''}
-				</Text>
-				<Text cssClass={styles.name} as="span">
-					{lineNumber}
-				</Text>
+				{!!functionName && (
+					<>
+						<Text cssClass={styles.name} color="n11" as="span">
+							{' in '}
+						</Text>
+						<Text cssClass={styles.name} as="span">
+							{functionName}
+						</Text>
+					</>
+				)}
+				{!!lineNumber && (
+					<>
+						<Text cssClass={styles.name} color="n11" as="span">
+							{' at line '}
+						</Text>
+						<Text cssClass={styles.name} as="span">
+							{lineNumber}
+						</Text>
+					</>
+				)}
 			</Box>
 
 			<Box display="flex" gap="4" alignItems="center">
