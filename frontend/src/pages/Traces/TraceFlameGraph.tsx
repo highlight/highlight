@@ -1,4 +1,5 @@
 import { Box, Text } from '@highlight-run/ui'
+import { throttle } from 'lodash'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
@@ -49,15 +50,13 @@ export const TraceFlameGraph: React.FC = () => {
 
 		const length = Math.round(MAX_TICKS * zoom)
 		const timeUnit = timeUnits.find(
-			({ divider }) => totalDuration / divider > 1,
+			({ divider }) => totalDuration / length / divider > 1,
 		)
 		return Array.from({ length }).map((_, index) => {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
 			const displayDuration =
-				timeUnit!.unit === 'ns'
-					? tickDuration / timeUnit!.divider
-					: Math.round((tickDuration / timeUnit!.divider) * 10) / 10
+				Math.round((tickDuration / timeUnit!.divider) * 10) / 10
 			const time = `${displayDuration}${timeUnit!.unit}` ?? '0ms'
 
 			return {
@@ -91,6 +90,8 @@ export const TraceFlameGraph: React.FC = () => {
 		})
 	}, [])
 
+	const throttledZoom = useRef(throttle((dz: number) => handleZoom(dz), 50))
+
 	useHTMLElementEvent(
 		svgContainerRef.current,
 		'wheel',
@@ -102,7 +103,7 @@ export const TraceFlameGraph: React.FC = () => {
 				event.stopPropagation()
 
 				const dz = deltaY / ZOOM_SCALING_FACTOR
-				handleZoom(dz)
+				throttledZoom.current(dz)
 			}
 		},
 		{ passive: false },
