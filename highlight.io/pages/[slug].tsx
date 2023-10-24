@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { MdKeyboardReturn } from 'react-icons/md'
 import { PrimaryButton } from '../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
@@ -38,6 +38,7 @@ import {
 	AnimateFeatureHeroXL,
 } from '../components/Animate'
 import { CalendlyPopover } from '../components/Home/CalendlyPopover'
+import { FaPlay } from 'react-icons/fa'
 
 const IMAGE_MAP = {
 	[errorMonitoringHeroKey]: errorMonitoringHero,
@@ -115,14 +116,20 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 									</Typography>
 								</PrimaryButton>
 								<PrimaryButton
-									href={feature.docsLink}
+									href={'https://app.highlight.io/demo'}
 									className={classNames(
 										homeStyles.hollowButton,
 									)}
 								>
-									<Typography type="copy2" emphasis={true}>
-										Read our docs
-									</Typography>
+									<div className="flex items-center gap-2">
+										<FaPlay />
+										<Typography
+											type="copy2"
+											emphasis={true}
+										>
+											Live demo
+										</Typography>
+									</div>
 								</PrimaryButton>
 							</div>
 							<div className="-ml-3 justify-self-start">
