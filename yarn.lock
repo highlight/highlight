@@ -12805,8 +12805,6 @@ __metadata:
     tsup: ^6.7.0
     typescript: ^5.0.4
   peerDependencies:
-    "@highlight-run/node": "workspace:^"
-    highlight.run: "workspace:^"
     next: ">=12"
     react: ">=17"
   languageName: unknown
@@ -12919,7 +12917,6 @@ __metadata:
     tsup: ^7.1.0
     typescript: ^5.1.6
   peerDependencies:
-    highlight.run: ">=8.0.0"
     react: ">=18"
   languageName: unknown
   linkType: soft

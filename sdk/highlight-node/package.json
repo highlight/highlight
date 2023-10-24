@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "3.4.4",
+	"version": "3.5.0",
 	"license": "Apache-2.0",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
