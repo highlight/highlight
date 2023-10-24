@@ -15,13 +15,55 @@ describe('getTraceDuration', () => {
 })
 
 const unsortedSpans = [
-	{ spanID: 'a', spanName: 'a', parentSpanID: null, duration: 100 },
-	{ spanID: 'b', spanName: 'b', parentSpanID: 'a', duration: 200 },
-	{ spanID: 'c', spanName: 'c', parentSpanID: 'd', duration: 300 },
-	{ spanID: 'd', spanName: 'd', parentSpanID: 'a', duration: 400 },
-	{ spanID: 'e', spanName: 'e', parentSpanID: 'd', duration: 500 },
-	{ spanID: 'f', spanName: 'f', parentSpanID: 'e', duration: 600 },
-	{ spanID: 'g', spanName: 'g', parentSpanID: 'b', duration: 600 },
+	{
+		spanID: 'a',
+		spanName: 'a',
+		parentSpanID: null,
+		duration: 100,
+		timestamp: '2023-10-24T17:44:11.989705633Z',
+	},
+	{
+		spanID: 'b',
+		spanName: 'b',
+		parentSpanID: 'a',
+		duration: 200,
+		timestamp: '2023-10-24T17:44:11.989705633Z',
+	},
+	{
+		spanID: 'c',
+		spanName: 'c',
+		parentSpanID: 'd',
+		duration: 300,
+		timestamp: '2023-10-24T17:44:11.989705633Z',
+	},
+	{
+		spanID: 'd',
+		spanName: 'd',
+		parentSpanID: 'a',
+		duration: 400,
+		timestamp: '2023-10-24T17:44:11.989705633Z',
+	},
+	{
+		spanID: 'e',
+		spanName: 'e',
+		parentSpanID: 'd',
+		duration: 500,
+		timestamp: '2023-10-24T17:44:11.989705633Z',
+	},
+	{
+		spanID: 'f',
+		spanName: 'f',
+		parentSpanID: 'e',
+		duration: 600,
+		timestamp: '2023-10-24T17:44:11.989705633Z',
+	},
+	{
+		spanID: 'g',
+		spanName: 'g',
+		parentSpanID: 'b',
+		duration: 600,
+		timestamp: '2023-10-24T17:44:11.989705633Z',
+	},
 ] as Trace[]
 
 const expectedSortedTrace = [
@@ -99,3 +141,15 @@ describe('organizeSpans', () => {
 		)
 	})
 })
+
+const unsortedSpans = [
+	{ spanID: 'a', spanName: 'a', parentSpanID: null, duration: 100 },
+	{ spanID: 'b', spanName: 'b', parentSpanID: 'a', duration: 200 },
+	{ spanID: 'c', spanName: 'c', parentSpanID: 'd', duration: 300 },
+	{ spanID: 'd', spanName: 'd', parentSpanID: 'a', duration: 400 },
+	{ spanID: 'e', spanName: 'e', parentSpanID: 'd', duration: 500 },
+	{ spanID: 'f', spanName: 'f', parentSpanID: 'e', duration: 600 },
+	{ spanID: 'g', spanName: 'g', parentSpanID: 'b', duration: 600 },
+] as Trace[]
+
+const expectedRenderedSpans = []
