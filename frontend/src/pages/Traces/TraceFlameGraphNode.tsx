@@ -1,25 +1,19 @@
 import { memo } from 'react'
 
-import { Trace, TraceError } from '@/graph/generated/schemas'
 import {
 	lineHeight,
 	outsidePadding,
 	ticksHeight,
 } from '@/pages/Traces/TraceFlameGraph'
+import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
 type Props = {
 	depth: number
-	errors: TraceError[]
 	span: FlameGraphSpan
-	startTime: number
-	totalDuration: number
 	height: number
 	width: number
-	selectedSpan: FlameGraphSpan | Trace | undefined
 	zoom: number
-	setHoveredSpan: (span?: FlameGraphSpan) => void
-	setSelectedSpan: (span?: FlameGraphSpan) => void
 	setTooltipCoordinates: (e: React.MouseEvent) => void
 }
 
@@ -27,21 +21,15 @@ const minWidthToDisplayText = 20
 const fontSize = 10
 
 export const TraceFlameGraphNode = memo<Props>(
-	({
-		depth,
-		errors,
-		span,
-		startTime,
-		totalDuration,
-		height,
-		width,
-		selectedSpan,
-		zoom,
-		setHoveredSpan,
-		setSelectedSpan,
-		setTooltipCoordinates,
-	}) => {
+	({ depth, span, height, width, zoom, setTooltipCoordinates }) => {
 		width = width - outsidePadding * 2
+		const {
+			errors,
+			selectedSpan,
+			totalDuration,
+			setHoveredSpan,
+			setSelectedSpan,
+		} = useTrace()
 		const spanWidth = (span.duration / totalDuration) * width * zoom
 		const offsetX =
 			(span.start / totalDuration) * width * zoom + outsidePadding
@@ -115,16 +103,10 @@ export const TraceFlameGraphNode = memo<Props>(
 					<TraceFlameGraphNode
 						key={childSpan.spanID}
 						depth={depth + 1}
-						errors={errors}
 						span={childSpan}
-						startTime={startTime}
-						totalDuration={totalDuration}
 						height={height}
 						width={width}
-						selectedSpan={selectedSpan}
 						zoom={zoom}
-						setHoveredSpan={setHoveredSpan}
-						setSelectedSpan={setSelectedSpan}
 						setTooltipCoordinates={setTooltipCoordinates}
 					/>
 				))}
@@ -132,9 +114,6 @@ export const TraceFlameGraphNode = memo<Props>(
 		)
 	},
 	(prevProps, nextProps) => {
-		return (
-			prevProps.zoom === nextProps.zoom &&
-			prevProps.selectedSpan?.spanID === nextProps.selectedSpan?.spanID
-		)
+		return prevProps.zoom === nextProps.zoom
 	},
 )

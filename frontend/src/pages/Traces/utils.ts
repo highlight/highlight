@@ -36,6 +36,7 @@ export const getTraceTimes = (trace: Trace[]) => {
 
 export const getTraceDurationString = (duration: number) => {
 	const nanoseconds = Math.floor(duration)
+	const microseconds = Math.floor(nanoseconds / 1000)
 	const milliseconds = Math.floor(nanoseconds / 1000000)
 	const seconds = Math.floor(milliseconds / 1000)
 	const minutes = Math.floor(seconds / 60)
@@ -47,7 +48,7 @@ export const getTraceDurationString = (duration: number) => {
 	const minuteString = minutes > 0 ? `${minutes % 60}m` : ''
 	const secondString = seconds > 0 ? `${seconds % 60}s` : ''
 	const millisecondString = milliseconds > 0 ? `${milliseconds % 1000}ms` : ''
-	const nanosecondString = nanoseconds > 0 ? `${nanoseconds % 1000000}ns` : ''
+	const microsecondString = microseconds > 0 ? `${microseconds % 1000}µs` : ''
 
 	if (dayString) {
 		return `${dayString} ${hourString} ${minuteString} ${secondString}`
@@ -60,7 +61,7 @@ export const getTraceDurationString = (duration: number) => {
 	} else if (millisecondString) {
 		return millisecondString
 	} else {
-		return nanosecondString
+		return microsecondString
 	}
 }
 
