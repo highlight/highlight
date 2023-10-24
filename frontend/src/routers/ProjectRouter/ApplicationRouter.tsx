@@ -34,7 +34,7 @@ const ApplicationRouter: React.FC = () => {
 		page: errorPage || 1,
 		query: JSON.parse(errorSearchQuery),
 	})
-	const { isHighlightAdmin, isLoggedIn } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 
 	return (
 		<Routes>
@@ -50,14 +50,12 @@ const ApplicationRouter: React.FC = () => {
 
 			{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
 				<>
-					{isHighlightAdmin && (
-						<Route path="traces" element={<TracesPage />}>
-							<Route
-								path=":trace_id/:span_id?"
-								element={<TracePanel />}
-							/>
-						</Route>
-					)}
+					<Route path="traces" element={<TracesPage />}>
+						<Route
+							path=":trace_id/:span_id?"
+							element={<TracePanel />}
+						/>
+					</Route>
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />
 					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
