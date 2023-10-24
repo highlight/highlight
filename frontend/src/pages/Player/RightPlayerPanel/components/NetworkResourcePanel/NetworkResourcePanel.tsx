@@ -203,11 +203,10 @@ function NetworkResourceDetails({
 
 	// TODO: This useEffect seems to be causing some jank when selecting a span.
 	useEffect(() => {
-		if (selectedSpan?.spanID) {
-			setTimeout(() => {
-				setActiveTab(NetworkRequestTabs.Trace)
-			})
+		if (selectedSpan?.spanID && activeTab !== NetworkRequestTabs.Trace) {
+			setActiveTab(NetworkRequestTabs.Trace)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedSpan?.spanID])
 
 	return (
