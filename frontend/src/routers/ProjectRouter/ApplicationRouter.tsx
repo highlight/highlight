@@ -34,7 +34,7 @@ const ApplicationRouter: React.FC = () => {
 		page: errorPage || 1,
 		query: JSON.parse(errorSearchQuery),
 	})
-	const { isHighlightAdmin, isLoggedIn } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 
 	return (
 		<Routes>
