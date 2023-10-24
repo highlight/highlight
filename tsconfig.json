@@ -6,6 +6,7 @@
 		"module": "esnext",
 		"moduleResolution": "node",
 		"skipLibCheck": true,
-		"jsx": "react-jsx"
+		"jsx": "react-jsx",
+		"incremental": false
 	}
 }
