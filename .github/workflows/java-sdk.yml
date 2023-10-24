@@ -83,7 +83,7 @@ jobs:
                   DEPLOY_RUNNING: ${{ steps.deploy.outputs.deploy }}
               run: |
                   # Get latest tag version
-                  version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f3)
+                  # version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f3)
 
                   # Returning default when no git tag was found
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "1.0.1"; fi)
