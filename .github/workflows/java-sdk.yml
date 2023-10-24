@@ -86,7 +86,7 @@ jobs:
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f3)
 
                   # Returning default when no git tag was found
-                  version=$(if [ "$version" != "" ]; then echo $version; else echo "1.0.1"; fi)
+                  version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
 
                   # Adding github runner number only when no deployment is running
                   version=$(if [ "$DEPLOY_RUNNING" == "true" ]; then echo "$version"; else echo "$version"-b$GITHUB_RUN_NUMBER; fi)
