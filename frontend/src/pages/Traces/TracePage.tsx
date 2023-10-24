@@ -1,28 +1,19 @@
-import {
-	Badge,
-	Box,
-	Heading,
-	Stack,
-	Tabs,
-	Text,
-	Tooltip,
-} from '@highlight-run/ui'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
-import clsx from 'clsx'
+import { Badge, Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui'
 import moment from 'moment'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useGetTraceQuery } from '@/graph/generated/hooks'
-import { Trace, TraceError } from '@/graph/generated/schemas'
+import { TraceError } from '@/graph/generated/schemas'
 import { TraceErrors } from '@/pages/Traces/TraceErrors'
+import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceLogs } from '@/pages/Traces/TraceLogs'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 import {
+	FlameGraphSpan,
 	getFirstSpan,
-	getTraceDuration,
 	getTraceDurationString,
-	sortTrace,
+	getTraceTimes,
 } from '@/pages/Traces/utils'
 import { useParams } from '@/util/react-router/useParams'
 
@@ -36,8 +27,6 @@ enum TraceTabs {
 
 type Props = {}
 
-const MAX_TICKS = 6
-
 export const TracePage: React.FC<Props> = () => {
 	const {
 		project_id: projectId,
@@ -49,8 +38,8 @@ export const TracePage: React.FC<Props> = () => {
 		span_id?: string
 	}>()
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
-	const [selectedSpan, setSelectedSpan] = useState<Trace>()
-	const [hoveredSpan, setHoveredSpan] = useState<Trace>()
+	const [hoveredSpan, setHoveredSpan] = useState<FlameGraphSpan>()
+	const [selectedSpan, setSelectedSpan] = useState<FlameGraphSpan>()
 	const highlightedSpan = hoveredSpan || selectedSpan
 
 	const { data, loading } = useGetTraceQuery({
@@ -60,29 +49,54 @@ export const TracePage: React.FC<Props> = () => {
 		},
 		onCompleted: (data) => {
 			if (spanId) {
-				const span = data.trace?.trace.find(
+				const selectedSpan = data.trace?.trace.find(
 					(span) => span.spanID === spanId,
 				)
-				if (span) {
-					setSelectedSpan(span)
+
+				if (selectedSpan) {
+					setSelectedSpan(selectedSpan as FlameGraphSpan)
+				} else {
+					const rootSpan = getFirstSpan(data.trace?.trace ?? [])
+
+					if (rootSpan) {
+						setSelectedSpan(rootSpan as FlameGraphSpan)
+					}
 				}
 			}
 		},
 		skip: !projectId || !traceId,
 	})
 
-	const traces = React.useMemo(() => {
-		if (!data?.trace?.trace) return []
-		const sortableTraces = [...data.trace.trace]
-
-		if (!selectedSpan) {
-			const firstSpan = getFirstSpan(sortableTraces)
-			setSelectedSpan(firstSpan)
+	const { startTime, duration: totalDuration } = useMemo(() => {
+		if (!data?.trace) {
+			return { startTime: 0, endTime: 0, duration: 0 }
 		}
 
-		return sortTrace(sortableTraces)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		return getTraceTimes(data.trace.trace)
 	}, [data?.trace])
+
+	const firstSpan = useMemo(() => {
+		if (!data?.trace) {
+			return undefined
+		}
+
+		return getFirstSpan(data.trace.trace)
+	}, [data?.trace])
+
+	const traceName = useMemo(
+		() => (firstSpan ? firstSpan.spanName : ''),
+		[firstSpan],
+	)
+
+	const errors = useMemo(() => {
+		if (!data?.trace?.errors) {
+			return [] as TraceError[]
+		}
+
+		return data.trace.errors
+	}, [data?.trace?.errors])
+
+	const durationString = getTraceDurationString(totalDuration)
 
 	if (!data?.trace || !data?.trace?.trace?.length) {
 		return loading ? (
@@ -93,23 +107,6 @@ export const TracePage: React.FC<Props> = () => {
 			</Box>
 		)
 	}
-
-	const totalDuration = getTraceDuration(data.trace.trace)
-	const firstSpan = getFirstSpan(data.trace.trace)
-	const traceName = firstSpan?.spanName
-	const startTime = moment(firstSpan.timestamp)
-	const errors = data.trace?.errors
-	const durationString = getTraceDurationString(totalDuration)
-	const ticks = Array.from({ length: MAX_TICKS }).map((_, index) => {
-		const percent = index / (MAX_TICKS - 1)
-		const tickDuration = totalDuration * percent
-		const time = getTraceDurationString(tickDuration)
-
-		return {
-			time: time.trim() === '' ? '0ms' : time,
-			percent,
-		}
-	})
 
 	return (
 		<Box overflow="scroll">
@@ -123,140 +120,22 @@ export const TracePage: React.FC<Props> = () => {
 						gap="8"
 					>
 						<Text color="moderate">
-							{startTime.format('MMM D HH:mm:ss.SSS')}
+							{moment(startTime).format('MMM D HH:mm:ss.SSS')}
 						</Text>
 						<Text weight="bold">{durationString}</Text>
 					</Box>
 				</Stack>
 
-				<Box
-					backgroundColor="raised"
-					borderRadius="6"
-					border="dividerWeak"
-				>
-					<Box
-						borderBottom="dividerWeak"
-						pt="6"
-						px="4"
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						justifyContent="space-between"
-						style={{
-							height: 21,
-						}}
-					>
-						{ticks.map((tick) => (
-							<Box key={tick.time} position="relative" pb="8">
-								<Text color="weak" size="xxSmall">
-									{tick.time ?? '0ms'}
-								</Text>
-								<Box
-									backgroundColor="weak"
-									position="absolute"
-									style={{
-										backgroundColor:
-											themeVars.static.divider.weak,
-										bottom: 0,
-										height: 6,
-										left:
-											tick.percent === 0
-												? 0
-												: tick.percent < 1
-												? '50%'
-												: '100%',
-										width: 1,
-									}}
-								/>
-							</Box>
-						))}
-					</Box>
-					<Box
-						p="6"
-						style={{
-							maxHeight: 300,
-							overflowY: 'scroll',
-						}}
-					>
-						{traces.map((span) => {
-							const width =
-								(span.duration / 1000 / totalDuration) * 100
-							const diff = moment(span.timestamp)
-								.diff(startTime, 'ms')
-								.valueOf()
-							const marginLeft = (diff / totalDuration) * 100
-							const error = data.trace?.errors.find(
-								(error) => error.span_id === span.spanID,
-							)
-
-							return (
-								<Box
-									key={span.spanID}
-									onClick={() => setSelectedSpan(span)}
-									onMouseOver={() => setHoveredSpan(span)}
-									onMouseOut={() => setHoveredSpan(undefined)}
-									style={{
-										marginLeft: `${marginLeft}%`,
-										width: `${width}%`,
-									}}
-								>
-									<Tooltip
-										trigger={
-											<Box
-												borderRadius="3"
-												p="3"
-												py="6"
-												mb="2"
-												display="flex"
-												alignItems="center"
-												justifyContent="space-between"
-												overflow="hidden"
-												width="full"
-												cssClass={clsx(styles.span, {
-													[styles.selectedSpan]:
-														span === selectedSpan,
-													[styles.hoveredSpan]:
-														span === hoveredSpan,
-													[styles.errorSpan]: !!error,
-												})}
-											>
-												<Text size="xSmall" lines="1">
-													{span?.spanName}
-												</Text>
-												<Box flexShrink={0}>
-													<Text size="xSmall">
-														{getTraceDurationString(
-															span.duration /
-																1000,
-														)}
-													</Text>
-												</Box>
-											</Box>
-										}
-									>
-										{highlightedSpan && (
-											<Box
-												display="flex"
-												gap="6"
-												flexDirection="column"
-											>
-												<Text color="moderate">
-													{highlightedSpan.spanName}
-												</Text>
-												<Text weight="bold">
-													{getTraceDurationString(
-														highlightedSpan.duration /
-															1000,
-													)}
-												</Text>
-											</Box>
-										)}
-									</Tooltip>
-								</Box>
-							)
-						})}
-					</Box>
-				</Box>
+				<TraceFlameGraph
+					trace={data.trace.trace}
+					errors={data.trace.errors}
+					hoveredSpan={hoveredSpan}
+					selectedSpan={selectedSpan}
+					startTime={startTime}
+					totalDuration={totalDuration}
+					onSpanSelect={setSelectedSpan}
+					onSpanMouseEnter={setHoveredSpan}
+				/>
 
 				<Box mt="12">
 					<Tabs<TraceTabs>

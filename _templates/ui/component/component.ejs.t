@@ -2,7 +2,6 @@
 to: packages/ui/src/components/<%= name %>/<%= name %>.tsx
 ---
 
-import React from 'react'
 import { Box } from '../Box/Box'
 
 import * as styles from './styles.css'
