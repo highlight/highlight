@@ -4,7 +4,7 @@ import { withHighlightConfig } from '@highlight-run/next/config'
 const nextConfig = {
 	experimental: {
 		appDir: true,
-		instrumentationHook: true,
+		instrumentationHook: false,
 	},
 	productionBrowserSourceMaps: true,
 	images: { domains: ['i.travelapi.com'] },
