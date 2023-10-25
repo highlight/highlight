@@ -7,6 +7,7 @@
 	<packaging>pom</packaging>
 
 	<name>Highlight Java</name>
+	<description>highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)</description>
 	<url>https://github.com/highlight/highlight</url>
 	<inceptionYear>2023</inceptionYear>
 
@@ -23,6 +24,11 @@
 			<email>mail@wuffy.eu</email>
 			<url>https://github.com/NgLoader</url>
 		</developer>
+		<developer>
+			<name>Vadim Korolik</name>
+			<email>vadim@highlight.io</email>
+			<url>https://github.com/Vadman97</url>
+		</developer>
 	</developers>
 
 	<scm>
@@ -37,14 +43,15 @@
 	</issueManagement>
 
 	<properties>
-		<revision>1.0.0-b1</revision>
+		<revision>${revision}</revision>
+		<version>${revision}</version>
 		<project.language.name>java</project.language.name>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
 		<maven.install.skip>true</maven.install.skip>
 		<maven.deploy.skip>true</maven.deploy.skip>
-        <skipStaging>true</skipStaging>
+        <skipStaging>false</skipStaging>
 		<deployAtEnd>true</deployAtEnd>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -227,7 +234,7 @@
 				</executions>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
-					<flattenMode>clean</flattenMode>
+					<flattenMode>ossrh</flattenMode>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -239,7 +246,7 @@
 					<serverId>ossrh</serverId>
 					<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+					<skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
 				</configuration>
 			</plugin>
 			<plugin>
