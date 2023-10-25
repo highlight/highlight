@@ -7,9 +7,9 @@ describe('getTraceDuration', () => {
 	it('should return the duration between the start and end times', () => {
 		const totalDuration = getTraceTimes(trace)
 		expect(totalDuration).toMatchObject({
-			startTime: 1695762732000,
-			endTime: 1696357107375,
-			duration: 594375375,
+			startTime: 1_695_762_732_000_000_000,
+			endTime: 1_695_762_792_000_003_300,
+			duration: 60_000_003_328,
 		})
 	})
 })

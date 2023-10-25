@@ -4,18 +4,7 @@ export const getFirstSpan = (trace: Trace[]) => {
 	return trace.find((span) => !span.parentSpanID)
 }
 
-export const getFinalSpan = (trace: Trace[]) => {
-	return trace.reduce((acc, span) => {
-		const endTime =
-			new Date(span.timestamp).getTime() + span.duration / 1000
-		const accEndTime = acc.timestamp
-			? new Date(acc.timestamp).getTime() + acc.duration / 1000
-			: 0
-		return endTime > accEndTime ? span : acc
-	}, {} as Trace)
-}
-
-// Returns the trace duration in milliseconds
+// Returns the trace duration in nanoseconds
 export const getTraceTimes = (trace: Trace[]) => {
 	const startTime = Math.min(
 		...trace.map((span) => new Date(span.timestamp).getTime() * 1000000),
