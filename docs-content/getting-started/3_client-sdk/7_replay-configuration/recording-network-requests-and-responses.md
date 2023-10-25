@@ -62,9 +62,9 @@ This configuration is only available for `highlight.run` versions newer than `4.
 
 ## Custom Sanitizing of Response and Requests
 
-If you need more granular control over managing and ignoring data in request and responses, then you can create a sanitize function to process every recorded request/response pair. This is configured by using the `networkRecording.requestResponseSanitizer` option.
+Create a sanitize function to gain granular control of the data that your client sends to Highlight. The sanitize function is defined in the second argument of `H.init` under `networkRecording.requestResponseSanitizer`.
 
-The `networkRecording.requestResponseSanitizer` method receives a RequestResponsePair, and should return an object of the same type or a `null` value. Returning a `null` value means that Highlight will drop the request, and no related network logs will be seen in the session replay.
+The `networkRecording.requestResponseSanitizer` method receives a Request/Response pair, and should return an object of the same type or a `null` value. Returning a `null` value means that Highlight will drop the request, and no related network logs will be seen in the session replay.
 
 Dropping logs is not recommended unless necessary, as it can cause issues with debugging due to the missing requests. Rather, it is recommended to delete or redact header and body fields in this method.
 

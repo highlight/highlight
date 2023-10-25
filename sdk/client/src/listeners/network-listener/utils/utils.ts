@@ -32,7 +32,7 @@ type PerformanceResourceTimingWithRequestResponsePair =
 		requestResponsePair: RequestResponsePair
 	}
 
-type SanatizeOptions = {
+type SanitizeOptions = {
 	headersToRedact: string[]
 	headersToRecord?: string[]
 	requestResponseSanitizer?: (
@@ -46,7 +46,7 @@ const sanitizeRequestResponsePair = (
 		headersToRedact,
 		headersToRecord,
 		requestResponseSanitizer,
-	}: SanatizeOptions,
+	}: SanitizeOptions,
 ): RequestResponsePair | null => {
 	let sanitizedPair: RequestResponsePair | null = pair
 
@@ -75,7 +75,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 	performanceTimings: PerformanceResourceTiming[],
 	requestResponsePairs: RequestResponsePair[],
 	type: 'xmlhttprequest' | 'fetch',
-	sanatizeOptions: SanatizeOptions,
+	sanitizeOptions: SanitizeOptions,
 ) => {
 	// Request response pairs are sorted by end time; sort performance timings the same way
 	performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd)
@@ -160,7 +160,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 				if (requestResponsePair) {
 					requestResponsePair = sanitizeRequestResponsePair(
 						performanceTiming.requestResponsePair,
-						sanatizeOptions,
+						sanitizeOptions,
 					)
 
 					// ignore request if it was filtered out by the user defined sanitizer
