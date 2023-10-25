@@ -101,7 +101,9 @@ export const TracePanel: React.FC = () => {
 								size="small"
 								disabled={!previousTrace}
 								onClick={() => {
-									goToTrace(previousTrace)
+									if (previousTrace) {
+										goToTrace(previousTrace)
+									}
 								}}
 							/>
 							<ButtonIcon
@@ -111,7 +113,9 @@ export const TracePanel: React.FC = () => {
 								size="small"
 								disabled={!nextTrace}
 								onClick={() => {
-									goToTrace(nextTrace)
+									if (nextTrace) {
+										goToTrace(nextTrace)
+									}
 								}}
 							/>
 						</Box>
