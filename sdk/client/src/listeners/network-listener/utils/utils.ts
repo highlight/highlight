@@ -1,4 +1,5 @@
 import { RequestResponsePair } from './models'
+import { sanitizeResource } from './network-sanitizer'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
@@ -31,13 +32,50 @@ type PerformanceResourceTimingWithRequestResponsePair =
 		requestResponsePair: RequestResponsePair
 	}
 
+type SanatizeOptions = {
+	headersToRedact: string[]
+	headersToRecord?: string[]
+	requestResponseSanitizer?: (
+		pair: RequestResponsePair,
+	) => RequestResponsePair | null
+}
+
+const sanitizeRequestResponsePair = (
+	pair: RequestResponsePair,
+	{
+		headersToRedact,
+		headersToRecord,
+		requestResponseSanitizer,
+	}: SanatizeOptions,
+): RequestResponsePair | null => {
+	let sanitizedPair: RequestResponsePair | null = pair
+
+	// step 1: pass through user defined sanitizer
+	if (requestResponseSanitizer) {
+		try {
+			sanitizedPair = requestResponseSanitizer(sanitizedPair)
+		} catch (err) {}
+
+		if (!sanitizedPair) {
+			return null
+		}
+	}
+
+	// step 2: redact any specified headers
+	const { request, response, ...rest } = pair
+
+	return {
+		request: sanitizeResource(request, headersToRedact, headersToRecord),
+		response: sanitizeResource(response, headersToRedact, headersToRecord),
+		...rest,
+	}
+}
+
 export const matchPerformanceTimingsWithRequestResponsePair = (
 	performanceTimings: PerformanceResourceTiming[],
 	requestResponsePairs: RequestResponsePair[],
 	type: 'xmlhttprequest' | 'fetch',
-	requestResponseSanitizer?: (
-		pair: RequestResponsePair,
-	) => RequestResponsePair | null,
+	sanatizeOptions: SanatizeOptions,
 ) => {
 	// Request response pairs are sorted by end time; sort performance timings the same way
 	performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd)
@@ -119,13 +157,13 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 				let requestResponsePair: RequestResponsePair | null =
 					performanceTiming.requestResponsePair
 
-				if (requestResponsePair && requestResponseSanitizer) {
-					try {
-						requestResponsePair =
-							requestResponseSanitizer(requestResponsePair)
-					} catch (err) {}
+				if (requestResponsePair) {
+					requestResponsePair = sanitizeRequestResponsePair(
+						performanceTiming.requestResponsePair,
+						sanatizeOptions,
+					)
 
-					// ignore request if it was removed by the sanitizer
+					// ignore request if it was filtered out by the user defined sanitizer
 					if (!requestResponsePair) {
 						return resources
 					}

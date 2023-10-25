@@ -253,13 +253,11 @@ export class FirstLoadListeners {
 					},
 					disableWebSocketRecording:
 						sThis.disableRecordingWebSocketContents,
-					headersToRedact: sThis.networkHeadersToRedact,
 					bodyKeysToRedact: sThis.networkBodyKeysToRedact,
 					backendUrl: sThis._backendUrl,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
 					sessionSecureID: options.sessionSecureID,
-					headerKeysToRecord: sThis.networkHeaderKeysToRecord,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
 				}),
 			)
@@ -302,17 +300,23 @@ export class FirstLoadListeners {
 				})
 
 			if (sThis.enableRecordingNetworkContents) {
+				const sanitizeOptions = {
+					headersToRedact: sThis.networkHeadersToRedact,
+					headersToRecord: sThis.networkHeaderKeysToRecord,
+					requestResponseSanitizer: sThis.requestResponseSanitizer,
+				}
+
 				httpResources = matchPerformanceTimingsWithRequestResponsePair(
 					httpResources,
 					sThis.xhrNetworkContents,
 					'xmlhttprequest',
-					sThis.requestResponseSanitizer,
+					sanitizeOptions,
 				)
 				httpResources = matchPerformanceTimingsWithRequestResponsePair(
 					httpResources,
 					sThis.fetchNetworkContents,
 					'fetch',
-					sThis.requestResponseSanitizer,
+					sanitizeOptions,
 				)
 			}
 		}
