@@ -3,7 +3,6 @@
 
 	<groupId>io.highlight</groupId>
 	<artifactId>highlight</artifactId>
-	<version>${revision}</version>
 	<packaging>pom</packaging>
 
 	<name>Highlight Java</name>
@@ -22,6 +21,11 @@
 			<name>Nils Gereke</name>
 			<email>mail@wuffy.eu</email>
 			<url>https://github.com/NgLoader</url>
+		</developer>
+		<developer>
+			<name>Vadim Korolik</name>
+			<email>vadim@highlight.io</email>
+			<url>https://github.com/Vadman97</url>
 		</developer>
 	</developers>
 
@@ -45,7 +49,7 @@
 
 		<maven.install.skip>false</maven.install.skip>
 		<maven.deploy.skip>false</maven.deploy.skip>
-        <skipStaging>true</skipStaging>
+        <skipStaging>false</skipStaging>
 		<deployAtEnd>true</deployAtEnd>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -240,6 +244,7 @@
 					<serverId>ossrh</serverId>
 					<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+					<skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
 				</configuration>
 			</plugin>
 			<plugin>

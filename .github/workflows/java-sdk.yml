@@ -188,7 +188,7 @@ jobs:
                   gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
             - name: Publish to the Maven Central Repository
-              run: mvn clean deploy -Drevision=${{needs.setup.outputs.version}}
+              run: mvn clean deploy --no-transfer-progress -Drevision=${{needs.setup.outputs.version}}
               env:
                   MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
                   MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
