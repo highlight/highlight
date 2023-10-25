@@ -21308,20 +21308,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/next@npm:^10.38.5":
-  version: 10.38.5
-  resolution: "@trpc/next@npm:10.38.5"
+"@trpc/next@npm:^10.42.0":
+  version: 10.42.0
+  resolution: "@trpc/next@npm:10.42.0"
   dependencies:
     react-ssr-prepass: ^1.5.0
   peerDependencies:
     "@tanstack/react-query": ^4.18.0
-    "@trpc/client": 10.38.5
-    "@trpc/react-query": 10.38.5
-    "@trpc/server": 10.38.5
+    "@trpc/client": 10.42.0
+    "@trpc/react-query": 10.42.0
+    "@trpc/server": 10.42.0
     next: "*"
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 02b04c5123d8de8f929d94e9e49ec674bf3dde8a008959cd8daf68e96c8ee7793ded2576f580e2466e5eba7fdea910a1178225a779513b69bcb334a085e87174
+  checksum: 04f80dd4c0477e972537d5d147d7280e6cb82bdae191a8f8b434255ba7175962f599b7cc1647fc86c49927d1d643b5dc01a431b7b681fe4cacc1520cd58428bb
   languageName: node
   linkType: hard
 
@@ -44472,7 +44472,7 @@ __metadata:
     "@next/env": ^13.5.4
     "@tanstack/react-query": ^4.35.7
     "@trpc/client": ^10.38.5
-    "@trpc/next": ^10.38.5
+    "@trpc/next": ^10.42.0
     "@trpc/react-query": ^10.38.5
     "@trpc/server": ^10.38.5
     "@types/node": 20.8.2
