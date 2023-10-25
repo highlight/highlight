@@ -45,11 +45,10 @@ import moment from 'moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export const Header: React.FC<{
+const Header: React.FC<{
 	product: ProductType
 	title: string
-	subtitle?: string
-}> = ({ title, subtitle, product }) => {
+}> = ({ title, product }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const breadcrumbs = [
@@ -90,10 +89,9 @@ export const Header: React.FC<{
 					</Stack>
 				))}
 			</Stack>
-			<Heading mt="16">{title}</Heading>
-			<Box my="24">
-				<Text>{subtitle}</Text>
-			</Box>
+			<Heading mt="16" mb="24">
+				{title}
+			</Heading>
 		</>
 	)
 }
