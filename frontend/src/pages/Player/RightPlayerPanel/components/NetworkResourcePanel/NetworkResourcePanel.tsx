@@ -19,7 +19,7 @@ import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
@@ -144,6 +144,7 @@ function NetworkResourceDetails({
 	resource: NetworkResource
 	hide: () => void
 }) {
+	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
 	const { selectedSpan } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
@@ -201,13 +202,19 @@ function NetworkResourceDetails({
 		[canMoveForward, next],
 	)
 
-	// TODO: This useEffect seems to be causing some jank when selecting a span.
 	useEffect(() => {
-		if (selectedSpan?.spanID && activeTab !== NetworkRequestTabs.Trace) {
+		if (selectedSpan?.spanID && initialized.current) {
 			setActiveTab(NetworkRequestTabs.Trace)
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+
+		// Don't want to select the trace on the first render.
+		initialized.current = true
 	}, [selectedSpan?.spanID])
+
+	useEffect(() => {
+		setActiveTab(NetworkRequestTabs.Info)
+		initialized.current = false
+	}, [resource.id])
 
 	return (
 		<>

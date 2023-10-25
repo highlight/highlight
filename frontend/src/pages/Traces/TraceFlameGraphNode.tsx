@@ -14,6 +14,7 @@ type Props = {
 	height: number
 	width: number
 	zoom: number
+	selectedSpanID?: string
 	setTooltipCoordinates: (e: React.MouseEvent) => void
 }
 
@@ -21,12 +22,20 @@ const minWidthToDisplayText = 20
 const fontSize = 10
 
 export const TraceFlameGraphNode = memo<Props>(
-	({ depth, span, height, width, zoom, setTooltipCoordinates }) => {
+	({
+		depth,
+		span,
+		height,
+		selectedSpanID,
+		width,
+		zoom,
+		setTooltipCoordinates,
+	}) => {
 		width = width - outsidePadding * 2
 		const {
 			errors,
-			selectedSpan,
 			totalDuration,
+			selectedSpan,
 			setHoveredSpan,
 			setSelectedSpan,
 		} = useTrace()
@@ -105,6 +114,7 @@ export const TraceFlameGraphNode = memo<Props>(
 						depth={depth + 1}
 						span={childSpan}
 						height={height}
+						selectedSpanID={selectedSpanID}
 						width={width}
 						zoom={zoom}
 						setTooltipCoordinates={setTooltipCoordinates}

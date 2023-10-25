@@ -57,12 +57,6 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 
 				if (selectedSpan) {
 					setSelectedSpan(selectedSpan as FlameGraphSpan)
-				} else {
-					const rootSpan = getFirstSpan(data.trace?.trace ?? [])
-
-					if (rootSpan) {
-						setSelectedSpan(rootSpan as FlameGraphSpan)
-					}
 				}
 			}
 		},
@@ -103,13 +97,11 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 	const traces = useMemo(() => {
 		if (!data?.trace?.trace) return []
 		const sortableTraces = [...data.trace.trace]
+		const firstSpan = getFirstSpan(sortableTraces)
+		const isNewTrace = selectedSpan?.traceID !== firstSpan?.traceID
 
-		if (!selectedSpan) {
-			const firstSpan = getFirstSpan(sortableTraces)
-
-			if (firstSpan) {
-				setSelectedSpan(firstSpan as FlameGraphSpan)
-			}
+		if (isNewTrace) {
+			setSelectedSpan(firstSpan as FlameGraphSpan)
 		}
 
 		return organizeSpans(sortableTraces)

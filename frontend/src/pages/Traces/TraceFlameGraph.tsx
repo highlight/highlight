@@ -1,6 +1,13 @@
 import { Box, Text } from '@highlight-run/ui'
 import { throttle } from 'lodash'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
@@ -21,7 +28,7 @@ const timeUnits = [
 ]
 
 export const TraceFlameGraph: React.FC = () => {
-	const { hoveredSpan, totalDuration, traces } = useTrace()
+	const { hoveredSpan, selectedSpan, totalDuration, traces } = useTrace()
 	const svgContainerRef = useRef<HTMLDivElement>(null)
 	const [zoom, setZoom] = useState(1)
 	const [width, setWidth] = useState(defaultCanvasWidth)
@@ -30,11 +37,12 @@ export const TraceFlameGraph: React.FC = () => {
 		y: 0,
 	})
 
-	useLayoutEffect(() => {
+	const setWidthImpl = useCallback(() => {
 		if (svgContainerRef.current?.clientWidth) {
 			setWidth(svgContainerRef.current?.clientWidth)
 		}
 	}, [])
+	useLayoutEffect(setWidthImpl, [setWidthImpl])
 
 	const height = useMemo(() => {
 		if (!traces.length) return 260
@@ -106,6 +114,12 @@ export const TraceFlameGraph: React.FC = () => {
 		},
 		{ passive: false },
 	)
+
+	useEffect(() => {
+		setZoom(1)
+		setWidthImpl()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [traces])
 
 	return (
 		<Box
@@ -181,6 +195,7 @@ export const TraceFlameGraph: React.FC = () => {
 								height={height}
 								width={width}
 								zoom={zoom}
+								selectedSpanID={selectedSpan?.spanID}
 								setTooltipCoordinates={
 									setTooltipCoordinatesImpl
 								}
