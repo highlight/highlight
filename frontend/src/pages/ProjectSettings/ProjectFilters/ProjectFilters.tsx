@@ -16,6 +16,7 @@ import { ProductType, Sampling, TracesMetricType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	Callout,
 	defaultPresets,
 	Form,
 	getNow,
@@ -456,38 +457,70 @@ export const ProjectProductFilters: React.FC<{
 				<Form store={formStore}>
 					<Box display="flex" width="full">
 						{view ? null : (
-							<Box display="flex" width="full" gap="8">
-								<Box
-									width="full"
-									display="flex"
-									flexDirection="column"
-									gap="4"
-								>
-									<Form.Label
-										label="Sampling %"
-										name={formStore.names.samplingPercent}
-									/>
-									<Form.Input
-										name={formStore.names.samplingPercent}
-										type="number"
-									/>
+							<Stack display="flex" width="full" gap="8">
+								<Box display="flex" width="full" gap="8">
+									<Box
+										width="full"
+										display="flex"
+										flexDirection="column"
+										gap="4"
+									>
+										<Form.Label
+											label="Sampling %"
+											name={
+												formStore.names.samplingPercent
+											}
+										/>
+										<Form.Input
+											name={
+												formStore.names.samplingPercent
+											}
+											type="number"
+										/>
+									</Box>
+									<Box
+										width="full"
+										display="flex"
+										flexDirection="column"
+										gap="4"
+									>
+										<Form.Label
+											label="Max ingest per minute"
+											name={
+												formStore.names.minuteRateLimit
+											}
+										/>
+										<Form.Input
+											name={
+												formStore.names.minuteRateLimit
+											}
+											type="number"
+										/>
+									</Box>
 								</Box>
-								<Box
-									width="full"
-									display="flex"
-									flexDirection="column"
-									gap="4"
-								>
-									<Form.Label
-										label="Max ingest per minute"
-										name={formStore.names.minuteRateLimit}
-									/>
-									<Form.Input
-										name={formStore.names.minuteRateLimit}
-										type="number"
-									/>
-								</Box>
-							</Box>
+								<Callout>
+									<Box
+										display="flex"
+										flexDirection="column"
+										gap="12"
+										py="6"
+									>
+										<Text color="moderate">
+											1. Filters will drop data matching
+											the condition.
+										</Text>
+										<Text color="moderate">
+											2. Sampling % will determine the
+											percentage of data to ingest.
+										</Text>
+										<Text color="moderate">
+											3. Minute rate limit will drop a
+											spike of data exceeding the
+											per-minute value.
+										</Text>
+									</Box>
+								</Callout>
+							</Stack>
 						)}
 					</Box>
 				</Form>
@@ -534,17 +567,24 @@ const IngestTimeline: React.FC<{
 						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
 				unit: '%',
 			},
-			{
-				level: 'Dropped',
-				count:
-					(100 *
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)) /
-					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
-				unit: '%',
-			},
 		],
 	}))
+
+	if (!loading && !data?.traces_metrics.buckets?.length) {
+		return (
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="center"
+				width="full"
+				height="full"
+			>
+				<Tag shape="basic" size="large" kind="secondary" emphasis="low">
+					No {product?.toLocaleLowerCase()} ingested.
+				</Tag>
+			</Box>
+		)
+	}
 
 	return (
 		<Box width="full" height="full">
@@ -555,6 +595,7 @@ const IngestTimeline: React.FC<{
 				histogramBuckets={histogramBuckets}
 				bucketCount={data?.traces_metrics.bucket_count}
 				loading={loading}
+				loadingState="spinner"
 				legend
 			/>
 		</Box>

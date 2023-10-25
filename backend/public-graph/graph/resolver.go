@@ -1205,6 +1205,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String("State", session.State),
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
+		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 	)
 	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
 		{
@@ -1522,6 +1523,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		attribute.Bool("FirstTime", *session.FirstTime),
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
+		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 	}
 	for k, v := range allUserProperties {
 		hTags = append(hTags, attribute.String(k, v))
@@ -2079,7 +2081,13 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsB
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
-		highlight.RecordMetric(ctx, "errors", float64(count), attribute.Int(highlight.ProjectIDAttribute, projectID), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
+		highlight.RecordMetric(
+			ctx, "errors", float64(count),
+			attribute.String("error.type", errorType),
+			attribute.Int(highlight.ProjectIDAttribute, projectID),
+			attribute.String(highlight.SessionIDAttribute, sessionSecureId),
+			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		)
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,

@@ -34,6 +34,7 @@ type LogsHistogramProps = Omit<
 	histogramBuckets: { bucketId: number; counts: LogCount[] }[] | undefined
 	bucketCount: number
 	loading: boolean
+	loadingState?: LoadingState
 	outline?: boolean
 	legend?: boolean
 	threshold?: number
@@ -72,6 +73,7 @@ const LogsHistogram = ({
 	histogramBuckets,
 	bucketCount,
 	loading,
+	loadingState,
 	barColor,
 	noPadding,
 	...props
@@ -216,13 +218,16 @@ const LogsHistogram = ({
 		)
 	}
 
-	let loadingState: LoadingState | undefined
 	if (showLoadingState) {
-		if (outline) {
-			loadingState = 'spinner'
-		} else {
-			loadingState = 'skeleton'
+		if (!loadingState) {
+			if (outline) {
+				loadingState = 'spinner'
+			} else {
+				loadingState = 'skeleton'
+			}
 		}
+	} else {
+		loadingState = undefined
 	}
 
 	return (

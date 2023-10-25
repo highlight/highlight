@@ -26,7 +26,8 @@ Router.events.on('routeChangeComplete', () => {
 	nProgress.done()
 })
 
-H.init('4d7k1xeo', {
+H.init('1xdn0e03', {
+	backendUrl: 'https://localhost:8082/public',
 	inlineStylesheet: true,
 	inlineImages: true,
 	networkRecording: {

@@ -45,6 +45,7 @@ const MetricEventValue = "metric.value"
 type TraceType string
 
 const TraceTypeNetworkRequest TraceType = "http.request"
+const TraceTypeHighlightInternal TraceType = "highlight.internal"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
