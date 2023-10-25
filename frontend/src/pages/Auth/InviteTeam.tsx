@@ -6,6 +6,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
+	useGetAdminRoleQuery,
 	useGetProjectsAndWorkspacesQuery,
 	useSendAdminWorkspaceInviteMutation,
 	useUpdateAllowedEmailOriginsMutation,
@@ -29,6 +30,7 @@ import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { AdminRole } from '@/graph/generated/schemas'
 import { authRedirect } from '@/pages/Auth/utils'
 
 import * as authRouterStyles from './AuthRouter.css'
@@ -45,13 +47,15 @@ const COMMON_EMAIL_PROVIDERS = [
 
 export const InviteTeamForm: React.FC = () => {
 	const { setLoadingState } = useAppLoadingContext()
-	const { admin, role } = useAuthContext()
+	const { admin } = useAuthContext()
+
 	const navigate = useNavigate()
 	const [error, setError] = React.useState<string>()
 
 	const { data, loading } = useGetProjectsAndWorkspacesQuery({
 		fetchPolicy: 'network-only',
 	})
+
 	const [updateAllowedEmailOrigins, { loading: formSubmitting }] =
 		useUpdateAllowedEmailOriginsMutation()
 	const [sendInviteEmail] = useSendAdminWorkspaceInviteMutation()
@@ -69,6 +73,14 @@ export const InviteTeamForm: React.FC = () => {
 	const redirectRoute = authRedirectRoute ?? setupRoute
 	const workspace = data?.workspaces && data.workspaces[0]
 	const inWorkspace = !!workspace
+
+	const { data: adminRoleData, loading: adminRoleLoading } =
+		useGetAdminRoleQuery({
+			variables: { workspace_id: workspace?.id ?? '' },
+			skip: !inWorkspace,
+		})
+	console.log('adminRoleData', adminRoleData)
+	const adminRole = adminRoleData?.admin_role?.role ?? AdminRole.Member
 
 	const formStore = useFormStore({
 		defaultValues: {
@@ -106,8 +118,18 @@ export const InviteTeamForm: React.FC = () => {
 					)
 				}
 				emails = emails.filter((e) => e?.length)
-				try {
-					await Promise.all([
+				const promises = emails.map((email) =>
+					sendInviteEmail({
+						variables: {
+							workspace_id: workspace.id,
+							email,
+							base_url: window.location.origin,
+							role: adminRole,
+						},
+					}),
+				)
+				if (adminRole === AdminRole.Admin) {
+					promises.push(
 						updateAllowedEmailOrigins({
 							variables: {
 								workspace_id: workspace.id,
@@ -117,17 +139,10 @@ export const InviteTeamForm: React.FC = () => {
 									: '',
 							},
 						}),
-						...emails.map((email) =>
-							sendInviteEmail({
-								variables: {
-									workspace_id: workspace.id,
-									email,
-									base_url: window.location.origin,
-									role: role.toString(),
-								},
-							}),
-						),
-					])
+					)
+				}
+				try {
+					await Promise.all(promises)
 				} catch (e) {
 					message.error(
 						`An error occurred inviting your team. Please try again later.`,
@@ -162,10 +177,11 @@ export const InviteTeamForm: React.FC = () => {
 	})
 
 	useEffect(() => {
-		if (!loading) {
+		if (!loading && !adminRoleLoading) {
+			console.log('setloading')
 			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [setLoadingState, loading])
+	}, [setLoadingState, loading, adminRoleLoading, adminRoleData])
 
 	if (loading) {
 		return null
@@ -232,54 +248,59 @@ export const InviteTeamForm: React.FC = () => {
 				<AuthFooter>
 					<Stack gap="12">
 						<Box display="flex" width="full">
-							{!isCommonEmailDomain && (
-								<Box width="full">
-									<Callout icon={false}>
-										<Stack gap="8">
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="6"
-											>
-												<SwitchButton
-													type="button"
-													size="xxSmall"
-													iconLeft={
-														<IconSolidCheckCircle
-															size={12}
-														/>
-													}
-													checked={autoJoinDomain}
-													onChange={() => {
-														formStore.setValue(
-															formStore.names
-																.autoJoinDomain,
-															!autoJoinDomain,
-														)
-													}}
-												/>
+							{!isCommonEmailDomain &&
+								adminRole === AdminRole.Admin && (
+									<Box width="full">
+										<Callout icon={false}>
+											<Stack gap="8">
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="6"
+												>
+													<SwitchButton
+														type="button"
+														size="xxSmall"
+														iconLeft={
+															<IconSolidCheckCircle
+																size={12}
+															/>
+														}
+														checked={autoJoinDomain}
+														onChange={() => {
+															formStore.setValue(
+																formStore.names
+																	.autoJoinDomain,
+																!autoJoinDomain,
+															)
+														}}
+													/>
+													<Text
+														size="small"
+														weight="bold"
+														color="strong"
+													>
+														Allow joining by email
+														domain
+													</Text>
+												</Box>
 												<Text
 													size="small"
-													weight="bold"
-													color="strong"
+													weight="medium"
 												>
-													Allow joining by email
-													domain
+													Allow everyone with a{' '}
+													<b>
+														{getEmailDomain(
+															admin?.email,
+														)}
+													</b>{' '}
+													email to join your
+													workspace.
 												</Text>
-											</Box>
-											<Text size="small" weight="medium">
-												Allow everyone with a{' '}
-												<b>
-													{getEmailDomain(
-														admin?.email,
-													)}
-												</b>{' '}
-												email to join your workspace.
-											</Text>
-										</Stack>
-									</Callout>
-								</Box>
-							)}
+											</Stack>
+										</Callout>
+									</Box>
+								)}
 						</Box>
 						<Box display="flex" width="full">
 							<Button

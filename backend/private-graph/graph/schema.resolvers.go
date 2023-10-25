@@ -923,6 +923,18 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, err
 	}
 
+	if role != model.AdminRole.ADMIN && role != model.AdminRole.MEMBER {
+		return nil, e.Errorf("invalid role %s", role)
+	}
+
+	// If the new invite is for an admin role, the inviter must be an admin
+	if role == model.AdminRole.ADMIN {
+		err := r.validateAdminRole(ctx, workspaceID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
 
 	if err := r.DB.Create(inviteLink).Error; err != nil {
