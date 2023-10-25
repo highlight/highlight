@@ -7711,7 +7711,6 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 		return nil, err
 	}
 
-	// Find the earlier span start time
 	traceStartTime := trace[0].Timestamp
 	for _, span := range trace {
 		if span.Timestamp.Before(traceStartTime) {
@@ -7719,7 +7718,8 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 		}
 	}
 
-	// Iterate over each span and add a start time that is the nanoseconds since the trace's start time
+	// Assigning this on the server since we can't parse timestamp to a date with
+	// nanosecond precision in JavaScript.
 	for _, span := range trace {
 		span.StartTime = int(span.Timestamp.UnixNano() - traceStartTime.UnixNano())
 	}
