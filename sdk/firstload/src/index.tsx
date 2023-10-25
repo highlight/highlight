@@ -6,7 +6,7 @@ import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionSto
 import type {
 	Highlight,
 	HighlightClassOptions,
-} from '@highlight-run/client/src'
+} from '@highlight-run/client/src/index.js'
 import {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -24,13 +24,13 @@ import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-lo
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
 import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import configureElectronHighlight from './environments/electron.js'
-import firstloadVersion from './__generated/version'
+import firstloadVersion from './__generated/version.js'
 import {
 	SessionData,
 	getPreviousSessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
-import { initializeFetchListener } from './listeners/fetch'
-import { initializeWebSocketListener } from './listeners/web-socket'
+import { initializeFetchListener } from './listeners/fetch/index.js'
+import { initializeWebSocketListener } from './listeners/web-socket/index.js'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 
 enum MetricCategory {
