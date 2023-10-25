@@ -1,4 +1,5 @@
 import { InfoCircleFilled } from '@ant-design/icons'
+import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import { Box, Form, Text, useFormStore } from '@highlight-run/ui'
 import useLocalStorage from '@rehooks/local-storage'
@@ -8,6 +9,7 @@ import React from 'react'
 import { Helmet } from 'react-helmet'
 
 export const DemoModal = () => {
+	const { isAuthLoading, isLoggedIn } = useAuthContext()
 	const [visible, setVisible] = useLocalStorage<boolean>(
 		'highlight-demo-email-modal-visible',
 		true,
@@ -26,6 +28,8 @@ export const DemoModal = () => {
 		analytics.track('demo-email-submit', { email })
 		setVisible(false)
 	}
+
+	if (isAuthLoading || isLoggedIn) return null
 
 	return visible ? (
 		<>
