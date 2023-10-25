@@ -50,7 +50,7 @@
 
 		<maven.install.skip>true</maven.install.skip>
 		<maven.deploy.skip>true</maven.deploy.skip>
-        <skipStaging>true</skipStaging>
+        <skipStaging>false</skipStaging>
 		<deployAtEnd>true</deployAtEnd>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
