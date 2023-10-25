@@ -4,8 +4,9 @@ import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { MdKeyboardReturn } from 'react-icons/md'
+import { FaPlay } from 'react-icons/fa'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../../components/common/CallToAction/OSSCallToAction'
@@ -121,16 +122,20 @@ const CompetitorComparisonPage = ({
 									</Typography>
 								</PrimaryButton>
 								<PrimaryButton
-									href={
-										'/docs/general/product-features/session-replay/overview'
-									}
+									href={'https://app.highlight.io/demo'}
 									className={classNames(
 										homeStyles.hollowButton,
 									)}
 								>
-									<Typography type="copy2" emphasis={true}>
-										Read our docs
-									</Typography>
+									<div className="flex items-center gap-2">
+										<FaPlay />
+										<Typography
+											type="copy2"
+											emphasis={true}
+										>
+											Live demo
+										</Typography>
+									</div>
 								</PrimaryButton>
 							</div>
 						</div>

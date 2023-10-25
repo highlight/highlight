@@ -4759,6 +4759,9 @@ body {
 }
 .in1xv9c {
   border-radius: 6px;
+}
+.in1xv9d {
+  border-radius: 6px;
   border: var(--_1pyqka91o) solid 1px;
   cursor: pointer;
   display: block;
@@ -4771,13 +4774,13 @@ body {
   background-repeat: no-repeat;
   background-position: right 4px center;
 }
-.in1xv9c::placeholder {
+.in1xv9d::placeholder {
   color: var(--_1pyqka9x);
 }
-.in1xv9c:disabled {
+.in1xv9d:disabled {
   background: #e9e8ea;
 }
-.in1xv9c:focus {
+.in1xv9d:focus {
   border: var(--_1pyqka91q) solid 1px;
 }
 ._1e9eref2 {

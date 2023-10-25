@@ -76,6 +76,7 @@ export const inputVariants = recipe({
 			first: { borderRadius: '6px 6px 0 0' },
 			middle: { borderRadius: 0 },
 			last: { borderRadius: '0 0 6px 6px' },
+			true: { borderRadius: 6 },
 		},
 	},
 	defaultVariants: {
