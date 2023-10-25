@@ -1,6 +1,6 @@
 import { Trace } from '@/graph/generated/schemas'
 
-import { dateToNanoseconds, getTraceTimes, organizeSpans } from './utils'
+import { getTraceTimes, organizeSpans } from './utils'
 import { trace } from './utils.fixture'
 
 describe('getTraceDuration', () => {
@@ -125,12 +125,5 @@ describe('organizeSpans', () => {
 		expect(JSON.stringify(sortedSpans)).toEqual(
 			JSON.stringify(expectedSortedTrace),
 		)
-	})
-})
-
-describe('dateToNanoseconds', () => {
-	it('converts a date string to nanoseconds', () => {
-		const date = '2023-10-24T16:00:31.295908Z'
-		expect(dateToNanoseconds(date)).toEqual(1698163231295908000)
 	})
 })

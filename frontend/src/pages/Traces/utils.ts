@@ -60,18 +60,6 @@ export type FlameGraphSpan = {
 	children?: FlameGraphSpan[]
 } & Trace
 
-export const dateToNanoseconds = (date: string) => {
-	if (!date) return 0
-
-	const dateMicroseconds = Number(
-		date.split('.')[1].replace('Z', '').slice(3),
-	)
-	const dateInMicroseconds =
-		new Date(date).valueOf() * 1000 + dateMicroseconds
-
-	return dateInMicroseconds * 1000
-}
-
 export const organizeSpans = (spans: Trace[]) => {
 	// Object is not modifieable, so we need to clone it to add children
 	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
