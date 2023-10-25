@@ -7,19 +7,18 @@ export const getFirstSpan = (trace: Trace[]) => {
 // Returns the trace duration in nanoseconds
 export const getTraceTimes = (trace: Trace[]) => {
 	const startTime = Math.min(
-		...trace.map((span) => new Date(span.timestamp).getTime()),
+		...trace.map((span) => new Date(span.timestamp).getTime() * 1000000),
 	)
 	const endTime = Math.max(
 		...trace.map((span) => {
-			const startTime = new Date(span.timestamp).getTime()
+			const startTime = new Date(span.timestamp).getTime() * 1000000
 			return startTime + span.duration
 		}),
 	)
 
 	return {
-		startTime,
-		endTime,
-		duration: endTime - startTime,
+		startTime: startTime / 1000000, // milliseconds
+		duration: endTime - startTime, // nanoseconds
 	}
 }
 

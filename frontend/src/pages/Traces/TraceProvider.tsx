@@ -65,7 +65,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 
 	const { startTime, duration: totalDuration } = useMemo(() => {
 		if (!data?.trace) {
-			return { startTime: 0, endTime: 0, duration: 0 }
+			return { startTime: 0, duration: 0 }
 		}
 
 		return getTraceTimes(data.trace.trace)
