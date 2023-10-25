@@ -52,8 +52,6 @@ jobs:
                   INPUTS_ACTION: ${{ inputs.action }}
               run: |
                   running=$(if [ "$GITHUB_EVENT_REF" = "true" ] || [ "$INPUTS_ACTION" = "deploy" ]; then echo true; else echo false; fi)
-                  # TMP force deploy
-                  running="true"
                   echo "deploy=$running" >> "$GITHUB_OUTPUT"
                   echo "Is deployment running: $running"
 
