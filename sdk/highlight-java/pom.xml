@@ -3,6 +3,7 @@
 
 	<groupId>io.highlight</groupId>
 	<artifactId>highlight</artifactId>
+	<version>${revision}</version>
 	<packaging>pom</packaging>
 
 	<name>Highlight Java</name>
