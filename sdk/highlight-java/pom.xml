@@ -48,9 +48,9 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
-		<maven.install.skip>false</maven.install.skip>
-		<maven.deploy.skip>false</maven.deploy.skip>
-        <skipStaging>false</skipStaging>
+		<maven.install.skip>true</maven.install.skip>
+		<maven.deploy.skip>true</maven.deploy.skip>
+        <skipStaging>true</skipStaging>
 		<deployAtEnd>true</deployAtEnd>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
