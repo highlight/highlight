@@ -2,8 +2,6 @@ import {
 	Box,
 	ButtonIcon,
 	Dialog,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
 	IconSolidX,
 	Stack,
 	Text,
@@ -12,6 +10,7 @@ import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
 
+import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'
 import { Trace } from '@/graph/generated/schemas'
 import { TracePage } from '@/pages/Traces/TracePage'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
@@ -93,32 +92,22 @@ export const TracePanel: React.FC = () => {
 			<Box borderBottom="dividerWeak" py="6" pl="12" pr="8">
 				<Stack direction="row" justify="space-between" align="center">
 					<Stack direction="row" gap="6" align="center">
-						<Box>
-							<ButtonIcon
-								icon={<IconSolidCheveronUp />}
-								kind="secondary"
-								emphasis="low"
-								size="small"
-								disabled={!previousTrace}
-								onClick={() => {
-									if (previousTrace) {
-										goToTrace(previousTrace)
-									}
-								}}
-							/>
-							<ButtonIcon
-								icon={<IconSolidCheveronDown />}
-								kind="secondary"
-								emphasis="low"
-								size="small"
-								disabled={!nextTrace}
-								onClick={() => {
-									if (nextTrace) {
-										goToTrace(nextTrace)
-									}
-								}}
-							/>
-						</Box>
+						<PreviousNextGroup
+							canMoveForward={!!nextTrace}
+							canMoveBackward={!!previousTrace}
+							nextShortcut="j"
+							prevShortcut="k"
+							onNext={() => {
+								if (nextTrace) {
+									goToTrace(nextTrace)
+								}
+							}}
+							onPrev={() => {
+								if (previousTrace) {
+									goToTrace(previousTrace)
+								}
+							}}
+						/>
 
 						{traces.length > 0 && (
 							<Text size="xSmall" color="weak">
