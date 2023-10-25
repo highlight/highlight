@@ -1,7 +1,7 @@
 import { NetworkRecordingOptions } from '../../types/client'
 import { FetchListener } from './utils/fetch-listener'
 import { RequestResponsePair } from './utils/models'
-import { sanitizeRequest, sanitizeResponse } from './utils/network-sanitizer'
+import { sanitizeResource } from './utils/network-sanitizer'
 import { XHRListener } from './utils/xhr-listener'
 import {
 	WebSocketEventListenerCallback,
@@ -25,10 +25,7 @@ type NetworkListenerArguments = {
 	tracingOrigins: boolean | (string | RegExp)[]
 	urlBlocklist: string[]
 	sessionSecureID: string
-} & Pick<
-	NetworkRecordingOptions,
-	'bodyKeysToRecord' | 'headerKeysToRecord' | 'requestSanitizer'
->
+} & Pick<NetworkRecordingOptions, 'bodyKeysToRecord' | 'headerKeysToRecord'>
 
 export const NetworkListener = ({
 	xhrCallback,
@@ -44,23 +41,16 @@ export const NetworkListener = ({
 	sessionSecureID,
 	bodyKeysToRecord,
 	headerKeysToRecord,
-	requestSanitizer,
 }: NetworkListenerArguments) => {
 	const removeXHRListener = XHRListener(
 		(requestResponsePair) => {
-			const sanitizedRequestResponsePair = requestSanitizer
-				? requestSanitizer(requestResponsePair)
-				: requestResponsePair
-
-			if (sanitizedRequestResponsePair) {
-				xhrCallback(
-					sanitizeRequestResponsePair(
-						requestResponsePair,
-						headersToRedact,
-						headerKeysToRecord,
-					),
-				)
-			}
+			xhrCallback(
+				sanitizeRequestResponsePair(
+					requestResponsePair,
+					headersToRedact,
+					headerKeysToRecord,
+				),
+			)
 		},
 		backendUrl,
 		tracingOrigins,
@@ -71,19 +61,13 @@ export const NetworkListener = ({
 	)
 	const removeFetchListener = FetchListener(
 		(requestResponsePair) => {
-			const sanitizedRequestResponsePair = requestSanitizer
-				? requestSanitizer(requestResponsePair)
-				: requestResponsePair
-
-			if (sanitizedRequestResponsePair) {
-				fetchCallback(
-					sanitizeRequestResponsePair(
-						sanitizedRequestResponsePair,
-						headersToRedact,
-						headerKeysToRecord,
-					),
-				)
-			}
+			fetchCallback(
+				sanitizeRequestResponsePair(
+					requestResponsePair,
+					headersToRedact,
+					headerKeysToRecord,
+				),
+			)
 		},
 		backendUrl,
 		tracingOrigins,
@@ -114,8 +98,8 @@ const sanitizeRequestResponsePair = (
 	headersToRecord?: string[],
 ): RequestResponsePair => {
 	return {
-		request: sanitizeRequest(request, headersToRedact, headersToRecord),
-		response: sanitizeResponse(response, headersToRedact, headersToRecord),
+		request: sanitizeResource(request, headersToRedact, headersToRecord),
+		response: sanitizeResource(response, headersToRedact, headersToRecord),
 		...rest,
 	}
 }

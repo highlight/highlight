@@ -35,6 +35,9 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 	performanceTimings: PerformanceResourceTiming[],
 	requestResponsePairs: RequestResponsePair[],
 	type: 'xmlhttprequest' | 'fetch',
+	requestResponseSanitizer?: (
+		pair: RequestResponsePair,
+	) => RequestResponsePair | null,
 ) => {
 	// Request response pairs are sorted by end time; sort performance timings the same way
 	performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd)
@@ -108,26 +111,49 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 
 	return result
 		.sort((a, b) => a.fetchStart - b.fetchStart)
-		.map((performanceTiming) => {
-			performanceTiming.toJSON = function () {
-				return {
-					initiatorType: this.initiatorType,
-					// deprecated, use the absolute versions instead
-					startTime: this.startTime,
-					responseEnd: this.responseEnd,
-					// offset by `window.performance.timeOrigin` to get absolute timestamps
-					startTimeAbs:
-						window.performance.timeOrigin + this.startTime,
-					responseEndAbs:
-						window.performance.timeOrigin + this.responseEnd,
-					name: this.name,
-					transferSize: this.transferSize,
-					encodedBodySize: this.encodedBodySize,
-					requestResponsePairs: this.requestResponsePair,
+		.reduce(
+			(
+				resources: PerformanceResourceTimingWithRequestResponsePair[],
+				performanceTiming: PerformanceResourceTimingWithRequestResponsePair,
+			) => {
+				let requestResponsePair: RequestResponsePair | null =
+					performanceTiming.requestResponsePair
+
+				if (requestResponsePair && requestResponseSanitizer) {
+					try {
+						requestResponsePair =
+							requestResponseSanitizer(requestResponsePair)
+					} catch (err) {}
+
+					// ignore request if it was removed by the sanitizer
+					if (!requestResponsePair) {
+						return resources
+					}
 				}
-			}
-			return performanceTiming
-		})
+
+				performanceTiming.toJSON = function () {
+					return {
+						initiatorType: this.initiatorType,
+						// deprecated, use the absolute versions instead
+						startTime: this.startTime,
+						responseEnd: this.responseEnd,
+						// offset by `window.performance.timeOrigin` to get absolute timestamps
+						startTimeAbs:
+							window.performance.timeOrigin + this.startTime,
+						responseEndAbs:
+							window.performance.timeOrigin + this.responseEnd,
+						name: this.name,
+						transferSize: this.transferSize,
+						encodedBodySize: this.encodedBodySize,
+						requestResponsePairs: requestResponsePair,
+					}
+				}
+
+				resources.push(performanceTiming)
+				return resources
+			},
+			[],
+		)
 }
 
 /**

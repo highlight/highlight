@@ -8,6 +8,8 @@ import { HighlightClassOptions } from '../index'
 import stringify from 'json-stringify-safe'
 import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
+	Request,
+	Response,
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
@@ -44,8 +46,8 @@ export class FirstLoadListeners {
 	networkBodyKeysToRecord: string[] | undefined
 	networkHeaderKeysToRecord: string[] | undefined
 	urlBlocklist!: string[]
-	requestSanitizer?: (
-		requestResponsePair: RequestResponsePair,
+	requestResponseSanitizer?: (
+		pair: RequestResponsePair,
 	) => RequestResponsePair | null
 
 	constructor(options: HighlightClassOptions) {
@@ -203,7 +205,8 @@ export class FirstLoadListeners {
 				...DEFAULT_URL_BLOCKLIST,
 			]
 
-			sThis.requestSanitizer = options.networkRecording?.requestSanitizer
+			sThis.requestResponseSanitizer =
+				options.networkRecording?.requestResponseSanitizer
 
 			sThis.networkHeaderKeysToRecord =
 				options.networkRecording?.headerKeysToRecord
@@ -258,7 +261,6 @@ export class FirstLoadListeners {
 					sessionSecureID: options.sessionSecureID,
 					headerKeysToRecord: sThis.networkHeaderKeysToRecord,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
-					requestSanitizer: sThis.requestSanitizer,
 				}),
 			)
 		}
@@ -304,11 +306,13 @@ export class FirstLoadListeners {
 					httpResources,
 					sThis.xhrNetworkContents,
 					'xmlhttprequest',
+					sThis.requestResponseSanitizer,
 				)
 				httpResources = matchPerformanceTimingsWithRequestResponsePair(
 					httpResources,
 					sThis.fetchNetworkContents,
 					'fetch',
+					sThis.requestResponseSanitizer,
 				)
 			}
 		}

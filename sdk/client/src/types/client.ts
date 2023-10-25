@@ -117,25 +117,24 @@ export declare type NetworkRecordingOptions = {
 	 * Function to edit/remove data in request/response pairs or ignore the pair entirely.
 	 * @example
 	 * ```
-	 * requestSanitizer: requestResponsePair => {
-	 *   if (requestResponsePair.request.url.toLowerCase().indexOf('ignore') !== -1) {
-	 *      // ignore the request response pair
+	 * requestResponseSanitizer: pair => {
+	 *   if (pair.request.url.toLowerCase().indexOf('ignore') !== -1) {
+	 *      // ignore the entire request/response pair (no network logs)
 	 *      return null
 	 *    }
 	 *
-	 *    let updatedRequestResponsePair
-	 *    if (requestResponsePair.response.body.indexOf('secret') !== -1) {
-	 *        // edit the data in the response
-	 *        updatedRequestResponsePair.response.body = null
+	 *    if (pair.response.body.indexOf('secret') !== -1) {
+	 *        // remove the body in the response
+	 * 				delete pair.response.body;
 	 *    }
 	 *
-	 *    return updatedRequestResponsePair
+	 *    return pair
 	 * }
 	 * ```
 	 *
 	 */
-	requestSanitizer?: (
-		requestResponsePair: RequestResponsePair,
+	requestResponseSanitizer?: (
+		pair: RequestResponsePair,
 	) => RequestResponsePair | null
 }
 
