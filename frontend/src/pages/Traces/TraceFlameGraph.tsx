@@ -56,9 +56,10 @@ export const TraceFlameGraph: React.FC = () => {
 		if (!totalDuration) return []
 
 		const length = Math.round(MAX_TICKS * zoom)
-		const timeUnit = timeUnits.find(
-			({ divider }) => totalDuration / length / divider > 1,
-		)
+		const timeUnit =
+			timeUnits.find(
+				({ divider }) => totalDuration / length / divider > 1,
+			) ?? timeUnits[timeUnits.length - 2]
 		return Array.from({ length }).map((_, index) => {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent

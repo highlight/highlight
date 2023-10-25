@@ -43,24 +43,27 @@ export const TracePage: React.FC<Props> = () => {
 
 	return (
 		<Box cssClass={styles.container}>
-			<Stack direction="column" gap="16" mb="12" mt="8">
-				<Heading>{traceName}</Heading>
-				<Box
-					display="flex"
-					alignItems="center"
-					flexDirection="row"
-					gap="8"
-				>
-					<Text color="moderate">
-						{moment(startTime).format('MMM D HH:mm:ss.SSS')}
-					</Text>
-					<Text weight="bold">{durationString}</Text>
-				</Box>
+			<Stack direction="column" gap="12" pt="16" pb="12" px="20">
+				<Heading level="h4">{traceName}</Heading>
+				<Stack gap="4" direction="row">
+					<Badge
+						size="medium"
+						variant="gray"
+						label={moment(startTime).format('MMM D HH:mm:ss A')}
+					/>
+					<Badge
+						size="medium"
+						variant="gray"
+						label={durationString}
+					/>
+				</Stack>
 			</Stack>
 
-			<TraceFlameGraph />
+			<Box px="20">
+				<TraceFlameGraph />
+			</Box>
 
-			<Box mt="12">
+			<Box mt="20">
 				<Tabs<TraceTabs>
 					tab={activeTab}
 					setTab={(tab) => setActiveTab(tab)}
@@ -70,7 +73,11 @@ export const TracePage: React.FC<Props> = () => {
 					pages={{
 						[TraceTabs.Info]: {
 							page: (
-								<TraceSpanAttributes span={highlightedSpan!} />
+								<Box p="8">
+									<TraceSpanAttributes
+										span={highlightedSpan!}
+									/>
+								</Box>
 							),
 						},
 						[TraceTabs.Errors]: {
@@ -81,10 +88,18 @@ export const TracePage: React.FC<Props> = () => {
 										label={String(errors.length)}
 									/>
 								) : undefined,
-							page: <TraceErrors />,
+							page: (
+								<Box p="8">
+									<TraceErrors />
+								</Box>
+							),
 						},
 						[TraceTabs.Logs]: {
-							page: <TraceLogs />,
+							page: (
+								<Box p="8">
+									<TraceLogs />
+								</Box>
+							),
 						},
 					}}
 					noHandle

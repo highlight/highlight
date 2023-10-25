@@ -1,5 +1,3 @@
-import { Box } from '@highlight-run/ui'
-
 import JsonViewer from '@/components/JsonViewer/JsonViewer'
 import { FlameGraphSpan } from '@/pages/Traces/utils'
 
@@ -12,9 +10,5 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 	delete attributes.__typename
 	delete attributes.children
 
-	return (
-		<Box mt="10">
-			<JsonViewer src={attributes} collapsed={false} />
-		</Box>
-	)
+	return <JsonViewer src={attributes} collapsed={false} />
 }

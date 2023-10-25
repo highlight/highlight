@@ -332,7 +332,11 @@ function NetworkResourceDetails({
 						),
 					},
 					[NetworkRequestTabs.Trace]: {
-						page: <TraceSpanAttributes span={selectedSpan!} />,
+						page: (
+							<Box p="8">
+								<TraceSpanAttributes span={selectedSpan!} />
+							</Box>
+						),
 					},
 				}}
 				noHandle

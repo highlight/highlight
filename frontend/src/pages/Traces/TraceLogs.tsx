@@ -83,7 +83,6 @@ export const TraceLogs: React.FC = () => {
 	return (
 		<>
 			<Box
-				padding="8"
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
