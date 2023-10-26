@@ -1,7 +1,12 @@
-import { InfoCircleFilled } from '@ant-design/icons'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
-import { Box, Form, Text, useFormStore } from '@highlight-run/ui'
+import {
+	Box,
+	Form,
+	IconSolidExclamation,
+	Text,
+	useFormStore,
+} from '@highlight-run/ui'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { Divider } from 'antd'
@@ -10,6 +15,7 @@ import { Helmet } from 'react-helmet'
 
 export const DemoModal = () => {
 	const { isAuthLoading, isLoggedIn } = useAuthContext()
+	const [error, setError] = React.useState<string>()
 	const [visible, setVisible] = useLocalStorage<boolean>(
 		'highlight-demo-email-modal-visible',
 		true,
@@ -22,6 +28,10 @@ export const DemoModal = () => {
 	const email = formStore.useValue('email')
 	const onSubmit = async () => {
 		if (!(await formStore.validate())) {
+			return
+		}
+		if (email.indexOf('@gmail.') !== -1) {
+			setError('Please use your work email')
 			return
 		}
 		analytics.identify(email, { demo: true })
@@ -67,7 +77,9 @@ export const DemoModal = () => {
 							alignItems="center"
 							justifyContent="space-between"
 						>
-							<Text color="n11">Check out the live demo!</Text>
+							<Text color="n11">
+								Enter your email to view the demo
+							</Text>
 						</Box>
 						<Divider className="m-0" />
 						<Box
@@ -83,18 +95,8 @@ export const DemoModal = () => {
 								autoComplete="email"
 								required
 								rounded
-								placeholder="Email"
+								placeholder="Work Email"
 							/>
-							<Box display="flex" alignItems="center" gap="6">
-								<InfoCircleFilled
-									style={{
-										color: '#6F6E77CC',
-									}}
-								/>
-								<Text color="n11">
-									We may reach out about your web-app.
-								</Text>
-							</Box>
 						</Box>
 						<Box
 							my="0"
@@ -107,6 +109,31 @@ export const DemoModal = () => {
 							justifyContent="flex-end"
 							mt="0"
 						>
+							{error ? (
+								<Box
+									py="2"
+									px="8"
+									gap="4"
+									borderRadius="8"
+									border="dividerWeak"
+									style={{
+										display: 'flex',
+										color: '#6F6E77',
+										fontWeight: '500',
+										flexDirection: 'row',
+										alignItems: 'center',
+										backgroundColor: '#F4F2F4',
+										fontSize: '13px',
+									}}
+								>
+									<IconSolidExclamation
+										size={14}
+										opacity="0.8"
+										color="#6F6E77"
+									/>
+									{error}
+								</Box>
+							) : null}
 							<Button
 								type="submit"
 								disabled={!email?.length}
