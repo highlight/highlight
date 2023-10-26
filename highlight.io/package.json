@@ -22,7 +22,7 @@
 		"@highlight-run/next": "workspace:*",
 		"@radix-ui/react-slider": "^1.1.0",
 		"@supabase/supabase-js": "^2.7.1",
-		"@vercel/og": "^0.0.27",
+		"@vercel/og": "^0.5.20",
 		"antd": "^4.24.7",
 		"classnames": "^2.3.1",
 		"dexie": "^3.2.2",
