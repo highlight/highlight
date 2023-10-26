@@ -23,6 +23,13 @@ type Props = {
 	setTooltipCoordinates: (e: React.MouseEvent) => void
 }
 
+const backgroundColorPalette = {
+	all: '#744ed4',
+	clickhouse: '#265cff',
+	frontend: '#b50006',
+	postgres: '#f25100',
+}
+
 const minWidthToDisplayText = 20
 const fontSize = 10
 
@@ -48,10 +55,17 @@ export const TraceFlameGraphNode = memo<Props>(
 		const offsetY = depth
 			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
-		const isSelectedSpan = selectedSpan?.spanID === span.spanID
+		// const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
-		const fill = isSelectedSpan ? '#744ed4' : '#e7defc'
-		const color = isSelectedSpan ? '#fff' : '#744ed4'
+		debugger
+		const backgroundColor =
+			(backgroundColorPalette as any)[
+				span.traceAttributes['ServiceName']
+			] ??
+			(backgroundColorPalette as any)[span.serviceName] ??
+			backgroundColorPalette['all']
+		const fill = backgroundColor
+		const color = '#fff'
 		const stroke = error ? '#f00' : '#f9f8f9'
 
 		return (
