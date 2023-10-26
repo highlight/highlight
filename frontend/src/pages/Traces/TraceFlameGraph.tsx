@@ -1,52 +1,34 @@
 import { Box, Text } from '@highlight-run/ui'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { throttle } from 'lodash'
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 
-import { Trace, TraceError } from '@/graph/generated/schemas'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
-import {
-	FlameGraphSpan,
-	getFirstSpan,
-	getMaxDepth,
-	getTraceDurationString,
-	organizeSpans,
-} from '@/pages/Traces/utils'
+import { useTrace } from '@/pages/Traces/TraceProvider'
+import { getMaxDepth, getTraceDurationString } from '@/pages/Traces/utils'
 
-const ZOOM_SCALING_FACTOR = 100
 const MAX_TICKS = 6
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
 const defaultCanvasWidth = 660
 const timeUnits = [
-	{ unit: 'h', divider: 1000000000000000 },
-	{ unit: 'm', divider: 1000000000000 },
-	{ unit: 's', divider: 1000000000 },
+	{ unit: 'h', divider: 1e9 * 60 * 60 },
+	{ unit: 'm', divider: 1e9 * 60 },
+	{ unit: 's', divider: 1e9 },
 	{ unit: 'ms', divider: 1000000 },
-	{ unit: 'ns', divider: 1 },
+	{ unit: 'μs', divider: 1000 },
 ]
 
-type Props = {
-	errors: TraceError[]
-	hoveredSpan: FlameGraphSpan | undefined
-	selectedSpan: FlameGraphSpan | undefined
-	startTime: number
-	trace: Trace[]
-	totalDuration: number
-	onSpanSelect: (span?: FlameGraphSpan) => void
-	onSpanMouseEnter: (span?: FlameGraphSpan) => void
-}
-
-export const TraceFlameGraph: React.FC<Props> = ({
-	errors,
-	hoveredSpan,
-	selectedSpan,
-	startTime,
-	totalDuration,
-	trace,
-	onSpanSelect,
-	onSpanMouseEnter,
-}) => {
+export const TraceFlameGraph: React.FC = () => {
+	const { hoveredSpan, selectedSpan, totalDuration, traces } = useTrace()
 	const svgContainerRef = useRef<HTMLDivElement>(null)
 	const [zoom, setZoom] = useState(1)
 	const [width, setWidth] = useState(defaultCanvasWidth)
@@ -55,27 +37,12 @@ export const TraceFlameGraph: React.FC<Props> = ({
 		y: 0,
 	})
 
-	useLayoutEffect(() => {
+	const setWidthImpl = useCallback(() => {
 		if (svgContainerRef.current?.clientWidth) {
 			setWidth(svgContainerRef.current?.clientWidth)
 		}
 	}, [])
-
-	const traces = useMemo(() => {
-		if (!trace) return []
-		const sortableTraces = [...trace]
-
-		if (!selectedSpan) {
-			const firstSpan = getFirstSpan(sortableTraces)
-
-			if (firstSpan) {
-				onSpanSelect(firstSpan as FlameGraphSpan)
-			}
-		}
-
-		return organizeSpans(sortableTraces)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [trace])
+	useLayoutEffect(setWidthImpl, [setWidthImpl])
 
 	const height = useMemo(() => {
 		if (!traces.length) return 260
@@ -89,16 +56,15 @@ export const TraceFlameGraph: React.FC<Props> = ({
 		if (!totalDuration) return []
 
 		const length = Math.round(MAX_TICKS * zoom)
-		const timeUnit = timeUnits.find(
-			({ divider }) => totalDuration / divider > 1,
-		)
+		const timeUnit =
+			timeUnits.find(
+				({ divider }) => totalDuration / length / divider > 1,
+			) ?? timeUnits[timeUnits.length - 2]
 		return Array.from({ length }).map((_, index) => {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
 			const displayDuration =
-				timeUnit!.unit === 'ns'
-					? tickDuration / timeUnit!.divider
-					: Math.round((tickDuration / timeUnit!.divider) * 10) / 10
+				Math.round((tickDuration / timeUnit!.divider) * 10) / 10
 			const time = `${displayDuration}${timeUnit!.unit}` ?? '0ms'
 
 			return {
@@ -132,6 +98,8 @@ export const TraceFlameGraph: React.FC<Props> = ({
 		})
 	}, [])
 
+	const throttledZoom = useRef(throttle((dz: number) => handleZoom(dz), 50))
+
 	useHTMLElementEvent(
 		svgContainerRef.current,
 		'wheel',
@@ -142,12 +110,17 @@ export const TraceFlameGraph: React.FC<Props> = ({
 				event.preventDefault()
 				event.stopPropagation()
 
-				const dz = deltaY / ZOOM_SCALING_FACTOR
-				handleZoom(dz)
+				throttledZoom.current(deltaY)
 			}
 		},
 		{ passive: false },
 	)
+
+	useEffect(() => {
+		setZoom(1)
+		setWidthImpl()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [traces])
 
 	return (
 		<Box
@@ -218,17 +191,12 @@ export const TraceFlameGraph: React.FC<Props> = ({
 						return (
 							<TraceFlameGraphNode
 								key={index}
-								errors={errors}
 								span={span}
-								totalDuration={totalDuration}
-								startTime={startTime}
 								depth={0}
 								height={height}
 								width={width}
 								zoom={zoom}
-								selectedSpan={selectedSpan}
-								setHoveredSpan={onSpanMouseEnter}
-								setSelectedSpan={onSpanSelect}
+								selectedSpanID={selectedSpan?.spanID}
 								setTooltipCoordinates={
 									setTooltipCoordinatesImpl
 								}
@@ -263,7 +231,8 @@ export const TraceFlameGraph: React.FC<Props> = ({
 						</Text>
 						<Text lines="1">
 							Start:{' '}
-							{getTraceDurationString(hoveredSpan.start) || '0ms'}
+							{getTraceDurationString(hoveredSpan.startTime) ||
+								'0ms'}
 						</Text>
 					</Box>
 				)}

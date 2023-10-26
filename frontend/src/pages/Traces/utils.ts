@@ -4,38 +4,27 @@ export const getFirstSpan = (trace: Trace[]) => {
 	return trace.find((span) => !span.parentSpanID)
 }
 
-export const getFinalSpan = (trace: Trace[]) => {
-	return trace.reduce((acc, span) => {
-		const endTime =
-			new Date(span.timestamp).getTime() + span.duration / 1000
-		const accEndTime = acc.timestamp
-			? new Date(acc.timestamp).getTime() + acc.duration / 1000
-			: 0
-		return endTime > accEndTime ? span : acc
-	}, {} as Trace)
-}
-
-// Returns the trace duration in milliseconds
+// Returns the trace duration in nanoseconds
 export const getTraceTimes = (trace: Trace[]) => {
 	const startTime = Math.min(
-		...trace.map((span) => new Date(span.timestamp).getTime()),
+		...trace.map((span) => new Date(span.timestamp).getTime() * 1000000),
 	)
 	const endTime = Math.max(
 		...trace.map((span) => {
-			const endTime = new Date(span.timestamp).getTime()
-			return endTime + span.duration
+			const startTime = new Date(span.timestamp).getTime() * 1000000
+			return startTime + span.duration
 		}),
 	)
 
 	return {
-		startTime,
-		endTime,
-		duration: endTime - startTime,
+		startTime: startTime / 1000000, // milliseconds
+		duration: endTime - startTime, // nanoseconds
 	}
 }
 
 export const getTraceDurationString = (duration: number) => {
 	const nanoseconds = Math.floor(duration)
+	const microseconds = Math.floor(nanoseconds / 1000)
 	const milliseconds = Math.floor(nanoseconds / 1000000)
 	const seconds = Math.floor(milliseconds / 1000)
 	const minutes = Math.floor(seconds / 60)
@@ -47,7 +36,7 @@ export const getTraceDurationString = (duration: number) => {
 	const minuteString = minutes > 0 ? `${minutes % 60}m` : ''
 	const secondString = seconds > 0 ? `${seconds % 60}s` : ''
 	const millisecondString = milliseconds > 0 ? `${milliseconds % 1000}ms` : ''
-	const nanosecondString = nanoseconds > 0 ? `${nanoseconds % 1000000}ns` : ''
+	const microsecondString = microseconds > 0 ? `${microseconds % 1000}µs` : ''
 
 	if (dayString) {
 		return `${dayString} ${hourString} ${minuteString} ${secondString}`
@@ -60,7 +49,7 @@ export const getTraceDurationString = (duration: number) => {
 	} else if (millisecondString) {
 		return millisecondString
 	} else {
-		return nanosecondString
+		return microsecondString
 	}
 }
 
@@ -72,14 +61,11 @@ export type FlameGraphSpan = {
 
 export const organizeSpans = (spans: Trace[]) => {
 	// Object is not modifieable, so we need to clone it to add children
-	const startTime = new Date(spans[0].timestamp).getTime() * 1000000
 	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
 
 	const sortedTrace = tempSpans.reduce((acc, span) => {
 		const parentSpanID = span.parentSpanID
 		span.name = span.spanName
-		const spanStart = new Date(span.timestamp).getTime() * 1000000
-		span.start = spanStart - startTime
 
 		if (parentSpanID) {
 			const parentSpan = tempSpans.find(

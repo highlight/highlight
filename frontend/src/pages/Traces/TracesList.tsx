@@ -17,6 +17,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { GetTracesQuery } from '@/graph/generated/operations'
 import { Trace } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
+import { useParams } from '@/util/react-router/useParams'
 
 type Props = {
 	loading: boolean
@@ -27,10 +28,11 @@ const gridColumns = ['2fr', '1fr', '2fr', '1fr', '2fr', '1.2fr']
 
 export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	const { projectId } = useProjectId()
+	const { span_id } = useParams<{ span_id?: string }>()
 	const navigate = useNavigate()
 	const location = useLocation()
 
-	const viewTrace = (trace: Trace) => {
+	const viewTrace = (trace: Partial<Trace>) => {
 		navigate(
 			`/${projectId}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
 		)
@@ -62,108 +64,116 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 					>
 						{traces.edges
 							.map((edge) => edge.node)
-							.map((trace, index) => (
-								<Table.Row
-									key={index}
-									gridColumns={gridColumns}
-								>
-									<Table.Cell
-										onClick={() => viewTrace(trace)}
+							.map((trace, index) => {
+								const isSelected = trace.spanID === span_id
+
+								return (
+									<Table.Row
+										key={index}
+										gridColumns={gridColumns}
+										selected={isSelected}
 									>
-										<Box
-											display="flex"
-											alignItems="center"
-											justifyContent="space-between"
-											width="full"
+										<Table.Cell
+											onClick={() => viewTrace(trace)}
 										>
-											<Stack
-												direction="row"
-												align="center"
+											<Box
+												display="flex"
+												alignItems="center"
+												justifyContent="space-between"
+												width="full"
 											>
-												<Badge
-													variant="outlineGray"
-													shape="basic"
-													size="medium"
-													iconStart={
-														<IconSolidMenuAlt_2 size="12" />
-													}
-												/>
-												<Text lines="1" color="strong">
-													{trace.spanName}
+												<Stack
+													direction="row"
+													align="center"
+												>
+													<Badge
+														variant="outlineGray"
+														shape="basic"
+														size="medium"
+														iconStart={
+															<IconSolidMenuAlt_2 size="12" />
+														}
+													/>
+													<Text
+														lines="1"
+														color="strong"
+													>
+														{trace.spanName}
+													</Text>
+												</Stack>
+												<Table.Discoverable>
+													<Badge
+														variant="outlineGray"
+														label="Open"
+														size="medium"
+													/>
+												</Table.Discoverable>
+											</Box>
+										</Table.Cell>
+										<Table.Cell>
+											<Text
+												lines="1"
+												title={trace.serviceName}
+											>
+												{trace.serviceName}
+											</Text>
+										</Table.Cell>
+										<Table.Cell>{trace.traceID}</Table.Cell>
+										<Table.Cell>
+											{trace.parentSpanID ? (
+												<Text lines="1">
+													{trace.parentSpanID}
 												</Text>
-											</Stack>
-											<Table.Discoverable>
-												<Badge
-													variant="outlineGray"
-													label="Open"
-													size="medium"
-												/>
-											</Table.Discoverable>
-										</Box>
-									</Table.Cell>
-									<Table.Cell>
-										<Text
-											lines="1"
-											title={trace.serviceName}
+											) : (
+												<Text color="secondaryContentOnDisabled">
+													empty
+												</Text>
+											)}
+										</Table.Cell>
+										<Table.Cell
+											onClick={
+												trace.secureSessionID
+													? () => {
+															navigate(
+																`/${projectId}/sessions/${trace.secureSessionID}`,
+															)
+													  }
+													: undefined
+											}
 										>
-											{trace.serviceName}
-										</Text>
-									</Table.Cell>
-									<Table.Cell>{trace.traceID}</Table.Cell>
-									<Table.Cell>
-										{trace.parentSpanID ? (
+											{trace.secureSessionID ? (
+												<Tag
+													kind="secondary"
+													shape="basic"
+													iconLeft={
+														<IconSolidPlayCircle />
+													}
+												>
+													{trace.secureSessionID}
+												</Tag>
+											) : (
+												<Text color="secondaryContentOnDisabled">
+													empty
+												</Text>
+											)}
+										</Table.Cell>
+										<Table.Cell>
 											<Text lines="1">
-												{trace.parentSpanID}
+												{new Date(
+													trace.timestamp,
+												).toLocaleDateString('en-US', {
+													month: 'short',
+													day: 'numeric',
+													year: 'numeric',
+													hour: 'numeric',
+													minute: 'numeric',
+													second: 'numeric',
+												})}
 											</Text>
-										) : (
-											<Text color="secondaryContentOnDisabled">
-												empty
-											</Text>
-										)}
-									</Table.Cell>
-									<Table.Cell
-										onClick={
-											trace.secureSessionID
-												? () => {
-														navigate(
-															`/${projectId}/sessions/${trace.secureSessionID}`,
-														)
-												  }
-												: undefined
-										}
-									>
-										{trace.secureSessionID ? (
-											<Tag
-												kind="secondary"
-												shape="basic"
-												iconLeft={
-													<IconSolidPlayCircle />
-												}
-											>
-												{trace.secureSessionID}
-											</Tag>
-										) : (
-											<Text color="secondaryContentOnDisabled">
-												empty
-											</Text>
-										)}
-									</Table.Cell>
-									<Table.Cell>
-										<Text lines="1">
-											{new Date(
-												trace.timestamp,
-											).toLocaleDateString('en-US', {
-												month: 'short',
-												day: 'numeric',
-												year: 'numeric',
-												hour: 'numeric',
-												minute: 'numeric',
-												second: 'numeric',
-											})}
-										</Text>
-									</Table.Cell>
-								</Table.Row>
-							))}
+										</Table.Cell>
+									</Table.Row>
+								)
+							})}
 					</Table.Body>
 				</Table>
 			) : (
