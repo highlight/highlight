@@ -277,6 +277,8 @@ func main() {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
 	}
 
+	util.SetupGormTracingHooks(ctx, db)
+
 	if util.IsDevEnv() {
 		_, err := model.MigrateDB(ctx, db)
 

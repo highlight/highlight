@@ -126,7 +126,11 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadLogs"))
+	span, _ := util.StartSpanFromContext(ctx, "clickhouse.read")
+	// TODO: Figure out how to set the top-level ServiceName attribute + assign
+	// different colors to different services.
+	span.SetAttribute("ServiceName", "clickhouse")
+	span.SetAttribute("Table", config.tableName)
 	span.SetAttribute("Query", sql)
 	span.SetAttribute("Params", params)
 

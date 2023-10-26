@@ -5737,7 +5737,7 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 	}
 
 	projects := []*model.Project{}
-	if err := r.DB.Order("id ASC").Model(&model.Project{}).Where(`
+	if err := r.DB.WithContext(ctx).Order("id ASC").Model(&model.Project{}).Where(`
 		id IN (
 			SELECT project_id
 			FROM project_admins
@@ -6698,7 +6698,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	adminSpan, ctx := util.StartSpanFromContext(ctx, "resolver.getAdmin", util.ResourceName("db.admin"),
 		util.Tag("admin_uid", admin.UID))
 
-	if err := r.DB.Where(&model.Admin{UID: admin.UID}).Take(&admin).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.Admin{UID: admin.UID}).Take(&admin).Error; err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			// Sometimes users don't exist in our DB because they authenticated with
 			// Google auth and never went through the sign up flow. In this case, we
