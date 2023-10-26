@@ -1,11 +1,11 @@
 'use client'
 
+import React, { useEffect } from 'react'
 import { HighlightOptions, H as localH } from 'highlight.run'
 import type { NextPageContext } from 'next'
+import NextError from 'next/error'
 
 import { ErrorProps } from 'next/error'
-
-import { useEffect } from 'react'
 
 export { localH as H }
 export { ErrorBoundary } from '@highlight-run/react'
@@ -44,4 +44,39 @@ export function getHighlightErrorInitialProps({
 		res?.statusMessage ?? err?.message ?? 'An error occurred'
 
 	return { errorMessage, statusCode }
+}
+
+export type PageRouterErrorProps = HighlightErrorProps
+
+export function pageRouterCustomErrorHandler(
+	highlightInitProps: Props,
+	Child?: React.FC<HighlightErrorProps>,
+) {
+	const { projectId, ...highlightOptions } = highlightInitProps
+
+	const handler = (props: HighlightErrorProps) => {
+		localH.init(projectId, highlightOptions)
+		localH.consumeError(new Error(props.errorMessage))
+
+		return Child ? <Child {...props} /> : <NextError {...props} />
+	}
+
+	handler.getInitialProps = getHighlightErrorInitialProps
+
+	return handler
+}
+
+export type AppRouterErrorProps = {
+	error: Error & { digest?: string }
+	reset: () => void
+}
+
+export function appRouterSsrErrorHandler(Child: React.FC<AppRouterErrorProps>) {
+	return ({ error, reset }: AppRouterErrorProps) => {
+		useEffect(() => {
+			localH.consumeError(error)
+		}, [error])
+
+		return <Child error={error} reset={reset} />
+	}
 }

@@ -151,38 +151,34 @@ We don't call `H.init` in this example because we injected `<HighlightInit />` i
 // src/app/error.tsx
 'use client' // Error components must be Client Components
 
-import { H } from '@highlight-run/next/client'
-import { useEffect } from 'react'
+import {
+	appRouterSsrErrorHandler,
+	AppRouterErrorProps,
+} from '@highlight-run/next/client'
 
-export default function Error({
-	error,
-	reset,
-}: {
-	error: Error & { digest?: string }
-	reset: () => void
-}) {
-	useEffect(() => {
-		H.consumeError(error) // Log the error to Highlight
-	}, [error])
+export default appRouterSsrErrorHandler(
+	({ error, reset }: AppRouterErrorProps) => {
+		console.error(error)
 
-	return (
-		<div>
-			<h2>Something went wrong!</h2>
-			<button
-				onClick={
-					() => reset() // Attempt to recover by trying to re-render the segment
-				}
-			>
-				Try again
-			</button>
-		</div>
-	)
-}
+		return (
+			<div>
+				<h2>Something went wrong!</h2>
+				<button
+					onClick={
+						() => reset() // Attempt to recover by trying to re-render the segment
+					}
+				>
+					Try again
+				</button>
+			</div>
+		)
+	},
+)
 ```
 
 ### Validate SSR error capture
 
-Copy the following code into `src/app/app-router-isr/page.tsx` and visit `http://localhost:3000/app-router-isr?error=true` to trigger the error.
+Copy the following code into `src/app/app-router-isr/page.tsx`, build and start your production app with `next build && next start`, and visit `http://localhost:3000/app-router-isr?error=true` to trigger the error.
 
 ```jsx
 // src/app/app-router-isr/page.tsx

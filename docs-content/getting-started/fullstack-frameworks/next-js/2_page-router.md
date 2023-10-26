@@ -145,30 +145,33 @@ These errors will display as client errors, even though we know that they're ser
 
 ```jsx
 // pages/_error.tsx
-import CONSTANTS from '../app/constants'
 import NextError from 'next/error'
 import {
-	H,
-	getHighlightErrorInitialProps,
-	HighlightErrorProps,
+	pageRouterCustomErrorHandler,
+	PageRouterErrorProps,
 } from '@highlight-run/next/client'
+import CONSTANTS from '@/app/constants'
 
-export default function CustomError({
-	errorMessage,
-	statusCode,
-}: HighlightErrorProps) {
-	H.init(CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID)
-	H.consumeError(new Error(errorMessage))
+export default pageRouterCustomErrorHandler(
+	{
+		projectId: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+		// ...otherHighlightOptions
+	},
+	/**
+	 * 
+	 * This second argument is purely optional. 
+	 * If you don't pass it, we'll use the default Next.js error page.
+	 * 
+	 * Go ahead and pass in your own error page.
+	 */
+	(props: PageRouterErrorProps) => <NextError {...props} />,
+)
 
-	return <NextError statusCode={statusCode} /> // Render default Next error page
-}
-
-CustomError.getInitialProps = getHighlightErrorInitialProps
 ```
 
 ### Validate SSR error capture
 
-Copy the following code into `pages/page-router-isr.tsx` and visit `http://localhost:3000/page-router-isr?error=true` to trigger the error.
+Copy the following code into `pages/page-router-isr.tsx`, build and start your production app with `next build && next start`, and visit `http://localhost:3000/page-router-isr?error=true` to trigger the error.
 
 ```jsx
 // pages/page-router-isr.tsx
