@@ -26,6 +26,7 @@ import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarou
 import LandingInfoRow from '../components/Home/LandingInfoRow'
 import { Review } from '../components/Home/Reviews'
 import InfoRow from '../components/Products/InfoRow'
+import { FaPlay } from 'react-icons/fa'
 
 const IMAGE_SHOW_OFFSET = 450
 
@@ -200,12 +201,18 @@ const Home: NextPage = () => {
 								</PrimaryButton>
 
 								<PrimaryButton
-									href={'/docs'}
+									href={'https://app.highlight.io/demo'}
 									className={classNames(styles.hollowButton)}
 								>
-									<Typography type="copy2" emphasis={true}>
-										Read our docs
-									</Typography>
+									<div className="flex items-center gap-2">
+										<FaPlay />
+										<Typography
+											type="copy2"
+											emphasis={true}
+										>
+											Live demo
+										</Typography>
+									</div>
 								</PrimaryButton>
 							</div>
 						</div>

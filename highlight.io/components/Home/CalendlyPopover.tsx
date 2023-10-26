@@ -23,7 +23,7 @@ export const CalendlyPopover = () => {
 						)}
 					>
 						<Typography type="copy2" emphasis>
-							Request a Demo
+							Request a Demo Call
 						</Typography>
 						<ArrowRightCircleIcon className="w-5 h-5" />
 					</Popover.Button>

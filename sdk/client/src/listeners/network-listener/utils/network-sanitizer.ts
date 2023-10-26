@@ -1,35 +1,18 @@
 import { Request, Response, Headers } from './models'
 
-export const sanitizeRequest = (
-	request: Request,
+export const sanitizeResource = <T extends Request | Response>(
+	resource: T,
 	headersToRedact: string[],
 	headersToRecord?: string[],
-): Request => {
+): T => {
 	const newHeaders = sanitizeHeaders(
 		headersToRedact,
-		request.headers,
+		resource.headers,
 		headersToRecord,
 	)
 
 	return {
-		...request,
-		headers: newHeaders,
-	}
-}
-
-export const sanitizeResponse = (
-	response: Response,
-	headersToRedact: string[],
-	headersToRecord?: string[],
-): Response => {
-	const newHeaders = sanitizeHeaders(
-		headersToRedact,
-		response.headers,
-		headersToRecord,
-	)
-
-	return {
-		...response,
+		...resource,
 		headers: newHeaders,
 	}
 }

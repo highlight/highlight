@@ -176,7 +176,24 @@ function handleBrowserRequest(
 				abortDelay={ABORT_DELAY}
 			/>,
 			{
-				// onShellReady and onShellError handlers...
+				onShellReady() {
+					shellRendered = true
+					const body = new PassThrough()
+
+					responseHeaders.set('Content-Type', 'text/html')
+
+					resolve(
+						new Response(body, {
+							headers: responseHeaders,
+							status: responseStatusCode,
+						}),
+					)
+
+					pipe(body)
+				},
+				onShellError(error: unknown) {
+					reject(error)
+				},
 				onError(error: unknown) {
 					if (shellRendered) {
 						logError(error, request)

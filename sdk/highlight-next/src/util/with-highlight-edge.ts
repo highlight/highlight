@@ -1,7 +1,7 @@
 import { H } from './highlight-edge'
 import type { NodeOptions } from '@highlight-run/node'
-import type { ExecutionContext } from '@cloudflare/workers-types'
-import type { NextFetchEvent, NextRequest } from 'next/server'
+import type { NextFetchEvent, NextRequest, NextResponse } from 'next/server'
+import { ExtendedExecutionContext } from './types'
 
 export type HighlightEnv = NodeOptions
 
@@ -9,12 +9,6 @@ export type EdgeHandler = (
 	request: NextRequest,
 	event: NextFetchEvent,
 ) => Promise<Response>
-
-export type ExtendedExecutionContext = ExecutionContext & {
-	__waitUntilTimer?: ReturnType<typeof setInterval>
-	__waitUntilPromises?: Promise<void>[]
-	waitUntilFinished?: () => Promise<void>
-}
 
 export function Highlight(env: HighlightEnv) {
 	return function withHighlight(handler: EdgeHandler) {

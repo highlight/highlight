@@ -89,11 +89,11 @@ const Navbar = ({
 			<GithubPopup />
 			{!hideBanner && (
 				<Link
-					href="/launch/week-3"
+					href="/startups"
 					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 				>
 					<Typography type="copy3">
-						It&apos;s Launch Week! Click here to follow along.
+						Got a startup? Apply for free Highlight credits!
 					</Typography>
 				</Link>
 			)}

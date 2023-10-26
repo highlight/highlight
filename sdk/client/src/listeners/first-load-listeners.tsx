@@ -8,6 +8,8 @@ import { HighlightClassOptions } from '../index'
 import stringify from 'json-stringify-safe'
 import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
+	Request,
+	Response,
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
@@ -44,6 +46,9 @@ export class FirstLoadListeners {
 	networkBodyKeysToRecord: string[] | undefined
 	networkHeaderKeysToRecord: string[] | undefined
 	urlBlocklist!: string[]
+	requestResponseSanitizer?: (
+		pair: RequestResponsePair,
+	) => RequestResponsePair | null
 
 	constructor(options: HighlightClassOptions) {
 		this.options = options
@@ -200,6 +205,9 @@ export class FirstLoadListeners {
 				...DEFAULT_URL_BLOCKLIST,
 			]
 
+			sThis.requestResponseSanitizer =
+				options.networkRecording?.requestResponseSanitizer
+
 			sThis.networkHeaderKeysToRecord =
 				options.networkRecording?.headerKeysToRecord
 			// `headerKeysToRecord` override `networkHeadersToRedact`.
@@ -245,13 +253,11 @@ export class FirstLoadListeners {
 					},
 					disableWebSocketRecording:
 						sThis.disableRecordingWebSocketContents,
-					headersToRedact: sThis.networkHeadersToRedact,
 					bodyKeysToRedact: sThis.networkBodyKeysToRedact,
 					backendUrl: sThis._backendUrl,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
 					sessionSecureID: options.sessionSecureID,
-					headerKeysToRecord: sThis.networkHeaderKeysToRecord,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
 				}),
 			)
@@ -294,15 +300,23 @@ export class FirstLoadListeners {
 				})
 
 			if (sThis.enableRecordingNetworkContents) {
+				const sanitizeOptions = {
+					headersToRedact: sThis.networkHeadersToRedact,
+					headersToRecord: sThis.networkHeaderKeysToRecord,
+					requestResponseSanitizer: sThis.requestResponseSanitizer,
+				}
+
 				httpResources = matchPerformanceTimingsWithRequestResponsePair(
 					httpResources,
 					sThis.xhrNetworkContents,
 					'xmlhttprequest',
+					sanitizeOptions,
 				)
 				httpResources = matchPerformanceTimingsWithRequestResponsePair(
 					httpResources,
 					sThis.fetchNetworkContents,
 					'fetch',
+					sanitizeOptions,
 				)
 			}
 		}

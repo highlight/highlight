@@ -9,6 +9,7 @@ import { getGithubDocsPaths } from './docs/github'
 import pino from 'pino'
 import { GraphQLRequest } from '../../utils/graphql'
 import { createWriteStream } from 'pino-http-send'
+import { withPageRouterHighlight } from '../../highlight.config'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
@@ -82,7 +83,7 @@ async function generateXML(): Promise<string> {
 	  </urlset>`
 }
 
-export default async function handler(
+const handler = withPageRouterHighlight(async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
@@ -90,4 +91,5 @@ export default async function handler(
 	// Instructing the Vercel edge to cache the file
 	res.setHeader('Cache-control', 'stale-while-revalidate, s-maxage=3600')
 	res.status(200).end(await generateXML())
-}
+})
+export default handler

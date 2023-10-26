@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
-import { HIGHLIGHT_REQUEST_HEADER, H, NodeOptions } from '@highlight-run/node'
+import { H, HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
 import { HighlightGlobal } from './types'
 
 type NextContext = { params: Record<string, string> }
 type NextHandler<Body = unknown> = (
 	request: NextRequest,
 	context: NextContext,
-) => Promise<Response | NextResponse<Body>>
+) => Promise<Response>
 
 export function Highlight(options: NodeOptions) {
 	return (originalHandler: NextHandler) =>

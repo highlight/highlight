@@ -16,6 +16,7 @@ import { ProductType, Sampling, TracesMetricType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	Callout,
 	defaultPresets,
 	Form,
 	getNow,
@@ -26,6 +27,7 @@ import {
 	Stack,
 	Tag,
 	Text,
+	Tooltip,
 	useFormStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -44,11 +46,10 @@ import moment from 'moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export const Header: React.FC<{
+const Header: React.FC<{
 	product: ProductType
 	title: string
-	subtitle?: string
-}> = ({ title, subtitle, product }) => {
+}> = ({ title, product }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const breadcrumbs = [
@@ -89,10 +90,9 @@ export const Header: React.FC<{
 					</Stack>
 				))}
 			</Stack>
-			<Heading mt="16">{title}</Heading>
-			<Box my="24">
-				<Text>{subtitle}</Text>
-			</Box>
+			<Heading mt="16" mb="24">
+				{title}
+			</Heading>
 		</>
 	)
 }
@@ -155,7 +155,10 @@ export const ProjectProductFilters: React.FC<{
 		},
 	})
 
-	const canSaveIngestFilters = React.useCallback(async () => {
+	const canSaveIngestFilters =
+		workspaceSettingsData?.workspaceSettings?.enable_ingest_filters
+
+	const checkCanSaveIngestFilters = React.useCallback(async () => {
 		if (!workspaceSettingsData?.workspaceSettings?.enable_ingest_filters) {
 			analytics.track('Project Filters Upgrade', {
 				product,
@@ -284,7 +287,7 @@ export const ProjectProductFilters: React.FC<{
 
 	const label = upperFirst(product.slice(0, -1))
 	const onSave = async () => {
-		if (!(await canSaveIngestFilters())) {
+		if (!(await checkCanSaveIngestFilters())) {
 			return
 		}
 
@@ -303,6 +306,24 @@ export const ProjectProductFilters: React.FC<{
 			},
 		})
 	}
+	const edit = (
+		<Button
+			trackingId={`project-filters-${product}-edit`}
+			kind="secondary"
+			size="small"
+			emphasis="medium"
+			iconRight={<IconSolidPencil />}
+			disabled={!canSaveIngestFilters}
+			onClick={async () => {
+				if (!(await checkCanSaveIngestFilters())) {
+					return
+				}
+				navigate(product.toLowerCase())
+			}}
+		>
+			Edit
+		</Button>
+	)
 	return (
 		<Box width="full">
 			{view ? null : (
@@ -390,21 +411,29 @@ export const ProjectProductFilters: React.FC<{
 							)}
 						</Box>
 						{view ? (
-							<Button
-								trackingId={`project-filters-${product}-edit`}
-								kind="secondary"
-								size="small"
-								emphasis="medium"
-								iconRight={<IconSolidPencil />}
-								onClick={async () => {
-									if (!(await canSaveIngestFilters())) {
-										return
-									}
-									navigate(product.toLowerCase())
-								}}
-							>
-								Edit
-							</Button>
+							canSaveIngestFilters ? (
+								edit
+							) : (
+								<Tooltip trigger={edit}>
+									<Box
+										display="flex"
+										alignItems="center"
+										justifyContent="center"
+									>
+										<Tag
+											kind="secondary"
+											size="medium"
+											shape="basic"
+											emphasis="low"
+										>
+											<Text>
+												Reserved for users on an annual
+												plan
+											</Text>
+										</Tag>
+									</Box>
+								</Tooltip>
+							)
 						) : null}
 					</Box>
 					{view ? (
@@ -456,38 +485,70 @@ export const ProjectProductFilters: React.FC<{
 				<Form store={formStore}>
 					<Box display="flex" width="full">
 						{view ? null : (
-							<Box display="flex" width="full" gap="8">
-								<Box
-									width="full"
-									display="flex"
-									flexDirection="column"
-									gap="4"
-								>
-									<Form.Label
-										label="Sampling %"
-										name={formStore.names.samplingPercent}
-									/>
-									<Form.Input
-										name={formStore.names.samplingPercent}
-										type="number"
-									/>
+							<Stack display="flex" width="full" gap="8">
+								<Box display="flex" width="full" gap="8">
+									<Box
+										width="full"
+										display="flex"
+										flexDirection="column"
+										gap="4"
+									>
+										<Form.Label
+											label="Sampling %"
+											name={
+												formStore.names.samplingPercent
+											}
+										/>
+										<Form.Input
+											name={
+												formStore.names.samplingPercent
+											}
+											type="number"
+										/>
+									</Box>
+									<Box
+										width="full"
+										display="flex"
+										flexDirection="column"
+										gap="4"
+									>
+										<Form.Label
+											label="Max ingest per minute"
+											name={
+												formStore.names.minuteRateLimit
+											}
+										/>
+										<Form.Input
+											name={
+												formStore.names.minuteRateLimit
+											}
+											type="number"
+										/>
+									</Box>
 								</Box>
-								<Box
-									width="full"
-									display="flex"
-									flexDirection="column"
-									gap="4"
-								>
-									<Form.Label
-										label="Max ingest per minute"
-										name={formStore.names.minuteRateLimit}
-									/>
-									<Form.Input
-										name={formStore.names.minuteRateLimit}
-										type="number"
-									/>
-								</Box>
-							</Box>
+								<Callout>
+									<Box
+										display="flex"
+										flexDirection="column"
+										gap="12"
+										py="6"
+									>
+										<Text color="moderate">
+											1. Filters will drop data matching
+											the condition.
+										</Text>
+										<Text color="moderate">
+											2. Sampling % will determine the
+											percentage of data to ingest.
+										</Text>
+										<Text color="moderate">
+											3. Minute rate limit will drop a
+											spike of data exceeding the
+											per-minute value.
+										</Text>
+									</Box>
+								</Callout>
+							</Stack>
 						)}
 					</Box>
 				</Form>
@@ -534,17 +595,24 @@ const IngestTimeline: React.FC<{
 						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
 				unit: '%',
 			},
-			{
-				level: 'Dropped',
-				count:
-					(100 *
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)) /
-					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
-				unit: '%',
-			},
 		],
 	}))
+
+	if (!loading && !data?.traces_metrics.buckets?.length) {
+		return (
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="center"
+				width="full"
+				height="full"
+			>
+				<Tag shape="basic" size="large" kind="secondary" emphasis="low">
+					No {product?.toLocaleLowerCase()} ingested.
+				</Tag>
+			</Box>
+		)
+	}
 
 	return (
 		<Box width="full" height="full">
@@ -555,6 +623,7 @@ const IngestTimeline: React.FC<{
 				histogramBuckets={histogramBuckets}
 				bucketCount={data?.traces_metrics.bucket_count}
 				loading={loading}
+				loadingState="spinner"
 				legend
 			/>
 		</Box>

@@ -326,7 +326,6 @@ const AuthenticationRoleRouter = () => {
 		const fetch = async () => {
 			if (user) {
 				await fetchAdmin()
-				setLoadingState(AppLoadingState.LOADED)
 			}
 		}
 		fetch()
