@@ -67,6 +67,16 @@ query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQu
 }
 `;
 
+interface Session {
+  created_at: string;
+  secure_id: string;
+  active_length: number;
+}
+interface Error {
+  message: string;
+  path: string[];
+}
+
 export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourceOptions> {
   url?: string;
   projectID?: number;
@@ -79,18 +89,22 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
 
   async query(options: DataQueryRequest<HighlightQuery>): Promise<DataQueryResponse> {
     const { range } = options;
-    const from = range!.from.valueOf();
-    const to = range!.to.valueOf();
+    const from = range!.from;
+    const to = range!.to;
 
-    // TODO(vkorolik) respect range
-    const response = await getBackendSrv().post<{}>(
+    const response = await getBackendSrv().post<{
+      data: {
+        sessions_clickhouse: { sessions: Session[] };
+      };
+      errors?: Error[];
+    }>(
       `${this.url}/highlight/`,
       JSON.stringify({
         operationName: 'GetSessionsClickhouse',
         variables: {
           query: {
             isAnd: true,
-            rules: [],
+            rules: [['custom_created_at', 'between_date', `${from.toISOString()}_${to.toISOString()}`]],
           },
           count: 10,
           page: 1,
@@ -99,18 +113,29 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
         },
         query: GET_SESSIONS_CLICKHOUSE,
       }),
-      {}
+      {
+        credentials: 'include',
+      }
     );
-    // TODO(vkorolik) use response
-    console.log('vadim', { response, url: this.url });
+    if (response.errors?.length) {
+      throw response.errors.map((e) => JSON.stringify(e)).join(', ');
+    }
 
     // Return a constant for each query.
     const data = options.targets.map((target) => {
       return new MutableDataFrame({
         refId: target.refId,
         fields: [
-          { name: 'Time', values: [from, to], type: FieldType.time },
-          { name: 'Value', values: [target.constant, target.constant], type: FieldType.number },
+          {
+            name: 'Time',
+            values: response.data.sessions_clickhouse.sessions.map((s) => Date.parse(s.created_at)),
+            type: FieldType.time,
+          },
+          {
+            name: 'Value',
+            values: response.data.sessions_clickhouse.sessions.map((s) => s.active_length),
+            type: FieldType.number,
+          },
         ],
       });
     });
@@ -119,8 +144,35 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
   }
 
   async testDatasource() {
-    // TODO(vkorolik)
-    // Implement a health check for your data source.
+    // TODO(vkorolik) Implement a health check for your data source.
+    try {
+      await getBackendSrv().post<{}>(
+        `${this.url}/highlight/`,
+        JSON.stringify({
+          operationName: 'GetSessionsClickhouse',
+          variables: {
+            query: {
+              isAnd: true,
+              rules: [],
+            },
+            count: 10,
+            page: 1,
+            project_id: this.projectID,
+            sort_desc: true,
+          },
+          query: GET_SESSIONS_CLICKHOUSE,
+        }),
+        {
+          credentials: 'include',
+        }
+      );
+    } catch (e: unknown) {
+      return {
+        status: 'error',
+        message: (e as { data: { message: string } }).data.message,
+      };
+    }
+
     return {
       status: 'success',
       message: 'Success',

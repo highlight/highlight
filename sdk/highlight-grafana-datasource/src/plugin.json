@@ -31,7 +31,7 @@
         "url": "https://pri.highlight.io/oauth/token",
         "params": {
           "grant_type": "client_credentials",
-          "client_id": "{{ .JsonData.clientId }}",
+          "client_id": "{{ .JsonData.clientID }}",
           "client_secret": "{{ .SecureJsonData.clientSecret }}"
         }
       }
