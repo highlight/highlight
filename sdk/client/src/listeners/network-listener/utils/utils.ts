@@ -62,7 +62,7 @@ const sanitizeRequestResponsePair = (
 	}
 
 	// step 2: redact any specified headers
-	const { request, response, ...rest } = pair
+	const { request, response, ...rest } = sanitizedPair
 
 	return {
 		request: sanitizeResource(request, headersToRedact, headersToRecord),
