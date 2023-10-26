@@ -1,19 +1,17 @@
 import {
+	extractRequestMetadata,
 	H as CloudflareH,
 	HighlightEnv as CloudflareHighlightEnv,
-	extractRequestMetadata,
 } from '@highlight-run/cloudflare'
 import type { NodeOptions } from '@highlight-run/node'
-import type { ExecutionContext } from '@cloudflare/workers-types'
-import { HighlightInterface, Metric, RequestMetadata } from './types'
+import {
+	ExtendedExecutionContext,
+	HighlightInterface,
+	Metric,
+	RequestMetadata,
+} from './types'
 
 export type HighlightEnv = NodeOptions
-
-type ExtendedExecutionContext = ExecutionContext & {
-	__waitUntilTimer?: ReturnType<typeof setInterval>
-	__waitUntilPromises?: Promise<void>[]
-	waitUntilFinished?: () => Promise<void>
-}
 
 let globalRequestMetadata: RequestMetadata = {
 	secureSessionId: '',
