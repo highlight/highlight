@@ -396,7 +396,7 @@ type ProjectFilterSettings struct {
 	Project                           *Project
 	ProjectID                         int
 	FilterSessionsWithoutError        bool    `gorm:"default:false"`
-	AutoResolveStaleErrorsDayInterval int     `gorm:"default:7"`
+	AutoResolveStaleErrorsDayInterval int     `gorm:"default:0"`
 	SessionSamplingRate               float64 `gorm:"default:1"`
 	ErrorSamplingRate                 float64 `gorm:"default:1"`
 	LogSamplingRate                   float64 `gorm:"default:1"`
