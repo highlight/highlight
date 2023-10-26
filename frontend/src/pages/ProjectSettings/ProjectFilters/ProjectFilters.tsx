@@ -427,7 +427,8 @@ export const ProjectProductFilters: React.FC<{
 											emphasis="low"
 										>
 											<Text>
-												For customers on an annual plan
+												Reserved for users on an annual
+												plan
 											</Text>
 										</Tag>
 									</Box>
