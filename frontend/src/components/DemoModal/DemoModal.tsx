@@ -4,7 +4,6 @@ import {
 	Box,
 	Form,
 	IconSolidExclamation,
-	Tag,
 	Text,
 	useFormStore,
 } from '@highlight-run/ui'
