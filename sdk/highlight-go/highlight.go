@@ -13,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 type config struct {
@@ -242,4 +244,22 @@ func shutdown() {
 		otlp.shutdown()
 	}
 	state = stopped
+}
+
+func SetupGormTracingHooks(ctx context.Context, db *gorm.DB, attrs []attribute.KeyValue) error {
+	attrs = append(attrs, conf.resourceAttributes...)
+
+	err := db.Use(
+		tracing.NewPlugin(
+			tracing.WithoutMetrics(),
+			tracing.WithTracerProvider(otlp.tracerProvider),
+			tracing.WithAttributes(attrs...),
+		),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/embeddings"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -277,10 +279,16 @@ func main() {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
 	}
 
-	util.SetupGormTracingHooks(ctx, db)
+	attrs := []attribute.KeyValue{
+		attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID()),
+		semconv.ServiceNameKey.String("gorm"),
+	}
+	if err := highlight.SetupGormTracingHooks(ctx, db, attrs); err != nil {
+		log.WithContext(ctx).Fatalf("Error setting up GORM tracing hooks: %v", err)
+	}
 
 	if util.IsDevEnv() {
-		_, err := model.MigrateDB(ctx, db)
+		// _, err := model.MigrateDB(ctx, db)
 
 		if err != nil {
 			log.WithContext(ctx).Fatalf("Error migrating DB: %v", err)

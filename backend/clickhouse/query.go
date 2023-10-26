@@ -133,6 +133,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	span.SetAttribute("Table", config.tableName)
 	span.SetAttribute("Query", sql)
 	span.SetAttribute("Params", params)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 

@@ -27,7 +27,7 @@ const backgroundColorPalette = {
 	all: '#744ed4',
 	clickhouse: '#265cff',
 	frontend: '#b50006',
-	postgres: '#f25100',
+	gorm: '#f25100',
 }
 
 const minWidthToDisplayText = 20
@@ -57,7 +57,6 @@ export const TraceFlameGraphNode = memo<Props>(
 			: ticksHeight + outsidePadding
 		// const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
-		debugger
 		const backgroundColor =
 			(backgroundColorPalette as any)[
 				span.traceAttributes['ServiceName']

@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
 )
 
 const KafkaBatchWorkerOp = "KafkaBatchWorker"
@@ -143,45 +142,5 @@ func ResourceName(name string) SpanOption {
 func WithHighlightTracingDisabled(disabled bool) SpanOption {
 	return func(cfg *SpanConfig) {
 		cfg.HighlightTracingDisabled = disabled
-	}
-}
-
-func SetupGormTracingHooks(ctx context.Context, DB *gorm.DB) {
-	err := DB.Callback().Create().Before("gorm:create").Register("tracer:before_create", func(db *gorm.DB) {
-		span, _ := StartSpanFromContext(db.Statement.Context, "postgres.create")
-		defer span.Finish()
-
-		// TODO: Figure out how to set the top-level ServiceName attribute + assign
-		// different colors to different services.
-		span.SetAttribute("ServiceName", "postgres")
-		span.SetAttribute("db.table", db.Statement.Table)
-		span.SetAttribute("db.sql", db.Statement.Statement.SQL.String())
-		span.SetAttribute("db.rows", db.Statement.RowsAffected)
-	})
-
-	if err != nil {
-		log.WithContext(ctx).Warnf("Error registering gorm:create callback: %+v", err)
-	}
-
-	err = DB.Callback().Query().Before("gorm:query").Register("tracer:before_read", func(db *gorm.DB) {
-		_, spanCtx := StartSpanFromContext(db.Statement.Context, "postgres.read")
-		db.Statement.Context = spanCtx
-	})
-	if err != nil {
-		log.WithContext(ctx).Warnf("Error registering gorm:query before callback: %+v", err)
-	}
-
-	err = DB.Callback().Query().After("gorm:query").Register("tracer:after_read", func(db *gorm.DB) {
-		span := SpanFromContext(db.Statement.Context)
-
-		span.SetAttribute("ServiceName", "postgres")
-		span.SetAttribute("db.table", db.Statement.Table)
-		span.SetAttribute("db.sql", db.Statement.Statement.SQL.String())
-		span.SetAttribute("db.rows", db.Statement.RowsAffected)
-
-		span.Finish()
-	})
-	if err != nil {
-		log.WithContext(ctx).Warnf("Error registering gorm:query after callback: %+v", err)
 	}
 }
