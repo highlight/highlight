@@ -1,5 +1,5 @@
 ---
-title: Next.js App Router
+title: App Router
 slug: environment
 heading: Next.js App Router
 createdAt: 2023-10-03T00:00:00.000Z

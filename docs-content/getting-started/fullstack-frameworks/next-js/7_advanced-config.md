@@ -1,5 +1,5 @@
 ---
-title: Next.js Advanced Config
+title: Advanced Config
 slug: advanced-config
 heading: Next.js Advanced Config
 createdAt: 2023-10-03T00:00:00.000Z
@@ -74,9 +74,9 @@ Our API wrappers automatically send logs to Highlight in all runtime environment
 
 Vercel Log Drain is a reliable way to capture those logs.
 
-## Private source maps and Request proxy
+## Next.js Plugin
 
-Proxy your front end Highlight calls by adding `withHighlightConfig` to your next config. Frontend session recording and error capture data will be piped through your domain on `/highlight-events` to sneak Highlight network traffic past ad-blockers.
+Proxy your front-end Highlight calls by adding `withHighlightConfig` to your `next.config`. Frontend session recording and error capture data will be piped through your domain on `/highlight-events` to sneak Highlight network traffic past ad-blockers.
 
 The following example demonstrates both private source maps and the request proxy. `withHighlightConfig` does not require a second argument if you are only using the request proxy.
 

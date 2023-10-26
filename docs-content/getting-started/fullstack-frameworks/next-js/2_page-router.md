@@ -1,5 +1,5 @@
 ---
-title: Next.js Page Router
+title: Page Router
 slug: environment
 heading: Next.js Page Router
 createdAt: 2023-10-03T00:00:00.000Z

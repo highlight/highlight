@@ -1,7 +1,7 @@
 ---
-title: Next.js Api (Page Router)
+title: Page Router Api
 slug: page-router
-heading: Next.js Api (Page Router)
+heading: Next.js Page Router Api
 createdAt: 2023-10-03T00:00:00.000Z
 updatedAt: 2023-10-03T00:00:00.000Z
 ---
