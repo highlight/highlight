@@ -12800,7 +12800,7 @@ __metadata:
     eslint: 8.39.0
     highlight.run: "workspace:*"
     jest: ^29.2.0
-    next: ^13.5.4
+    next: ^13.5.0
     ts-jest: ^29.0.3
     tsup: ^6.7.0
     typescript: ^5.0.4
@@ -37043,7 +37043,7 @@ __metadata:
     lodash.debounce: ^4.0.8
     markdown-to-jsx: ^7.1.8
     match-sorter: ^6.3.1
-    next: ^13.5.4
+    next: ^13.5.0
     next-axiom: ^0.16.0
     next-mdx-remote: ^4.3.0
     nextjs-cors: latest
@@ -44483,7 +44483,7 @@ __metadata:
     eslint: 8.50.0
     eslint-config-next: 13.5.4
     ky: ^1.0.1
-    next: 13.5.4
+    next: 13.5.0
     next-build-id: ^3.0.0
     react: 18.2.0
     react-dom: 18.2.0
