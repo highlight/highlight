@@ -7723,6 +7723,19 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 		return nil, err
 	}
 
+	traceStartTime := trace[0].Timestamp
+	for _, span := range trace {
+		if span.Timestamp.Before(traceStartTime) {
+			traceStartTime = span.Timestamp
+		}
+	}
+
+	// Assigning this on the server since we can't parse timestamp to a date with
+	// nanosecond precision in JavaScript.
+	for _, span := range trace {
+		span.StartTime = int(span.Timestamp.UnixNano() - traceStartTime.UnixNano())
+	}
+
 	return &modelInputs.TracePayload{
 		Trace:  trace,
 		Errors: errors,

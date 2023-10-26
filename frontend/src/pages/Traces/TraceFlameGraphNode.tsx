@@ -1,25 +1,20 @@
 import { memo } from 'react'
 
-import { Trace, TraceError } from '@/graph/generated/schemas'
 import {
 	lineHeight,
 	outsidePadding,
 	ticksHeight,
 } from '@/pages/Traces/TraceFlameGraph'
+import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
 type Props = {
 	depth: number
-	errors: TraceError[]
 	span: FlameGraphSpan
-	startTime: number
-	totalDuration: number
 	height: number
 	width: number
-	selectedSpan: FlameGraphSpan | Trace | undefined
 	zoom: number
-	setHoveredSpan: (span?: FlameGraphSpan) => void
-	setSelectedSpan: (span?: FlameGraphSpan) => void
+	selectedSpanID?: string
 	setTooltipCoordinates: (e: React.MouseEvent) => void
 }
 
@@ -29,22 +24,24 @@ const fontSize = 10
 export const TraceFlameGraphNode = memo<Props>(
 	({
 		depth,
-		errors,
 		span,
-		startTime,
-		totalDuration,
 		height,
+		selectedSpanID,
 		width,
-		selectedSpan,
 		zoom,
-		setHoveredSpan,
-		setSelectedSpan,
 		setTooltipCoordinates,
 	}) => {
 		width = width - outsidePadding * 2
+		const {
+			errors,
+			totalDuration,
+			selectedSpan,
+			setHoveredSpan,
+			setSelectedSpan,
+		} = useTrace()
 		const spanWidth = (span.duration / totalDuration) * width * zoom
 		const offsetX =
-			(span.start / totalDuration) * width * zoom + outsidePadding
+			(span.startTime / totalDuration) * width * zoom + outsidePadding
 		const offsetY = depth
 			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
@@ -113,18 +110,13 @@ export const TraceFlameGraphNode = memo<Props>(
 
 				{span.children?.map((childSpan: FlameGraphSpan) => (
 					<TraceFlameGraphNode
-						key={childSpan.spanID}
+						key={`${childSpan.parentSpanID}-${childSpan.spanID}`}
 						depth={depth + 1}
-						errors={errors}
 						span={childSpan}
-						startTime={startTime}
-						totalDuration={totalDuration}
 						height={height}
+						selectedSpanID={selectedSpanID}
 						width={width}
-						selectedSpan={selectedSpan}
 						zoom={zoom}
-						setHoveredSpan={setHoveredSpan}
-						setSelectedSpan={setSelectedSpan}
 						setTooltipCoordinates={setTooltipCoordinates}
 					/>
 				))}
@@ -132,9 +124,6 @@ export const TraceFlameGraphNode = memo<Props>(
 		)
 	},
 	(prevProps, nextProps) => {
-		return (
-			prevProps.zoom === nextProps.zoom &&
-			prevProps.selectedSpan?.spanID === nextProps.selectedSpan?.spanID
-		)
+		return prevProps.zoom === nextProps.zoom
 	},
 )

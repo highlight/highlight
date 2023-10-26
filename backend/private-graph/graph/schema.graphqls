@@ -760,6 +760,7 @@ type Trace {
 	spanName: String!
 	spanKind: String!
 	duration: Int!
+	startTime: Int!
 	serviceName: String!
 	serviceVersion: String!
 	traceAttributes: Map!
