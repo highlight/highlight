@@ -101,13 +101,16 @@ const (
 	MaxAssetSize = 3 * 1e9
 )
 
-type fetcher interface {
-	fetchStylesheetData(string) ([]byte, error)
-}
+func (s *Snapshot) fetchStylesheetData(href string) ([]byte, error) {
+	u, err := url.Parse(href)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid href for stylesheet")
+	}
 
-type networkFetcher struct{}
+	if !u.IsAbs() && s.hostUrl != nil {
+		href = *s.hostUrl + href
+	}
 
-func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	resp, err := http.Get(href)
 	if err != nil {
 		return nil, errors.Wrap(err, "error fetching styles")
@@ -128,22 +131,24 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	return body, nil
 }
 
+func parseHostUrl(urlString string) *string {
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return nil
+	}
+
+	hostUrl := u.Scheme + "://" + u.Host
+	return &hostUrl
+}
+
 func replaceRelativePaths(body []byte, href string) []byte {
-	u, err := url.Parse(href)
+	base := parseHostUrl(href)
 
-	if err == nil {
-		base := u.Scheme + "://" + u.Host
-
-		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, base)))
+	if base != nil {
+		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, *base)))
 	} else {
 		return body
 	}
-}
-
-var fetch fetcher
-
-func init() {
-	fetch = networkFetcher{}
 }
 
 // ReplayEvent represents a single event that represents a change on the DOM.
@@ -197,14 +202,17 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 }
 
 type Snapshot struct {
-	data map[string]interface{}
+	data    map[string]interface{}
+	hostUrl *string
 }
 
-func NewSnapshot(inputData json.RawMessage) (*Snapshot, error) {
+func NewSnapshot(inputData json.RawMessage, hostUrl *string) (*Snapshot, error) {
 	s := &Snapshot{}
 	if err := s.decode(inputData); err != nil {
 		return nil, err
 	}
+
+	s.hostUrl = hostUrl
 	return s, nil
 }
 
@@ -368,7 +376,7 @@ func (s *Snapshot) InjectStylesheets() error {
 		if !ok || !strings.Contains(href, "css") {
 			continue
 		}
-		data, err := fetch.fetchStylesheetData(href)
+		data, err := s.fetchStylesheetData(href)
 		if err != nil {
 			continue
 		}
@@ -794,4 +802,28 @@ func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
 		}
 	}
 	return parsedEvents, nil
+}
+
+func GetHostUrlFromEvents(events []*ReplayEvent) *string {
+	if len(events) == 0 {
+		return nil
+	}
+
+	if events[0].Type != Meta {
+		return nil
+	}
+
+	var metaData map[string]interface{}
+
+	err := json.Unmarshal(events[0].Data, &metaData)
+	if err != nil {
+		return nil
+	}
+
+	pathUrl, ok := metaData["href"].(string)
+	if !ok {
+		return nil
+	}
+
+	return parseHostUrl(pathUrl)
 }

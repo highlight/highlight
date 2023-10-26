@@ -2519,9 +2519,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			var lastUserInteractionTimestamp time.Time
 			hasFullSnapshot := false
+			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
+
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
-					snapshot, err := parse.NewSnapshot(event.Data)
+					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
 						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling snapshot"))
 						continue
