@@ -1,4 +1,3 @@
-import { InfoCircleFilled } from '@ant-design/icons'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import { Box, Form, Text, useFormStore } from '@highlight-run/ui'
