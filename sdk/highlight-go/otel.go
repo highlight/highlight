@@ -139,10 +139,6 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 	return StartTraceWithTimestamp(ctx, name, time.Now(), tags...)
 }
 
-func SpanFromContext(ctx context.Context) trace.Span {
-	return trace.SpanFromContext(ctx)
-}
-
 func StartTraceWithoutResourceAttributes(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	resourceAttributes := []attribute.KeyValue{
 		semconv.ServiceNameKey.String(""),
