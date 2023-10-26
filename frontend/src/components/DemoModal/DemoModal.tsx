@@ -24,6 +24,9 @@ export const DemoModal = () => {
 		if (!(await formStore.validate())) {
 			return
 		}
+		if (email.indexOf('@gmail.') !== -1) {
+			return
+		}
 		analytics.identify(email, { demo: true })
 		analytics.track('demo-email-submit', { email })
 		setVisible(false)
@@ -67,7 +70,9 @@ export const DemoModal = () => {
 							alignItems="center"
 							justifyContent="space-between"
 						>
-							<Text color="n11">Check out the live demo!</Text>
+							<Text color="n11">
+								Enter your email to view the demo
+							</Text>
 						</Box>
 						<Divider className="m-0" />
 						<Box
@@ -83,18 +88,8 @@ export const DemoModal = () => {
 								autoComplete="email"
 								required
 								rounded
-								placeholder="Email"
+								placeholder="Work Email"
 							/>
-							<Box display="flex" alignItems="center" gap="6">
-								<InfoCircleFilled
-									style={{
-										color: '#6F6E77CC',
-									}}
-								/>
-								<Text color="n11">
-									We may reach out about your web-app.
-								</Text>
-							</Box>
 						</Box>
 						<Box
 							my="0"
