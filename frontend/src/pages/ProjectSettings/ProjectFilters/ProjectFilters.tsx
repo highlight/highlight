@@ -27,6 +27,7 @@ import {
 	Stack,
 	Tag,
 	Text,
+	Tooltip,
 	useFormStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -154,7 +155,10 @@ export const ProjectProductFilters: React.FC<{
 		},
 	})
 
-	const canSaveIngestFilters = React.useCallback(async () => {
+	const canSaveIngestFilters =
+		workspaceSettingsData?.workspaceSettings?.enable_ingest_filters
+
+	const checkCanSaveIngestFilters = React.useCallback(async () => {
 		if (!workspaceSettingsData?.workspaceSettings?.enable_ingest_filters) {
 			analytics.track('Project Filters Upgrade', {
 				product,
@@ -283,7 +287,7 @@ export const ProjectProductFilters: React.FC<{
 
 	const label = upperFirst(product.slice(0, -1))
 	const onSave = async () => {
-		if (!(await canSaveIngestFilters())) {
+		if (!(await checkCanSaveIngestFilters())) {
 			return
 		}
 
@@ -302,6 +306,24 @@ export const ProjectProductFilters: React.FC<{
 			},
 		})
 	}
+	const edit = (
+		<Button
+			trackingId={`project-filters-${product}-edit`}
+			kind="secondary"
+			size="small"
+			emphasis="medium"
+			iconRight={<IconSolidPencil />}
+			disabled={!canSaveIngestFilters}
+			onClick={async () => {
+				if (!(await checkCanSaveIngestFilters())) {
+					return
+				}
+				navigate(product.toLowerCase())
+			}}
+		>
+			Edit
+		</Button>
+	)
 	return (
 		<Box width="full">
 			{view ? null : (
@@ -389,21 +411,28 @@ export const ProjectProductFilters: React.FC<{
 							)}
 						</Box>
 						{view ? (
-							<Button
-								trackingId={`project-filters-${product}-edit`}
-								kind="secondary"
-								size="small"
-								emphasis="medium"
-								iconRight={<IconSolidPencil />}
-								onClick={async () => {
-									if (!(await canSaveIngestFilters())) {
-										return
-									}
-									navigate(product.toLowerCase())
-								}}
-							>
-								Edit
-							</Button>
+							canSaveIngestFilters ? (
+								edit
+							) : (
+								<Tooltip trigger={edit}>
+									<Box
+										display="flex"
+										alignItems="center"
+										justifyContent="center"
+									>
+										<Tag
+											kind="secondary"
+											size="medium"
+											shape="basic"
+											emphasis="low"
+										>
+											<Text>
+												For customers on an annual plan
+											</Text>
+										</Tag>
+									</Box>
+								</Tooltip>
+							)
 						) : null}
 					</Box>
 					{view ? (
