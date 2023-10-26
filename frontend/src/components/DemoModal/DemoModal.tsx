@@ -1,6 +1,13 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
-import { Box, Form, Text, useFormStore } from '@highlight-run/ui'
+import {
+	Box,
+	Form,
+	IconSolidExclamation,
+	Tag,
+	Text,
+	useFormStore,
+} from '@highlight-run/ui'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { Divider } from 'antd'
@@ -9,6 +16,7 @@ import { Helmet } from 'react-helmet'
 
 export const DemoModal = () => {
 	const { isAuthLoading, isLoggedIn } = useAuthContext()
+	const [error, setError] = React.useState<string>()
 	const [visible, setVisible] = useLocalStorage<boolean>(
 		'highlight-demo-email-modal-visible',
 		true,
@@ -24,6 +32,7 @@ export const DemoModal = () => {
 			return
 		}
 		if (email.indexOf('@gmail.') !== -1) {
+			setError('Please use your work email')
 			return
 		}
 		analytics.identify(email, { demo: true })
@@ -101,6 +110,31 @@ export const DemoModal = () => {
 							justifyContent="flex-end"
 							mt="0"
 						>
+							{error ? (
+								<Box
+									py="2"
+									px="8"
+									gap="4"
+									borderRadius="8"
+									border="dividerWeak"
+									style={{
+										display: 'flex',
+										color: '#6F6E77',
+										fontWeight: '500',
+										flexDirection: 'row',
+										alignItems: 'center',
+										backgroundColor: '#F4F2F4',
+										fontSize: '13px',
+									}}
+								>
+									<IconSolidExclamation
+										size={14}
+										opacity="0.8"
+										color="#6F6E77"
+									/>
+									{error}
+								</Box>
+							) : null}
 							<Button
 								type="submit"
 								disabled={!email?.length}
