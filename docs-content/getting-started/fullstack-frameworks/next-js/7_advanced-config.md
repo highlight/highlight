@@ -128,30 +128,3 @@ We currently default `inlineImages` to `true` on `localhost`. Explicitly set `in
 ## Configure `tracingOrigins` and `networkRecording`
 
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details on how to associate your back-end errors to client sessions.
-
-## Source map validation
-
-```hint
-Source maps work differently in development mode than in production. Run `npm run build && npm run start` to test compiled source maps in Highlight.
-```
-
-We recommend shipping source maps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
-
-Shipping source maps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`. Alternatively, you can upload source maps directly to Highlight using our `withHighlightConfig` function.
-
-
-```javascript
-// next.config.js
-const { withHighlightConfig } = require('@highlight-run/next/server')
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-	productionBrowserSourceMaps: false
-}
-
-module.exports = withHighlightConfig(nextConfig)
-```
-
-You must export your `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` to your build process. If you're building and deploying with Vercel, try our [Highlight Vercel Integration](https://vercel.com/integrations/highlight) to inject `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` automatically.
-
-<AutoplayVideo description="Sourcemap upload api key" src="https://user-images.githubusercontent.com/878947/235971066-def65bcb-1580-4e8a-9d69-3e5556d51b27.webm" />
