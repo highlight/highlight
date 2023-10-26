@@ -74,13 +74,13 @@ Our API wrappers automatically send logs to Highlight in all runtime environment
 
 Vercel Log Drain is a reliable way to capture those logs.
 
-## Private source maps and Request proxying
+## Private source maps and Request proxy
 
 Proxy your front end Highlight calls by adding `withHighlightConfig` to your next config. Frontend session recording and error capture data will be piped through your domain on `/highlight-events` to sneak Highlight network traffic past ad-blockers.
 
-1. Wrap the config with `withHighlightConfig`.
+The following example demonstrates both private source maps and the request proxy. `withHighlightConfig` does not require a second argument if you are only using the request proxy.
 
-If you use a `next.config.js` file:
+### Request proxy only
 
 ```javascript
 // next.config.js
@@ -88,29 +88,35 @@ const { withHighlightConfig } = require('@highlight-run/next/config')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	productionBrowserSourceMaps: true,
+	productionBrowserSourceMaps: true, // optionally ship source maps to production
 }
 
 module.exports = withHighlightConfig(nextConfig)
 ```
 
-If you use a `next.config.mjs` file:
+### Private source maps + Request proxy
+
+1. Get your Highlight API key from your [project settings](https://app.highlight.io/settings/errors#sourcemaps). You can also enable the [Highlight + Vercel integration](https://vercel.com/integrations/highlight) to inject `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` directly into your Vercel environment.
+
+2. Verify that `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY=<apiKey>` is set in your environment variables--try `.env.local` for testing purposes--or pass `apiKey` in as an optional argument to `withHighlightConfig`.
+
+3. Ensure that `productionBrowserSourceMaps` is either `false` or omitted.
+
+4. Wrap your `nextConfig` with `withHighlightConfig`. `apiKey` is unnecessary if you have `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` in your environment variables.
 
 ```javascript
-// next.config.mjs
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { withHighlightConfig } from '@highlight-run/next/server'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+// next.config.js
+const { withHighlightConfig } = require('@highlight-run/next/config')
 
 /** @type {import('next').NextConfig} */
-const nextConfig = withHighlightConfig({
-	productionBrowserSourceMaps: true,
-})
+const nextConfig = {
+	productionBrowserSourceMaps: false,
+}
 
-export default nextConfig
+module.exports = withHighlightConfig(nextConfig, {
+	apiKey: '<API KEY>',
+	uploadSourceMaps: true,
+})
 ```
 
 ## Configure `inlineImages`
