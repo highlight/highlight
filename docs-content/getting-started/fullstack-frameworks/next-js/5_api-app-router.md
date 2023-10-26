@@ -15,8 +15,10 @@ npm install @highlight-run/next
 
 ## API Route Instrumentation
 
+Node.js 
+
 ```hint
-This section applies to Next.js App Router routes only. Each App Router route must be wrapped individually.
+ Each App Router route must be wrapped individually.
 ```
 
 ######
@@ -59,8 +61,8 @@ Copy/paste the above code snippet into `/app/api/app-router-test.ts` and hit the
 curl http://localhost:3000/api/app-router-test
 ```
 
-## Next Steps
+## Related Steps
 
-- [Edge Runtime](./6_edge-runtime.md)
-- [SSR Error Handlers](./7_ssr-error-handlers.md)
-- [Configuration](./8_configuration.md)
+- [App Router client instrumentation](./3_app-router.md)
+- [Edge runtime API instrumentation](./6_edge-runtime.md)
+- [Advanced Configuration](./7_advanced-config.md)

@@ -63,9 +63,8 @@ Copy/paste the above code snippet into `/pages/api/page-router-test.ts` and hit 
 curl http://localhost:3000/api/page-router-test
 ```
 
-## Next Steps
+## Related Steps
 
-- [Api Instrumentation (App Router)](./5_api-app-router.md)
-- [Edge Runtime](./6_edge-runtime.md)
-- [SSR Error Handlers](./7_ssr-error-handlers.md)
-- [Configuration](./8_configuration.md)
+- [Page Router client instrumentation](./2_page-router.md)
+- [Edge runtime API instrumentation](./6_edge-runtime.md)
+- [Advanced Configuration](./7_advanced-config.md)

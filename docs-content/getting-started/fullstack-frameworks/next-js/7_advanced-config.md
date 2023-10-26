@@ -1,10 +1,70 @@
 ---
-title: Next.js Configuration
-slug: configuration
-heading: Next.js Configuration
+title: Next.js Advanced Config
+slug: advanced-config
+heading: Next.js Advanced Config
 createdAt: 2023-10-03T00:00:00.000Z
 updatedAt: 2023-10-03T00:00:00.000Z
 ---
+
+## How Highlight captures Next.js errors
+
+|              | Page Router           | App Router           |
+|--------------|-----------------------|----------------------|
+| API Errors   | `PageRouterHighlight` | `AppRouterHighlight` |
+| SSR Errors   | `pages/_error.tsx`    | `app/error.tsx`      |
+| Client       | `<HighlightInit />`   | `<HighlightInit />`  |
+| Edge runtime | `EdgeHighlight`       | `EdgeHighlight`      |
+
+Our Next.js SDK gives you access to frontend session replays and server-side monitoring,
+all-in-one. 
+
+1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
+2. On the backend, the `PageRouterHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from Page Router API endpoints.
+3. On the backend, the `AppRouterHighlight` wrapper exported from `@highlight-run/next/app-router` captures errors and logs from App Router API endpoints.
+3. The `EdgeHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from both Page and App Router endpoints using Vercel's Edge runtime.
+4. Use `pages/_error.tsx` and `app/error.tsx` to forward Page Router and App Router SSR errors from the client to Highlight.
+5. The `withHighlightConfig` configuration wrapper automatically proxies Highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
+
+## How Highlight captures Next.js logs
+
+`<HighlightInit />` captures front-end logs.
+
+`PageRouterHighlight` and `AppRouterHighlight` capture server-side logs in traditional server runtimes. These wrappers typically fail in serverless runtimes (including Vercel), because we cannot guarantee that the serverless process will stay alive long enough to send all log data to Highlight.
+
+Configure logging for your serverless cloud provider using one of our [cloud provider logging guides](https://www.highlight.io/docs/getting-started/backend-logging/hosting/overview), including [Vercel Log Drain for Highlight](https://vercel.com/integrations/highlight).
+
+## Environment Variables
+
+> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing and replace our imports (`import CONSTANTS from 'src/app/constants'`) with your own!
+
+1. Install Zod: `npm install zod`
+2. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`
+
+```bash
+# .env
+NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='1jdkoe52'
+```
+
+3. Feed your environment variables into the application with a constants file. We're using `zod` for this example, because it creates a validated, typed `CONSTANTS` object that plays nicely with TypeScript.
+
+```javascript
+// src/app/constants.ts
+import { z } from 'zod'
+
+// Must assign NEXT_PUBLIC_* env vars to a variable to force Next to inline them
+const publicEnv = {
+	NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID:
+		process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+}
+
+const CONSTANTS = z
+	.object({
+		NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: z.string(),
+	})
+	.parse(publicEnv)
+
+export default CONSTANTS
+```
 
 ## Vercel Log Drain
 
@@ -14,7 +74,7 @@ Our API wrappers automatically send logs to Highlight in all runtime environment
 
 Vercel Log Drain is a reliable way to capture those logs.
 
-## Private source maps and Request proxying (optional)
+## Private source maps and Request proxying
 
 Proxy your front end Highlight calls by adding `withHighlightConfig` to your next config. Frontend session recording and error capture data will be piped through your domain on `/highlight-events` to sneak Highlight network traffic past ad-blockers.
 

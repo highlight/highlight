@@ -15,6 +15,8 @@ npm install @highlight-run/next
 
 ## Vercel Edge Runtime Instrumentation
 
+Edge runtime instrumentation is identical for both Page Router and App Router.
+
 1. Create a file to export your `EdgeHighlight` wrapper function:
 
 ```typescript
@@ -57,8 +59,8 @@ Copy/paste the above code snippet into `/app/api/edge-test.ts` and hit the endpo
 curl http://localhost:3000/api/edge-test
 ```
 
+## Related Steps
 
-## Next Steps
-
-- [SSR Error Handlers](./7_ssr-error-handlers.md)
-- [Configuration](./8_configuration.md)
+- [Page Router client instrumentation](./2_page-router.md)
+- [App Router client instrumentation](./3_app-router.md)
+- [Advanced Configuration](./7_advanced-config.md)
