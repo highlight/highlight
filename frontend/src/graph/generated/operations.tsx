@@ -4777,6 +4777,7 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'serviceName'
 					| 'serviceVersion'
 					| 'traceAttributes'
+					| 'startTime'
 					| 'statusCode'
 					| 'statusMessage'
 				>

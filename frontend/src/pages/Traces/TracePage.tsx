@@ -1,21 +1,13 @@
 import { Badge, Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui'
 import moment from 'moment'
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
-import { useGetTraceQuery } from '@/graph/generated/hooks'
-import { TraceError } from '@/graph/generated/schemas'
 import { TraceErrors } from '@/pages/Traces/TraceErrors'
 import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceLogs } from '@/pages/Traces/TraceLogs'
+import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
-import {
-	FlameGraphSpan,
-	getFirstSpan,
-	getTraceDurationString,
-	getTraceTimes,
-} from '@/pages/Traces/utils'
-import { useParams } from '@/util/react-router/useParams'
 
 import * as styles from './TracePage.css'
 
@@ -28,77 +20,18 @@ enum TraceTabs {
 type Props = {}
 
 export const TracePage: React.FC<Props> = () => {
-	const {
-		project_id: projectId,
-		trace_id: traceId,
-		span_id: spanId,
-	} = useParams<{
-		project_id: string
-		trace_id: string
-		span_id?: string
-	}>()
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
-	const [hoveredSpan, setHoveredSpan] = useState<FlameGraphSpan>()
-	const [selectedSpan, setSelectedSpan] = useState<FlameGraphSpan>()
-	const highlightedSpan = hoveredSpan || selectedSpan
+	const {
+		durationString,
+		errors,
+		highlightedSpan,
+		loading,
+		startTime,
+		traces,
+		traceName,
+	} = useTrace()
 
-	const { data, loading } = useGetTraceQuery({
-		variables: {
-			project_id: projectId!,
-			trace_id: traceId!,
-		},
-		onCompleted: (data) => {
-			if (spanId) {
-				const selectedSpan = data.trace?.trace.find(
-					(span) => span.spanID === spanId,
-				)
-
-				if (selectedSpan) {
-					setSelectedSpan(selectedSpan as FlameGraphSpan)
-				} else {
-					const rootSpan = getFirstSpan(data.trace?.trace ?? [])
-
-					if (rootSpan) {
-						setSelectedSpan(rootSpan as FlameGraphSpan)
-					}
-				}
-			}
-		},
-		skip: !projectId || !traceId,
-	})
-
-	const { startTime, duration: totalDuration } = useMemo(() => {
-		if (!data?.trace) {
-			return { startTime: 0, endTime: 0, duration: 0 }
-		}
-
-		return getTraceTimes(data.trace.trace)
-	}, [data?.trace])
-
-	const firstSpan = useMemo(() => {
-		if (!data?.trace) {
-			return undefined
-		}
-
-		return getFirstSpan(data.trace.trace)
-	}, [data?.trace])
-
-	const traceName = useMemo(
-		() => (firstSpan ? firstSpan.spanName : ''),
-		[firstSpan],
-	)
-
-	const errors = useMemo(() => {
-		if (!data?.trace?.errors) {
-			return [] as TraceError[]
-		}
-
-		return data.trace.errors
-	}, [data?.trace?.errors])
-
-	const durationString = getTraceDurationString(totalDuration)
-
-	if (!data?.trace || !data?.trace?.trace?.length) {
+	if (!traces?.length) {
 		return loading ? (
 			<LoadingBox />
 		) : (
@@ -109,70 +42,68 @@ export const TracePage: React.FC<Props> = () => {
 	}
 
 	return (
-		<Box overflow="scroll">
-			<Box cssClass={styles.container}>
-				<Stack direction="column" gap="16" mb="12" mt="8">
-					<Heading>{traceName}</Heading>
-					<Box
-						display="flex"
-						alignItems="center"
-						flexDirection="row"
-						gap="8"
-					>
-						<Text color="moderate">
-							{moment(startTime).format('MMM D HH:mm:ss.SSS')}
-						</Text>
-						<Text weight="bold">{durationString}</Text>
-					</Box>
+		<Box cssClass={styles.container}>
+			<Stack direction="column" gap="12" pt="16" pb="12" px="20">
+				<Heading level="h4">{traceName}</Heading>
+				<Stack gap="4" direction="row">
+					<Badge
+						size="medium"
+						variant="gray"
+						label={moment(startTime).format('MMM D HH:mm:ss A')}
+					/>
+					<Badge
+						size="medium"
+						variant="gray"
+						label={durationString}
+					/>
 				</Stack>
+			</Stack>
 
-				<TraceFlameGraph
-					trace={data.trace.trace}
-					errors={data.trace.errors}
-					hoveredSpan={hoveredSpan}
-					selectedSpan={selectedSpan}
-					startTime={startTime}
-					totalDuration={totalDuration}
-					onSpanSelect={setSelectedSpan}
-					onSpanMouseEnter={setHoveredSpan}
-				/>
+			<Box px="20">
+				<TraceFlameGraph />
+			</Box>
 
-				<Box mt="12">
-					<Tabs<TraceTabs>
-						tab={activeTab}
-						setTab={(tab) => setActiveTab(tab)}
-						containerClass={styles.tabs}
-						tabsContainerClass={styles.tabsContainer}
-						pageContainerClass={styles.tabsPageContainer}
-						pages={{
-							[TraceTabs.Info]: {
-								page: (
+			<Box mt="20">
+				<Tabs<TraceTabs>
+					tab={activeTab}
+					setTab={(tab) => setActiveTab(tab)}
+					containerClass={styles.tabs}
+					tabsContainerClass={styles.tabsContainer}
+					pageContainerClass={styles.tabsPageContainer}
+					pages={{
+						[TraceTabs.Info]: {
+							page: (
+								<Box p="8">
 									<TraceSpanAttributes
 										span={highlightedSpan!}
 									/>
-								),
-							},
-							[TraceTabs.Errors]: {
-								badge:
-									errors?.length > 0 ? (
-										<Badge
-											variant="gray"
-											label={String(errors.length)}
-										/>
-									) : undefined,
-								page: (
-									<TraceErrors
-										errors={(errors ?? []) as TraceError[]}
+								</Box>
+							),
+						},
+						[TraceTabs.Errors]: {
+							badge:
+								errors?.length > 0 ? (
+									<Badge
+										variant="gray"
+										label={String(errors.length)}
 									/>
-								),
-							},
-							[TraceTabs.Logs]: {
-								page: <TraceLogs />,
-							},
-						}}
-						noHandle
-					/>
-				</Box>
+								) : undefined,
+							page: (
+								<Box p="8">
+									<TraceErrors />
+								</Box>
+							),
+						},
+						[TraceTabs.Logs]: {
+							page: (
+								<Box p="8">
+									<TraceLogs />
+								</Box>
+							),
+						},
+					}}
+					noHandle
+				/>
 			</Box>
 		</Box>
 	)

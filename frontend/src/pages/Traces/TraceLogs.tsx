@@ -20,16 +20,14 @@ import {
 import { useProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
-import { useParams } from '@/util/react-router/useParams'
+import { useTrace } from '@/pages/Traces/TraceProvider'
 
 const startDate = moment().subtract(30, 'days').toDate()
 const endDate = moment().toDate()
 
 export const TraceLogs: React.FC = () => {
-	const { project_id, trace_id } = useParams<{
-		project_id: string
-		trace_id: string
-	}>()
+	const { traceId } = useTrace()
+	const { projectId } = useProjectId()
 	const [query, setQuery] = useState('')
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 
@@ -42,7 +40,7 @@ export const TraceLogs: React.FC = () => {
 		fetchMoreBackward,
 	} = useGetLogs({
 		query,
-		project_id,
+		project_id: projectId,
 		logCursor: undefined,
 		startDate,
 		endDate,
@@ -69,23 +67,22 @@ export const TraceLogs: React.FC = () => {
 
 	useEffect(() => {
 		setQuery(
-			trace_id
+			traceId
 				? stringifySearchQuery([
 						{
 							key: 'trace_id',
 							operator: DEFAULT_OPERATOR,
-							value: trace_id,
+							value: traceId,
 							offsetStart: 0,
 						},
 				  ])
 				: '',
 		)
-	}, [trace_id])
+	}, [traceId])
 
 	return (
 		<>
 			<Box
-				padding="8"
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
@@ -127,7 +124,7 @@ export const TraceLogs: React.FC = () => {
 						}
 						ref={tableContainerRef}
 					>
-						{(!loading && logEdges.length === 0) || !trace_id ? (
+						{(!loading && logEdges.length === 0) || !traceId ? (
 							<NoLogsFound />
 						) : (
 							<LogsTable

@@ -1367,6 +1367,7 @@ type ComplexityRoot struct {
 		SpanID          func(childComplexity int) int
 		SpanKind        func(childComplexity int) int
 		SpanName        func(childComplexity int) int
+		StartTime       func(childComplexity int) int
 		StatusCode      func(childComplexity int) int
 		StatusMessage   func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
@@ -9568,6 +9569,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Trace.SpanName(childComplexity), true
 
+	case "Trace.startTime":
+		if e.complexity.Trace.StartTime == nil {
+			break
+		}
+
+		return e.complexity.Trace.StartTime(childComplexity), true
+
 	case "Trace.statusCode":
 		if e.complexity.Trace.StatusCode == nil {
 			break
@@ -11103,6 +11111,7 @@ type Trace {
 	spanName: String!
 	spanKind: String!
 	duration: Int!
+	startTime: Int!
 	serviceName: String!
 	serviceVersion: String!
 	traceAttributes: Map!
@@ -66463,6 +66472,50 @@ func (ec *executionContext) fieldContext_Trace_duration(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Trace_startTime(ctx context.Context, field graphql.CollectedField, obj *model.Trace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Trace_startTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Trace_startTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Trace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Trace_serviceName(ctx context.Context, field graphql.CollectedField, obj *model.Trace) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Trace_serviceName(ctx, field)
 	if err != nil {
@@ -66990,6 +67043,8 @@ func (ec *executionContext) fieldContext_TraceEdge_node(ctx context.Context, fie
 				return ec.fieldContext_Trace_spanKind(ctx, field)
 			case "duration":
 				return ec.fieldContext_Trace_duration(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Trace_startTime(ctx, field)
 			case "serviceName":
 				return ec.fieldContext_Trace_serviceName(ctx, field)
 			case "serviceVersion":
@@ -67765,6 +67820,8 @@ func (ec *executionContext) fieldContext_TracePayload_trace(ctx context.Context,
 				return ec.fieldContext_Trace_spanKind(ctx, field)
 			case "duration":
 				return ec.fieldContext_Trace_duration(ctx, field)
+			case "startTime":
+				return ec.fieldContext_Trace_startTime(ctx, field)
 			case "serviceName":
 				return ec.fieldContext_Trace_serviceName(ctx, field)
 			case "serviceVersion":
@@ -85424,6 +85481,13 @@ func (ec *executionContext) _Trace(ctx context.Context, sel ast.SelectionSet, ob
 		case "duration":
 
 			out.Values[i] = ec._Trace_duration(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "startTime":
+
+			out.Values[i] = ec._Trace_startTime(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

@@ -3147,6 +3147,7 @@ export type Trace = {
 	spanID: Scalars['String']
 	spanKind: Scalars['String']
 	spanName: Scalars['String']
+	startTime: Scalars['Int']
 	statusCode: Scalars['String']
 	statusMessage: Scalars['String']
 	timestamp: Scalars['Timestamp']
