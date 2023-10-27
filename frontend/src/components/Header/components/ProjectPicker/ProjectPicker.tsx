@@ -10,6 +10,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
+import { SIGN_UP_ROUTE } from '@pages/Auth/AuthRouter'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
@@ -99,7 +100,9 @@ const ProjectPicker = () => {
 							)
 						}
 					>
-						<Text lines="1">{headerDisplayValue}</Text>
+						<Link to={SIGN_UP_ROUTE} className={linkStyle}>
+							<Text lines="1">{headerDisplayValue}</Text>
+						</Link>
 					</Menu.Button>
 					{(!isInDemoProject || isSettings) && (
 						<Menu.List>
