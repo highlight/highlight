@@ -2857,12 +2857,14 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'membersMeter'
 		| 'errorsMeter'
 		| 'logsMeter'
+		| 'tracesMeter'
 		| 'sessionsBillingLimit'
 		| 'errorsBillingLimit'
 		| 'logsBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'
+		| 'tracesDailyAverage'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
@@ -2872,6 +2874,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'membersLimit'
 				| 'errorsLimit'
 				| 'logsLimit'
+				| 'tracesLimit'
 			>
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<

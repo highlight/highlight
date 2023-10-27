@@ -3,10 +3,11 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	"math"
 	"strings"
 	"time"
+
+	"github.com/highlight/highlight/sdk/highlight-go"
 
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -171,25 +172,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	return nil
 }
 
-func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.LogRow) error {
-	timestampByProject := map[uint32]time.Time{}
-	workspaceByProject := map[uint32]*model.Workspace{}
-	for _, row := range logRows {
-		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
-			timestampByProject[row.ProjectId] = row.Timestamp
-			workspaceByProject[row.ProjectId] = nil
-		}
-	}
-
-	spanTs, ctxTs := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.setTimestamps", k.Name)))
-	for projectId, timestamp := range timestampByProject {
-		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctxTs, int(projectId), timestamp)
-		if err != nil {
-			log.WithContext(ctxTs).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
-		}
-	}
-	spanTs.Finish()
-
+func (k *KafkaBatchWorker) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model.PricingProductType) (map[uint32]bool, error) {
 	spanW, ctxW := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.checkBillingQuotas", k.Name)))
 
 	// If it's saved in Redis that a project has exceeded / not exceeded
@@ -197,8 +180,8 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	// projects to query.
 	quotaExceededByProject := map[uint32]bool{}
 	projectsToQuery := []uint32{}
-	for projectId := range workspaceByProject {
-		exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs)
+	for projectId := range projectIds {
+		exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), productType)
 		if err != nil {
 			log.WithContext(ctxW).Error(err)
 			continue
@@ -211,7 +194,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	}
 
 	// For any projects to query, get the associated workspace,
-	// check if that workspace is within the logs quota,
+	// check if that workspace is within the quota,
 	// and write the result to redis.
 	for _, projectId := range projectsToQuery {
 		project, err := k.Worker.Resolver.Store.GetProject(ctx, int(projectId))
@@ -234,22 +217,33 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 		}
 		workspace.Projects = projects
 
-		withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, model.PricingProductTypeLogs, &workspace, time.Now())
+		withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, productType, &workspace, time.Now())
 		quotaExceededByProject[projectId] = !withinBillingQuota
-		if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs, !withinBillingQuota); err != nil {
+		if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), productType, !withinBillingQuota); err != nil {
 			log.WithContext(ctxW).Error(err)
-			return err
+			return nil, err
 		}
 
 		// Send alert emails if above the relevant thresholds
 		go func() {
 			defer util.Recover()
+			var emailType email.EmailType
 			if quotaPercent >= 1 {
-				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage100Percent, &workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+				if productType == model.PricingProductTypeLogs {
+					emailType = email.BillingLogsUsage100Percent
+				} else if productType == model.PricingProductTypeTraces {
+					emailType = email.BillingTracesUsage100Percent
 				}
 			} else if quotaPercent >= .8 {
-				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage80Percent, &workspace); err != nil {
+				if productType == model.PricingProductTypeLogs {
+					emailType = email.BillingLogsUsage80Percent
+				} else if productType == model.PricingProductTypeTraces {
+					emailType = email.BillingTracesUsage80Percent
+				}
+			}
+
+			if emailType != "" {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, emailType, &workspace); err != nil {
 					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 				}
 			}
@@ -257,6 +251,33 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	}
 
 	spanW.Finish()
+
+	return quotaExceededByProject, nil
+}
+
+func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.LogRow) error {
+	timestampByProject := map[uint32]time.Time{}
+	projectIds := map[uint32]struct{}{}
+	for _, row := range logRows {
+		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
+			timestampByProject[row.ProjectId] = row.Timestamp
+			projectIds[row.ProjectId] = struct{}{}
+		}
+	}
+
+	spanTs, ctxTs := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.setTimestamps", k.Name)))
+	for projectId, timestamp := range timestampByProject {
+		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctxTs, int(projectId), timestamp)
+		if err != nil {
+			log.WithContext(ctxTs).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
+		}
+	}
+	spanTs.Finish()
+
+	quotaExceededByProject, err := k.getQuotaExceededByProject(ctx, projectIds, model.PricingProductTypeLogs)
+	if err != nil {
+		return err
+	}
 
 	var markBackendSetupProjectIds []uint32
 	var filteredRows []*clickhouse.LogRow
@@ -295,7 +316,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 
 	wSpan, wCtx := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.process", k.Name)))
 	wSpan.SetAttribute("BatchSize", len(k.messages))
-	wSpan.SetAttribute("NumProjects", len(workspaceByProject))
+	wSpan.SetAttribute("NumProjects", len(projectIds))
 	for _, projectId := range markBackendSetupProjectIds {
 		err := k.Worker.PublicResolver.MarkBackendSetupImpl(wCtx, int(projectId), model.MarkBackendSetupTypeLogs)
 		if err != nil {
@@ -307,7 +328,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	span, ctxT := util.StartSpanFromContext(wCtx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.clickhouse.logs", k.Name)))
 	span.SetAttribute("NumLogRows", len(logRows))
 	span.SetAttribute("NumFilteredRows", len(filteredRows))
-	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
+	err = k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
 	span.Finish(err)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write logs to clickhouse")
@@ -318,23 +339,40 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 }
 
 func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickhouse.TraceRow) error {
+	markBackendSetupProjectIds := map[uint32]struct{}{}
+	projectIds := map[uint32]struct{}{}
+	for _, trace := range traceRows {
+		// Skip traces with a `http.method` attribute as likely autoinstrumented frontend traces
+		if _, found := trace.TraceAttributes["http.method"]; !found {
+			markBackendSetupProjectIds[trace.ProjectId] = struct{}{}
+		}
+		projectIds[trace.ProjectId] = struct{}{}
+	}
+
+	quotaExceededByProject, err := k.getQuotaExceededByProject(ctx, projectIds, model.PricingProductTypeLogs)
+	if err != nil {
+		return err
+	}
+
+	filteredTraceRows := []*clickhouse.TraceRow{}
+	for _, trace := range traceRows {
+		if quotaExceededByProject[trace.ProjectId] {
+			continue
+		}
+		filteredTraceRows = append(filteredTraceRows, trace)
+	}
+
 	span, ctxT := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name)), util.WithHighlightTracingDisabled(true))
 	span.SetAttribute("NumTraceRows", len(traceRows))
 	span.SetAttribute("PayloadSizeBytes", binary.Size(traceRows))
-	err := k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
+	err = k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, filteredTraceRows)
 	defer span.Finish(err)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write traces to clickhouse")
 		span.Finish(err)
 		return err
 	}
-	markBackendSetupProjectIds := map[uint32]struct{}{}
-	for _, trace := range traceRows {
-		// Skip traces with a `http.method` attribute as likely autoinstrumented frontend traces
-		if _, found := trace.TraceAttributes["http.method"]; !found {
-			markBackendSetupProjectIds[trace.ProjectId] = struct{}{}
-		}
-	}
+
 	for projectId := range markBackendSetupProjectIds {
 		err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctx, int(projectId), model.MarkBackendSetupTypeTraces)
 		if err != nil {

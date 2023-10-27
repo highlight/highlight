@@ -291,6 +291,7 @@ type Workspace struct {
 	MonthlyMembersLimit         *int
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
+	MonthlyTracesLimit          *int
 	RetentionPeriod             *modelInputs.RetentionPeriod
 	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
 	SessionsMaxCents            *int

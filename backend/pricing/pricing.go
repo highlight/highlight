@@ -141,17 +141,27 @@ func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 	return meter, nil
 }
 
-func GetLogs7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+func get7DayAverageImpl(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace, productType model.PricingProductType) (float64, error) {
 	startDate := time.Now().AddDate(0, 0, -8)
 	endDate := time.Now().AddDate(0, 0, -1)
 	projectIds := lo.Map(workspace.Projects, func(p model.Project, _ int) int {
 		return p.ID
 	})
 
-	return ccClient.ReadLogsDailyAverage(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
+	var avgFn func(ctx context.Context, projectIds []int, dateRange backend.DateRangeRequiredInput) (float64, error)
+	switch productType {
+	case model.PricingProductTypeLogs:
+		avgFn = ccClient.ReadLogsDailyAverage
+	case model.PricingProductTypeTraces:
+		avgFn = ccClient.ReadTracesDailyAverage
+	default:
+		return 0, fmt.Errorf("invalid product type %s", productType)
+	}
+
+	return avgFn(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
 }
 
-func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+func getWorkspaceMeterImpl(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace, productType model.PricingProductType) (int64, error) {
 	var startDate time.Time
 	if workspace.NextInvoiceDate != nil {
 		startDate = workspace.NextInvoiceDate.AddDate(0, -1, 0)
@@ -176,12 +186,38 @@ func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 		return p.ID
 	})
 
-	count, err := ccClient.ReadLogsDailySum(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
+	var sumFn func(ctx context.Context, projectIds []int, dateRange backend.DateRangeRequiredInput) (uint64, error)
+	switch productType {
+	case model.PricingProductTypeLogs:
+		sumFn = ccClient.ReadLogsDailySum
+	case model.PricingProductTypeTraces:
+		sumFn = ccClient.ReadTracesDailySum
+	default:
+		return 0, fmt.Errorf("invalid product type %s", productType)
+	}
+
+	count, err := sumFn(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
 	if err != nil {
 		return 0, err
 	}
 
 	return int64(count), nil
+}
+
+func GetLogs7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	return get7DayAverageImpl(ctx, DB, ccClient, workspace, model.PricingProductTypeLogs)
+}
+
+func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	return getWorkspaceMeterImpl(ctx, DB, ccClient, workspace, model.PricingProductTypeLogs)
+}
+
+func GetTraces7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	return get7DayAverageImpl(ctx, DB, ccClient, workspace, model.PricingProductTypeTraces)
+}
+
+func GetWorkspaceTracesMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	return getWorkspaceMeterImpl(ctx, DB, ccClient, workspace, model.PricingProductTypeTraces)
 }
 
 func GetLimitAmount(limitCostCents *int, productType model.PricingProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
@@ -208,6 +244,8 @@ func ProductToBasePriceCents(productType model.PricingProductType, planType back
 			return .02
 		case model.PricingProductTypeLogs:
 			return .00015
+		case model.PricingProductTypeTraces:
+			return .00015
 		default:
 			return 0
 		}
@@ -218,6 +256,8 @@ func ProductToBasePriceCents(productType model.PricingProductType, planType back
 		case model.PricingProductTypeErrors:
 			return .02
 		case model.PricingProductTypeLogs:
+			return .00015
+		case model.PricingProductTypeTraces:
 			return .00015
 		default:
 			return 0
@@ -268,6 +308,8 @@ func IncludedAmount(planType backend.PlanType, productType model.PricingProductT
 		return TypeToErrorsLimit(planType)
 	case model.PricingProductTypeLogs:
 		return TypeToLogsLimit(planType)
+	case model.PricingProductTypeTraces:
+		return TypeToTracesLimit(planType)
 	default:
 		return 0
 	}
@@ -308,6 +350,23 @@ func TypeToErrorsLimit(planType backend.PlanType) int {
 }
 
 func TypeToLogsLimit(planType backend.PlanType) int {
+	switch planType {
+	case backend.PlanTypeFree:
+		return 1000000
+	case backend.PlanTypeLite:
+		return 4000000
+	case backend.PlanTypeBasic:
+		return 20000000
+	case backend.PlanTypeStartup:
+		return 160000000
+	case backend.PlanTypeEnterprise:
+		return 600000000
+	default:
+		return 1000000
+	}
+}
+
+func TypeToTracesLimit(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:
 		return 1000000
@@ -457,9 +516,10 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	membersLookupKey := string(model.PricingProductTypeMembers)
 	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, rp, productTier)
 	logsLookupKey := string(model.PricingProductTypeLogs)
+	tracesLookupKey := string(model.PricingProductTypeTraces)
 
 	priceListParams := stripe.PriceListParams{}
-	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey}
+	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey}
 	prices := stripeClient.Prices.List(&priceListParams).PriceList().Data
 
 	// Validate that we received exactly 1 response for each lookup key
@@ -488,6 +548,8 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 			priceMap[model.PricingProductTypeErrors] = price
 		case logsLookupKey:
 			priceMap[model.PricingProductTypeLogs] = price
+		case tracesLookupKey:
+			priceMap[model.PricingProductTypeTraces] = price
 		}
 	}
 
@@ -711,7 +773,19 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		return e.Wrap(err, "error updating overage item")
 	}
 
-	// TODO(vkorolik) include trace pricing once we have that in place
+	// Update traces overage
+	tracesMeter, err := GetWorkspaceTracesMeter(ctx, w.db, w.ccClient, &workspace)
+	log.WithContext(ctx).Infof("tracesMeter %d", tracesMeter)
+	if err != nil {
+		return e.Wrap(err, "error getting traces meter")
+	}
+	tracesLimit := TypeToLogsLimit(backend.PlanType(workspace.PlanTier))
+	if workspace.MonthlyTracesLimit != nil {
+		tracesLimit = *workspace.MonthlyTracesLimit
+	}
+	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeTraces], invoiceLines[model.PricingProductTypeTraces], c, subscription, &tracesLimit, tracesMeter); err != nil {
+		return e.Wrap(err, "error updating overage item")
+	}
 
 	if util.IsHubspotEnabled() {
 		props := []hubspot.Property{{
@@ -726,6 +800,10 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 			Name:     "logs_overage",
 			Property: "logs_overage",
 			Value:    logsMeter - int64(logsLimit),
+		}, {
+			Name:     "traces_overage",
+			Property: "traces_overage",
+			Value:    tracesMeter - int64(tracesLimit),
 		}, {
 			Name:     "discount",
 			Property: "discount",
