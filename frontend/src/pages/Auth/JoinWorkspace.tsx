@@ -27,7 +27,14 @@ export const DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY =
 	'highlightDismissedJoinWorkspace'
 
 export const JoinWorkspace = () => {
-	const { data, loading } = useGetWorkspacesQuery()
+	const { data, loading } = useGetWorkspacesQuery({
+		onCompleted: (data) => {
+			formStore.setValue(
+				formStore.names.workspaceId,
+				data?.joinable_workspaces?.[0]?.id,
+			)
+		},
+	})
 	const { data: adminData } = useGetAdminQuery()
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
