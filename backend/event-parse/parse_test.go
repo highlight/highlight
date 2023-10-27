@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
@@ -254,5 +255,102 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 			}
 		}
 		assert.True(t, matched, "no asset matched %s", exp)
+	}
+}
+
+func TestGetHostUrlFromEvents(t *testing.T) {
+	now := time.Now()
+
+	var tests = []struct {
+		events      []*ReplayEvent
+		expectedUrl *string
+	}{
+		{
+			events:      []*ReplayEvent{},
+			expectedUrl: nil,
+		},
+		{
+			events: []*ReplayEvent{
+				{
+					Timestamp:    now,
+					Type:         2,
+					Data:         []byte("{\"href\": \"https://www.google.com\"}"),
+					TimestampRaw: 2,
+					SID:          1,
+				},
+			},
+			expectedUrl: nil,
+		},
+		{
+			events: []*ReplayEvent{
+				{
+					Timestamp:    now,
+					Type:         4,
+					Data:         []byte("{\"href\": \"https://www.google.com\"}"),
+					TimestampRaw: 2,
+					SID:          1,
+				},
+			},
+			expectedUrl: ptr.String("https://www.google.com"),
+		},
+		{
+			events: []*ReplayEvent{
+				{
+					Timestamp:    now,
+					Type:         4,
+					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					TimestampRaw: 2,
+					SID:          1,
+				},
+			},
+			expectedUrl: ptr.String("https://www.google.com"),
+		},
+		{
+			events: []*ReplayEvent{
+				{
+					Timestamp:    now,
+					Type:         1,
+					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					TimestampRaw: 2,
+					SID:          1,
+				},
+				{
+					Timestamp:    time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
+					Type:         4,
+					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					TimestampRaw: 2,
+					SID:          1,
+				},
+			},
+			expectedUrl: nil,
+		},
+		{
+			events: []*ReplayEvent{
+				{
+					Timestamp:    time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
+					Type:         4,
+					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					TimestampRaw: 2,
+					SID:          1,
+				},
+				{
+					Timestamp:    now,
+					Type:         1,
+					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					TimestampRaw: 2,
+					SID:          1,
+				},
+			},
+			expectedUrl: ptr.String("https://www.google.com"),
+		},
+	}
+
+	for _, tt := range tests {
+		hostUrl := GetHostUrlFromEvents(tt.events)
+		if tt.expectedUrl == nil {
+			assert.Nil(t, hostUrl)
+		} else {
+			assert.Equal(t, *tt.expectedUrl, *hostUrl)
+		}
 	}
 }
