@@ -101,7 +101,13 @@ const (
 	MaxAssetSize = 3 * 1e9
 )
 
-func (s *Snapshot) fetchStylesheetData(href string) ([]byte, error) {
+type fetcher interface {
+	fetchStylesheetData(string, *Snapshot) ([]byte, error)
+}
+
+type networkFetcher struct{}
+
+func (n networkFetcher) fetchStylesheetData(href string, s *Snapshot) ([]byte, error) {
 	u, err := url.Parse(href)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid href for stylesheet")
@@ -149,6 +155,12 @@ func replaceRelativePaths(body []byte, href string) []byte {
 	} else {
 		return body
 	}
+}
+
+var fetch fetcher
+
+func init() {
+	fetch = networkFetcher{}
 }
 
 // ReplayEvent represents a single event that represents a change on the DOM.
@@ -376,7 +388,7 @@ func (s *Snapshot) InjectStylesheets() error {
 		if !ok || !strings.Contains(href, "css") {
 			continue
 		}
-		data, err := s.fetchStylesheetData(href)
+		data, err := fetch.fetchStylesheetData(href, s)
 		if err != nil {
 			continue
 		}

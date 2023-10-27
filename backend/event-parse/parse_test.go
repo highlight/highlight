@@ -3,6 +3,11 @@ package parse
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
@@ -11,10 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"os"
-	"strings"
-	"testing"
-	"time"
 
 	"github.com/go-test/deep"
 	"github.com/kylelemons/godebug/pretty"
@@ -135,7 +136,7 @@ func TestEventsFromString(t *testing.T) {
 
 type fetcherMock struct{}
 
-func (u fetcherMock) fetchStylesheetData(href string) ([]byte, error) {
+func (u fetcherMock) fetchStylesheetData(href string, s *Snapshot) ([]byte, error) {
 	return []byte("/*highlight-inject*/\n.highlight {\n    color: black;\n}"), nil
 }
 
@@ -147,7 +148,7 @@ func TestInjectStyleSheets(t *testing.T) {
 		t.Fatalf("error reading: %v", err)
 	}
 
-	snapshot, err := NewSnapshot(inputBytes)
+	snapshot, err := NewSnapshot(inputBytes, nil)
 	if err != nil {
 		t.Fatalf("error parsing: %v", err)
 	}
@@ -192,7 +193,7 @@ func TestEscapeJavascript(t *testing.T) {
 		t.Fatalf("error reading: %v", err)
 	}
 
-	snapshot, err := NewSnapshot(inputBytes)
+	snapshot, err := NewSnapshot(inputBytes, nil)
 	if err != nil {
 		t.Fatalf("error parsing: %v", err)
 	}
@@ -220,7 +221,7 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 		t.Fatalf("error reading: %v", err)
 	}
 
-	snapshot, err := NewSnapshot(inputBytes)
+	snapshot, err := NewSnapshot(inputBytes, nil)
 	if err != nil {
 		t.Fatalf("error parsing: %v", err)
 	}
