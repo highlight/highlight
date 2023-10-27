@@ -100,9 +100,13 @@ const ProjectPicker = () => {
 							)
 						}
 					>
-						<Link to={SIGN_UP_ROUTE} className={linkStyle}>
+						{isInDemoProject ? (
+							<Link to={SIGN_UP_ROUTE} className={linkStyle}>
+								<Text lines="1">{headerDisplayValue}</Text>
+							</Link>
+						) : (
 							<Text lines="1">{headerDisplayValue}</Text>
-						</Link>
+						)}
 					</Menu.Button>
 					{(!isInDemoProject || isSettings) && (
 						<Menu.List>
