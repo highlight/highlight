@@ -20,9 +20,9 @@ type Props = {
 
 const backgroundColorPalette = {
 	all: '#744ed4',
-	clickhouse: '#265cff',
 	frontend: '#b50006',
-	gorm: '#f25100',
+	clickhouse: '#265cff',
+	postgresql: '#f25100',
 }
 
 const minWidthToDisplayText = 20
@@ -54,11 +54,9 @@ export const TraceFlameGraphNode = memo<Props>(
 			: ticksHeight + outsidePadding
 		// const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
+		console.log('::: span', span.traceAttributes?.db?.system)
 		const backgroundColor =
-			(backgroundColorPalette as any)[
-				span.traceAttributes['ServiceName']
-			] ??
-			(backgroundColorPalette as any)[span.serviceName] ??
+			(backgroundColorPalette as any)[span.traceAttributes?.db?.system] ??
 			backgroundColorPalette['all']
 		const fill = backgroundColor
 		const color = '#fff'
