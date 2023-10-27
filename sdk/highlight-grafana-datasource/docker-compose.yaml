@@ -10,7 +10,8 @@ services:
         grafana_image: ${GRAFANA_IMAGE:-grafana}
         grafana_version: ${GRAFANA_VERSION:-10.0.3}
     ports:
-      - 3000:3000/tcp
+      - 3001:3000/tcp
     volumes:
       - ./dist:/var/lib/grafana/plugins/highlight-grafana-datasource
       - ./provisioning:/etc/grafana/provisioning
+      - ./grafana.db:/var/lib/grafana/grafana.db

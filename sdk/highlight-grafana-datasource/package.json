@@ -1,6 +1,7 @@
 {
-  "name": "grafana",
-  "version": "1.0.0",
+  "name": "@highlight-run/grafana-datasource",
+  "version": "0.1.0",
+  "private": true,
   "description": "",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",

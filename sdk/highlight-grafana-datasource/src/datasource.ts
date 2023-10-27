@@ -10,68 +10,52 @@ import {
 import { HighlightDataSourceOptions, HighlightQuery } from './types';
 import { getBackendSrv } from '@grafana/runtime';
 
-const GET_SESSIONS_CLICKHOUSE = `
-query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQuery!, $sort_desc: Boolean!, $sort_field: String, $page: Int) {
-    sessions_clickhouse(
-        project_id: $project_id
-    count: $count
-    query: $query
-    sort_field: $sort_field
-    sort_desc: $sort_desc
-    page: $page
-) {
-        sessions {
-            id
-            secure_id
-            client_id
-            fingerprint
-            identifier
-            identified
-            os_name
-            os_version
-            browser_name
-            browser_version
-            ip
-            city
-            state
-            country
-            postal
-            created_at
-            language
-            length
-            active_length
-            enable_recording_network_contents
-            viewed
-            starred
-            processed
-            has_rage_clicks
-            has_errors
-            fields {
-                name
-                value
-                type
-                    id
-                __typename
-            }
-            first_time
-            user_properties
-            event_counts
-            last_user_interaction_time
-            is_public
-            excluded
-            __typename
-        }
-        totalCount
-        __typename
-    }
+const GET_ADMIN = `
+query GetAdmin {
+  admin {
+    id
+    uid
+    name
+    email
+    phone
+    photo_url
+    slack_im_channel_id
+    email_verified
+    user_defined_role
+    about_you_details_filled
+  }
 }
 `;
 
-interface Session {
-  created_at: string;
-  secure_id: string;
-  active_length: number;
+const GET_TRACES_METRICS = `
+query GetTracesMetrics($project_id: ID!, $params: QueryInput!, $metric_types: [TracesMetricType!]!, $group_by: [String!]!) {
+  traces_metrics(
+    project_id: $project_id
+    params: $params
+    metric_types: $metric_types
+    group_by: $group_by
+  ) {
+    buckets {
+      bucket_id
+      group
+      metric_type
+      metric_value
+      __typename
+    }
+    bucket_count
+    sample_factor
+    __typename
+  }
 }
+`;
+
+interface Bucket {
+  bucket_id: number;
+  metric_type: string;
+  metric_value: number;
+  group: string[];
+}
+
 interface Error {
   message: string;
   path: string[];
@@ -92,80 +76,97 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
     const from = range!.from;
     const to = range!.to;
 
-    const response = await getBackendSrv().post<{
-      data: {
-        sessions_clickhouse: { sessions: Session[] };
-      };
-      errors?: Error[];
-    }>(
-      `${this.url}/highlight/`,
-      JSON.stringify({
-        operationName: 'GetSessionsClickhouse',
-        variables: {
-          query: {
-            isAnd: true,
-            rules: [['custom_created_at', 'between_date', `${from.toISOString()}_${to.toISOString()}`]],
-          },
-          count: 10,
-          page: 1,
-          project_id: this.projectID,
-          sort_desc: true,
-        },
-        query: GET_SESSIONS_CLICKHOUSE,
-      }),
-      {
-        credentials: 'include',
-      }
-    );
-    if (response.errors?.length) {
-      throw response.errors.map((e) => JSON.stringify(e)).join(', ');
-    }
-
     // Return a constant for each query.
-    const data = options.targets.map((target) => {
-      return new MutableDataFrame({
-        refId: target.refId,
-        fields: [
+    const data = await Promise.all(
+      options.targets.map(async (target) => {
+        const response = await getBackendSrv().post<{
+          data: {
+            traces_metrics: { buckets: Bucket[] };
+          };
+          errors?: Error[];
+        }>(
+          `${this.url}/highlight/`,
+          JSON.stringify({
+            operationName: 'GetTracesMetrics',
+            variables: {
+              project_id: '1',
+              metric_types: ['count', 'p90'],
+              group_by: [],
+              params: {
+                query: target.queryText,
+                date_range: {
+                  start_date: from.toISOString(),
+                  end_date: to.toISOString(),
+                },
+              },
+            },
+            query: GET_TRACES_METRICS,
+          }),
+          {}
+        );
+        if (response.errors?.length) {
+          throw response.errors.map((e) => JSON.stringify(e)).join(', ');
+        }
+
+        const fields: any = [
           {
             name: 'Time',
-            values: response.data.sessions_clickhouse.sessions.map((s) => Date.parse(s.created_at)),
+            values: response.data.traces_metrics.buckets.map(
+              (b) =>
+                new Date(
+                  from.valueOf() +
+                    (b.bucket_id / response.data.traces_metrics.buckets.length) * (to.valueOf() - from.valueOf())
+                )
+            ),
             type: FieldType.time,
           },
-          {
-            name: 'Value',
-            values: response.data.sessions_clickhouse.sessions.map((s) => s.active_length),
-            type: FieldType.number,
-          },
-        ],
-      });
-    });
+        ];
+        for (const metricType of new Set(response.data.traces_metrics.buckets.map((b) => b.metric_type))) {
+          for (const metricGroup of new Set(response.data.traces_metrics.buckets.map((b) => b.group.join('-')))) {
+            fields.push({
+              name: [metricType, metricGroup].filter((s) => s).join('.'),
+              values: response.data.traces_metrics.buckets
+                .filter((b) => b.metric_type === metricType && b.group.join('-') === metricGroup)
+                .map((b) => b.metric_value),
+              type: FieldType.number,
+            });
+          }
+        }
+        return new MutableDataFrame({
+          refId: target.refId,
+          fields,
+        });
+      })
+    );
 
     return { data };
   }
 
   async testDatasource() {
-    // TODO(vkorolik) Implement a health check for your data source.
     try {
-      await getBackendSrv().post<{}>(
+      const response = await getBackendSrv().post<{
+        admin: { email: string };
+        errors?: Error[];
+      }>(
         `${this.url}/highlight/`,
         JSON.stringify({
-          operationName: 'GetSessionsClickhouse',
-          variables: {
-            query: {
-              isAnd: true,
-              rules: [],
-            },
-            count: 10,
-            page: 1,
-            project_id: this.projectID,
-            sort_desc: true,
-          },
-          query: GET_SESSIONS_CLICKHOUSE,
+          operationName: 'GetAdmin',
+          query: GET_ADMIN,
         }),
-        {
-          credentials: 'include',
-        }
+        {}
       );
+      if (response.errors?.length) {
+        return {
+          status: 'error',
+          message: response.errors.map((e) => JSON.stringify(e)).join(', '),
+        };
+      }
+      if (!response.admin.email) {
+        return {
+          status: 'error',
+          message: 'invalid login returned',
+        };
+      }
     } catch (e: unknown) {
       return {
         status: 'error',
