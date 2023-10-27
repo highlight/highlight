@@ -4,7 +4,7 @@
 import {
 	appRouterSsrErrorHandler,
 	AppRouterErrorProps,
-} from '@highlight-run/next/client'
+} from '@highlight-run/next/ssr'
 
 export default appRouterSsrErrorHandler(
 	({ error, reset }: AppRouterErrorProps) => {

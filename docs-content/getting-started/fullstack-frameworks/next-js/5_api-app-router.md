@@ -45,7 +45,7 @@ import { withAppRouterHighlight } from '../../_utils/app-router-highlight.config
 export const GET = withAppRouterHighlight(async function GET(request: NextRequest) {
 	console.info('Here: /api/app-router-test/route.ts')
 
-	if (Math.random() < 0.8) {
+	if (Math.random() < 0.2) {
 		return new Response('Success: /api/app-router-test')
 	} else {
 		throw new Error('Error: /api/app-router-test (App Router)')
@@ -55,7 +55,8 @@ export const GET = withAppRouterHighlight(async function GET(request: NextReques
 
 ## Validation
 
-Copy/paste the above code snippet into `/app/api/app-router-test.ts` and hit the endpoint with `curl` to watch it work.
+1. Run your app in dev mode with `npm run dev`.
+2. Copy/paste the above code snippet into `/app/api/app-router-test.ts` and hit the endpoint with `curl` to watch it work.
 
 ```bash
 curl http://localhost:3000/api/app-router-test

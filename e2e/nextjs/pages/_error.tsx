@@ -3,7 +3,7 @@ import NextError from 'next/error'
 import {
 	pageRouterCustomErrorHandler,
 	PageRouterErrorProps,
-} from '@highlight-run/next/client'
+} from '@highlight-run/next/ssr'
 import CONSTANTS from '@/app/constants'
 
 export default pageRouterCustomErrorHandler(

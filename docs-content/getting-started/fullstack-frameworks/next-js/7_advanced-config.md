@@ -42,7 +42,7 @@ Configure logging for your serverless cloud provider using one of our [cloud pro
 
 ```bash
 # .env
-NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='1jdkoe52'
+NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='<API KEY>'
 ```
 
 3. Feed your environment variables into the application with a constants file. We're using `zod` for this example, because it creates a validated, typed `CONSTANTS` object that plays nicely with TypeScript.

@@ -47,20 +47,21 @@ export default withPageRouterHighlight(function handler(
 ) {
 	console.info('Here: pages/api/page-router-test.ts')
 
-	if (Math.random() < 0.8) {
-		res.send('Success: pages/api/page-router-test.ts')
-	} else {
+	if (req.url?.includes('error')) {
 		throw new Error('Error: pages/api/page-router-test.ts')
+  } else {
+		res.send('Success: pages/api/page-router-test.ts')
 	}
 })
 ```
 
 ## Validation
 
-Copy/paste the above code snippet into `/pages/api/page-router-test.ts` and hit the endpoint with `curl` to watch it work.
+1. Run your app in dev mode with `npm run dev`.
+2. Copy/paste the above code snippet into `/pages/api/page-router-test.ts` and hit the endpoint with `curl` to watch it work.
 
 ```bash
-curl http://localhost:3000/api/page-router-test
+curl http://localhost:3000/api/page-router-test?error
 ```
 
 ## Related Steps

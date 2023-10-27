@@ -31,32 +31,56 @@ export const withEdgeHighlight = EdgeHighlight({
 
 2. Wrap your edge function with `withEdgeHighlight`
 
+**Page Router**
 ```typescript
-// src/app/api/edge-test/route.ts
-import type {  NextRequest } from 'next/server'
-import { withEdgeHighlight } from '../../_utils/edge-highlight.config'
+// pages/api/edge-page-router-test.ts
+import { withEdgeHighlight } from '../../src/app/_utils/edge-highlight.config'
 
-import { NextResponse } from 'next/server'
+export default withEdgeHighlight(async function GET() {
+	console.info('Here: /api/edge-page-router-test', request.url)
 
-export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
-	console.info('Here: /api/edge-test/route.ts')
-
-	if (Math.random() < 0.8) {
-		return new Response('Success: /api/edge-test')
+	if (Math.random() < 0.2) {
+		return new Response('Success: /api/edge-page-router-test')
 	} else {
-		throw new Error('Error: /api/edge-test (Edge Runtime)')
+		throw new Error('Error: /api/edge-page-router-test (Edge Runtime)')
 	}
 })
 
 export const runtime = 'edge'
 ```
 
+**App Router**
+```typescript
+// src/app/api/edge-app-router-test/route.ts
+import { NextRequest } from 'next/server';
+import { withEdgeHighlight } from '../../_utils/edge-highlight.config';
+
+export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
+	console.info('Here: /api/edge-app-router-test', request.url);
+
+	if (request.url.includes('error')) {
+		throw new Error('Error: /api/edge-app-router-test (Edge Runtime)');
+	} else {
+		return new Response('Success: /api/edge-app-router-test');
+	}
+});
+
+export const runtime = 'edge';
+
+```
+
 ## Validation
 
 Copy/paste the above code snippet into `/app/api/edge-test.ts` and hit the endpoint with `curl` to watch it work.
 
+**Page Router**
 ```bash
-curl http://localhost:3000/api/edge-test
+curl http://localhost:3000/api/edge-page-router-test?error
+```
+
+**App Router**
+```bash
+curl http://localhost:3000/edge-app-router-test?error
 ```
 
 ## Related Steps

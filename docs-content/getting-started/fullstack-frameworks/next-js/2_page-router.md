@@ -50,6 +50,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
 Optionally add a React [Error Boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
 
+You can wrap the root of your app in `_app.tsx` with the `<ErrorBoundary />`, or you can wrap individual parts of your React tree.
+
+
 ```jsx
 // error-boundary.tsx
 'use client'
@@ -79,7 +82,7 @@ Omit the `ErrorBoundary` wrapper if you haven't created it yet.
 import { useEffect, useState } from 'react'
 import { ErrorBoundary } from 'error-boundary'
 
-export function ErrorButtons() {
+export default function ErrorButtons() {
 	const [isErrored, setIsErrored] = useState(false)
 
 	return (
@@ -149,7 +152,7 @@ import NextError from 'next/error'
 import {
 	pageRouterCustomErrorHandler,
 	PageRouterErrorProps,
-} from '@highlight-run/next/client'
+} from '@highlight-run/next/ssr'
 import CONSTANTS from '@/app/constants'
 
 export default pageRouterCustomErrorHandler(
@@ -171,7 +174,9 @@ export default pageRouterCustomErrorHandler(
 
 ### Validate SSR error capture
 
-Copy the following code into `pages/page-router-isr.tsx`, build and start your production app with `next build && next start`, and visit `http://localhost:3000/page-router-isr?error=true` to trigger the error.
+1. Copy the following code into `pages/page-router-isr.tsx`.
+2. Build and start your production app with `npm run build && npm run start`.
+3. Visit `http://localhost:3000/page-router-isr?error` to trigger the error.
 
 ```jsx
 // pages/page-router-isr.tsx

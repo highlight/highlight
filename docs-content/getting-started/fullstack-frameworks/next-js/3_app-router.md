@@ -22,8 +22,6 @@ This sections adds session replay and frontend error monitoring to Highlight. Th
 
 ```jsx
 // src/app/layout.tsx
-import './globals.css'
-
 import CONSTANTS from '../constants'
 import { HighlightInit } from '@highlight-run/next/client'
 
@@ -51,7 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ## Add React ErrorBoundary (optional)
 
-- Optionally add a React [Error Boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+Optionally add a React [Error Boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+
+You can wrap the root of your app in `layout.tsx` with the `<ErrorBoundary />`, or you can wrap individual parts of your React tree.
 
 ```jsx
 // error-boundary.tsx
@@ -81,7 +81,7 @@ Omit the `ErrorBoundary` wrapper if you haven't created it yet.
 import { useEffect, useState } from 'react'
 import { ErrorBoundary } from 'error-boundary'
 
-export function ErrorButtons() {
+export default function ErrorButtons() {
 	const [isErrored, setIsErrored] = useState(false)
 
 	return (
@@ -154,7 +154,7 @@ We don't call `H.init` in this example because we injected `<HighlightInit />` i
 import {
 	appRouterSsrErrorHandler,
 	AppRouterErrorProps,
-} from '@highlight-run/next/client'
+} from '@highlight-run/next/ssr'
 
 export default appRouterSsrErrorHandler(
 	({ error, reset }: AppRouterErrorProps) => {
@@ -178,7 +178,9 @@ export default appRouterSsrErrorHandler(
 
 ### Validate SSR error capture
 
-Copy the following code into `src/app/app-router-isr/page.tsx`, build and start your production app with `next build && next start`, and visit `http://localhost:3000/app-router-isr?error=true` to trigger the error.
+1. Copy the following code into `src/app/app-router-isr/page.tsx`.
+2. Build and start your production app with `npm run build && npm run start`.
+3. Visit `http://localhost:3000/app-router-isr?error` to trigger the error.
 
 ```jsx
 // src/app/app-router-isr/page.tsx
@@ -187,7 +189,7 @@ type Props = {
 }
 
 export default function IsrPage({ searchParams }: Props) {
-	if (searchParams.error) {
+	if (typeof searchParams.error === 'string') {
 		throw new Error('ISR Error: src/app/app-router-isr/page.tsx')
 	}
 
