@@ -152,7 +152,7 @@ export const JoinWorkspace = () => {
 							navigate(ABOUT_YOU_ROUTE, { replace: true })
 						}}
 					>
-						<Text color="moderate">Cancel</Text>
+						<Text color="moderate">Create My Own Workspace</Text>
 					</Button>
 				</AuthFooter>
 			</Form>
