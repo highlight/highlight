@@ -4,7 +4,6 @@ import time
 import pytest
 from opentelemetry.sdk._logs._internal.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.trace import Tracer
 
 import highlight_io
 
@@ -42,7 +41,7 @@ def test_record_exception(mocker, mock_otlp, project_id, session_id, request_id)
     h = highlight_io.H(
         project_id, integrations=integrations, instrument_logging=instrument_logging
     )
-    spy = mocker.spy(Tracer, "start_as_current_span")
+    spy = mocker.spy(h.tracer, "start_as_current_span")
 
     for i in range(10):
         logging.info(f"hey there! {i}")
