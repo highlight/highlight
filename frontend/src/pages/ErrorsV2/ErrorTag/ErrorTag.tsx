@@ -33,6 +33,7 @@ const ErrorTag = React.memo(
 					kind="secondary"
 					size="medium"
 					shape="basic"
+					lines="1"
 				>
 					{errorGroup.serviceName && errorGroup.serviceName != ''
 						? errorGroup.serviceName
