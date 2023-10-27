@@ -47,6 +47,7 @@ const ErrorTag = React.memo(
 						kind="secondary"
 						emphasis="medium"
 						iconLeft={<IconSolidDesktopComputer size={12} />}
+						lines="1"
 					>
 						{errorGroup.error_tag.title}
 					</Tag>
