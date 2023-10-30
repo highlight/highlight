@@ -2,14 +2,147 @@ package hubspot
 
 import (
 	"context"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
+	"strings"
 	"time"
 )
 
-func MergeSimilarCompanies(ctx context.Context, h *Client) error {
+type DoppelgangersPropertyVersion struct {
+	Name      string `json:"name"`
+	Source    string `json:"source"`
+	SourceID  string `json:"sourceId"`
+	SourceVid any    `json:"sourceVid"`
+	Timestamp int    `json:"timestamp"`
+	Value     string `json:"value"`
+}
+
+type DoppelgangersProperty struct {
+	PersistenceTimestamp *int                            `json:"persistenceTimestamp"`
+	Source               string                          `json:"source"`
+	SourceID             string                          `json:"sourceId"`
+	Timestamp            *int                            `json:"timestamp"`
+	UpdatedByUserID      *int                            `json:"updatedByUserId"`
+	Value                *string                         `json:"value"`
+	Versions             []*DoppelgangersPropertyVersion `json:"versions"`
+}
+
+type DoppelgangersObject struct {
+	ObjectType string                            `json:"objectType"`
+	ObjectID   int                               `json:"objectId"`
+	PortalID   int                               `json:"portalId"`
+	Properties map[string]*DoppelgangersProperty `json:"properties"`
+}
+
+type DoppelgangersResult struct {
+	FeedbackID      string  `json:"feedbackId"`
+	ID1             int     `json:"id1"`
+	ID2             int     `json:"id2"`
+	SimilarityScore float64 `json:"similarityScore"`
+}
+
+type DoppelgangersUserSavedPropertyOption struct {
+	DisplayOrder int    `json:"displayOrder"`
+	Hidden       bool   `json:"hidden"`
+	Label        string `json:"label"`
+	ReadOnly     bool   `json:"readOnly"`
+	Value        string `json:"value"`
+}
+
+type DoppelgangersUserSavedProperty struct {
+	ExternalOptionsReferenceType *string                                 `json:"externalOptionsReferenceType"`
+	FieldType                    string                                  `json:"fieldType"`
+	Hidden                       bool                                    `json:"hidden"`
+	HubspotDefined               bool                                    `json:"hubspotDefined"`
+	Label                        string                                  `json:"label"`
+	Name                         string                                  `json:"name"`
+	Type                         string                                  `json:"type"`
+	Options                      []*DoppelgangersUserSavedPropertyOption `json:"options"`
+}
+
+type DoppelgangersResponse struct {
+	Results             []*DoppelgangersResult            `json:"results"`
+	Objects             map[int]*DoppelgangersObject      `json:"objects"`
+	UserSavedProperties []*DoppelgangersUserSavedProperty `json:"userSavedProperties"`
+	HasMore             bool                              `json:"hasMore"`
+	Offset              int                               `json:"offset"`
+	Total               int                               `json:"total"`
+	LastScoredTimestamp int64                             `json:"lastScoredTimestamp"`
+}
+
+func getDoppelgangers(ctx context.Context) (results []*DoppelgangersResult, objects map[int]*DoppelgangersObject, err error) {
+	objects = make(map[int]*DoppelgangersObject)
+	for {
+		r := DoppelgangersResponse{}
+		if err = doRequest(ctx, "/doppelganger/v1/similar/company/resultPage", &r, []QSParam{
+			{key: "pageSize", value: "50"},
+			{key: "offset", value: strconv.Itoa(len(results))},
+			{key: "properties", value: "name"},
+			{key: "properties", value: "domain"},
+			{key: "properties", value: "hs_num_child_companies"},
+			{key: "properties", value: "hs_parent_company_id"},
+			{key: "properties", value: "hs_last_sales_activity_timestamp"},
+			{key: "properties", value: "createdate"},
+			{key: "properties", value: "hs_lastmodifieddate"},
+			{key: "portalId", value: "20473940"},
+		}, "GET", nil); err != nil {
+			return
+		} else {
+			for k, v := range r.Objects {
+				objects[k] = v
+			}
+			results = append(results, r.Results...)
+			if !r.HasMore {
+				break
+			}
+		}
+	}
+
+	for {
+		r := DoppelgangersResponse{}
+		if err = doRequest(ctx, "/doppelganger/v1/similar/contact/resultPage", &r, []QSParam{
+			{key: "pageSize", value: "50"},
+			{key: "offset", value: strconv.Itoa(len(results))},
+			{key: "properties", value: "firstname"},
+			{key: "properties", value: "lastname"},
+			{key: "properties", value: "email"},
+			{key: "properties", value: "jobtitle"},
+			{key: "properties", value: "hs_sequences_is_enrolled"},
+			{key: "properties", value: "hs_last_sales_activity_timestamp"},
+			{key: "properties", value: "createdate"},
+			{key: "properties", value: "lastmodifieddate"},
+			{key: "portalId", value: "20473940"},
+		}, "GET", nil); err != nil {
+			return
+		} else {
+			for k, v := range r.Objects {
+				objects[k] = v
+			}
+			results = append(results, r.Results...)
+			if !r.HasMore {
+				break
+			}
+		}
+	}
+	return
+}
+
+func mergeCompanies(keepID, mergeID int) error {
+	return doRequest(context.TODO(), fmt.Sprintf("/companies/v2/companies/%d/merge", keepID), nil, []QSParam{
+		{key: "portalId", value: "20473940"},
+	}, "PUT", strings.NewReader(fmt.Sprintf(`{"companyIdToMerge":%d}`, mergeID)))
+}
+
+func mergeContacts(keepID, mergeID int) error {
+	return doRequest(context.TODO(), fmt.Sprintf("/contacts/v1/contact/%d/merge", keepID), nil, []QSParam{
+		{key: "portalId", value: "20473940"},
+	}, "POST", strings.NewReader(fmt.Sprintf(`{"vidToMerge":%d}`, mergeID)))
+}
+
+func MergeSimilarCompanies(ctx context.Context) error {
 	time.Sleep(time.Second * 10)
-	results, objects, err := h.getDoppelgangers(ctx)
+	results, objects, err := getDoppelgangers(ctx)
 	if err != nil {
 		return err
 	}
@@ -20,16 +153,16 @@ func MergeSimilarCompanies(ctx context.Context, h *Client) error {
 		if c1.ObjectType == "COMPANY" && c2.ObjectType == "COMPANY" {
 			choice = compareCompanies(ctx, c1, c2)
 			if choice {
-				MergeCompanies(ctx, h, c1, c2)
+				MergeCompanies(ctx, c1, c2)
 			} else {
-				MergeCompanies(ctx, h, c2, c1)
+				MergeCompanies(ctx, c2, c1)
 			}
 		} else if c1.ObjectType == "CONTACT" && c2.ObjectType == "CONTACT" {
 			choice = compareContacts(ctx, c1, c2)
 			if choice {
-				MergeContacts(ctx, h, c1, c2)
+				MergeContacts(ctx, c1, c2)
 			} else {
-				MergeContacts(ctx, h, c2, c1)
+				MergeContacts(ctx, c2, c1)
 			}
 		} else {
 			log.WithContext(ctx).Warnf("invalid object types %+v %+v", *c1, *c2)
@@ -124,16 +257,16 @@ func compareCompanies(ctx context.Context, c1, c2 *DoppelgangersObject) bool {
 	}
 }
 
-func MergeCompanies(ctx context.Context, h *Client, keep, merge *DoppelgangersObject) {
+func MergeCompanies(ctx context.Context, keep, merge *DoppelgangersObject) {
 	log.WithContext(ctx).Infof("merging %d into %d", merge.ObjectID, keep.ObjectID)
-	if err := h.mergeCompanies(keep.ObjectID, merge.ObjectID); err != nil {
+	if err := mergeCompanies(keep.ObjectID, merge.ObjectID); err != nil {
 		log.WithContext(ctx).WithError(err).Errorf("failed to merge %d into %d", merge.ObjectID, keep.ObjectID)
 	}
 }
 
-func MergeContacts(ctx context.Context, h *Client, keep, merge *DoppelgangersObject) {
+func MergeContacts(ctx context.Context, keep, merge *DoppelgangersObject) {
 	log.WithContext(ctx).Infof("merging %d into %d", merge.ObjectID, keep.ObjectID)
-	if err := h.mergeContacts(keep.ObjectID, merge.ObjectID); err != nil {
+	if err := mergeContacts(keep.ObjectID, merge.ObjectID); err != nil {
 		log.WithContext(ctx).WithError(err).Errorf("failed to merge %d into %d", merge.ObjectID, keep.ObjectID)
 	}
 }
