@@ -5421,6 +5421,17 @@ body {
 .hqr513:active {
   color: #6f6e77;
 }
+@keyframes _5ouxf40 {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 ._17v45he0 {
   border-radius: 6px;
   border: var(--_1pyqka91o) solid 1px;
@@ -5755,6 +5766,12 @@ body {
   left: 0;
   width: calc(100% - 4px);
   pointer-events: none;
+}
+._155k3sw8 {
+  animation: _5ouxf40;
+  animation-duration: 1.25s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-out;
 }
 ._14ud0dc0::-webkit-scrollbar {
   width: 9px;
