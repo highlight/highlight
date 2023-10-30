@@ -10,7 +10,6 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ## Installation
 
 ```shell
-# with npm
 npm install @highlight-run/next
 ```
 
@@ -18,12 +17,13 @@ npm install @highlight-run/next
 
 This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../../3_client-sdk/1_reactjs.md)
 
-Add `<HighlightInit>` to `_app.tsx`.
+- Check out this example [environment variables](./7_advanced-config.md#environment-variables) set up for the `CONSTANTS` import.
+- Add `<HighlightInit>` to `_app.tsx`.
 
 ```jsx
 // pages/_app.tsx
 import { AppProps } from 'next/app'
-import CONSTANTS from '../app/constants'
+import { CONSTANTS } from '../constants'
 import { HighlightInit } from '@highlight-run/next/client'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -54,7 +54,7 @@ You can wrap the root of your app in `_app.tsx` with the `<ErrorBoundary />`, or
 
 
 ```jsx
-// error-boundary.tsx
+// components/error-boundary.tsx
 'use client'
 
 import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
@@ -78,9 +78,13 @@ Omit the `ErrorBoundary` wrapper if you haven't created it yet.
 
 
 ```jsx
+// pages/page-router-test.tsx
+// http://localhost:3000/page-router-test
 'use client'
+
 import { useEffect, useState } from 'react'
-import { ErrorBoundary } from 'error-boundary'
+
+import { ErrorBoundary } from '../components/error-boundary'
 
 export default function ErrorButtons() {
 	const [isErrored, setIsErrored] = useState(false)
@@ -103,13 +107,8 @@ export default function ErrorButtons() {
 					Throw client-side onClick error
 				</button>
 
-				<ThrowerOfErrors
-					isErrored={isErrored}
-					setIsErrored={setIsErrored}
-				/>
-				<button onClick={() => setIsErrored(true)}>
-					Trigger error boundary
-				</button>
+				<ThrowerOfErrors isErrored={isErrored} setIsErrored={setIsErrored} />
+				<button onClick={() => setIsErrored(true)}>Trigger error boundary</button>
 				<button
 					onClick={async () => {
 						throw new Error('an async error occurred')
@@ -148,12 +147,10 @@ These errors will display as client errors, even though we know that they're ser
 
 ```jsx
 // pages/_error.tsx
+import { PageRouterErrorProps, pageRouterCustomErrorHandler } from '@highlight-run/next/ssr'
+
+import { CONSTANTS } from '../constants'
 import NextError from 'next/error'
-import {
-	pageRouterCustomErrorHandler,
-	PageRouterErrorProps,
-} from '@highlight-run/next/ssr'
-import CONSTANTS from '@/app/constants'
 
 export default pageRouterCustomErrorHandler(
 	{
@@ -161,22 +158,22 @@ export default pageRouterCustomErrorHandler(
 		// ...otherHighlightOptions
 	},
 	/**
-	 * 
-	 * This second argument is purely optional. 
+	 *
+	 * This second argument is purely optional.
 	 * If you don't pass it, we'll use the default Next.js error page.
-	 * 
+	 *
 	 * Go ahead and pass in your own error page.
 	 */
 	(props: PageRouterErrorProps) => <NextError {...props} />,
 )
-
 ```
 
 ### Validate SSR error capture
 
 1. Copy the following code into `pages/page-router-isr.tsx`.
 2. Build and start your production app with `npm run build && npm run start`.
-3. Visit `http://localhost:3000/page-router-isr?error` to trigger the error.
+3. Visit http://localhost:3000/page-router-isr?error to trigger the error.
+4. Once you've validated that the error is caught and sent to `app.highlight.io`, don't forget to `ctrl + c` to kill `npm run start` and restart with `npm run dev`.
 
 ```jsx
 // pages/page-router-isr.tsx
@@ -191,7 +188,7 @@ export default function IsrPage({ date, random }: Props) {
 	const isError = router.asPath.includes('error')
 
 	if (isError) {
-		throw new Error('ISR Error: src/pages/page-router-isr.tsx')
+		throw new Error('ISR Error: pages/page-router-isr.tsx')
 	}
 
 	return (
@@ -225,25 +222,18 @@ In the case that you don't want local sessions sent to Highlight, the `excludedH
 Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
 
 ```jsx
-<HighlightInit
-	manualStart
-	projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-	serviceName="my-nextjs-frontend"
-/>
-<CustomHighlightStart />
-```
-
-```jsx
-// src/app/custom-highlight-start.tsx
+// components/custom-highlight-start.tsx
 'use client'
+
 import { H } from '@highlight-run/next/client'
+import { useEffect } from 'react'
 
 export function CustomHighlightStart() {
 	useEffect(() => {
 		const shouldStartHighlight = window.location.hostname === 'https://www.highlight.io'
 
 		if (shouldStartHighlight) {
-			H.start();
+			H.start()
 
 			return () => {
 				H.stop()
@@ -253,6 +243,16 @@ export function CustomHighlightStart() {
 
 	return null
 }
+```
+
+```jsx
+// pages/_app.tsx
+<HighlightInit
+	manualStart
+	projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+	serviceName="my-nextjs-frontend"
+/>
+<CustomHighlightStart />
 ```
 
 ## Related Steps

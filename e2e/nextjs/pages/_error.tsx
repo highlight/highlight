@@ -4,7 +4,7 @@ import {
 	pageRouterCustomErrorHandler,
 	PageRouterErrorProps,
 } from '@highlight-run/next/ssr'
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 
 export default pageRouterCustomErrorHandler(
 	{

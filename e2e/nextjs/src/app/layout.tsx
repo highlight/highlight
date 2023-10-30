@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 import './globals.css'
 
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 import { HighlightInit } from '@highlight-run/next/client'
 
 export const metadata = {

@@ -9,7 +9,6 @@ updatedAt: 2023-10-03T00:00:00.000Z
 ## Installation
 
 ```shell
-# with npm
 npm install @highlight-run/next
 ```
 
@@ -20,8 +19,8 @@ Edge runtime instrumentation is identical for both Page Router and App Router.
 1. Create a file to export your `EdgeHighlight` wrapper function:
 
 ```typescript
-// src/app/_utils/edge-highlight.config.ts:
-import CONSTANTS from '../constants'
+// utils/edge-highlight.config.ts:
+import { CONSTANTS } from '../../constants'
 import { EdgeHighlight } from '@highlight-run/next/server'
 
 export const withEdgeHighlight = EdgeHighlight({
@@ -34,15 +33,16 @@ export const withEdgeHighlight = EdgeHighlight({
 **Page Router**
 ```typescript
 // pages/api/edge-page-router-test.ts
-import { withEdgeHighlight } from '../../src/app/_utils/edge-highlight.config'
+import { NextRequest } from 'next/server'
+import { withEdgeHighlight } from '../../utils/edge-highlight.config.ts'
 
-export default withEdgeHighlight(async function GET() {
-	console.info('Here: /api/edge-page-router-test', request.url)
+export default withEdgeHighlight(async function GET(request: NextRequest) {
+	console.info('Here: pages/api/edge-page-router-test', request.url)
 
-	if (Math.random() < 0.2) {
-		return new Response('Success: /api/edge-page-router-test')
+	if (request.url.includes('error')) {
+		throw new Error('Error: pages/api/edge-page-router-test (Edge Runtime)')
 	} else {
-		throw new Error('Error: /api/edge-page-router-test (Edge Runtime)')
+		return new Response('Success: pages/api/edge-page-router-test')
 	}
 })
 
@@ -51,22 +51,21 @@ export const runtime = 'edge'
 
 **App Router**
 ```typescript
-// src/app/api/edge-app-router-test/route.ts
-import { NextRequest } from 'next/server';
-import { withEdgeHighlight } from '../../_utils/edge-highlight.config';
+// pages/api/edge-page-router-test.ts
+import { NextRequest } from 'next/server'
+import { withEdgeHighlight } from '../../utils/edge-highlight.config'
 
-export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
-	console.info('Here: /api/edge-app-router-test', request.url);
+export default withEdgeHighlight(async function GET(request: NextRequest) {
+	console.info('Here: pages/api/edge-page-router-test', request.url)
 
 	if (request.url.includes('error')) {
-		throw new Error('Error: /api/edge-app-router-test (Edge Runtime)');
+		throw new Error('Error: pages/api/edge-page-router-test (Edge Runtime)')
 	} else {
-		return new Response('Success: /api/edge-app-router-test');
+		return new Response('Success: pages/api/edge-page-router-test')
 	}
-});
+})
 
-export const runtime = 'edge';
-
+export const runtime = 'edge'
 ```
 
 ## Validation
