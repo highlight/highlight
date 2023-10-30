@@ -34,30 +34,11 @@ export const DemoModal = () => {
 			setError('Please use your work email')
 			return
 		}
-		analytics.identify(email, { demo: true })
+		analytics.identify(email, {
+			demo: true,
+			referral_url: window.location.href.split('?')[0],
+		})
 		analytics.track('demo-email-submit', { email })
-		window._hsq?.push([
-			'trackEvent',
-			{
-				id: 'Demo Email Submitted',
-				value: email,
-			},
-		])
-		window._hsq?.push([
-			'identify',
-			{
-				properties: [
-					{
-						property: 'email',
-						value: email,
-					},
-					{
-						property: 'referral_url',
-						value: window.location.href.split('?')[0],
-					},
-				],
-			},
-		])
 		setVisible(false)
 	}
 

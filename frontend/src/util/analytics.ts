@@ -20,6 +20,14 @@ const initialize = () => {
 }
 
 const track = (event: string, metadata?: rudderanalytics.apiObject) => {
+	;(window._hsq = window._hsq || []).push([
+		'trackCustomBehavioralEvent',
+		{
+			name: event,
+			properties: metadata,
+		},
+	])
+
 	H.track(event, metadata as Metadata)
 	rudderanalytics.track(event, metadata)
 }
