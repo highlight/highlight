@@ -57,7 +57,6 @@ require (
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
-	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/hashicorp/go-retryablehttp v0.7.4
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/highlight/sdk/highlight-go v0.9.8
@@ -231,7 +230,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.3 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
-	github.com/leonelquinteros/hubspot v0.1.0
 	github.com/nqd/flat v0.2.0
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
