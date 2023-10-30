@@ -283,12 +283,12 @@ func main() {
 		attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID()),
 		semconv.ServiceNameKey.String("gorm"),
 	}
-	if err := highlight.SetupGormTracingHooks(ctx, db, attrs); err != nil {
+	if err := highlight.SetupGormTracing(ctx, db, attrs); err != nil {
 		log.WithContext(ctx).Fatalf("Error setting up GORM tracing hooks: %v", err)
 	}
 
 	if util.IsDevEnv() {
-		// _, err := model.MigrateDB(ctx, db)
+		_, err := model.MigrateDB(ctx, db)
 
 		if err != nil {
 			log.WithContext(ctx).Fatalf("Error migrating DB: %v", err)

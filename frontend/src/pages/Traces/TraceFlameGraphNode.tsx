@@ -52,15 +52,14 @@ export const TraceFlameGraphNode = memo<Props>(
 		const offsetY = depth
 			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
-		// const isSelectedSpan = selectedSpan?.spanID === span.spanID
+		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
-		console.log('::: span', span.traceAttributes?.db?.system)
 		const backgroundColor =
 			(backgroundColorPalette as any)[span.traceAttributes?.db?.system] ??
 			backgroundColorPalette['all']
 		const fill = backgroundColor
 		const color = '#fff'
-		const stroke = error ? '#f00' : '#f9f8f9'
+		const stroke = isSelectedSpan ? '#000' : error ? '#f00' : '#f9f8f9'
 
 		return (
 			<>
