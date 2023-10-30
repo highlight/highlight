@@ -40,6 +40,24 @@ export const PlayerModeSwitch: React.FC = () => {
 				placement="bottom"
 				trigger={
 					<ButtonIcon
+						icon={<IconSolidInspect />}
+						kind={mode === 'inspect' ? 'primary' : 'secondary'}
+						emphasis={mode === 'inspect' ? 'high' : 'low'}
+						size="xSmall"
+						onClick={() => {
+							setEnableInspectElement(true)
+							setRightPanelView(RightPanelView.Event)
+						}}
+					/>
+				}
+				delayed
+			>
+				<KeyboardShortcut label="Enable inspect mode" shortcut="d" />
+			</Tooltip>
+			<Tooltip
+				placement="bottom"
+				trigger={
+					<ButtonIcon
 						icon={<IconSolidChatAlt_2 />}
 						kind={mode === 'comment' ? 'primary' : 'secondary'}
 						emphasis={mode === 'comment' ? 'high' : 'low'}
@@ -54,24 +72,6 @@ export const PlayerModeSwitch: React.FC = () => {
 				delayed
 			>
 				<KeyboardShortcut label="Enable comment mode" shortcut="c" />
-			</Tooltip>
-			<Tooltip
-				placement="bottom"
-				trigger={
-					<ButtonIcon
-						icon={<IconSolidInspect />}
-						kind={mode === 'inspect' ? 'primary' : 'secondary'}
-						emphasis={mode === 'inspect' ? 'high' : 'low'}
-						size="xSmall"
-						onClick={() => {
-							setEnableInspectElement(true)
-							setShowRightPanel(false)
-						}}
-					/>
-				}
-				delayed
-			>
-				<KeyboardShortcut label="Enable inspect mode" shortcut="d" />
 			</Tooltip>
 		</Stack>
 	)
