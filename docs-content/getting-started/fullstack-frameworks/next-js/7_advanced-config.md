@@ -104,6 +104,12 @@ module.exports = withHighlightConfig(nextConfig)
 
 4. Wrap your `nextConfig` with `withHighlightConfig`. `apiKey` is unnecessary if you have `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` in your environment variables.
 
+5. Run `npm run build && npm run start` to test. Your logs should show files uploading like so:
+
+```
+Uploaded /root/dev/highlight/next-test/.next/server/pages/index.js
+```
+
 ```javascript
 // next.config.js
 const { withHighlightConfig } = require('@highlight-run/next/config')
