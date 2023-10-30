@@ -38,7 +38,6 @@ export const TraceFlameGraphNode = memo<Props>(
 		zoom,
 		setTooltipCoordinates,
 	}) => {
-		width = width - outsidePadding * 2
 		const {
 			errors,
 			totalDuration,
