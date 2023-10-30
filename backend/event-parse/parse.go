@@ -119,7 +119,7 @@ func (n networkFetcher) fetchStylesheetData(href string, s *Snapshot) ([]byte, e
 
 	resp, err := http.Get(href)
 	if err != nil {
-		return nil, errors.Wrap(err, "error fetching styles")
+		return nil, errors.Wrapf(err, "error fetching styles from %s", href)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
@@ -324,7 +324,7 @@ func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
 }
 
 // InjectStylesheets injects custom stylesheets into a given snapshot event.
-func (s *Snapshot) InjectStylesheets() error {
+func (s *Snapshot) InjectStylesheets(ctx context.Context) error {
 	node, ok := s.data["node"].(map[string]interface{})
 	if !ok {
 		return errors.New("error converting to node")
@@ -390,6 +390,7 @@ func (s *Snapshot) InjectStylesheets() error {
 		}
 		data, err := fetch.fetchStylesheetData(href, s)
 		if err != nil {
+			log.WithContext(ctx).Error(err)
 			continue
 		}
 		if len(data) <= 0 {

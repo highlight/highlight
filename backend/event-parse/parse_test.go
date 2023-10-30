@@ -155,7 +155,7 @@ func TestInjectStyleSheets(t *testing.T) {
 	}
 
 	// Pass sample set to `injectStylesheets` and convert to interface.
-	err = snapshot.InjectStylesheets()
+	err = snapshot.InjectStylesheets(context.TODO())
 	if err != nil {
 		t.Fatalf("error injecting: %v", err)
 	}
