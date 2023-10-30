@@ -36,8 +36,8 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 	;(window._hsq = window._hsq || []).push([
 		'identify',
 		{
+			email,
 			...traits,
-			email: email,
 		},
 	])
 

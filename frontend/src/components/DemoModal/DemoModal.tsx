@@ -37,6 +37,7 @@ export const DemoModal = () => {
 		analytics.identify(email, {
 			demo: true,
 			referral_url: window.location.href.split('?')[0],
+			event: 'demo-email-submit',
 		})
 		analytics.track('demo-email-submit', { email })
 		setVisible(false)
