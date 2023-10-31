@@ -164,7 +164,6 @@ const H: HighlightPublicInterface = {
 				script.setAttribute('src', scriptSrc)
 				script.setAttribute('type', 'text/javascript')
 				script.setAttribute('defer', '')
-				document.getElementsByTagName('head')[0].appendChild(script)
 				script.addEventListener('load', () => {
 					const startFunction = () => {
 						highlight_obj = new window.HighlightIO(
@@ -187,6 +186,7 @@ const H: HighlightPublicInterface = {
 						}, READY_WAIT_LOOP_MS)
 					}
 				})
+				document.getElementsByTagName('head')[0].appendChild(script)
 			})
 
 			if (
