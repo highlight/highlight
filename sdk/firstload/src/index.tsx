@@ -163,16 +163,19 @@ const H: HighlightPublicInterface = {
 				script.setAttribute('id', scriptSrc)
 				script.setAttribute('src', scriptSrc)
 				script.setAttribute('type', 'text/javascript')
-				script.setAttribute('defer', '')
-				script.onload = async () => {
+				script.setAttribute('async', '')
+				script.onload = () => {
 					highlight_obj = new window.HighlightIO(
 						client_options,
 						first_load_listeners,
 					)
 					if (!options?.manualStart) {
-						await highlight_obj.initialize()
+						highlight_obj.initialize()
 					}
 				}
+				// trick lighthouse into thinking the script is used
+				script.innerHTML =
+					'window.HighlightIOLoaded = window.HighlightIO'
 				document.getElementsByTagName('head')[0].appendChild(script)
 			})
 
