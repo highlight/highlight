@@ -18,15 +18,49 @@ type Props = {
 	setTooltipCoordinates: (e: React.MouseEvent) => void
 }
 
-const backgroundColorPalette = {
-	all: '#744ed4',
-	frontend: '#b50006',
-	clickhouse: '#265cff',
-	postgresql: '#f25100',
+type ThemeKey = 'purple' | 'red' | 'green' | 'yellow'
+
+const spanThemes: {
+	[key in ThemeKey]: {
+		background: string
+		border: string
+		color: string
+		selectedBackend: string
+		selectedColor: string
+	}
+} = {
+	purple: {
+		background: '#e7defc',
+		border: '#6346af',
+		color: '#6346af',
+		selectedBackend: '#6346af',
+		selectedColor: '#fff',
+	},
+	red: {
+		background: '#fdd8d8',
+		border: '#cd2b31',
+		color: '#cd2b31',
+		selectedBackend: '#cd2b31',
+		selectedColor: '#fff',
+	},
+	green: {
+		background: '#ccebd7',
+		border: '#30a46c',
+		color: '#18794E',
+		selectedBackend: '#30a46c',
+		selectedColor: '#fff',
+	},
+	yellow: {
+		background: '#ffe3a2',
+		border: '#ffb224',
+		color: '#ad5700',
+		selectedBackend: '#ad5700',
+		selectedColor: '#fff',
+	},
 }
 
 const minWidthToDisplayText = 20
-const fontSize = 10
+const fontSize = 12
 
 export const TraceFlameGraphNode = memo<Props>(
 	({
@@ -53,12 +87,18 @@ export const TraceFlameGraphNode = memo<Props>(
 			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const error = errors.find((error) => error.span_id === span.spanID)
-		const backgroundColor =
-			(backgroundColorPalette as any)[span.traceAttributes?.db?.system] ??
-			backgroundColorPalette['all']
-		const fill = backgroundColor
-		const color = '#fff'
-		const stroke = isSelectedSpan ? '#000' : error ? '#f00' : '#f9f8f9'
+		const isDbSpan = !!span.traceAttributes?.db?.system
+		const isFrontendSpan =
+			span.traceAttributes?.highlight?.type === 'http.request'
+		const themeName = isDbSpan
+			? 'yellow'
+			: isFrontendSpan
+			? 'green'
+			: 'purple'
+		const theme = spanThemes[themeName] ?? spanThemes['purple']
+		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
+		const color = isSelectedSpan ? theme.selectedColor : theme.color
+		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
 
 		return (
 			<>
