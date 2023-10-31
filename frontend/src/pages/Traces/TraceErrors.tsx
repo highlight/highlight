@@ -1,17 +1,21 @@
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui'
 import moment from 'moment'
 import React from 'react'
 
 import { LinkButton } from '@/components/LinkButton'
-import { TraceError } from '@/graph/generated/schemas'
+import { useTrace } from '@/pages/Traces/TraceProvider'
 
-type Props = {
-	errors: TraceError[]
-}
+export const TraceErrors: React.FC = () => {
+	const { errors } = useTrace()
 
-export const TraceErrors: React.FC<Props> = ({ errors }) => {
 	if (!errors.length) {
-		return <Box>No errors...</Box>
+		return (
+			<Box mt="10" mx="auto" style={{ maxWidth: 300 }}>
+				<Callout title="No errors">
+					<Text>There are no errors associated with this trace.</Text>
+				</Callout>
+			</Box>
+		)
 	}
 
 	return (

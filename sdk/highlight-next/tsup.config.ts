@@ -8,6 +8,8 @@ export default defineConfig({
 		'src/server.ts',
 	],
 	format: ['cjs', 'esm'],
+	target: 'es6',
+	minify: 'terser',
 	dts: true,
 	sourcemap: true,
 	noExternal: [],

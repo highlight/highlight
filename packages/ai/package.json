@@ -1,5 +1,5 @@
 {
-	"name": "ai",
+	"name": "@highlight-run/ai",
 	"packageManager": "yarn@3.5.0",
 	"private": true,
 	"scripts": {

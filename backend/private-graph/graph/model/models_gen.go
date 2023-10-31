@@ -836,6 +836,7 @@ type Trace struct {
 	SpanName        string                 `json:"spanName"`
 	SpanKind        string                 `json:"spanKind"`
 	Duration        int                    `json:"duration"`
+	StartTime       int                    `json:"startTime"`
 	ServiceName     string                 `json:"serviceName"`
 	ServiceVersion  string                 `json:"serviceVersion"`
 	TraceAttributes map[string]interface{} `json:"traceAttributes"`

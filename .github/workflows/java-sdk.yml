@@ -83,7 +83,7 @@ jobs:
                   # Get latest tag version
                   version=$(git describe --match "sdk/highlight-java/v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1) | cut -d "v" -f3)
 
-                  # Returning version 0.0.0 when no git tag was found
+                  # Returning default when no git tag was found
                   version=$(if [ "$version" != "" ]; then echo $version; else echo "0.0.0"; fi)
 
                   # Adding github runner number only when no deployment is running
@@ -186,7 +186,7 @@ jobs:
                   gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
             - name: Publish to the Maven Central Repository
-              run: mvn clean deploy --batch-mode --no-transfer-progress -Drevision=${{needs.setup.outputs.version}}
+              run: mvn clean deploy --no-transfer-progress -Drevision=${{needs.setup.outputs.version}}
               env:
                   MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
                   MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
+	"golang.org/x/exp/slices"
 
 	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"
@@ -240,8 +241,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	sb.From("traces").
 		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
 		Where(sb.Equal("ProjectId", projectID)).
-		Where(sb.Equal("TraceId", traceID)).
-		OrderBy("Timestamp ASC")
+		Where(sb.Equal("TraceId", traceID))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -284,7 +284,12 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 		})
 	}
 
-	rows.Close()
+	// Order by timestamp
+	// Doing this in code rather than Clickhouse so Clickhouse will use the `traceId` projection
+	slices.SortFunc(traces, func(a *modelInputs.Trace, b *modelInputs.Trace) bool {
+		return a.Timestamp.Before(b.Timestamp)
+	})
+
 	span.Finish(rows.Err())
 
 	return traces, rows.Err()

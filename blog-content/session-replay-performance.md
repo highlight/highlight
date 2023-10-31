@@ -11,12 +11,10 @@ authorGithub: 'https://github.com/Abhishek-More'
 authorWebsite: 'https://abhishekmore.com'
 authorPFP: 'https://tamuhack.org/static/th-2022/headshots/webp/abhishek.webp'
 tags: Highlight Engineering
-metaTitle: The Overhead of Session Replay 
+metaTitle: An open-source session replay benchmark
 ---
 
-Replaying user sessions is useful for analyzing performance regressions and understanding how users interact with your site. At highlight.io, our core product is an open-source session replay tool built on [rrweb](https://github.com/rrweb-io/rrweb). 
-
-One obvious question, though, is about the performance implications of using such a tool on your site. After all, additional computation must happen to record dom interactions.
+Replaying user sessions is useful for analyzing performance regressions and understanding how users interact with your site. At highlight.io, our core product is an open-source session replay tool built on [rrweb](https://github.com/rrweb-io/rrweb). One obvious question, though, is about the performance implications of using such a tool on your site. After all, additional computation must happen to record dom interactions.
 
 In this post, we'll discuss the overhead of session replay with respect to resource consumption and interaction latency in several scenarios.
 
@@ -26,11 +24,12 @@ It is important to note that we did not measure SEO-esque metrics such as Web Vi
 
 If you’re interested in reproducing the experiment detailed below or want to learn more about how it works, you can find it [here](https://github.com/highlight/session-replay-performance-benchmark).
 
+
 ## The Setup
 
 To test session replay against a realistic web application, we created two applications that go hand in hand: A simple [React application](https://github.com/highlight/session-replay-performance-benchmark/tree/main/replay-perf-app) and a [Node.JS application](https://github.com/highlight/session-replay-performance-benchmark/tree/main/replay-perf-puppet) which automates and profiles interactions.
 
-The React application accepts URL parameters which determine the number of elements to render in a list, with an optional parameter to enable session replay. When enabled, we would start [rrweb recording](https://github.com/rrweb-io/rrweb), the open-source session replay library adopted by companies such as Highlight, PostHog and Datadog, to produce the session events needed to replay the session.
+The React application accepts URL parameters which determine the number of elements to render in a list, with an optional parameter to enable session replay. When enabled, we would start recording using [rrweb](https://github.com/rrweb-io/rrweb) (the open-source library used by several companies, [Highlight](https://highlight.io) included).
 
 ```
 import { record } from ‘rrweb’;

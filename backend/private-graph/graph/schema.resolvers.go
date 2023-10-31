@@ -48,7 +48,6 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -416,25 +415,6 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Phone = pointy.String("")
 	admin.AboutYouDetailsFilled = &model.T
 
-	if util.IsHubspotEnabled() {
-		err := r.HubspotApi.CreateContactForAdmin(
-			ctx,
-			admin.ID,
-			*admin.Email,
-			*admin.UserDefinedRole,
-			*admin.UserDefinedPersona,
-			*admin.UserDefinedTeamSize,
-			*admin.HeardAbout,
-			*admin.FirstName,
-			*admin.LastName,
-			*admin.Phone,
-			*admin.Referral,
-		)
-		if err != nil {
-			log.WithContext(ctx).Error(err, "error creating hubspot contact")
-		}
-	}
-
 	phonehome.ReportAdminAboutYouDetails(ctx, admin)
 	if err := r.DB.Save(admin).Error; err != nil {
 		return false, err
@@ -504,18 +484,6 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 
 	if err := r.DB.Create(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error creating workspace")
-	}
-
-	if util.IsHubspotEnabled() {
-		// For the first admin in a workspace, we explicitly create the association if the hubspot company creation succeeds.
-		if err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
-			log.WithContext(ctx).Error(err, "error creating hubspot company")
-		}
-
-		// associate admin and workspace
-		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
-			log.WithContext(ctx).Error(err, "error associating hubspot contact and company")
-		}
 	}
 
 	c := &stripe.Customer{}
@@ -765,20 +733,6 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfErrorGroupsViewed: &totalErrorGroupCountAsInt}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating error group count for admin in postgres"))
 		}
-		if util.IsHubspotEnabled() {
-			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
-				Name:     "number_of_highlight_error_groups_viewed",
-				Property: "number_of_highlight_error_groups_viewed",
-				Value:    totalErrorGroupCountAsInt,
-			}}); err != nil {
-				log.WithContext(ctx).
-					WithError(err).
-					WithField("admin_id", admin.ID).
-					WithField("value", totalErrorGroupCountAsInt).
-					Error("error updating error group count for admin in hubspot")
-			}
-			log.WithContext(ctx).Infof("succesfully added to total error group count for admin [%v], who just viewed error group [%v]", admin.ID, eg.ID)
-		}
 		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
 			attribute.Int(phonehome.ErrorViewCount, totalErrorGroupCountAsInt),
 		})
@@ -845,20 +799,6 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfSessionsViewed: &totalSessionCountAsInt}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session count for admin in postgres"))
 		}
-		if util.IsHubspotEnabled() {
-			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
-				Name:     "number_of_highlight_sessions_viewed",
-				Property: "number_of_highlight_sessions_viewed",
-				Value:    totalSessionCountAsInt,
-			}}); err != nil {
-				log.WithContext(ctx).
-					WithError(err).
-					WithField("admin_id", admin.ID).
-					WithField("value", totalSessionCountAsInt).
-					Error("error updating session count for admin in hubspot")
-			}
-			log.WithContext(ctx).Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
-		}
 		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
 			attribute.Int(phonehome.SessionViewCount, totalSessionCountAsInt),
 		})
@@ -923,6 +863,18 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, err
 	}
 
+	if role != model.AdminRole.ADMIN && role != model.AdminRole.MEMBER {
+		return nil, e.Errorf("invalid role %s", role)
+	}
+
+	// If the new invite is for an admin role, the inviter must be an admin
+	if role == model.AdminRole.ADMIN {
+		err := r.validateAdminRole(ctx, workspaceID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
 
 	if err := r.DB.Create(inviteLink).Error; err != nil {
@@ -935,23 +887,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 
 // AddAdminToWorkspace is the resolver for the addAdminToWorkspace field.
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
-	adminID, err := r.addAdminMembership(ctx, workspaceID, inviteID)
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "failed to add admin to workspace"))
-		return adminID, err
-	}
-	if adminID != nil {
-		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(
-				err,
-				"error creating association between hubspot records with admin ID [%v] and workspace ID [%v]",
-				*adminID,
-				workspaceID,
-			))
-		}
-	}
-
-	return adminID, nil
+	return r.addAdminMembership(ctx, workspaceID, inviteID)
 }
 
 // DeleteInviteLinkFromWorkspace is the resolver for the deleteInviteLinkFromWorkspace field.
@@ -2767,7 +2703,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		ID:                   newAlert.ID,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/errors",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -2863,7 +2799,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		ID:                   errorAlertID,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/errors",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -2896,7 +2832,7 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 		ID:                   errorAlertID,
 		Project:              project,
 		IncludeEditLink:      false,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/errors",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3039,7 +2975,7 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 		ID:                   id,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/session",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3072,7 +3008,7 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 		ID:                   sessionAlert.ID,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/session",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3106,7 +3042,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 		ID:                   sessionAlertID,
 		Project:              project,
 		IncludeEditLink:      false,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/session",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3220,7 +3156,7 @@ func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id
 		ID:                   id,
 		Project:              project,
 		IncludeEditLink:      false,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/logs",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -7422,20 +7358,6 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		if err := r.DB.Where(admin).Updates(&model.Admin{NumberOfLogsViewed: &totalLogCountAsInt}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating log count for admin in postgres"))
 		}
-		if util.IsHubspotEnabled() {
-			if err := r.HubspotApi.UpdateContactProperty(ctx, admin.ID, []hubspot.Property{{
-				Name:     "number_of_highlight_logs_viewed",
-				Property: "number_of_highlight_logs_viewed",
-				Value:    totalLogCountAsInt,
-			}}); err != nil {
-				log.WithContext(ctx).
-					WithError(err).
-					WithField("admin_id", admin.ID).
-					WithField("value", totalLogCountAsInt).
-					Error("error updating log count for admin in hubspot")
-			}
-			log.WithContext(ctx).Infof("succesfully added to total log count for admin [%v], who just viewed log", admin.ID)
-		}
 		phonehome.ReportUsageMetrics(ctx, phonehome.AdminUsage, admin.ID, []attribute.KeyValue{
 			attribute.Int(phonehome.LogViewCount, totalLogCountAsInt),
 		})
@@ -7709,6 +7631,19 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 		Find(&errors).Error
 	if err != nil {
 		return nil, err
+	}
+
+	traceStartTime := trace[0].Timestamp
+	for _, span := range trace {
+		if span.Timestamp.Before(traceStartTime) {
+			traceStartTime = span.Timestamp
+		}
+	}
+
+	// Assigning this on the server since we can't parse timestamp to a date with
+	// nanosecond precision in JavaScript.
+	for _, span := range trace {
+		span.StartTime = int(span.Timestamp.UnixNano() - traceStartTime.UnixNano())
 	}
 
 	return &modelInputs.TracePayload{

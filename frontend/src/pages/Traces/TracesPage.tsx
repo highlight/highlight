@@ -1,7 +1,7 @@
 import { Box, defaultPresets, Text } from '@highlight-run/ui'
 import _ from 'lodash'
 import moment from 'moment'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -26,7 +26,11 @@ import {
 	useGetTracesMetricsQuery,
 	useGetTracesQuery,
 } from '@/graph/generated/hooks'
-import { SortDirection, TracesMetricType } from '@/graph/generated/schemas'
+import {
+	SortDirection,
+	Trace,
+	TracesMetricType,
+} from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
@@ -34,6 +38,8 @@ import { TracesList } from '@/pages/Traces/TracesList'
 import { formatNumber } from '@/util/numbers'
 
 import * as styles from './TracesPage.css'
+
+export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
@@ -120,6 +126,14 @@ export const TracesPage: React.FC = () => {
 				break
 		}
 	})
+
+	const outletContext = useMemo<TracesOutletContext>(() => {
+		if (!data?.traces) {
+			return []
+		}
+
+		return data.traces.edges.map((edge) => edge.node)
+	}, [data?.traces])
 
 	return (
 		<>
@@ -208,7 +222,7 @@ export const TracesPage: React.FC = () => {
 				</Box>
 			</Box>
 
-			<Outlet />
+			<Outlet context={outletContext} />
 		</>
 	)
 }

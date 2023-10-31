@@ -87,7 +87,7 @@ func TestMain(m *testing.M) {
 		DB:               db,
 		TDB:              timeseries.New(context.TODO()),
 		Redis:            redisClient,
-		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}),
+		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
 	}

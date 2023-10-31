@@ -5,6 +5,11 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/highlight-run/highlight/backend/integrations"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -14,10 +19,6 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"strings"
-	"testing"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -139,7 +140,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 		producer := MockKafkaProducer{}
 		resolver := &public.Resolver{
 			Redis:         red,
-			Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer),
+			Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
 			ProducerQueue: &producer,
 			BatchedQueue:  &producer,
 			TracesQueue:   &producer,

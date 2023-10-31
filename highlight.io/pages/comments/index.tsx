@@ -53,7 +53,7 @@ const Comments: NextPage = () => {
 									Get Started For Free
 								</PrimaryButton>
 								<PrimaryLink href="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call">
-									Request A Demo
+									Request A Demo Call
 								</PrimaryLink>
 							</div>
 						</div>

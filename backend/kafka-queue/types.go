@@ -5,8 +5,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/leonelquinteros/hubspot"
-
 	"github.com/highlight-run/highlight/backend/clickhouse"
 
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -27,11 +25,11 @@ const (
 	AddSessionFeedback                     PayloadType = iota
 	PushLogs                               PayloadType = iota
 	PushTraces                             PayloadType = iota
-	HubSpotCreateContactForAdmin           PayloadType = iota
-	HubSpotCreateCompanyForWorkspace       PayloadType = iota
-	HubSpotUpdateContactProperty           PayloadType = iota
-	HubSpotUpdateCompanyProperty           PayloadType = iota
-	HubSpotCreateContactCompanyAssociation PayloadType = iota
+	HubSpotCreateContactForAdmin           PayloadType = iota // Deprecated: noop
+	HubSpotCreateCompanyForWorkspace       PayloadType = iota // Deprecated: noop
+	HubSpotUpdateContactProperty           PayloadType = iota // Deprecated: noop
+	HubSpotUpdateCompanyProperty           PayloadType = iota // Deprecated: noop
+	HubSpotCreateContactCompanyAssociation PayloadType = iota // Deprecated: noop
 	SessionDataSync                        PayloadType = iota
 	ErrorGroupDataSync                     PayloadType = iota
 	ErrorObjectDataSync                    PayloadType = iota
@@ -116,40 +114,6 @@ type PushTracesArgs struct {
 	TraceRow *clickhouse.TraceRow
 }
 
-type HubSpotCreateContactForAdminArgs struct {
-	AdminID             int
-	Email               string
-	UserDefinedRole     string
-	UserDefinedPersona  string
-	UserDefinedTeamSize string
-	HeardAbout          string
-	First               string
-	Last                string
-	Phone               string
-	Referral            string
-}
-
-type HubSpotCreateCompanyForWorkspaceArgs struct {
-	WorkspaceID int
-	AdminEmail  string
-	Name        string
-}
-
-type HubSpotUpdateContactPropertyArgs struct {
-	AdminID    int
-	Properties []hubspot.Property
-}
-
-type HubSpotUpdateCompanyPropertyArgs struct {
-	WorkspaceID int
-	Properties  []hubspot.Property
-}
-
-type HubSpotCreateContactCompanyAssociationArgs struct {
-	AdminID     int
-	WorkspaceID int
-}
-
 type SessionDataSyncArgs struct {
 	SessionID int
 }
@@ -163,28 +127,23 @@ type ErrorObjectDataSyncArgs struct {
 }
 
 type Message struct {
-	Type                                   PayloadType
-	Failures                               int
-	MaxRetries                             int
-	KafkaMessage                           *kafka.Message                              `json:",omitempty"`
-	PushPayload                            *PushPayloadArgs                            `json:",omitempty"`
-	InitializeSession                      *InitializeSessionArgs                      `json:",omitempty"`
-	IdentifySession                        *IdentifySessionArgs                        `json:",omitempty"`
-	AddTrackProperties                     *AddTrackPropertiesArgs                     `json:",omitempty"`
-	AddSessionProperties                   *AddSessionPropertiesArgs                   `json:",omitempty"`
-	PushBackendPayload                     *PushBackendPayloadArgs                     `json:",omitempty"`
-	PushMetrics                            *PushMetricsArgs                            `json:",omitempty"`
-	AddSessionFeedback                     *AddSessionFeedbackArgs                     `json:",omitempty"`
-	PushLogs                               *PushLogsArgs                               `json:",omitempty"`
-	PushTraces                             *PushTracesArgs                             `json:",omitempty"`
-	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs           `json:",omitempty"`
-	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs       `json:",omitempty"`
-	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs           `json:",omitempty"`
-	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs           `json:",omitempty"`
-	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs `json:",omitempty"`
-	SessionDataSync                        *SessionDataSyncArgs                        `json:",omitempty"`
-	ErrorGroupDataSync                     *ErrorGroupDataSyncArgs                     `json:",omitempty"`
-	ErrorObjectDataSync                    *ErrorObjectDataSyncArgs                    `json:",omitempty"`
+	Type                 PayloadType
+	Failures             int
+	MaxRetries           int
+	KafkaMessage         *kafka.Message            `json:",omitempty"`
+	PushPayload          *PushPayloadArgs          `json:",omitempty"`
+	InitializeSession    *InitializeSessionArgs    `json:",omitempty"`
+	IdentifySession      *IdentifySessionArgs      `json:",omitempty"`
+	AddTrackProperties   *AddTrackPropertiesArgs   `json:",omitempty"`
+	AddSessionProperties *AddSessionPropertiesArgs `json:",omitempty"`
+	PushBackendPayload   *PushBackendPayloadArgs   `json:",omitempty"`
+	PushMetrics          *PushMetricsArgs          `json:",omitempty"`
+	AddSessionFeedback   *AddSessionFeedbackArgs   `json:",omitempty"`
+	PushLogs             *PushLogsArgs             `json:",omitempty"`
+	PushTraces           *PushTracesArgs           `json:",omitempty"`
+	SessionDataSync      *SessionDataSyncArgs      `json:",omitempty"`
+	ErrorGroupDataSync   *ErrorGroupDataSyncArgs   `json:",omitempty"`
+	ErrorObjectDataSync  *ErrorObjectDataSyncArgs  `json:",omitempty"`
 }
 
 type PartitionMessage struct {

@@ -14097,6 +14097,7 @@ export const GetTraceDocument = gql`
 				serviceName
 				serviceVersion
 				traceAttributes
+				startTime
 				statusCode
 				statusMessage
 			}

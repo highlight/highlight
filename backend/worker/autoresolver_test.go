@@ -30,7 +30,7 @@ func createAutoResolver() *AutoResolver {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store := store.NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})
+	store := store.NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)
 	return NewAutoResolver(store, db)
 }
 

@@ -3,14 +3,15 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/highlight-run/highlight/backend/queryparser"
-	"github.com/samber/lo"
 	"os"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/queryparser"
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -18,7 +19,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	_, err := setupClickhouseTestDB()
+	_, err := SetupClickhouseTestDB()
 	if err != nil {
 		panic("Failed to setup clickhouse test database")
 	}

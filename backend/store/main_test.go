@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -21,13 +22,18 @@ var store *Store
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
-	var err error
+
 	db, err := util.CreateAndMigrateTestDB(dbName)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store = NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})
+	clickhouseClient, err := clickhouse.SetupClickhouseTestDB()
+	if err != nil {
+		testLogger.Error(e.Wrap(err, "error creating clickhouse test db"))
+	}
+
+	store = NewStore(db, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, clickhouseClient)
 	code := m.Run()
 	os.Exit(code)
 }

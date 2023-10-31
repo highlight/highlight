@@ -35,24 +35,23 @@ const ErrorTag = React.memo(
 					shape="basic"
 					lines="1"
 				>
-					<Text>
-						{errorGroup.serviceName && errorGroup.serviceName != ''
-							? errorGroup.serviceName
-							: errorGroup.type}
-					</Text>
+					{errorGroup.serviceName && errorGroup.serviceName != ''
+						? errorGroup.serviceName
+						: errorGroup.type}
 				</Tag>
 
 				<IconSolidCheveronRight />
-				{errorGroup?.error_tag?.title ? (
+				{errorGroup?.error_tag?.title && (
 					<Tag
 						shape="basic"
 						kind="secondary"
 						emphasis="medium"
 						iconLeft={<IconSolidDesktopComputer size={12} />}
+						lines="1"
 					>
-						<Text>{errorGroup.error_tag.title}</Text>
+						{errorGroup.error_tag.title}
 					</Tag>
-				) : null}
+				)}
 				<Text size="small" weight="medium" color="moderate" lines="1">
 					{getProjectPrefix(projectData?.project)}-{errorGroup.id}
 				</Text>

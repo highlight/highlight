@@ -1,5 +1,25 @@
 # @highlight-run/node
 
+## 3.5.1
+
+### Patch Changes
+
+-   Updated dependencies [7b931c336]
+-   Updated dependencies [b03039b6b]
+-   Updated dependencies [be3f51f45]
+    -   highlight.run@8.1.0
+
+## 3.5.0
+
+### Minor Changes
+
+-   4607eae20: fix es module build for @highlight-run/node by switching to rollup for proper opentelemetry dependency bundling
+
+### Patch Changes
+
+-   Updated dependencies [e7fa17ac7]
+    -   highlight.run@8.0.1
+
 ## 3.4.4
 
 ### Patch Changes

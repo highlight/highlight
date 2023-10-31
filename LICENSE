@@ -1,3 +1,12 @@
+Copyright (c) 2020-2023 Highlight Inc.
+
+Portions of this software are licensed as follows:
+
+* All content that resides under the "highlight.io/" directory of this repository, if that directory exists, is licensed under the license defined in "highlight.io/LICENSE".
+* All content that resides under the "enterprise/" directory of this repository, if that directory exists, is licensed under the license defined in "enterprise/LICENSE".
+* All third party components incorporated into the Highlight Inc. Software are licensed under the original license provided by the owner of the applicable component.
+* Content outside of the above mentioned directories or restrictions above is available under the "Apache" license as defined below.
+
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/

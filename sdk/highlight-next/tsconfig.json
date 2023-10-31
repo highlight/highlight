@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"declaration": true,
+		"declarationMap": true,
 		"declarationDir": "dist",
 		"emitDeclarationOnly": true,
 		"forceConsistentCasingInFileNames": true,

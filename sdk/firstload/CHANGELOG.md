@@ -1,5 +1,22 @@
 # highlight.run
 
+## 8.1.0
+
+### Minor Changes
+
+-   b03039b6b: Adds support for `requestResponseSanitizer` to allow users to modify data from the request/response headers and body, as well as prevent the entire request/response from being logged.
+
+### Patch Changes
+
+-   7b931c336: ensure canvas recording works with auto snapshotting by default if no samplingStrategy is set
+-   be3f51f45: Adding .js file extensions to support NodeNext module resolution in TypeScript
+
+## 8.0.1
+
+### Patch Changes
+
+-   e7fa17ac7: make H.init({forceNew: true}) reset the user identifier of the new session
+
 ## 8.0.0
 
 ### Major Changes

@@ -19,15 +19,19 @@ import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
+import { useProjectId } from '@/hooks/useProjectId'
 import { NetworkResourceErrors } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceErrors'
 import { NetworkResourceInfo } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceInfo'
 import { NetworkResourceLogs } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceLogs'
 import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
+import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
+import { TraceProvider, useTrace } from '@/pages/Traces/TraceProvider'
+import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 
 import * as styles from './NetworkResourcePanel.css'
 
@@ -35,6 +39,7 @@ enum NetworkRequestTabs {
 	Info = 'Info',
 	Errors = 'Errors',
 	Logs = 'Logs',
+	Trace = 'Trace',
 }
 
 enum WebSocketTabs {
@@ -43,6 +48,7 @@ enum WebSocketTabs {
 }
 
 export const NetworkResourcePanel = () => {
+	const { projectId } = useProjectId()
 	const networkResourceDialog = Ariakit.useDialogStore()
 	const networkResourceDialogState = networkResourceDialog.getState()
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
@@ -53,6 +59,9 @@ export const NetworkResourcePanel = () => {
 		(r) => activeNetworkResourceId === r.id,
 	)
 	const resource = resources[resourceIdx] as NetworkResource | undefined
+	const traceId = useMemo(() => {
+		return resource?.requestResponsePairs?.request?.id
+	}, [resource?.requestResponsePairs?.request?.id])
 
 	const hide = useCallback(() => {
 		setActiveNetworkResourceId(undefined)
@@ -117,7 +126,12 @@ export const NetworkResourcePanel = () => {
 				(resource.initiatorType === 'websocket' ? (
 					<WebSocketDetails resource={resource} hide={hide} />
 				) : (
-					<NetworkResourceDetails resource={resource} hide={hide} />
+					<TraceProvider projectId={projectId} traceId={traceId!}>
+						<NetworkResourceDetails
+							resource={resource}
+							hide={hide}
+						/>
+					</TraceProvider>
 				))}
 		</Ariakit.Dialog>
 	)
@@ -130,7 +144,9 @@ function NetworkResourceDetails({
 	resource: NetworkResource
 	hide: () => void
 }) {
+	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
+	const { selectedSpan } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
@@ -185,6 +201,20 @@ function NetworkResourceDetails({
 		},
 		[canMoveForward, next],
 	)
+
+	useEffect(() => {
+		if (selectedSpan?.spanID && initialized.current) {
+			setActiveTab(NetworkRequestTabs.Trace)
+		}
+
+		// Don't want to select the trace on the first render.
+		initialized.current = true
+	}, [selectedSpan?.spanID])
+
+	useEffect(() => {
+		setActiveTab(NetworkRequestTabs.Info)
+		initialized.current = false
+	}, [resource.id])
 
 	return (
 		<>
@@ -266,6 +296,8 @@ function NetworkResourceDetails({
 						Go to
 					</Tag>
 				</Box>
+
+				<TraceFlameGraph />
 			</Box>
 
 			<Tabs<NetworkRequestTabs>
@@ -297,6 +329,13 @@ function NetworkResourceDetails({
 								resource={resource}
 								sessionStartTime={startTime}
 							/>
+						),
+					},
+					[NetworkRequestTabs.Trace]: {
+						page: (
+							<Box p="8">
+								<TraceSpanAttributes span={selectedSpan!} />
+							</Box>
 						),
 					},
 				}}

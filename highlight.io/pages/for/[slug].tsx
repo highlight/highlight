@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Navbar from '../../components/common/Navbar/Navbar'
 import FeatureBox from '../../components/Products/FeatureBox'
 
@@ -33,6 +33,7 @@ import { REVIEWS } from '../../components/Home/Reviews'
 import InfoRow from '../../components/Products/InfoRow'
 import HeroBugLeft from '../../public/images/hero-bug-left.gif'
 import HeroBugRight from '../../public/images/hero-bug-right.gif'
+import { FaPlay } from 'react-icons/fa'
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	return {
@@ -182,17 +183,20 @@ const Products = ({ product }: { product: iProduct }) => {
 									</PrimaryButton>
 
 									<PrimaryButton
-										href={product.docsLink}
+										href={'https://app.highlight.io/demo'}
 										className={classNames(
 											styles.hollowButton,
 										)}
 									>
-										<Typography
-											type="copy2"
-											emphasis={true}
-										>
-											Read our docs
-										</Typography>
+										<div className="flex items-center gap-2">
+											<FaPlay />
+											<Typography
+												type="copy2"
+												emphasis={true}
+											>
+												Live demo
+											</Typography>
+										</div>
 									</PrimaryButton>
 								</div>
 							</div>
@@ -248,16 +252,22 @@ const Products = ({ product }: { product: iProduct }) => {
 											Get started for free
 										</Typography>
 									</PrimaryButton>
+
 									<PrimaryButton
-										href={product.docsLink}
-										className={styles.hollowButton}
+										href={'https://app.highlight.io/demo'}
+										className={classNames(
+											styles.hollowButton,
+										)}
 									>
-										<Typography
-											type="copy2"
-											emphasis={true}
-										>
-											Read our docs
-										</Typography>
+										<div className="flex items-center gap-2">
+											<FaPlay />
+											<Typography
+												type="copy2"
+												emphasis={true}
+											>
+												Live demo
+											</Typography>
+										</div>
 									</PrimaryButton>
 								</div>
 							</div>

@@ -3,7 +3,6 @@ to: frontend/src/<%= name %>.tsx
 ---
 
 import { Box, Text } from '@highlight-run/ui'
-import React from 'react'
 
 import * as styles from './<%= componentName %>.css'
 

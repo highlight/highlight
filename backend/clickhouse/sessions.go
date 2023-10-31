@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
@@ -52,6 +53,7 @@ var fieldMap map[string]string = map[string]string{
 	"timestamp":       "Timestamp",
 	"secure_id":       "ErrorGroupSecureID",
 	"service_name":    "ServiceName",
+	"service_version": "ServiceVersion",
 	"Tag":             "ErrorTagTitle",
 }
 

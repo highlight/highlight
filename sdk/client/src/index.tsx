@@ -365,7 +365,9 @@ export class Highlight {
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
 			canvasClearWebGLBuffer: true,
-			...(options.samplingStrategy ?? {}),
+			...(options.samplingStrategy ?? {
+				canvas: 2,
+			}),
 		}
 		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
 
