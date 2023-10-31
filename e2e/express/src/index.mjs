@@ -1,7 +1,7 @@
 import express from 'express'
 import { H } from '@highlight-run/node'
 
-H.init({ projectID: '1' })
+H.init({ projectID: '1', debug: true, serviceName: 'e2e-express' })
 
 const app = express()
 const port = 3003
