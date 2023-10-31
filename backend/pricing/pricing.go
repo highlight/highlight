@@ -9,11 +9,9 @@ import (
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
-	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -503,16 +501,14 @@ type Worker struct {
 	ccClient     *clickhouse.Client
 	stripeClient *client.API
 	mailClient   *sendgrid.Client
-	hs           hubspotApi.Api
 }
 
-func NewWorker(db *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client, hs hubspotApi.Api) *Worker {
+func NewWorker(db *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client) *Worker {
 	return &Worker{
 		db:           db,
 		ccClient:     ccClient,
 		stripeClient: stripeClient,
 		mailClient:   mailClient,
-		hs:           hs,
 	}
 }
 
@@ -712,40 +708,6 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	}
 
 	// TODO(vkorolik) include trace pricing once we have that in place
-
-	if util.IsHubspotEnabled() {
-		props := []hubspot.Property{{
-			Name:     "sessions_overage",
-			Property: "sessions_overage",
-			Value:    sessionsMeter - int64(sessionsLimit),
-		}, {
-			Name:     "errors_overage",
-			Property: "errors_overage",
-			Value:    errorsMeter - int64(errorsLimit),
-		}, {
-			Name:     "logs_overage",
-			Property: "logs_overage",
-			Value:    logsMeter - int64(logsLimit),
-		}, {
-			Name:     "discount",
-			Property: "discount",
-			Value:    subscription.Discount,
-		}}
-		if len(subscription.Items.Data) > 0 {
-			props = append(props, []hubspot.Property{{
-				Name:     "product",
-				Property: "product",
-				Value:    subscription.Items.Data[0].Price.Product.Name,
-			}, {
-				Name:     "price",
-				Property: "price",
-				Value:    subscription.Items.Data[0].Price.UnitAmountDecimal,
-			}}...)
-		}
-		if err := w.hs.UpdateCompanyProperty(ctx, workspace.ID, props); err != nil {
-			log.WithContext(ctx).WithField("props", props).Error(e.Wrap(err, "hubspot error processing stripe webhook"))
-		}
-	}
 
 	return nil
 }

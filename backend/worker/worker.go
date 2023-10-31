@@ -37,7 +37,6 @@ import (
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
@@ -363,70 +362,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotCreateContactForAdmin:
-		if task.HubSpotCreateContactForAdmin == nil {
-			break
-		}
-		if _, err := w.PublicResolver.HubspotApi.CreateContactForAdminImpl(ctx,
-			task.HubSpotCreateContactForAdmin.AdminID,
-			task.HubSpotCreateContactForAdmin.Email,
-			task.HubSpotCreateContactForAdmin.UserDefinedRole,
-			task.HubSpotCreateContactForAdmin.UserDefinedPersona,
-			task.HubSpotCreateContactForAdmin.UserDefinedTeamSize,
-			task.HubSpotCreateContactForAdmin.HeardAbout,
-			task.HubSpotCreateContactForAdmin.First,
-			task.HubSpotCreateContactForAdmin.Last,
-			task.HubSpotCreateContactForAdmin.Phone,
-			task.HubSpotCreateContactForAdmin.Referral,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotCreateCompanyForWorkspace:
-		if task.HubSpotCreateCompanyForWorkspace == nil {
-			break
-		}
-		if _, err := w.PublicResolver.HubspotApi.CreateCompanyForWorkspaceImpl(ctx,
-			task.HubSpotCreateCompanyForWorkspace.WorkspaceID,
-			task.HubSpotCreateCompanyForWorkspace.AdminEmail,
-			task.HubSpotCreateCompanyForWorkspace.Name,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotUpdateContactProperty:
-		if task.HubSpotUpdateContactProperty == nil {
-			break
-		}
-		if err := w.PublicResolver.HubspotApi.UpdateContactPropertyImpl(ctx,
-			task.HubSpotUpdateContactProperty.AdminID,
-			task.HubSpotUpdateContactProperty.Properties,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotUpdateCompanyProperty:
-		if task.HubSpotUpdateCompanyProperty == nil {
-			break
-		}
-		if err := w.PublicResolver.HubspotApi.UpdateCompanyPropertyImpl(ctx,
-			task.HubSpotUpdateCompanyProperty.WorkspaceID,
-			task.HubSpotUpdateCompanyProperty.Properties,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotCreateContactCompanyAssociation:
-		if task.HubSpotCreateContactCompanyAssociation == nil {
-			break
-		}
-		if err := w.PublicResolver.HubspotApi.CreateContactCompanyAssociationImpl(ctx,
-			task.HubSpotCreateContactCompanyAssociation.AdminID,
-			task.HubSpotCreateContactCompanyAssociation.WorkspaceID,
-		); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
@@ -1202,7 +1137,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.NewWorker(w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient, w.Resolver.HubspotApi).ReportAllUsage(ctx)
+	pricing.NewWorker(w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient).ReportAllUsage(ctx)
 }
 
 func (w *Worker) MigrateDB(ctx context.Context) {
@@ -1345,85 +1280,11 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	for _, c := range counts {
-		// See HIG-2743
-		// Skip updating session count for demo workspace because we exclude it from Hubspot
-		if c.WorkspaceID == 0 {
-			continue
-		}
-
-		if util.IsHubspotEnabled() {
-			properties := []hubspot.Property{{
-				Name:     "highlight_session_count",
-				Property: "highlight_session_count",
-				Value:    c.SessionCount,
-			}, {
-				Name:     "highlight_error_count",
-				Property: "highlight_error_count",
-				Value:    c.ErrorCount,
-			}, {
-				Name:     "highlight_logs_count",
-				Property: "highlight_logs_count",
-				Value:    c.LogCount,
-			}, {
-				Name:     "session_last_week",
-				Property: "session_last_week",
-				Value:    c.SessionCountLastWeek,
-			}, {
-				Name:     "errors_last_week",
-				Property: "errors_last_week",
-				Value:    c.ErrorCountLastWeek,
-			}, {
-				Name:     "logs_last_week",
-				Property: "logs_last_week",
-				Value:    c.LogCountLastWeek,
-			}, {
-				Name:     "sessions_last_day",
-				Property: "sessions_last_day",
-				Value:    c.SessionCountLastDay,
-			}, {
-				Name:     "errors_last_day",
-				Property: "errors_last_day",
-				Value:    c.ErrorCountLastDay,
-			}, {
-				Name:     "logs_last_day",
-				Property: "logs_last_day",
-				Value:    c.LogCountLastDay,
-			}, {
-				Name:     "plan_tier",
-				Property: "plan_tier",
-				Value:    c.PlanTier,
-			}, {
-				Name:     "is_session_replay_integrated",
-				Property: "is_session_replay_integrated",
-				Value:    c.SessionReplayIntegrated,
-			}, {
-				Name:     "is_backend_error_monitoring_integrated",
-				Property: "is_backend_error_monitoring_integrated",
-				Value:    c.BackendErrorMonitoringIntegrated,
-			}, {
-				Name:     "is_backend_logging_integrated",
-				Property: "is_backend_logging_integrated",
-				Value:    c.BackendLoggingIntegrated,
-			}}
-			if c.TrialEndDate != nil {
-				properties = append(properties, hubspot.Property{
-					Property: "date_of_trial_end",
-					Name:     "date_of_trial_end",
-					Value:    c.TrialEndDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
-				})
-			}
-			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, properties); err != nil {
-				log.WithContext(ctx).WithField("data", *c).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
-			}
-		}
-
 		phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, c.WorkspaceID, []attribute.KeyValue{
 			attribute.Int64(phonehome.SessionCount, c.SessionCount),
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
 			attribute.Int64(phonehome.LogCount, c.LogCount),
 		})
-
-		time.Sleep(150 * time.Millisecond)
 	}
 }
 
