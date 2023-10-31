@@ -36,6 +36,7 @@ interface ConsolePayload {
 	level: keyof typeof ConsoleLevels
 	message: string
 	stack: object
+	attributes?: { [key: string]: any }
 }
 
 type ConsoleFn = (...data: any) => void
@@ -103,6 +104,10 @@ export function hookConsole(
 							typeof o === 'object' ? safeStringify(o) : o,
 						)
 						.join(' '),
+					attributes: data
+						.slice(1)
+						.filter((d) => typeof d === 'object')
+						.reduce((a, b) => ({ ...a, ...b }), {}),
 					stack: o.stack,
 				})
 			}

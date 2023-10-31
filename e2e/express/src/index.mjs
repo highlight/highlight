@@ -23,6 +23,17 @@ app.get('/', (req, res) => {
 	res.send('Hello World!')
 })
 
+app.get('/good', (req, res) => {
+	console.warn('doing some heavy work!')
+	let result = 0
+	for (let i = 0; i < 1000; i++) {
+		const value = Math.random() * 1000
+		result += value
+		console.info('some work happening', { result, value })
+	}
+	res.send('yay!')
+})
+
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)
 })

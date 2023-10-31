@@ -69,7 +69,15 @@ export class Highlight {
 
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
-				this.log(c.date, c.message, c.level, c.stack)
+				this.log(
+					c.date,
+					c.message,
+					c.level,
+					c.stack,
+					undefined,
+					undefined,
+					c.attributes,
+				)
 			})
 		}
 
