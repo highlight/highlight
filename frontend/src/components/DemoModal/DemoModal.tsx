@@ -35,7 +35,8 @@ export const DemoModal = () => {
 			return
 		}
 		analytics.identify(email, {
-			demo: true,
+			// hubspot attribute to trigger sequence for this contact
+			demo_sign_up: true,
 			referral_url: window.location.href.split('?')[0],
 			event: 'demo-email-submit',
 		})
