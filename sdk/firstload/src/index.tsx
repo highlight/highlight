@@ -55,7 +55,7 @@ interface HighlightWindow extends Window {
 	Intercom?: any
 }
 
-const READY_WAIT_LOOP_MS = 100
+const READY_WAIT_LOOP_MS = 30 / 1000
 
 declare var window: HighlightWindow
 
@@ -65,7 +65,6 @@ let onHighlightReadyQueue: {
 }[] = []
 let onHighlightReadyInterval: number | undefined = undefined
 
-let script: HTMLScriptElement
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
@@ -114,19 +113,6 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			const scriptSrc = options?.scriptUrl
-				? options.scriptUrl
-				: `https://static.highlight.io/v${firstloadVersion}/index.js`
-			script = document.getElementById(scriptSrc) as HTMLScriptElement
-			if (!script) {
-				script = document.createElement('script')
-				script.setAttribute('id', scriptSrc)
-				script.setAttribute('src', scriptSrc)
-				script.setAttribute('type', 'text/javascript')
-				script.setAttribute('async', '')
-				document.getElementsByTagName('head')[0].appendChild(script)
-			}
-
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
 				debug: options?.debug,
@@ -161,27 +147,46 @@ const H: HighlightPublicInterface = {
 				// listeners over for client to manage
 				first_load_listeners.startListening()
 			}
-			script.addEventListener('load', () => {
-				const startFunction = () => {
-					highlight_obj = new window.HighlightIO(
-						client_options,
-						first_load_listeners,
-					)
-					if (!options?.manualStart) {
-						highlight_obj.initialize()
-					}
-				}
 
-				if ('HighlightIO' in window) {
-					startFunction()
-				} else {
-					const interval = setInterval(() => {
-						if ('HighlightIO' in window) {
-							startFunction()
-							clearInterval(interval)
+			// wait to load the script to avoid affecting LCP score
+			document.addEventListener('DOMContentLoaded', () => {
+				const scriptSrc = options?.scriptUrl
+					? options.scriptUrl
+					: `https://static.highlight.io/v${firstloadVersion}/index.js`
+				let script = document.getElementById(
+					scriptSrc,
+				) as HTMLScriptElement
+				// we've already created the script tag
+				if (script) return
+
+				script = document.createElement('script')
+				script.setAttribute('id', scriptSrc)
+				script.setAttribute('src', scriptSrc)
+				script.setAttribute('type', 'text/javascript')
+				script.setAttribute('defer', '')
+				document.getElementsByTagName('head')[0].appendChild(script)
+				script.addEventListener('load', () => {
+					const startFunction = () => {
+						highlight_obj = new window.HighlightIO(
+							client_options,
+							first_load_listeners,
+						)
+						if (!options?.manualStart) {
+							highlight_obj.initialize()
 						}
-					}, READY_WAIT_LOOP_MS)
-				}
+					}
+
+					if ('HighlightIO' in window) {
+						startFunction()
+					} else {
+						const interval = setInterval(() => {
+							if ('HighlightIO' in window) {
+								startFunction()
+								clearInterval(interval)
+							}
+						}, READY_WAIT_LOOP_MS)
+					}
+				})
 			})
 
 			if (
