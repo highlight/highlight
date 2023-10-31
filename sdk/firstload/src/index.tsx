@@ -164,28 +164,15 @@ const H: HighlightPublicInterface = {
 				script.setAttribute('src', scriptSrc)
 				script.setAttribute('type', 'text/javascript')
 				script.setAttribute('defer', '')
-				script.addEventListener('load', () => {
-					const startFunction = () => {
-						highlight_obj = new window.HighlightIO(
-							client_options,
-							first_load_listeners,
-						)
-						if (!options?.manualStart) {
-							highlight_obj.initialize()
-						}
+				script.onload = async () => {
+					highlight_obj = new window.HighlightIO(
+						client_options,
+						first_load_listeners,
+					)
+					if (!options?.manualStart) {
+						await highlight_obj.initialize()
 					}
-
-					if ('HighlightIO' in window) {
-						startFunction()
-					} else {
-						const interval = setInterval(() => {
-							if ('HighlightIO' in window) {
-								startFunction()
-								clearInterval(interval)
-							}
-						}, READY_WAIT_LOOP_MS)
-					}
-				})
+				}
 				document.getElementsByTagName('head')[0].appendChild(script)
 			})
 
