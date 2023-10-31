@@ -1,5 +1,8 @@
 // inspired by https://github.com/getsentry/sentry-javascript/issues/5639
 
+// https://stackoverflow.com/a/2805230
+const MAX_RECURSION = 128
+
 export function hookOutput(
 	writer: 'stdout' | 'stderr',
 	callback: (buffer: string) => void,
@@ -40,11 +43,14 @@ type ConsoleFn = (...data: any) => void
 let consoleHooked = false
 
 export function safeStringify(obj: any): string {
-	function replacer(input: any): any {
+	function replacer(input: any, depth?: number): any {
+		if ((depth ?? 0) > MAX_RECURSION) {
+			throw new Error('max recursion exceeded')
+		}
 		if (input && typeof input === 'object') {
 			for (let k in input) {
 				if (typeof input[k] === 'object') {
-					replacer(input[k])
+					replacer(input[k], (depth ?? 0) + 1)
 				} else if (!canStringify(input[k])) {
 					input[k] = input[k].toString()
 				}
@@ -62,7 +68,11 @@ export function safeStringify(obj: any): string {
 		}
 	}
 
-	return JSON.stringify(replacer(obj))
+	try {
+		return JSON.stringify(replacer(obj))
+	} catch (e) {
+		return obj.toString()
+	}
 }
 
 export function hookConsole(
