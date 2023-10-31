@@ -114,13 +114,18 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			script = document.createElement('script')
-			var scriptSrc = options?.scriptUrl
+			const scriptSrc = options?.scriptUrl
 				? options.scriptUrl
 				: `https://static.highlight.io/v${firstloadVersion}/index.js`
-			script.setAttribute('src', scriptSrc)
-			script.setAttribute('type', 'text/javascript')
-			document.getElementsByTagName('head')[0].appendChild(script)
+			script = document.getElementById(scriptSrc) as HTMLScriptElement
+			if (!script) {
+				script = document.createElement('script')
+				script.setAttribute('id', scriptSrc)
+				script.setAttribute('src', scriptSrc)
+				script.setAttribute('type', 'text/javascript')
+				script.setAttribute('async', '')
+				document.getElementsByTagName('head')[0].appendChild(script)
+			}
 
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
