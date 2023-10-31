@@ -2779,7 +2779,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		ID:                   newAlert.ID,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/errors",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -2875,7 +2875,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		ID:                   errorAlertID,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/errors",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -2908,7 +2908,7 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 		ID:                   errorAlertID,
 		Project:              project,
 		IncludeEditLink:      false,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/errors",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3051,7 +3051,7 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 		ID:                   id,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/session",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3084,7 +3084,7 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 		ID:                   sessionAlert.ID,
 		Project:              project,
 		IncludeEditLink:      true,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/session",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3118,7 +3118,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 		ID:                   sessionAlertID,
 		Project:              project,
 		IncludeEditLink:      false,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/session",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -3232,7 +3232,7 @@ func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id
 		ID:                   id,
 		Project:              project,
 		IncludeEditLink:      false,
-		URLSlug:              "alerts",
+		URLSlug:              "alerts/logs",
 	}); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
