@@ -80,18 +80,23 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 				align="center"
 				justifyContent="space-between"
 			>
-				<PreviousNextGroup
-					onPrev={() =>
-						setActiveEvent(eventsForTimelineIndicator[prev])
-					}
-					canMoveBackward={canMoveBackward}
-					prevShortcut="h"
-					onNext={() =>
-						setActiveEvent(eventsForTimelineIndicator[next])
-					}
-					canMoveForward={canMoveForward}
-					nextShortcut="l"
-				/>
+				<Box display="flex" gap="6" alignItems="center">
+					<PreviousNextGroup
+						onPrev={() =>
+							setActiveEvent(eventsForTimelineIndicator[prev])
+						}
+						canMoveBackward={canMoveBackward}
+						prevShortcut="h"
+						onNext={() =>
+							setActiveEvent(eventsForTimelineIndicator[next])
+						}
+						canMoveForward={canMoveForward}
+						nextShortcut="l"
+					/>
+					<Text size="xSmall" weight="medium" color="weak">
+						{eventIdx + 1} / {eventsForTimelineIndicator.length}
+					</Text>
+				</Box>
 				<ButtonIcon
 					kind="secondary"
 					size="small"
