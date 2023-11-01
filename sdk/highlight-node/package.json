@@ -22,6 +22,9 @@
 		"access": "public"
 	},
 	"dependencies": {
+		"highlight.run": "workspace:*"
+	},
+	"devDependencies": {
 		"@opentelemetry/api": "^1.6.0",
 		"@opentelemetry/auto-instrumentations-node": "^0.39.2",
 		"@opentelemetry/core": "^1.17.1",
@@ -30,10 +33,6 @@
 		"@opentelemetry/sdk-node": "^0.44.0",
 		"@opentelemetry/sdk-trace-base": "^1.17.1",
 		"@opentelemetry/semantic-conventions": "^1.17.1",
-		"highlight.run": "workspace:*"
-	},
-	"devDependencies": {
-		"@opentelemetry/exporter-jaeger": "^1.17.1",
 		"@rollup/plugin-commonjs": "^25.0.7",
 		"@rollup/plugin-json": "^6.0.1",
 		"@rollup/plugin-node-resolve": "^15.2.3",
