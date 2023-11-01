@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"math"
 	"math/rand"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/golang/snappy"
@@ -1006,7 +1007,7 @@ func (w *Worker) Start(ctx context.Context) {
 		sessionLimitJitter := rand.Intn(100)
 		limit := processSessionLimit + sessionLimitJitter
 		txStart := time.Now()
-		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		if err := w.Resolver.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 			defer cancel()
 
@@ -1320,7 +1321,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 				return
 			}
 
-			version := w.PublicResolver.GetErrorAppVersion(modelObj)
+			version := w.PublicResolver.GetErrorAppVersion(ctx, modelObj)
 			mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
