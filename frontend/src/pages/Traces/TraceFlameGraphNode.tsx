@@ -54,7 +54,7 @@ const spanThemes: {
 		background: '#ffe3a2',
 		border: '#ffb224',
 		color: '#ad5700',
-		selectedBackend: '#ad5700',
+		selectedBackend: '#ee9d2b',
 		selectedColor: '#fff',
 	},
 }
@@ -86,7 +86,7 @@ export const TraceFlameGraphNode = memo<Props>(
 			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
-		const error = errors.find((error) => error.span_id === span.spanID)
+		const hasError = errors.find((error) => error.span_id === span.spanID)
 		const isDbSpan = !!span.traceAttributes?.db?.system
 		const isFrontendSpan =
 			span.traceAttributes?.highlight?.type === 'http.request'
@@ -94,6 +94,8 @@ export const TraceFlameGraphNode = memo<Props>(
 			? 'yellow'
 			: isFrontendSpan
 			? 'green'
+			: hasError
+			? 'red'
 			: 'purple'
 		const theme = spanThemes[themeName] ?? spanThemes['purple']
 		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
