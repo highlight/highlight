@@ -668,11 +668,17 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	}
 
 	invoiceLines := map[model.PricingProductType]*stripe.InvoiceLine{}
+	// FindUniquesBy to remove will extra line items
+	// duplicates are present because graduated pricing (one invoice item)
+	// has more than one invoice line item for each bucket's price.
+	// ie. price of `First 4999` and `Next 19999` are two different line items for the same invoice item.
 	for _, line := range lo.FindUniquesBy(invoice.Lines.Data, func(item *stripe.InvoiceLine) string {
 		return item.InvoiceItem
 	}) {
 		productType, _, _, _, _ := GetProductMetadata(line.Price)
 		if productType != nil {
+			// if there is more than one invoice line for the same product type,
+			// clean up the old line item that may exist from a previous price
 			if invoiceLines[*productType] != nil {
 				if invoiceLines[*productType].Price.ID != prices[*productType].ID {
 					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem, c.ID)
