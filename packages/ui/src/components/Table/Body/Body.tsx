@@ -8,6 +8,8 @@ export type Props = {
 	height?: BoxProps['height']
 	overflowY?: BoxProps['overflowY']
 	style?: React.CSSProperties
+	onScroll?: React.UIEventHandler<HTMLDivElement>
+	ref?: React.Ref<HTMLDivElement>
 }
 
 export const Body: React.FC<Props> = ({ children, ...props }) => {

@@ -30,6 +30,7 @@ export type PaddingProps = {
 
 export const Box = React.forwardRef<unknown, BoxProps>(
 	({ as = 'div', cssClass, ...props }, ref) => {
+		console.log('ref', ref)
 		const sprinklesProps: Record<string, unknown> = {}
 		const nativeProps: Record<string, unknown> = {}
 		const userClasses = clsx(cssClass)
