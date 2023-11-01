@@ -894,6 +894,7 @@ func (s *S3Client) UploadAsset(ctx context.Context, uuid string, contentType str
 		Metadata: map[string]string{
 			"Content-Type": contentType,
 		},
+		ContentType: pointy.String(contentType),
 	}, s3.WithAPIOptions(
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,
 	))
