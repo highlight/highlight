@@ -1,5 +1,5 @@
 import { HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
-import { HighlightInterface, HighlightGlobal, RequestMetadata } from './types'
+import { HighlightGlobal } from './types'
 import { H } from './highlight-node'
 
 import { IncomingHttpHeaders } from 'http'

@@ -6,6 +6,9 @@
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"type": "module",
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"typegen": "tsc -d --emitDeclarationOnly",
 		"dev": "yarn build --watch",
