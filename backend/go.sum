@@ -839,8 +839,6 @@ github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/ad
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
 github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
-github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29 h1:/jHkBu2jbrW6+pxmAMt4tR8W6l/Vk02mnGL/ePrg2+I=
-github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29/go.mod h1:2FoXdMtWJEKk3zBo2S5eaduD5Bh/5PIYwSlV66E1XMs=
 github.com/graph-gophers/graphql-go v1.4.0 h1:JE9wveRTSXwJyjdRd6bOQ7Ob5bewTUQ58Jv4OiVdpdE=
 github.com/graph-gophers/graphql-go v1.4.0/go.mod h1:YtmJZDLbF1YYNrlNAuiO5zAStUWc3XZT07iGsVqe1Os=
 github.com/graph-gophers/graphql-transport-ws v0.0.2 h1:DbmSkbIGzj8SvHei6n8Mh9eLQin8PtA8xY9eCzjRpvo=
@@ -1076,10 +1074,6 @@ github.com/labstack/gommon v0.3.0/go.mod h1:MULnywXg0yavhxWKc+lOruYdAhDwPK9wf0OL
 github.com/leodido/go-urn v1.2.0 h1:hpXL4XnriNwQ/ABnpepYM/1vCLWNDfUNts8dX3xTG6Y=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
 github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165/go.mod h1:WZxr2/6a/Ar9bMDc2rN/LJrE/hF6bXE4LPyDSIxwAfg=
-github.com/leonelquinteros/gorand v1.0.2 h1:YgHYktP/OwC0dA6xwrsV/cFjmKzN4Y1vTfnMsRDd8XQ=
-github.com/leonelquinteros/gorand v1.0.2/go.mod h1:4WDunrt62rJvd9p8yR8nxiheNTOt7Q3a4ZiepMInQ58=
-github.com/leonelquinteros/hubspot v0.1.0 h1:VUqwLlxXt8uoQ+SyxjxwHRzrCAmPwXvKI3Az8tMsoDk=
-github.com/leonelquinteros/hubspot v0.1.0/go.mod h1:+MbEBo67r/wxYE1DnwKTaRta//bf4h44PPTZf42cm98=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.1.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
