@@ -13,7 +13,7 @@ updatedAt: 2023-10-03T00:00:00.000Z
 npm install @highlight-run/next
 ```
 
-## Client Instrumentation
+## Client instrumentation
 
 This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater.
 
@@ -244,7 +244,7 @@ export function CustomHighlightStart() {
 <CustomHighlightStart />
 ```
 
-## Related Steps
+## Related steps
 
 - [App Router API instrumentation](./5_api-app-router.md)
 - [Edge runtime API instrumentation](./6_edge-runtime.md)
