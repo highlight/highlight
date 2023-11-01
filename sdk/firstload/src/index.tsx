@@ -148,33 +148,28 @@ const H: HighlightPublicInterface = {
 				first_load_listeners.startListening()
 			}
 
-			// wait to load the script to avoid affecting LCP score
-			document.addEventListener('DOMContentLoaded', () => {
-				const scriptSrc = options?.scriptUrl
-					? options.scriptUrl
-					: `https://static.highlight.io/v${firstloadVersion}/index.js`
-				let script = document.getElementById(
-					scriptSrc,
-				) as HTMLScriptElement
-				// we've already created the script tag
-				if (script) return
+			const scriptSrc = options?.scriptUrl
+				? options.scriptUrl
+				: `https://static.highlight.io/v${firstloadVersion}/index.js`
+			let script = document.getElementById(scriptSrc) as HTMLScriptElement
+			// we've already created the script tag
+			if (script) return
 
-				script = document.createElement('script')
-				script.id = scriptSrc
-				script.type = 'text/javascript'
-				script.async = true
-				document.getElementsByTagName('head')[0].appendChild(script)
-				script.onload = () => {
-					highlight_obj = new window.HighlightIO(
-						client_options,
-						first_load_listeners,
-					)
-					if (!options?.manualStart) {
-						highlight_obj.initialize()
-					}
+			script = document.createElement('script')
+			script.id = scriptSrc
+			script.type = 'text/javascript'
+			script.defer = true
+			document.getElementsByTagName('head')[0].appendChild(script)
+			script.onload = async () => {
+				highlight_obj = new window.HighlightIO(
+					client_options,
+					first_load_listeners,
+				)
+				if (!options?.manualStart) {
+					await highlight_obj.initialize()
 				}
-				script.src = scriptSrc
-			})
+			}
+			script.src = scriptSrc
 
 			if (
 				!options?.integrations?.mixpanel?.disabled &&
