@@ -30,8 +30,6 @@ import { MillisToMinutesAndSeconds } from '@util/time'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
-import * as styles from './EventDetails.css'
-
 const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 	const { sessionMetadata, eventsForTimelineIndicator } = useReplayerContext()
 	const { setActiveEvent } = usePlayerUIContext()
@@ -74,7 +72,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 	)
 
 	return (
-		<Box cssClass={styles.container}>
+		<Box display="flex" flexDirection="column" width="full" height="full">
 			<Box
 				py="6"
 				px="8"
@@ -82,18 +80,23 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 				align="center"
 				justifyContent="space-between"
 			>
-				<PreviousNextGroup
-					onPrev={() =>
-						setActiveEvent(eventsForTimelineIndicator[prev])
-					}
-					canMoveBackward={canMoveBackward}
-					prevShortcut="h"
-					onNext={() =>
-						setActiveEvent(eventsForTimelineIndicator[next])
-					}
-					canMoveForward={canMoveForward}
-					nextShortcut="l"
-				/>
+				<Box display="flex" gap="6" alignItems="center">
+					<PreviousNextGroup
+						onPrev={() =>
+							setActiveEvent(eventsForTimelineIndicator[prev])
+						}
+						canMoveBackward={canMoveBackward}
+						prevShortcut="h"
+						onNext={() =>
+							setActiveEvent(eventsForTimelineIndicator[next])
+						}
+						canMoveForward={canMoveForward}
+						nextShortcut="l"
+					/>
+					<Text size="xSmall" weight="medium" color="weak">
+						{eventIdx + 1} / {eventsForTimelineIndicator.length}
+					</Text>
+				</Box>
 				<ButtonIcon
 					kind="secondary"
 					size="small"
@@ -112,10 +115,8 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 					}}
 				/>
 			</Box>
-			<Box pt="8" pr="12" pb="8" pl="12" width="full">
-				<Text cssClass={styles.overflowText}>
-					{details.displayValue}
-				</Text>
+			<Box pt="8" pr="12" pb="8" pl="12">
+				<Text lines="1">{details.displayValue}</Text>
 			</Box>
 			<Box display="flex" pt="8" pr="12" pb="8" pl="12" gap="4">
 				<Badge
