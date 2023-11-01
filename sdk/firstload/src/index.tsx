@@ -158,7 +158,7 @@ const H: HighlightPublicInterface = {
 			script = document.createElement('script')
 			script.id = scriptSrc
 			script.type = 'text/javascript'
-			script.defer = true
+			script.async = true
 			document.getElementsByTagName('head')[0].appendChild(script)
 			script.onload = async () => {
 				highlight_obj = new window.HighlightIO(
