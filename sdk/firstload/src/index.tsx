@@ -113,6 +113,13 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
+			const scriptSrc = options?.scriptUrl
+				? options.scriptUrl
+				: `https://static.highlight.io/v${firstloadVersion}/index.js`
+			let script = document.getElementById(scriptSrc) as HTMLScriptElement
+			// we've already created the script tag
+			if (script) return
+
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
 				debug: options?.debug,
@@ -147,13 +154,6 @@ const H: HighlightPublicInterface = {
 				// listeners over for client to manage
 				first_load_listeners.startListening()
 			}
-
-			const scriptSrc = options?.scriptUrl
-				? options.scriptUrl
-				: `https://static.highlight.io/v${firstloadVersion}/index.js`
-			let script = document.getElementById(scriptSrc) as HTMLScriptElement
-			// we've already created the script tag
-			if (script) return
 
 			script = document.createElement('script')
 			script.id = scriptSrc
