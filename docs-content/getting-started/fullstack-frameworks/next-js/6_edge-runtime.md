@@ -70,7 +70,7 @@ export const runtime = 'edge'
 
 ## Validation
 
-Copy/paste the above code snippet into `/app/api/edge-test.ts` and hit the endpoint with `curl` to watch it work.
+Copy/paste the above code snippet into `/app/api/edge-test.ts` and hit the endpoint in your browser or with `curl` to watch it work.
 
 **Page Router**
 ```bash

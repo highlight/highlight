@@ -15,7 +15,7 @@ npm install @highlight-run/next
 
 ## Client Instrumentation
 
-This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../../3_client-sdk/1_reactjs.md)
+This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater.
 
 - Check out this example [environment variables](./7_advanced-config.md#environment-variables) set up for the `CONSTANTS` import.
 - Add `HighlightInit` to your `layout.tsx` file.
@@ -171,25 +171,25 @@ export default appRouterSsrErrorHandler(
 
 ### Validate SSR error capture
 
-1. Copy the following code into `app/app-router-isr/page.tsx`.
+1. Copy the following code into `app/app-router-ssr/page.tsx`.
 2. Build and start your production app with `npm run build && npm run start`.
-3. Visit http://localhost:3000/app-router-isr?error to trigger the error.
+3. Visit http://localhost:3000/app-router-ssr?error to trigger the error.
 4. Once you've validated that the error is caught and sent to `app.highlight.io`, don't forget to `ctrl + c` to kill `npm run start` and restart with `npm run dev`.
 
 ```jsx
-// app/app-router-isr/page.tsx
+// app/app-router-ssr/page.tsx
 type Props = {
 	searchParams: { error?: string }
 }
 
-export default function IsrPage({ searchParams }: Props) {
+export default function SsrPage({ searchParams }: Props) {
 	if (typeof searchParams.error === 'string') {
-		throw new Error('ISR Error: app/app-router-isr/page.tsx')
+		throw new Error('SSR Error: app/app-router-ssr/page.tsx')
 	}
 
 	return (
 		<div>
-			<h1>App Directory ISR: Success</h1>
+			<h1>App Directory SSR: Success</h1>
 			<p>The random number is {Math.random()}</p>
 			<p>The date is {new Date().toLocaleTimeString()}</p>
 		</div>

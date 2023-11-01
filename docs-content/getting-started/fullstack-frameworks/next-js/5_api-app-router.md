@@ -68,7 +68,7 @@ export const GET = withAppRouterHighlight(async function GET(request: NextReques
 ## Validation
 
 1. Run your app in dev mode with `npm run dev`.
-2. Copy/paste the above code snippet into `/app/api/nodejs-app-router-test.ts` and hit the endpoint with `curl` to watch it work.
+2. Copy/paste the above code snippet into `/app/api/nodejs-app-router-test.ts` and hit the endpoint in your browser or with `curl` to watch it work.
 
 ```bash
 curl http://localhost:3000/nodejs-app-router-test?error

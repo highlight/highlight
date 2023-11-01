@@ -41,7 +41,7 @@
 		"access": "public"
 	},
 	"scripts": {
-		"typegen": "tsc -d --emitDeclarationOnly",
+		"typegen": "tsup --dts-only",
 		"dev": "rm -rf .next && yarn watch:build & yarn build --watch",
 		"watch:build": "chokidar \"dist/next-client.d.ts\" -c \"sh ./bin/clean-dist.sh\"",
 		"build": "tsup && sh bin/clean-dist.sh",
@@ -61,25 +61,19 @@
 		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
-		"highlight.run": "workspace:*",
-		"tsup": "^7.2.0"
+		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20231016.0",
 		"@opentelemetry/api": "^1.6.0",
 		"@opentelemetry/resources": "^1.17.1",
-		"@rollup/plugin-commonjs": "^25.0.7",
-		"@rollup/plugin-json": "^6.0.1",
-		"@rollup/plugin-node-resolve": "^15.2.3",
-		"@rollup/plugin-terser": "^0.4.4",
-		"@rollup/plugin-typescript": "^11.1.5",
 		"@trpc/server": "^9.27.4",
 		"@types/jest": "27.4.1",
 		"chokidar-cli": "^3.0.0",
 		"eslint": "8.39.0",
 		"jest": "^29.2.0",
-		"rollup": "^4.1.4",
 		"ts-jest": "^29.0.3",
+		"tsup": "^7.2.0",
 		"typescript": "^5.0.4"
 	}
 }

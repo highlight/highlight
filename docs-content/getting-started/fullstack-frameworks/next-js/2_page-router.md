@@ -170,30 +170,30 @@ export default pageRouterCustomErrorHandler(
 
 ### Validate SSR error capture
 
-1. Copy the following code into `pages/page-router-isr.tsx`.
+1. Copy the following code into `pages/page-router-ssr.tsx`.
 2. Build and start your production app with `npm run build && npm run start`.
-3. Visit http://localhost:3000/page-router-isr?error to trigger the error.
+3. Visit http://localhost:3000/page-router-ssr?error to trigger the error.
 4. Once you've validated that the error is caught and sent to `app.highlight.io`, don't forget to `ctrl + c` to kill `npm run start` and restart with `npm run dev`.
 
 ```jsx
-// pages/page-router-isr.tsx
+// pages/page-router-ssr.tsx
 import { useRouter } from 'next/router'
 
 type Props = {
 	date: string
 	random: number
 }
-export default function IsrPage({ date, random }: Props) {
+export default function SsrPage({ date, random }: Props) {
 	const router = useRouter()
 	const isError = router.asPath.includes('error')
 
 	if (isError) {
-		throw new Error('ISR Error: pages/page-router-isr.tsx')
+		throw new Error('SSR Error: pages/page-router-ssr.tsx')
 	}
 
 	return (
 		<div>
-			<h1>ISR Lives</h1>
+			<h1>SSR Lives</h1>
 			<p>The random number is {random}</p>
 			<p>The date is {date}</p>
 		</div>

@@ -10,7 +10,7 @@ export default defineConfig({
 	],
 	format: ['cjs', 'esm'],
 	target: 'es6',
-	// minify: 'terser',
+	minify: 'terser',
 	dts: true,
 	sourcemap: true,
 	noExternal: [],
