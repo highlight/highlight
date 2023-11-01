@@ -1,6 +1,6 @@
 import * as http from 'http'
 import { NodeOptions } from '.'
-import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
+import { H } from './sdk.js'
 import type { Attributes } from '@opentelemetry/api'
 
 /** JSDoc */
@@ -19,12 +19,9 @@ function processErrorImpl(
 	error: Error,
 	metadata?: Attributes,
 ): void {
-	let secureSessionId: string | undefined
-	let requestId: string | undefined
-	if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
-		;[secureSessionId, requestId] =
-			`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-	}
+	const { secureSessionId, requestId } = H.parseHeaders(
+		req.headers ?? {},
+	) ?? { secureSessionId: undefined, requestId: undefined }
 	H._debug('processError', 'extracted from headers', {
 		secureSessionId,
 		requestId,
@@ -36,6 +33,32 @@ function processErrorImpl(
 	}
 	H.consumeError(error, secureSessionId, requestId, metadata)
 	H._debug('consumed error', error)
+}
+
+/**
+ * Express compatible middleware.
+ * Exposed as `Handlers.errorHandler`.
+ * `metadata` accepts structured tags that should be attached to every error.
+ */
+export function middleware(
+	options: NodeOptions,
+	metadata?: Attributes,
+): (
+	req: http.IncomingMessage,
+	res: http.ServerResponse,
+	next: () => void,
+) => void {
+	H._debug('setting up middleware')
+	return (
+		req: http.IncomingMessage,
+		res: http.ServerResponse,
+		next: () => void,
+	) => {
+		H._debug('middleware handling request')
+		H.runWithHeaders(req.headers, () => {
+			next()
+		})
+	}
 }
 
 /**
@@ -59,7 +82,7 @@ export function errorHandler(
 		res: http.ServerResponse,
 		next: (error: MiddlewareError) => void,
 	) => {
-		H._debug('handling request')
+		H._debug('error handling request')
 		try {
 			processErrorImpl(options, req, error, metadata)
 		} finally {

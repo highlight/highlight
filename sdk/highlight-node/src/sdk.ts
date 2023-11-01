@@ -2,8 +2,8 @@ import { IncomingHttpHeaders } from 'http'
 import { Highlight } from '.'
 import { NodeOptions } from './types.js'
 import log from './log'
-import type { Attributes } from '@opentelemetry/api'
 import { ResourceAttributes } from '@opentelemetry/resources'
+import type { Attributes } from '@opentelemetry/api'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -14,6 +14,7 @@ export interface HighlightInterface {
 	parseHeaders: (
 		headers: IncomingHttpHeaders,
 	) => { secureSessionId: string; requestId: string } | undefined
+	runWithHeaders: <T>(headers: IncomingHttpHeaders, cb: () => T) => T
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
@@ -136,20 +137,10 @@ export const H: HighlightInterface = {
 	parseHeaders: (
 		headers: IncomingHttpHeaders,
 	): { secureSessionId: string; requestId: string } | undefined => {
-		try {
-			if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
-				const [secureSessionId, requestId] =
-					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-				return { secureSessionId, requestId }
-			} else {
-				H._debug(
-					`request headers do not contain ${HIGHLIGHT_REQUEST_HEADER}`,
-				)
-			}
-		} catch (e) {
-			console.warn('highlight-node parseHeaders error: ', e)
-		}
-		return undefined
+		return highlight_obj.parseHeaders(headers)
+	},
+	runWithHeaders: (headers, cb) => {
+		return highlight_obj.runWithHeaders(headers, cb)
 	},
 	consumeAndFlush: async function (...args) {
 		const waitPromise = highlight_obj.waitForFlush()
