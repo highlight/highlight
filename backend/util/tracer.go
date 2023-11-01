@@ -106,19 +106,6 @@ func StartSpan(operationName string, options ...SpanOption) MultiSpan {
 	}
 }
 
-func SpanFromContext(ctx context.Context) MultiSpan {
-	ddSpan, _ := tracer.SpanFromContext(ctx)
-	var hSpan trace.Span
-	if !ctx.Value(ContextKeyHighlightTracingDisabled).(bool) {
-		hSpan = trace.SpanFromContext(ctx)
-	}
-
-	return MultiSpan{
-		ddSpan: ddSpan,
-		hSpan:  hSpan,
-	}
-}
-
 type SpanConfig struct {
 	Tags                     []attribute.KeyValue
 	HighlightTracingDisabled bool
