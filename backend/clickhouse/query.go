@@ -342,6 +342,8 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", tableName)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 
@@ -391,6 +393,8 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeyValues", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", tableName)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 	if err != nil {
