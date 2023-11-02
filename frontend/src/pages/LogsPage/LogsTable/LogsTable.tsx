@@ -27,7 +27,6 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
@@ -35,7 +34,6 @@ import { LogEdge } from '@/graph/generated/schemas'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import { LogDetails, LogValue } from './LogDetails'
-import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
@@ -115,7 +113,7 @@ type LogsTableInnerProps = {
 
 const LOADING_AFTER_HEIGHT = 28
 
-const GRID_COLUMNS = ['20px', '200px', '75px', '1fr']
+const GRID_COLUMNS = ['200px', '75px', '1fr']
 
 const LogsTableInner = ({
 	logEdges,
@@ -137,15 +135,25 @@ const LogsTableInner = ({
 	const columnHelper = createColumnHelper<LogEdge>()
 
 	const columns = [
-		columnHelper.accessor('cursor', {
-			cell: ({ row }) => (
-				<Table.Discoverable trigger="row">
-					{row.getIsExpanded() ? <IconExpanded /> : <IconCollapsed />}
-				</Table.Discoverable>
-			),
-		}),
 		columnHelper.accessor('node.timestamp', {
-			cell: ({ getValue }) => <LogTimestamp timestamp={getValue()} />,
+			cell: ({ row, getValue }) => (
+				<Box
+					flexShrink={0}
+					flexDirection="row"
+					display="flex"
+					alignItems="flex-start"
+					gap="6"
+				>
+					<Table.Discoverable trigger="row">
+						{row.getIsExpanded() ? (
+							<IconExpanded />
+						) : (
+							<IconCollapsed />
+						)}
+					</Table.Discoverable>
+					<LogTimestamp timestamp={getValue()} />
+				</Box>
+			),
 		}),
 		columnHelper.accessor('node.level', {
 			cell: ({ getValue }) => <LogLevel level={getValue()} />,
@@ -198,9 +206,8 @@ const LogsTableInner = ({
 								)}
 							<LogDetails
 								matchedAttributes={matchedAttributes}
-								log={row.original}
+								row={row}
 								queryTerms={queryTerms}
-								expanded={row.getIsExpanded()}
 							/>
 						</Stack>
 					</>
@@ -269,7 +276,6 @@ const LogsTableInner = ({
 		<Table height="full" noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={GRID_COLUMNS}>
-					<Table.Header />
 					<Table.Header>Timestamp</Table.Header>
 					<Table.Header>Level</Table.Header>
 					<Table.Header>Body</Table.Header>
@@ -312,9 +318,7 @@ const LogsTableInner = ({
 							gridColumns={GRID_COLUMNS}
 							onClick={row.getToggleExpandedHandler()}
 							forwardRef={rowVirtualizer.measureElement}
-							className={clsx(styles.row, {
-								[styles.rowExpanded]: row.getIsExpanded(),
-							})}
+							selected={row.getIsExpanded()}
 						>
 							{row.getVisibleCells().map((cell) => {
 								return (

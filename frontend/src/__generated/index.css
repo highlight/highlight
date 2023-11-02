@@ -6286,15 +6286,6 @@ body {
   display: flex;
 }
 .g2tqod0 {
-  border-radius: 6px;
-}
-.g2tqod0:hover {
-  background-color: var(--_1pyqka91x);
-}
-.g2tqod1 {
-  background: var(--_1pyqka91y);
-}
-.g2tqod2 {
   background-color: var(--_1pyqka96);
   border-radius: 4px;
   color: inherit !important;
