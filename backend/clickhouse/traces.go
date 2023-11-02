@@ -41,7 +41,7 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
-	bodyColumn:       "Body",
+	bodyColumn:       "SpanName",
 	attributesColumn: "TraceAttributes",
 	selectColumns: []string{
 		"Timestamp",
@@ -65,6 +65,7 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 
 var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	bodyColumn:       "SpanName",
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	attributesColumn: "TraceAttributes",
