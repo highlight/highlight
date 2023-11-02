@@ -6,13 +6,13 @@ import {
 import type { NodeOptions } from '@highlight-run/node'
 import {
 	ExtendedExecutionContext,
+	HIGHLIGHT_REQUEST_HEADER,
 	HighlightGlobal,
 	HighlightInterface,
 	Metric,
 	RequestMetadata,
 } from './types'
 import { IncomingHttpHeaders } from 'http'
-import { HIGHLIGHT_REQUEST_HEADER } from '@highlight-run/node/src'
 
 export type HighlightEnv = NodeOptions
 
