@@ -61,8 +61,8 @@ export class Highlight {
 	private tracer: Tracer
 	private processor: CustomSpanProcessor
 	private asyncLocalStorage = new AsyncLocalStorage<{
-		secureSessionId: string
-		requestId: string
+		secureSessionId: string | undefined
+		requestId: string | undefined
 	}>()
 
 	constructor(options: NodeOptions) {
@@ -79,7 +79,7 @@ export class Highlight {
 				const { secureSessionId, requestId } = this.parseHeaders(
 					// look for the context in asyncLocalStorage only
 					{},
-				) ?? { secureSessionId: undefined, requestId: undefined }
+				)
 				this.log(
 					c.date,
 					c.message,
@@ -327,9 +327,11 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	parseHeaders(
-		headers: IncomingHttpHeaders,
-	): { secureSessionId: string; requestId: string } | undefined {
+	// TODO(vkorolik) look for usage elsewhere and use runWithHeaders
+	parseHeaders(headers: IncomingHttpHeaders): {
+		secureSessionId: string | undefined
+		requestId: string | undefined
+	} {
 		try {
 			const highlightCtx = this.asyncLocalStorage.getStore()
 			if (highlightCtx) {
@@ -343,7 +345,7 @@ export class Highlight {
 		} catch (e) {
 			this._log('parseHeaders error: ', e)
 		}
-		return undefined
+		return { secureSessionId: undefined, requestId: undefined }
 	}
 
 	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
@@ -352,6 +354,13 @@ export class Highlight {
 			return this.asyncLocalStorage.run(highlightCtx, cb)
 		} else {
 			return cb()
+		}
+	}
+
+	setHeaders(headers: IncomingHttpHeaders) {
+		const highlightCtx = this.parseHeaders(headers)
+		if (highlightCtx) {
+			this.asyncLocalStorage.enterWith(highlightCtx)
 		}
 	}
 }

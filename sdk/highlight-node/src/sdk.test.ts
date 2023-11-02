@@ -1,6 +1,8 @@
 import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 describe('parseHeaders', () => {
+	H.init({ projectID: '1' })
+
 	it('returns session id and request id from the headers', () => {
 		expect(
 			H.parseHeaders({ [HIGHLIGHT_REQUEST_HEADER]: '1234/5678' }),
