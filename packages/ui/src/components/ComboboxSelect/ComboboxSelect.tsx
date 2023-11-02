@@ -207,6 +207,8 @@ export const ComboboxSelect_test = () => {
 	)
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 ComboboxSelect_test.run = async ({ user, screen, captureScreenshot }) => {
 	const combobox = await screen.findByRole('combobox')
 	await captureScreenshot(combobox, { name: 'initial' })
