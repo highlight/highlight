@@ -146,8 +146,7 @@ function NetworkResourceDetails({
 }) {
 	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
-	const { selectedSpan, traceId } = useTrace()
-	const canShowTrace = !!traceId
+	const { selectedSpan, traceId, traceName } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
@@ -206,7 +205,7 @@ function NetworkResourceDetails({
 			},
 		}
 
-		if (canShowTrace) {
+		if (!!traceName) {
 			tabPages[NetworkRequestTabs.Trace] = {
 				page: (
 					<Box p="8">
@@ -218,7 +217,7 @@ function NetworkResourceDetails({
 
 		return tabPages
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [canShowTrace])
+	}, [traceName])
 
 	useHotkeys(
 		'h',
@@ -337,7 +336,7 @@ function NetworkResourceDetails({
 					</Tag>
 				</Box>
 
-				{canShowTrace && <TraceFlameGraph />}
+				{traceId && <TraceFlameGraph />}
 			</Box>
 
 			<Tabs<NetworkRequestTabs>
