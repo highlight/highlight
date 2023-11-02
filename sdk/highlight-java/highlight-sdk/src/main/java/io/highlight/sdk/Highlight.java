@@ -245,9 +245,11 @@ public class Highlight {
 			throw new HighlightIllegalStateException("Highlight state is not running");
 		}
 
-		if (record instanceof HighlightLogRecord logRecord) {
+		if (record instanceof HighlightLogRecord) {
+			HighlightLogRecord logRecord = (HighlightLogRecord) record;
 			this.logger.process(logRecord);
-		} else if (record instanceof HighlightErrorRecord errorRecord) {
+		} else if (record instanceof HighlightErrorRecord) {
+			HighlightErrorRecord errorRecord = (HighlightErrorRecord) record;
 			this.tracer.process(errorRecord);
 		} else {
 			throw new HighlightInvalidRecordException("Invalid record type", record);
