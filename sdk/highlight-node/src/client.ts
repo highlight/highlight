@@ -327,7 +327,6 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	// TODO(vkorolik) look for usage elsewhere and use runWithHeaders
 	parseHeaders(headers: IncomingHttpHeaders): {
 		secureSessionId: string | undefined
 		requestId: string | undefined
