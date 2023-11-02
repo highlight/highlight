@@ -51,7 +51,7 @@ public class HighlightLoggerHandler extends Handler {
 				.put(HighlightAttributes.HIGHLIGHT_JAVA_SEQUENCE_NUMBER, logRecord.getSequenceNumber())
 				.put(HighlightAttributes.HIGHLIGHT_JAVA_SOURCE_CLASS_NAME, logRecord.getSourceClassName())
 				.put(HighlightAttributes.HIGHLIGHT_JAVA_SOURCE_METHOD_NAME, logRecord.getSourceMethodName())
-				.put(HighlightAttributes.HIGHLIGHT_JAVA_THREAD_ID, logRecord.getLongThreadID()));
+				.put(HighlightAttributes.HIGHLIGHT_JAVA_THREAD_ID, logRecord.getThreadID()));
 
 		this.highlight.capture(highlightRecord.build());
 	}

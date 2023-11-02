@@ -46,8 +46,8 @@
 		<revision>${revision}</revision>
 		<version>${revision}</version>
 		<project.language.name>java</project.language.name>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 
 		<maven.install.skip>true</maven.install.skip>
 		<maven.deploy.skip>true</maven.deploy.skip>
@@ -177,7 +177,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${plugin.compile.version}</version>
 				<configuration>
-					<release>17</release>
+					<release>11</release>
 				</configuration>
 			</plugin>
 			<plugin>
