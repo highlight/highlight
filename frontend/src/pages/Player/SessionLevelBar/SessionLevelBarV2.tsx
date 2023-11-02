@@ -65,7 +65,6 @@ export const SessionLevelBarV2: React.FC<
 	const { page, backendSearchQuery, searchQuery } = useSearchContext()
 	const { isLoggedIn } = useAuthContext()
 	const {
-		enableInspectElement,
 		showLeftPanel,
 		setShowLeftPanel,
 		showRightPanel,
@@ -312,30 +311,20 @@ export const SessionLevelBarV2: React.FC<
 										setRightPanelView(RightPanelView.Event)
 									}
 
-									// If in comment mode...
-									if (!enableInspectElement) {
-										setShowRightPanel(true)
-
-										if (
-											rightPanelView ===
-											RightPanelView.Comments
-										) {
-											setRightPanelView(
-												RightPanelView.Event,
-											)
-										} else {
-											setRightPanelView(
-												RightPanelView.Comments,
-											)
-										}
-									} else {
-										setShowRightPanel(
-											!showRightPanel || !isDefaultView,
-										)
-									}
+									setShowRightPanel(
+										!showRightPanel || !isDefaultView,
+									)
 								}}
-								checked={showRightPanel && isDefaultView}
+								checked={
+									showRightPanel &&
+									(isDefaultView ||
+										rightPanelView ===
+											RightPanelView.Comments)
+								}
 								iconLeft={<IconSolidMenuAlt_3 size={14} />}
+								disabled={
+									rightPanelView === RightPanelView.Comments
+								}
 							/>
 						</>
 					)}

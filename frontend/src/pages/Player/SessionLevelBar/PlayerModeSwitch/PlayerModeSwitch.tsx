@@ -19,7 +19,7 @@ type Mode = 'comment' | 'inspect'
 
 export const PlayerModeSwitch: React.FC = () => {
 	const { setRightPanelView } = usePlayerUIContext()
-	const { enableInspectElement, setEnableInspectElement, setShowRightPanel } =
+	const { enableInspectElement, setEnableInspectElement } =
 		usePlayerConfiguration()
 
 	const mode: Mode = enableInspectElement ? 'inspect' : 'comment'
@@ -65,7 +65,6 @@ export const PlayerModeSwitch: React.FC = () => {
 						onClick={() => {
 							setEnableInspectElement(false)
 							setRightPanelView(RightPanelView.Comments)
-							setShowRightPanel(true)
 						}}
 					/>
 				}
