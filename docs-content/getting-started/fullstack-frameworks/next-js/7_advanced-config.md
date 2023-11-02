@@ -33,7 +33,7 @@ all-in-one.
 
 Configure logging for your serverless cloud provider using one of our [cloud provider logging guides](https://www.highlight.io/docs/getting-started/backend-logging/hosting/overview), including [Vercel Log Drain for Highlight](https://vercel.com/integrations/highlight).
 
-## Environment Variables
+## Environment variables
 
 > This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing and replace our imports (`import { CONSTANTS } from 'src/constants'`) with your own!
 
@@ -71,7 +71,7 @@ Our API wrappers automatically send logs to Highlight in all runtime environment
 
 Vercel Log Drain is a reliable way to capture those logs.
 
-## Next.js Plugin
+## Next.js plugin
 
 Proxy your front-end Highlight calls by adding `withHighlightConfig` to your `next.config`. Frontend session recording and error capture data will be piped through your domain on `/highlight-events` to sneak Highlight network traffic past ad-blockers.
 
@@ -94,7 +94,7 @@ const nextConfig = {
 module.exports = withHighlightConfig(nextConfig)
 ```
 
-### Private source maps + Request proxy
+### Private source maps + request proxy
 
 1. Get your Highlight API key from your [project settings](https://app.highlight.io/settings/errors#sourcemaps). You can also enable the [Highlight + Vercel integration](https://vercel.com/integrations/highlight) to inject `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` directly into your Vercel environment.
 

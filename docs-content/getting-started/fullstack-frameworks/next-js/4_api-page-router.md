@@ -12,7 +12,7 @@ updatedAt: 2023-10-03T00:00:00.000Z
 npm install @highlight-run/next
 ```
 
-## API Route Instrumentation
+## API route instrumentation
 
 ```hint
 This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
@@ -60,7 +60,7 @@ export default withPageRouterHighlight(function handler(req: NextApiRequest, res
 curl http://localhost:3000/api/nodejs-page-router-test?error
 ```
 
-## Related Steps
+## Related steps
 
 - [Page Router client instrumentation](./2_page-router.md)
 - [Edge runtime API instrumentation](./6_edge-runtime.md)

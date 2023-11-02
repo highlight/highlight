@@ -12,7 +12,7 @@ updatedAt: 2023-10-03T00:00:00.000Z
 npm install @highlight-run/next
 ```
 
-## Vercel Edge Runtime Instrumentation
+## Vercel Edge Runtime instrumentation
 
 Edge runtime instrumentation is identical for both Page Router and App Router.
 
@@ -82,7 +82,7 @@ curl http://localhost:3000/api/edge-page-router-test?error
 curl http://localhost:3000/edge-app-router-test?error
 ```
 
-## Related Steps
+## Related steps
 
 - [Page Router client instrumentation](./2_page-router.md)
 - [App Router client instrumentation](./3_app-router.md)

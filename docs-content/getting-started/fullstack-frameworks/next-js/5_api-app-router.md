@@ -12,7 +12,7 @@ updatedAt: 2023-10-03T00:00:00.000Z
 npm install @highlight-run/next
 ```
 
-## API Route Instrumentation
+## API route instrumentation
 
 Node.js 
 
@@ -74,7 +74,7 @@ export const GET = withAppRouterHighlight(async function GET(request: NextReques
 curl http://localhost:3000/nodejs-app-router-test?error
 ```
 
-## Related Steps
+## Related steps
 
 - [App Router client instrumentation](./3_app-router.md)
 - [Edge runtime API instrumentation](./6_edge-runtime.md)
