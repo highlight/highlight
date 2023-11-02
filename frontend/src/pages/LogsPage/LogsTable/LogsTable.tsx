@@ -301,8 +301,8 @@ const LogsTableInner = ({
 				style={{
 					// Subtract heights of elements above, including loading more loads when relevant
 					height: moreLogs
-						? `calc(100vh - 280px)`
-						: `calc(100vh - 252px)`,
+						? `calc(100vh - 268px)`
+						: `calc(100vh - 240px)`,
 				}}
 				onScroll={(e) =>
 					fetchMoreWhenScrolled(e.target as HTMLDivElement)
