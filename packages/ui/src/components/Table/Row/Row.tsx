@@ -5,10 +5,7 @@ import * as styles from './styles.css'
 import clsx from 'clsx'
 
 export interface Props
-	extends Omit<
-		BoxProps,
-		'display' | 'flexDirection' | 'alignItems' | 'gap' | 'cssClass'
-	> {
+	extends Omit<BoxProps, 'display' | 'flexDirection' | 'alignItems' | 'gap'> {
 	children: React.ReactNode
 	gridColumns?: string[]
 	selected?: boolean
@@ -20,6 +17,7 @@ export const Row: React.FC<Props> = ({
 	gridColumns,
 	selected,
 	ref,
+	cssClass,
 	...boxProps
 }) => {
 	const childrenArray = React.Children.toArray(children)
@@ -28,7 +26,9 @@ export const Row: React.FC<Props> = ({
 	return (
 		<Box
 			ref={ref}
-			cssClass={clsx(styles.row, { [styles.selected]: selected })}
+			cssClass={clsx(styles.row, cssClass, {
+				[styles.selected]: selected,
+			})}
 			cursor={boxProps.onClick ? 'pointer' : undefined}
 			style={{
 				gridTemplateColumns: gridColumns

@@ -18,12 +18,14 @@ import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
+import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import { LogDetails, LogValue } from './LogDetails'
+import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
@@ -225,12 +227,14 @@ const LogsTableRow = ({
 		trace_id: log.traceID,
 	})
 
-	// TODO(spenny): add styles when expanded
 	return (
 		<Table.Row
 			gridColumns={GRID_COLUMNS}
 			onClick={toggleExpanded}
 			ref={rowRef}
+			cssClass={clsx(styles.row, {
+				[styles.rowExpanded]: expanded,
+			})}
 		>
 			<Table.Cell alignItems="flex-start">
 				<Box
