@@ -5840,6 +5840,9 @@ body {
   line-height: 20px;
   align-items: center;
   display: flex;
+  flex-wrap: nowrap;
+  max-width: calc(100% - 26px);
+  overflow: hidden;
   pointer-events: none;
   position: absolute;
 }

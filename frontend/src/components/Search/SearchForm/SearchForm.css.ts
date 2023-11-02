@@ -46,6 +46,8 @@ export const comboboxTagsContainer = style([
 		alignItems: 'center',
 		display: 'flex',
 		flexWrap: 'nowrap',
+		maxWidth: 'calc(100% - 26px)',
+		overflow: 'hidden',
 		pointerEvents: 'none',
 		position: 'absolute',
 	},
