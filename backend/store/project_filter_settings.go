@@ -14,14 +14,14 @@ func getKey(projectID int) string {
 	return fmt.Sprintf("project-filter-settings-%d", projectID)
 }
 
-func (store *Store) GetProjectFilterSettings(ctx context.Context, projectID int) (*model.ProjectFilterSettings, error) {
+func (store *Store) GetProjectFilterSettings(ctx context.Context, projectID int, opts ...redis.Option) (*model.ProjectFilterSettings, error) {
 	return redis.CachedEval(ctx, store.redis, getKey(projectID), 250*time.Millisecond, time.Minute, func() (*model.ProjectFilterSettings, error) {
 		var projectFilterSettings model.ProjectFilterSettings
 		if err := store.db.Where(&model.ProjectFilterSettings{ProjectID: projectID}).FirstOrCreate(&projectFilterSettings).Error; err != nil {
 			return nil, err
 		}
 		return &projectFilterSettings, nil
-	})
+	}, opts...)
 }
 
 type UpdateProjectFilterSettingsParams struct {

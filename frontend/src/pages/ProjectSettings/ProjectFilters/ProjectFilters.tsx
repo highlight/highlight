@@ -1,6 +1,7 @@
 import { Button } from '@components/Button'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
+import { useGetBaseSearchContext } from '@context/SearchState'
 import {
 	useEditProjectSettingsMutation,
 	useGetLogsKeysQuery,
@@ -31,11 +32,13 @@ import {
 	useFormStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
+import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
+import SessionQueryBuilder, {
+	CUSTOM_FIELDS,
+	TIME_RANGE_FIELD,
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { buildQueryStateString } from '@util/url/params'
@@ -122,11 +125,6 @@ export const ProjectProductFilters: React.FC<{
 }> = ({ product, view }) => {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
-	const { searchQuery, setSearchQuery } = useSearchContext()
-	const {
-		searchQuery: errorSearchQuery,
-		setSearchQuery: setErrorSearchQuery,
-	} = useErrorSearchContext()
 	const { currentWorkspace } = useApplicationContext()
 	const [dateRange, setDateRange] = React.useState<DateRange>({
 		start: defaultPresets[1].startDate,
@@ -147,16 +145,40 @@ export const ProjectProductFilters: React.FC<{
 			refetchQueries: [namedOperations.Query.GetProjectSettings],
 		})
 
-	const formStore = useFormStore({
+	const sessionSearchContext = useGetBaseSearchContext(
+		'sessions',
+		`{"isAnd":true,"rules":[]}`,
+		'highlightSegmentPickerForProjectFilterSessionsSelectedSegmentId',
+		CUSTOM_FIELDS,
+		TIME_RANGE_FIELD,
+	)
+	const { searchQuery, setSearchQuery } = sessionSearchContext
+	const errorSearchContext = useGetBaseSearchContext(
+		'errors',
+		`{"isAnd":true,"rules":[]}`,
+		'highlightSegmentPickerForProjectFilterErrorsSelectedSegmentId',
+		CUSTOM_FIELDS,
+		TIME_RANGE_FIELD,
+	)
+	const {
+		searchQuery: errorSearchQuery,
+		setSearchQuery: setErrorSearchQuery,
+	} = errorSearchContext
+
+	const formStore = useFormStore<{
+		samplingPercent: number
+		minuteRateLimit: number | null
+		exclusionQuery: string | null
+	}>({
 		defaultValues: {
-			exclusionQuery: '',
 			samplingPercent: 100,
-			minuteRateLimit: 1_000_000,
+			exclusionQuery: null,
+			minuteRateLimit: null,
 		},
 	})
 
 	const canEditSampling =
-		workspaceSettingsData?.workspaceSettings?.enable_ingest_filters
+		workspaceSettingsData?.workspaceSettings?.enable_ingest_sampling
 
 	const showEditSamplingUpgrade = React.useCallback(async () => {
 		analytics.track('Project Sampling Upgrade', {
@@ -172,7 +194,6 @@ export const ProjectProductFilters: React.FC<{
 	}, [currentWorkspace?.id, product])
 
 	const resetConfig = React.useCallback(() => {
-		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
 		const c = {
 			exclusion_query:
 				data?.projectSettings?.sampling[
@@ -212,11 +233,12 @@ export const ProjectProductFilters: React.FC<{
 				],
 		}
 		formStore.setValues({
-			exclusionQuery: c?.exclusion_query ?? '',
 			samplingPercent: 100 * (c?.sampling_rate ?? 1),
-			minuteRateLimit: c?.minute_rate_limit ?? 1_000_000,
+			exclusionQuery: c?.exclusion_query ?? null,
+			minuteRateLimit: c?.minute_rate_limit ?? null,
 		})
 
+		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
 		if (
 			c?.exclusion_query &&
 			(product === ProductType.Sessions || product === ProductType.Errors)
@@ -296,14 +318,13 @@ export const ProjectProductFilters: React.FC<{
 	}
 
 	const sampling = (
-		<Box display="flex" width="full" gap="8">
-			<Box
-				width="full"
-				display="flex"
-				flexDirection="column"
-				gap="4"
-				onClick={canEditSampling ? undefined : showEditSamplingUpgrade}
-			>
+		<Box
+			display="flex"
+			width="full"
+			gap="8"
+			onClick={canEditSampling ? undefined : showEditSamplingUpgrade}
+		>
+			<Box width="full" display="flex" flexDirection="column" gap="4">
 				<Form.Label
 					label="Sampling %"
 					name={formStore.names.samplingPercent}
@@ -320,6 +341,7 @@ export const ProjectProductFilters: React.FC<{
 					name={formStore.names.minuteRateLimit}
 				/>
 				<Form.Input
+					disabled={!canEditSampling}
 					name={formStore.names.minuteRateLimit}
 					type="number"
 				/>
@@ -370,9 +392,10 @@ export const ProjectProductFilters: React.FC<{
 							{product === ProductType.Logs ||
 							product === ProductType.Traces ? (
 								<SearchForm
-									initialQuery={formStore.getValue(
-										'exclusionQuery',
-									)}
+									initialQuery={
+										formStore.getValue('exclusionQuery') ??
+										''
+									}
 									onFormSubmit={(value: string) => {
 										formStore.setValue(
 											'exclusionQuery',
@@ -400,17 +423,25 @@ export const ProjectProductFilters: React.FC<{
 									}
 								/>
 							) : product === ProductType.Sessions ? (
-								<SessionQueryBuilder
-									minimal
-									readonly={view}
-									setDefault={false}
-								/>
+								<SearchContextProvider
+									value={sessionSearchContext}
+								>
+									<SessionQueryBuilder
+										minimal
+										readonly={view}
+										setDefault={false}
+									/>
+								</SearchContextProvider>
 							) : (
-								<ErrorQueryBuilder
-									minimal
-									readonly={view}
-									setDefault={false}
-								/>
+								<SearchContextProvider
+									value={errorSearchContext}
+								>
+									<ErrorQueryBuilder
+										minimal
+										readonly={view}
+										setDefault={false}
+									/>
+								</SearchContextProvider>
 							)}
 						</Box>
 						<Button
@@ -437,10 +468,11 @@ export const ProjectProductFilters: React.FC<{
 							</Tag>
 							<Tag shape="basic" kind="secondary" emphasis="high">
 								Max ingest:{' '}
-								{formStore
-									.getValue('minuteRateLimit')
-									.toLocaleString()}{' '}
-								/ minute
+								{formStore.getValue('minuteRateLimit')
+									? `${formStore
+											.getValue('minuteRateLimit')
+											.toLocaleString()} / minute`
+									: 'Unlimited'}
 							</Tag>
 						</Box>
 					) : null}

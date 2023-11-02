@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"math"
 	"math/rand"
 	"net/url"
@@ -6431,7 +6432,7 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID, redis.WithBypassCache(true))
 	if err != nil {
 		return nil, err
 	}

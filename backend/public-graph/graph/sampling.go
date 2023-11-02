@@ -340,7 +340,7 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, pro
 		return true
 	}
 
-	max := func() int64 {
+	max := func() *int64 {
 		switch product {
 		case privateModel.ProductTypeSessions:
 			return settings.SessionMinuteRateLimit
@@ -351,9 +351,12 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, pro
 		case privateModel.ProductTypeTraces:
 			return settings.TraceMinuteRateLimit
 		}
-		return 1.
+		return nil
 	}()
-	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), max, when.Minute())
+	if max == nil {
+		return true
+	}
+	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), *max, when.Minute())
 	return ingested
 }
 
