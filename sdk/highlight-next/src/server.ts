@@ -5,7 +5,7 @@ import type { ExtendedExecutionContext, HighlightEnv } from './util/types'
 import type { EdgeHandler } from './util/with-highlight-edge'
 import type { NextFetchEvent, NextRequest, NextResponse } from 'next/server'
 
-export { registerHighlight } from './util/registerHighlight'
+export { registerHighlight } from './util/register-highlight'
 export type { HighlightEnv } from './util/types'
 export { H } from '@highlight-run/node' // Imports from server.edge.ts for the edge runtime
 

@@ -22,6 +22,7 @@ export default defineConfig({
 			fileName: 'index',
 		},
 		rollupOptions: {
+			treeshake: 'smallest',
 			output: {
 				entryFileNames: `[name].js`,
 			},

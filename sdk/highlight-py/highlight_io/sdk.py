@@ -157,7 +157,9 @@ class H(object):
             yield
             return
 
-        with self.tracer.start_as_current_span("highlight-ctx") as span:
+        with self.tracer.start_as_current_span(
+            "highlight-ctx", record_exception=False, set_status_on_exception=False
+        ) as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})

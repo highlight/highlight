@@ -37,6 +37,9 @@ For sensitive input fields that your team would like to ignore user input for, y
 <input class="highlight-ignore" name="social security number" />
 ```
 
+## Network Request Redaction
+Interested in redacting particular requests, responses, or the data within them? Highlight will redact certain headers out of the box, but provides a few ways to customize the redaction process to suit your specific needs and preferences. Take a look at our documentation on [Recording Network Requests and Responses](./recording-network-requests-and-responses.md) to learn more.
+
 ## Default Privacy Mode
 
 By default, Highlight will obfuscate any text or input data that matches commonly used Regex expressions and input names of personally identifiable information. This offers a base level protection from recording info such as addresses, phone numbers, social security numbers, and more. It will not obfuscate any images or media content. It is possible that other, non PII text is obfuscated if it matches the expressions for larger number, or contact information on the site. If you want to turn this off, you can set `privacySetting` to `none` when calling [`H.init()`](../../../sdk/client.md#Hinit).

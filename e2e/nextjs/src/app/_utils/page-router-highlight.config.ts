@@ -1,5 +1,5 @@
 // src/app/utils/page-router-highlight.config.ts:
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 import { HighlightEnv, PageRouterHighlight } from '@highlight-run/next/server'
 
 if (process.env.NODE_ENV === 'development') {

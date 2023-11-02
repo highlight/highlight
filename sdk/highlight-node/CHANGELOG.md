@@ -1,5 +1,17 @@
 # @highlight-run/node
 
+## 3.5.2
+
+### Patch Changes
+
+-   4f535a839: ensure that console methods record structured attributes on logs
+-   107f2fbd2: Npm publish cleanup. Export only dist folder.
+-   4f535a839: make object stringification more robust to prevent recursion errors
+-   4f535a839: bundle all dependencies into @highlight-run/node
+-   4f535a839: ensure opentelemetry export does not time out
+-   Updated dependencies [8142463b5]
+    -   highlight.run@8.2.0
+
 ## 3.5.1
 
 ### Patch Changes

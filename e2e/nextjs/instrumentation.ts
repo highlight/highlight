@@ -1,5 +1,5 @@
 // instrumentation.ts
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 
 export async function register() {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {

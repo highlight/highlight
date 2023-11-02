@@ -28,7 +28,6 @@ import (
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	stats "github.com/highlight-run/highlight/backend/hlog"
-	highlightHubspot "github.com/highlight-run/highlight/backend/hubspot"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
@@ -45,7 +44,6 @@ import (
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	"github.com/leonelquinteros/hubspot"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -72,7 +70,6 @@ type Resolver struct {
 	TracesQueue      kafka_queue.MessageQueue
 	MailClient       *sendgrid.Client
 	StorageClient    storage.Client
-	HubspotApi       *highlightHubspot.Client
 	EmbeddingsClient embeddings.Client
 	Redis            *redis.Client
 	Clickhouse       *clickhouse.Client
@@ -1279,15 +1276,6 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setu
 				if err != nil {
 					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
 				} else {
-					if util.IsHubspotEnabled() {
-						if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
-							Name:     "backend_setup",
-							Property: "backend_setup",
-							Value:    true,
-						}}); err != nil {
-							log.WithContext(ctx).Errorf("failed to update hubspot")
-						}
-					}
 					phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
 						attribute.Bool(phonehome.BackendSetup, true),
 					})
@@ -2527,9 +2515,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			var lastUserInteractionTimestamp time.Time
 			hasFullSnapshot := false
+			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
+
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
-					snapshot, err := parse.NewSnapshot(event.Data)
+					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
 						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling snapshot"))
 						continue
@@ -2554,7 +2544,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						stylesheetsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 							util.ResourceName("go.parseEvents.InjectStylesheets"), util.Tag("project_id", projectID))
 						// If we see a snapshot event, attempt to inject CORS stylesheets.
-						err := snapshot.InjectStylesheets()
+						err := snapshot.InjectStylesheets(ctx)
 						stylesheetsSpan.Finish(err)
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))

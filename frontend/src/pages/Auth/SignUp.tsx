@@ -42,7 +42,8 @@ export const SignUp: React.FC = () => {
 		},
 	})
 	const email = formStore.useValue('email')
-	const loading = formStore.useState('submitting')
+	const submitSucceeded = formStore.useState('submitSucceed')
+	const formLoading = formStore.useState('submitting') || submitSucceeded > 0
 	formStore.useSubmit(async (formState) => {
 		auth.createUserWithEmailAndPassword(
 			formState.values.email,
@@ -158,7 +159,7 @@ export const SignUp: React.FC = () => {
 					<Button
 						onClick={() => null}
 						trackingId="sign-up-submit"
-						loading={loading}
+						loading={formLoading}
 						type="submit"
 					>
 						Sign up

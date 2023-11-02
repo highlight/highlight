@@ -4,7 +4,7 @@ on:
     push:
         branches: ['main']
     pull_request:
-        types: [opened, synchronize]
+        types: [opened, reopened, synchronize, assigned, review_requested]
     merge_group:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -203,6 +203,7 @@ jobs:
                     export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
                     export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
                   fi
+                  echo "Using client version ${CYPRESS_CLIENT_VERSION}";
 
                   # start highlight
                   pushd docker;
