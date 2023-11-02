@@ -82,6 +82,10 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 		[isHeightIntegrated, HEIGHT_INTEGRATION],
 	]
 
+	const anyIssueTrackerIntegrated = issueTrackers.some(
+		([isIntegrated]) => isIntegrated,
+	)
+
 	const createIssueMenuItems = (
 		<>
 			{issueTrackers.map((item) => {
@@ -229,8 +233,12 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 										Delete comment
 									</Stack>
 								</Menu.Item>
-								<Menu.Divider />
-								{session && createIssueMenuItems}
+								{session && anyIssueTrackerIntegrated && (
+									<>
+										<Menu.Divider />
+										{createIssueMenuItems}
+									</>
+								)}
 							</Menu.List>
 						</Menu>
 					</Box>
