@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Navbar from '../../components/common/Navbar/Navbar'
 import FeatureBox from '../../components/Products/FeatureBox'
 
@@ -24,6 +24,7 @@ import ProductsErrors from '../../public/images/products-errors.png'
 import ProductsGraph from '../../public/images/products-graph.png'
 import ProductsReplay from '../../public/images/products-replay.png'
 
+import { FaPlay } from 'react-icons/fa'
 import { CustomerReview } from '..'
 import { AnimateBugLeft, AnimateBugRight } from '../../components/Animate'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
@@ -33,7 +34,6 @@ import { REVIEWS } from '../../components/Home/Reviews'
 import InfoRow from '../../components/Products/InfoRow'
 import HeroBugLeft from '../../public/images/hero-bug-left.gif'
 import HeroBugRight from '../../public/images/hero-bug-right.gif'
-import { FaPlay } from 'react-icons/fa'
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	return {
@@ -128,6 +128,8 @@ const Products = ({ product }: { product: iProduct }) => {
 							<Image
 								src={HeroBugLeft}
 								alt="bug left"
+								width={250}
+								height={250}
 								onLoadingComplete={() => setLeftBugLoaded(true)}
 							/>
 						</div>
@@ -137,6 +139,8 @@ const Products = ({ product }: { product: iProduct }) => {
 							<Image
 								src={HeroBugRight}
 								alt="bug right"
+								width={250}
+								height={250}
 								onLoadingComplete={() =>
 									setRightBugLoaded(true)
 								}

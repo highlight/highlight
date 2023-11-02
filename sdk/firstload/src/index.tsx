@@ -55,7 +55,7 @@ interface HighlightWindow extends Window {
 	Intercom?: any
 }
 
-const READY_WAIT_LOOP_MS = 100
+const READY_WAIT_LOOP_MS = 30 / 1000
 
 declare var window: HighlightWindow
 
@@ -65,7 +65,6 @@ let onHighlightReadyQueue: {
 }[] = []
 let onHighlightReadyInterval: number | undefined = undefined
 
-let script: HTMLScriptElement
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
@@ -114,13 +113,12 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			script = document.createElement('script')
-			var scriptSrc = options?.scriptUrl
+			const scriptSrc = options?.scriptUrl
 				? options.scriptUrl
 				: `https://static.highlight.io/v${firstloadVersion}/index.js`
-			script.setAttribute('src', scriptSrc)
-			script.setAttribute('type', 'text/javascript')
-			document.getElementsByTagName('head')[0].appendChild(script)
+			let script = document.getElementById(scriptSrc) as HTMLScriptElement
+			// we've already created the script tag
+			if (script) return
 
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
@@ -156,28 +154,22 @@ const H: HighlightPublicInterface = {
 				// listeners over for client to manage
 				first_load_listeners.startListening()
 			}
-			script.addEventListener('load', () => {
-				const startFunction = () => {
-					highlight_obj = new window.HighlightIO(
-						client_options,
-						first_load_listeners,
-					)
-					if (!options?.manualStart) {
-						highlight_obj.initialize()
-					}
-				}
 
-				if ('HighlightIO' in window) {
-					startFunction()
-				} else {
-					const interval = setInterval(() => {
-						if ('HighlightIO' in window) {
-							startFunction()
-							clearInterval(interval)
-						}
-					}, READY_WAIT_LOOP_MS)
+			script = document.createElement('script')
+			script.id = scriptSrc
+			script.type = 'text/javascript'
+			script.defer = true
+			document.getElementsByTagName('head')[0].appendChild(script)
+			script.onload = async () => {
+				highlight_obj = new window.HighlightIO(
+					client_options,
+					first_load_listeners,
+				)
+				if (!options?.manualStart) {
+					await highlight_obj.initialize()
 				}
-			})
+			}
+			script.src = scriptSrc
 
 			if (
 				!options?.integrations?.mixpanel?.disabled &&

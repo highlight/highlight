@@ -1,6 +1,6 @@
 // src/app/utils/app-router-highlight.config.ts:
 import { HighlightEnv, AppRouterHighlight } from '@highlight-run/next/server'
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 
 const env: HighlightEnv = {
 	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID || '2',
