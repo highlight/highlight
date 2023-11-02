@@ -18,10 +18,20 @@ import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
+import {
+	createColumnHelper,
+	ExpandedState,
+	flexRender,
+	getCoreRowModel,
+	getExpandedRowModel,
+	useReactTable,
+} from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
+import { LogEdge } from '@/graph/generated/schemas'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import { LogDetails, LogValue } from './LogDetails'
@@ -105,7 +115,7 @@ type LogsTableInnerProps = {
 
 const LOADING_AFTER_HEIGHT = 28
 
-const GRID_COLUMNS = ['200px', '75px', '1fr']
+const GRID_COLUMNS = ['20px', '200px', '75px', '1fr']
 
 const LogsTableInner = ({
 	logEdges,
@@ -117,13 +127,149 @@ const LogsTableInner = ({
 	handleAdditionalLogsDateChange,
 	fetchMoreWhenScrolled,
 }: LogsTableInnerProps) => {
+	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreLogs =
 		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
+
+	const queryTerms = parseSearchQuery(query)
+	const [expanded, setExpanded] = useState<ExpandedState>({})
+
+	const columnHelper = createColumnHelper<LogEdge>()
+
+	const columns = [
+		columnHelper.accessor('cursor', {
+			cell: ({ row }) => (
+				<Table.Discoverable trigger="row">
+					{row.getIsExpanded() ? <IconExpanded /> : <IconCollapsed />}
+				</Table.Discoverable>
+			),
+		}),
+		columnHelper.accessor('node.timestamp', {
+			cell: ({ getValue }) => <LogTimestamp timestamp={getValue()} />,
+		}),
+		columnHelper.accessor('node.level', {
+			cell: ({ getValue }) => <LogLevel level={getValue()} />,
+		}),
+		columnHelper.accessor('node.message', {
+			cell: ({ row, getValue }) => {
+				const log = row.original.node
+				const matchedAttributes = findMatchingLogAttributes(
+					queryTerms,
+					{
+						...log.logAttributes,
+						level: log.level,
+						message: log.message,
+						secure_session_id: log.secureSessionID,
+						service_name: log.serviceName,
+						service_version: log.serviceVersion,
+						source: log.source,
+						span_id: log.spanID,
+						trace_id: log.traceID,
+					},
+				)
+
+				return (
+					<>
+						<Stack gap="2">
+							<LogMessage
+								queryTerms={queryTerms}
+								message={getValue()}
+								expanded={row.getIsExpanded()}
+							/>
+							{!expanded &&
+								Object.entries(matchedAttributes).length >
+									0 && (
+									<Box mt="10" ml="20">
+										{Object.entries(matchedAttributes).map(
+											([key, { match, value }]) => {
+												return (
+													<LogValue
+														key={key}
+														label={key}
+														value={value}
+														queryKey={key}
+														queryMatch={match}
+														queryTerms={queryTerms}
+													/>
+												)
+											},
+										)}
+									</Box>
+								)}
+							<LogDetails
+								matchedAttributes={matchedAttributes}
+								log={row.original}
+								queryTerms={queryTerms}
+								expanded={row.getIsExpanded()}
+							/>
+						</Stack>
+					</>
+				)
+			},
+		}),
+	]
+
+	const table = useReactTable({
+		data: logEdges,
+		columns,
+		state: {
+			expanded,
+		},
+		onExpandedChange: setExpanded,
+		getRowCanExpand: (row) => row.original.node.logAttributes,
+		getCoreRowModel: getCoreRowModel(),
+		getExpandedRowModel: getExpandedRowModel(),
+		debugTable: true,
+	})
+
+	const { rows } = table.getRowModel()
+
+	const rowVirtualizer = useVirtualizer({
+		count: rows.length,
+		estimateSize: () => 26,
+		getScrollElement: () => bodyRef.current,
+		overscan: 10,
+	})
+
+	const totalSize = rowVirtualizer.getTotalSize()
+	const virtualRows = rowVirtualizer.getVirtualItems()
+	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
+	let paddingBottom =
+		virtualRows.length > 0
+			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
+			: 0
+
+	if (!loadingAfter) {
+		paddingBottom += LOADING_AFTER_HEIGHT
+	}
+
+	useEffect(() => {
+		// Collapse all rows when search changes
+		table.toggleAllRowsExpanded(false)
+	}, [query, table])
+
+	useEffect(() => {
+		const foundRow = rows.find(
+			(row) => row.original.cursor === selectedCursor,
+		)
+
+		if (foundRow) {
+			rowVirtualizer.scrollToIndex(foundRow.index, {
+				align: 'start',
+				behavior: 'smooth',
+			})
+			foundRow.toggleExpanded(true)
+		}
+
+		// Only run when the component mounts
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<Table height="full" noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={GRID_COLUMNS}>
+					<Table.Header />
 					<Table.Header>Timestamp</Table.Header>
 					<Table.Header>Level</Table.Header>
 					<Table.Header>Body</Table.Header>
@@ -144,6 +290,7 @@ const LogsTableInner = ({
 				)}
 			</Table.Head>
 			<Table.Body
+				forwardRef={bodyRef}
 				overflowY="scroll"
 				style={{
 					// Subtract heights of elements above, including loading more loads when relevant
@@ -155,140 +302,49 @@ const LogsTableInner = ({
 					fetchMoreWhenScrolled(e.target as HTMLDivElement)
 				}
 			>
-				<>
-					{logEdges.map((logEdge) => (
-						<LogsTableRow
-							key={logEdge.cursor}
-							logEdge={logEdge}
-							query={query}
-							selectedCursor={selectedCursor}
-						/>
-					))}
-					<Table.Row>
-						<Box
-							style={{
-								height: `${LOADING_AFTER_HEIGHT}px`,
-							}}
+				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
+				{virtualRows.map((virtualRow) => {
+					const row = rows[virtualRow.index]
+
+					return (
+						<Table.Row
+							key={virtualRow.key}
+							gridColumns={GRID_COLUMNS}
+							onClick={row.getToggleExpandedHandler()}
+							forwardRef={rowVirtualizer.measureElement}
+							className={clsx(styles.row, {
+								[styles.rowExpanded]: row.getIsExpanded(),
+							})}
 						>
-							{loadingAfter && <LoadingBox />}
-						</Box>
-					</Table.Row>
-				</>
+							{row.getVisibleCells().map((cell) => {
+								return (
+									<Table.Cell
+										key={cell.id}
+										alignItems="flex-start"
+									>
+										{flexRender(
+											cell.column.columnDef.cell,
+											cell.getContext(),
+										)}
+									</Table.Cell>
+								)
+							})}
+						</Table.Row>
+					)
+				})}
+				{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
+
+				{loadingAfter && (
+					<Box
+						style={{
+							height: `${LOADING_AFTER_HEIGHT}px`,
+						}}
+					>
+						<LoadingBox />
+					</Box>
+				)}
 			</Table.Body>
 		</Table>
-	)
-}
-
-interface LogsTableRowProps {
-	logEdge: LogEdgeWithError
-	query: string
-	selectedCursor: string | undefined
-}
-
-const LogsTableRow = ({
-	logEdge,
-	query,
-	selectedCursor,
-}: LogsTableRowProps) => {
-	const { node: log } = logEdge
-	const queryTerms = parseSearchQuery(query)
-	const [expanded, setExpanded] = useState(false)
-	const rowRef = useRef<HTMLDivElement>(null)
-
-	// TODO(spenny): this fires too much, and causes headaches when scrolling resets
-	useEffect(() => {
-		if (selectedCursor && rowRef?.current) {
-			if (logEdge.cursor === selectedCursor) {
-				console.log('ONMOUNT')
-
-				rowRef?.current.scrollIntoView({
-					behavior: 'smooth',
-					block: 'center',
-				})
-				setExpanded(true)
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	const toggleExpanded = () => {
-		setExpanded(!expanded)
-	}
-
-	const matchedAttributes = findMatchingLogAttributes(queryTerms, {
-		...log.logAttributes,
-		level: log.level,
-		message: log.message,
-		secure_session_id: log.secureSessionID,
-		service_name: log.serviceName,
-		service_version: log.serviceVersion,
-		source: log.source,
-		span_id: log.spanID,
-		trace_id: log.traceID,
-	})
-
-	return (
-		<Table.Row
-			gridColumns={GRID_COLUMNS}
-			onClick={toggleExpanded}
-			ref={rowRef}
-			cssClass={clsx(styles.row, {
-				[styles.rowExpanded]: expanded,
-			})}
-		>
-			<Table.Cell alignItems="flex-start">
-				<Box
-					flexShrink={0}
-					flexDirection="row"
-					display="flex"
-					alignItems="center"
-					gap="6"
-					ref={rowRef}
-				>
-					<Table.Discoverable trigger="row">
-						{expanded ? <IconExpanded /> : <IconCollapsed />}
-					</Table.Discoverable>
-
-					<LogTimestamp timestamp={log.timestamp} />
-				</Box>
-			</Table.Cell>
-			<Table.Cell alignItems="flex-start">
-				<LogLevel level={log.level} />
-			</Table.Cell>
-			<Table.Cell alignItems="flex-start">
-				<Stack gap="2">
-					<LogMessage
-						queryTerms={queryTerms}
-						message={log.message}
-						expanded={expanded}
-					/>
-					{!expanded && Object.entries(matchedAttributes).length > 0 && (
-						<Box mt="10" ml="20">
-							{Object.entries(matchedAttributes).map(
-								([key, { match, value }]) => {
-									return (
-										<LogValue
-											key={key}
-											label={key}
-											value={value}
-											queryKey={key}
-											queryMatch={match}
-											queryTerms={queryTerms}
-										/>
-									)
-								},
-							)}
-						</Box>
-					)}
-					<LogDetails
-						matchedAttributes={matchedAttributes}
-						log={logEdge}
-						queryTerms={queryTerms}
-						expanded={expanded}
-					/>
-				</Stack>
-			</Table.Cell>
-		</Table.Row>
 	)
 }
 

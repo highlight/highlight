@@ -4,20 +4,20 @@ import { Box, BoxProps } from '../../Box/Box'
 import * as styles from './styles.css'
 import clsx from 'clsx'
 
-export interface Props
-	extends Omit<BoxProps, 'display' | 'flexDirection' | 'alignItems' | 'gap'> {
+export interface Props extends Omit<BoxProps, 'cssClass'> {
 	children: React.ReactNode
 	gridColumns?: string[]
 	selected?: boolean
-	ref?: React.Ref<HTMLDivElement>
+	className?: string
+	forwardRef?: React.Ref<HTMLDivElement>
 }
 
 export const Row: React.FC<Props> = ({
 	children,
 	gridColumns,
 	selected,
-	ref,
-	cssClass,
+	forwardRef,
+	className,
 	...boxProps
 }) => {
 	const childrenArray = React.Children.toArray(children)
@@ -25,8 +25,8 @@ export const Row: React.FC<Props> = ({
 
 	return (
 		<Box
-			ref={ref}
-			cssClass={clsx(styles.row, cssClass, {
+			ref={forwardRef}
+			cssClass={clsx(styles.row, className, {
 				[styles.selected]: selected,
 			})}
 			cursor={boxProps.onClick ? 'pointer' : undefined}
