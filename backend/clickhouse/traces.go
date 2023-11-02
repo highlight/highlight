@@ -63,7 +63,7 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 		"StatusMessage",
 	},
 	defaultFilters: map[string]string{
-		highlight.TraceTypeAttribute: string(highlight.TraceTypeHighlightInternal),
+		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
 	},
 }
 

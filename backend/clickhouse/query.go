@@ -244,6 +244,8 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 			value := values[0]
 			if strings.Contains(value, "%") {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
+			} else if strings.HasPrefix(value, "!") {
+				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
 			} else {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
 			}
@@ -252,6 +254,8 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 			for _, value := range values {
 				if strings.Contains(value, "%") {
 					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
+				} else if strings.HasPrefix(value, "!") {
+					conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
 				} else {
 					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
 				}
