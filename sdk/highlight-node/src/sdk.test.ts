@@ -10,7 +10,10 @@ describe('parseHeaders', () => {
 	})
 
 	it('returns undefined if headers is empty', async () => {
-		expect(H.parseHeaders({})).toBeUndefined()
+		expect(H.parseHeaders({})).toMatchObject({
+			secureSessionId: undefined,
+			requestId: undefined,
+		})
 	})
 
 	it('returns session if request is invalid', async () => {
