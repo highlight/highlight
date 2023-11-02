@@ -49,30 +49,32 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
 	}
 
-	if workspaceSettings.EnableIngestFilters && updates.Sampling != nil {
-		if updates.Sampling.SessionSamplingRate != nil {
-			projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
-		}
-		if updates.Sampling.ErrorSamplingRate != nil {
-			projectFilterSettings.ErrorSamplingRate = *updates.Sampling.ErrorSamplingRate
-		}
-		if updates.Sampling.LogSamplingRate != nil {
-			projectFilterSettings.LogSamplingRate = *updates.Sampling.LogSamplingRate
-		}
-		if updates.Sampling.TraceSamplingRate != nil {
-			projectFilterSettings.TraceSamplingRate = *updates.Sampling.TraceSamplingRate
-		}
-		if updates.Sampling.SessionMinuteRateLimit != nil {
-			projectFilterSettings.SessionMinuteRateLimit = *updates.Sampling.SessionMinuteRateLimit
-		}
-		if updates.Sampling.ErrorMinuteRateLimit != nil {
-			projectFilterSettings.ErrorMinuteRateLimit = *updates.Sampling.ErrorMinuteRateLimit
-		}
-		if updates.Sampling.LogMinuteRateLimit != nil {
-			projectFilterSettings.LogMinuteRateLimit = *updates.Sampling.LogMinuteRateLimit
-		}
-		if updates.Sampling.TraceMinuteRateLimit != nil {
-			projectFilterSettings.TraceMinuteRateLimit = *updates.Sampling.TraceMinuteRateLimit
+	if updates.Sampling != nil {
+		if workspaceSettings.EnableIngestSampling {
+			if updates.Sampling.SessionSamplingRate != nil {
+				projectFilterSettings.SessionSamplingRate = *updates.Sampling.SessionSamplingRate
+			}
+			if updates.Sampling.ErrorSamplingRate != nil {
+				projectFilterSettings.ErrorSamplingRate = *updates.Sampling.ErrorSamplingRate
+			}
+			if updates.Sampling.LogSamplingRate != nil {
+				projectFilterSettings.LogSamplingRate = *updates.Sampling.LogSamplingRate
+			}
+			if updates.Sampling.TraceSamplingRate != nil {
+				projectFilterSettings.TraceSamplingRate = *updates.Sampling.TraceSamplingRate
+			}
+			if updates.Sampling.SessionMinuteRateLimit != nil {
+				projectFilterSettings.SessionMinuteRateLimit = updates.Sampling.SessionMinuteRateLimit
+			}
+			if updates.Sampling.ErrorMinuteRateLimit != nil {
+				projectFilterSettings.ErrorMinuteRateLimit = updates.Sampling.ErrorMinuteRateLimit
+			}
+			if updates.Sampling.LogMinuteRateLimit != nil {
+				projectFilterSettings.LogMinuteRateLimit = updates.Sampling.LogMinuteRateLimit
+			}
+			if updates.Sampling.TraceMinuteRateLimit != nil {
+				projectFilterSettings.TraceMinuteRateLimit = updates.Sampling.TraceMinuteRateLimit
+			}
 		}
 		if updates.Sampling.SessionExclusionQuery != nil {
 			projectFilterSettings.SessionExclusionQuery = updates.Sampling.SessionExclusionQuery

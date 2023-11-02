@@ -13555,7 +13555,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			ai_insights
 			enable_session_export
 			enable_unlisted_sharing
-			enable_ingest_filters
+			enable_ingest_sampling
 		}
 	}
 `

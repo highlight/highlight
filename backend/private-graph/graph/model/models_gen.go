@@ -649,10 +649,10 @@ type Sampling struct {
 	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
 	LogSamplingRate        float64 `json:"log_sampling_rate"`
 	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
-	SessionMinuteRateLimit int64   `json:"session_minute_rate_limit"`
-	ErrorMinuteRateLimit   int64   `json:"error_minute_rate_limit"`
-	LogMinuteRateLimit     int64   `json:"log_minute_rate_limit"`
-	TraceMinuteRateLimit   int64   `json:"trace_minute_rate_limit"`
+	SessionMinuteRateLimit *int64  `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64  `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64  `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64  `json:"trace_minute_rate_limit"`
 	SessionExclusionQuery  *string `json:"session_exclusion_query"`
 	ErrorExclusionQuery    *string `json:"error_exclusion_query"`
 	LogExclusionQuery      *string `json:"log_exclusion_query"`

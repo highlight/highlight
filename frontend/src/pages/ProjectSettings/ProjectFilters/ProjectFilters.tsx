@@ -155,29 +155,21 @@ export const ProjectProductFilters: React.FC<{
 		},
 	})
 
-	const canSaveIngestFilters =
+	const canEditSampling =
 		workspaceSettingsData?.workspaceSettings?.enable_ingest_filters
 
-	const checkCanSaveIngestFilters = React.useCallback(async () => {
-		if (!workspaceSettingsData?.workspaceSettings?.enable_ingest_filters) {
-			analytics.track('Project Filters Upgrade', {
-				product,
-				workspaceId: currentWorkspace?.id,
-			})
-			await message.warn(
-				'Setting up ingest filters is only available on annual commitment plans.',
-			)
-			showIntercomMessage(
-				'Hi! I would like to use the ingest filter feature.',
-			)
-			return false
-		}
-		return true
-	}, [
-		currentWorkspace?.id,
-		product,
-		workspaceSettingsData?.workspaceSettings?.enable_ingest_filters,
-	])
+	const showEditSamplingUpgrade = React.useCallback(async () => {
+		analytics.track('Project Sampling Upgrade', {
+			product,
+			workspaceId: currentWorkspace?.id,
+		})
+		await message.warn(
+			'Setting up ingest sampling is only available on enterprise plans.',
+		)
+		showIntercomMessage(
+			'Hi! I would like to use the ingest sampling feature.',
+		)
+	}, [currentWorkspace?.id, product])
 
 	const resetConfig = React.useCallback(() => {
 		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
@@ -287,10 +279,6 @@ export const ProjectProductFilters: React.FC<{
 
 	const label = upperFirst(product.slice(0, -1))
 	const onSave = async () => {
-		if (!(await checkCanSaveIngestFilters())) {
-			return
-		}
-
 		const sampling = {
 			[`${product.toLowerCase().slice(0, -1)}_exclusion_query`]:
 				formStore.getValue('exclusionQuery') || undefined,
@@ -306,24 +294,39 @@ export const ProjectProductFilters: React.FC<{
 			},
 		})
 	}
-	const edit = (
-		<Button
-			trackingId={`project-filters-${product}-edit`}
-			kind="secondary"
-			size="small"
-			emphasis="medium"
-			iconRight={<IconSolidPencil />}
-			disabled={!canSaveIngestFilters}
-			onClick={async () => {
-				if (!(await checkCanSaveIngestFilters())) {
-					return
-				}
-				navigate(product.toLowerCase())
-			}}
-		>
-			Edit
-		</Button>
+
+	const sampling = (
+		<Box display="flex" width="full" gap="8">
+			<Box
+				width="full"
+				display="flex"
+				flexDirection="column"
+				gap="4"
+				onClick={canEditSampling ? undefined : showEditSamplingUpgrade}
+			>
+				<Form.Label
+					label="Sampling %"
+					name={formStore.names.samplingPercent}
+				/>
+				<Form.Input
+					disabled={!canEditSampling}
+					name={formStore.names.samplingPercent}
+					type="number"
+				/>
+			</Box>
+			<Box width="full" display="flex" flexDirection="column" gap="4">
+				<Form.Label
+					label="Max ingest per minute"
+					name={formStore.names.minuteRateLimit}
+				/>
+				<Form.Input
+					name={formStore.names.minuteRateLimit}
+					type="number"
+				/>
+			</Box>
+		</Box>
 	)
+
 	return (
 		<Box width="full">
 			{view ? null : (
@@ -410,31 +413,18 @@ export const ProjectProductFilters: React.FC<{
 								/>
 							)}
 						</Box>
-						{view ? (
-							canSaveIngestFilters ? (
-								edit
-							) : (
-								<Tooltip trigger={edit}>
-									<Box
-										display="flex"
-										alignItems="center"
-										justifyContent="center"
-									>
-										<Tag
-											kind="secondary"
-											size="medium"
-											shape="basic"
-											emphasis="low"
-										>
-											<Text>
-												Reserved for users on an annual
-												plan
-											</Text>
-										</Tag>
-									</Box>
-								</Tooltip>
-							)
-						) : null}
+						<Button
+							trackingId={`project-filters-${product}-edit`}
+							kind="secondary"
+							size="small"
+							emphasis="medium"
+							iconRight={<IconSolidPencil />}
+							onClick={async () => {
+								navigate(product.toLowerCase())
+							}}
+						>
+							Edit
+						</Button>
 					</Box>
 					{view ? (
 						<Box display="flex" alignItems="center" gap="4">
@@ -486,46 +476,24 @@ export const ProjectProductFilters: React.FC<{
 					<Box display="flex" width="full">
 						{view ? null : (
 							<Stack display="flex" width="full" gap="8">
-								<Box display="flex" width="full" gap="8">
-									<Box
-										width="full"
-										display="flex"
-										flexDirection="column"
-										gap="4"
-									>
-										<Form.Label
-											label="Sampling %"
-											name={
-												formStore.names.samplingPercent
-											}
-										/>
-										<Form.Input
-											name={
-												formStore.names.samplingPercent
-											}
-											type="number"
-										/>
-									</Box>
-									<Box
-										width="full"
-										display="flex"
-										flexDirection="column"
-										gap="4"
-									>
-										<Form.Label
-											label="Max ingest per minute"
-											name={
-												formStore.names.minuteRateLimit
-											}
-										/>
-										<Form.Input
-											name={
-												formStore.names.minuteRateLimit
-											}
-											type="number"
-										/>
-									</Box>
-								</Box>
+								{canEditSampling ? (
+									sampling
+								) : (
+									<Tooltip trigger={sampling}>
+										<Box
+											display="flex"
+											alignItems="center"
+											justifyContent="center"
+											p="4"
+											onClick={showEditSamplingUpgrade}
+										>
+											<Text>
+												Available to users on an
+												enterprise plan
+											</Text>
+										</Box>
+									</Tooltip>
+								)}
 								<Callout>
 									<Box
 										display="flex"
