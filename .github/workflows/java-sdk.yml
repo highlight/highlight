@@ -21,7 +21,6 @@ on:
         paths:
             - 'sdk/highlight-java/**'
             - '.github/workflows/java-sdk.yml'
-    merge_group:
 
 permissions:
     checks: write
@@ -30,6 +29,7 @@ defaults:
     run:
         working-directory: ./sdk/highlight-java
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     setup:
         name: Setup

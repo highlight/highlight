@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.2.1
+
+### Patch Changes
+
+-   7c20f8c44: revert "ensure highlight.run script tag is only added once (#7005)"
+
 ## 8.2.0
 
 ### Minor Changes

@@ -25,7 +25,6 @@ export default defineConfig({
 		// sourcemaps are not published to reduce package size
 		sourcemap: false,
 		rollupOptions: {
-			treeshake: 'smallest',
 			output: {
 				exports: 'named',
 			},

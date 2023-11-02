@@ -5,6 +5,7 @@ on:
     release:
         types: [published]
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     publish-docker:
         name: Publish Production Docker Image

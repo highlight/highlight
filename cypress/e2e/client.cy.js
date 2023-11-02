@@ -10,17 +10,13 @@ describe('client recording spec', () => {
 			})
 		})
 		cy.visit('/')
-		const req = (win) => {
+		cy.window().then((win) => {
 			// delay can be long because the client test might run first, and waiting for vite to have the dev bundle ready can take a while.
 			cy.wait('@PushPayload', { timeout: 90 * 1000 })
 				.its('request.body.variables')
 				.should('have.property', 'resources')
 				.then((resources) => {
 					const parsedResources = JSON.parse(resources).resources
-					if (!parsedResources.length) {
-						// no resources yet, wait for the next push payload
-						return req(win)
-					}
 					const firstResourceKeys = Object.keys(
 						parsedResources[0],
 					).sort()
@@ -71,7 +67,6 @@ describe('client recording spec', () => {
 						)
 					}
 				})
-		}
-		cy.window().then(req)
+		})
 	})
 })
