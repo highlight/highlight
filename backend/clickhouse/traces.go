@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"strconv"
 	"time"
 
@@ -60,6 +61,9 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 		"TraceAttributes",
 		"StatusCode",
 		"StatusMessage",
+	},
+	defaultFilters: map[string]string{
+		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
 	},
 }
 
