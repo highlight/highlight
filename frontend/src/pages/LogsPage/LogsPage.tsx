@@ -179,13 +179,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						histogramBuckets={histogramData?.logs_histogram.buckets}
 						bucketCount={histogramData?.logs_histogram.totalCount}
 					/>
-					<Box
-						borderTop="dividerWeak"
-						height="screen"
-						px="12"
-						pb="12"
-						overflowY="hidden"
-					>
+					<Box borderTop="dividerWeak" height="full" px="12" pb="12">
 						<Box my="4">
 							<OverageCard productType={ProductType.Logs} />
 						</Box>

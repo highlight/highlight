@@ -22,7 +22,6 @@ import {
 } from '@pages/LogsPage/LogsTable/LogsTable'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
 import React, { Fragment, useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
@@ -42,16 +41,17 @@ import * as styles from './LogDetails.css'
 import * as logsTableStyles from './LogsTable.css'
 
 type Props = {
-	row: Row<LogEdgeWithError>
+	log: LogEdgeWithError
 	queryTerms: SearchParam[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
+	expanded: boolean
 }
 
-export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
+export const getLogURL = (projectId: string, log: LogEdge) => {
 	const currentUrl = new URL(window.location.href)
 	const path = generatePath('/:project_id/logs/:log_cursor', {
 		project_id: projectId,
-		log_cursor: row.original.cursor,
+		log_cursor: log.cursor,
 	})
 	return currentUrl.origin + path
 }
@@ -72,8 +72,9 @@ const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
 
 export const LogDetails: React.FC<Props> = ({
 	matchedAttributes,
-	row,
+	log,
 	queryTerms,
+	expanded,
 }) => {
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
@@ -87,8 +88,7 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		serviceName,
 		serviceVersion,
-	} = row.original.node
-	const expanded = row.getIsExpanded()
+	} = log.node
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
@@ -232,7 +232,7 @@ export const LogDetails: React.FC<Props> = ({
 						kind="secondary"
 						emphasis="low"
 						onClick={(e) => {
-							const url = getLogURL(projectId, row)
+							const url = getLogURL(projectId, log)
 							e.stopPropagation()
 							navigator.clipboard.writeText(url)
 							antdMessage.success('Copied link!')
@@ -260,11 +260,11 @@ export const LogDetails: React.FC<Props> = ({
 					ml="4"
 					pl="4"
 				>
-					{row.original.error_object && (
+					{log.error_object && (
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
-							to={getErrorLink(projectId, row.original)}
+							to={getErrorLink(projectId, log)}
 							trackingId="logs-related_error_link"
 						>
 							<Box
@@ -283,7 +283,7 @@ export const LogDetails: React.FC<Props> = ({
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
-							to={getSessionLink(projectId, row.original)}
+							to={getSessionLink(projectId, log)}
 							trackingId="logs-related_session_link"
 						>
 							<Box
