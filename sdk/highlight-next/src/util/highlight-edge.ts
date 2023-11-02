@@ -6,10 +6,13 @@ import {
 import type { NodeOptions } from '@highlight-run/node'
 import {
 	ExtendedExecutionContext,
+	HIGHLIGHT_REQUEST_HEADER,
+	HighlightGlobal,
 	HighlightInterface,
 	Metric,
 	RequestMetadata,
 } from './types'
+import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
@@ -102,6 +105,38 @@ export const H: HighlightInterface = {
 			requestId,
 			tags,
 		})
+	},
+	parseHeaders(headers: IncomingHttpHeaders): {
+		secureSessionId: string | undefined
+		requestId: string | undefined
+	} {
+		const highlightCtx = (global as typeof globalThis & HighlightGlobal)
+			.__HIGHLIGHT__
+		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
+			return highlightCtx
+		}
+		if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+			const [secureSessionId, requestId] =
+				`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+			return { secureSessionId, requestId }
+		}
+		return { secureSessionId: undefined, requestId: undefined }
+	},
+	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
+		const highlightCtx = this.parseHeaders(headers)
+		if (highlightCtx) {
+			const { secureSessionId, requestId } = highlightCtx
+			if (secureSessionId && requestId) {
+				// set the global __HIGHLIGHT__ variables before running the handler, so that
+				// the values are available in the handler
+				;(global as typeof globalThis & HighlightGlobal).__HIGHLIGHT__ =
+					{
+						secureSessionId,
+						requestId,
+					}
+			}
+		}
+		return cb()
 	},
 }
 
