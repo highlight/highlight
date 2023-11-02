@@ -17,7 +17,7 @@ on:
         branches: ['main']
         tags: ['sdk/highlight-java/**']
     pull_request:
-        types: [opened, synchronize]
+        types: [opened, reopened, synchronize, assigned, review_requested]
         paths:
             - 'sdk/highlight-java/**'
             - '.github/workflows/java-sdk.yml'

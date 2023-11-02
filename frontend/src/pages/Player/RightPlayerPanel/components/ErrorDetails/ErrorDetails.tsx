@@ -307,10 +307,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 							<JsonViewer
 								src={context}
 								collapsed
-								style={{
-									maxHeight: 224,
-									fontSize: 11,
-								}}
+								style={{ fontSize: 11 }}
 							/>
 						</Stat>
 					) : null}

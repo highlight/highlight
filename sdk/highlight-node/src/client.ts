@@ -4,6 +4,7 @@ import type { Attributes, Tracer } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
+import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
@@ -50,8 +51,7 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 }
 
 export class Highlight {
-	readonly FLUSH_TIMEOUT = 10
-	_intervalFunction: ReturnType<typeof setInterval>
+	readonly FLUSH_TIMEOUT_MS = 30 * 1000
 	_projectID: string
 	_debug: boolean
 	otel: NodeSDK
@@ -61,28 +61,50 @@ export class Highlight {
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
-		if (!options.disableConsoleRecording) {
-			hookConsole(options.consoleMethodsToRecord, (c) => {
-				this.log(c.date, c.message, c.level, c.stack)
-			})
-		}
-
 		if (!this._projectID) {
 			console.warn(
 				'Highlight project id was not provided. Data will not be recorded.',
 			)
 		}
 
+		if (!options.disableConsoleRecording) {
+			hookConsole(options.consoleMethodsToRecord, (c) => {
+				this.log(
+					c.date,
+					c.message,
+					c.level,
+					c.stack,
+					undefined,
+					undefined,
+					c.attributes,
+				)
+			})
+		}
+
 		this.tracer = trace.getTracer('highlight-node')
 
-		const exporter = new OTLPTraceExporter({
+		const config = {
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
-		})
+			compression:
+				!process.env.NEXT_RUNTIME ||
+				process.env.NEXT_RUNTIME === 'nodejs'
+					? CompressionAlgorithm.GZIP
+					: undefined,
+			keepAlive: true,
+			timeoutMillis: this.FLUSH_TIMEOUT_MS,
+			httpAgentOptions: {
+				timeout: this.FLUSH_TIMEOUT_MS,
+				keepAlive: true,
+			},
+		}
+		this._log('using otlp exporter settings', config)
+		const exporter = new OTLPTraceExporter(config)
 
 		this.processor = new CustomSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 128,
 			maxQueueSize: 1024,
+			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		})
 
 		const attributes: Attributes = {}
@@ -121,11 +143,6 @@ export class Highlight {
 		})
 		this.otel.start()
 
-		this._intervalFunction = setInterval(
-			() => this.flush(),
-			this.FLUSH_TIMEOUT * 1000,
-		)
-
 		for (const event of [
 			'beforeExit',
 			'exit',
@@ -159,9 +176,6 @@ export class Highlight {
 	async stop() {
 		await this.flush()
 		await this.otel.shutdown()
-		if (this._intervalFunction) {
-			clearInterval(this._intervalFunction)
-		}
 	}
 
 	_log(...data: any[]) {
@@ -259,9 +273,11 @@ export class Highlight {
 	}
 
 	async flush() {
-		await this.processor
-			.forceFlush()
-			.catch((e) => console.warn('highlight-node failed to flush: ', e))
+		try {
+			await this.processor.forceFlush()
+		} catch (e) {
+			this._log('failed to flush: ', e)
+		}
 	}
 
 	async waitForFlush() {
