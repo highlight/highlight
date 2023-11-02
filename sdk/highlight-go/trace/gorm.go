@@ -1,4 +1,4 @@
-package highlight
+package htrace
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -80,14 +81,14 @@ func (p otelPlugin) Initialize(db *gorm.DB) (err error) {
 
 func (p *otelPlugin) before(spanName string) gormHookFunc {
 	return func(tx *gorm.DB) {
-		_, tx.Statement.Context = StartTrace(tx.Statement.Context, spanName)
+		_, tx.Statement.Context = highlight.StartTrace(tx.Statement.Context, spanName)
 	}
 }
 
 func (p *otelPlugin) after() gormHookFunc {
 	return func(tx *gorm.DB) {
 		span := trace.SpanFromContext(tx.Statement.Context)
-		defer EndTrace(span)
+		defer highlight.EndTrace(span)
 
 		attrs := make([]attribute.KeyValue, 0, len(p.attrs)+4)
 		attrs = append(attrs, p.attrs...)
@@ -166,4 +167,18 @@ func WithoutGormQueryVariables() PluginOption {
 	return func(p *otelPlugin) {
 		p.excludeQueryVars = true
 	}
+}
+
+func SetupGORMTracing(db *gorm.DB, attrs ...attribute.KeyValue) error {
+	err := db.Use(
+		NewGormPlugin(
+			WithGormAttributes(attrs...),
+		),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
