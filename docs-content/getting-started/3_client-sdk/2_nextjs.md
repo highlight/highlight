@@ -1,7 +1,7 @@
 ---
-title: Next.js
+title: Next.js Quick-start
 slug: nextjs
-heading: Using highlight.io with Next.JS
+heading: Next.js Quick-start
 quickstart: true
 ---
 
