@@ -4,6 +4,7 @@ import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import { useGetBaseSearchContext } from '@context/SearchState'
 import {
 	useEditProjectSettingsMutation,
+	useGetBillingDetailsForProjectQuery,
 	useGetLogsKeysQuery,
 	useGetLogsKeyValuesLazyQuery,
 	useGetProjectSettingsQuery,
@@ -13,7 +14,12 @@ import {
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { ProductType, Sampling, TracesMetricType } from '@graph/schemas'
+import {
+	PlanType,
+	ProductType,
+	Sampling,
+	TracesMetricType,
+} from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -140,6 +146,10 @@ export const ProjectProductFilters: React.FC<{
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
+	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
+		variables: { project_id: projectId! },
+		skip: !projectId,
+	})
 	const [editProjectSettingsMutation, { loading: saveLoading }] =
 		useEditProjectSettingsMutation({
 			refetchQueries: [namedOperations.Query.GetProjectSettings],
@@ -177,8 +187,22 @@ export const ProjectProductFilters: React.FC<{
 		},
 	})
 
+	const canEditIngestion =
+		billingDetails?.billingDetailsForProject?.plan.type !== PlanType.Free
 	const canEditSampling =
 		workspaceSettingsData?.workspaceSettings?.enable_ingest_sampling
+
+	const showEditIngestionUpgrade = React.useCallback(async () => {
+		analytics.track('Project Ingestion Upgrade', {
+			product,
+			workspaceId: currentWorkspace?.id,
+		})
+		await message.warn(
+			'Setting up ingest filters is only available on paying plans.',
+			3,
+		)
+		navigate(`/w/${currentWorkspace?.id}/current-plan/update-plan`)
+	}, [currentWorkspace?.id, navigate, product])
 
 	const showEditSamplingUpgrade = React.useCallback(async () => {
 		analytics.track('Project Sampling Upgrade', {
@@ -349,6 +373,22 @@ export const ProjectProductFilters: React.FC<{
 		</Box>
 	)
 
+	const edit = (
+		<Button
+			trackingId={`project-filters-${product}-edit`}
+			kind="secondary"
+			size="small"
+			emphasis="medium"
+			iconRight={<IconSolidPencil />}
+			disabled={!canEditIngestion}
+			onClick={async () => {
+				navigate(product.toLowerCase())
+			}}
+		>
+			Edit
+		</Button>
+	)
+
 	return (
 		<Box width="full">
 			{view ? null : (
@@ -444,18 +484,40 @@ export const ProjectProductFilters: React.FC<{
 								</SearchContextProvider>
 							)}
 						</Box>
-						<Button
-							trackingId={`project-filters-${product}-edit`}
-							kind="secondary"
-							size="small"
-							emphasis="medium"
-							iconRight={<IconSolidPencil />}
-							onClick={async () => {
-								navigate(product.toLowerCase())
-							}}
-						>
-							Edit
-						</Button>
+						{view ? (
+							canEditIngestion ? (
+								edit
+							) : (
+								<Tooltip
+									trigger={
+										<Box
+											display="inline-flex"
+											onClick={showEditIngestionUpgrade}
+										>
+											{edit}
+										</Box>
+									}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										justifyContent="center"
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											justifyContent="center"
+											p="4"
+											onClick={showEditIngestionUpgrade}
+										>
+											<Text>
+												Available to paid customers
+											</Text>
+										</Box>
+									</Box>
+								</Tooltip>
+							)
+						) : null}
 					</Box>
 					{view ? (
 						<Box display="flex" alignItems="center" gap="4">
@@ -520,7 +582,7 @@ export const ProjectProductFilters: React.FC<{
 											onClick={showEditSamplingUpgrade}
 										>
 											<Text>
-												Available to users on an
+												Available to customers on an
 												enterprise plan
 											</Text>
 										</Box>
