@@ -4,6 +4,7 @@ import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
 import terser from '@rollup/plugin-terser'
 
+/** @type {import('rollup').RollupOptions} */
 const config = {
 	input: 'src/index.ts',
 	context: 'global',
@@ -13,7 +14,10 @@ const config = {
 			// required for @opentelemetry/resources which pretends to be an ESM build while using dynamic `require()`
 			transformMixedEsModules: true,
 		}),
-		resolve(),
+		resolve({
+			browser: false,
+			preferBuiltins: true,
+		}),
 		typescript(),
 		terser(),
 	],
@@ -31,6 +35,7 @@ const config = {
 			exports: 'named',
 		},
 	],
+	treeshake: 'smallest',
 }
 
 export default config
