@@ -42,6 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
@@ -6431,7 +6432,7 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(ctx, project.ID, redis.WithBypassCache(true))
 	if err != nil {
 		return nil, err
 	}

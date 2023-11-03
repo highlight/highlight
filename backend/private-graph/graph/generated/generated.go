@@ -147,7 +147,7 @@ type ComplexityRoot struct {
 	AllWorkspaceSettings struct {
 		AIApplication         func(childComplexity int) int
 		AIInsights            func(childComplexity int) int
-		EnableIngestFilters   func(childComplexity int) int
+		EnableIngestSampling  func(childComplexity int) int
 		EnableSessionExport   func(childComplexity int) int
 		EnableUnlistedSharing func(childComplexity int) int
 		WorkspaceID           func(childComplexity int) int
@@ -2323,12 +2323,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AllWorkspaceSettings.AIInsights(childComplexity), true
 
-	case "AllWorkspaceSettings.enable_ingest_filters":
-		if e.complexity.AllWorkspaceSettings.EnableIngestFilters == nil {
+	case "AllWorkspaceSettings.enable_ingest_sampling":
+		if e.complexity.AllWorkspaceSettings.EnableIngestSampling == nil {
 			break
 		}
 
-		return e.complexity.AllWorkspaceSettings.EnableIngestFilters(childComplexity), true
+		return e.complexity.AllWorkspaceSettings.EnableIngestSampling(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_session_export":
 		if e.complexity.AllWorkspaceSettings.EnableSessionExport == nil {
@@ -10690,10 +10690,10 @@ type Sampling {
 	error_sampling_rate: Float!
 	log_sampling_rate: Float!
 	trace_sampling_rate: Float!
-	session_minute_rate_limit: Int64!
-	error_minute_rate_limit: Int64!
-	log_minute_rate_limit: Int64!
-	trace_minute_rate_limit: Int64!
+	session_minute_rate_limit: Int64
+	error_minute_rate_limit: Int64
+	log_minute_rate_limit: Int64
+	trace_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
@@ -10835,7 +10835,7 @@ type AllWorkspaceSettings {
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
-	enable_ingest_filters: Boolean!
+	enable_ingest_sampling: Boolean!
 }
 
 type Account {
@@ -11307,6 +11307,7 @@ type LogsHistogram {
 
 enum TracesMetricType {
 	count
+	count_distinct_key
 	p50
 	p90
 }
@@ -21967,8 +21968,8 @@ func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_unlisted_sh
 	return fc, nil
 }
 
-func (ec *executionContext) _AllWorkspaceSettings_enable_ingest_filters(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx, field)
+func (ec *executionContext) _AllWorkspaceSettings_enable_ingest_sampling(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -21981,7 +21982,7 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_ingest_filters(ctx cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EnableIngestFilters, nil
+		return obj.EnableIngestSampling, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21998,7 +21999,7 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_ingest_filters(ctx cont
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -39486,8 +39487,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
-			case "enable_ingest_filters":
-				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx, field)
+			case "enable_ingest_sampling":
+				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -52901,8 +52902,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
-			case "enable_ingest_filters":
-				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_filters(ctx, field)
+			case "enable_ingest_sampling":
+				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -56696,14 +56697,11 @@ func (ec *executionContext) _Sampling_session_minute_rate_limit(ctx context.Cont
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(*int64)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Sampling_session_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -56740,14 +56738,11 @@ func (ec *executionContext) _Sampling_error_minute_rate_limit(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(*int64)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Sampling_error_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -56784,14 +56779,11 @@ func (ec *executionContext) _Sampling_log_minute_rate_limit(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(*int64)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Sampling_log_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -56828,14 +56820,11 @@ func (ec *executionContext) _Sampling_trace_minute_rate_limit(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(*int64)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Sampling_trace_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -75120,9 +75109,9 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "enable_ingest_filters":
+		case "enable_ingest_sampling":
 
-			out.Values[i] = ec._AllWorkspaceSettings_enable_ingest_filters(ctx, field, obj)
+			out.Values[i] = ec._AllWorkspaceSettings_enable_ingest_sampling(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -83366,30 +83355,18 @@ func (ec *executionContext) _Sampling(ctx context.Context, sel ast.SelectionSet,
 
 			out.Values[i] = ec._Sampling_session_minute_rate_limit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "error_minute_rate_limit":
 
 			out.Values[i] = ec._Sampling_error_minute_rate_limit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "log_minute_rate_limit":
 
 			out.Values[i] = ec._Sampling_log_minute_rate_limit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "trace_minute_rate_limit":
 
 			out.Values[i] = ec._Sampling_trace_minute_rate_limit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "session_exclusion_query":
 
 			out.Values[i] = ec._Sampling_session_exclusion_query(ctx, field, obj)
