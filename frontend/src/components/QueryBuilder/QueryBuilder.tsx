@@ -706,7 +706,7 @@ const QueryRule = ({
 					]}
 				/>
 			)}
-			{!readonly && !minimal ? (
+			{!readonly ? (
 				<Tag
 					size="medium"
 					kind="secondary"
