@@ -136,7 +136,7 @@ function ThrowerOfErrors({
 
 App Router uses [app/error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side render errors to the client. We can catch and consume those errors with a custom error page.
 
-These errors will display as client errors, even though we know that they're server errors.
+All SSR error will display as client errors on your Highlight dashboard.
 
 We don't call `H.init` in this example because we injected `<HighlightInit />` into the layout using `app/layout.tsx`.
 
