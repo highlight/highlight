@@ -202,8 +202,11 @@ func main() {
 const app = express();
 
 const highlightOptions = {projectID: '<YOUR_PROJECT_ID>'};
+const highlightMiddleware = Handlers.middleware(highlightOptions);
 const highlightHandler = Handlers.errorHandler(highlightOptions);
 
+// This should be before any other error middleware and after all controllers
+app.use(highlightMiddleware);
 // This should be before any other error middleware and after all controllers
 app.use(highlightHandler);`}
 					/>

@@ -8,12 +8,15 @@ import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
 
 import { NodeOptions } from './types'
 import { hookConsole } from './hooks'
 import log from './log'
+import { IncomingHttpHeaders } from 'http'
+import { HIGHLIGHT_REQUEST_HEADER } from './sdk'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -57,6 +60,10 @@ export class Highlight {
 	otel: NodeSDK
 	private tracer: Tracer
 	private processor: CustomSpanProcessor
+	private asyncLocalStorage = new AsyncLocalStorage<{
+		secureSessionId: string | undefined
+		requestId: string | undefined
+	}>()
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -69,13 +76,17 @@ export class Highlight {
 
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
+				const { secureSessionId, requestId } = this.parseHeaders(
+					// look for the context in asyncLocalStorage only
+					{},
+				)
 				this.log(
 					c.date,
 					c.message,
 					c.level,
 					c.stack,
-					undefined,
-					undefined,
+					secureSessionId,
+					requestId,
 					c.attributes,
 				)
 			})
@@ -314,5 +325,41 @@ export class Highlight {
 
 	setAttributes(attributes: Attributes) {
 		return this.otel.addResource(new Resource(attributes))
+	}
+
+	parseHeaders(headers: IncomingHttpHeaders): {
+		secureSessionId: string | undefined
+		requestId: string | undefined
+	} {
+		try {
+			const highlightCtx = this.asyncLocalStorage.getStore()
+			if (highlightCtx) {
+				return highlightCtx
+			}
+			if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+				const [secureSessionId, requestId] =
+					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+				return { secureSessionId, requestId }
+			}
+		} catch (e) {
+			this._log('parseHeaders error: ', e)
+		}
+		return { secureSessionId: undefined, requestId: undefined }
+	}
+
+	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
+		const highlightCtx = this.parseHeaders(headers)
+		if (highlightCtx) {
+			return this.asyncLocalStorage.run(highlightCtx, cb)
+		} else {
+			return cb()
+		}
+	}
+
+	setHeaders(headers: IncomingHttpHeaders) {
+		const highlightCtx = this.parseHeaders(headers)
+		if (highlightCtx) {
+			this.asyncLocalStorage.enterWith(highlightCtx)
+		}
 	}
 }

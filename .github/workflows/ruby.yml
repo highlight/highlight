@@ -8,8 +8,8 @@ on:
         paths:
             - 'sdk/highlight-ruby/**'
             - '.github/workflows/ruby.yml'
-    merge_group:
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     build:
         name: Ruby SDK

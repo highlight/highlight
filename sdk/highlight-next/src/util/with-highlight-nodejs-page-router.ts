@@ -1,5 +1,4 @@
-import { HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
-import { HighlightGlobal } from './types'
+import { NodeOptions } from '@highlight-run/node'
 import { H } from './highlight-node'
 
 import { IncomingHttpHeaders } from 'http'
@@ -21,29 +20,15 @@ export const Highlight =
 				H.init(options)
 			}
 
-			const processHighlightHeaders = () => {
-				if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
-					const [secureSessionId, requestId] =
-						`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-					if (secureSessionId && requestId) {
-						;(
-							global as typeof globalThis & HighlightGlobal
-						).__HIGHLIGHT__ = { secureSessionId, requestId }
-						return { secureSessionId, requestId }
-					}
-				}
-				return { secureSessionId: undefined, requestId: undefined }
-			}
-
-			// set the global __HIGHLIGHT__ variables before running the handler, so that
-			// the values are available in the handler
-			const { secureSessionId, requestId } = processHighlightHeaders()
+			const { secureSessionId, requestId } = H.parseHeaders(req.headers)
 			const start = new Date()
 			try {
-				return await origHandler(req, res)
+				return await H.runWithHeaders(req.headers, async () => {
+					return await origHandler(req, res)
+				})
 			} catch (e) {
 				if (e instanceof Error) {
-					await H.consumeAndFlush(e, secureSessionId, requestId)
+					H.consumeAndFlush(e, secureSessionId, requestId)
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
 				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
@@ -59,8 +44,7 @@ export const Highlight =
 			} finally {
 				// convert ms to ns
 				const delta = (new Date().getTime() - start.getTime()) * 1000000
-				const { secureSessionId, requestId } = processHighlightHeaders()
-				if (secureSessionId) {
+				if (secureSessionId && requestId) {
 					H.recordMetric(secureSessionId, 'latency', delta, requestId)
 					await H.flush()
 				}

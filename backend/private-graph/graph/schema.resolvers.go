@@ -1235,7 +1235,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval, true, &retentionPeriod)
+	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, planType, pricingInterval, true, &retentionPeriod)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}

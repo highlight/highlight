@@ -245,13 +245,11 @@ type Int64Model struct {
 
 type Organization struct {
 	Model
-	Name             *string
-	StripeCustomerID *string
-	StripePriceID    *string
-	BillingEmail     *string
-	Secret           *string    `json:"-"`
-	Admins           []Admin    `gorm:"many2many:organization_admins;"`
-	TrialEndDate     *time.Time `json:"trial_end_date"`
+	Name         *string
+	BillingEmail *string
+	Secret       *string    `json:"-"`
+	Admins       []Admin    `gorm:"many2many:organization_admins;"`
+	TrialEndDate *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string
 	SlackWebhookURL       *string
@@ -281,7 +279,6 @@ type Workspace struct {
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	HubspotCompanyID            *int
 	StripeCustomerID            *string
-	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`
 	UnlimitedMembers            bool   `gorm:"default:false"`
 	BillingPeriodStart          *time.Time
@@ -296,6 +293,9 @@ type Workspace struct {
 	SessionsMaxCents            *int
 	ErrorsMaxCents              *int
 	LogsMaxCents                *int
+	StripeSessionOveragePriceID *string
+	StripeErrorOveragePriceID   *string
+	StripeLogOveragePriceID     *string
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -339,8 +339,6 @@ type WorkspaceAccessRequest struct {
 type Project struct {
 	Model
 	Name                *string
-	StripeCustomerID    *string
-	StripePriceID       *string
 	ZapierAccessToken   *string
 	FrontAccessToken    *string
 	FrontRefreshToken   *string

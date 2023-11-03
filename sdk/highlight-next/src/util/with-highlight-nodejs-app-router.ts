@@ -1,7 +1,7 @@
-import type { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-import { H, HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
-import { HighlightGlobal } from './types'
+import { H, NodeOptions } from '@highlight-run/node'
+import { IncomingHttpHeaders } from 'http'
 
 type NextContext = { params: Record<string, string> }
 type NextHandler<Body = unknown> = (
@@ -12,14 +12,17 @@ type NextHandler<Body = unknown> = (
 export function Highlight(options: NodeOptions) {
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
+			const headers: IncomingHttpHeaders = {}
+			request.headers.forEach((k, v) => (headers[k] = v))
 			try {
 				H.init(options)
 
 				// Must await originalHandler to catch the error at this level
-				return await originalHandler(request, context)
+				return await H.runWithHeaders(headers, async () => {
+					return await originalHandler(request, context)
+				})
 			} catch (error) {
-				const { secureSessionId, requestId } =
-					processHighlightHeaders(request)
+				const { secureSessionId, requestId } = H.parseHeaders(headers)
 
 				if (error instanceof Error) {
 					await H.consumeAndFlush(error, secureSessionId, requestId)
@@ -30,23 +33,4 @@ export function Highlight(options: NodeOptions) {
 				throw error
 			}
 		}
-}
-
-function processHighlightHeaders(request: NextRequest) {
-	const header = request.headers.get(HIGHLIGHT_REQUEST_HEADER)
-
-	if (header) {
-		const [secureSessionId, requestId] = header.split('/')
-
-		if (secureSessionId && requestId) {
-			;(global as typeof globalThis & HighlightGlobal).__HIGHLIGHT__ = {
-				secureSessionId,
-				requestId,
-			}
-
-			return { secureSessionId, requestId }
-		}
-	}
-
-	return { secureSessionId: undefined, requestId: undefined }
 }

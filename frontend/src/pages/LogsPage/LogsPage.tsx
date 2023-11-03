@@ -166,7 +166,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						endDate={endDate}
 						presets={defaultPresets}
 						totalCount={histogramData?.logs_histogram.objectCount}
-						logCountLoading={histogramLoading}
+						loading={histogramLoading}
 					/>
 					<LogsHistogram
 						startDate={startDate}
