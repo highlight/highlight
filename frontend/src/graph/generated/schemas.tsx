@@ -722,24 +722,6 @@ export type HistogramBucket = {
 	range_start: Scalars['Float']
 }
 
-export type HistogramParamsInput = {
-	buckets?: InputMaybe<Scalars['Int']>
-	date_range: DateRangeRequiredInput
-	filters?: InputMaybe<Array<MetricTagFilterInput>>
-	max_percentile?: InputMaybe<Scalars['Float']>
-	max_value?: InputMaybe<Scalars['Float']>
-	min_percentile?: InputMaybe<Scalars['Float']>
-	min_value?: InputMaybe<Scalars['Float']>
-	units?: InputMaybe<Scalars['String']>
-}
-
-export type HistogramPayload = {
-	__typename?: 'HistogramPayload'
-	buckets: Array<HistogramBucket>
-	max: Scalars['Float']
-	min: Scalars['Float']
-}
-
 export enum IngestReason {
 	Filter = 'Filter',
 	Rate = 'Rate',
@@ -1846,7 +1828,6 @@ export type Query = {
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
-	metrics_histogram?: Maybe<HistogramPayload>
 	metrics_timeline: Array<Maybe<DashboardPayload>>
 	network_histogram?: Maybe<CategoryHistogramPayload>
 	newUsersCount?: Maybe<NewUsersCount>
@@ -2283,12 +2264,6 @@ export type QueryMetric_Tag_ValuesArgs = {
 
 export type QueryMetric_TagsArgs = {
 	metric_name: Scalars['String']
-	project_id: Scalars['ID']
-}
-
-export type QueryMetrics_HistogramArgs = {
-	metric_name: Scalars['String']
-	params: HistogramParamsInput
 	project_id: Scalars['ID']
 }
 

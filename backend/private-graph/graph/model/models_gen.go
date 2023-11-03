@@ -412,23 +412,6 @@ type HistogramBucket struct {
 	Count      int     `json:"count"`
 }
 
-type HistogramParamsInput struct {
-	DateRange     *DateRangeRequiredInput `json:"date_range"`
-	Buckets       *int                    `json:"buckets"`
-	MinValue      *float64                `json:"min_value"`
-	MinPercentile *float64                `json:"min_percentile"`
-	MaxValue      *float64                `json:"max_value"`
-	MaxPercentile *float64                `json:"max_percentile"`
-	Units         *string                 `json:"units"`
-	Filters       []*MetricTagFilterInput `json:"filters"`
-}
-
-type HistogramPayload struct {
-	Buckets []*HistogramBucket `json:"buckets"`
-	Min     float64            `json:"min"`
-	Max     float64            `json:"max"`
-}
-
 type IntegrationProjectMappingInput struct {
 	ProjectID  int    `json:"project_id"`
 	ExternalID string `json:"external_id"`

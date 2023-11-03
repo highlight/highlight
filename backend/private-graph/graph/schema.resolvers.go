@@ -11,8 +11,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/highlight/highlight/sdk/highlight-go"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"math"
 	"math/rand"
 	"net/url"
@@ -50,6 +48,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
+	highlight "github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -58,6 +57,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -7014,16 +7014,6 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 		return nil, err
 	}
 	return GetMetricTimeline(ctx, r.ClickhouseClient, projectID, metricName, params)
-}
-
-// MetricsHistogram is the resolver for the metrics_histogram field.
-func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-
-	// TODO(vkorolik) implement via clickhouse
-	panic("not implemented")
 }
 
 // NetworkHistogram is the resolver for the network_histogram field.

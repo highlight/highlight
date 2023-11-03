@@ -110,27 +110,6 @@ query GetMetricsTimeline(
 	}
 }
 
-query GetMetricsHistogram(
-	$project_id: ID!
-	$metric_name: String!
-	$params: HistogramParamsInput!
-) {
-	metrics_histogram(
-		project_id: $project_id
-		metric_name: $metric_name
-		params: $params
-	) {
-		buckets {
-			bucket
-			range_start
-			range_end
-			count
-		}
-		min
-		max
-	}
-}
-
 query GetNetworkHistogram(
 	$project_id: ID!
 	$params: NetworkHistogramParamsInput!

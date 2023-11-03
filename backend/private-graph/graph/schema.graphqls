@@ -1050,17 +1050,6 @@ input DashboardParamsInput {
 	groups: [String!]
 }
 
-input HistogramParamsInput {
-	date_range: DateRangeRequiredInput!
-	buckets: Int
-	min_value: Float
-	min_percentile: Float
-	max_value: Float
-	max_percentile: Float
-	units: String
-	filters: [MetricTagFilterInput!]
-}
-
 input ErrorGroupFrequenciesParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int!
@@ -1597,12 +1586,6 @@ type HistogramBucket {
 	count: Int!
 }
 
-type HistogramPayload {
-	buckets: [HistogramBucket!]!
-	min: Float!
-	max: Float!
-}
-
 type CategoryHistogramBucket {
 	category: String!
 	count: Int!
@@ -1998,11 +1981,6 @@ type Query {
 		metric_name: String!
 		params: DashboardParamsInput!
 	): [DashboardPayload]!
-	metrics_histogram(
-		project_id: ID!
-		metric_name: String!
-		params: HistogramParamsInput!
-	): HistogramPayload
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!

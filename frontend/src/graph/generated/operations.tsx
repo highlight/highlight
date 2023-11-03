@@ -1616,28 +1616,6 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetMetricsHistogramQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	metric_name: Types.Scalars['String']
-	params: Types.HistogramParamsInput
-}>
-
-export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
-	metrics_histogram?: Types.Maybe<
-		{ __typename?: 'HistogramPayload' } & Pick<
-			Types.HistogramPayload,
-			'min' | 'max'
-		> & {
-				buckets: Array<
-					{ __typename?: 'HistogramBucket' } & Pick<
-						Types.HistogramBucket,
-						'bucket' | 'range_start' | 'range_end' | 'count'
-					>
-				>
-			}
-	>
-}
-
 export type GetNetworkHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.NetworkHistogramParamsInput
@@ -4893,7 +4871,6 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
-		GetMetricsHistogram: 'GetMetricsHistogram' as const,
 		GetNetworkHistogram: 'GetNetworkHistogram' as const,
 		GetSessionPayload: 'GetSessionPayload' as const,
 		GetCommentTagsForProject: 'GetCommentTagsForProject' as const,

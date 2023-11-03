@@ -563,12 +563,6 @@ type ComplexityRoot struct {
 		RangeStart func(childComplexity int) int
 	}
 
-	HistogramPayload struct {
-		Buckets func(childComplexity int) int
-		Max     func(childComplexity int) int
-		Min     func(childComplexity int) int
-	}
-
 	IntegrationProjectMapping struct {
 		ExternalID func(childComplexity int) int
 		ProjectID  func(childComplexity int) int
@@ -961,7 +955,6 @@ type ComplexityRoot struct {
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
 		MetricTags                   func(childComplexity int, projectID int, metricName string) int
-		MetricsHistogram             func(childComplexity int, projectID int, metricName string, params model.HistogramParamsInput) int
 		MetricsTimeline              func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		NetworkHistogram             func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
@@ -1786,7 +1779,6 @@ type QueryResolver interface {
 	MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error)
 	MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error)
 	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
-	MetricsHistogram(ctx context.Context, projectID int, metricName string, params model.HistogramParamsInput) (*model.HistogramPayload, error)
 	NetworkHistogram(ctx context.Context, projectID int, params model.NetworkHistogramParamsInput) (*model.CategoryHistogramPayload, error)
 	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
@@ -4213,27 +4205,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HistogramBucket.RangeStart(childComplexity), true
-
-	case "HistogramPayload.buckets":
-		if e.complexity.HistogramPayload.Buckets == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.Buckets(childComplexity), true
-
-	case "HistogramPayload.max":
-		if e.complexity.HistogramPayload.Max == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.Max(childComplexity), true
-
-	case "HistogramPayload.min":
-		if e.complexity.HistogramPayload.Min == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.Min(childComplexity), true
 
 	case "IntegrationProjectMapping.external_id":
 		if e.complexity.IntegrationProjectMapping.ExternalID == nil {
@@ -7136,18 +7107,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MetricTags(childComplexity, args["project_id"].(int), args["metric_name"].(string)), true
-
-	case "Query.metrics_histogram":
-		if e.complexity.Query.MetricsHistogram == nil {
-			break
-		}
-
-		args, err := ec.field_Query_metrics_histogram_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MetricsHistogram(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.HistogramParamsInput)), true
 
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
@@ -10263,7 +10222,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDiscordChannelInput,
 		ec.unmarshalInputErrorGroupFrequenciesParamsInput,
 		ec.unmarshalInputErrorSearchParamsInput,
-		ec.unmarshalInputHistogramParamsInput,
 		ec.unmarshalInputIntegrationProjectMappingInput,
 		ec.unmarshalInputLengthRangeInput,
 		ec.unmarshalInputLogAlertInput,
@@ -11409,17 +11367,6 @@ input DashboardParamsInput {
 	groups: [String!]
 }
 
-input HistogramParamsInput {
-	date_range: DateRangeRequiredInput!
-	buckets: Int
-	min_value: Float
-	min_percentile: Float
-	max_value: Float
-	max_percentile: Float
-	units: String
-	filters: [MetricTagFilterInput!]
-}
-
 input ErrorGroupFrequenciesParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int!
@@ -11956,12 +11903,6 @@ type HistogramBucket {
 	count: Int!
 }
 
-type HistogramPayload {
-	buckets: [HistogramBucket!]!
-	min: Float!
-	max: Float!
-}
-
 type CategoryHistogramBucket {
 	category: String!
 	count: Int!
@@ -12357,11 +12298,6 @@ type Query {
 		metric_name: String!
 		params: DashboardParamsInput!
 	): [DashboardPayload]!
-	metrics_histogram(
-		project_id: ID!
-		metric_name: String!
-		params: HistogramParamsInput!
-	): HistogramPayload
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!
@@ -17749,39 +17685,6 @@ func (ec *executionContext) field_Query_metric_tags_args(ctx context.Context, ra
 		}
 	}
 	args["metric_name"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_metrics_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["metric_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metric_name"] = arg1
-	var arg2 model.HistogramParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
 	return args, nil
 }
 
@@ -34001,148 +33904,6 @@ func (ec *executionContext) fieldContext_HistogramBucket_count(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramPayload_buckets(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramPayload_buckets(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Buckets, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.HistogramBucket)
-	fc.Result = res
-	return ec.marshalNHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucketᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramPayload_buckets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "bucket":
-				return ec.fieldContext_HistogramBucket_bucket(ctx, field)
-			case "range_start":
-				return ec.fieldContext_HistogramBucket_range_start(ctx, field)
-			case "range_end":
-				return ec.fieldContext_HistogramBucket_range_end(ctx, field)
-			case "count":
-				return ec.fieldContext_HistogramBucket_count(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type HistogramBucket", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramPayload_min(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramPayload_min(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Min, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramPayload_min(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramPayload_max(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramPayload_max(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Max, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramPayload_max(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -53867,65 +53628,6 @@ func (ec *executionContext) fieldContext_Query_metrics_timeline(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_metrics_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_metrics_histogram(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["metric_name"].(string), fc.Args["params"].(model.HistogramParamsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.HistogramPayload)
-	fc.Result = res
-	return ec.marshalOHistogramPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramPayload(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_metrics_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "buckets":
-				return ec.fieldContext_HistogramPayload_buckets(ctx, field)
-			case "min":
-				return ec.fieldContext_HistogramPayload_min(ctx, field)
-			case "max":
-				return ec.fieldContext_HistogramPayload_max(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type HistogramPayload", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_metrics_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_network_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_network_histogram(ctx, field)
 	if err != nil {
@@ -73464,90 +73166,6 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputHistogramParamsInput(ctx context.Context, obj interface{}) (model.HistogramParamsInput, error) {
-	var it model.HistogramParamsInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"date_range", "buckets", "min_value", "min_percentile", "max_value", "max_percentile", "units", "filters"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "date_range":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "buckets":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buckets"))
-			it.Buckets, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "min_value":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_value"))
-			it.MinValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "min_percentile":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_percentile"))
-			it.MinPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "max_value":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_value"))
-			it.MaxValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "max_percentile":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_percentile"))
-			it.MaxPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "units":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
-			it.Units, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "filters":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
-			it.Filters, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputIntegrationProjectMappingInput(ctx context.Context, obj interface{}) (model.IntegrationProjectMappingInput, error) {
 	var it model.IntegrationProjectMappingInput
 	asMap := map[string]interface{}{}
@@ -77976,48 +77594,6 @@ func (ec *executionContext) _HistogramBucket(ctx context.Context, sel ast.Select
 		case "count":
 
 			out.Values[i] = ec._HistogramBucket_count(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var histogramPayloadImplementors = []string{"HistogramPayload"}
-
-func (ec *executionContext) _HistogramPayload(ctx context.Context, sel ast.SelectionSet, obj *model.HistogramPayload) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, histogramPayloadImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("HistogramPayload")
-		case "buckets":
-
-			out.Values[i] = ec._HistogramPayload_buckets(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "min":
-
-			out.Values[i] = ec._HistogramPayload_min(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "max":
-
-			out.Values[i] = ec._HistogramPayload_max(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -82539,26 +82115,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_metrics_timeline(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "metrics_histogram":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_metrics_histogram(ctx, field)
 				return res
 			}
 
@@ -88818,65 +88374,6 @@ func (ec *executionContext) marshalNHeightWorkspace2ᚖgithubᚗcomᚋhighlight�
 	return ec._HeightWorkspace(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.HistogramBucket) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucket(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucket(ctx context.Context, sel ast.SelectionSet, v *model.HistogramBucket) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._HistogramBucket(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramParamsInput(ctx context.Context, v interface{}) (model.HistogramParamsInput, error) {
-	res, err := ec.unmarshalInputHistogramParamsInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalIntID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -92805,13 +92302,6 @@ func (ec *executionContext) marshalOGitHubRepo2ᚕᚖgithubᚗcomᚋhighlightᚑ
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalOHistogramPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramPayload(ctx context.Context, sel ast.SelectionSet, v *model.HistogramPayload) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._HistogramPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {
