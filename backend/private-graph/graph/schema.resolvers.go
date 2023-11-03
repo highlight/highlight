@@ -6968,8 +6968,17 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	// TODO(vkorolik) implement via clickhouse
-	panic("not implemented")
+
+	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Filter(lo.Map(keys, func(item *modelInputs.QueryKey, index int) string {
+		return item.Name
+	}), func(item string, index int) bool {
+		return strings.HasPrefix(item, prefix)
+	}), nil
 }
 
 // MetricTags is the resolver for the metric_tags field.
@@ -6978,8 +6987,14 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		return nil, err
 	}
 
-	// TODO(vkorolik) implement via clickhouse
-	panic("not implemented")
+	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(keys, func(item *modelInputs.QueryKey, index int) string {
+		return item.Name
+	}), nil
 }
 
 // MetricTagValues is the resolver for the metric_tag_values field.
@@ -6988,8 +7003,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 		return nil, err
 	}
 
-	// TODO(vkorolik) implement via clickhouse
-	panic("not implemented")
+	return r.ClickhouseClient.TracesKeyValues(ctx, projectID, tagName, time.Now().Add(-30*24*time.Hour), time.Now())
 }
 
 // MetricsTimeline is the resolver for the metrics_timeline field.

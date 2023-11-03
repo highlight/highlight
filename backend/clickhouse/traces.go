@@ -24,6 +24,7 @@ const TracesTable = "traces"
 const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
+const TraceMetricsTable = "trace_metrics"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
@@ -465,6 +466,10 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+}
+
+func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {
