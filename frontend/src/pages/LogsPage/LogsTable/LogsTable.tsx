@@ -141,7 +141,7 @@ const LogsTableInner = ({
 					flexShrink={0}
 					flexDirection="row"
 					display="flex"
-					alignItems="flex-start"
+					alignItems="center"
 					gap="6"
 				>
 					<Table.Discoverable trigger="row">
@@ -156,11 +156,16 @@ const LogsTableInner = ({
 			),
 		}),
 		columnHelper.accessor('node.level', {
-			cell: ({ getValue }) => <LogLevel level={getValue()} />,
+			cell: ({ getValue }) => (
+				<Box pt="2">
+					<LogLevel level={getValue()} />
+				</Box>
+			),
 		}),
 		columnHelper.accessor('node.message', {
 			cell: ({ row, getValue }) => {
 				const log = row.original.node
+				const rowExpanded = row.getIsExpanded()
 				const matchedAttributes = findMatchingLogAttributes(
 					queryTerms,
 					{
@@ -177,40 +182,37 @@ const LogsTableInner = ({
 				)
 
 				return (
-					<>
-						<Stack gap="2">
-							<LogMessage
-								queryTerms={queryTerms}
-								message={getValue()}
-								expanded={row.getIsExpanded()}
-							/>
-							{!expanded &&
-								Object.entries(matchedAttributes).length >
-									0 && (
-									<Box mt="10" ml="20">
-										{Object.entries(matchedAttributes).map(
-											([key, { match, value }]) => {
-												return (
-													<LogValue
-														key={key}
-														label={key}
-														value={value}
-														queryKey={key}
-														queryMatch={match}
-														queryTerms={queryTerms}
-													/>
-												)
-											},
-										)}
-									</Box>
-								)}
-							<LogDetails
-								matchedAttributes={matchedAttributes}
-								row={row}
-								queryTerms={queryTerms}
-							/>
-						</Stack>
-					</>
+					<Stack gap="2" pt="2">
+						<LogMessage
+							queryTerms={queryTerms}
+							message={getValue()}
+							expanded={rowExpanded}
+						/>
+						{!rowExpanded &&
+							Object.entries(matchedAttributes).length > 0 && (
+								<Box mt="10" ml="20">
+									{Object.entries(matchedAttributes).map(
+										([key, { match, value }]) => {
+											return (
+												<LogValue
+													key={key}
+													label={key}
+													value={value}
+													queryKey={key}
+													queryMatch={match}
+													queryTerms={queryTerms}
+												/>
+											)
+										},
+									)}
+								</Box>
+							)}
+						<LogDetails
+							matchedAttributes={matchedAttributes}
+							row={row}
+							queryTerms={queryTerms}
+						/>
+					</Stack>
 				)
 			},
 		}),
@@ -301,8 +303,8 @@ const LogsTableInner = ({
 				style={{
 					// Subtract heights of elements above, including loading more loads when relevant
 					height: moreLogs
-						? `calc(100vh - 268px)`
-						: `calc(100vh - 240px)`,
+						? `calc(100vh - 256px)`
+						: `calc(100vh - 228px)`,
 				}}
 				onScroll={(e) =>
 					fetchMoreWhenScrolled(e.target as HTMLDivElement)
