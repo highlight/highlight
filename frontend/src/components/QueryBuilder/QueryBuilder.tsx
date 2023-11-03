@@ -615,7 +615,6 @@ const QueryRule = ({
 	removeRule,
 	updateRule,
 	readonly,
-	minimal,
 	getCustomFieldOptions,
 	getDefaultOperator,
 }: { rule: RuleProps } & RuleSettings) => {
