@@ -94,8 +94,6 @@ export const TraceFlameGraphNode = memo<Props>(
 			? 'yellow'
 			: isFrontendSpan
 			? 'green'
-			: hasError
-			? 'red'
 			: 'purple'
 		const theme = spanThemes[themeName] ?? spanThemes['purple']
 		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
@@ -115,6 +113,9 @@ export const TraceFlameGraphNode = memo<Props>(
 						key={span.spanID}
 						fill={fill}
 						stroke={stroke}
+						strokeDasharray={
+							hasError && !isSelectedSpan ? '4' : undefined
+						}
 						strokeWidth="1"
 						rx="4"
 						height={lineHeight}
@@ -146,12 +147,13 @@ export const TraceFlameGraphNode = memo<Props>(
 									marginRight: '4px',
 									lineHeight: '1.5',
 									padding: '0',
-									fontWeight: '400',
+									fontWeight: '500',
 									textAlign: 'left',
 									transition: 'all ease-in-out 200ms',
 									userSelect: 'none',
 								}}
 							>
+								{hasError && '⚠️ '}
 								{span.spanName} (
 								{getTraceDurationString(span.duration)})
 							</div>
