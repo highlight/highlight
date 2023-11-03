@@ -173,9 +173,9 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 	bodyQuery := ""
 	for _, body := range filters.body {
 		if strings.Contains(body, "%") {
-			bodyQuery = "Body ILIKE" + sb.Var(body)
+			bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
 		} else {
-			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(body)+")")
+			preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
 		}
 	}
 
