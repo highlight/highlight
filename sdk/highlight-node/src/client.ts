@@ -134,14 +134,7 @@ export class Highlight {
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			resourceDetectors: [processDetectorSync],
-			resource: {
-				attributes,
-				merge: (resource) =>
-					new Resource({
-						...(resource?.attributes ?? {}),
-						...attributes,
-					}),
-			},
+			resource: new Resource(attributes),
 			spanProcessor: this.processor,
 			traceExporter: exporter,
 			instrumentations: [
