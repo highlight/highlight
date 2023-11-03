@@ -56,7 +56,7 @@ import { showIntercomMessage } from '@util/window'
 import { message } from 'antd'
 import _, { upperFirst } from 'lodash'
 import moment from 'moment'
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const Header: React.FC<{
@@ -174,6 +174,9 @@ export const ProjectProductFilters: React.FC<{
 		ERROR_CUSTOM_FIELDS,
 		ERROR_TIME_RANGE_FIELD,
 	)
+	const [searchResultSecureIds, setSearchResultSecureIds] = useState<
+		string[]
+	>([])
 	const {
 		searchQuery: errorSearchQuery,
 		setSearchQuery: setErrorSearchQuery,
@@ -343,6 +346,8 @@ export const ProjectProductFilters: React.FC<{
 				sampling,
 			},
 		})
+		await new Promise((r) => setTimeout(r, 1000))
+		navigate(`/${projectId}/settings/filters`)
 	}
 
 	const sampling = (
@@ -478,7 +483,11 @@ export const ProjectProductFilters: React.FC<{
 								</SearchContextProvider>
 							) : (
 								<ErrorSearchContextProvider
-									value={errorSearchContext}
+									value={{
+										...errorSearchContext,
+										searchResultSecureIds,
+										setSearchResultSecureIds,
+									}}
 								>
 									<ErrorQueryBuilder
 										minimal
