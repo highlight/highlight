@@ -11307,6 +11307,7 @@ type LogsHistogram {
 
 enum TracesMetricType {
 	count
+	count_distinct_key
 	p50
 	p90
 }

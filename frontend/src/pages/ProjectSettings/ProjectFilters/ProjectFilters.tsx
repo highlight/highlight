@@ -565,7 +565,7 @@ const IngestTimeline: React.FC<{
 	const { data, loading } = useGetTracesMetricsQuery({
 		variables: {
 			project_id: projectId,
-			metric_types: [TracesMetricType.Count],
+			metric_types: [TracesMetricType.CountDistinctKey],
 			group_by: ['ingested'],
 			params: {
 				query: `span_name:IsIngestedBy product:${product}`,

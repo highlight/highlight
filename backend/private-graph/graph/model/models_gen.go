@@ -2417,20 +2417,22 @@ func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
 type TracesMetricType string
 
 const (
-	TracesMetricTypeCount TracesMetricType = "count"
-	TracesMetricTypeP50   TracesMetricType = "p50"
-	TracesMetricTypeP90   TracesMetricType = "p90"
+	TracesMetricTypeCount            TracesMetricType = "count"
+	TracesMetricTypeCountDistinctKey TracesMetricType = "count_distinct_key"
+	TracesMetricTypeP50              TracesMetricType = "p50"
+	TracesMetricTypeP90              TracesMetricType = "p90"
 )
 
 var AllTracesMetricType = []TracesMetricType{
 	TracesMetricTypeCount,
+	TracesMetricTypeCountDistinctKey,
 	TracesMetricTypeP50,
 	TracesMetricTypeP90,
 }
 
 func (e TracesMetricType) IsValid() bool {
 	switch e {
-	case TracesMetricTypeCount, TracesMetricTypeP50, TracesMetricTypeP90:
+	case TracesMetricTypeCount, TracesMetricTypeCountDistinctKey, TracesMetricTypeP50, TracesMetricTypeP90:
 		return true
 	}
 	return false

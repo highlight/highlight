@@ -3212,6 +3212,7 @@ export type TracesMetricBucket = {
 
 export enum TracesMetricType {
 	Count = 'count',
+	CountDistinctKey = 'count_distinct_key',
 	P50 = 'p50',
 	P90 = 'p90',
 }
