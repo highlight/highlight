@@ -58,19 +58,9 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 			return longestLineNumber
 		}, 0) ?? 0
 
-	const everyFrameHasError = structuredStackTrace?.every(
-		(frame) =>
-			!!frame?.error &&
-			!frame.error.includes('file does not contain source map url'),
-	)
-
-	const showStackFrameNotUseful =
-		errorObject?.type !== 'Backend' &&
-		(!errorObject?.structured_stack_trace || everyFrameHasError)
-
 	return (
 		<Stack gap="12">
-			{showStackFrameNotUseful && (
+			{everyFrameHasError(errorObject) && (
 				<Callout
 					title="These stack frames don't look that useful 😢"
 					kind="warning"
@@ -464,4 +454,22 @@ const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 5) => {
 	return `.../${tokens
 		.splice(tokens.length - numberOfLevelsToGoUp)
 		.join('/')}`
+}
+
+const everyFrameHasError = (errorObject?: ErrorObjectFragment) => {
+	if (!errorObject?.structured_stack_trace) {
+		return true
+	}
+
+	// TODO(spenny): is this enough to determine if the stack trace doesn't use sourcemaps?
+	// backend errors tend to use frame.error differently than frontend errors
+	if (errorObject.type === 'Backend') {
+		return false
+	}
+
+	return errorObject.structured_stack_trace.every(
+		(frame) =>
+			!!frame?.error &&
+			!frame.error.includes('file does not contain source map url'),
+	)
 }

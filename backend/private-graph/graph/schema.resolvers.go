@@ -3888,7 +3888,7 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 		GithubPrefix:   githubPrefix,
 	}
 
-	mappedStackTrace, _, err := r.Store.EnhancedStackTrace(ctx, *errorObject.StackTrace, workspace, &project, &errorObject, testService)
+	mappedStackTrace, _, err := r.Store.EnhanceErrorTrace(ctx, workspace, &project, &errorObject, testService)
 	if err != nil {
 		return nil, err
 	}

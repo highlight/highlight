@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	log "github.com/sirupsen/logrus"
@@ -288,4 +290,60 @@ func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, w
 	mappedStackTraceString := string(mappedStackTraceBytes)
 	newMappedStackTraceString = &mappedStackTraceString
 	return newMappedStackTraceString, mappedStackTrace, nil
+}
+
+// logic for sourcemaps
+func (store *Store) GetMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
+	version := store.GetErrorAppVersion(errorObj)
+	var newMappedStackTraceString *string
+	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, store.storageClient)
+	// TODO(spenny): how to default this when appropriate since it is null for errors with no stacktraces
+	if err != nil {
+		log.WithContext(ctx).Error(errors.Wrapf(err, "error object: %+v", errorObj))
+	} else if mappedStackTrace != nil {
+		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "error marshalling mapped stack trace")
+		}
+		mappedStackTraceString := string(mappedStackTraceBytes)
+		newMappedStackTraceString = &mappedStackTraceString
+	}
+	return newMappedStackTraceString, mappedStackTrace, nil
+}
+
+func (store *Store) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
+	// get version from session
+	var session *model.Session
+	if err := store.db.Model(&session).
+		Where("id = ?", errorObj.SessionID).
+		Pluck("app_version", &session).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+	}
+	return session.AppVersion
+}
+
+// entry level function
+func (store *Store) EnhanceErrorTrace(ctx context.Context, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, validateService *model.Service) (*string, []*privateModel.ErrorTrace, error) {
+	var inputs []*publicModel.StackFrameInput
+	if err := json.Unmarshal([]byte(*errorObj.StackTrace), &inputs); err != nil {
+		return nil, nil, errors.Wrap(err, "error unmarshalling stack trace from error object")
+	}
+
+	mappedStackTrace, structuredStackTrace, err := store.GetMappedStackTraceString(ctx, inputs, project.ID, errorObj)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "Error generating mapped stack trace: %v", inputs)
+	}
+
+	if mappedStackTrace == nil {
+		mappedStackTrace = errorObj.StackTrace
+	}
+
+	gitHubMappedStackTrace, gitHubStructuredStackTrace, err := store.EnhancedStackTrace(ctx, *mappedStackTrace, workspace, project, errorObj, validateService)
+	if err != nil {
+		return mappedStackTrace, structuredStackTrace, errors.Wrap(err, "Error enhancing stacktrace with GitHub")
+	}
+
+	return gitHubMappedStackTrace, gitHubStructuredStackTrace, nil
 }

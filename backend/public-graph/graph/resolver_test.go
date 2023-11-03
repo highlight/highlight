@@ -351,7 +351,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					}
 				}
 
-				_, structuredStackTrace, err := resolver.getMappedStackTraceString(context.Background(), frames, 1, &errorObj)
+				_, structuredStackTrace, err := resolver.Store.GetMappedStackTraceString(context.Background(), frames, 1, &errorObj)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
 				}

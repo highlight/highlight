@@ -228,19 +228,15 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							<Text size="large" weight="bold" color="strong">
 								Stacktrace
 							</Text>
-							{errorInstance.error_object?.type === 'Backend' && (
-								<Button
-									kind="secondary"
-									emphasis="medium"
-									trackingId="errorInstanceGithubEnhancementSetup"
-									iconLeft={<IconSolidCog size={12} />}
-									onClick={() =>
-										setDisplayGitHubSettings(true)
-									}
-								>
-									Setup GitHub-enhanced stacktraces
-								</Button>
-							)}
+							<Button
+								kind="secondary"
+								emphasis="medium"
+								trackingId="errorInstanceGithubEnhancementSetup"
+								iconLeft={<IconSolidCog size={12} />}
+								onClick={() => setDisplayGitHubSettings(true)}
+							>
+								Setup GitHub-enhanced stacktraces
+							</Button>
 						</Stack>
 						<Box mt="12">
 							<ErrorStackTrace

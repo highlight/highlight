@@ -334,36 +334,6 @@ func getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.Error
 	return environmentsString
 }
 
-func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
-	// get version from session
-	var session *model.Session
-	if err := r.DB.Model(&session).
-		Where("id = ?", errorObj.SessionID).
-		Pluck("app_version", &session).Error; err != nil {
-		if !e.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
-	}
-	return session.AppVersion
-}
-
-func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
-	version := r.GetErrorAppVersion(errorObj)
-	var newMappedStackTraceString *string
-	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrapf(err, "error object: %+v", errorObj))
-	} else {
-		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
-		if err != nil {
-			return nil, nil, e.Wrap(err, "error marshalling mapped stack trace")
-		}
-		mappedStackTraceString := string(mappedStackTraceBytes)
-		newMappedStackTraceString = &mappedStackTraceString
-	}
-	return newMappedStackTraceString, mappedStackTrace, nil
-}
-
 func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObject) *int {
 	eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 	defer cancel()
@@ -2199,9 +2169,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
-		var mappedStackTrace *string
-		var structuredStackTrace []*privateModel.ErrorTrace
-		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
+		mappedStackTrace, structuredStackTrace, err := r.Store.EnhanceErrorTrace(ctx, workspace, &project, errorToInsert, nil)
 
 		if err != nil {
 			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
@@ -2727,7 +2695,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ServiceName:    sessionObj.ServiceName,
 			}
 
-			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
+			mappedStackTrace, structuredStackTrace, err := r.Store.EnhanceErrorTrace(ctx, workspace, &project, errorToInsert, nil)
 
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)

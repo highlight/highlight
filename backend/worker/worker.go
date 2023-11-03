@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"math"
 	"math/rand"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/golang/snappy"
@@ -1320,7 +1321,8 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 				return
 			}
 
-			version := w.PublicResolver.GetErrorAppVersion(modelObj)
+			// TODO(spenny): do we need to enhance with GitHub? Leaning no
+			version := w.PublicResolver.Store.GetErrorAppVersion(modelObj)
 			mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
