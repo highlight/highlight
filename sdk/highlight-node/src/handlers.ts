@@ -1,7 +1,8 @@
 import * as http from 'http'
 import { NodeOptions } from '.'
-import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
+import { H } from './sdk.js'
 import type { Attributes } from '@opentelemetry/api'
+import { IncomingHttpHeaders } from 'http'
 
 /** JSDoc */
 interface MiddlewareError extends Error {
@@ -19,23 +20,45 @@ function processErrorImpl(
 	error: Error,
 	metadata?: Attributes,
 ): void {
-	let secureSessionId: string | undefined
-	let requestId: string | undefined
-	if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
-		;[secureSessionId, requestId] =
-			`${req.headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+	if (!H.isInitialized()) {
+		H.init(options)
+		H._debug('initialized H')
 	}
+
+	const { secureSessionId, requestId } = H.parseHeaders(req.headers ?? {})
 	H._debug('processError', 'extracted from headers', {
 		secureSessionId,
 		requestId,
 	})
 
-	if (!H.isInitialized()) {
-		H.init(options)
-		H._debug('initialized H')
-	}
 	H.consumeError(error, secureSessionId, requestId, metadata)
 	H._debug('consumed error', error)
+}
+
+/**
+ * Express compatible middleware.
+ * Exposed as `Handlers.errorHandler`.
+ * `metadata` accepts structured tags that should be attached to every error.
+ */
+export function middleware(
+	options: NodeOptions,
+	metadata?: Attributes,
+): (
+	req: http.IncomingMessage,
+	res: http.ServerResponse,
+	next: () => void,
+) => void {
+	H._debug('setting up middleware')
+	return (
+		req: http.IncomingMessage,
+		res: http.ServerResponse,
+		next: () => void,
+	) => {
+		H._debug('middleware handling request')
+		H.runWithHeaders(req.headers, () => {
+			next()
+		})
+	}
 }
 
 /**
@@ -59,7 +82,7 @@ export function errorHandler(
 		res: http.ServerResponse,
 		next: (error: MiddlewareError) => void,
 	) => {
-		H._debug('handling request')
+		H._debug('error handling request')
 		try {
 			processErrorImpl(options, req, error, metadata)
 		} finally {
@@ -102,20 +125,24 @@ const makeHandler = (
 	headersExtractor: (...args: any) => Headers | undefined,
 ) => {
 	return async (...args: any) => {
+		if (!H.isInitialized()) {
+			H.init(options)
+		}
+		const headers: IncomingHttpHeaders = {}
+		const h = headersExtractor(args)
+		if (h) {
+			for (const [k, v] of Object.entries(h)) {
+				headers[k] = v
+			}
+		}
 		try {
-			return await origHandler(...args)
+			return await H.runWithHeaders(headers, async () => {
+				return await origHandler(...args)
+			})
 		} catch (e) {
 			try {
 				if (e instanceof Error) {
-					if (!H.isInitialized()) {
-						H.init(options)
-					}
-					processErrorImpl(
-						options,
-						{ headers: headersExtractor(args) },
-						e,
-						metadata,
-					)
+					processErrorImpl(options, { headers }, e, metadata)
 					await H.flush()
 				}
 			} catch (e) {

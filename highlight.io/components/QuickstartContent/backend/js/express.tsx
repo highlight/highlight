@@ -22,22 +22,29 @@ export const JSExpressContent: QuickStartContent = {
 			content: addIntegrationContent('Node Highlight SDK', 'nodejs'),
 			code: [
 				{
-					text: `import { Handlers } from '@highlight-run/node'
+					text: `import { H, Handlers } from '@highlight-run/node'
 // or like this with commonjs
-// const Highlight = require('@highlight-run/node')
+// const { H, Highlight } = require('@highlight-run/node')
 
 const app = express()
+
+const highlightConfig = {
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-express-app',
+	serviceVersion: 'git-sha'
+}
+H.init(config)
+
+// This should be before any controllers (route definitions)
+app.use(Handlers.middleware(highlightConfig))
 
 app.get('/', (req, res) => {
   res.send(\`Hello World! ${Math.random()}\`)
 })
 
 // This should be before any other error middleware and after all controllers (route definitions)
-app.use(Handlers.errorHandler({
-	projectID: '<YOUR_PROJECT_ID>',
-	serviceName: 'my-express-app',
-	serviceVersion: 'git-sha'
-}))
+app.use(Handlers.errorHandler(highlightConfig))
+
 app.listen(8080, () => {
   console.log(\`Example app listening on port 8080\`)
 })`,
@@ -52,16 +59,21 @@ app.listen(8080, () => {
 				'This is because express.js async handlers do not invoke error middleware.',
 			code: [
 				{
-					text: `app.get('/async', async (req: Request, res: Response) => {
+					text: `app.get('/sync', (req: Request, res: Response) => {
+	// do something dangerous...
+	throw new Error('oh no! this is a synchronous error');
+});
+
+app.get('/async', async (req: Request, res: Response) => {
   try {
     // do something dangerous...
     throw new Error('oh no!');
   } catch (error) {
-    const parsedHeaders = H.parseHeaders(req.headers);
+    const { secureSessionId, requestId } = H.parseHeaders(req.headers);
     H.consumeError(
       error as Error,
-      parsedHeaders?.secureSessionId,
-      parsedHeaders?.requestId
+      secureSessionId,
+      requestId
     );
   } finally {
     res.status(200).json({hello: 'world'});

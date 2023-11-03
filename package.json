@@ -89,7 +89,7 @@
 		"prettier": "^2.7.1",
 		"pretty-quick": "^3.1.3",
 		"readdirp": "^3.6.0",
-		"turbo": "1.10.16"
+		"turbo": "latest"
 	},
 	"packageManager": "yarn@3.5.0",
 	"resolutions": {

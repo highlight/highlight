@@ -1,5 +1,31 @@
 # @highlight-run/next
 
+## 7.1.1
+
+### Patch Changes
+
+-   Updated dependencies [7c20f8c44]
+    -   highlight.run@8.2.1
+    -   @highlight-run/node@3.5.3
+
+## 7.1.0
+
+### Minor Changes
+
+-   107f2fbd2: Adding @highlight-run/next/ssr export.
+
+### Patch Changes
+
+-   107f2fbd2: Exported new pageRouterCustomErrorHandler and appRouterSsrErrorHandler
+-   Updated dependencies [8142463b5]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [107f2fbd2]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [4f535a839]
+    -   highlight.run@8.2.0
+    -   @highlight-run/node@3.5.2
+
 ## 7.0.2
 
 ### Patch Changes

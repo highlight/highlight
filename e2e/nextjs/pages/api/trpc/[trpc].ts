@@ -3,7 +3,7 @@ import * as trpcNext from '@trpc/server/adapters/next'
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
 import { H, Handlers } from '@highlight-run/node'
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 
 const t = initTRPC.create()
 

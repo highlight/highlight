@@ -278,6 +278,9 @@ const priceTiers: Record<TierName, PricingTier> = {
 				feature: '1,000,000 monthly logs',
 			},
 			{
+				feature: '1,000,000 monthly traces',
+			},
+			{
 				feature: 'Unlimited seats',
 			},
 		],
@@ -295,6 +298,9 @@ const priceTiers: Record<TierName, PricingTier> = {
 			},
 			{
 				feature: '1,000,000+ monthly logs',
+			},
+			{
+				feature: '1,000,000+ monthly traces',
 			},
 			{
 				feature: 'Unlimited seats',
@@ -453,12 +459,14 @@ const formatPrice = (price: number) =>
 
 const PriceCalculator = () => {
 	const defaultErrors = 1_000
-	const defaultLogs = 1000000
+	const defaultLogs = 1_000_000
+	const defaultTraces = 1_000_000
 	const defaultSessions = 500
 
 	const [errorUsage, setErrorUsage] = useState(defaultErrors)
 	const [sessionUsage, setSessionUsage] = useState(defaultSessions)
 	const [loggingUsage, setLoggingUsage] = useState(defaultLogs)
+	const [tracesUsage, setTracesUsage] = useState(defaultTraces)
 
 	const [errorRetention, setErrorRetention] = useState<Retention>('3 months')
 	const [sessionRetention, setSessionRetention] =
@@ -490,6 +498,12 @@ const PriceCalculator = () => {
 	)
 	const loggingCost = getUsagePrice(
 		loggingUsage - defaultLogs,
+		1.5,
+		1_000_000,
+		'30 days',
+	)
+	const tracesCost = getUsagePrice(
+		tracesUsage - defaultTraces,
 		1.5,
 		1_000_000,
 		'30 days',
@@ -542,11 +556,24 @@ const PriceCalculator = () => {
 						retention="30 days"
 						onChange={setLoggingUsage}
 					/>
+					<CalculatorRowDesktop
+						title="Traces"
+						description="Tracing usage is defined by the number of spans collected per month. Traces consist of multiple spans, each instrumenting a single section of code with customizable attributes."
+						value={tracesUsage}
+						cost={tracesCost}
+						includedRange={defaultTraces}
+						rangeMultiplier={100}
+						retention="30 days"
+						onChange={setTracesUsage}
+					/>
 					<div className="block px-3 py-5 rounded-b-lg md:hidden">
 						<Typography type="copy1" emphasis>
 							Total:{' '}
 							{formatPrice(
-								sessionsCost + errorsCost + loggingCost,
+								sessionsCost +
+									errorsCost +
+									loggingCost +
+									tracesCost,
 							)}
 						</Typography>
 					</div>
@@ -554,7 +581,9 @@ const PriceCalculator = () => {
 				<div className="hidden border border-t-0 rounded-b-lg md:block h-52 border-divider-on-dark">
 					<CalculatorCostDisplay
 						heading="Monthly Total"
-						cost={sessionsCost + errorsCost + loggingCost}
+						cost={
+							sessionsCost + errorsCost + loggingCost + tracesCost
+						}
 					/>
 				</div>
 			</div>
