@@ -312,7 +312,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	metricColName := "Duration"
 	switch column {
 	case modelInputs.TracesMetricColumnMetricValue:
-		metricColName = "toFloat64OrZero(Events.Attributes[1]['metric.value']))"
+		metricColName = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
 	}
 
 	fnStr := ""

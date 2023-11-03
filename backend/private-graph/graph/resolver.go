@@ -3187,6 +3187,7 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 }
 
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
+	const numBuckets = 48
 	agg := params.Aggregator
 	var parts []string
 	for _, filter := range params.Filters {
@@ -3200,17 +3201,19 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, modelInputs.TracesMetricColumnMetricValue, []modelInputs.MetricAggregator{agg}, params.Groups, 48)
+	}, modelInputs.TracesMetricColumnMetricValue, []modelInputs.MetricAggregator{agg}, params.Groups, numBuckets)
 	if err != nil {
 		return nil, err
 	}
+	bucketLength := params.DateRange.EndDate.Sub(params.DateRange.StartDate) / numBuckets
 	return lo.Map(metrics.Buckets, func(item *modelInputs.TracesMetricBucket, index int) *modelInputs.DashboardPayload {
 		var group *string
 		if len(item.Group) > 0 {
 			group = pointy.String(strings.Join(item.Group, "-"))
 		}
+		date := params.DateRange.StartDate.Add(bucketLength * time.Duration(item.BucketID))
 		return &modelInputs.DashboardPayload{
-			Date:       "",
+			Date:       date.Format(time.RFC3339),
 			Value:      item.MetricValue,
 			Aggregator: agg,
 			Group:      group,
