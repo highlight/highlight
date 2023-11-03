@@ -271,15 +271,17 @@ export const ProjectProductFilters: React.FC<{
 
 		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
 		if (
-			c?.exclusion_query &&
-			(product === ProductType.Sessions || product === ProductType.Errors)
+			product === ProductType.Sessions ||
+			product === ProductType.Errors
 		) {
 			const params = {} as { [key: string]: string }
 			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
 				const [key, value] = pair.split(':')
-				params[
-					`${product.toLowerCase().slice(0, -1)}_${key}`
-				] = `is:${value}`
+				if (key && value) {
+					params[
+						`${product.toLowerCase().slice(0, -1)}_${key}`
+					] = `is:${value}`
+				}
 			}
 			;(product === ProductType.Sessions
 				? setSearchQuery
