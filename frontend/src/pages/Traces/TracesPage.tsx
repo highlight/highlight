@@ -89,6 +89,7 @@ export const TracesPage: React.FC = () => {
 				},
 				metric_types: [
 					MetricAggregator.Count,
+					MetricAggregator.Avg,
 					MetricAggregator.P50,
 					MetricAggregator.P90,
 				],
@@ -111,15 +112,19 @@ export const TracesPage: React.FC = () => {
 	)
 
 	const metricsBuckets: {
+		avg: number | undefined
 		p50: number | undefined
 		p90: number | undefined
 	}[] = []
 	for (let i = 0; i < metricsData?.traces_metrics.bucket_count; i++) {
-		metricsBuckets.push({ p50: undefined, p90: undefined })
+		metricsBuckets.push({ avg: undefined, p50: undefined, p90: undefined })
 	}
 
 	metricsData?.traces_metrics.buckets.forEach((b) => {
 		switch (b.metric_type) {
+			case MetricAggregator.Avg:
+				metricsBuckets[b.bucket_id].avg = b.metric_value / 1_000_000
+				break
 			case MetricAggregator.P50:
 				metricsBuckets[b.bucket_id].p50 = b.metric_value / 1_000_000
 				break

@@ -69,12 +69,12 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 			})
 		}
 		payload, err := graph.GetMetricTimeline(context.Background(), ccClient, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
-			DateRange: &modelInputs.DateRangeInput{
-				StartDate: &start,
-				EndDate:   &end,
+			DateRange: &modelInputs.DateRangeRequiredInput{
+				StartDate: start,
+				EndDate:   end,
 			},
 			ResolutionMinutes: pointy.Int(resMins),
-			Aggregator:        &metricMonitor.Aggregator,
+			Aggregator:        metricMonitor.Aggregator,
 			Units:             metricMonitor.Units,
 			Filters:           filters,
 		})
