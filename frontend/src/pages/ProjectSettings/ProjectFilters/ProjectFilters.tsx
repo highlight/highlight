@@ -38,7 +38,11 @@ import {
 	useFormStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import ErrorQueryBuilder, {
+	CUSTOM_FIELDS as ERROR_CUSTOM_FIELDS,
+	TIME_RANGE_FIELD as ERROR_TIME_RANGE_FIELD,
+} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
 import SessionQueryBuilder, {
@@ -167,8 +171,8 @@ export const ProjectProductFilters: React.FC<{
 		'errors',
 		`{"isAnd":true,"rules":[]}`,
 		'highlightSegmentPickerForProjectFilterErrorsSelectedSegmentId',
-		CUSTOM_FIELDS,
-		TIME_RANGE_FIELD,
+		ERROR_CUSTOM_FIELDS,
+		ERROR_TIME_RANGE_FIELD,
 	)
 	const {
 		searchQuery: errorSearchQuery,
@@ -473,7 +477,7 @@ export const ProjectProductFilters: React.FC<{
 									/>
 								</SearchContextProvider>
 							) : (
-								<SearchContextProvider
+								<ErrorSearchContextProvider
 									value={errorSearchContext}
 								>
 									<ErrorQueryBuilder
@@ -481,7 +485,7 @@ export const ProjectProductFilters: React.FC<{
 										readonly={view}
 										setDefault={false}
 									/>
-								</SearchContextProvider>
+								</ErrorSearchContextProvider>
 							)}
 						</Box>
 						{view ? (
