@@ -1654,7 +1654,7 @@ export type NamedCount = {
 
 export type NetworkHistogramParamsInput = {
 	attribute?: InputMaybe<NetworkRequestAttribute>
-	lookback_days?: InputMaybe<Scalars['Int']>
+	lookback_days: Scalars['Float']
 }
 
 export enum NetworkRequestAttribute {
@@ -1919,7 +1919,7 @@ export type QueryApp_Version_SuggestionArgs = {
 }
 
 export type QueryAverageSessionLengthArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2279,7 +2279,7 @@ export type QueryNetwork_HistogramArgs = {
 }
 
 export type QueryNewUsersCountArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2318,7 +2318,7 @@ export type QueryProperty_SuggestionArgs = {
 }
 
 export type QueryRageClicksForProjectArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2331,7 +2331,7 @@ export type QueryRage_ClicksArgs = {
 }
 
 export type QueryReferrersArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2434,7 +2434,7 @@ export type QueryTimeline_Indicator_EventsArgs = {
 }
 
 export type QueryTopUsersArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2484,7 +2484,7 @@ export type QueryUnprocessedSessionsCountArgs = {
 }
 
 export type QueryUserFingerprintCountArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 

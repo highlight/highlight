@@ -3493,7 +3493,7 @@ export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
 
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
@@ -3522,7 +3522,7 @@ export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetReferrersCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetReferrersCountQuery = { __typename?: 'Query' } & {
@@ -3538,7 +3538,7 @@ export type GetReferrersCountQuery = { __typename?: 'Query' } & {
 
 export type GetNewUsersCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
@@ -3549,7 +3549,7 @@ export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
 
 export type GetAverageSessionLengthQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
@@ -3563,7 +3563,7 @@ export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
 
 export type GetTopUsersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetTopUsersQuery = { __typename?: 'Query' } & {
@@ -3615,7 +3615,7 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
 
 export type GetRageClicksForProjectQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {

@@ -569,7 +569,7 @@ type NamedCount struct {
 }
 
 type NetworkHistogramParamsInput struct {
-	LookbackDays *int                     `json:"lookback_days"`
+	LookbackDays float64                  `json:"lookback_days"`
 	Attribute    *NetworkRequestAttribute `json:"attribute"`
 }
 

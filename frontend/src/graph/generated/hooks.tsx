@@ -10006,24 +10006,24 @@ export type GetTracesIntegrationQueryResult = Apollo.QueryResult<
 	Types.GetTracesIntegrationQueryVariables
 >
 export const GetKeyPerformanceIndicatorsDocument = gql`
-	query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
+	query GetKeyPerformanceIndicators(
+		$project_id: ID!
+		$lookback_days: Float!
+	) {
 		unprocessedSessionsCount(project_id: $project_id)
 		liveUsersCount(project_id: $project_id)
-		newUsersCount(
-			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
-		) {
+		newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 			count
 		}
 		averageSessionLength(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			length
 		}
 		userFingerprintCount(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			count
 		}
@@ -10043,7 +10043,7 @@ export const GetKeyPerformanceIndicatorsDocument = gql`
  * const { data, loading, error } = useGetKeyPerformanceIndicatorsQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10080,8 +10080,8 @@ export type GetKeyPerformanceIndicatorsQueryResult = Apollo.QueryResult<
 	Types.GetKeyPerformanceIndicatorsQueryVariables
 >
 export const GetReferrersCountDocument = gql`
-	query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
-		referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+	query GetReferrersCount($project_id: ID!, $lookback_days: Float!) {
+		referrers(project_id: $project_id, lookback_days: $lookback_days) {
 			host
 			count
 			percent
@@ -10102,7 +10102,7 @@ export const GetReferrersCountDocument = gql`
  * const { data, loading, error } = useGetReferrersCountQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10139,11 +10139,8 @@ export type GetReferrersCountQueryResult = Apollo.QueryResult<
 	Types.GetReferrersCountQueryVariables
 >
 export const GetNewUsersCountDocument = gql`
-	query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
-		newUsersCount(
-			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
-		) {
+	query GetNewUsersCount($project_id: ID!, $lookback_days: Float!) {
+		newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 			count
 		}
 	}
@@ -10162,7 +10159,7 @@ export const GetNewUsersCountDocument = gql`
  * const { data, loading, error } = useGetNewUsersCountQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10199,10 +10196,10 @@ export type GetNewUsersCountQueryResult = Apollo.QueryResult<
 	Types.GetNewUsersCountQueryVariables
 >
 export const GetAverageSessionLengthDocument = gql`
-	query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
+	query GetAverageSessionLength($project_id: ID!, $lookback_days: Float!) {
 		averageSessionLength(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			length
 		}
@@ -10222,7 +10219,7 @@ export const GetAverageSessionLengthDocument = gql`
  * const { data, loading, error } = useGetAverageSessionLengthQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10259,8 +10256,8 @@ export type GetAverageSessionLengthQueryResult = Apollo.QueryResult<
 	Types.GetAverageSessionLengthQueryVariables
 >
 export const GetTopUsersDocument = gql`
-	query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
-		topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+	query GetTopUsers($project_id: ID!, $lookback_days: Float!) {
+		topUsers(project_id: $project_id, lookback_days: $lookback_days) {
 			identifier
 			total_active_time
 			active_time_percentage
@@ -10283,7 +10280,7 @@ export const GetTopUsersDocument = gql`
  * const { data, loading, error } = useGetTopUsersQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10437,10 +10434,10 @@ export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
 	Types.GetDailyErrorsCountQueryVariables
 >
 export const GetRageClicksForProjectDocument = gql`
-	query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+	query GetRageClicksForProject($project_id: ID!, $lookback_days: Float!) {
 		rageClicksForProject(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			identifier
 			session_secure_id
@@ -10463,7 +10460,7 @@ export const GetRageClicksForProjectDocument = gql`
  * const { data, loading, error } = useGetRageClicksForProjectQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */

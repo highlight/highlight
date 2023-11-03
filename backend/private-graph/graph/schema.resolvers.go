@@ -4248,7 +4248,7 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 }
 
 // RageClicksForProject is the resolver for the rageClicksForProject field.
-func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.RageClickEventForProject, error) {
+func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.RageClickEventForProject, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -4281,7 +4281,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 			AND session_secure_id IS NOT NULL
 		ORDER BY total_clicks DESC
 		LIMIT 100`,
-		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
+		projectID, lookbackDays).Scan(&rageClicks).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving rage clicks for project")
 	}
 
@@ -5175,14 +5175,29 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID s
 }
 
 // Referrers is the resolver for the referrers field.
-func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
+func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
 	referrers := []*modelInputs.ReferrerTablePayload{}
 
-	if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf("SELECT DISTINCT(value) as host, COUNT(value), count(value) * 100.0 / (select count(*) from fields where name='referrer' and project_id=%d and created_at >= NOW() - INTERVAL '%d DAY') as percent FROM (SELECT SUBSTRING(value from '(?:.*://)?(?:www\\.)?([^/]*)') AS value FROM fields WHERE name='referrer' AND project_id=%d AND created_at >= NOW() - INTERVAL '%d DAY') t1 GROUP BY value ORDER BY count desc LIMIT 200", projectID, lookBackPeriod, projectID, lookBackPeriod)).Scan(&referrers).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Raw(`
+SELECT DISTINCT(value)                                                               as host,
+               COUNT(value),
+               count(value) * 100.0 / (select count(*)
+                                       from fields
+                                       where name = 'referrer'
+                                         and project_id = ?
+                                         and created_at >= NOW() - (? * INTERVAL '1 DAY')) as percent
+FROM (SELECT SUBSTRING(value from ?) AS value
+      FROM fields
+      WHERE name = 'referrer'
+        AND project_id = ?
+        AND created_at >= NOW() - (? * INTERVAL '1 DAY')) t1
+GROUP BY value
+ORDER BY count desc
+LIMIT 200`, projectID, lookbackDays, `(?:.*://)?(?:www\.)?([^/]*)`, projectID, lookbackDays).Scan(&referrers).Error; err != nil {
 		return nil, e.Wrap(err, "error getting referrers")
 	}
 
@@ -5190,7 +5205,7 @@ func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPe
 }
 
 // NewUsersCount is the resolver for the newUsersCount field.
-func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.NewUsersCount, error) {
+func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.NewUsersCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5201,7 +5216,11 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 	}
 
 	var count int64
-	if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf("SELECT COUNT(*) FROM sessions WHERE project_id=%d AND first_time=true AND created_at >= NOW() - INTERVAL '%d DAY'", projectID, lookBackPeriod)).Scan(&count).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Raw(`SELECT COUNT(*)
+FROM sessions
+WHERE project_id = ?
+  AND first_time = true
+  AND created_at >= NOW() - (? * INTERVAL '1 DAY')`, projectID, lookbackDays).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of first time users")
 	}
 
@@ -5209,7 +5228,7 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 }
 
 // TopUsers is the resolver for the topUsers field.
-func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
+func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.TopUsersPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5278,7 +5297,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	AND s.project_id = ?
     ) as q2
 	ORDER BY total_active_time DESC`,
-		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod, projectID).Scan(&topUsersPayload).Error; err != nil {
+		projectID, projectID, lookbackDays, projectID, lookbackDays, projectID).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -5287,7 +5306,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 }
 
 // AverageSessionLength is the resolver for the averageSessionLength field.
-func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
+func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.AverageSessionLength, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5307,7 +5326,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 			AND excluded <> true
 			AND active_length IS NOT NULL
 			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-		`, projectID, lookBackPeriod).Scan(&length).Error; err != nil {
+		`, projectID, lookbackDays).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 
@@ -5315,7 +5334,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 }
 
 // UserFingerprintCount is the resolver for the userFingerprintCount field.
-func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
+func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.UserFingerprintCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5339,7 +5358,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 			AND project_id=?
 			AND length >= 1000
-		`, lookBackPeriod, projectID).Scan(&count).Error; err != nil {
+		`, lookbackDays, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
 	}
 
@@ -7023,14 +7042,10 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		return nil, err
 	}
 
-	lookbackDays := 7
-	if params.LookbackDays != nil {
-		lookbackDays = *params.LookbackDays
-	}
 	metrics, err := r.ClickhouseClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query: strings.Join([]string{string(highlight.TraceTypeAttribute), string(highlight.TraceTypeNetworkRequest)}, ":"),
 		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: time.Now().Add(time.Duration(-lookbackDays) * 24 * time.Hour),
+			StartDate: time.Now().Add(time.Duration(-params.LookbackDays) * 24 * time.Hour),
 			EndDate:   time.Now(),
 		},
 	}, modelInputs.TracesMetricColumnDuration, []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48)
