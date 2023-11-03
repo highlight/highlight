@@ -53,14 +53,15 @@ export const UNIT_OPTIONS = [
 ]
 
 export const LINE_COLORS = {
+	[MetricAggregator.Min]: 'var(--color-gray-200)',
 	[MetricAggregator.Max]: 'var(--color-red-500)',
 	[MetricAggregator.P99]: 'var(--color-red-400)',
 	[MetricAggregator.P95]: 'var(--color-orange-500)',
-	[MetricAggregator.P90]: 'var(--color-orange-400)',
-	[MetricAggregator.P75]: 'var(--color-green-600)',
+	[MetricAggregator.P90]: 'var(--color-green-600)',
 	[MetricAggregator.P50]: 'var(--color-blue-400)',
 	[MetricAggregator.Avg]: 'var(--color-gray-400)',
 	[MetricAggregator.Count]: 'var(--color-green-500)',
+	[MetricAggregator.CountDistinctKey]: 'var(--color-green-700)',
 	[MetricAggregator.Sum]: 'var(--color-purple-700)',
 }
 
@@ -395,7 +396,7 @@ const ChartContainer = React.memo(
 				project_id: project_id!,
 				metric_name: metricConfig.name,
 				params: {
-					aggregator: aggregator,
+					aggregator: aggregator ?? MetricAggregator.Avg,
 					date_range: _.pick(timeRange, 'start_date', 'end_date'),
 					timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 					resolution_minutes: resolutionMinutes,

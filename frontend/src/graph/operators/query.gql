@@ -2391,12 +2391,14 @@ query GetTraces(
 query GetTracesMetrics(
 	$project_id: ID!
 	$params: QueryInput!
-	$metric_types: [TracesMetricType!]!
+	$column: TracesMetricColumn!
+	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
 ) {
 	traces_metrics(
 		project_id: $project_id
 		params: $params
+		column: $column
 		metric_types: $metric_types
 		group_by: $group_by
 	) {

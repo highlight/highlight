@@ -14272,12 +14272,14 @@ export const GetTracesMetricsDocument = gql`
 	query GetTracesMetrics(
 		$project_id: ID!
 		$params: QueryInput!
-		$metric_types: [TracesMetricType!]!
+		$column: TracesMetricColumn!
+		$metric_types: [MetricAggregator!]!
 		$group_by: [String!]!
 	) {
 		traces_metrics(
 			project_id: $project_id
 			params: $params
+			column: $column
 			metric_types: $metric_types
 			group_by: $group_by
 		) {
@@ -14307,6 +14309,7 @@ export const GetTracesMetricsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      column: // value for 'column'
  *      metric_types: // value for 'metric_types'
  *      group_by: // value for 'group_by'
  *   },

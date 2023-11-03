@@ -954,17 +954,29 @@ type LogsHistogram {
 	sampleFactor: Float!
 }
 
-enum TracesMetricType {
-	count
-	count_distinct_key
-	p50
-	p90
+enum MetricAggregator {
+	Count
+	CountDistinctKey
+	Min
+	Avg
+	P50
+	P90
+	P95
+	P99
+	Max
+	Sum
+}
+
+enum TracesMetricColumn {
+	Duration
+	MetricValue
 }
 
 type TracesMetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
-	metric_type: TracesMetricType!
+	column: TracesMetricColumn!
+	metric_type: MetricAggregator!
 	metric_value: Float!
 }
 
@@ -1029,17 +1041,17 @@ input SearchParamsInput {
 }
 
 input DashboardParamsInput {
-	date_range: DateRangeInput
+	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
 	timezone: String
 	units: String
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	filters: [MetricTagFilterInput!]
 	groups: [String!]
 }
 
 input HistogramParamsInput {
-	date_range: DateRangeInput
+	date_range: DateRangeRequiredInput!
 	buckets: Int
 	min_value: Float
 	min_percentile: Float
@@ -1574,7 +1586,7 @@ type Metric {
 type DashboardPayload {
 	date: String!
 	value: Float!
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	group: String
 }
 
@@ -1610,18 +1622,6 @@ enum DashboardChartType {
 	Timeline
 	TimelineBar
 	Histogram
-}
-
-enum MetricAggregator {
-	Avg
-	P50
-	P75
-	P90
-	P95
-	P99
-	Max
-	Count
-	Sum
 }
 
 input DashboardMetricConfigInput {
@@ -2062,7 +2062,8 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		metric_types: [TracesMetricType!]!
+		column: TracesMetricColumn!
+		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 	): TracesMetrics!
 	traces_keys(

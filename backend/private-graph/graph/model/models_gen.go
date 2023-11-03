@@ -231,20 +231,20 @@ type DashboardMetricConfigInput struct {
 }
 
 type DashboardParamsInput struct {
-	DateRange         *DateRangeInput         `json:"date_range"`
+	DateRange         *DateRangeRequiredInput `json:"date_range"`
 	ResolutionMinutes *int                    `json:"resolution_minutes"`
 	Timezone          *string                 `json:"timezone"`
 	Units             *string                 `json:"units"`
-	Aggregator        *MetricAggregator       `json:"aggregator"`
+	Aggregator        MetricAggregator        `json:"aggregator"`
 	Filters           []*MetricTagFilterInput `json:"filters"`
 	Groups            []string                `json:"groups"`
 }
 
 type DashboardPayload struct {
-	Date       string            `json:"date"`
-	Value      float64           `json:"value"`
-	Aggregator *MetricAggregator `json:"aggregator"`
-	Group      *string           `json:"group"`
+	Date       string           `json:"date"`
+	Value      float64          `json:"value"`
+	Aggregator MetricAggregator `json:"aggregator"`
+	Group      *string          `json:"group"`
 }
 
 type DateHistogramBucketSize struct {
@@ -413,7 +413,7 @@ type HistogramBucket struct {
 }
 
 type HistogramParamsInput struct {
-	DateRange     *DateRangeInput         `json:"date_range"`
+	DateRange     *DateRangeRequiredInput `json:"date_range"`
 	Buckets       *int                    `json:"buckets"`
 	MinValue      *float64                `json:"min_value"`
 	MinPercentile *float64                `json:"min_percentile"`
@@ -893,10 +893,11 @@ type TracePayload struct {
 }
 
 type TracesMetricBucket struct {
-	BucketID    uint64           `json:"bucket_id"`
-	Group       []string         `json:"group"`
-	MetricType  TracesMetricType `json:"metric_type"`
-	MetricValue float64          `json:"metric_value"`
+	BucketID    uint64             `json:"bucket_id"`
+	Group       []string           `json:"group"`
+	Column      TracesMetricColumn `json:"column"`
+	MetricType  MetricAggregator   `json:"metric_type"`
+	MetricValue float64            `json:"metric_value"`
 }
 
 type TracesMetrics struct {
@@ -1375,32 +1376,34 @@ func (e LogSource) MarshalGQL(w io.Writer) {
 type MetricAggregator string
 
 const (
-	MetricAggregatorAvg   MetricAggregator = "Avg"
-	MetricAggregatorP50   MetricAggregator = "P50"
-	MetricAggregatorP75   MetricAggregator = "P75"
-	MetricAggregatorP90   MetricAggregator = "P90"
-	MetricAggregatorP95   MetricAggregator = "P95"
-	MetricAggregatorP99   MetricAggregator = "P99"
-	MetricAggregatorMax   MetricAggregator = "Max"
-	MetricAggregatorCount MetricAggregator = "Count"
-	MetricAggregatorSum   MetricAggregator = "Sum"
+	MetricAggregatorCount            MetricAggregator = "Count"
+	MetricAggregatorCountDistinctKey MetricAggregator = "CountDistinctKey"
+	MetricAggregatorMin              MetricAggregator = "Min"
+	MetricAggregatorAvg              MetricAggregator = "Avg"
+	MetricAggregatorP50              MetricAggregator = "P50"
+	MetricAggregatorP90              MetricAggregator = "P90"
+	MetricAggregatorP95              MetricAggregator = "P95"
+	MetricAggregatorP99              MetricAggregator = "P99"
+	MetricAggregatorMax              MetricAggregator = "Max"
+	MetricAggregatorSum              MetricAggregator = "Sum"
 )
 
 var AllMetricAggregator = []MetricAggregator{
+	MetricAggregatorCount,
+	MetricAggregatorCountDistinctKey,
+	MetricAggregatorMin,
 	MetricAggregatorAvg,
 	MetricAggregatorP50,
-	MetricAggregatorP75,
 	MetricAggregatorP90,
 	MetricAggregatorP95,
 	MetricAggregatorP99,
 	MetricAggregatorMax,
-	MetricAggregatorCount,
 	MetricAggregatorSum,
 }
 
 func (e MetricAggregator) IsValid() bool {
 	switch e {
-	case MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP75, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorCount, MetricAggregatorSum:
+	case MetricAggregatorCount, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum:
 		return true
 	}
 	return false
@@ -2414,47 +2417,43 @@ func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type TracesMetricType string
+type TracesMetricColumn string
 
 const (
-	TracesMetricTypeCount            TracesMetricType = "count"
-	TracesMetricTypeCountDistinctKey TracesMetricType = "count_distinct_key"
-	TracesMetricTypeP50              TracesMetricType = "p50"
-	TracesMetricTypeP90              TracesMetricType = "p90"
+	TracesMetricColumnDuration    TracesMetricColumn = "Duration"
+	TracesMetricColumnMetricValue TracesMetricColumn = "MetricValue"
 )
 
-var AllTracesMetricType = []TracesMetricType{
-	TracesMetricTypeCount,
-	TracesMetricTypeCountDistinctKey,
-	TracesMetricTypeP50,
-	TracesMetricTypeP90,
+var AllTracesMetricColumn = []TracesMetricColumn{
+	TracesMetricColumnDuration,
+	TracesMetricColumnMetricValue,
 }
 
-func (e TracesMetricType) IsValid() bool {
+func (e TracesMetricColumn) IsValid() bool {
 	switch e {
-	case TracesMetricTypeCount, TracesMetricTypeCountDistinctKey, TracesMetricTypeP50, TracesMetricTypeP90:
+	case TracesMetricColumnDuration, TracesMetricColumnMetricValue:
 		return true
 	}
 	return false
 }
 
-func (e TracesMetricType) String() string {
+func (e TracesMetricColumn) String() string {
 	return string(e)
 }
 
-func (e *TracesMetricType) UnmarshalGQL(v interface{}) error {
+func (e *TracesMetricColumn) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = TracesMetricType(str)
+	*e = TracesMetricColumn(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TracesMetricType", str)
+		return fmt.Errorf("%s is not a valid TracesMetricColumn", str)
 	}
 	return nil
 }
 
-func (e TracesMetricType) MarshalGQL(w io.Writer) {
+func (e TracesMetricColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -4850,7 +4850,8 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+	column: Types.TracesMetricColumn
+	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 }>
 

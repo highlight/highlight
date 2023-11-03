@@ -327,8 +327,8 @@ export type DashboardMetricConfigInput = {
 }
 
 export type DashboardParamsInput = {
-	aggregator?: InputMaybe<MetricAggregator>
-	date_range?: InputMaybe<DateRangeInput>
+	aggregator: MetricAggregator
+	date_range: DateRangeRequiredInput
 	filters?: InputMaybe<Array<MetricTagFilterInput>>
 	groups?: InputMaybe<Array<Scalars['String']>>
 	resolution_minutes?: InputMaybe<Scalars['Int']>
@@ -338,7 +338,7 @@ export type DashboardParamsInput = {
 
 export type DashboardPayload = {
 	__typename?: 'DashboardPayload'
-	aggregator?: Maybe<MetricAggregator>
+	aggregator: MetricAggregator
 	date: Scalars['String']
 	group?: Maybe<Scalars['String']>
 	value: Scalars['Float']
@@ -724,7 +724,7 @@ export type HistogramBucket = {
 
 export type HistogramParamsInput = {
 	buckets?: InputMaybe<Scalars['Int']>
-	date_range?: InputMaybe<DateRangeInput>
+	date_range: DateRangeRequiredInput
 	filters?: InputMaybe<Array<MetricTagFilterInput>>
 	max_percentile?: InputMaybe<Scalars['Float']>
 	max_value?: InputMaybe<Scalars['Float']>
@@ -971,9 +971,10 @@ export type Metric = {
 export enum MetricAggregator {
 	Avg = 'Avg',
 	Count = 'Count',
+	CountDistinctKey = 'CountDistinctKey',
 	Max = 'Max',
+	Min = 'Min',
 	P50 = 'P50',
-	P75 = 'P75',
 	P90 = 'P90',
 	P95 = 'P95',
 	P99 = 'P99',
@@ -2492,8 +2493,9 @@ export type QueryTraces_KeysArgs = {
 }
 
 export type QueryTraces_MetricsArgs = {
+	column: TracesMetricColumn
 	group_by: Array<Scalars['String']>
-	metric_types: Array<TracesMetricType>
+	metric_types: Array<MetricAggregator>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -3205,16 +3207,15 @@ export type TracePayload = {
 export type TracesMetricBucket = {
 	__typename?: 'TracesMetricBucket'
 	bucket_id: Scalars['UInt64']
+	column: TracesMetricColumn
 	group: Array<Scalars['String']>
-	metric_type: TracesMetricType
+	metric_type: MetricAggregator
 	metric_value: Scalars['Float']
 }
 
-export enum TracesMetricType {
-	Count = 'count',
-	CountDistinctKey = 'count_distinct_key',
-	P50 = 'p50',
-	P90 = 'p90',
+export enum TracesMetricColumn {
+	Duration = 'Duration',
+	MetricValue = 'MetricValue',
 }
 
 export type TracesMetrics = {

@@ -3186,89 +3186,36 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 	}, nil
 }
 
-func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
-	fn := "mean"
-	quantile := 0.
-	// explicitly validate the aggregate func to ensure no query injection possible
-	switch aggregator {
-	case modelInputs.MetricAggregatorP50:
-		quantile = 0.5
-	case modelInputs.MetricAggregatorP75:
-		quantile = 0.75
-	case modelInputs.MetricAggregatorP90:
-		quantile = 0.9
-	case modelInputs.MetricAggregatorP95:
-		quantile = 0.95
-	case modelInputs.MetricAggregatorP99:
-		quantile = 0.99
-	case modelInputs.MetricAggregatorMax:
-		quantile = 1.0
-	case modelInputs.MetricAggregatorCount:
-		fn = "count"
-	case modelInputs.MetricAggregatorSum:
-		fn = "sum"
-	case modelInputs.MetricAggregatorAvg:
-	default:
-		log.WithContext(ctx).Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
-	}
-	aggregateStatement := fmt.Sprintf(`
-      query()
-		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: true)
-          |> yield(name: "avg")
-	`, resMins, fn)
-	if quantile > 0. {
-		aggregateStatement = fmt.Sprintf(`
-		  do(q:%f)
-			  |> yield(name: "p%d")
-		`, quantile, int(quantile*100))
-	}
-
-	return aggregateStatement
-}
-
-func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) float64 {
-	div := 1.0
-	if originalUnits == nil {
-		originalUnits = pointy.String("s")
-	}
-	if desiredUnits == nil {
-		return div
-	}
-	if *originalUnits == "b" {
-		bytes, ok := BytesConversion[*desiredUnits]
-		if !ok {
-			return div
-		}
-		return float64(bytes)
-	}
-	o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
-	if err != nil {
-		return div
-	}
-	d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *desiredUnits))
-	if err != nil {
-		return div
-	}
-	return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
-}
-
-// MetricOriginalUnits returns the input units for the metric or nil if unitless.
-func MetricOriginalUnits(metricName string) (originalUnits *string) {
-	if strings.HasSuffix(metricName, "-ms") {
-		originalUnits = pointy.String("ms")
-	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true, SessionActiveMetricName: true}[strings.ToLower(metricName)] {
-		originalUnits = pointy.String("ms")
-	} else if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
-		originalUnits = pointy.String("ns")
-	} else if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
-		originalUnits = pointy.String("b")
-	}
-	return
-}
-
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
-	// TODO(vkorolik) query clickhouse
-	panic("not implemented")
+	agg := params.Aggregator
+	var parts []string
+	for _, filter := range params.Filters {
+		switch filter.Op {
+		case modelInputs.MetricTagFilterOpEquals:
+			parts = append(parts, fmt.Sprintf("%s:%v", filter.Tag, filter.Value))
+		case modelInputs.MetricTagFilterOpContains:
+			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
+		}
+	}
+	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+		Query:     strings.Join(parts, " "),
+		DateRange: params.DateRange,
+	}, modelInputs.TracesMetricColumnMetricValue, []modelInputs.MetricAggregator{agg}, params.Groups, 48)
+	if err != nil {
+		return nil, err
+	}
+	return lo.Map(metrics.Buckets, func(item *modelInputs.TracesMetricBucket, index int) *modelInputs.DashboardPayload {
+		var group *string
+		if len(item.Group) > 0 {
+			group = pointy.String(strings.Join(item.Group, "-"))
+		}
+		return &modelInputs.DashboardPayload{
+			Date:       "",
+			Value:      item.MetricValue,
+			Aggregator: agg,
+			Group:      group,
+		}
+	}), nil
 }
 
 func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {

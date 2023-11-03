@@ -1007,7 +1007,7 @@ type ComplexityRoot struct {
 		TracesIntegration            func(childComplexity int, projectID int) int
 		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput) int
-		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) int
+		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
 		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -1418,6 +1418,7 @@ type ComplexityRoot struct {
 
 	TracesMetricBucket struct {
 		BucketID    func(childComplexity int) int
+		Column      func(childComplexity int) int
 		Group       func(childComplexity int) int
 		MetricType  func(childComplexity int) int
 		MetricValue func(childComplexity int) int
@@ -1812,7 +1813,7 @@ type QueryResolver interface {
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
-	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) (*model.TracesMetrics, error)
+	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) (*model.TracesMetrics, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
@@ -7683,7 +7684,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["metric_types"].([]model.TracesMetricType), args["group_by"].([]string)), true
+		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(model.TracesMetricColumn), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string)), true
 
 	case "Query.track_properties_alerts":
 		if e.complexity.Query.TrackPropertiesAlerts == nil {
@@ -9779,6 +9780,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TracesMetricBucket.BucketID(childComplexity), true
 
+	case "TracesMetricBucket.column":
+		if e.complexity.TracesMetricBucket.Column == nil {
+			break
+		}
+
+		return e.complexity.TracesMetricBucket.Column(childComplexity), true
+
 	case "TracesMetricBucket.group":
 		if e.complexity.TracesMetricBucket.Group == nil {
 			break
@@ -11305,17 +11313,29 @@ type LogsHistogram {
 	sampleFactor: Float!
 }
 
-enum TracesMetricType {
-	count
-	count_distinct_key
-	p50
-	p90
+enum MetricAggregator {
+	Count
+	CountDistinctKey
+	Min
+	Avg
+	P50
+	P90
+	P95
+	P99
+	Max
+	Sum
+}
+
+enum TracesMetricColumn {
+	Duration
+	MetricValue
 }
 
 type TracesMetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
-	metric_type: TracesMetricType!
+	column: TracesMetricColumn!
+	metric_type: MetricAggregator!
 	metric_value: Float!
 }
 
@@ -11380,17 +11400,17 @@ input SearchParamsInput {
 }
 
 input DashboardParamsInput {
-	date_range: DateRangeInput
+	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
 	timezone: String
 	units: String
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	filters: [MetricTagFilterInput!]
 	groups: [String!]
 }
 
 input HistogramParamsInput {
-	date_range: DateRangeInput
+	date_range: DateRangeRequiredInput!
 	buckets: Int
 	min_value: Float
 	min_percentile: Float
@@ -11925,7 +11945,7 @@ type Metric {
 type DashboardPayload {
 	date: String!
 	value: Float!
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	group: String
 }
 
@@ -11961,18 +11981,6 @@ enum DashboardChartType {
 	Timeline
 	TimelineBar
 	Histogram
-}
-
-enum MetricAggregator {
-	Avg
-	P50
-	P75
-	P90
-	P95
-	P99
-	Max
-	Count
-	Sum
 }
 
 input DashboardMetricConfigInput {
@@ -12413,7 +12421,8 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		metric_types: [TracesMetricType!]!
+		column: TracesMetricColumn!
+		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 	): TracesMetrics!
 	traces_keys(
@@ -18715,24 +18724,33 @@ func (ec *executionContext) field_Query_traces_metrics_args(ctx context.Context,
 		}
 	}
 	args["params"] = arg1
-	var arg2 []model.TracesMetricType
+	var arg2 model.TracesMetricColumn
+	if tmp, ok := rawArgs["column"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
+		arg2, err = ec.unmarshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["column"] = arg2
+	var arg3 []model.MetricAggregator
 	if tmp, ok := rawArgs["metric_types"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_types"))
-		arg2, err = ec.unmarshalNTracesMetricType2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricTypeᚄ(ctx, tmp)
+		arg3, err = ec.unmarshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["metric_types"] = arg2
-	var arg3 []string
+	args["metric_types"] = arg3
+	var arg4 []string
 	if tmp, ok := rawArgs["group_by"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
-		arg3, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		arg4, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["group_by"] = arg3
+	args["group_by"] = arg4
 	return args, nil
 }
 
@@ -25312,11 +25330,14 @@ func (ec *executionContext) _DashboardPayload_aggregator(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.MetricAggregator)
+	res := resTmp.(model.MetricAggregator)
 	fc.Result = res
-	return ec.marshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
+	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardPayload_aggregator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -55510,7 +55531,7 @@ func (ec *executionContext) _Query_traces_metrics(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["metric_types"].([]model.TracesMetricType), fc.Args["group_by"].([]string))
+		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(model.TracesMetricColumn), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -67984,6 +68005,50 @@ func (ec *executionContext) fieldContext_TracesMetricBucket_group(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _TracesMetricBucket_column(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracesMetricBucket_column(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Column, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.TracesMetricColumn)
+	fc.Result = res
+	return ec.marshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TracesMetricBucket_column(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TracesMetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type TracesMetricColumn does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TracesMetricBucket_metric_type(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
 	if err != nil {
@@ -68010,9 +68075,9 @@ func (ec *executionContext) _TracesMetricBucket_metric_type(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TracesMetricType)
+	res := resTmp.(model.MetricAggregator)
 	fc.Result = res
-	return ec.marshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx, field.Selections, res)
+	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TracesMetricBucket_metric_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -68022,7 +68087,7 @@ func (ec *executionContext) fieldContext_TracesMetricBucket_metric_type(ctx cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type TracesMetricType does not have child fields")
+			return nil, errors.New("field of type MetricAggregator does not have child fields")
 		},
 	}
 	return fc, nil
@@ -68115,6 +68180,8 @@ func (ec *executionContext) fieldContext_TracesMetrics_buckets(ctx context.Conte
 				return ec.fieldContext_TracesMetricBucket_bucket_id(ctx, field)
 			case "group":
 				return ec.fieldContext_TracesMetricBucket_group(ctx, field)
+			case "column":
+				return ec.fieldContext_TracesMetricBucket_column(ctx, field)
 			case "metric_type":
 				return ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
 			case "metric_value":
@@ -73031,7 +73098,7 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -73063,7 +73130,7 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
-			it.Aggregator, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
+			it.Aggregator, err = ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -73415,7 +73482,7 @@ func (ec *executionContext) unmarshalInputHistogramParamsInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -75945,6 +76012,9 @@ func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.Selec
 
 			out.Values[i] = ec._DashboardPayload_aggregator(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "group":
 
 			out.Values[i] = ec._DashboardPayload_group(ctx, field, obj)
@@ -85818,6 +85888,13 @@ func (ec *executionContext) _TracesMetricBucket(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "column":
+
+			out.Values[i] = ec._TracesMetricBucket_column(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "metric_type":
 
 			out.Values[i] = ec._TracesMetricBucket_metric_type(ctx, field, obj)
@@ -89482,6 +89559,67 @@ func (ec *executionContext) marshalNMetricAggregator2githubᚗcomᚋhighlightᚑ
 	return v
 }
 
+func (ec *executionContext) unmarshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx context.Context, v interface{}) ([]model.MetricAggregator, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.MetricAggregator, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MetricAggregator) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v []*model1.MetricMonitor) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -91228,75 +91366,14 @@ func (ec *executionContext) marshalNTracesMetricBucket2ᚖgithubᚗcomᚋhighlig
 	return ec._TracesMetricBucket(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx context.Context, v interface{}) (model.TracesMetricType, error) {
-	var res model.TracesMetricType
+func (ec *executionContext) unmarshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx context.Context, v interface{}) (model.TracesMetricColumn, error) {
+	var res model.TracesMetricColumn
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx context.Context, sel ast.SelectionSet, v model.TracesMetricType) graphql.Marshaler {
+func (ec *executionContext) marshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx context.Context, sel ast.SelectionSet, v model.TracesMetricColumn) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) unmarshalNTracesMetricType2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricTypeᚄ(ctx context.Context, v interface{}) ([]model.TracesMetricType, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]model.TracesMetricType, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNTracesMetricType2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.TracesMetricType) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNTracesMetrics2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetrics(ctx context.Context, sel ast.SelectionSet, v model.TracesMetrics) graphql.Marshaler {
