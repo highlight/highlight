@@ -19,7 +19,7 @@ export interface HighlightInterface {
 	// Use setHeaders to define the highlight context for the entire async request
 	setHeaders: (headers: IncomingHttpHeaders) => void
 	// Use runWithHeaders to execute a method with a highlight context
-	runWithHeaders: <T>(headers: IncomingHttpHeaders, cb: () => T) => T
+	runWithHeaders: <T>(headers: IncomingHttpHeaders, cb: () => T) => void
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,

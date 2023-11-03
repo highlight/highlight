@@ -195,6 +195,31 @@ export class Highlight {
 		}
 	}
 
+	/**
+	 *
+	 * Manual test steps:
+	 * 1. Disable instrumentationHooks in Next
+	 * 2. Test Page and App Router API
+	 * 3. Test Page and App Router SSR
+	 */
+	createSpan(name: string, metadata?: Attributes) {
+		const span = this.tracer.startSpan(name)
+
+		if (metadata != undefined) {
+			span.setAttributes(metadata)
+		}
+
+		const { secureSessionId, requestId } = this.parseHeaders({})
+		if (secureSessionId) {
+			span.setAttribute('highlight.session_id', secureSessionId)
+		}
+		if (requestId) {
+			span.setAttribute('highlight.trace_id', requestId)
+		}
+
+		return span
+	}
+
 	recordMetric(
 		secureSessionId: string,
 		name: string,
@@ -350,9 +375,13 @@ export class Highlight {
 	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
 		const highlightCtx = this.parseHeaders(headers)
 		if (highlightCtx) {
-			return this.asyncLocalStorage.run(highlightCtx, cb)
+			this.asyncLocalStorage.run(highlightCtx, async () => {
+				const span = this.createSpan('highlight-ctx')
+				await cb()
+				span.end()
+			})
 		} else {
-			return cb()
+			cb()
 		}
 	}
 
