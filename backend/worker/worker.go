@@ -828,6 +828,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	highlight.RecordMetric(
 		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
@@ -836,6 +837,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
 		{

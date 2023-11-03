@@ -1201,6 +1201,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, session.SecureID),
 	)
 	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
 		{
@@ -1510,6 +1511,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, session.Identifier),
 	}
 	for k, v := range allUserProperties {
 		hTags = append(hTags, attribute.String(k, v))
@@ -3001,6 +3003,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
+			attribute.String(highlight.TraceKeyAttribute, re.Name),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURLKey.String(re.Name),

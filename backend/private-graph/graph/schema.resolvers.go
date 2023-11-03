@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"math"
 	"math/rand"
 	"net/url"
@@ -7031,8 +7033,42 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		return nil, err
 	}
 
-	// TODO(vkorolik) implement via clickhouse
-	panic("not implemented")
+	lookbackDays := 7
+	if params.LookbackDays != nil {
+		lookbackDays = *params.LookbackDays
+	}
+	metrics, err := r.ClickhouseClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+		Query: strings.Join([]string{string(highlight.TraceTypeAttribute), string(highlight.TraceTypeNetworkRequest)}, ":"),
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(time.Duration(-lookbackDays) * 24 * time.Hour),
+			EndDate:   time.Now(),
+		},
+	}, modelInputs.TracesMetricColumnDuration, []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &modelInputs.CategoryHistogramPayload{
+		Buckets: []*modelInputs.CategoryHistogramBucket{},
+	}
+	for url, groups := range lo.GroupBy(metrics.Buckets, func(item *modelInputs.TracesMetricBucket) string {
+		return item.Group[0]
+	}) {
+		count := 0
+		for _, g := range groups {
+			count += int(g.MetricValue)
+		}
+		result.Buckets = append(result.Buckets, &modelInputs.CategoryHistogramBucket{
+			Category: url,
+			Count:    int(count),
+		})
+	}
+	sort.Slice(result.Buckets, func(i, j int) bool {
+		return result.Buckets[i].Count > result.Buckets[j].Count
+	})
+	result.Buckets = result.Buckets[0:lo.Min([]int{30, len(result.Buckets) - 1})]
+
+	return result, nil
 }
 
 // MetricMonitors is the resolver for the metric_monitors field.
