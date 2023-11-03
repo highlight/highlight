@@ -556,7 +556,8 @@ export const ProjectProductFilters: React.FC<{
 								end: dates[1],
 							})
 						}
-						presets={defaultPresets}
+						presets={[defaultPresets[1], defaultPresets[3]]}
+						noCustom
 						minDate={defaultPresets[5].startDate}
 						kind="secondary"
 						size="medium"
