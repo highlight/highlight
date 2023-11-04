@@ -7,11 +7,6 @@ import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
-export interface RequestMetadata {
-	secureSessionId: string
-	requestId: string
-}
-
 export declare interface Metric {
 	name: string
 	value: number

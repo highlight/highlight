@@ -3,19 +3,18 @@ import {
 	H as CloudflareH,
 	HighlightEnv as CloudflareHighlightEnv,
 } from '@highlight-run/cloudflare'
-import type { NodeOptions } from '@highlight-run/node'
+import type { HighlightContext, NodeOptions } from '@highlight-run/node'
 import {
 	ExtendedExecutionContext,
 	HIGHLIGHT_REQUEST_HEADER,
 	HighlightInterface,
 	Metric,
-	RequestMetadata,
 } from './types'
 import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
-let globalRequestMetadata: RequestMetadata = {
+let globalHighlightContext: HighlightContext = {
 	secureSessionId: '',
 	requestId: '',
 }
@@ -55,21 +54,30 @@ export const H: HighlightInterface = {
 			)
 		}
 
-		globalRequestMetadata = extractRequestMetadata(request)
+		globalHighlightContext = extractRequestMetadata(request)
 
 		return CloudflareH.init(request, cloudflareEnv, ctx, env.serviceName)
 	},
-	metrics: (metrics: Metric[], requestMetadata?: RequestMetadata) => {
-		const localRequestMetadata = requestMetadata || globalRequestMetadata
+	metrics: (metrics: Metric[], HighlightContext?: HighlightContext) => {
+		const localHighlightContext = HighlightContext || globalHighlightContext
 
-		if (!localRequestMetadata.secureSessionId) {
+		if (!localHighlightContext.secureSessionId) {
 			return console.warn(
 				'H.metrics session could not be inferred the handler context. Consider passing the request metadata explicitly as a second argument to this function.',
 			)
 		}
 
 		for (const m of metrics) {
-			CloudflareH.recordMetric({ ...localRequestMetadata, ...m })
+			if (
+				localHighlightContext.secureSessionId &&
+				localHighlightContext.requestId
+			) {
+				CloudflareH.recordMetric({
+					secureSessionId: localHighlightContext.secureSessionId,
+					requestId: localHighlightContext.requestId,
+					...m,
+				})
+			}
 		}
 	},
 	consumeAndFlush: async (error: Error) => {
@@ -109,7 +117,7 @@ export const H: HighlightInterface = {
 		secureSessionId: string | undefined
 		requestId: string | undefined
 	} {
-		const highlightCtx = globalRequestMetadata
+		const highlightCtx = globalHighlightContext
 		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx
 		}
@@ -127,7 +135,7 @@ export const H: HighlightInterface = {
 			if (secureSessionId && requestId) {
 				// set the global context before running the handler so that
 				// the values are available in the handler
-				globalRequestMetadata = {
+				globalHighlightContext = {
 					secureSessionId,
 					requestId,
 				}

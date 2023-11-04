@@ -1,5 +1,6 @@
-import { H as NodeH, NodeOptions } from '@highlight-run/node'
-import { HighlightInterface, RequestMetadata } from './types'
+import { H as NodeH } from '@highlight-run/node'
+import type { HighlightContext, NodeOptions } from '@highlight-run/node'
+import { HighlightInterface } from './types'
 
 export type HighlightEnv = NodeOptions
 
@@ -28,7 +29,7 @@ export const H: HighlightInterface = {
 		)
 	},
 	isInitialized: () => NodeH.isInitialized(),
-	metrics: (metrics: Metric[], opts?: RequestMetadata) => {
+	metrics: (metrics: Metric[], opts?: HighlightContext) => {
 		if (!opts?.secureSessionId) {
 			return console.warn(
 				'H.metrics session could not be inferred the handler context.',
