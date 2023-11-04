@@ -11210,6 +11210,7 @@ enum ReservedLogKey {
 enum ReservedTraceKey {
 	level
 	message
+	metric
 	secure_session_id
 	span_id
 	trace_id

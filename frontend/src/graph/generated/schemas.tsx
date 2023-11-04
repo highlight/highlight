@@ -2615,6 +2615,7 @@ export enum ReservedTraceKey {
 	Duration = 'duration',
 	Level = 'level',
 	Message = 'message',
+	Metric = 'metric',
 	ParentSpanId = 'parent_span_id',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',

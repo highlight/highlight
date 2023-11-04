@@ -3189,7 +3189,7 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
-	var parts []string
+	parts := []string{string(modelInputs.ReservedTraceKeyMetric) + ":" + metricName}
 	for _, filter := range params.Filters {
 		switch filter.Op {
 		case modelInputs.MetricTagFilterOpEquals:

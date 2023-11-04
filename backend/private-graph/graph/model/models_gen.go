@@ -1872,6 +1872,7 @@ type ReservedTraceKey string
 const (
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
+	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
 	ReservedTraceKeySecureSessionID ReservedTraceKey = "secure_session_id"
 	ReservedTraceKeySpanID          ReservedTraceKey = "span_id"
 	ReservedTraceKeyTraceID         ReservedTraceKey = "trace_id"
@@ -1887,6 +1888,7 @@ const (
 var AllReservedTraceKey = []ReservedTraceKey{
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
+	ReservedTraceKeyMetric,
 	ReservedTraceKeySecureSessionID,
 	ReservedTraceKeySpanID,
 	ReservedTraceKeyTraceID,
@@ -1901,7 +1903,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false
