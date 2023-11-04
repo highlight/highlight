@@ -43,13 +43,7 @@ export const FeatureConfig: { [key: number]: Config } = {
 	},
 	[Feature.Analytics]: {
 		workspace: true,
-		percent: 0,
-		workspaceOverride: new Set<string>([
-			// Numero
-			'701',
-			// MediaJel
-			'9634',
-		]),
+		percent: 100,
 	},
 } as const
 
