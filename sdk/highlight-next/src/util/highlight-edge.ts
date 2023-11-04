@@ -113,8 +113,7 @@ export const H: HighlightInterface = {
 		requestId: string | undefined
 	} {
 		const highlightCtx = asyncLocalStorage.getStore()
-
-		if (highlightCtx) {
+        if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx
 		} else if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
 			const [secureSessionId, requestId] =
