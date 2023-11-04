@@ -73,19 +73,7 @@ export class Highlight {
 
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
-				const { secureSessionId, requestId } = this.parseHeaders(
-					// look for the context in asyncLocalStorage only
-					{},
-				)
-				this.log(
-					c.date,
-					c.message,
-					c.level,
-					c.stack,
-					secureSessionId,
-					requestId,
-					c.attributes,
-				)
+				this.log(c.date, c.message, c.level, c.stack, c.attributes)
 			})
 		}
 
@@ -186,28 +174,19 @@ export class Highlight {
 	}
 
 	recordMetric(
-		secureSessionId: string,
 		name: string,
 		value: number,
-		requestId?: string,
 		tags?: { name: string; value: string }[],
 	) {
 		if (!this.tracer) return
+		const { secureSessionId, requestId } = this.parseHeaders({})
 		const span = this.tracer.startSpan('highlight-ctx')
 		span.addEvent('metric', {
 			['highlight.project_id']: this._projectID,
 			['metric.name']: name,
 			['metric.value']: value,
-			...(secureSessionId
-				? {
-						['highlight.session_id']: secureSessionId,
-				  }
-				: {}),
-			...(requestId
-				? {
-						['highlight.trace_id']: requestId,
-				  }
-				: {}),
+			['highlight.session_id']: secureSessionId,
+			['highlight.trace_id']: requestId,
 		})
 		for (const t of tags || []) {
 			span.setAttribute(t.name, t.value)
@@ -220,11 +199,10 @@ export class Highlight {
 		msg: string,
 		level: string,
 		stack: object,
-		secureSessionId?: string,
-		requestId?: string,
 		metadata?: Attributes,
 	) {
 		if (!this.tracer) return
+		const { secureSessionId, requestId } = this.parseHeaders({})
 		const span = this.tracer.startSpan('highlight-ctx')
 		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
 		span.addEvent(
@@ -236,39 +214,25 @@ export class Highlight {
 				['highlight.project_id']: this._projectID,
 				['log.severity']: level,
 				['log.message']: msg,
-				...(secureSessionId
-					? {
-							['highlight.session_id']: secureSessionId,
-					  }
-					: {}),
-				...(requestId
-					? {
-							['highlight.trace_id']: requestId,
-					  }
-					: {}),
+				['highlight.session_id']: secureSessionId,
+				['highlight.trace_id']: requestId,
 			},
 			date,
 		)
 		span.end()
 	}
 
-	consumeCustomError(
-		error: Error,
-		secureSessionId: string | undefined,
-		requestId: string | undefined,
-		metadata?: Attributes,
-	) {
+	consumeCustomError(error: Error, metadata?: Attributes) {
 		const span = this.tracer.startSpan('highlight-ctx')
 		span.recordException(error)
 		if (metadata != undefined) {
 			span.setAttributes(metadata)
 		}
-		if (secureSessionId) {
-			span.setAttributes({ ['highlight.session_id']: secureSessionId })
-		}
-		if (requestId) {
-			span.setAttributes({ ['highlight.trace_id']: requestId })
-		}
+		const { secureSessionId, requestId } = this.parseHeaders({})
+		span.setAttributes({
+			['highlight.session_id']: secureSessionId,
+			['highlight.trace_id']: requestId,
+		})
 		this._log('created error span', span)
 		span.end()
 	}
