@@ -113,10 +113,7 @@ export const H: HighlightInterface = {
 			tags,
 		})
 	},
-	parseHeaders(headers: IncomingHttpHeaders): {
-		secureSessionId: string | undefined
-		requestId: string | undefined
-	} {
+	parseHeaders(headers: IncomingHttpHeaders): HighlightContext {
 		const highlightCtx = globalHighlightContext
 		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx

@@ -3,6 +3,7 @@ import type { ResourceAttributes } from '@opentelemetry/resources/build/src/type
 import type { ExecutionContext } from '@cloudflare/workers-types'
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 import type { Attributes } from '@opentelemetry/api'
+import type { HighlightContext } from '@highlight-run/node'
 import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
@@ -29,10 +30,7 @@ export interface HighlightInterface {
 	) => WorkersSDK
 	isInitialized: () => boolean
 	metrics: (metrics: Metric[]) => void
-	parseHeaders: (headers: IncomingHttpHeaders) => {
-		secureSessionId: string | undefined
-		requestId: string | undefined
-	}
+	parseHeaders: (headers: IncomingHttpHeaders) => HighlightContext
 	runWithHeaders: <T>(headers: IncomingHttpHeaders, cb: () => T) => T
 	consumeError: (
 		error: Error,
