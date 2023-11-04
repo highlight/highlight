@@ -1,6 +1,5 @@
 import { default as createNextServer } from 'next'
 import { H } from '@highlight-run/node'
-import { HighlightGlobal } from './types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PlainObject<T = any> = { [key: string]: T }
@@ -63,8 +62,7 @@ function wrap(name: string) {
 		): Promise<any> {
 			const start = performance.now()
 			const result = origMethod.call(this, parameterizedPath, ...args)
-			const h = (global as typeof globalThis & HighlightGlobal)
-				.__HIGHLIGHT__
+			const h = H.parseHeaders({})
 			if (h?.secureSessionId) {
 				H.recordMetric(
 					h?.secureSessionId,

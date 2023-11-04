@@ -12,10 +12,6 @@ export interface RequestMetadata {
 	requestId: string
 }
 
-export interface HighlightGlobal {
-	__HIGHLIGHT__?: RequestMetadata
-}
-
 export declare interface Metric {
 	name: string
 	value: number

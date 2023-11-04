@@ -7,7 +7,6 @@ import type { NodeOptions } from '@highlight-run/node'
 import {
 	ExtendedExecutionContext,
 	HIGHLIGHT_REQUEST_HEADER,
-	HighlightGlobal,
 	HighlightInterface,
 	Metric,
 	RequestMetadata,
@@ -110,8 +109,7 @@ export const H: HighlightInterface = {
 		secureSessionId: string | undefined
 		requestId: string | undefined
 	} {
-		const highlightCtx = (global as typeof globalThis & HighlightGlobal)
-			.__HIGHLIGHT__
+		const highlightCtx = globalRequestMetadata
 		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx
 		}
@@ -127,13 +125,12 @@ export const H: HighlightInterface = {
 		if (highlightCtx) {
 			const { secureSessionId, requestId } = highlightCtx
 			if (secureSessionId && requestId) {
-				// set the global __HIGHLIGHT__ variables before running the handler, so that
+				// set the global context before running the handler so that
 				// the values are available in the handler
-				;(global as typeof globalThis & HighlightGlobal).__HIGHLIGHT__ =
-					{
-						secureSessionId,
-						requestId,
-					}
+				globalRequestMetadata = {
+					secureSessionId,
+					requestId,
+				}
 			}
 		}
 		return cb()
