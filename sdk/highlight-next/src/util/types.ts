@@ -32,6 +32,7 @@ export interface HighlightInterface {
 	metrics: (metrics: Metric[]) => void
 	parseHeaders: (headers: IncomingHttpHeaders) => HighlightContext
 	runWithHeaders: <T>(headers: IncomingHttpHeaders, cb: () => T) => T
+	setHeaders: (headers: IncomingHttpHeaders) => void
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,

@@ -13,7 +13,7 @@ export function Highlight(options: NodeOptions) {
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
 			const headers: IncomingHttpHeaders = {}
-			request.headers.forEach((k, v) => (headers[k] = v))
+			request.headers.forEach((value, key) => (headers[key] = value))
 			try {
 				H.init(options)
 

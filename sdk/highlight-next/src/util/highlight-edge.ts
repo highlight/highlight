@@ -1,5 +1,4 @@
 import {
-	extractRequestMetadata,
 	H as CloudflareH,
 	HighlightEnv as CloudflareHighlightEnv,
 } from '@highlight-run/cloudflare'
@@ -15,10 +14,6 @@ import { AsyncLocalStorage } from 'async_hooks'
 
 export type HighlightEnv = NodeOptions
 
-let globalHighlightContext: HighlightContext = {
-	secureSessionId: '',
-	requestId: '',
-}
 let executionContext: ExtendedExecutionContext
 const asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
@@ -56,12 +51,15 @@ export const H: HighlightInterface = {
 			)
 		}
 
-		globalHighlightContext = extractRequestMetadata(request)
-
+		const headers: { [key: string]: string } = {}
+		request.headers.forEach((value, key) => {
+			headers[key] = value
+		})
+		this.setHeaders(headers)
 		return CloudflareH.init(request, cloudflareEnv, ctx, env.serviceName)
 	},
-	metrics: (metrics: Metric[], HighlightContext?: HighlightContext) => {
-		const localHighlightContext = HighlightContext || globalHighlightContext
+	metrics: function (metrics: Metric[], highlightContext?: HighlightContext) {
+		const localHighlightContext = highlightContext ?? this.parseHeaders({})
 
 		if (!localHighlightContext.secureSessionId) {
 			return console.warn(
@@ -115,10 +113,7 @@ export const H: HighlightInterface = {
 			tags,
 		})
 	},
-	parseHeaders(headers: IncomingHttpHeaders): {
-		secureSessionId: string | undefined
-		requestId: string | undefined
-	} {
+	parseHeaders(headers: IncomingHttpHeaders): HighlightContext {
 		const highlightCtx = asyncLocalStorage.getStore()
 		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx
@@ -139,6 +134,12 @@ export const H: HighlightInterface = {
 
 		return cb()
 	},
+    setHeaders(headers: IncomingHttpHeaders) {
+        const highlightCtx = this.parseHeaders(headers)
+        if (highlightCtx) {
+            asyncLocalStorage.enterWith(highlightCtx)
+        }
+    },
 }
 
 function polyfillWaitUntil(ctx: ExtendedExecutionContext) {
