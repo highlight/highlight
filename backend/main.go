@@ -59,7 +59,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v76/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 	"gorm.io/gorm"
 
 	_ "github.com/urfave/cli/v2"
@@ -441,13 +440,6 @@ func main() {
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
-			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
-			if err != nil {
-				log.WithContext(ctx).Fatal(err)
-			}
-			defer profiler.Stop()
-		}
 		publicResolver := &public.Resolver{
 			DB:               db,
 			ProducerQueue:    kafkaProducer,
@@ -555,17 +547,6 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
-				serviceName := "worker-service"
-				if handlerFlag != nil && *handlerFlag != "" {
-					serviceName = *handlerFlag
-				}
-				err := profiler.Start(profiler.WithService(serviceName), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer profiler.Stop()
-			}
 			if handlerFlag != nil && *handlerFlag != "" {
 				func() {
 					defer util.RecoverAndCrash()
