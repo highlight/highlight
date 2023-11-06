@@ -556,6 +556,7 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 		model.PricingProductTypeSessions: workspace.StripeSessionOveragePriceID,
 		model.PricingProductTypeErrors:   workspace.StripeErrorOveragePriceID,
 		model.PricingProductTypeLogs:     workspace.StripeLogOveragePriceID,
+		model.PricingProductTypeTraces:   workspace.StripeTracesOveragePriceID,
 	} {
 		if priceID != nil {
 			price, err := stripeClient.Prices.Get(*priceID, &stripe.PriceParams{})

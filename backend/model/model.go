@@ -297,6 +297,7 @@ type Workspace struct {
 	StripeSessionOveragePriceID *string
 	StripeErrorOveragePriceID   *string
 	StripeLogOveragePriceID     *string
+	StripeTracesOveragePriceID  *string
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
