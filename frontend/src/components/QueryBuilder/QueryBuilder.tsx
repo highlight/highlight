@@ -615,7 +615,6 @@ const QueryRule = ({
 	removeRule,
 	updateRule,
 	readonly,
-	minimal,
 	getCustomFieldOptions,
 	getDefaultOperator,
 }: { rule: RuleProps } & RuleSettings) => {
@@ -706,7 +705,7 @@ const QueryRule = ({
 					]}
 				/>
 			)}
-			{!readonly && !minimal ? (
+			{!readonly ? (
 				<Tag
 					size="medium"
 					kind="secondary"
@@ -1848,6 +1847,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				flexShrink={0}
 				m={readonly || minimal ? undefined : '8'}
 				shadow={minimal ? undefined : 'medium'}
+				style={minimal ? { minHeight: 28 } : undefined}
 			>
 				<Box
 					p="4"

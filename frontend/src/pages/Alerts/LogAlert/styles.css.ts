@@ -22,29 +22,6 @@ export const queryContainer = style([
 	}),
 ])
 
-export const combobox = style([
-	sprinkles({
-		py: '4',
-		pl: '6',
-	}),
-	{
-		border: 0,
-		background: 'transparent',
-		color: vars.theme.static.content.default,
-		display: 'flex',
-		fontSize: 13,
-		width: '100%',
-		selectors: {
-			'&:focus': {
-				outline: 0,
-			},
-			'&::placeholder': {
-				color: vars.theme.interactive.fill.secondary.content.onDisabled,
-			},
-		},
-	},
-])
-
 export const sectionHeader = style([
 	sprinkles({
 		display: 'flex',

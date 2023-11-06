@@ -127,9 +127,11 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadLogs"))
+	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
+	span.SetAttribute("Table", config.tableName)
 	span.SetAttribute("Query", sql)
 	span.SetAttribute("Params", params)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -351,6 +353,8 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", tableName)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 
@@ -400,6 +404,8 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeyValues", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", tableName)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 	if err != nil {

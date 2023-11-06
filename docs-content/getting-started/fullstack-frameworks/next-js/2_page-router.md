@@ -143,7 +143,7 @@ function ThrowerOfErrors({
 
 Page Router uses [pages/_error.tsx](https://nextjs.org/docs/pages/building-your-application/routing/custom-error#more-advanced-error-page-customizing) to send server-side render errors to the client. We can catch and consume those errors with a custom error page.
 
-These errors will display as client errors, even though we know that they're server errors.
+All SSR error will display as client errors on your Highlight dashboard.
 
 ```jsx
 // pages/_error.tsx
