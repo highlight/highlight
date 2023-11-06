@@ -10,12 +10,15 @@ import {
 	Metric,
 } from './types'
 import { IncomingHttpHeaders } from 'http'
-import { AsyncLocalStorage } from 'async_hooks'
 
 export type HighlightEnv = NodeOptions
 
 let executionContext: ExtendedExecutionContext
-const asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
+
+let globalHighlightContext: HighlightContext = {
+	secureSessionId: '',
+	requestId: '',
+}
 
 export const H: HighlightInterface = {
 	...CloudflareH,
@@ -114,7 +117,7 @@ export const H: HighlightInterface = {
 		})
 	},
 	parseHeaders(headers: IncomingHttpHeaders): HighlightContext {
-		const highlightCtx = asyncLocalStorage.getStore()
+		const highlightCtx = globalHighlightContext
 		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx
 		} else if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
@@ -126,18 +129,13 @@ export const H: HighlightInterface = {
 		}
 	},
 	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
-		const highlightCtx = this.parseHeaders(headers)
-
-		if (highlightCtx) {
-			return asyncLocalStorage.run(highlightCtx, cb)
-		}
-
+		this.setHeaders(headers)
 		return cb()
 	},
 	setHeaders(headers: IncomingHttpHeaders) {
 		const highlightCtx = this.parseHeaders(headers)
 		if (highlightCtx) {
-			asyncLocalStorage.enterWith(highlightCtx)
+			globalHighlightContext = highlightCtx
 		}
 	},
 }
