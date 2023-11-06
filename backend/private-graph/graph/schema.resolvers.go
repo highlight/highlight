@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"math"
 	"math/rand"
 	"net/url"
@@ -32,7 +33,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
@@ -4553,7 +4553,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				return nil, nil
 			}
 			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
-			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhancedDetails.miss", nil, 1)
 			clearbitApiRequestSpan, _ := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
 				util.ResourceName("clearbit.api.request"),
 				util.Tag("session_id", s.ID), util.Tag("workspace_id", w.ID), util.Tag("project_id", p.ID), util.Tag("plan_tier", w.PlanTier))
@@ -4588,7 +4588,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 		} else {
 			log.WithContext(ctx).Infof("retrieving cache db entry of clearbit lookup")
-			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.WithContext(ctx).Errorf("error unmarshaling person: %v", err)

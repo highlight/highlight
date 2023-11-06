@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"crypto/tls"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -42,8 +42,8 @@ func NewClient(dbName string) (*Client, error) {
 		for {
 			stats := conn.Stats()
 			log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).Debug("Clickhouse Connection Stats")
-			hlog.Histogram("clickhouse.open", float64(stats.Open), nil, 1)
-			hlog.Histogram("clickhouse.idle", float64(stats.Idle), nil, 1)
+			hmetric.Histogram(context.Background(), "clickhouse.open", float64(stats.Open), nil, 1)
+			hmetric.Histogram(context.Background(), "clickhouse.idle", float64(stats.Idle), nil, 1)
 			time.Sleep(5 * time.Second)
 		}
 	}()

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -28,7 +29,6 @@ import (
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
-	stats "github.com/highlight-run/highlight/backend/hlog"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
@@ -526,7 +526,7 @@ limit 1;`, column, column), map[string]interface{}{
 	return nil, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprints []*model.ErrorFingerprint) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatch(ctx context.Context, event string, projectID int, fingerprints []*model.ErrorFingerprint) (*int, error) {
 	firstCode := ""
 	firstMeta := ""
 	restCode := []string{}
@@ -630,7 +630,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
-	stats.Histogram("GetTopErrorGroupMatch.groupSQL.durationMs", float64(time.Since(start).Milliseconds()), nil, 1)
+	hmetric.Histogram(ctx, "GetTopErrorGroupMatch.groupSQL.durationMs", float64(time.Since(start).Milliseconds()), nil, 1)
 
 	minScore := 10 + len(restMeta) - 1
 	if len(restCode) > len(restMeta) {
@@ -812,7 +812,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if errorGroup == nil {
 		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to create error group by embedding; using classic match")
 		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-			match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
+			match, err := r.GetTopErrorGroupMatch(ctx, errorObj.Event, errorObj.ProjectID, fingerprints)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting top error group match")
 			}

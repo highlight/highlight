@@ -23,7 +23,6 @@ replace github.com/highlight/highlight/sdk/highlight-go => ../sdk/highlight-go
 require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.24
-	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/DmitriyVTitov/size v1.1.0
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.0.6
@@ -94,6 +93,7 @@ require (
 	cloud.google.com/go/longrunning v0.5.4 // indirect
 	github.com/ClickHouse/ch-go v0.51.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.0.0-20211129110424-6491aa3bf583 // indirect
+	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/datadog-go/v5 v5.0.2 // indirect
 	github.com/PaesslerAG/gval v1.2.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
