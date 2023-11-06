@@ -33,6 +33,7 @@ const SessionIDAttribute = "highlight.session_id"
 const RequestIDAttribute = "highlight.trace_id"
 const SourceAttribute = "highlight.source"
 const TraceTypeAttribute = "highlight.type"
+const TraceKeyAttribute = "highlight.key"
 
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"

@@ -18,7 +18,7 @@ const publicEnv = {
 		process.env.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL,
 }
 
-const CONSTANTS = z
+export const CONSTANTS = z
 	.object({
 		NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: z.string(),
 		NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT: stringOrUndefined,
@@ -26,5 +26,3 @@ const CONSTANTS = z
 		NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL: stringOrUndefined,
 	})
 	.parse(publicEnv)
-
-export default CONSTANTS

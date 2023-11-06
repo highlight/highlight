@@ -245,13 +245,11 @@ type Int64Model struct {
 
 type Organization struct {
 	Model
-	Name             *string
-	StripeCustomerID *string
-	StripePriceID    *string
-	BillingEmail     *string
-	Secret           *string    `json:"-"`
-	Admins           []Admin    `gorm:"many2many:organization_admins;"`
-	TrialEndDate     *time.Time `json:"trial_end_date"`
+	Name         *string
+	BillingEmail *string
+	Secret       *string    `json:"-"`
+	Admins       []Admin    `gorm:"many2many:organization_admins;"`
+	TrialEndDate *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string
 	SlackWebhookURL       *string
@@ -281,7 +279,6 @@ type Workspace struct {
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	HubspotCompanyID            *int
 	StripeCustomerID            *string
-	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`
 	UnlimitedMembers            bool   `gorm:"default:false"`
 	BillingPeriodStart          *time.Time
@@ -297,6 +294,9 @@ type Workspace struct {
 	SessionsMaxCents            *int
 	ErrorsMaxCents              *int
 	LogsMaxCents                *int
+	StripeSessionOveragePriceID *string
+	StripeErrorOveragePriceID   *string
+	StripeLogOveragePriceID     *string
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -340,8 +340,6 @@ type WorkspaceAccessRequest struct {
 type Project struct {
 	Model
 	Name                *string
-	StripeCustomerID    *string
-	StripePriceID       *string
 	ZapierAccessToken   *string
 	FrontAccessToken    *string
 	FrontRefreshToken   *string
@@ -402,10 +400,10 @@ type ProjectFilterSettings struct {
 	ErrorSamplingRate                 float64 `gorm:"default:1"`
 	LogSamplingRate                   float64 `gorm:"default:1"`
 	TraceSamplingRate                 float64 `gorm:"default:1"`
-	SessionMinuteRateLimit            int64   `gorm:"default:1000000"`
-	ErrorMinuteRateLimit              int64   `gorm:"default:1000000"`
-	LogMinuteRateLimit                int64   `gorm:"default:1000000"`
-	TraceMinuteRateLimit              int64   `gorm:"default:1000000"`
+	SessionMinuteRateLimit            *int64
+	ErrorMinuteRateLimit              *int64
+	LogMinuteRateLimit                *int64
+	TraceMinuteRateLimit              *int64
 	SessionExclusionQuery             *string
 	ErrorExclusionQuery               *string
 	LogExclusionQuery                 *string
@@ -429,7 +427,7 @@ type AllWorkspaceSettings struct {
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
 	EnableSessionExport       bool    `gorm:"default:false"`
-	EnableIngestFilters       bool    `gorm:"default:false"`
+	EnableIngestSampling      bool    `gorm:"default:false"`
 	EnableUnlistedSharing     bool    `gorm:"default:true"`
 	EnableNetworkTraces       bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`

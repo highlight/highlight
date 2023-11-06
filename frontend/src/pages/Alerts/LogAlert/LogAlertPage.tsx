@@ -480,7 +480,6 @@ export const LogAlertPage = () => {
 												startDate={startDate}
 												endDate={endDate}
 												hideIcon
-												className={styles.combobox}
 												keysLoading={keysLoading}
 												placeholder="Define query..."
 												query={query}

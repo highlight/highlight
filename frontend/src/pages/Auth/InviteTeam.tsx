@@ -128,15 +128,17 @@ export const InviteTeamForm: React.FC = () => {
 						},
 					}),
 				)
-				if (adminRole === AdminRole.Admin) {
+				if (
+					adminRole === AdminRole.Admin &&
+					formState.values.autoJoinDomain
+				) {
 					promises.push(
 						updateAllowedEmailOrigins({
 							variables: {
 								workspace_id: workspace.id,
-								allowed_auto_join_email_origins: formState
-									.values.autoJoinDomain
-									? getEmailDomain(admin?.email)
-									: '',
+								allowed_auto_join_email_origins: `["${getEmailDomain(
+									admin?.email,
+								)}"]`,
 							},
 						}),
 					)

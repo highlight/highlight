@@ -7,9 +7,14 @@
 		"emitDeclarationOnly": true,
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react",
+		"lib": [
+			"DOM",
+			"ESNext"
+		],
 		"module": "ESNext",
 		"moduleResolution": "node",
 		"outDir": "dist",
+		"rootDir": "src",
 		"removeComments": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,

@@ -1138,7 +1138,7 @@ const getRedirectLink = (
 	const [, path] = pathname.split('/').filter((token) => token.length)
 	let toVisit = `/new`
 
-	if (allProjects) {
+	if (allProjects?.length) {
 		if (allProjects[0]?.id !== currentProject?.id) {
 			toVisit = `/${allProjects[0]?.id}/${path}`
 		} else {

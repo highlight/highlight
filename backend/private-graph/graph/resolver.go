@@ -17,8 +17,6 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
-
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
@@ -28,7 +26,6 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/go-chi/chi"
-	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
 	"github.com/highlight-run/go-resthooks"
@@ -140,7 +137,6 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	RH                     *resthooks.Resthook
-	HubspotApi             hubspotApi.Api
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
 	OAuthServer            *oauth.Server
@@ -185,7 +181,7 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		Phone:                 &firebaseUser.PhoneNumber,
 		AboutYouDetailsFilled: &model.F,
 	}
-	tx := r.DB.Where(&model.Admin{UID: admin.UID}).
+	tx := r.DB.WithContext(ctx).Where(&model.Admin{UID: admin.UID}).
 		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
 		Create(&admin).
 		Attrs(&admin)
@@ -325,7 +321,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	var project *model.Project
 	var err error
 	if r.isDemoProject(ctx, project_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).Take(&project).Error; err != nil {
+		if err = r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).Take(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
@@ -371,7 +367,7 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 
 func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID int) (string, error) {
 	var workspaceAdmin model.WorkspaceAdmin
-	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Take(&workspaceAdmin).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Take(&workspaceAdmin).Error; err != nil {
 		return "", e.Wrap(err, "error querying workspace_admin")
 	}
 	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
@@ -493,7 +489,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).Take(&project).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: project_id}}).Take(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying project")
 		}
 		return project, nil
@@ -1498,45 +1494,6 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"TrialEndDate":       nil,
 	}
 
-	if util.IsHubspotEnabled() {
-		props := []hubspot.Property{{
-			Name:     "plan_tier",
-			Property: "plan_tier",
-			Value:    string(tier),
-		}}
-		if workspace.PlanTier != modelInputs.PlanTypeFree.String() && tier == modelInputs.PlanTypeFree {
-			props = append(props, hubspot.Property{
-				Name:     "churn_date",
-				Property: "churn_date",
-				Value:    time.Now().UTC().Truncate(24 * time.Hour).UnixMilli(),
-			})
-		}
-		if billingPeriodStart != nil {
-			props = append(props, hubspot.Property{
-				Name:     "billing_period_start",
-				Property: "billing_period_start",
-				Value:    billingPeriodStart.UTC().Truncate(24 * time.Hour).UnixMilli(),
-			})
-		}
-		if billingPeriodEnd != nil {
-			props = append(props, hubspot.Property{
-				Name:     "billing_period_end",
-				Property: "billing_period_end",
-				Value:    billingPeriodEnd.UTC().Truncate(24 * time.Hour).UnixMilli(),
-			})
-		}
-		if nextInvoiceDate != nil {
-			props = append(props, hubspot.Property{
-				Name:     "next_invoice",
-				Property: "next_invoice",
-				Value:    nextInvoiceDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
-			})
-		}
-		if err := r.HubspotApi.UpdateCompanyProperty(ctx, workspace.ID, props); err != nil {
-			log.WithContext(ctx).WithField("props", props).Error(e.Wrap(err, "hubspot error processing stripe webhook"))
-		}
-	}
-
 	if err := r.DB.Model(&model.Workspace{}).
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(updates).Error; err != nil {
@@ -1544,7 +1501,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.NewWorker(r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, r.HubspotApi).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 

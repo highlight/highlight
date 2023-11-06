@@ -89,6 +89,8 @@ const RightPlayerPanel = () => {
 			cssClass={clsx(style.playerRightColumn, {
 				[style.playerRightPanelContainerHidden]: !showRightPanel,
 			})}
+			overflowY="scroll"
+			hiddenScroll
 		>
 			{content}
 		</Box>

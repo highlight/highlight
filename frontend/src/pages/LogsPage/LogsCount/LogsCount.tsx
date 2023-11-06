@@ -11,13 +11,13 @@ const LogsCount = ({
 	endDate,
 	presets,
 	totalCount,
-	logCountLoading,
+	loading,
 }: {
 	startDate: Date
 	endDate: Date
 	presets: Preset[]
 	totalCount: number | undefined
-	logCountLoading: boolean
+	loading: boolean
 }) => {
 	const dateLabel = useMemo(() => {
 		const isPreset = presets.find((preset) => {
@@ -29,7 +29,7 @@ const LogsCount = ({
 		return `${formatDate(startDate)} to ${formatDate(endDate)}`
 	}, [endDate, presets, startDate])
 
-	if (logCountLoading) {
+	if (loading) {
 		return (
 			<Box px="12" py="2">
 				<LoadingBox justifyContent="flex-start" />

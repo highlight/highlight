@@ -1,5 +1,5 @@
 import { Rewrite } from 'next/dist/lib/load-custom-routes'
-import { withHighlightConfig } from './withHighlightConfig'
+import { withHighlightConfig } from './with-highlight-config'
 
 describe('withHighlightConfig', () => {
 	let defaultRewrite: {

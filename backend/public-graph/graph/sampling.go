@@ -25,6 +25,7 @@ func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceR
 		"IsIngestedBy", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(true),
 		util.Tag(highlight.ProjectIDAttribute, trace.ProjectId),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+		util.Tag(highlight.TraceKeyAttribute, trace.UUID),
 		util.Tag("product", privateModel.ProductTypeTraces),
 		util.Tag("ingested", true),
 	)
@@ -65,6 +66,7 @@ func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow)
 		"IsIngestedBy", util.ResourceName("sampling"),
 		util.Tag(highlight.ProjectIDAttribute, logRow.ProjectId),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+		util.Tag(highlight.TraceKeyAttribute, logRow.UUID),
 		util.Tag("product", privateModel.ProductTypeLogs),
 		util.Tag("ingested", true),
 	)
@@ -133,6 +135,7 @@ func (r *Resolver) IsErrorIngested(ctx context.Context, projectID int, errorObje
 		"IsIngestedBy", util.ResourceName("sampling"),
 		util.Tag(highlight.ProjectIDAttribute, projectID),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+		util.Tag(highlight.TraceKeyAttribute, getErrorObjectID(errorObject)),
 		util.Tag("product", privateModel.ProductTypeErrors),
 		util.Tag("ingested", true),
 	)
@@ -162,15 +165,7 @@ func (r *Resolver) IsErrorIngestedBySample(ctx context.Context, projectID int, e
 		return true
 	}
 
-	id := ptr.ToString(errorObject.RequestID)
-	if id == "" {
-		id = ptr.ToString(errorObject.TraceID)
-	}
-	if id == "" {
-		id = ptr.ToString(errorObject.SpanID)
-	}
-
-	return r.isItemIngestedBySample(ctx, privateModel.ProductTypeErrors, settings.ProjectID, id)
+	return r.isItemIngestedBySample(ctx, privateModel.ProductTypeErrors, settings.ProjectID, getErrorObjectID(errorObject))
 }
 
 func (r *Resolver) IsErrorIngestedByRateLimit(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
@@ -202,6 +197,7 @@ func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sess
 		"IsIngestedBy", util.ResourceName("sampling"),
 		util.Tag(highlight.ProjectIDAttribute, s.ProjectID),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
+		util.Tag(highlight.TraceKeyAttribute, s.ID),
 		util.Tag("product", privateModel.ProductTypeSessions),
 		util.Tag("ingested", true),
 	)
@@ -340,7 +336,7 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, pro
 		return true
 	}
 
-	max := func() int64 {
+	max := func() *int64 {
 		switch product {
 		case privateModel.ProductTypeSessions:
 			return settings.SessionMinuteRateLimit
@@ -351,9 +347,12 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, pro
 		case privateModel.ProductTypeTraces:
 			return settings.TraceMinuteRateLimit
 		}
-		return 1.
+		return nil
 	}()
-	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), max, when.Minute())
+	if max == nil {
+		return true
+	}
+	ingested := r.isIngestedByRateLimit(ctx, fmt.Sprintf("sampling-%d-%s", projectID, product.String()), *max, when.Minute())
 	return ingested
 }
 
@@ -491,4 +490,15 @@ func (r *Resolver) isExcludedError(ctx context.Context, projectID int, errorFilt
 		}
 	}
 	return false
+}
+
+func getErrorObjectID(errorObject *modelInputs.BackendErrorObjectInput) string {
+	id := ptr.ToString(errorObject.RequestID)
+	if id == "" {
+		id = ptr.ToString(errorObject.TraceID)
+	}
+	if id == "" {
+		id = ptr.ToString(errorObject.SpanID)
+	}
+	return id
 }
