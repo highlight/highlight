@@ -1,5 +1,13 @@
 # @highlight-run/next
 
+## 7.1.1
+
+### Patch Changes
+
+-   Updated dependencies [7c20f8c44]
+    -   highlight.run@8.2.1
+    -   @highlight-run/node@3.5.3
+
 ## 7.1.0
 
 ### Minor Changes

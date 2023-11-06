@@ -9,6 +9,8 @@ on:
             - 'backend/**'
             - 'deploy/**'
             - '.github/workflows/deploy.yml'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     migrate-database:
         runs-on: ubuntu-latest

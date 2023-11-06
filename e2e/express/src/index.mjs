@@ -1,24 +1,28 @@
 import express from 'express'
-import { H } from '@highlight-run/node'
+import { H, Handlers } from '@highlight-run/node'
 
-H.init({ projectID: '1', debug: true, serviceName: 'e2e-express' })
+/** @type {import('@highlight-run/node').NodeOptions} */
+const config = {
+	projectID: '1',
+	debug: true,
+	serviceName: 'e2e-express',
+	serviceVersion: 'git-sha',
+	otlpEndpoint: 'http://localhost:4318',
+}
+H.init(config)
 
 const app = express()
 const port = 3003
 
+// This should be before any controllers (route definitions)
+app.use(Handlers.middleware(config))
 app.get('/', (req, res) => {
 	const err = new Error('this is a test error')
-	const highlightHeader = req.headers?.['x-highlight-request']
-	if (highlightHeader) {
-		const [secureSessionId, requestId] = highlightHeader.split('/')
-		if (secureSessionId && requestId) {
-			console.info(
-				'Sending error to highlight',
-				secureSessionId,
-				requestId,
-			)
-			H.consumeError(err, secureSessionId, requestId)
-		}
+	const highlightCtx = H.parseHeaders(req.headers)
+	if (highlightCtx) {
+		const { secureSessionId, requestId } = highlightCtx
+		console.info('Sending error to highlight', secureSessionId, requestId)
+		H.consumeError(err, secureSessionId, requestId)
 	}
 	res.send('Hello World!')
 })
@@ -34,6 +38,8 @@ app.get('/good', (req, res) => {
 	res.send('yay!')
 })
 
+// This should be before any other error middleware and after all controllers (route definitions)
+app.use(Handlers.errorHandler(config))
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)
 })

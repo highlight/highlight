@@ -7,7 +7,7 @@ export type SearchParam = {
 
 const SEPARATOR = ':'
 export const DEFAULT_OPERATOR = '='
-export const BODY_KEY = 'body'
+export const BODY_KEY = 'message'
 
 // Inspired by search-query-parser:
 // https://github.com/nepsilon/search-query-parser/blob/8158d09c70b66168440e93ffabd720f4c8314c9b/lib/search-query-parser.js#L40
