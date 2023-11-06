@@ -1045,11 +1045,15 @@ func (w *Worker) Start(ctx context.Context) {
 		time.Sleep(1 * time.Second)
 
 		limit := processSessionLimit + rand.Intn(100)
+		sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
 		sessions, err := w.GetSessionsToProcess(ctx, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes, limit)
+		sessionsSpan.Finish(err)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 			continue
 		}
+		// Sends a "count" metric so that we can see how many sessions are being queried.
+		hmetric.Histogram(ctx, "worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 
 		type SessionLog struct {
 			SessionID int
