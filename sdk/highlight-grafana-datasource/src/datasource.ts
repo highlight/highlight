@@ -29,7 +29,7 @@ query GetAdmin {
 
 const GET_TRACES_METRICS = `
 query GetTracesMetrics($project_id: ID!, $params: QueryInput!, $metric_types: [TracesMetricType!]!, $group_by: [String!]!) {
-  traces_metrics(
+  traces_histogram(
     project_id: $project_id
     params: $params
     metric_types: $metric_types
@@ -90,10 +90,10 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
             operationName: 'GetTracesMetrics',
             variables: {
               project_id: '1',
-              metric_types: ['count', 'p90'],
-              group_by: [],
+              metric_types: target.metrics ?? [],
+              group_by: target.groupBy ?? [],
               params: {
-                query: target.queryText,
+                query: target.queryText ?? '',
                 date_range: {
                   start_date: from.toISOString(),
                   end_date: to.toISOString(),
@@ -143,34 +143,27 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
   }
 
   async testDatasource() {
-    try {
-      const response = await getBackendSrv().post<{
-        admin: { email: string };
-        errors?: Error[];
-      }>(
-        `${this.url}/highlight/`,
-        JSON.stringify({
-          operationName: 'GetAdmin',
-          query: GET_ADMIN,
-        }),
-        {}
-      );
-      if (response.errors?.length) {
-        return {
-          status: 'error',
-          message: response.errors.map((e) => JSON.stringify(e)).join(', '),
-        };
-      }
-      if (!response.admin.email) {
-        return {
-          status: 'error',
-          message: 'invalid login returned',
-        };
-      }
-    } catch (e: unknown) {
+    const response = await getBackendSrv().post<{
+      data: { admin: { email: string } };
+      errors?: Error[];
+    }>(
+      `${this.url}/highlight/`,
+      JSON.stringify({
+        operationName: 'GetAdmin',
+        query: GET_ADMIN,
+      }),
+      {}
+    );
+    if (response.errors?.length) {
       return {
         status: 'error',
-        message: (e as { data: { message: string } }).data.message,
+        message: response.errors.map((e) => JSON.stringify(e)).join(', '),
+      };
+    }
+    if (!response.data.admin.email) {
+      return {
+        status: 'error',
+        message: 'invalid login returned',
       };
     }
 

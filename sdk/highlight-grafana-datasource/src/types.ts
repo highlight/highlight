@@ -1,6 +1,9 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface HighlightQuery extends DataQuery {
+  table?: string;
+  metrics?: string[];
+  groupBy?: string[];
   queryText?: string;
 }
 

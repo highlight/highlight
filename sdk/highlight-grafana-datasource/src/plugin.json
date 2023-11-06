@@ -31,9 +31,9 @@
   "routes": [
     {
       "path": "highlight",
-      "url": "https://pri.highlight.io",
+      "url": "https://b4d27ca03376.ngrok.app/private",
       "tokenAuth": {
-        "url": "https://pri.highlight.io/oauth/token",
+        "url": "https://b4d27ca03376.ngrok.app/oauth/token",
         "params": {
           "grant_type": "client_credentials",
           "client_id": "{{ .JsonData.clientID }}",

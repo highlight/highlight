@@ -37,30 +37,32 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
 }
 
+var traceColumns = []string{
+	"Timestamp",
+	"UUID",
+	"TraceId",
+	"SpanId",
+	"ParentSpanId",
+	"ProjectId",
+	"SecureSessionId",
+	"TraceState",
+	"SpanName",
+	"SpanKind",
+	"Duration",
+	"ServiceName",
+	"ServiceVersion",
+	"TraceAttributes",
+	"StatusCode",
+	"StatusMessage",
+}
+
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	bodyColumn:       "Body",
 	attributesColumn: "TraceAttributes",
-	selectColumns: []string{
-		"Timestamp",
-		"UUID",
-		"TraceId",
-		"SpanId",
-		"ParentSpanId",
-		"ProjectId",
-		"SecureSessionId",
-		"TraceState",
-		"SpanName",
-		"SpanKind",
-		"Duration",
-		"ServiceName",
-		"ServiceVersion",
-		"TraceAttributes",
-		"StatusCode",
-		"StatusMessage",
-	},
+	selectColumns:    traceColumns,
 }
 
 var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
@@ -68,6 +70,7 @@ var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	attributesColumn: "TraceAttributes",
+	selectColumns:    traceColumns,
 }
 
 type ClickhouseTraceRow struct {
@@ -359,8 +362,10 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		return nil, err
 	}
 
+	base := 3 + len(metricTypes)
+
 	groupByCols := []string{"1"}
-	for i := 4; i < 4+len(groupBy); i++ {
+	for i := base; i < base+len(groupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
 	fromSb.GroupBy(groupByCols...)

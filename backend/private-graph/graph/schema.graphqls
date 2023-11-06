@@ -2064,6 +2064,12 @@ type Query {
 		metric_types: [TracesMetricType!]!
 		group_by: [String!]!
 	): TracesMetrics!
+	traces_histogram(
+		project_id: ID!
+		params: QueryInput!
+		metric_types: [TracesMetricType!]!
+		group_by: [String!]!
+	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!

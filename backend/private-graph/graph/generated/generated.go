@@ -1004,6 +1004,7 @@ type ComplexityRoot struct {
 		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
 		Trace                        func(childComplexity int, projectID int, traceID string) int
 		Traces                       func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
+		TracesHistogram              func(childComplexity int, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) int
 		TracesIntegration            func(childComplexity int, projectID int) int
 		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput) int
@@ -1813,6 +1814,7 @@ type QueryResolver interface {
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) (*model.TracesMetrics, error)
+	TracesHistogram(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) (*model.TracesMetrics, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
@@ -7637,6 +7639,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Traces(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection)), true
 
+	case "Query.traces_histogram":
+		if e.complexity.Query.TracesHistogram == nil {
+			break
+		}
+
+		args, err := ec.field_Query_traces_histogram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.TracesHistogram(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["metric_types"].([]model.TracesMetricType), args["group_by"].([]string)), true
+
 	case "Query.tracesIntegration":
 		if e.complexity.Query.TracesIntegration == nil {
 			break
@@ -12410,6 +12424,12 @@ type Query {
 		direction: SortDirection!
 	): TraceConnection!
 	traces_metrics(
+		project_id: ID!
+		params: QueryInput!
+		metric_types: [TracesMetricType!]!
+		group_by: [String!]!
+	): TracesMetrics!
+	traces_histogram(
 		project_id: ID!
 		params: QueryInput!
 		metric_types: [TracesMetricType!]!
@@ -18633,6 +18653,48 @@ func (ec *executionContext) field_Query_traces_args(ctx context.Context, rawArgs
 		}
 	}
 	args["direction"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_traces_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg1, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
+	var arg2 []model.TracesMetricType
+	if tmp, ok := rawArgs["metric_types"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_types"))
+		arg2, err = ec.unmarshalNTracesMetricType2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricTypeᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_types"] = arg2
+	var arg3 []string
+	if tmp, ok := rawArgs["group_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
+		arg3, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["group_by"] = arg3
 	return args, nil
 }
 
@@ -55557,6 +55619,68 @@ func (ec *executionContext) fieldContext_Query_traces_metrics(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_traces_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_traces_histogram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().TracesHistogram(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["metric_types"].([]model.TracesMetricType), fc.Args["group_by"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TracesMetrics)
+	fc.Result = res
+	return ec.marshalNTracesMetrics2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetrics(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_traces_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_TracesMetrics_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_TracesMetrics_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_TracesMetrics_sample_factor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TracesMetrics", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_traces_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_traces_keys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_traces_keys(ctx, field)
 	if err != nil {
@@ -83040,6 +83164,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_traces_metrics(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "traces_histogram":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_traces_histogram(ctx, field)
 				return res
 			}
 
