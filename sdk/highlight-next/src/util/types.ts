@@ -71,4 +71,4 @@ export interface HighlightInterface {
 	flush: () => Promise<void>
 }
 
-export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
+export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'

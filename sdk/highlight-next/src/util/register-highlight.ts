@@ -1,4 +1,4 @@
-import { NodeOptions } from '@highlight-run/node'
+import type { NodeOptions } from '@highlight-run/node'
 
 export async function registerHighlight(nodeOptions: NodeOptions) {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {
