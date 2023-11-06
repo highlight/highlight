@@ -5495,9 +5495,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var membersMeter int64
 	var errorsMeter int64
 	var logsMeter int64
+	var tracesMeter int64
 	var sessionsAvg float64
 	var errorsAvg float64
 	var logsAvg float64
+	var tracesAvg float64
 
 	g.Go(func() error {
 		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
@@ -5532,6 +5534,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
+		tracesMeter, err = pricing.GetWorkspaceTracesMeter(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
 		sessionsAvg, err = pricing.GetSessions7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
 		return err
 	})
@@ -5543,6 +5550,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	g.Go(func() error {
 		logsAvg, err = pricing.GetLogs7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		tracesAvg, err = pricing.GetTraces7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
 		return err
 	})
 
@@ -5574,18 +5586,23 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		logsIncluded = *workspace.MonthlyLogsLimit
 	}
 
-	// TODO(vkorolik) include trace pricing once we have that in place
+	tracesIncluded := pricing.TypeToTracesLimit(planType)
+	// use monthly traces limit if it exists
+	if workspace.MonthlyTracesLimit != nil {
+		tracesIncluded = *workspace.MonthlyLogsLimit
+	}
 
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	if workspace.RetentionPeriod != nil {
 		retentionPeriod = *workspace.RetentionPeriod
 	}
 
-	var sessionsLimit, errorsLimit, logsLimit *int64
+	var sessionsLimit, errorsLimit, logsLimit, tracesLimit *int64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
 		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
 		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
 		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
+		tracesLimit = pricing.GetLimitAmount(nil, model.PricingProductTypeTraces, planType, retentionPeriod)
 	}
 
 	details := &modelInputs.BillingDetails{
@@ -5596,17 +5613,21 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			MembersLimit: membersLimit,
 			ErrorsLimit:  errorsIncluded,
 			LogsLimit:    logsIncluded,
+			TracesLimit:  tracesIncluded,
 		},
 		Meter:                sessionsMeter,
 		MembersMeter:         membersMeter,
 		ErrorsMeter:          errorsMeter,
 		LogsMeter:            logsMeter,
+		TracesMeter:          tracesMeter,
 		SessionsDailyAverage: sessionsAvg,
 		ErrorsDailyAverage:   errorsAvg,
 		LogsDailyAverage:     logsAvg,
+		TracesDailyAverage:   tracesAvg,
 		SessionsBillingLimit: sessionsLimit,
 		ErrorsBillingLimit:   errorsLimit,
 		LogsBillingLimit:     logsLimit,
+		TracesBillingLimit:   tracesLimit,
 	}
 
 	return details, nil

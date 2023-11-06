@@ -1640,7 +1640,20 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return int64(limit)
 		},
 	},
-	// TODO(vkorolik) include trace pricing once we have that in place
+	model.PricingProductTypeTraces: {
+		func(w *model.Workspace) *int { return nil },
+		pricing.GetWorkspaceTracesMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			return privateModel.RetentionPeriodThirtyDays
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToTracesLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlyTracesLimit != nil {
+				limit = *w.MonthlyTracesLimit
+			}
+			return int64(limit)
+		},
+	},
 }
 
 func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
