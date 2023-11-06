@@ -12,6 +12,7 @@ import {
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidPlus,
+	IconSolidSparkles,
 	IconSolidX,
 	Input,
 	Stack,
@@ -80,14 +81,14 @@ const BASE_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
 	Sessions: 2000,
 	Errors: 20,
 	Logs: 150,
-	Traces: 750,
+	Traces: 150,
 }
 
 const COMMITTED_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
 	Sessions: 500,
 	Errors: 20,
 	Logs: 150,
-	Traces: 750,
+	Traces: 150,
 }
 
 const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
@@ -178,7 +179,7 @@ type ProductCardProps = {
 	planType: PlanType
 	setRetentionPeriod: (rp: RetentionPeriod) => void
 	limitCents: number | undefined
-	setLimitCents: (limit: number | undefined) => void
+	setLimitCents: ((limit: number | undefined) => void) | undefined
 	includedQuantity: number
 	usageAmount: number
 	predictedUsageAmount: number
@@ -191,12 +192,14 @@ interface UpdatePlanForm {
 	errorsLimitCents: number | undefined
 	logsRetention: RetentionPeriod
 	logsLimitCents: number | undefined
+	tracesRetention: RetentionPeriod
 }
 
-type LimitButtonProps = Pick<
-	ProductCardProps,
-	'limitCents' | 'setLimitCents'
-> & { defaultLimit: number }
+type LimitButtonProps = {
+	limitCents: number | undefined
+	setLimitCents: (limit: number | undefined) => void
+	defaultLimit: number
+}
 
 const LimitButton = ({
 	limitCents,
@@ -350,31 +353,33 @@ const ProductCard = ({
 						</Box>
 					</Form.NamedSection>
 				</Box>
-				<Box cssClass={style.formSection}>
-					<Form.NamedSection
-						label="Limit"
-						name="Limit"
-						tag={
-							<Tooltip
-								trigger={
-									<IconSolidInformationCircle size={12} />
-								}
-							>
-								If a billing limit is added, extra{' '}
-								{productType.toLowerCase()} will not be recorded
-								once the limit is reached.
-							</Tooltip>
-						}
-					>
-						<Box display="flex">
-							<LimitButton
-								limitCents={limitCents}
-								setLimitCents={setLimitCents}
-								defaultLimit={1.3 * predictedCostCents}
-							/>
-						</Box>
-					</Form.NamedSection>
-				</Box>
+				{setLimitCents !== undefined && (
+					<Box cssClass={style.formSection}>
+						<Form.NamedSection
+							label="Limit"
+							name="Limit"
+							tag={
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+								>
+									If a billing limit is added, extra{' '}
+									{productType.toLowerCase()} will not be
+									recorded once the limit is reached.
+								</Tooltip>
+							}
+						>
+							<Box display="flex">
+								<LimitButton
+									limitCents={limitCents}
+									setLimitCents={setLimitCents}
+									defaultLimit={1.3 * predictedCostCents}
+								/>
+							</Box>
+						</Form.NamedSection>
+					</Box>
+				)}
 			</Box>
 			<Box
 				display="flex"
@@ -498,6 +503,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			errorsLimitCents: undefined,
 			logsRetention: RetentionPeriod.ThirtyDays,
 			logsLimitCents: undefined,
+			tracesRetention: RetentionPeriod.ThirtyDays,
 		},
 	})
 	const formState = formStore.useState()
@@ -524,6 +530,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 				errorsLimitCents: data.workspace?.errors_max_cents ?? undefined,
 				logsRetention: RetentionPeriod.ThirtyDays,
 				logsLimitCents: data.workspace?.logs_max_cents ?? undefined,
+				tracesRetention: RetentionPeriod.ThirtyDays,
 			})
 		},
 	})
@@ -650,12 +657,38 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	}
 	predictedLogsCost = Math.max(predictedLogsCost, actualLogsCost)
 
+	const tracesUsage = isPaying ? data?.billingDetails.tracesMeter ?? 0 : 0
+	const predictedTracesUsage = Math.ceil(
+		tracesUsage +
+			daysUntilNextBillingDate *
+				(data?.billingDetails.tracesDailyAverage ?? 0),
+	)
+	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
+	let predictedTracesCost = getCostCents(
+		'Traces',
+		formState.values.tracesRetention,
+		predictedTracesUsage,
+		includedTraces,
+		planType,
+	)
+	const actualTracesCost = getCostCents(
+		'Traces',
+		formState.values.logsRetention,
+		tracesUsage,
+		includedTraces,
+		planType,
+	)
+	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
+
 	const baseAmount = data?.subscription_details.baseAmount ?? 0
 	const discountPercent = data?.subscription_details.discountPercent ?? 0
 	const discountAmount = data?.subscription_details.discountAmount ?? 0
 
 	const productSubtotal =
-		predictedSessionsCost + predictedErrorsCost + predictedLogsCost
+		predictedSessionsCost +
+		predictedErrorsCost +
+		predictedLogsCost +
+		predictedTracesCost
 
 	const discountRatio = (100 - discountPercent) / 100
 
@@ -911,6 +944,26 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								usageAmount={logsUsage}
 								predictedUsageAmount={predictedLogsUsage}
 								includedQuantity={includedLogs}
+								planType={planType}
+							/>
+							<Box borderBottom="divider" />
+							<ProductCard
+								productIcon={<IconSolidSparkles />}
+								productType="Traces"
+								retentionPeriod={
+									formState.values.tracesRetention
+								}
+								setRetentionPeriod={(rp) =>
+									formStore.setValue(
+										formStore.names.tracesRetention,
+										rp,
+									)
+								}
+								limitCents={formState.values.logsLimitCents}
+								setLimitCents={undefined}
+								usageAmount={tracesUsage}
+								predictedUsageAmount={predictedTracesUsage}
+								includedQuantity={includedTraces}
 								planType={planType}
 							/>
 							<Box borderBottom="divider" />

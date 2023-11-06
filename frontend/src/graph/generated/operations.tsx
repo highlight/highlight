@@ -304,6 +304,10 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 					| 'error_sampling_rate'
 					| 'log_sampling_rate'
 					| 'trace_sampling_rate'
+					| 'session_minute_rate_limit'
+					| 'error_minute_rate_limit'
+					| 'log_minute_rate_limit'
+					| 'trace_minute_rate_limit'
 					| 'session_exclusion_query'
 					| 'error_exclusion_query'
 					| 'log_exclusion_query'
@@ -2857,12 +2861,14 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'membersMeter'
 		| 'errorsMeter'
 		| 'logsMeter'
+		| 'tracesMeter'
 		| 'sessionsBillingLimit'
 		| 'errorsBillingLimit'
 		| 'logsBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'
+		| 'tracesDailyAverage'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
@@ -2872,6 +2878,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'membersLimit'
 				| 'errorsLimit'
 				| 'logsLimit'
+				| 'tracesLimit'
 			>
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
@@ -4586,7 +4593,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_insights'
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
-			| 'enable_ingest_filters'
+			| 'enable_ingest_sampling'
 		>
 	>
 }

@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"strconv"
 	"time"
 
@@ -41,7 +42,7 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
-	bodyColumn:       "Body",
+	bodyColumn:       "SpanName",
 	attributesColumn: "TraceAttributes",
 	selectColumns: []string{
 		"Timestamp",
@@ -61,10 +62,14 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 		"StatusCode",
 		"StatusMessage",
 	},
+	defaultFilters: map[string]string{
+		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
+	},
 }
 
 var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	bodyColumn:       "SpanName",
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	attributesColumn: "TraceAttributes",
@@ -296,6 +301,10 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 }
 
 func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string, nBuckets int) (*modelInputs.TracesMetrics, error) {
+	if len(metricTypes) == 0 {
+		return nil, e.New("no metric types provided")
+	}
+
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
@@ -308,6 +317,12 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 				fnStr += ", round(count() * any(_sample_factor))"
 			} else {
 				fnStr += ", toFloat64(count())"
+			}
+		case modelInputs.TracesMetricTypeCountDistinctKey:
+			if useSampling {
+				fnStr += fmt.Sprintf(", round(count(distinct TraceAttributes['%s']) * any(_sample_factor))", highlight.TraceKeyAttribute)
+			} else {
+				fnStr += fmt.Sprintf(", toFloat64(count(distinct TraceAttributes['%s']))", highlight.TraceKeyAttribute)
 			}
 		case modelInputs.TracesMetricTypeP50:
 			fnStr += ", quantile(.5)(Duration)"
@@ -411,8 +426,9 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 
 		for idx, metricType := range metricTypes {
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.TracesMetricBucket{
-				BucketID:    bucketId,
-				Group:       groupByColResults,
+				BucketID: bucketId,
+				// make a slice copy as we reuse the same `groupByColResults` across multiple scans
+				Group:       append(make([]string, 0), groupByColResults...),
 				MetricType:  metricType,
 				MetricValue: metricResults[idx],
 			})

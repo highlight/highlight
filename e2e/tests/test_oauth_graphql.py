@@ -50,8 +50,8 @@ def test_make_request_with_oauth():
     auth = perform_oauth_flow()
 
     exc: typing.Optional[Exception] = None
-    # retry up for up to N seconds in case the session needs time to populate from datasync queue
-    for _ in range(90):
+    # retry up for up to 30 seconds in case the session needs time to populate from datasync queue
+    for _ in range(30):
         try:
             r = requests.post(
                 API_URL,

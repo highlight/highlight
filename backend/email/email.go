@@ -45,6 +45,8 @@ const (
 	BillingErrorsUsage100Percent  EmailType = "BillingErrorsUsage100Percent"
 	BillingLogsUsage80Percent     EmailType = "BillingLogsUsage80Percent"
 	BillingLogsUsage100Percent    EmailType = "BillingLogsUsage100Percent"
+	BillingTracesUsage80Percent   EmailType = "BillingTracesUsage80Percent"
+	BillingTracesUsage100Percent  EmailType = "BillingTracesUsage100Percent"
 )
 
 func SendAlertEmail(ctx context.Context, MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
@@ -94,14 +96,14 @@ func GetSubscriptionUrl(adminId int, previous bool) string {
 
 func getApproachingLimitMessage(productType string, workspaceId int) string {
 	return fmt.Sprintf(`Your %s usage has exceeded 80&#37; of your monthly limit.<br>
-		Once this limit is exceeded, extra %ss will not be recorded.<br>
+		Once this limit is exceeded, extra %s will not be recorded.<br>
 		If you would like to increase your billing limit,
 		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
 		productType, productType, frontendUri, workspaceId)
 }
 
 func getExceededLimitMessage(productType string, workspaceId int) string {
-	return fmt.Sprintf(`Your %s usage has exceeded your monthly limit - extra %ss will not be recorded.<br>
+	return fmt.Sprintf(`Your %s usage has exceeded your monthly limit - extra %s will not be recorded.<br>
 		If you would like to increase your billing limit,
 		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
 		productType, productType, frontendUri, workspaceId)
@@ -129,6 +131,10 @@ func getBillingNotificationSubject(emailType EmailType) string {
 		return "[Highlight] billing limits - 80% of your logs usage"
 	case BillingLogsUsage100Percent:
 		return "[Highlight] billing limits - 100% of your logs usage"
+	case BillingTracesUsage80Percent:
+		return "[Highlight] billing limits - 80% of your traces usage"
+	case BillingTracesUsage100Percent:
+		return "[Highlight] billing limits - 100% of your traces usage"
 	default:
 		return "Highlight Billing Notification"
 	}
@@ -162,17 +168,21 @@ func getBillingNotificationMessage(workspaceId int, emailType EmailType) string 
 			If you would like to switch to a different plan or cancel your subscription, 
 			you can update your billing settings <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingSessionUsage80Percent:
-		return getApproachingLimitMessage("session", workspaceId)
+		return getApproachingLimitMessage("sessions", workspaceId)
 	case BillingSessionUsage100Percent:
-		return getExceededLimitMessage("session", workspaceId)
+		return getExceededLimitMessage("sessions", workspaceId)
 	case BillingErrorsUsage80Percent:
-		return getApproachingLimitMessage("error", workspaceId)
+		return getApproachingLimitMessage("errors", workspaceId)
 	case BillingErrorsUsage100Percent:
-		return getExceededLimitMessage("error", workspaceId)
+		return getExceededLimitMessage("errors", workspaceId)
 	case BillingLogsUsage80Percent:
-		return getApproachingLimitMessage("log", workspaceId)
+		return getApproachingLimitMessage("logs", workspaceId)
 	case BillingLogsUsage100Percent:
-		return getExceededLimitMessage("log", workspaceId)
+		return getExceededLimitMessage("logs", workspaceId)
+	case BillingTracesUsage80Percent:
+		return getApproachingLimitMessage("traces", workspaceId)
+	case BillingTracesUsage100Percent:
+		return getExceededLimitMessage("traces", workspaceId)
 	default:
 		return ""
 	}

@@ -441,7 +441,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				workspaceId: currentWorkspace?.id,
 			})
 			await message.warn(
-				'Downloading sessions is only available on annual commitment plans.',
+				'Downloading sessions is only available on enterprise plans.',
 			)
 			showIntercomMessage(
 				'Hi! I would like to use the session export feature.',

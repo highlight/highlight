@@ -8,8 +8,8 @@ on:
         paths:
             - 'sdk/highlight-py/**'
             - '.github/workflows/python.yml'
-    merge_group:
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     build:
         name: Python SDK

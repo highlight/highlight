@@ -29,6 +29,7 @@ type tableConfig[TReservedKey ~string] struct {
 	keysToColumns    map[TReservedKey]string
 	reservedKeys     []TReservedKey
 	selectColumns    []string
+	defaultFilters   map[string]string
 }
 
 func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config tableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -126,9 +127,11 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadLogs"))
+	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
+	span.SetAttribute("Table", config.tableName)
 	span.SetAttribute("Query", sql)
 	span.SetAttribute("Params", params)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -155,7 +158,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 	groupBy []string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
-	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns))
+	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns), config.defaultFilters)
 	sb := sqlbuilder.NewSelectBuilder()
 	cols := []string{selectStr}
 	for _, group := range groupBy {
@@ -172,9 +175,9 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 	bodyQuery := ""
 	for _, body := range filters.body {
 		if strings.Contains(body, "%") {
-			bodyQuery = "Body ILIKE" + sb.Var(body)
+			bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
 		} else {
-			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(body)+")")
+			preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
 		}
 	}
 
@@ -243,6 +246,8 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 			value := values[0]
 			if strings.Contains(value, "%") {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
+			} else if strings.HasPrefix(value, "!") {
+				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
 			} else {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
 			}
@@ -251,6 +256,8 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 			for _, value := range values {
 				if strings.Contains(value, "%") {
 					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
+				} else if strings.HasPrefix(value, "!") {
+					conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
 				} else {
 					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
 				}
@@ -271,7 +278,7 @@ type filtersWithReservedKeys[T ~string] struct {
 	reserved   map[T][]string
 }
 
-func makeFilters[T ~string](query string, reservedKeys []T) filtersWithReservedKeys[T] {
+func makeFilters[T ~string](query string, reservedKeys []T, defaultFilters map[string]string) filtersWithReservedKeys[T] {
 	filters := queryparser.Parse(query)
 	filtersWithReservedKeys := filtersWithReservedKeys[T]{
 		reserved:   make(map[T][]string),
@@ -285,6 +292,12 @@ func makeFilters[T ~string](query string, reservedKeys []T) filtersWithReservedK
 			filtersWithReservedKeys.reserved[key] = val
 			delete(filters.Attributes, string(key))
 		}
+	}
+	for key, value := range defaultFilters {
+		if filters.Attributes[key] == nil {
+			filters.Attributes[key] = []string{}
+		}
+		filters.Attributes[key] = append(filters.Attributes[key], value)
 	}
 
 	filtersWithReservedKeys.attributes = filters.Attributes
@@ -340,6 +353,8 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", tableName)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 
@@ -389,6 +404,8 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeyValues", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", tableName)
+	span.SetAttribute("db.system", "clickhouse")
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 	if err != nil {

@@ -1,4 +1,5 @@
 export * from './components'
 export { sprinkles } from './css/sprinkles.css'
+export * from './css/keyframes.css'
 export * from './css/vars'
 export * from './utils/css'

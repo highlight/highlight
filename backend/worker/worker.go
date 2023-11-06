@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"math"
 	"math/rand"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/golang/snappy"
@@ -76,7 +77,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payl
 	}
 
 	// Mark this session as stored in S3.
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
+	if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		&model.Session{ObjectStorageEnabled: &model.T, Chunked: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
@@ -243,7 +244,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	if len(accumulator.EventChunks) > 0 {
-		if err := w.Resolver.DB.Create(accumulator.EventChunks).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Create(accumulator.EventChunks).Error; err != nil {
 			return errors.Wrap(err, "error saving event chunk metadata")
 		}
 	}
@@ -496,7 +497,7 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 	for _, table := range []string{"resources_objects", "messages_objects"} {
 		deleteSpan, ctx := util.StartSpanFromContext(ctx, "worker.deleteObjects",
 			util.ResourceName("worker.deleteObjects"), util.Tag("table", table))
-		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error deleting expired objects from %s", table))
 		}
 		deleteSpan.Finish()
@@ -513,7 +514,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 	s.Excluded = true
 	s.ExcludedReason = &reason
 	s.Processed = &model.T
-	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
@@ -527,7 +528,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	project := &model.Project{}
-	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).Take(&project).Error; err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).Take(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
 	}
 
@@ -549,26 +550,26 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	if !s.AvoidPostgresStorage {
 		// Delete any timeline indicator events which were previously written for this session
-		if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+		if err := w.Resolver.DB.WithContext(ctx).Where("session_secure_id = ?", s.SecureID).
 			Delete(&model.TimelineIndicatorEvent{}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated timeline indicator events"))
 		}
 	}
 
 	// Delete any event chunks which were previously written for this session
-	if err := w.Resolver.DB.Where("session_id = ?", s.ID).
+	if err := w.Resolver.DB.WithContext(ctx).Where("session_id = ?", s.ID).
 		Delete(&model.EventChunk{}).Error; err != nil {
 		return errors.Wrap(err, "failed to delete existing event chunks")
 	}
 
 	// Delete any rage click events which were previously written for this session
-	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+	if err := w.Resolver.DB.WithContext(ctx).Where("session_secure_id = ?", s.SecureID).
 		Delete(&model.RageClickEvent{}).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated rage click events"))
 	}
 
 	// Delete any session intervals which were previously written for this session
-	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+	if err := w.Resolver.DB.WithContext(ctx).Where("session_secure_id = ?", s.SecureID).
 		Delete(&model.SessionInterval{}).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated session intervals"))
 	}
@@ -623,11 +624,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err != nil {
 				return err
 			}
-			if err := w.Resolver.DB.Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
+			if err := w.Resolver.DB.WithContext(ctx).Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
 				return err
 			}
 		} else {
-			if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
+			if err := w.Resolver.DB.WithContext(ctx).Create(eventsForTimelineIndicator).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error creating events for timeline indicator"))
 			}
 		}
@@ -640,7 +641,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 	hasRageClicks := len(accumulator.RageClickSets) > 0
 	if hasRageClicks {
-		if err := w.Resolver.DB.Create(&accumulator.RageClickSets).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Create(&accumulator.RageClickSets).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
@@ -742,7 +743,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		})
 	}
 
-	if err := w.Resolver.DB.Create(finalIntervals).Error; err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Create(finalIntervals).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error creating session activity intervals"))
 	}
 
@@ -776,7 +777,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	visitFields := []model.Field{}
-	if err := w.Resolver.DB.Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
 		return e.Wrap(err, "error querying session fields for determining landing/exit pages")
 	}
 
@@ -788,7 +789,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now())
 
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
+	if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
@@ -866,7 +867,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	dailySession := &model.DailySessionCount{}
-	if err := w.Resolver.DB.
+	if err := w.Resolver.DB.WithContext(ctx).
 		Where(&model.DailySessionCount{
 			ProjectID: s.ProjectID,
 			Date:      &currentDate,
@@ -875,7 +876,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "Error creating new daily session")
 	}
 
-	if err := w.Resolver.DB.
+	if err := w.Resolver.DB.WithContext(ctx).
 		Where(&model.DailySessionCount{Model: model.Model{ID: dailySession.ID}}).
 		Updates(&model.DailySessionCount{Count: dailySession.Count + 1}).Error; err != nil {
 		return e.Wrap(err, "Error incrementing session count in db")
@@ -890,7 +891,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		// Sending Rage Click Alert
 		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching rage click alert", projectID)
 		}
 
@@ -924,7 +925,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				sessionAlert.ThresholdWindow = ptr.Int(30)
 			}
 			var count int
-			if err := w.Resolver.DB.Raw(`
+			if err := w.Resolver.DB.WithContext(ctx).Raw(`
 				SELECT COUNT(*)
 				FROM rage_click_events
 				WHERE
@@ -1006,7 +1007,7 @@ func (w *Worker) Start(ctx context.Context) {
 		sessionLimitJitter := rand.Intn(100)
 		limit := processSessionLimit + sessionLimitJitter
 		txStart := time.Now()
-		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+		if err := w.Resolver.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 			defer cancel()
 
@@ -1103,7 +1104,7 @@ func (w *Worker) Start(ctx context.Context) {
 						excluded = true
 					}
 
-					if err := w.Resolver.DB.Model(&model.Session{}).
+					if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{}).
 						Where(&model.Session{Model: model.Model{ID: session.ID}}).
 						Updates(&model.Session{RetryCount: nextCount, Excluded: excluded}).Error; err != nil {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
@@ -1208,7 +1209,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 	var counts []*AggregateSessionCount
 
-	if err := w.Resolver.DB.Raw(`
+	if err := w.Resolver.DB.WithContext(ctx).Raw(`
 		SELECT p.workspace_id,
 		       sum(dsc.count) as session_count,
 		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 week' ) as session_count_last_week,
@@ -1220,7 +1221,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	var errorResults []*AggregateSessionCount
-	if err := w.Resolver.DB.Raw(`
+	if err := w.Resolver.DB.WithContext(ctx).Raw(`
 		SELECT p.workspace_id,
 			   sum(dec.count) as error_count,
 			   sum(dec.count) filter ( where dec.date > NOW() - interval '1 week' ) as error_count_last_week,
@@ -1248,7 +1249,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			model.MarkBackendSetupTypeLogs:    &c.BackendLoggingIntegrated,
 		} {
 			setupEvent := model.SetupEvent{}
-			if err := w.Resolver.DB.Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err == nil {
+			if err := w.Resolver.DB.WithContext(ctx).Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err == nil {
 				*ptr = setupEvent.ID != 0
 			}
 		}
@@ -1289,7 +1290,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 }
 
 func (w *Worker) BackfillStackFrames(ctx context.Context) {
-	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
+	rows, err := w.Resolver.DB.WithContext(ctx).Model(&model.ErrorObject{}).
 		Where(`
 			type <> 'Backend'
 			AND stack_trace is not null
@@ -1320,7 +1321,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 				return
 			}
 
-			version := w.PublicResolver.GetErrorAppVersion(modelObj)
+			version := w.PublicResolver.GetErrorAppVersion(ctx, modelObj)
 			mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
@@ -1335,7 +1336,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 
 			mappedStackTraceString := string(mappedStackTraceBytes)
 
-			if err := w.Resolver.DB.Model(&model.ErrorObject{}).
+			if err := w.Resolver.DB.WithContext(ctx).Model(&model.ErrorObject{}).
 				Where("id = ?", modelObj.ID).
 				Updates(&model.ErrorObject{MappedStackTrace: &mappedStackTraceString}).Error; err != nil {
 				log.WithContext(ctx).Errorf("error updating stack trace string: %+v", err)
