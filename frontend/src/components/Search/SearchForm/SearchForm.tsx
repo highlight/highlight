@@ -215,7 +215,6 @@ export const Search: React.FC<{
 	endDate: Date
 	keys?: Keys
 	hideIcon?: boolean
-	className?: string
 	keysLoading: boolean
 	disableSearch?: boolean
 	placeholder?: string
@@ -228,7 +227,6 @@ export const Search: React.FC<{
 	startDate,
 	endDate,
 	hideIcon,
-	className,
 	keys,
 	keysLoading,
 	disableSearch,
@@ -393,7 +391,7 @@ export const Search: React.FC<{
 				<Box
 					cssClass={styles.comboboxTagsContainer}
 					style={{
-						left: 2,
+						left: hideIcon ? 6 : 2,
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
@@ -419,7 +417,7 @@ export const Search: React.FC<{
 					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search...'}
-					className={className ?? styles.combobox}
+					className={styles.combobox}
 					value={query}
 					onChange={(e) => {
 						// Need to set this bit of React state to force a re-render of the
