@@ -17,7 +17,7 @@ export const searchIcon = style({
 
 export const combobox = style([
 	sprinkles({
-		py: '6',
+		p: '6',
 	}),
 	typographyStyles.family.monospace,
 	{
@@ -32,6 +32,9 @@ export const combobox = style([
 			'&:focus': {
 				outline: 0,
 			},
+			'&::placeholder': {
+				color: vars.theme.interactive.fill.secondary.content.onDisabled,
+			},
 		},
 	},
 ])
@@ -41,7 +44,10 @@ export const comboboxTagsContainer = style([
 	sMonotype,
 	{
 		alignItems: 'center',
-		display: 'inline-block',
+		display: 'flex',
+		flexWrap: 'nowrap',
+		maxWidth: 'calc(100% - 26px)',
+		overflow: 'hidden',
 		pointerEvents: 'none',
 		position: 'absolute',
 	},

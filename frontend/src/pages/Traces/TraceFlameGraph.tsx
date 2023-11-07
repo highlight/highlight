@@ -194,7 +194,7 @@ export const TraceFlameGraph: React.FC = () => {
 								span={span}
 								depth={0}
 								height={height}
-								width={width}
+								width={width - outsidePadding * 2}
 								zoom={zoom}
 								selectedSpanID={selectedSpan?.spanID}
 								setTooltipCoordinates={

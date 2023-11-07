@@ -8501,17 +8501,20 @@ export const GetBillingDetailsDocument = gql`
 				membersLimit
 				errorsLimit
 				logsLimit
+				tracesLimit
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
+			tracesMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
 			sessionsDailyAverage
 			errorsDailyAverage
 			logsDailyAverage
+			tracesDailyAverage
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
