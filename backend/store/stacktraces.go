@@ -294,7 +294,7 @@ func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, w
 
 // logic for sourcemaps
 func (store *Store) GetMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
-	version := store.GetErrorAppVersion(errorObj)
+	version := store.GetErrorAppVersion(ctx, errorObj)
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, store.storageClient)
 	// TODO(spenny): how to default this when appropriate since it is null for errors with no stacktraces
@@ -311,10 +311,10 @@ func (store *Store) GetMappedStackTraceString(ctx context.Context, stackTrace []
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (store *Store) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
+func (store *Store) GetErrorAppVersion(ctx context.Context, errorObj *model.ErrorObject) *string {
 	// get version from session
 	var session *model.Session
-	if err := store.db.Model(&session).
+	if err := store.db.WithContext(ctx).Model(&session).
 		Where("id = ?", errorObj.SessionID).
 		Pluck("app_version", &session).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
