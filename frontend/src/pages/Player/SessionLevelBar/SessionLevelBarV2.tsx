@@ -315,8 +315,16 @@ export const SessionLevelBarV2: React.FC<
 										!showRightPanel || !isDefaultView,
 									)
 								}}
-								checked={showRightPanel && isDefaultView}
+								checked={
+									showRightPanel &&
+									(isDefaultView ||
+										rightPanelView ===
+											RightPanelView.Comments)
+								}
 								iconLeft={<IconSolidMenuAlt_3 size={14} />}
+								disabled={
+									rightPanelView === RightPanelView.Comments
+								}
 							/>
 						</>
 					)}

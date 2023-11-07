@@ -22,7 +22,7 @@ For example, you may configure a rate limit of 100 sessions per minute. This wil
 3. Set up an exclusion query.
 For example, you may configure an exclusion query of `environment: development`. This will avoid ingesting all sessions tagged with the `development` environment.
 
-With these filters, we will only bill you for data actually retained. For instance, setting up ingestion of only 1% of all sessions will mean that you will be billed only for 1% of all sessions (as measured by [our definition of a session](events-and-users.md#definition-of-a-session)).
+With these filters, we will only bill you for data actually retained. For instance, setting up ingestion of only 1% of all sessions will mean that you will be billed only for 1% of all sessions (as measured by [our definition of a session](events-and-users.md#definition-of-a-session)). You can configure the filters on [your project settings page in highlight](https://app.highlight.io/settings/filters).
 
 ## Filter sessions by user identifier
 In some cases, you may want to filter sessions from a specific user. You can do this by adding the user identifier to the "Filtered Sessions" input under the "Session Replay" tab in your [project settings](https://app.highlight.io/settings). Please note that we use the `identifier` (or first argument) sent in your `H.identify` method to filter against (SDK docs [here](../../../sdk/client.md)).

@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"math"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	e "github.com/pkg/errors"
@@ -253,18 +254,26 @@ type number interface {
 	uint64 | float64
 }
 
+func (client *Client) ReadTracesDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
+	return readDailyImpl[uint64](ctx, client, "trace_count_daily_mv", "sum", projectIds, dateRange)
+}
+
+func (client *Client) ReadTracesDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
+	return readDailyImpl[float64](ctx, client, "trace_count_daily_mv", "avg", projectIds, dateRange)
+}
+
 func (client *Client) ReadLogsDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
-	return readLogsDailyImpl[uint64](ctx, client, "sum", projectIds, dateRange)
+	return readDailyImpl[uint64](ctx, client, "log_count_daily_mv", "sum", projectIds, dateRange)
 }
 
 func (client *Client) ReadLogsDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
-	return readLogsDailyImpl[float64](ctx, client, "avg", projectIds, dateRange)
+	return readDailyImpl[float64](ctx, client, "log_count_daily_mv", "avg", projectIds, dateRange)
 }
 
-func readLogsDailyImpl[N number](ctx context.Context, client *Client, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (N, error) {
+func readDailyImpl[N number](ctx context.Context, client *Client, table string, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (N, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(fmt.Sprintf("COALESCE(%s(Count), 0) AS Count", aggFn)).
-		From("log_count_daily_mv").
+		From(table).
 		Where(sb.In("ProjectId", projectIds)).
 		Where(sb.LessThan("toUInt64(Day)", uint64(dateRange.EndDate.Unix()))).
 		Where(sb.GreaterEqualThan("toUInt64(Day)", uint64(dateRange.StartDate.Unix())))

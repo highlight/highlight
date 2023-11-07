@@ -649,10 +649,10 @@ type Sampling struct {
 	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
 	LogSamplingRate        float64 `json:"log_sampling_rate"`
 	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
-	SessionMinuteRateLimit int64   `json:"session_minute_rate_limit"`
-	ErrorMinuteRateLimit   int64   `json:"error_minute_rate_limit"`
-	LogMinuteRateLimit     int64   `json:"log_minute_rate_limit"`
-	TraceMinuteRateLimit   int64   `json:"trace_minute_rate_limit"`
+	SessionMinuteRateLimit *int64  `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64  `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64  `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64  `json:"trace_minute_rate_limit"`
 	SessionExclusionQuery  *string `json:"session_exclusion_query"`
 	ErrorExclusionQuery    *string `json:"error_exclusion_query"`
 	LogExclusionQuery      *string `json:"log_exclusion_query"`
@@ -2417,20 +2417,22 @@ func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
 type TracesMetricType string
 
 const (
-	TracesMetricTypeCount TracesMetricType = "count"
-	TracesMetricTypeP50   TracesMetricType = "p50"
-	TracesMetricTypeP90   TracesMetricType = "p90"
+	TracesMetricTypeCount            TracesMetricType = "count"
+	TracesMetricTypeCountDistinctKey TracesMetricType = "count_distinct_key"
+	TracesMetricTypeP50              TracesMetricType = "p50"
+	TracesMetricTypeP90              TracesMetricType = "p90"
 )
 
 var AllTracesMetricType = []TracesMetricType{
 	TracesMetricTypeCount,
+	TracesMetricTypeCountDistinctKey,
 	TracesMetricTypeP50,
 	TracesMetricTypeP90,
 }
 
 func (e TracesMetricType) IsValid() bool {
 	switch e {
-	case TracesMetricTypeCount, TracesMetricTypeP50, TracesMetricTypeP90:
+	case TracesMetricTypeCount, TracesMetricTypeCountDistinctKey, TracesMetricTypeP50, TracesMetricTypeP90:
 		return true
 	}
 	return false

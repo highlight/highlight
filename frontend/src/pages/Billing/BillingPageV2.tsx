@@ -12,6 +12,7 @@ import {
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
+	IconSolidSparkles,
 	Stack,
 	Tag,
 	Text,
@@ -276,14 +277,17 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		data?.workspace?.errors_retention_period ?? RetentionPeriod.SixMonths
 
 	const logsRetention = RetentionPeriod.ThirtyDays
+	const tracesRetention = RetentionPeriod.ThirtyDays
 
 	const sessionsUsage = data?.billingDetails.meter ?? 0
 	const errorsUsage = data?.billingDetails.errorsMeter ?? 0
 	const logsUsage = data?.billingDetails.logsMeter ?? 0
+	const tracesUsage = data?.billingDetails.tracesMeter ?? 0
 
 	const includedSessions = data?.billingDetails.plan.quota ?? 0
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
+	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
 
 	const planType = data?.billingDetails.plan.type ?? PlanType.Free
 
@@ -307,6 +311,13 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 			logsRetention,
 			logsUsage,
 			includedLogs,
+			planType,
+		) +
+		getCostCents(
+			ProductType.Traces,
+			tracesRetention,
+			tracesUsage,
+			includedTraces,
 			planType,
 		)
 
@@ -336,6 +347,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const logsLimit = isPaying
 		? data?.workspace?.logs_max_cents ?? undefined
 		: 0
+
+	const tracesLimit = isPaying ? undefined : 0
 
 	const hasExtras =
 		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
@@ -435,6 +448,17 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
 						includedQuantity={includedLogs}
+						isPaying={isPaying}
+						planType={planType}
+					/>
+					<Box borderTop="secondary" />
+					<UsageCard
+						productIcon={<IconSolidSparkles />}
+						productType={ProductType.Traces}
+						retentionPeriod={tracesRetention}
+						billingLimitCents={tracesLimit}
+						usageAmount={tracesUsage}
+						includedQuantity={includedTraces}
 						isPaying={isPaying}
 						planType={planType}
 					/>
