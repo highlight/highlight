@@ -71,7 +71,7 @@ const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
 }
 
 const HIDDEN_PROPERTIES = ['__typename', 'logAttributes', 'timestamp']
-const ATTRIBUTES_KEY = 'attributes'
+export const ATTRIBUTES_KEY = 'attributes'
 
 export const LogDetails: React.FC<Props> = ({
 	matchedAttributes,
@@ -286,6 +286,7 @@ const LogDetailsObject: React.FC<{
 	queryTerms,
 }) => {
 	const [open, setOpen] = useState(label === ATTRIBUTES_KEY)
+	queryBaseKeys = queryBaseKeys.filter((key) => key !== ATTRIBUTES_KEY)
 
 	if (typeof attribute === 'string') {
 		try {

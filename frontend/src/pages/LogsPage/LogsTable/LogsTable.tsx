@@ -227,7 +227,7 @@ const LogsTableInner = ({
 				const matchedAttributes = findMatchingLogAttributes(
 					queryTerms,
 					{
-						...log.logAttributes,
+						attributes: log.logAttributes,
 						level: log.level,
 						message: log.message,
 						secure_session_id: log.secureSessionID,

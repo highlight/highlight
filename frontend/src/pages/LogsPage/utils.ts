@@ -14,6 +14,7 @@ import {
 	ReservedLogKey,
 	Session,
 } from '@/graph/generated/schemas'
+import { ATTRIBUTES_KEY } from '@/pages/LogsPage/LogsTable/LogDetails'
 
 export const formatDate = (date: Date) => {
 	return moment(date).format('M/D/YY h:mm:ss A')
@@ -44,10 +45,17 @@ export const findMatchingLogAttributes = (
 		const isString = typeof value === 'string'
 
 		if (!isString) {
-			findMatchingLogAttributes(queryTerms, value, matchingAttributes, [
-				...attributeKeyBase,
-				key,
-			])
+			const keyBase =
+				key === ATTRIBUTES_KEY
+					? attributeKeyBase
+					: [...attributeKeyBase, key]
+
+			findMatchingLogAttributes(
+				queryTerms,
+				value,
+				matchingAttributes,
+				keyBase,
+			)
 			return
 		}
 
