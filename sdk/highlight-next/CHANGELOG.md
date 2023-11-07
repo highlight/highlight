@@ -1,5 +1,20 @@
 # @highlight-run/next
 
+## 7.2.0
+
+### Minor Changes
+
+-   7355c73f8: Support highlight request context globally to associate async console logs / errors with highlight sessions.
+
+### Patch Changes
+
+-   d452bb1b6: refactor types for highlight session context
+-   d20cbee8b: Using AsyncLocalStorage in Edge Runtime to track headers.
+-   Updated dependencies [7355c73f8]
+-   Updated dependencies [747903c88]
+-   Updated dependencies [d452bb1b6]
+    -   @highlight-run/node@3.6.0
+
 ## 7.1.1
 
 ### Patch Changes
