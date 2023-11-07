@@ -14,6 +14,4 @@ const env: HighlightEnv = {
 	serviceName: 'my-nextjs-backend',
 }
 
-console.log('app/utils/highlight.config.ts env', JSON.stringify(env, null, 2))
-
 export const withPageRouterHighlight = PageRouterHighlight(env)

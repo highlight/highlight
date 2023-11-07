@@ -19,7 +19,7 @@ export function Highlight(env: HighlightEnv) {
 		) {
 			H.initEdge(request, env, event)
 			const headers: IncomingHttpHeaders = {}
-			request.headers.forEach((k, v) => (headers[k] = v))
+			request.headers.forEach((v, k) => (headers[k] = v))
 
 			try {
 				const response = await H.runWithHeaders(headers, async () => {

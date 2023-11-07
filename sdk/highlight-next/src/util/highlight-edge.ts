@@ -4,15 +4,16 @@ import {
 	HighlightEnv as CloudflareHighlightEnv,
 } from '@highlight-run/cloudflare'
 import type { NodeOptions } from '@highlight-run/node'
+import type { HighlightContext } from '@highlight-run/node/dist/types'
 import {
 	ExtendedExecutionContext,
 	HIGHLIGHT_REQUEST_HEADER,
-	HighlightGlobal,
 	HighlightInterface,
 	Metric,
 	RequestMetadata,
 } from './types'
 import { IncomingHttpHeaders } from 'http'
+import { AsyncLocalStorage } from 'async_hooks'
 
 export type HighlightEnv = NodeOptions
 
@@ -21,6 +22,7 @@ let globalRequestMetadata: RequestMetadata = {
 	requestId: '',
 }
 let executionContext: ExtendedExecutionContext
+const asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
 export const H: HighlightInterface = {
 	...CloudflareH,
@@ -110,32 +112,25 @@ export const H: HighlightInterface = {
 		secureSessionId: string | undefined
 		requestId: string | undefined
 	} {
-		const highlightCtx = (global as typeof globalThis & HighlightGlobal)
-			.__HIGHLIGHT__
-		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
+		const highlightCtx = asyncLocalStorage.getStore()
+
+		if (highlightCtx) {
 			return highlightCtx
-		}
-		if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+		} else if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
 			const [secureSessionId, requestId] =
 				`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 			return { secureSessionId, requestId }
+		} else {
+			return { secureSessionId: undefined, requestId: undefined }
 		}
-		return { secureSessionId: undefined, requestId: undefined }
 	},
 	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
 		const highlightCtx = this.parseHeaders(headers)
+
 		if (highlightCtx) {
-			const { secureSessionId, requestId } = highlightCtx
-			if (secureSessionId && requestId) {
-				// set the global __HIGHLIGHT__ variables before running the handler, so that
-				// the values are available in the handler
-				;(global as typeof globalThis & HighlightGlobal).__HIGHLIGHT__ =
-					{
-						secureSessionId,
-						requestId,
-					}
-			}
+			return asyncLocalStorage.run(highlightCtx, cb)
 		}
+
 		return cb()
 	},
 }
