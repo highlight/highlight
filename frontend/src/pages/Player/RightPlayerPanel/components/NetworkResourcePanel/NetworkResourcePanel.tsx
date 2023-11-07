@@ -126,7 +126,7 @@ export const NetworkResourcePanel = () => {
 				(resource.initiatorType === 'websocket' ? (
 					<WebSocketDetails resource={resource} hide={hide} />
 				) : (
-					<TraceProvider projectId={projectId} traceId={traceId!}>
+					<TraceProvider projectId={projectId} traceId={traceId}>
 						<NetworkResourceDetails
 							resource={resource}
 							hide={hide}
@@ -146,7 +146,7 @@ function NetworkResourceDetails({
 }) {
 	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
-	const { selectedSpan } = useTrace()
+	const { selectedSpan, traceId, traceName } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
@@ -179,6 +179,45 @@ function NetworkResourceDetails({
 	const timestamp = useMemo(() => {
 		return new Date(resource.startTime).getTime()
 	}, [resource.startTime])
+
+	const pages = useMemo(() => {
+		const tabPages: any = {
+			[NetworkRequestTabs.Info]: {
+				page: (
+					<NetworkResourceInfo
+						selectedNetworkResource={resource}
+						networkRecordingEnabledForSession={
+							session?.enable_recording_network_contents || false
+						}
+					/>
+				),
+			},
+			[NetworkRequestTabs.Errors]: {
+				page: <NetworkResourceErrors resource={resource} hide={hide} />,
+			},
+			[NetworkRequestTabs.Logs]: {
+				page: (
+					<NetworkResourceLogs
+						resource={resource}
+						sessionStartTime={startTime}
+					/>
+				),
+			},
+		}
+
+		if (!!traceName) {
+			tabPages[NetworkRequestTabs.Trace] = {
+				page: (
+					<Box p="8">
+						<TraceSpanAttributes span={selectedSpan!} />
+					</Box>
+				),
+			}
+		}
+
+		return tabPages
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [traceName])
 
 	useHotkeys(
 		'h',
@@ -297,48 +336,13 @@ function NetworkResourceDetails({
 					</Tag>
 				</Box>
 
-				<TraceFlameGraph />
+				{traceId && <TraceFlameGraph />}
 			</Box>
 
 			<Tabs<NetworkRequestTabs>
 				tab={activeTab}
 				setTab={(tab) => setActiveTab(tab)}
-				pages={{
-					[NetworkRequestTabs.Info]: {
-						page: (
-							<NetworkResourceInfo
-								selectedNetworkResource={resource}
-								networkRecordingEnabledForSession={
-									session?.enable_recording_network_contents ||
-									false
-								}
-							/>
-						),
-					},
-					[NetworkRequestTabs.Errors]: {
-						page: (
-							<NetworkResourceErrors
-								resource={resource}
-								hide={hide}
-							/>
-						),
-					},
-					[NetworkRequestTabs.Logs]: {
-						page: (
-							<NetworkResourceLogs
-								resource={resource}
-								sessionStartTime={startTime}
-							/>
-						),
-					},
-					[NetworkRequestTabs.Trace]: {
-						page: (
-							<Box p="8">
-								<TraceSpanAttributes span={selectedSpan!} />
-							</Box>
-						),
-					},
-				}}
+				pages={pages}
 				noHandle
 				containerClass={styles.container}
 				tabsContainerClass={styles.tabsContainer}
