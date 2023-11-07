@@ -7,6 +7,9 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 26" href="./changelog-26.md">
+    {"Client-side network sanitizing, Tracing beta improvements, Next.js tracing, Java 11 support."}
+    </DocsCard>
     <DocsCard title="Changelog 25" href="./changelog-25.md">
     {"GitHub stack trace settings, Next.js Edge runtime support, Large session exports"}
     </DocsCard>
