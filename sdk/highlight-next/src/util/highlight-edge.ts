@@ -134,12 +134,12 @@ export const H: HighlightInterface = {
 
 		return cb()
 	},
-    setHeaders(headers: IncomingHttpHeaders) {
-        const highlightCtx = this.parseHeaders(headers)
-        if (highlightCtx) {
-            asyncLocalStorage.enterWith(highlightCtx)
-        }
-    },
+	setHeaders(headers: IncomingHttpHeaders) {
+		const highlightCtx = this.parseHeaders(headers)
+		if (highlightCtx) {
+			asyncLocalStorage.enterWith(highlightCtx)
+		}
+	},
 }
 
 function polyfillWaitUntil(ctx: ExtendedExecutionContext) {
