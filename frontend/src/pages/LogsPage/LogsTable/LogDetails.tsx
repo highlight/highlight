@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import { LogEdge, LogLevel, Maybe, ReservedLogKey } from '@graph/schemas'
+import { LogEdge } from '@graph/schemas'
 import {
 	Box,
 	IconSolidChevronDoubleDown,
@@ -70,6 +70,9 @@ const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
 	return `/errors/${log.error_object?.error_group_secure_id}/instances/${log.error_object?.id}?${params}`
 }
 
+const HIDDEN_PROPERTIES = ['__typename', 'logAttributes', 'timestamp']
+const ATTRIBUTES_KEY = 'attributes'
+
 export const LogDetails: React.FC<Props> = ({
 	matchedAttributes,
 	row,
@@ -77,36 +80,21 @@ export const LogDetails: React.FC<Props> = ({
 }) => {
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
-	const {
-		traceID,
-		spanID,
-		secureSessionID,
-		logAttributes,
-		message,
-		level,
-		source,
-		serviceName,
-		serviceVersion,
-	} = row.original.node
+	const logRow = row.original.node
+	const { secureSessionID, logAttributes } = logRow
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
 		(v) => typeof v === 'object',
 	)
-	const reservedLogAttributes: {
-		level: LogLevel
-		message: string
-	} & {
-		[key in ReservedLogKey]: Maybe<string> | undefined
-	} = {
-		level,
-		message,
-		trace_id: traceID,
-		span_id: spanID,
-		secure_session_id: secureSessionID,
-		source,
-		service_name: serviceName,
-		service_version: serviceVersion,
+	const attributes = {
+		...logRow,
+		[ATTRIBUTES_KEY]: logRow.logAttributes,
 	}
+	HIDDEN_PROPERTIES.forEach((key) => {
+		if (attributes.hasOwnProperty(key)) {
+			delete attributes[key as keyof typeof attributes]
+		}
+	})
 
 	if (!expanded) {
 		if (allExpanded) {
@@ -118,7 +106,7 @@ export const LogDetails: React.FC<Props> = ({
 
 	return (
 		<Stack py="6" paddingBottom="0" gap="1">
-			{Object.entries(logAttributes).map(([key, value], index) => {
+			{Object.entries(attributes).map(([key, value], index) => {
 				const isObject = typeof value === 'object'
 
 				return (
@@ -138,26 +126,12 @@ export const LogDetails: React.FC<Props> = ({
 								value={String(value)}
 								queryKey={key}
 								queryTerms={queryTerms}
+								queryMatch={matchedAttributes[key]?.match}
 							/>
 						)}
 					</Box>
 				)
 			})}
-
-			{Object.entries(reservedLogAttributes).map(
-				([key, value]) =>
-					value && (
-						<Box key={key}>
-							<LogValue
-								label={key}
-								value={value}
-								queryKey={key}
-								queryTerms={queryTerms}
-								queryMatch={matchedAttributes[key]?.match}
-							/>
-						</Box>
-					),
-			)}
 
 			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
 				<Box
@@ -203,16 +177,9 @@ export const LogDetails: React.FC<Props> = ({
 						onClick={(e) => {
 							e.stopPropagation()
 
-							const json = { ...logAttributes }
-							Object.entries(reservedLogAttributes).forEach(
-								([key, value]) => {
-									if (value) {
-										json[key] = value
-									}
-								},
+							navigator.clipboard.writeText(
+								JSON.stringify(attributes),
 							)
-
-							navigator.clipboard.writeText(JSON.stringify(json))
 							antdMessage.success('Copied logs!')
 						}}
 						trackingId="logs-row_copy-json"
@@ -318,7 +285,7 @@ const LogDetailsObject: React.FC<{
 	queryBaseKeys,
 	queryTerms,
 }) => {
-	const [open, setOpen] = useState(false)
+	const [open, setOpen] = useState(label === ATTRIBUTES_KEY)
 
 	if (typeof attribute === 'string') {
 		try {
@@ -330,7 +297,10 @@ const LogDetailsObject: React.FC<{
 	const queryMatch = matchedAttributes[queryKey]
 
 	useEffect(() => {
-		setOpen(allExpanded)
+		if (label !== ATTRIBUTES_KEY) {
+			setOpen(allExpanded)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [allExpanded])
 
 	return typeof attribute === 'object' ? (
@@ -342,7 +312,7 @@ const LogDetailsObject: React.FC<{
 			}}
 		>
 			<LogAttributeLine>
-				{open ? <IconExpanded /> : <IconCollapsed />}
+				<Box mt="3">{open ? <IconExpanded /> : <IconCollapsed />}</Box>
 				<Box py="6">
 					<Text color="weak" family="monospace">
 						{label}
@@ -386,7 +356,7 @@ export const LogValue: React.FC<{
 	const [_, setQuery] = useQueryParam('query', QueryParam)
 
 	// replace wildcards for highlighting.
-	const matchPattern = queryMatch?.replaceAll('*', '')
+	const matchPattern = queryMatch?.replaceAll('*', '').trim()
 
 	return (
 		<LogAttributeLine>
@@ -431,6 +401,7 @@ export const LogValue: React.FC<{
 											return
 										}
 
+										// TODO: Handle "message"
 										const index = queryTerms.findIndex(
 											(term) => term.key === queryKey,
 										)
