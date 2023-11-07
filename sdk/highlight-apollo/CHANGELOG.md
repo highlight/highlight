@@ -1,5 +1,18 @@
 # @highlight-run/apollo
 
+## 3.4.0
+
+### Minor Changes
+
+-   7355c73f8: Support highlight request context globally to associate async console logs / errors with highlight sessions.
+
+### Patch Changes
+
+-   Updated dependencies [7355c73f8]
+-   Updated dependencies [747903c88]
+-   Updated dependencies [d452bb1b6]
+    -   @highlight-run/node@3.6.0
+
 ## 3.3.8
 
 ### Patch Changes

@@ -2,7 +2,7 @@ name: Backend
 
 on:
     push:
-        branches: ['main']
+        branches: ['main', 'changeset-release/main']
     pull_request:
         types: [opened, synchronize]
 

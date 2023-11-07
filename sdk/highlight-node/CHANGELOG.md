@@ -1,5 +1,16 @@
 # @highlight-run/node
 
+## 3.6.0
+
+### Minor Changes
+
+-   7355c73f8: Support highlight request context globally to associate async console logs / errors with highlight sessions.
+
+### Patch Changes
+
+-   747903c88: Repaired a bad resource merge to persist Highlight session data across all spans.
+-   d452bb1b6: refactor types for highlight session context
+
 ## 3.5.3
 
 ### Patch Changes
