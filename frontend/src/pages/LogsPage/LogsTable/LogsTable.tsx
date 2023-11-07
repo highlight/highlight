@@ -298,7 +298,7 @@ const LogsTableInner = ({
 				)}
 			</Table.Head>
 			<Table.Body
-				forwardRef={bodyRef}
+				ref={bodyRef}
 				overflowY="scroll"
 				style={{
 					// Subtract heights of elements above, including loading more loads when relevant
