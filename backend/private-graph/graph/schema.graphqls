@@ -339,10 +339,10 @@ type Sampling {
 	error_sampling_rate: Float!
 	log_sampling_rate: Float!
 	trace_sampling_rate: Float!
-	session_minute_rate_limit: Int64!
-	error_minute_rate_limit: Int64!
-	log_minute_rate_limit: Int64!
-	trace_minute_rate_limit: Int64!
+	session_minute_rate_limit: Int64
+	error_minute_rate_limit: Int64
+	log_minute_rate_limit: Int64
+	trace_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
@@ -484,7 +484,7 @@ type AllWorkspaceSettings {
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
-	enable_ingest_filters: Boolean!
+	enable_ingest_sampling: Boolean!
 }
 
 type Account {
@@ -956,6 +956,7 @@ type LogsHistogram {
 
 enum TracesMetricType {
 	count
+	count_distinct_key
 	p50
 	p90
 }

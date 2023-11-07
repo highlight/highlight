@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/embeddings"
+	"go.opentelemetry.io/otel/attribute"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -54,6 +55,7 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	htrace "github.com/highlight/highlight/sdk/highlight-go/trace"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
@@ -273,6 +275,10 @@ func main() {
 	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
+	}
+
+	if err := htrace.SetupGORMTracing(db, attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID())); err != nil {
+		log.WithContext(ctx).Fatalf("Error setting up GORM tracing hooks: %v", err)
 	}
 
 	if util.IsDevEnv() {

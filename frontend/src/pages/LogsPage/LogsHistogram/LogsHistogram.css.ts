@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui'
+import { pulseKeyframes, vars } from '@highlight-run/ui'
 import { borders } from '@highlight-run/ui/src/css/borders'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
@@ -51,4 +51,11 @@ export const thresholdArea = style({
 	left: 0,
 	width: 'calc(100% - 4px)',
 	pointerEvents: 'none',
+})
+
+export const barsLoading = style({
+	animation: pulseKeyframes,
+	animationDuration: '1.25s',
+	animationIterationCount: 'infinite',
+	animationTimingFunction: 'ease-out',
 })

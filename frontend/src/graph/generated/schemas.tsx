@@ -145,7 +145,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
-	enable_ingest_filters: Scalars['Boolean']
+	enable_ingest_sampling: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
@@ -2665,16 +2665,16 @@ export type S3File = {
 export type Sampling = {
 	__typename?: 'Sampling'
 	error_exclusion_query?: Maybe<Scalars['String']>
-	error_minute_rate_limit: Scalars['Int64']
+	error_minute_rate_limit?: Maybe<Scalars['Int64']>
 	error_sampling_rate: Scalars['Float']
 	log_exclusion_query?: Maybe<Scalars['String']>
-	log_minute_rate_limit: Scalars['Int64']
+	log_minute_rate_limit?: Maybe<Scalars['Int64']>
 	log_sampling_rate: Scalars['Float']
 	session_exclusion_query?: Maybe<Scalars['String']>
-	session_minute_rate_limit: Scalars['Int64']
+	session_minute_rate_limit?: Maybe<Scalars['Int64']>
 	session_sampling_rate: Scalars['Float']
 	trace_exclusion_query?: Maybe<Scalars['String']>
-	trace_minute_rate_limit: Scalars['Int64']
+	trace_minute_rate_limit?: Maybe<Scalars['Int64']>
 	trace_sampling_rate: Scalars['Float']
 }
 
@@ -3212,6 +3212,7 @@ export type TracesMetricBucket = {
 
 export enum TracesMetricType {
 	Count = 'count',
+	CountDistinctKey = 'count_distinct_key',
 	P50 = 'p50',
 	P90 = 'p90',
 }

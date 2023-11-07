@@ -123,9 +123,12 @@ const PlayerPage = () => {
 		setSelectedDevToolsTab,
 		setShowDevTools,
 		showLeftPanel: showLeftPanelPreference,
-		showRightPanel,
+		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
-	const { setRightPanelView, setActiveError } = usePlayerUIContext()
+	const { rightPanelView, setRightPanelView, setActiveError } =
+		usePlayerUIContext()
+	const showRightPanel =
+		showRightPanelPreference || rightPanelView === RightPanelView.Comments
 
 	const { errorObject } = useLinkErrorInstance()
 	useEffect(() => {

@@ -288,6 +288,7 @@ type Workspace struct {
 	MonthlyMembersLimit         *int
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
+	MonthlyTracesLimit          *int
 	RetentionPeriod             *modelInputs.RetentionPeriod
 	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
 	SessionsMaxCents            *int
@@ -296,6 +297,7 @@ type Workspace struct {
 	StripeSessionOveragePriceID *string
 	StripeErrorOveragePriceID   *string
 	StripeLogOveragePriceID     *string
+	StripeTracesOveragePriceID  *string
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -399,10 +401,10 @@ type ProjectFilterSettings struct {
 	ErrorSamplingRate                 float64 `gorm:"default:1"`
 	LogSamplingRate                   float64 `gorm:"default:1"`
 	TraceSamplingRate                 float64 `gorm:"default:1"`
-	SessionMinuteRateLimit            int64   `gorm:"default:1000000"`
-	ErrorMinuteRateLimit              int64   `gorm:"default:1000000"`
-	LogMinuteRateLimit                int64   `gorm:"default:1000000"`
-	TraceMinuteRateLimit              int64   `gorm:"default:1000000"`
+	SessionMinuteRateLimit            *int64
+	ErrorMinuteRateLimit              *int64
+	LogMinuteRateLimit                *int64
+	TraceMinuteRateLimit              *int64
 	SessionExclusionQuery             *string
 	ErrorExclusionQuery               *string
 	LogExclusionQuery                 *string
@@ -426,7 +428,7 @@ type AllWorkspaceSettings struct {
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
 	EnableSessionExport       bool    `gorm:"default:false"`
-	EnableIngestFilters       bool    `gorm:"default:false"`
+	EnableIngestSampling      bool    `gorm:"default:false"`
 	EnableUnlistedSharing     bool    `gorm:"default:true"`
 	EnableNetworkTraces       bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`

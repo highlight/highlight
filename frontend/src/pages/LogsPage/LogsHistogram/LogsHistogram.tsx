@@ -499,7 +499,10 @@ const LogBucketBar = ({
 				width="full"
 				p="2"
 				gap="2"
-				cssClass={{ [styles.hover]: !loading && !isDragging }}
+				cssClass={{
+					[styles.hover]: !loading && !isDragging,
+					[styles.barsLoading]: loading,
+				}}
 				style={{
 					width: width,
 					height: '100%',
