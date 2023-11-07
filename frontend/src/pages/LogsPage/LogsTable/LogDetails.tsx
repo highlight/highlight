@@ -297,7 +297,9 @@ const LogDetailsObject: React.FC<{
 	const queryMatch = matchedAttributes[queryKey]
 
 	useEffect(() => {
-		if (label !== ATTRIBUTES_KEY) {
+		if (allExpanded) {
+			setOpen(true)
+		} else if (label !== ATTRIBUTES_KEY) {
 			setOpen(allExpanded)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps

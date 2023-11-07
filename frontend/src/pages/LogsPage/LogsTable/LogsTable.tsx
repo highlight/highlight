@@ -266,7 +266,7 @@ const LogsTableInner = ({
 
 						{!row.getIsExpanded() &&
 							Object.entries(matchedAttributes).length > 0 && (
-								<Box mt="10">
+								<Box mt="6">
 									{Object.entries(matchedAttributes).map(
 										([key, { match, value }]) => {
 											return (
