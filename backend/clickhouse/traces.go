@@ -351,7 +351,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		case modelInputs.MetricAggregatorMax:
 			fnStr += fmt.Sprintf(", max(%s)", metricColName)
 		case modelInputs.MetricAggregatorSum:
-			fnStr += fmt.Sprintf(", sum(%s)", metricColName)
+			fnStr += fmt.Sprintf(", sum(%s) * any(_sample_factor)", metricColName)
 		}
 	}
 

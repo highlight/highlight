@@ -1,5 +1,5 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
-import { InlineField, Input, Select, Tag, TagsInput } from '@grafana/ui';
+import React, { ChangeEvent, useEffect } from 'react';
+import { Field, Input, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../datasource';
 import { HighlightDataSourceOptions, HighlightQuery } from '../types';
@@ -7,7 +7,7 @@ import { HighlightDataSourceOptions, HighlightQuery } from '../types';
 type Props = QueryEditorProps<DataSource, HighlightQuery, HighlightDataSourceOptions>;
 
 export function QueryEditor({ query, onChange, onRunQuery }: Props) {
-  const { queryText, table, groupBy, metrics, column } = query;
+  const { queryText, table, groupBy, metric, column } = query;
 
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, queryText: event.target.value });
@@ -21,8 +21,8 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
     onChange({ ...query, groupBy: option.map((o: any) => o.value) });
   };
 
-  const onMetricsChange = (option: SelectableValue) => {
-    onChange({ ...query, metrics: option.map((o: any) => o.value) });
+  const onMetricChange = (option: SelectableValue<string>) => {
+    onChange({ ...query, metric: option.value });
   };
 
   const onColumnChange = (option: SelectableValue<string>) => {
@@ -39,36 +39,43 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
   }, []);
 
   const metricOptions = [
-    { value: 'p90', label: 'p90' },
-    { value: 'count', label: 'count' },
+    { value: 'Count', label: 'Count' },
+    { value: 'Min', label: 'Min' },
+    { value: 'Avg', label: 'Avg' },
+    { value: 'P50', label: 'P50' },
+    { value: 'P90', label: 'P90' },
+    { value: 'P95', label: 'P95' },
+    { value: 'P99', label: 'P99' },
+    { value: 'Max', label: 'Max' },
+    { value: 'Sum', label: 'Sum' },
   ];
 
   const groupByOptions = [
-    { value: 'TraceState', label: 'TraceState' },
-    { value: 'SpanName', label: 'SpanName' },
-    { value: 'SpanKind', label: 'SpanKind' },
-    { value: 'ServiceName', label: 'ServiceName' },
-    { value: 'ServiceVersion', label: 'ServiceVersion' },
+    { value: 'SpanName', label: 'span_name' },
+    { value: 'ServiceName', label: 'service_name' },
+    { value: 'ServiceVersion', label: 'service_version' },
     { value: 'http.status_code', label: 'http.status_code' },
   ];
 
   return (
     <div className="gf-form">
-      <InlineField label="Table">
+      <Field label="Table">
         <Select value={table} onChange={onTableChange} options={tableOptions} />
-      </InlineField>
-      <InlineField label="Metrics">
-        <Select value={metrics} onChange={onMetricsChange} options={metricOptions} isMulti />
-      </InlineField>
-      <InlineField label="Column">
-        <Select value={column} onChange={onColumnChange} options={selectOptions} />
-      </InlineField>
-      <InlineField label="Group By">
+      </Field>
+      <Field label="Metric" error="why isn't this displayed???">
+        <Select value={metric} onChange={onMetricChange} options={metricOptions} />
+      </Field>
+      {metric !== undefined && metric !== 'Count' && (
+        <Field label="Column">
+          <Select value={column} onChange={onColumnChange} options={selectOptions} />
+        </Field>
+      )}
+      <Field label="Group By">
         <Select value={groupBy} onChange={onGroupByChange} options={groupByOptions} isMulti />
-      </InlineField>
-      <InlineField label="Query">
+      </Field>
+      <Field label="Query">
         <Input value={queryText} onChange={onQueryTextChange} />
-      </InlineField>
+      </Field>
     </div>
   );
 }

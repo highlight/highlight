@@ -28,24 +28,28 @@ query GetAdmin {
 `;
 
 const GET_TRACES_METRICS = `
-query GetTracesMetrics($project_id: ID!, $params: QueryInput!, $metric_types: [TracesMetricType!]!, $group_by: [String!]!, $bucket_count: Int!) {
+query GetTracesMetrics(
+  $project_id: ID!
+  $params: QueryInput!
+  $column: TracesMetricColumn!
+  $metric_types: [MetricAggregator!]!
+  $group_by: [String!]!
+) {
   traces_metrics(
     project_id: $project_id
     params: $params
+    column: $column
     metric_types: $metric_types
     group_by: $group_by
-    bucket_count: $bucket_count
   ) {
     buckets {
       bucket_id
       group
       metric_type
       metric_value
-      __typename
     }
     bucket_count
     sample_factor
-    __typename
   }
 }
 `;
@@ -93,8 +97,8 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
           JSON.stringify({
             operationName: 'GetTracesMetrics',
             variables: {
-              project_id: '1',
-              metric_types: target.metrics ?? [],
+              project_id: this.projectID,
+              metric_types: [target.metric] ?? [],
               group_by: target.groupBy ?? [],
               params: {
                 query: target.queryText ?? '',
@@ -103,6 +107,7 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
                   end_date: to.toISOString(),
                 },
               },
+              column: target.column,
               bucket_count: 749,
             },
             query: GET_TRACES_METRICS,
@@ -131,10 +136,7 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
 
         for (const metricType of new Set(response.data.traces_metrics.buckets.map((b) => b.metric_type))) {
           for (const metricGroup of new Set(response.data.traces_metrics.buckets.map((b) => b.group.join('-')))) {
-            const values: Array<number | undefined> = Array.from(
-              { length: response.data.traces_metrics.bucket_count },
-              () => undefined
-            );
+            const values: any[] = Array.from({ length: response.data.traces_metrics.bucket_count }, () => undefined);
 
             response.data.traces_metrics.buckets
               .filter((b) => b.metric_type === metricType && b.group.join('-') === metricGroup)
