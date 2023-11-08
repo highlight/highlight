@@ -1,5 +1,35 @@
 # @highlight-run/node
 
+## 3.6.0
+
+### Minor Changes
+
+-   7355c73f8: Support highlight request context globally to associate async console logs / errors with highlight sessions.
+
+### Patch Changes
+
+-   747903c88: Repaired a bad resource merge to persist Highlight session data across all spans.
+-   d452bb1b6: refactor types for highlight session context
+
+## 3.5.3
+
+### Patch Changes
+
+-   Updated dependencies [7c20f8c44]
+    -   highlight.run@8.2.1
+
+## 3.5.2
+
+### Patch Changes
+
+-   4f535a839: ensure that console methods record structured attributes on logs
+-   107f2fbd2: Npm publish cleanup. Export only dist folder.
+-   4f535a839: make object stringification more robust to prevent recursion errors
+-   4f535a839: bundle all dependencies into @highlight-run/node
+-   4f535a839: ensure opentelemetry export does not time out
+-   Updated dependencies [8142463b5]
+    -   highlight.run@8.2.0
+
 ## 3.5.1
 
 ### Patch Changes

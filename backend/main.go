@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/embeddings"
+	"go.opentelemetry.io/otel/attribute"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -45,7 +46,6 @@ import (
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -54,6 +54,7 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	htrace "github.com/highlight/highlight/sdk/highlight-go/trace"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
@@ -99,7 +100,7 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, rClient *redis.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
 	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
 	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault})
 	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched})
@@ -116,7 +117,7 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 			return
 		}
 		if runtimeFlag != util.PublicGraph {
-			if err := enhancedHealthCheck(ctx, db, tdb, rClient, ccClient); err != nil {
+			if err := enhancedHealthCheck(ctx, db, rClient, ccClient); err != nil {
 				log.WithContext(ctx).Error(fmt.Sprintf("failed enhanced health check: %s", err))
 				http.Error(w, fmt.Sprintf("failed enhanced health check: %s", err), 500)
 				return
@@ -129,12 +130,12 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 	}
 }
 
-func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, ccClient *clickhouse.Client) error {
+func enhancedHealthCheck(ctx context.Context, db *gorm.DB, rClient *redis.Client, ccClient *clickhouse.Client) error {
 	const Timeout = 5 * time.Second
 
-	errors := make(chan error, 5)
+	errors := make(chan error, 3)
 	wg := sync.WaitGroup{}
-	wg.Add(4)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
@@ -143,21 +144,6 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 			msg := fmt.Sprintf("failed to query database: %s", err)
 			log.WithContext(ctx).Error(msg)
 			errors <- e.New(msg)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		ctx, cancel := context.WithTimeout(ctx, Timeout)
-		defer cancel()
-		// in prod, the bucket contains the project id
-		// bucket := "dev-1"
-		if util.IsDevOrTestEnv() {
-			bucket := "dev-bucket"
-			if _, err := tdb.Query(ctx, fmt.Sprintf(`from(bucket: "%s") |> range(start: -1m)`, bucket)); err != nil {
-				msg := fmt.Sprintf("failed to query influx db: %s", err)
-				log.WithContext(ctx).Error(msg)
-				errors <- e.New(msg)
-			}
 		}
 	}()
 	go func() {
@@ -275,6 +261,10 @@ func main() {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
 	}
 
+	if err := htrace.SetupGORMTracing(db, attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID())); err != nil {
+		log.WithContext(ctx).Fatalf("Error setting up GORM tracing hooks: %v", err)
+	}
+
 	if util.IsDevEnv() {
 		_, err := model.MigrateDB(ctx, db)
 
@@ -283,7 +273,6 @@ func main() {
 		}
 	}
 
-	tdb := timeseries.New(ctx)
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
@@ -343,7 +332,6 @@ func main() {
 	privateResolver := &private.Resolver{
 		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
 		DB:                     db,
-		TDB:                    tdb,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
 		StorageClient:          storageClient,
@@ -379,7 +367,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
+	r.HandleFunc("/health", healthRouter(runtimeParsed, db, redisClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,
@@ -474,7 +462,6 @@ func main() {
 		}
 		publicResolver := &public.Resolver{
 			DB:               db,
-			TDB:              tdb,
 			ProducerQueue:    kafkaProducer,
 			BatchedQueue:     kafkaBatchedProducer,
 			DataSyncQueue:    kafkaDataSyncProducer,
@@ -564,7 +551,6 @@ func main() {
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
 		publicResolver := &public.Resolver{
 			DB:               db,
-			TDB:              tdb,
 			ProducerQueue:    kafkaProducer,
 			BatchedQueue:     kafkaBatchedProducer,
 			DataSyncQueue:    kafkaDataSyncProducer,

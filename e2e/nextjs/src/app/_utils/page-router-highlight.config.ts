@@ -1,5 +1,5 @@
 // src/app/utils/page-router-highlight.config.ts:
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 import { HighlightEnv, PageRouterHighlight } from '@highlight-run/next/server'
 
 if (process.env.NODE_ENV === 'development') {
@@ -13,7 +13,5 @@ const env: HighlightEnv = {
 	backendUrl: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL,
 	serviceName: 'my-nextjs-backend',
 }
-
-console.log('app/utils/highlight.config.ts env', JSON.stringify(env, null, 2))
 
 export const withPageRouterHighlight = PageRouterHighlight(env)

@@ -185,7 +185,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				traceID := cast(fields.requestID, span.TraceID().String())
 				spanID := span.SpanID().String()
 
-				isLog := false
+				shouldWriteTrace := true
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
 					fields, err := extractFields(ctx, extractFieldsParams{
@@ -235,7 +235,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 					} else if event.Name() == highlight.LogEvent {
-						isLog = true
+						shouldWriteTrace = false
 						if fields.logMessage == "" {
 							lg(ctx, fields).Warn("otel received log with no message")
 							continue
@@ -260,6 +260,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
+						shouldWriteTrace = false
 						metric, err := getMetric(ctx, fields.timestamp, fields, traceID, spanID)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
@@ -272,7 +273,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				if !isLog {
+				if shouldWriteTrace {
 					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
 						WithSecureSessionId(fields.sessionID).
 						WithTraceId(traceID).
@@ -289,7 +290,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						WithTraceAttributes(fields.attrs).
 						WithEvents(fields.events).
 						WithLinks(fields.links)
-
 					traceSpans[traceID] = append(traceSpans[traceID], traceRow)
 				}
 			}

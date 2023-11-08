@@ -1,23 +1,24 @@
 import {
-	extractRequestMetadata,
 	H as CloudflareH,
 	HighlightEnv as CloudflareHighlightEnv,
 } from '@highlight-run/cloudflare'
-import type { NodeOptions } from '@highlight-run/node'
+import type { HighlightContext, NodeOptions } from '@highlight-run/node'
 import {
 	ExtendedExecutionContext,
+	HIGHLIGHT_REQUEST_HEADER,
 	HighlightInterface,
 	Metric,
-	RequestMetadata,
 } from './types'
+import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
-let globalRequestMetadata: RequestMetadata = {
+let executionContext: ExtendedExecutionContext
+
+let globalHighlightContext: HighlightContext = {
 	secureSessionId: '',
 	requestId: '',
 }
-let executionContext: ExtendedExecutionContext
 
 export const H: HighlightInterface = {
 	...CloudflareH,
@@ -53,21 +54,33 @@ export const H: HighlightInterface = {
 			)
 		}
 
-		globalRequestMetadata = extractRequestMetadata(request)
-
+		const headers: { [key: string]: string } = {}
+		request.headers.forEach((value, key) => {
+			headers[key] = value
+		})
+		this.setHeaders(headers)
 		return CloudflareH.init(request, cloudflareEnv, ctx, env.serviceName)
 	},
-	metrics: (metrics: Metric[], requestMetadata?: RequestMetadata) => {
-		const localRequestMetadata = requestMetadata || globalRequestMetadata
+	metrics: function (metrics: Metric[], highlightContext?: HighlightContext) {
+		const localHighlightContext = highlightContext ?? this.parseHeaders({})
 
-		if (!localRequestMetadata.secureSessionId) {
+		if (!localHighlightContext.secureSessionId) {
 			return console.warn(
 				'H.metrics session could not be inferred the handler context. Consider passing the request metadata explicitly as a second argument to this function.',
 			)
 		}
 
 		for (const m of metrics) {
-			CloudflareH.recordMetric({ ...localRequestMetadata, ...m })
+			if (
+				localHighlightContext.secureSessionId &&
+				localHighlightContext.requestId
+			) {
+				CloudflareH.recordMetric({
+					secureSessionId: localHighlightContext.secureSessionId,
+					requestId: localHighlightContext.requestId,
+					...m,
+				})
+			}
 		}
 	},
 	consumeAndFlush: async (error: Error) => {
@@ -102,6 +115,28 @@ export const H: HighlightInterface = {
 			requestId,
 			tags,
 		})
+	},
+	parseHeaders(headers: IncomingHttpHeaders): HighlightContext {
+		const highlightCtx = globalHighlightContext
+		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
+			return highlightCtx
+		} else if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+			const [secureSessionId, requestId] =
+				`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+			return { secureSessionId, requestId }
+		} else {
+			return { secureSessionId: undefined, requestId: undefined }
+		}
+	},
+	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
+		this.setHeaders(headers)
+		return cb()
+	},
+	setHeaders(headers: IncomingHttpHeaders) {
+		const highlightCtx = this.parseHeaders(headers)
+		if (highlightCtx) {
+			globalHighlightContext = highlightCtx
+		}
 	},
 }
 

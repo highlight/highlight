@@ -25,7 +25,6 @@ export function ErrorButtons() {
 				>
 					Throw client-side onClick error
 				</Button>
-
 				<ThrowerOfErrors
 					isErrored={isErrored}
 					setIsErrored={setIsErrored}
@@ -40,9 +39,7 @@ export function ErrorButtons() {
 				>
 					Trigger promise error
 				</Button>
-
 				<hr />
-
 				<Button
 					onClick={() =>
 						fetch('/api/page-router-test?success=true')
@@ -52,7 +49,6 @@ export function ErrorButtons() {
 				>
 					Pages Api (Node.js): Success
 				</Button>
-
 				<Button
 					onClick={() =>
 						fetch('/api/page-router-test?success=false')
@@ -62,7 +58,6 @@ export function ErrorButtons() {
 				>
 					Pages Api (Node.js): Error&nbsp;&nbsp;&nbsp;
 				</Button>
-
 				<Button
 					onClick={() =>
 						fetch('/api/page-router-edge-test?success=true')
@@ -72,7 +67,6 @@ export function ErrorButtons() {
 				>
 					Pages Api (Edge): Success
 				</Button>
-
 				<Button
 					onClick={() =>
 						fetch('/api/page-router-edge-test?success=false')
@@ -82,9 +76,7 @@ export function ErrorButtons() {
 				>
 					Pages Api (Edge): Error&nbsp;&nbsp;&nbsp;
 				</Button>
-
 				<hr />
-
 				<Button
 					onClick={() =>
 						fetch('/api/app-router-test?success=true')
@@ -94,7 +86,6 @@ export function ErrorButtons() {
 				>
 					App Router (Node.js): Success
 				</Button>
-
 				<Button
 					onClick={() =>
 						fetch('/api/app-router-test?success=false')
@@ -104,7 +95,6 @@ export function ErrorButtons() {
 				>
 					App Router (Node.js): Error&nbsp;&nbsp;&nbsp;
 				</Button>
-
 				<Button
 					onClick={() =>
 						fetch('/api/edge-test?success=true')
@@ -114,7 +104,6 @@ export function ErrorButtons() {
 				>
 					App Router (Edge): Success
 				</Button>
-
 				<Button
 					onClick={() =>
 						fetch('/api/edge-test?success=false')

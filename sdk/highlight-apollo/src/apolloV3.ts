@@ -4,31 +4,31 @@ import type {
 	GraphQLRequestContextDidEncounterErrors,
 	GraphQLRequestListener,
 } from 'apollo-server-plugin-base'
-import { H, HIGHLIGHT_REQUEST_HEADER } from '@highlight-run/node'
 import type { NodeOptions } from '@highlight-run/node'
+import { H } from '@highlight-run/node'
+import { IncomingHttpHeaders } from 'http'
 
 export const ApolloServerV3HighlightPlugin = function <T extends BaseContext>(
 	options: NodeOptions,
 ): ApolloServerPlugin<T> {
 	return {
 		async requestDidStart(req): Promise<GraphQLRequestListener<T> | void> {
-			let secureSessionId: string | undefined
-			let requestId: string | undefined
-			if (req.request.http?.headers?.get(HIGHLIGHT_REQUEST_HEADER)) {
-				;[secureSessionId, requestId] =
-					`${req.request.http.headers?.get(
-						HIGHLIGHT_REQUEST_HEADER,
-					)}`.split('/')
+			if (!H.isInitialized()) {
+				H.init(options)
+				H._debug('initialized H in apollo server')
 			}
+
+			const headers: IncomingHttpHeaders = {}
+			for (const [k, v] of req.request.http?.headers ?? []) {
+				headers[k] = v
+			}
+			const { secureSessionId, requestId } = H.parseHeaders(headers)
 			H._debug('processError', 'extracted from headers', {
 				secureSessionId,
 				requestId,
 			})
 
-			if (!H.isInitialized()) {
-				H.init(options)
-				H._debug('initialized H in apollo server')
-			}
+			H.setHeaders({ secureSessionId, requestId })
 			return {
 				async didEncounterErrors(
 					requestContext: GraphQLRequestContextDidEncounterErrors<T>,

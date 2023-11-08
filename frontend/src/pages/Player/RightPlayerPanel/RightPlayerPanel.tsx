@@ -30,7 +30,10 @@ const RightPlayerPanel = () => {
 		activeError,
 	} = usePlayerUIContext()
 
-	const showRightPanel = showRightPanelPreference && canViewSession
+	const showRightPanel =
+		(showRightPanelPreference ||
+			rightPanelView === RightPanelView.Comments) &&
+		canViewSession
 
 	useEffect(() => {
 		const commentId = new URLSearchParams(location.search).get(
@@ -38,7 +41,6 @@ const RightPlayerPanel = () => {
 		)
 
 		if (commentId) {
-			setShowRightPanel(true)
 			setRightPanelView(RightPanelView.Comments)
 		} else {
 			setSelectedRightPanelTab('Events')
@@ -89,6 +91,8 @@ const RightPlayerPanel = () => {
 			cssClass={clsx(style.playerRightColumn, {
 				[style.playerRightPanelContainerHidden]: !showRightPanel,
 			})}
+			overflowY="scroll"
+			hiddenScroll
 		>
 			{content}
 		</Box>

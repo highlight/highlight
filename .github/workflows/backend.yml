@@ -2,11 +2,11 @@ name: Backend
 
 on:
     push:
-        branches: ['main']
+        branches: ['main', 'changeset-release/main']
     pull_request:
         types: [opened, synchronize]
-    merge_group:
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     code-setup:
         runs-on: ubuntu-latest

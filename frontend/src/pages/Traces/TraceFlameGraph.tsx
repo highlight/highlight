@@ -9,6 +9,7 @@ import {
 	useState,
 } from 'react'
 
+import LoadingBox from '@/components/LoadingBox'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
@@ -28,7 +29,8 @@ const timeUnits = [
 ]
 
 export const TraceFlameGraph: React.FC = () => {
-	const { hoveredSpan, selectedSpan, totalDuration, traces } = useTrace()
+	const { hoveredSpan, loading, selectedSpan, totalDuration, traces } =
+		useTrace()
 	const svgContainerRef = useRef<HTMLDivElement>(null)
 	const [zoom, setZoom] = useState(1)
 	const [width, setWidth] = useState(defaultCanvasWidth)
@@ -122,6 +124,19 @@ export const TraceFlameGraph: React.FC = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [traces])
 
+	if (loading) {
+		return (
+			<Box
+				backgroundColor="raised"
+				borderRadius="6"
+				border="dividerWeak"
+				style={{ height: 150 }}
+			>
+				<LoadingBox />
+			</Box>
+		)
+	}
+
 	return (
 		<Box
 			backgroundColor="raised"
@@ -194,7 +209,7 @@ export const TraceFlameGraph: React.FC = () => {
 								span={span}
 								depth={0}
 								height={height}
-								width={width}
+								width={width - outsidePadding * 2}
 								zoom={zoom}
 								selectedSpanID={selectedSpan?.spanID}
 								setTooltipCoordinates={

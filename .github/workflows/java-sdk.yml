@@ -14,14 +14,13 @@ on:
                     - test
                     - deploy
     push:
-        branches: ['main']
+        branches: ['main', 'changeset-release/main']
         tags: ['sdk/highlight-java/**']
     pull_request:
-        types: [opened, synchronize]
+        types: [opened, reopened, synchronize, assigned, review_requested]
         paths:
             - 'sdk/highlight-java/**'
             - '.github/workflows/java-sdk.yml'
-    merge_group:
 
 permissions:
     checks: write
@@ -30,6 +29,7 @@ defaults:
     run:
         working-directory: ./sdk/highlight-java
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     setup:
         name: Setup

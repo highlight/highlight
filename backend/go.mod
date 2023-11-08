@@ -10,8 +10,6 @@ replace golang.org/x/crypto => golang.org/x/crypto v0.1.0
 
 replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
 
-replace github.com/labstack/echo => github.com/labstack/echo/v4 v4.2.0
-
 replace github.com/tidwall/gjson => github.com/tidwall/gjson v1.14.3
 
 replace golang.org/x/net => golang.org/x/net v0.1.0
@@ -27,6 +25,8 @@ replace nhooyr.io/websocket => nhooyr.io/websocket v1.8.7
 replace github.com/miekg/dns => github.com/miekg/dns v1.1.25
 
 replace github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
+
+replace github.com/highlight/highlight/sdk/highlight-go => ../sdk/highlight-go
 
 require (
 	firebase.google.com/go v3.13.0+incompatible
@@ -59,9 +59,8 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-retryablehttp v0.7.4
 	github.com/highlight-run/workerpool v1.3.0
-	github.com/highlight/highlight/sdk/highlight-go v0.9.8
+	github.com/highlight/highlight/sdk/highlight-go v0.9.13
 	github.com/influxdata/go-syslog/v3 v3.0.0
-	github.com/influxdata/influxdb-client-go/v2 v2.12.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
@@ -112,12 +111,10 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/gin-gonic/gin v1.9.1 // indirect
 	github.com/go-chi/chi/v5 v5.0.10 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
@@ -132,10 +129,8 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hasura/go-graphql-client v0.9.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
-	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -158,7 +153,6 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/rtred v0.1.2 // indirect
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
-	github.com/valyala/fasthttp v1.50.0 // indirect
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.4 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -181,7 +175,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	inet.af/netaddr v0.0.0-20220617031823-097006376321 // indirect
-	nhooyr.io/websocket v1.8.7 // indirect
 )
 
 require (

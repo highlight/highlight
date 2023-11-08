@@ -2,14 +2,14 @@ name: 'Golang SDK code checks'
 
 on:
     push:
-        branches: ['main']
+        branches: ['main', 'changeset-release/main']
     pull_request:
-        types: [opened, synchronize]
+        types: [opened, reopened, synchronize, assigned, review_requested]
         paths:
             - 'sdk/highlight-go/**'
             - '.github/workflows/go-sdk.yml'
-    merge_group:
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     format:
         name: format go files

@@ -1,9 +1,9 @@
 import { IncomingHttpHeaders } from 'http'
 import { Highlight } from '.'
-import { NodeOptions } from './types.js'
 import log from './log'
-import type { Attributes } from '@opentelemetry/api'
 import { ResourceAttributes } from '@opentelemetry/resources'
+import type { Attributes } from '@opentelemetry/api'
+import type { NodeOptions, HighlightContext } from './types.js'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -11,9 +11,12 @@ export interface HighlightInterface {
 	init: (options: NodeOptions) => void
 	stop: () => Promise<void>
 	isInitialized: () => boolean
-	parseHeaders: (
-		headers: IncomingHttpHeaders,
-	) => { secureSessionId: string; requestId: string } | undefined
+	// Use parseHeaders to extract the headers from the current context or from the headers.
+	parseHeaders: (headers: IncomingHttpHeaders) => HighlightContext
+	// Use setHeaders to define the highlight context for the entire async request
+	setHeaders: (headers: IncomingHttpHeaders) => void
+	// Use runWithHeaders to execute a method with a highlight context
+	runWithHeaders: <T>(headers: IncomingHttpHeaders, cb: () => T) => T
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
@@ -133,23 +136,14 @@ export const H: HighlightInterface = {
 			console.warn('highlight-node log error: ', e)
 		}
 	},
-	parseHeaders: (
-		headers: IncomingHttpHeaders,
-	): { secureSessionId: string; requestId: string } | undefined => {
-		try {
-			if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
-				const [secureSessionId, requestId] =
-					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-				return { secureSessionId, requestId }
-			} else {
-				H._debug(
-					`request headers do not contain ${HIGHLIGHT_REQUEST_HEADER}`,
-				)
-			}
-		} catch (e) {
-			console.warn('highlight-node parseHeaders error: ', e)
-		}
-		return undefined
+	parseHeaders: (headers: IncomingHttpHeaders): HighlightContext => {
+		return highlight_obj.parseHeaders(headers)
+	},
+	runWithHeaders: (headers, cb) => {
+		return highlight_obj.runWithHeaders(headers, cb)
+	},
+	setHeaders: (headers: IncomingHttpHeaders) => {
+		return highlight_obj.setHeaders(headers)
 	},
 	consumeAndFlush: async function (...args) {
 		const waitPromise = highlight_obj.waitForFlush()

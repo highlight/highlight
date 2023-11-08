@@ -1,7 +1,6 @@
 import { H as NodeH, NodeOptions } from '@highlight-run/node'
 import type { OnApplicationShutdown } from '@nestjs/common'
 import {
-	BadGatewayException,
 	CallHandler,
 	ConsoleLogger,
 	ExecutionContext,
@@ -98,17 +97,18 @@ export class HighlightInterceptor
 		const ctx = context.switchToHttp()
 		const request = ctx.getRequest()
 		const highlightCtx = NodeH.parseHeaders(request.headers)
-
-		return next.handle().pipe(
-			catchError((err) => {
-				NodeH.consumeError(
-					err,
-					highlightCtx?.secureSessionId,
-					highlightCtx?.requestId,
-				)
-				return throwError(() => err)
-			}),
-		)
+		return NodeH.runWithHeaders(request.headers, () => {
+			return next.handle().pipe(
+				catchError((err) => {
+					NodeH.consumeError(
+						err,
+						highlightCtx?.secureSessionId,
+						highlightCtx?.requestId,
+					)
+					return throwError(() => err)
+				}),
+			)
+		})
 	}
 }
 

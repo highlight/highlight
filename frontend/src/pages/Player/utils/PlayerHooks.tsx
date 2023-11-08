@@ -279,7 +279,6 @@ export const usePlayerKeyboardShortcuts = () => {
 		moveFocusToDocument(e)
 
 		setEnableInspectElement(false)
-		setShowRightPanel(true)
 		setRightPanelView(RightPanelView.Comments)
 		message.success(
 			'Commenting enabled, click anywhere on the video to create a comment.',
@@ -292,6 +291,7 @@ export const usePlayerKeyboardShortcuts = () => {
 
 		setEnableInspectElement(true)
 		setShowRightPanel(false)
+		setRightPanelView(RightPanelView.Event)
 		message.success(
 			"Inspect element enabled, you can open up your browser's DevTools and inspect the DOM now.",
 		)
