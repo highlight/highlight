@@ -48,8 +48,8 @@ We can search for it via:
 
 We can exclude logs that match an attribute by prefixing it with `-`:
 
-- `user_id:-42` matches every log _except_ logs where `user_id` is `42`
-- `level:-info` matches every log _except_ logs where `level` is `info`
+- `user_id:-42` matches every log where `user_id` _is not_ `42`
+- `level:-info` matches every log where `level` _is not_ `info`
 
 #### AND vs OR
 
