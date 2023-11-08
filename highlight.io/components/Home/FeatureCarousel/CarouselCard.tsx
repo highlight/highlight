@@ -1,9 +1,9 @@
+import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Code } from 'react-code-blocks'
 import { HiArrowRight } from 'react-icons/hi'
-import { AnimateCarouselImage } from '../../Animate'
 import highlightCodeTheme from '../../common/CodeBlock/highlight-code-theme'
 import { Typography } from '../../common/Typography/Typography'
 import styles from '../Home.module.scss'
@@ -17,10 +17,20 @@ const codeTheme = {
 const CarouselImage = ({ feature }: { feature: Feature }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
 
+	const orig = { bottom: -20, opacity: 0 }
+	const final = { bottom: -20, opacity: 1 }
+
 	return (
 		<div className="hidden sm:flex w-1/2">
 			<div className="absolute right-0 top-0 bottom-0">
-				<AnimateCarouselImage>
+				<motion.div
+					initial={orig}
+					animate={imageLoaded ? final : orig}
+					transition={{
+						duration: 0.4,
+					}}
+					className="absolute border-2 right-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]"
+				>
 					<Image
 						className={`${
 							feature.right ? 'right-0' : 'left-0'
@@ -29,7 +39,7 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 						alt="Feature Spotlight"
 						onLoadingComplete={() => setImageLoaded(true)}
 					/>
-				</AnimateCarouselImage>
+				</motion.div>
 			</div>
 		</div>
 	)
