@@ -421,7 +421,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			newErrorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
 		}
 
-		if err := r.DB.Create(newErrorGroup).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
 
@@ -557,7 +557,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 		return nil, nil
 	}
 	start := time.Now()
-	if err := r.DB.Raw(`
+	if err := r.DB.WithContext(context.TODO()).Raw(`
 		WITH json_results AS (
 			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
 			FROM json_array_elements_text(@jsonString) with ordinality
@@ -809,7 +809,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 	errorObj.ErrorGroupID = errorGroup.ID
 
-	if err := r.DB.Create(errorObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
 	}
 
@@ -891,7 +891,7 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 			`, f.ProjectID, f.Name, f.Value, f.Value).Take(&field)
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.Create(f).Error; err != nil {
+			if err := r.DB.WithContext(ctx).Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
@@ -1149,7 +1149,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	session.Longitude = location.Longitude.(float64)
 	session.WithinBillingQuota = &withinBillingQuota
 
-	if err := r.DB.Create(session).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Create(session).Error; err != nil {
 		if input.SessionSecureID == "" || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			log.WithContext(ctx).Errorf("error creating session: %s", err)
 			return nil, e.Wrap(err, "error creating session")
@@ -1325,7 +1325,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	sessionTimestamp := input.Timestamp.UnixMilli() - session.CreatedAt.UnixMilli()
 
 	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Timestamp: int(sessionTimestamp), Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
-	if err := r.DB.Create(feedbackComment).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Create(feedbackComment).Error; err != nil {
 		return e.Wrap(err, "error creating session feedback")
 	}
 
@@ -2053,7 +2053,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 		// TODO(vkorolik) we should query session metrics from CH as well
 		if len(newMetrics) > 0 {
-			if err := r.DB.Create(&newMetrics).Error; err != nil {
+			if err := r.DB.WithContext(ctx).Create(&newMetrics).Error; err != nil {
 				return err
 			}
 		}
@@ -2892,7 +2892,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	}
 
 	sessionObj := &model.Session{}
-	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&sessionObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
 		log.WithContext(ctx).Error(retErr)
 		return nil

@@ -6,14 +6,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"gorm.io/gorm"
 	"io"
 	"math"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
@@ -238,7 +239,7 @@ func MatchErrorTag(ctx context.Context, db *gorm.DB, c Client, query string) ([]
 	}
 
 	var matchedErrorTags []*modelInputs.MatchedErrorTag
-	if err := db.Raw(`
+	if err := db.WithContext(ctx).Raw(`
 		select error_tags.embedding <-> @string_embedding as score,
 					error_tags.id as id,
 					error_tags.title as title,
