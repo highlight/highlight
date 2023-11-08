@@ -23,6 +23,10 @@ export const setItem = (key: string, value: string) => {
 	return getPersistentStorage().setItem(key, value)
 }
 
+export const removeItem = (key: string) => {
+	return getPersistentStorage().removeItem(key)
+}
+
 export const monkeyPatchLocalStorage = (
 	onSetItemHandler: ({
 		keyName,
