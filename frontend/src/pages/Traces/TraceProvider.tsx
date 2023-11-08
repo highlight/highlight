@@ -1,3 +1,4 @@
+import { ApolloError } from '@apollo/client'
 import { createContext, useContext, useMemo, useState } from 'react'
 
 import { useGetTraceQuery } from '@/graph/generated/hooks'
@@ -20,8 +21,9 @@ type TraceContext = {
 	selectedSpan: FlameGraphSpan | undefined
 	highlightedSpan: FlameGraphSpan | undefined
 	loading: boolean
-	traceId: string
 	traces: FlameGraphSpan[]
+	error?: ApolloError
+	traceId?: string
 	setHoveredSpan: (span?: FlameGraphSpan) => void
 	setSelectedSpan: (span?: FlameGraphSpan) => void
 }
@@ -30,7 +32,7 @@ export const TraceContext = createContext<TraceContext>({} as TraceContext)
 
 type Props = {
 	projectId: string
-	traceId: string
+	traceId?: string
 	spanId?: string
 }
 
@@ -44,7 +46,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 	const [selectedSpan, setSelectedSpan] = useState<FlameGraphSpan>()
 	const highlightedSpan = hoveredSpan || selectedSpan
 
-	const { data, loading } = useGetTraceQuery({
+	const { data, error, loading } = useGetTraceQuery({
 		variables: {
 			project_id: projectId!,
 			trace_id: traceId!,
@@ -122,6 +124,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				loading,
 				traceId,
 				traces,
+				error,
 				setHoveredSpan,
 				setSelectedSpan,
 			}}
