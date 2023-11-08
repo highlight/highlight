@@ -20,7 +20,7 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 	return (
 		<div className="hidden sm:flex w-1/2">
 			<div className="absolute right-0 top-0 bottom-0">
-				<AnimateCarouselImage loaded={imageLoaded}>
+				<AnimateCarouselImage>
 					<Image
 						className={`${
 							feature.right ? 'right-0' : 'left-0'
