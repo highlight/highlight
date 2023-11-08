@@ -563,12 +563,6 @@ type ComplexityRoot struct {
 		RangeStart func(childComplexity int) int
 	}
 
-	HistogramPayload struct {
-		Buckets func(childComplexity int) int
-		Max     func(childComplexity int) int
-		Min     func(childComplexity int) int
-	}
-
 	IntegrationProjectMapping struct {
 		ExternalID func(childComplexity int) int
 		ProjectID  func(childComplexity int) int
@@ -886,7 +880,7 @@ type ComplexityRoot struct {
 		AdminRole                    func(childComplexity int, workspaceID int) int
 		AdminRoleByProject           func(childComplexity int, projectID int) int
 		AppVersionSuggestion         func(childComplexity int, projectID int) int
-		AverageSessionLength         func(childComplexity int, projectID int, lookBackPeriod int) int
+		AverageSessionLength         func(childComplexity int, projectID int, lookbackDays float64) int
 		BillingDetails               func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject     func(childComplexity int, projectID int) int
 		ClickupFolderlessLists       func(childComplexity int, projectID int) int
@@ -961,12 +955,11 @@ type ComplexityRoot struct {
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
 		MetricTags                   func(childComplexity int, projectID int, metricName string) int
-		MetricsHistogram             func(childComplexity int, projectID int, metricName string, params model.HistogramParamsInput) int
 		MetricsTimeline              func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		NetworkHistogram             func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
-		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
+		NewUsersCount                func(childComplexity int, projectID int, lookbackDays float64) int
 		OauthClientMetadata          func(childComplexity int, clientID string) int
 		Project                      func(childComplexity int, id int) int
 		ProjectHasViewedASession     func(childComplexity int, projectID int) int
@@ -976,8 +969,8 @@ type ComplexityRoot struct {
 		PropertySuggestion           func(childComplexity int, projectID int, query string, typeArg string) int
 		RageClickAlerts              func(childComplexity int, projectID int) int
 		RageClicks                   func(childComplexity int, sessionSecureID string) int
-		RageClicksForProject         func(childComplexity int, projectID int, lookBackPeriod int) int
-		Referrers                    func(childComplexity int, projectID int, lookBackPeriod int) int
+		RageClicksForProject         func(childComplexity int, projectID int, lookbackDays float64) int
+		Referrers                    func(childComplexity int, projectID int, lookbackDays float64) int
 		Resources                    func(childComplexity int, sessionSecureID string) int
 		Segments                     func(childComplexity int, projectID int) int
 		ServerIntegration            func(childComplexity int, projectID int) int
@@ -1001,16 +994,16 @@ type ComplexityRoot struct {
 		SuggestedMetrics             func(childComplexity int, projectID int, prefix string) int
 		SystemConfiguration          func(childComplexity int) int
 		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
-		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
+		TopUsers                     func(childComplexity int, projectID int, lookbackDays float64) int
 		Trace                        func(childComplexity int, projectID int, traceID string) int
 		Traces                       func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
 		TracesIntegration            func(childComplexity int, projectID int) int
 		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput) int
-		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) int
+		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
-		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
+		UserFingerprintCount         func(childComplexity int, projectID int, lookbackDays float64) int
 		UserPropertiesAlerts         func(childComplexity int, projectID int) int
 		VercelProjectMappings        func(childComplexity int, projectID int) int
 		VercelProjects               func(childComplexity int, projectID int) int
@@ -1418,6 +1411,7 @@ type ComplexityRoot struct {
 
 	TracesMetricBucket struct {
 		BucketID    func(childComplexity int) int
+		Column      func(childComplexity int) int
 		Group       func(childComplexity int) int
 		MetricType  func(childComplexity int) int
 		MetricValue func(childComplexity int) int
@@ -1675,7 +1669,7 @@ type QueryResolver interface {
 	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
 	WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
-	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
+	RageClicksForProject(ctx context.Context, projectID int, lookbackDays float64) ([]*model.RageClickEventForProject, error)
 	ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query model.ClickhouseQuery, page *int) (*model1.ErrorResults, error)
 	ErrorsHistogramClickhouse(ctx context.Context, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model1.ErrorGroup, error)
@@ -1713,11 +1707,11 @@ type QueryResolver interface {
 	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error)
 	ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) ([]*model.ErrorDistributionItem, error)
 	ErrorGroupTags(ctx context.Context, errorGroupSecureID string, useClickhouse *bool) ([]*model.ErrorGroupTagAggregation, error)
-	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
-	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
-	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
-	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
-	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
+	Referrers(ctx context.Context, projectID int, lookbackDays float64) ([]*model.ReferrerTablePayload, error)
+	NewUsersCount(ctx context.Context, projectID int, lookbackDays float64) (*model.NewUsersCount, error)
+	TopUsers(ctx context.Context, projectID int, lookbackDays float64) ([]*model.TopUsersPayload, error)
+	AverageSessionLength(ctx context.Context, projectID int, lookbackDays float64) (*model.AverageSessionLength, error)
+	UserFingerprintCount(ctx context.Context, projectID int, lookbackDays float64) (*model.UserFingerprintCount, error)
 	SessionsClickhouse(ctx context.Context, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model1.SessionResults, error)
 	SessionsHistogramClickhouse(ctx context.Context, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) (*model1.SessionsHistogram, error)
 	FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model1.Field, error)
@@ -1785,7 +1779,6 @@ type QueryResolver interface {
 	MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error)
 	MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error)
 	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
-	MetricsHistogram(ctx context.Context, projectID int, metricName string, params model.HistogramParamsInput) (*model.HistogramPayload, error)
 	NetworkHistogram(ctx context.Context, projectID int, params model.NetworkHistogramParamsInput) (*model.CategoryHistogramPayload, error)
 	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
@@ -1812,7 +1805,7 @@ type QueryResolver interface {
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
-	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, metricTypes []model.TracesMetricType, groupBy []string) (*model.TracesMetrics, error)
+	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) (*model.TracesMetrics, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
@@ -4213,27 +4206,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HistogramBucket.RangeStart(childComplexity), true
 
-	case "HistogramPayload.buckets":
-		if e.complexity.HistogramPayload.Buckets == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.Buckets(childComplexity), true
-
-	case "HistogramPayload.max":
-		if e.complexity.HistogramPayload.Max == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.Max(childComplexity), true
-
-	case "HistogramPayload.min":
-		if e.complexity.HistogramPayload.Min == nil {
-			break
-		}
-
-		return e.complexity.HistogramPayload.Min(childComplexity), true
-
 	case "IntegrationProjectMapping.external_id":
 		if e.complexity.IntegrationProjectMapping.ExternalID == nil {
 			break
@@ -6261,7 +6233,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AverageSessionLength(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.AverageSessionLength(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
 
 	case "Query.billingDetails":
 		if e.complexity.Query.BillingDetails == nil {
@@ -7136,18 +7108,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.MetricTags(childComplexity, args["project_id"].(int), args["metric_name"].(string)), true
 
-	case "Query.metrics_histogram":
-		if e.complexity.Query.MetricsHistogram == nil {
-			break
-		}
-
-		args, err := ec.field_Query_metrics_histogram_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MetricsHistogram(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.HistogramParamsInput)), true
-
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
 			break
@@ -7206,7 +7166,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.NewUsersCount(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.NewUsersCount(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
 
 	case "Query.oauth_client_metadata":
 		if e.complexity.Query.OauthClientMetadata == nil {
@@ -7321,7 +7281,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.RageClicksForProject(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.RageClicksForProject(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
 
 	case "Query.referrers":
 		if e.complexity.Query.Referrers == nil {
@@ -7333,7 +7293,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Referrers(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.Referrers(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
 
 	case "Query.resources":
 		if e.complexity.Query.Resources == nil {
@@ -7611,7 +7571,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TopUsers(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.TopUsers(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
 
 	case "Query.trace":
 		if e.complexity.Query.Trace == nil {
@@ -7683,7 +7643,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["metric_types"].([]model.TracesMetricType), args["group_by"].([]string)), true
+		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(model.TracesMetricColumn), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string)), true
 
 	case "Query.track_properties_alerts":
 		if e.complexity.Query.TrackPropertiesAlerts == nil {
@@ -7719,7 +7679,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.UserFingerprintCount(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+		return e.complexity.Query.UserFingerprintCount(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
 
 	case "Query.user_properties_alerts":
 		if e.complexity.Query.UserPropertiesAlerts == nil {
@@ -9779,6 +9739,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TracesMetricBucket.BucketID(childComplexity), true
 
+	case "TracesMetricBucket.column":
+		if e.complexity.TracesMetricBucket.Column == nil {
+			break
+		}
+
+		return e.complexity.TracesMetricBucket.Column(childComplexity), true
+
 	case "TracesMetricBucket.group":
 		if e.complexity.TracesMetricBucket.Group == nil {
 			break
@@ -10255,7 +10222,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDiscordChannelInput,
 		ec.unmarshalInputErrorGroupFrequenciesParamsInput,
 		ec.unmarshalInputErrorSearchParamsInput,
-		ec.unmarshalInputHistogramParamsInput,
 		ec.unmarshalInputIntegrationProjectMappingInput,
 		ec.unmarshalInputLengthRangeInput,
 		ec.unmarshalInputLogAlertInput,
@@ -11244,6 +11210,7 @@ enum ReservedLogKey {
 enum ReservedTraceKey {
 	level
 	message
+	metric
 	secure_session_id
 	span_id
 	trace_id
@@ -11305,17 +11272,29 @@ type LogsHistogram {
 	sampleFactor: Float!
 }
 
-enum TracesMetricType {
-	count
-	count_distinct_key
-	p50
-	p90
+enum MetricAggregator {
+	Count
+	CountDistinctKey
+	Min
+	Avg
+	P50
+	P90
+	P95
+	P99
+	Max
+	Sum
+}
+
+enum TracesMetricColumn {
+	Duration
+	MetricValue
 }
 
 type TracesMetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
-	metric_type: TracesMetricType!
+	column: TracesMetricColumn!
+	metric_type: MetricAggregator!
 	metric_value: Float!
 }
 
@@ -11380,24 +11359,13 @@ input SearchParamsInput {
 }
 
 input DashboardParamsInput {
-	date_range: DateRangeInput
+	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
 	timezone: String
 	units: String
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	filters: [MetricTagFilterInput!]
 	groups: [String!]
-}
-
-input HistogramParamsInput {
-	date_range: DateRangeInput
-	buckets: Int
-	min_value: Float
-	min_percentile: Float
-	max_value: Float
-	max_percentile: Float
-	units: String
-	filters: [MetricTagFilterInput!]
 }
 
 input ErrorGroupFrequenciesParamsInput {
@@ -11456,7 +11424,7 @@ enum NetworkRequestAttribute {
 }
 
 input NetworkHistogramParamsInput {
-	lookback_days: Int
+	lookback_days: Float!
 	attribute: NetworkRequestAttribute
 }
 
@@ -11925,7 +11893,7 @@ type Metric {
 type DashboardPayload {
 	date: String!
 	value: Float!
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	group: String
 }
 
@@ -11934,12 +11902,6 @@ type HistogramBucket {
 	range_start: Float!
 	range_end: Float!
 	count: Int!
-}
-
-type HistogramPayload {
-	buckets: [HistogramBucket!]!
-	min: Float!
-	max: Float!
 }
 
 type CategoryHistogramBucket {
@@ -11961,18 +11923,6 @@ enum DashboardChartType {
 	Timeline
 	TimelineBar
 	Histogram
-}
-
-enum MetricAggregator {
-	Avg
-	P50
-	P75
-	P90
-	P95
-	P99
-	Max
-	Count
-	Sum
 }
 
 input DashboardMetricConfigInput {
@@ -12139,7 +12089,7 @@ type Query {
 	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
 	rageClicksForProject(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): [RageClickEventForProject!]!
 	error_groups_clickhouse(
 		project_id: ID!
@@ -12215,16 +12165,16 @@ type Query {
 		use_clickhouse: Boolean
 	): [ErrorGroupTagAggregation!]!
 
-	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
-	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
-	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+	referrers(project_id: ID!, lookback_days: Float!): [ReferrerTablePayload]!
+	newUsersCount(project_id: ID!, lookback_days: Float!): NewUsersCount
+	topUsers(project_id: ID!, lookback_days: Float!): [TopUsersPayload]!
 	averageSessionLength(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): AverageSessionLength
 	userFingerprintCount(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): UserFingerprintCount
 	sessions_clickhouse(
 		project_id: ID!
@@ -12349,11 +12299,6 @@ type Query {
 		metric_name: String!
 		params: DashboardParamsInput!
 	): [DashboardPayload]!
-	metrics_histogram(
-		project_id: ID!
-		metric_name: String!
-		params: HistogramParamsInput!
-	): HistogramPayload
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!
@@ -12413,7 +12358,8 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		metric_types: [TracesMetricType!]!
+		column: TracesMetricColumn!
+		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 	): TracesMetrics!
 	traces_keys(
@@ -16126,15 +16072,15 @@ func (ec *executionContext) field_Query_averageSessionLength_args(ctx context.Co
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 float64
+	if tmp, ok := rawArgs["lookback_days"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
+		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["lookback_days"] = arg1
 	return args, nil
 }
 
@@ -17743,39 +17689,6 @@ func (ec *executionContext) field_Query_metric_tags_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_metrics_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["metric_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metric_name"] = arg1
-	var arg2 model.HistogramParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_metrics_timeline_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -17845,15 +17758,15 @@ func (ec *executionContext) field_Query_newUsersCount_args(ctx context.Context, 
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 float64
+	if tmp, ok := rawArgs["lookback_days"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
+		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["lookback_days"] = arg1
 	return args, nil
 }
 
@@ -18007,15 +17920,15 @@ func (ec *executionContext) field_Query_rageClicksForProject_args(ctx context.Co
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 float64
+	if tmp, ok := rawArgs["lookback_days"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
+		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["lookback_days"] = arg1
 	return args, nil
 }
 
@@ -18061,15 +17974,15 @@ func (ec *executionContext) field_Query_referrers_args(ctx context.Context, rawA
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 float64
+	if tmp, ok := rawArgs["lookback_days"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
+		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["lookback_days"] = arg1
 	return args, nil
 }
 
@@ -18526,15 +18439,15 @@ func (ec *executionContext) field_Query_topUsers_args(ctx context.Context, rawAr
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 float64
+	if tmp, ok := rawArgs["lookback_days"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
+		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["lookback_days"] = arg1
 	return args, nil
 }
 
@@ -18715,24 +18628,33 @@ func (ec *executionContext) field_Query_traces_metrics_args(ctx context.Context,
 		}
 	}
 	args["params"] = arg1
-	var arg2 []model.TracesMetricType
+	var arg2 model.TracesMetricColumn
+	if tmp, ok := rawArgs["column"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
+		arg2, err = ec.unmarshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["column"] = arg2
+	var arg3 []model.MetricAggregator
 	if tmp, ok := rawArgs["metric_types"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_types"))
-		arg2, err = ec.unmarshalNTracesMetricType2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricTypeᚄ(ctx, tmp)
+		arg3, err = ec.unmarshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["metric_types"] = arg2
-	var arg3 []string
+	args["metric_types"] = arg3
+	var arg4 []string
 	if tmp, ok := rawArgs["group_by"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
-		arg3, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		arg4, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["group_by"] = arg3
+	args["group_by"] = arg4
 	return args, nil
 }
 
@@ -18778,15 +18700,15 @@ func (ec *executionContext) field_Query_userFingerprintCount_args(ctx context.Co
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg1 float64
+	if tmp, ok := rawArgs["lookback_days"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
+		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lookBackPeriod"] = arg1
+	args["lookback_days"] = arg1
 	return args, nil
 }
 
@@ -25312,11 +25234,14 @@ func (ec *executionContext) _DashboardPayload_aggregator(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.MetricAggregator)
+	res := resTmp.(model.MetricAggregator)
 	fc.Result = res
-	return ec.marshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
+	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardPayload_aggregator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33980,148 +33905,6 @@ func (ec *executionContext) fieldContext_HistogramBucket_count(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramPayload_buckets(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramPayload_buckets(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Buckets, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.HistogramBucket)
-	fc.Result = res
-	return ec.marshalNHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucketᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramPayload_buckets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "bucket":
-				return ec.fieldContext_HistogramBucket_bucket(ctx, field)
-			case "range_start":
-				return ec.fieldContext_HistogramBucket_range_start(ctx, field)
-			case "range_end":
-				return ec.fieldContext_HistogramBucket_range_end(ctx, field)
-			case "count":
-				return ec.fieldContext_HistogramBucket_count(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type HistogramBucket", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramPayload_min(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramPayload_min(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Min, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramPayload_min(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramPayload_max(ctx context.Context, field graphql.CollectedField, obj *model.HistogramPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramPayload_max(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Max, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramPayload_max(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramPayload",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -46467,7 +46250,7 @@ func (ec *executionContext) _Query_rageClicksForProject(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RageClicksForProject(rctx, fc.Args["project_id"].(int), fc.Args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().RageClicksForProject(rctx, fc.Args["project_id"].(int), fc.Args["lookback_days"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -49093,7 +48876,7 @@ func (ec *executionContext) _Query_referrers(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Referrers(rctx, fc.Args["project_id"].(int), fc.Args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().Referrers(rctx, fc.Args["project_id"].(int), fc.Args["lookback_days"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -49155,7 +48938,7 @@ func (ec *executionContext) _Query_newUsersCount(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().NewUsersCount(rctx, fc.Args["project_id"].(int), fc.Args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().NewUsersCount(rctx, fc.Args["project_id"].(int), fc.Args["lookback_days"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -49210,7 +48993,7 @@ func (ec *executionContext) _Query_topUsers(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TopUsers(rctx, fc.Args["project_id"].(int), fc.Args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().TopUsers(rctx, fc.Args["project_id"].(int), fc.Args["lookback_days"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -49276,7 +49059,7 @@ func (ec *executionContext) _Query_averageSessionLength(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AverageSessionLength(rctx, fc.Args["project_id"].(int), fc.Args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().AverageSessionLength(rctx, fc.Args["project_id"].(int), fc.Args["lookback_days"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -49331,7 +49114,7 @@ func (ec *executionContext) _Query_userFingerprintCount(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserFingerprintCount(rctx, fc.Args["project_id"].(int), fc.Args["lookBackPeriod"].(int))
+		return ec.resolvers.Query().UserFingerprintCount(rctx, fc.Args["project_id"].(int), fc.Args["lookback_days"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -53846,65 +53629,6 @@ func (ec *executionContext) fieldContext_Query_metrics_timeline(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_metrics_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_metrics_histogram(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["metric_name"].(string), fc.Args["params"].(model.HistogramParamsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.HistogramPayload)
-	fc.Result = res
-	return ec.marshalOHistogramPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramPayload(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_metrics_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "buckets":
-				return ec.fieldContext_HistogramPayload_buckets(ctx, field)
-			case "min":
-				return ec.fieldContext_HistogramPayload_min(ctx, field)
-			case "max":
-				return ec.fieldContext_HistogramPayload_max(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type HistogramPayload", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_metrics_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_network_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_network_histogram(ctx, field)
 	if err != nil {
@@ -55510,7 +55234,7 @@ func (ec *executionContext) _Query_traces_metrics(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["metric_types"].([]model.TracesMetricType), fc.Args["group_by"].([]string))
+		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(model.TracesMetricColumn), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -67984,6 +67708,50 @@ func (ec *executionContext) fieldContext_TracesMetricBucket_group(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _TracesMetricBucket_column(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TracesMetricBucket_column(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Column, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.TracesMetricColumn)
+	fc.Result = res
+	return ec.marshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TracesMetricBucket_column(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TracesMetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type TracesMetricColumn does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TracesMetricBucket_metric_type(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
 	if err != nil {
@@ -68010,9 +67778,9 @@ func (ec *executionContext) _TracesMetricBucket_metric_type(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TracesMetricType)
+	res := resTmp.(model.MetricAggregator)
 	fc.Result = res
-	return ec.marshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx, field.Selections, res)
+	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TracesMetricBucket_metric_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -68022,7 +67790,7 @@ func (ec *executionContext) fieldContext_TracesMetricBucket_metric_type(ctx cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type TracesMetricType does not have child fields")
+			return nil, errors.New("field of type MetricAggregator does not have child fields")
 		},
 	}
 	return fc, nil
@@ -68115,6 +67883,8 @@ func (ec *executionContext) fieldContext_TracesMetrics_buckets(ctx context.Conte
 				return ec.fieldContext_TracesMetricBucket_bucket_id(ctx, field)
 			case "group":
 				return ec.fieldContext_TracesMetricBucket_group(ctx, field)
+			case "column":
+				return ec.fieldContext_TracesMetricBucket_column(ctx, field)
 			case "metric_type":
 				return ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
 			case "metric_value":
@@ -73031,7 +72801,7 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -73063,7 +72833,7 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
-			it.Aggregator, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
+			it.Aggregator, err = ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -73397,90 +73167,6 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputHistogramParamsInput(ctx context.Context, obj interface{}) (model.HistogramParamsInput, error) {
-	var it model.HistogramParamsInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"date_range", "buckets", "min_value", "min_percentile", "max_value", "max_percentile", "units", "filters"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "date_range":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "buckets":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buckets"))
-			it.Buckets, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "min_value":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_value"))
-			it.MinValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "min_percentile":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min_percentile"))
-			it.MinPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "max_value":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_value"))
-			it.MaxValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "max_percentile":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_percentile"))
-			it.MaxPercentile, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "units":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
-			it.Units, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "filters":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
-			it.Filters, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputIntegrationProjectMappingInput(ctx context.Context, obj interface{}) (model.IntegrationProjectMappingInput, error) {
 	var it model.IntegrationProjectMappingInput
 	asMap := map[string]interface{}{}
@@ -73739,7 +73425,7 @@ func (ec *executionContext) unmarshalInputNetworkHistogramParamsInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookback_days"))
-			it.LookbackDays, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.LookbackDays, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -75945,6 +75631,9 @@ func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.Selec
 
 			out.Values[i] = ec._DashboardPayload_aggregator(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "group":
 
 			out.Values[i] = ec._DashboardPayload_group(ctx, field, obj)
@@ -77906,48 +77595,6 @@ func (ec *executionContext) _HistogramBucket(ctx context.Context, sel ast.Select
 		case "count":
 
 			out.Values[i] = ec._HistogramBucket_count(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var histogramPayloadImplementors = []string{"HistogramPayload"}
-
-func (ec *executionContext) _HistogramPayload(ctx context.Context, sel ast.SelectionSet, obj *model.HistogramPayload) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, histogramPayloadImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("HistogramPayload")
-		case "buckets":
-
-			out.Values[i] = ec._HistogramPayload_buckets(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "min":
-
-			out.Values[i] = ec._HistogramPayload_min(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "max":
-
-			out.Values[i] = ec._HistogramPayload_max(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -82479,26 +82126,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "metrics_histogram":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_metrics_histogram(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "network_histogram":
 			field := field
 
@@ -85818,6 +85445,13 @@ func (ec *executionContext) _TracesMetricBucket(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "column":
+
+			out.Values[i] = ec._TracesMetricBucket_column(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "metric_type":
 
 			out.Values[i] = ec._TracesMetricBucket_metric_type(ctx, field, obj)
@@ -88741,65 +88375,6 @@ func (ec *executionContext) marshalNHeightWorkspace2ᚖgithubᚗcomᚋhighlight�
 	return ec._HeightWorkspace(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNHistogramBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.HistogramBucket) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucket(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNHistogramBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramBucket(ctx context.Context, sel ast.SelectionSet, v *model.HistogramBucket) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._HistogramBucket(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramParamsInput(ctx context.Context, v interface{}) (model.HistogramParamsInput, error) {
-	res, err := ec.unmarshalInputHistogramParamsInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalIntID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -89480,6 +89055,67 @@ func (ec *executionContext) unmarshalNMetricAggregator2githubᚗcomᚋhighlight�
 
 func (ec *executionContext) marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx context.Context, sel ast.SelectionSet, v model.MetricAggregator) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx context.Context, v interface{}) ([]model.MetricAggregator, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.MetricAggregator, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MetricAggregator) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v []*model1.MetricMonitor) graphql.Marshaler {
@@ -91228,75 +90864,14 @@ func (ec *executionContext) marshalNTracesMetricBucket2ᚖgithubᚗcomᚋhighlig
 	return ec._TracesMetricBucket(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx context.Context, v interface{}) (model.TracesMetricType, error) {
-	var res model.TracesMetricType
+func (ec *executionContext) unmarshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx context.Context, v interface{}) (model.TracesMetricColumn, error) {
+	var res model.TracesMetricColumn
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx context.Context, sel ast.SelectionSet, v model.TracesMetricType) graphql.Marshaler {
+func (ec *executionContext) marshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx context.Context, sel ast.SelectionSet, v model.TracesMetricColumn) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) unmarshalNTracesMetricType2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricTypeᚄ(ctx context.Context, v interface{}) ([]model.TracesMetricType, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]model.TracesMetricType, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNTracesMetricType2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.TracesMetricType) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTracesMetricType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNTracesMetrics2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetrics(ctx context.Context, sel ast.SelectionSet, v model.TracesMetrics) graphql.Marshaler {
@@ -92728,13 +92303,6 @@ func (ec *executionContext) marshalOGitHubRepo2ᚕᚖgithubᚗcomᚋhighlightᚑ
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalOHistogramPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐHistogramPayload(ctx context.Context, sel ast.SelectionSet, v *model.HistogramPayload) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._HistogramPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {

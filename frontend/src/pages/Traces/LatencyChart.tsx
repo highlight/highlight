@@ -87,7 +87,11 @@ const CustomLegend = ({
 }
 
 export const LatencyChart = ({ metricsBuckets }: Props) => {
-	const [dataTypesToShow, setDataTypesToShow] = useState(['p50', 'p90'])
+	const [dataTypesToShow, setDataTypesToShow] = useState([
+		'avg',
+		'p50',
+		'p90',
+	])
 	return (
 		<ResponsiveContainer width="100%" height="100%">
 			<LineChart data={metricsBuckets}>

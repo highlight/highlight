@@ -45,10 +45,10 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
+	highlight "github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -57,6 +57,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -4247,7 +4248,7 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 }
 
 // RageClicksForProject is the resolver for the rageClicksForProject field.
-func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.RageClickEventForProject, error) {
+func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.RageClickEventForProject, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -4280,7 +4281,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 			AND session_secure_id IS NOT NULL
 		ORDER BY total_clicks DESC
 		LIMIT 100`,
-		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
+		projectID, lookbackDays).Scan(&rageClicks).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving rage clicks for project")
 	}
 
@@ -5174,14 +5175,29 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID s
 }
 
 // Referrers is the resolver for the referrers field.
-func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
+func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
 	referrers := []*modelInputs.ReferrerTablePayload{}
 
-	if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf("SELECT DISTINCT(value) as host, COUNT(value), count(value) * 100.0 / (select count(*) from fields where name='referrer' and project_id=%d and created_at >= NOW() - INTERVAL '%d DAY') as percent FROM (SELECT SUBSTRING(value from '(?:.*://)?(?:www\\.)?([^/]*)') AS value FROM fields WHERE name='referrer' AND project_id=%d AND created_at >= NOW() - INTERVAL '%d DAY') t1 GROUP BY value ORDER BY count desc LIMIT 200", projectID, lookBackPeriod, projectID, lookBackPeriod)).Scan(&referrers).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Raw(`
+SELECT DISTINCT(value)                                                               as host,
+               COUNT(value),
+               count(value) * 100.0 / (select count(*)
+                                       from fields
+                                       where name = 'referrer'
+                                         and project_id = ?
+                                         and created_at >= NOW() - (? * INTERVAL '1 DAY')) as percent
+FROM (SELECT SUBSTRING(value from ?) AS value
+      FROM fields
+      WHERE name = 'referrer'
+        AND project_id = ?
+        AND created_at >= NOW() - (? * INTERVAL '1 DAY')) t1
+GROUP BY value
+ORDER BY count desc
+LIMIT 200`, projectID, lookbackDays, `(?:.*://)?(?:www\.)?([^/]*)`, projectID, lookbackDays).Scan(&referrers).Error; err != nil {
 		return nil, e.Wrap(err, "error getting referrers")
 	}
 
@@ -5189,7 +5205,7 @@ func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPe
 }
 
 // NewUsersCount is the resolver for the newUsersCount field.
-func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.NewUsersCount, error) {
+func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.NewUsersCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5200,7 +5216,11 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 	}
 
 	var count int64
-	if err := r.DB.WithContext(ctx).Raw(fmt.Sprintf("SELECT COUNT(*) FROM sessions WHERE project_id=%d AND first_time=true AND created_at >= NOW() - INTERVAL '%d DAY'", projectID, lookBackPeriod)).Scan(&count).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Raw(`SELECT COUNT(*)
+FROM sessions
+WHERE project_id = ?
+  AND first_time = true
+  AND created_at >= NOW() - (? * INTERVAL '1 DAY')`, projectID, lookbackDays).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of first time users")
 	}
 
@@ -5208,7 +5228,7 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 }
 
 // TopUsers is the resolver for the topUsers field.
-func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
+func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookbackDays float64) ([]*modelInputs.TopUsersPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5277,7 +5297,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	AND s.project_id = ?
     ) as q2
 	ORDER BY total_active_time DESC`,
-		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod, projectID).Scan(&topUsersPayload).Error; err != nil {
+		projectID, projectID, lookbackDays, projectID, lookbackDays, projectID).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -5286,7 +5306,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 }
 
 // AverageSessionLength is the resolver for the averageSessionLength field.
-func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
+func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.AverageSessionLength, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5306,7 +5326,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 			AND excluded <> true
 			AND active_length IS NOT NULL
 			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-		`, projectID, lookBackPeriod).Scan(&length).Error; err != nil {
+		`, projectID, lookbackDays).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 
@@ -5314,7 +5334,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 }
 
 // UserFingerprintCount is the resolver for the userFingerprintCount field.
-func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
+func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookbackDays float64) (*modelInputs.UserFingerprintCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -5338,7 +5358,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 			AND project_id=?
 			AND length >= 1000
-		`, lookBackPeriod, projectID).Scan(&count).Error; err != nil {
+		`, lookbackDays, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
 	}
 
@@ -6970,29 +6990,15 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		return nil, err
 	}
 
-	filter := ""
-	if len(prefix) > 0 {
-		filter = fmt.Sprintf(`|> filter(fn: (r) => r["_field"] =~ /%s/)`, prefix)
-	}
-	query := fmt.Sprintf(`
-		from(bucket: "%s")
-		  |> range(start: -1d)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  %s
-		  |> group(columns: ["_field"])
-		  |> distinct(column: "_field")
-		  |> yield(name: "distinct")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
-	tdbQuerySpan, ctx := util.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
-	tdbQuerySpan.SetAttribute("projectID", projectID)
-	results, err := r.TDB.Query(ctx, query)
-	tdbQuerySpan.Finish()
+	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
 	if err != nil {
 		return nil, err
 	}
 
-	return lo.Map(results, func(t *timeseries.Result, _ int) string {
-		return t.Value.(string)
+	return lo.Filter(lo.Map(keys, func(item *modelInputs.QueryKey, index int) string {
+		return item.Name
+	}), func(item string, index int) bool {
+		return strings.HasPrefix(item, prefix)
 	}), nil
 }
 
@@ -7002,27 +7008,13 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		return nil, err
 	}
 
-	query := fmt.Sprintf(`
-		import "influxdata/influxdb/schema"
-		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
-	tdbQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryMetricTags")
-	tdbQuerySpan.SetAttribute("projectID", projectID)
-	tdbQuerySpan.SetAttribute("metricName", metricName)
-	results, err := r.TDB.Query(spanCtx, query)
-	tdbQuerySpan.Finish()
+	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
 	if err != nil {
 		return nil, err
 	}
 
-	metrics, _ := r.SuggestedMetrics(ctx, projectID, "")
-
-	return lo.Filter(lo.Map(results, func(t *timeseries.Result, _ int) string {
-		return t.Value.(string)
-	}), func(t string, _ int) bool {
-		// filter out metrics from possible metric tags
-		_, isMetric := lo.Find(metrics, func(m string) bool { return t == m })
-		return !strings.HasPrefix(t, "_") && !isMetric
+	return lo.Map(keys, func(item *modelInputs.QueryKey, index int) string {
+		return item.Name
 	}), nil
 }
 
@@ -7032,23 +7024,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 		return nil, err
 	}
 
-	query := fmt.Sprintf(`
-		import "influxdata/influxdb/schema"
-		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
-	tdbQuerySpan, ctx := util.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
-	tdbQuerySpan.SetAttribute("projectID", projectID)
-	tdbQuerySpan.SetAttribute("metricName", metricName)
-	tdbQuerySpan.SetAttribute("tagName", tagName)
-	results, err := r.TDB.Query(ctx, query)
-	tdbQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	return lo.Map(results, func(t *timeseries.Result, _ int) string {
-		return t.Value.(string)
-	}), nil
+	return r.ClickhouseClient.TracesKeyValues(ctx, projectID, tagName, time.Now().Add(-30*24*time.Hour), time.Now())
 }
 
 // MetricsTimeline is the resolver for the metrics_timeline field.
@@ -7056,120 +7032,7 @@ func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metr
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	return GetMetricTimeline(ctx, r.TDB, projectID, metricName, params)
-}
-
-// MetricsHistogram is the resolver for the metrics_histogram field.
-func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, metricName string, params modelInputs.HistogramParamsInput) (*modelInputs.HistogramPayload, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
-	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	tagFilters := GetTagFilters(ctx, params.Filters)
-	if params.MinValue == nil || params.MaxValue == nil {
-		minPercentile := 0.01
-		if params.MinPercentile != nil {
-			minPercentile = *params.MinPercentile
-		}
-		maxPercentile := 0.99
-		if params.MaxPercentile != nil {
-			maxPercentile = *params.MaxPercentile
-		}
-		query := fmt.Sprintf(`
-	  do = (q) =>
-		from(bucket: "%s")
-		  |> range(start: %s, stop: %s)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  |> filter(fn: (r) => r["_field"] == "%s")
-		  %s|> group()
-		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
-		  |> map(fn: (r) => ({r with _value: r._value / %f}))
-      union(tables: [
-		do(q:%f),
-		do(q:%f)
-	  ])
-		  |> sort()
-  `, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, div, minPercentile, maxPercentile)
-		histogramRangeQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
-		histogramRangeQuerySpan.SetAttribute("projectID", projectID)
-		histogramRangeQuerySpan.SetAttribute("metricName", metricName)
-		results, err := r.TDB.Query(spanCtx, query)
-		histogramRangeQuerySpan.Finish()
-		if err != nil {
-			return nil, err
-		}
-		if len(results) < 1 {
-			return nil, nil
-		}
-
-		HistogramPercentileOffset := 0.1
-		// offset min and max to include min and max values and pad the distribution a bit
-		if params.MinValue == nil {
-			f := results[0].Value.(float64) * (1 - HistogramPercentileOffset)
-			params.MinValue = &f
-		}
-		if params.MaxValue == nil {
-			f := results[1].Value.(float64) * (1 + HistogramPercentileOffset)
-			params.MaxValue = &f
-		}
-	}
-	histogramPayload := &modelInputs.HistogramPayload{
-		Min: *params.MinValue,
-		Max: *params.MaxValue,
-	}
-
-	numBuckets := 10
-	if params.Buckets != nil {
-		numBuckets = *params.Buckets
-	}
-	bucketSize := (histogramPayload.Max - histogramPayload.Min) / float64(numBuckets)
-	if bucketSize == 0. {
-		bucketSize = 1
-	}
-
-	query := fmt.Sprintf(`
-		from(bucket: "%s")
-		  |> range(start: %s, stop: %s)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-		  |> filter(fn: (r) => r["_field"] == "%s")
-          %s|> group()
-		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
-          |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
-	histogramQuerySpan, spanCtx := util.StartSpanFromContext(ctx, "tdb.queryHistogram")
-	histogramQuerySpan.SetAttribute("projectID", projectID)
-	histogramQuerySpan.SetAttribute("metricName", metricName)
-	histogramQuerySpan.SetAttribute("buckets", params.Buckets)
-	results, err := r.TDB.Query(spanCtx, query)
-	histogramQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-
-	var payloadBuckets []*modelInputs.HistogramBucket
-	var previousCount = -1
-	for i, r := range results {
-		// the first bucket LE bound is actually the start value so use it to offset the histogram
-		if previousCount == -1 {
-			previousCount = int(r.Value.(float64))
-			continue
-		}
-		le := r.Values["le"].(float64)
-		b := &modelInputs.HistogramBucket{
-			Bucket:     float64(i),
-			RangeStart: le - bucketSize,
-			RangeEnd:   le,
-			Count:      int(r.Value.(float64)) - previousCount,
-		}
-		previousCount += b.Count
-		if !math.IsInf(b.RangeStart, 1) {
-			payloadBuckets = append(payloadBuckets, b)
-		}
-	}
-	histogramPayload.Buckets = payloadBuckets
-	return histogramPayload, nil
+	return GetMetricTimeline(ctx, r.ClickhouseClient, projectID, metricName, params)
 }
 
 // NetworkHistogram is the resolver for the network_histogram field.
@@ -7179,49 +7042,38 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		return nil, err
 	}
 
-	var extraFilters []string
-	extraFiltersStr := ""
-	if len(extraFilters) > 0 {
-		extraFiltersStr = fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(extraFilters, " or "))
-	}
-	days := 1
-	if params.LookbackDays != nil {
-		days = *params.LookbackDays
-	}
-	query := fmt.Sprintf(`
-		from(bucket: "%s")
-		  |> range(start: -%dd)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
-          %s
-		  |> group(columns: ["%s"])
-		  |> count()
-          |> group()
-		  |> sort(desc: true)
-          |> limit(n: 10)
-		  |> yield(name: "count")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
-	networkHistogramSpan, ctx := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
-	networkHistogramSpan.SetAttribute("projectID", projectID)
-	networkHistogramSpan.SetAttribute("attribute", params.Attribute.String())
-	networkHistogramSpan.SetAttribute("lookbackDays", params.LookbackDays)
-	results, err := r.TDB.Query(ctx, query)
-	networkHistogramSpan.Finish()
+	metrics, err := r.ClickhouseClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
+		Query: strings.Join([]string{string(highlight.TraceTypeAttribute), string(highlight.TraceTypeNetworkRequest)}, ":"),
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(time.Duration(-params.LookbackDays) * 24 * time.Hour),
+			EndDate:   time.Now(),
+		},
+	}, modelInputs.TracesMetricColumnDuration, []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48)
 	if err != nil {
 		return nil, err
 	}
 
-	var buckets []*modelInputs.CategoryHistogramBucket
-	for _, r := range results {
-		v, ok := r.Values[params.Attribute.String()].(string)
-		if ok {
-			buckets = append(buckets, &modelInputs.CategoryHistogramBucket{
-				Category: v,
-				Count:    int(r.Value.(int64)),
-			})
-		}
+	result := &modelInputs.CategoryHistogramPayload{
+		Buckets: []*modelInputs.CategoryHistogramBucket{},
 	}
+	for url, groups := range lo.GroupBy(metrics.Buckets, func(item *modelInputs.TracesMetricBucket) string {
+		return item.Group[0]
+	}) {
+		count := 0
+		for _, g := range groups {
+			count += int(g.MetricValue)
+		}
+		result.Buckets = append(result.Buckets, &modelInputs.CategoryHistogramBucket{
+			Category: url,
+			Count:    int(count),
+		})
+	}
+	sort.Slice(result.Buckets, func(i, j int) bool {
+		return result.Buckets[i].Count > result.Buckets[j].Count
+	})
+	result.Buckets = result.Buckets[0:lo.Min([]int{30, len(result.Buckets) - 1})]
 
-	return &modelInputs.CategoryHistogramPayload{Buckets: buckets}, nil
+	return result, nil
 }
 
 // MetricMonitors is the resolver for the metric_monitors field.
@@ -7691,13 +7543,13 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 }
 
 // TracesMetrics is the resolver for the traces_metrics field.
-func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string) (*modelInputs.TracesMetrics, error) {
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column modelInputs.TracesMetricColumn, metricTypes []modelInputs.MetricAggregator, groupBy []string) (*modelInputs.TracesMetrics, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, groupBy, 48)
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48)
 }
 
 // TracesKeys is the resolver for the traces_keys field.

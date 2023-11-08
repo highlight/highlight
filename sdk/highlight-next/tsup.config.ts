@@ -6,7 +6,7 @@ export default defineConfig({
 		'src/config.ts',
 		'src/server.edge.ts',
 		'src/server.ts',
-		'src/ssr.ts',
+		'src/ssr.tsx',
 	],
 	format: ['cjs', 'esm'],
 	target: 'es6',

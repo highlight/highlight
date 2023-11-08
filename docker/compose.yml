@@ -83,21 +83,6 @@ services:
             - clickhouse-data:/var/lib/clickhouse
             - clickhouse-logs:/var/log/clickhouse-server
 
-    influxdb:
-        logging: *highlight-logging
-        container_name: influxdb
-        image: influxdb:latest
-        ports:
-            - 8086:8086
-        volumes:
-            - influxdb-data:/var/lib/influxdb
-        healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:8086/ping']
-            start_period: 180s
-            interval: 5s
-            timeout: 5s
-            retries: 5
-
     collector:
         logging: *highlight-logging
         extra_hosts:
@@ -121,7 +106,6 @@ volumes:
     clickhouse-data:
     clickhouse-logs:
     redis-data:
-    influxdb-data:
     kafka-data:
     zoo-log:
     zoo-data:

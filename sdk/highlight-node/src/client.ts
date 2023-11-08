@@ -8,15 +8,15 @@ import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
+import { IncomingHttpHeaders } from 'http'
 import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
 
-import { NodeOptions } from './types'
-import { hookConsole } from './hooks'
-import log from './log'
-import { IncomingHttpHeaders } from 'http'
-import { HIGHLIGHT_REQUEST_HEADER } from './sdk'
+import type { HighlightContext, NodeOptions } from './types.js'
+import { hookConsole } from './hooks.js'
+import log from './log.js'
+import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -60,10 +60,7 @@ export class Highlight {
 	otel: NodeSDK
 	private tracer: Tracer
 	private processor: CustomSpanProcessor
-	private asyncLocalStorage = new AsyncLocalStorage<{
-		secureSessionId: string | undefined
-		requestId: string | undefined
-	}>()
+	private asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -320,10 +317,7 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	parseHeaders(headers: IncomingHttpHeaders): {
-		secureSessionId: string | undefined
-		requestId: string | undefined
-	} {
+	parseHeaders(headers: IncomingHttpHeaders): HighlightContext {
 		try {
 			const highlightCtx = this.asyncLocalStorage.getStore()
 			if (highlightCtx) {

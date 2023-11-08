@@ -828,6 +828,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	highlight.RecordMetric(
 		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
@@ -836,6 +837,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
 		{
@@ -1150,11 +1152,11 @@ func (w *Worker) MigrateDB(ctx context.Context) {
 }
 
 func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
-	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
+	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.MailClient, w.Resolver.RH)
 }
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
-	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {

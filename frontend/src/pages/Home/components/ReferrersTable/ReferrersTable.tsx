@@ -45,7 +45,7 @@ const ReferrersTable = ({
 	const { loading } = useGetReferrersCountQuery({
 		variables: {
 			project_id: project_id!,
-			lookBackPeriod: moment
+			lookback_days: moment
 				.duration(timeRange.lookback, 'minutes')
 				.as('days'),
 		},
