@@ -327,7 +327,7 @@ export const Search: React.FC<{
 
 		if (isValueSelect) {
 			queryTerms[activeTermIndex].value = !!noQuotes
-				? `${prefix}${key}`
+				? key
 				: `${prefix}${quoteQueryValue(key)}`
 		} else {
 			if (activeTermKey === BODY_KEY && activeTerm.value.endsWith(' ')) {
@@ -578,8 +578,6 @@ export const Search: React.FC<{
 							<LinkButton
 								trackingId="search-form_docs"
 								// TODO: Create docs + update link
-								// TODO: Update typeahead to remove prefixes like "-" so
-								// typeahead still filters results correctly.
 								to="https://highlight.io/docs/search"
 								target="_blank"
 								size="xSmall"
