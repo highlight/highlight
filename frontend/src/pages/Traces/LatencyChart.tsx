@@ -132,6 +132,7 @@ export const LatencyChart = ({ metricsBuckets }: Props) => {
 						strokeWidth={2}
 						animationDuration={100}
 						dot={false}
+						connectNulls
 					/>
 				))}
 			</LineChart>
