@@ -1336,6 +1336,60 @@ func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
 	}
 }
 
+func Test_ReadLogsWithMultipleAttributeFilters_Clickhouse(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
+	var rows []*LogRow
+	for i := 1; i <= 10; i++ {
+		row := NewLogRow(oneSecondAgo, 1,
+			WithBody(ctx, "this is a test"),
+			WithSeverityText(modelInputs.LogLevelInfo.String()),
+			WithServiceName("frontend"),
+			WithTraceID(uuid.New().String()),
+			WithLogAttributes(map[string]string{
+				"os": "linux",
+			}))
+
+		row.LogAttributes["os"] = fmt.Sprintf("linux-%d", i)
+
+		rows = append(rows, row)
+	}
+
+	err := client.BatchWriteLogRows(ctx, rows)
+	assert.NoError(t, err)
+
+	// Test OR query
+	query := "os:linux-1 os:linux-2"
+	params := modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     query,
+	}
+	conn, err := client.ReadLogs(ctx, 1, params, Pagination{})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(conn.Edges))
+	possibleValues := []string{"linux-1", "linux-2"}
+	for _, edge := range conn.Edges {
+		assert.Contains(t, possibleValues, edge.Node.LogAttributes["os"])
+	}
+
+	// Test AND query - using AND because of the NOT operator (-)
+	query = "os:linux-* os:-linux-4"
+	params = modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     query,
+	}
+	conn, err = client.ReadLogs(ctx, 1, params, Pagination{})
+	assert.NoError(t, err)
+	assert.Equal(t, 9, len(conn.Edges))
+	for _, edge := range conn.Edges {
+		assert.NotEqual(t, "linux-4", edge.Node.LogAttributes["os"])
+	}
+}
+
 func Test_LogMatchesNotQuery_ClickHouse(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -1348,27 +1402,33 @@ func Test_LogMatchesNotQuery_ClickHouse(t *testing.T) {
 		row := NewLogRow(oneSecondAgo, 1,
 			WithBody(ctx, "this is a hello world message"),
 			WithSeverityText(modelInputs.LogLevelInfo.String()),
-			WithServiceName("all"),
+			WithServiceName("frontend"),
 			WithTraceID(uuid.New().String()),
 			WithLogAttributes(map[string]string{
-				"service":       "foo",
-				"os.type":       "linux",
-				"resource_name": "worker.kafka.process"}))
-		if i <= 6 {
-			row.ServiceName = "frontend"
-		}
+				"os.type": "linux",
+			}))
+
+		row.ServiceName = fmt.Sprintf("frontend-%d", i)
+		row.LogAttributes["os.type"] = fmt.Sprintf("linux-%d", i)
+
 		rows = append(rows, row)
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	query := "service_name:-frontend"
+	query := "service_name:frontend-* service_name:-frontend-2 service_name:-frontend-4 os.type:linu* os.type:-linux-3 os.type:-linux-5"
 	result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     query,
 	}, Pagination{})
 	assert.NoError(t, err)
 
-	assert.Equal(t, 4, len(result.Edges))
+	assert.Equal(t, 6, len(result.Edges))
+	for _, edge := range result.Edges {
+		assert.NotEqual(t, "frontend-2", *edge.Node.ServiceName)
+		assert.NotEqual(t, "frontend-4", *edge.Node.ServiceName)
+		assert.NotEqual(t, "linux-3", edge.Node.LogAttributes["os.type"])
+		assert.NotEqual(t, "linux-5", edge.Node.LogAttributes["os.type"])
+	}
 }
 
 func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {

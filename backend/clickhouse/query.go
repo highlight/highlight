@@ -242,11 +242,13 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 
 	conditions := []string{}
 	for key, values := range filters.attributes {
+		hasNotPrefix := false
 		if len(values) == 1 {
 			value := values[0]
 			if strings.Contains(value, "%") {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
-			} else if strings.HasPrefix(value, "!") {
+			} else if strings.HasPrefix(value, "!") || strings.HasPrefix(value, "-") {
+				hasNotPrefix = true
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
 			} else {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
@@ -256,13 +258,19 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 			for _, value := range values {
 				if strings.Contains(value, "%") {
 					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
-				} else if strings.HasPrefix(value, "!") {
+				} else if strings.HasPrefix(value, "!") || strings.HasPrefix(value, "-") {
+					hasNotPrefix = true
 					conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
 				} else {
 					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
 				}
 			}
-			conditions = append(conditions, sb.Or(innerConditions...))
+
+			if hasNotPrefix {
+				conditions = append(conditions, sb.And(innerConditions...))
+			} else {
+				conditions = append(conditions, sb.Or(innerConditions...))
+			}
 		}
 	}
 	if len(conditions) > 0 {
@@ -306,19 +314,24 @@ func makeFilters[T ~string](query string, reservedKeys []T, defaultFilters map[s
 }
 
 func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column string) {
-	conditions := []string{}
+	orConditions := []string{}
+	andConditions := []string{}
 	for _, filter := range filters {
 		if strings.Contains(filter, "%") {
-			conditions = append(conditions, sb.Like(column, filter))
+			orConditions = append(orConditions, sb.Like(column, filter))
 		} else if strings.HasPrefix(filter, "-") {
-			conditions = append(conditions, sb.NotEqual(column, strings.Replace(filter, "-", "", 1)))
+			andConditions = append(andConditions, sb.NotEqual(column, strings.Replace(filter, "-", "", 1)))
 		} else {
-			conditions = append(conditions, sb.Equal(column, filter))
+			orConditions = append(orConditions, sb.Equal(column, filter))
 		}
 	}
 
-	if len(conditions) > 0 {
-		sb.Where(sb.Or(conditions...))
+	if len(andConditions) > 0 {
+		sb.Where(sb.And(andConditions...))
+	}
+
+	if len(orConditions) > 0 {
+		sb.Where(sb.Or(orConditions...))
 	}
 }
 
