@@ -576,9 +576,8 @@ export const Search: React.FC<{
 							gap="6"
 						>
 							<LinkButton
-								trackingId="search-form_docs"
-								// TODO: Create docs + update link
-								to="https://highlight.io/docs/search"
+								trackingId="search-form_search-specification-docs-link"
+								to="https://www.highlight.io/docs/general/product-features/logging/log-search#attributes-search"
 								target="_blank"
 								size="xSmall"
 								kind="secondary"
