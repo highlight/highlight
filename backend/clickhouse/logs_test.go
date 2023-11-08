@@ -1254,6 +1254,10 @@ func Test_LogMatchesQuery(t *testing.T) {
 	filters = queryparser.Parse("not this one os.type:linux resource_name:worker.* service_name:all")
 	matches = LogMatchesQuery(&logRow, &filters)
 	assert.False(t, matches)
+
+	filters = queryparser.Parse("os.type:-linux")
+	matches = LogMatchesQuery(&logRow, &filters)
+	assert.False(t, matches)
 }
 
 func Test_LogMatchesQuery_Body(t *testing.T) {
@@ -1330,6 +1334,41 @@ func Test_LogMatchesQuery_ClickHouse(t *testing.T) {
 		})
 		assert.True(t, found)
 	}
+}
+
+func Test_LogMatchesNotQuery_ClickHouse(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	oneSecondAgo := now.Add(-time.Second * 1)
+	var rows []*LogRow
+	for i := 1; i <= 10; i++ {
+		row := NewLogRow(oneSecondAgo, 1,
+			WithBody(ctx, "this is a hello world message"),
+			WithSeverityText(modelInputs.LogLevelInfo.String()),
+			WithServiceName("all"),
+			WithTraceID(uuid.New().String()),
+			WithLogAttributes(map[string]string{
+				"service":       "foo",
+				"os.type":       "linux",
+				"resource_name": "worker.kafka.process"}))
+		if i <= 6 {
+			row.ServiceName = "frontend"
+		}
+		rows = append(rows, row)
+	}
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	query := "service_name:-frontend"
+	result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     query,
+	}, Pagination{})
+	assert.NoError(t, err)
+
+	assert.Equal(t, 4, len(result.Edges))
 }
 
 func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {

@@ -310,6 +310,8 @@ func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column
 	for _, filter := range filters {
 		if strings.Contains(filter, "%") {
 			conditions = append(conditions, sb.Like(column, filter))
+		} else if strings.HasPrefix(filter, "-") {
+			conditions = append(conditions, sb.NotEqual(column, strings.Replace(filter, "-", "", 1)))
 		} else {
 			conditions = append(conditions, sb.Equal(column, filter))
 		}
@@ -497,6 +499,10 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 		for _, v := range values {
 			if strings.Contains(v, "%") {
 				if matched, _ := regexp.Match(strings.ReplaceAll(v, "%", ".*"), []byte(rowValue)); !matched {
+					return false
+				}
+			} else if strings.HasPrefix(v, "-") {
+				if rowValue == strings.Replace(v, "-", "", 1) {
 					return false
 				}
 			} else if v != rowValue {
