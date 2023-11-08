@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -370,6 +371,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	}
 	fromSb.GroupBy(groupByCols...)
 	fromSb.OrderBy(groupByCols...)
+	fromSb.Limit(10000)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -414,10 +416,15 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 			continue
 		}
 
+		thisGroupByColResults := make([]string, len(groupBy))
+		for idx := range groupByColResults {
+			thisGroupByColResults[idx] = strings.Clone(groupByColResults[idx])
+		}
+
 		for idx, metricType := range metricTypes {
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.TracesMetricBucket{
 				BucketID:    bucketId,
-				Group:       groupByColResults,
+				Group:       thisGroupByColResults,
 				MetricType:  metricType,
 				MetricValue: metricResults[idx],
 			})

@@ -7677,16 +7677,6 @@ func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params
 	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, groupBy, 48)
 }
 
-// TracesHistogram is the resolver for the traces_histogram field.
-func (r *queryResolver) TracesHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string) (*modelInputs.TracesMetrics, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, groupBy, 48)
-}
-
 // TracesKeys is the resolver for the traces_keys field.
 func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -8105,3 +8095,18 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) TracesHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string, bucketCount int) (*modelInputs.TracesMetrics, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, metricTypes, groupBy, 48)
+}

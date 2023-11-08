@@ -28,12 +28,13 @@ query GetAdmin {
 `;
 
 const GET_TRACES_METRICS = `
-query GetTracesMetrics($project_id: ID!, $params: QueryInput!, $metric_types: [TracesMetricType!]!, $group_by: [String!]!) {
-  traces_histogram(
+query GetTracesMetrics($project_id: ID!, $params: QueryInput!, $metric_types: [TracesMetricType!]!, $group_by: [String!]!, $bucket_count: Int!) {
+  traces_metrics(
     project_id: $project_id
     params: $params
     metric_types: $metric_types
     group_by: $group_by
+    bucket_count: $bucket_count
   ) {
     buckets {
       bucket_id
@@ -81,7 +82,10 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
       options.targets.map(async (target) => {
         const response = await getBackendSrv().post<{
           data: {
-            traces_metrics: { buckets: Bucket[] };
+            traces_metrics: {
+              buckets: Bucket[];
+              bucket_count: number;
+            };
           };
           errors?: Error[];
         }>(
@@ -99,6 +103,7 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
                   end_date: to.toISOString(),
                 },
               },
+              bucket_count: 749,
             },
             query: GET_TRACES_METRICS,
           }),
@@ -108,30 +113,41 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
           throw response.errors.map((e) => JSON.stringify(e)).join(', ');
         }
 
+        const bucketIds = Array.from({ length: response.data.traces_metrics.bucket_count }, (_, index) => index);
+
         const fields: any = [
           {
             name: 'Time',
-            values: response.data.traces_metrics.buckets.map(
-              (b) =>
+            values: bucketIds.map(
+              (bucket_id) =>
                 new Date(
                   from.valueOf() +
-                    (b.bucket_id / response.data.traces_metrics.buckets.length) * (to.valueOf() - from.valueOf())
+                    (bucket_id / response.data.traces_metrics.bucket_count) * (to.valueOf() - from.valueOf())
                 )
             ),
             type: FieldType.time,
           },
         ];
+
         for (const metricType of new Set(response.data.traces_metrics.buckets.map((b) => b.metric_type))) {
           for (const metricGroup of new Set(response.data.traces_metrics.buckets.map((b) => b.group.join('-')))) {
+            const values: Array<number | undefined> = Array.from(
+              { length: response.data.traces_metrics.bucket_count },
+              () => undefined
+            );
+
+            response.data.traces_metrics.buckets
+              .filter((b) => b.metric_type === metricType && b.group.join('-') === metricGroup)
+              .forEach((b) => (values[b.bucket_id] = b.metric_value));
+
             fields.push({
               name: [metricType, metricGroup].filter((s) => s).join('.'),
-              values: response.data.traces_metrics.buckets
-                .filter((b) => b.metric_type === metricType && b.group.join('-') === metricGroup)
-                .map((b) => b.metric_value),
+              values: values,
               type: FieldType.number,
             });
           }
         }
+
         return new MutableDataFrame({
           refId: target.refId,
           fields,
