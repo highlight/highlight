@@ -101,7 +101,8 @@ const Navbar = ({
 					<p
 						style={{
 							display: 'inline-block',
-							animation: 'scroll-text 10s linear infinite',
+							animation:
+								'scroll-text 10s linear infinite alternate',
 						}}
 					>
 						Got a startup? Apply for free Highlight credits!
