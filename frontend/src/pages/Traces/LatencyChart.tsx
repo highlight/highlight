@@ -15,9 +15,9 @@ const LINE_COLORS: Map<string, string> = new Map([
 ])
 
 const LOADING_LINE_COLORS: Map<string, string> = new Map([
-	['avg', '#ccc'],
-	['p50', '#ddd'],
-	['p90', '#eee'],
+	['avg', '#eee'],
+	['p50', '#eaeaea'],
+	['p90', '#efefef'],
 ])
 
 interface Props {
@@ -177,7 +177,7 @@ const LoadingLatencyGraph = () => {
 	)
 
 	return (
-		<ResponsiveContainer>
+		<ResponsiveContainer width="100%" height="100%">
 			<LineChart data={metricsBuckets}>
 				{(metricsBuckets.length > 0
 					? Object.keys(metricsBuckets[0])
