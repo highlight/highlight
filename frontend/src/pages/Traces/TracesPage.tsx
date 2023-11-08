@@ -221,7 +221,10 @@ export const TracesPage: React.FC = () => {
 							<Text cssClass={styles.chartText} size="xSmall">
 								Latency
 							</Text>
-							<LatencyChart metricsBuckets={metricsBuckets} />
+							<LatencyChart
+								loading={metricsLoading}
+								metricsBuckets={metricsBuckets}
+							/>
 						</Box>
 					</Box>
 
