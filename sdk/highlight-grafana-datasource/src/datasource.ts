@@ -108,7 +108,6 @@ export class DataSource extends DataSourceApi<HighlightQuery, HighlightDataSourc
                 },
               },
               column: target.column,
-              bucket_count: 749,
             },
             query: GET_TRACES_METRICS,
           }),
