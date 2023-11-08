@@ -91,10 +91,21 @@ const Navbar = ({
 				<Link
 					href="/startups"
 					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+					style={{
+						overflow: 'hidden',
+						whiteSpace: 'nowrap',
+						boxSizing: 'border-box',
+						fontFamily: 'Silkscreen',
+					}}
 				>
-					<Typography type="copy3">
+					<p
+						style={{
+							display: 'inline-block',
+							animation: 'scroll-text 10s linear infinite',
+						}}
+					>
 						Got a startup? Apply for free Highlight credits!
-					</Typography>
+					</p>
 				</Link>
 			)}
 			<div

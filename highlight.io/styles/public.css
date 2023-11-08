@@ -86,3 +86,12 @@
 		url('./font/FiraCode-VariableFont_wght.ttf')
 			format('truetype-variations');
 }
+
+@keyframes scroll-text {
+	0% {
+		transform: translateX(100%);
+	}
+	100% {
+		transform: translateX(-100%);
+	}
+}
