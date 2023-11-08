@@ -24,6 +24,7 @@ const TracesTable = "traces"
 const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
+const TraceMetricsTable = "trace_metrics"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
@@ -36,6 +37,7 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyDuration:        "Duration",
 	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
+	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
 }
 
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
@@ -300,7 +302,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	return traces, rows.Err()
 }
 
-func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string, nBuckets int) (*modelInputs.TracesMetrics, error) {
+func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column modelInputs.TracesMetricColumn, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int) (*modelInputs.TracesMetrics, error) {
 	if len(metricTypes) == 0 {
 		return nil, e.New("no metric types provided")
 	}
@@ -309,25 +311,43 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
 
+	metricColName := "Duration"
+	switch column {
+	case modelInputs.TracesMetricColumnMetricValue:
+		metricColName = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
+	}
+
 	fnStr := ""
 	for _, metricType := range metricTypes {
 		switch metricType {
-		case modelInputs.TracesMetricTypeCount:
+		case modelInputs.MetricAggregatorCount:
 			if useSampling {
 				fnStr += ", round(count() * any(_sample_factor))"
 			} else {
 				fnStr += ", toFloat64(count())"
 			}
-		case modelInputs.TracesMetricTypeCountDistinctKey:
+		case modelInputs.MetricAggregatorCountDistinctKey:
 			if useSampling {
 				fnStr += fmt.Sprintf(", round(count(distinct TraceAttributes['%s']) * any(_sample_factor))", highlight.TraceKeyAttribute)
 			} else {
 				fnStr += fmt.Sprintf(", toFloat64(count(distinct TraceAttributes['%s']))", highlight.TraceKeyAttribute)
 			}
-		case modelInputs.TracesMetricTypeP50:
-			fnStr += ", quantile(.5)(Duration)"
-		case modelInputs.TracesMetricTypeP90:
-			fnStr += ", quantile(.9)(Duration)"
+		case modelInputs.MetricAggregatorMin:
+			fnStr += fmt.Sprintf(", min(%s)", metricColName)
+		case modelInputs.MetricAggregatorAvg:
+			fnStr += fmt.Sprintf(", avg(%s)", metricColName)
+		case modelInputs.MetricAggregatorP50:
+			fnStr += fmt.Sprintf(", quantile(.5)(%s)", metricColName)
+		case modelInputs.MetricAggregatorP90:
+			fnStr += fmt.Sprintf(", quantile(.9)(%s)", metricColName)
+		case modelInputs.MetricAggregatorP95:
+			fnStr += fmt.Sprintf(", quantile(.95)(%s)", metricColName)
+		case modelInputs.MetricAggregatorP99:
+			fnStr += fmt.Sprintf(", quantile(.99)(%s)", metricColName)
+		case modelInputs.MetricAggregatorMax:
+			fnStr += fmt.Sprintf(", max(%s)", metricColName)
+		case modelInputs.MetricAggregatorSum:
+			fnStr += fmt.Sprintf(", sum(%s)", metricColName)
 		}
 	}
 
@@ -447,6 +467,10 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+}
+
+func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {

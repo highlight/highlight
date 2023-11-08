@@ -1616,28 +1616,6 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetMetricsHistogramQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	metric_name: Types.Scalars['String']
-	params: Types.HistogramParamsInput
-}>
-
-export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
-	metrics_histogram?: Types.Maybe<
-		{ __typename?: 'HistogramPayload' } & Pick<
-			Types.HistogramPayload,
-			'min' | 'max'
-		> & {
-				buckets: Array<
-					{ __typename?: 'HistogramBucket' } & Pick<
-						Types.HistogramBucket,
-						'bucket' | 'range_start' | 'range_end' | 'count'
-					>
-				>
-			}
-	>
-}
-
 export type GetNetworkHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.NetworkHistogramParamsInput
@@ -3515,7 +3493,7 @@ export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
 
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
@@ -3544,7 +3522,7 @@ export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetReferrersCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetReferrersCountQuery = { __typename?: 'Query' } & {
@@ -3560,7 +3538,7 @@ export type GetReferrersCountQuery = { __typename?: 'Query' } & {
 
 export type GetNewUsersCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
@@ -3571,7 +3549,7 @@ export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
 
 export type GetAverageSessionLengthQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
@@ -3585,7 +3563,7 @@ export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
 
 export type GetTopUsersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetTopUsersQuery = { __typename?: 'Query' } & {
@@ -3637,7 +3615,7 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
 
 export type GetRageClicksForProjectQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {
@@ -4850,7 +4828,8 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+	column: Types.TracesMetricColumn
+	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 }>
 
@@ -4892,7 +4871,6 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
-		GetMetricsHistogram: 'GetMetricsHistogram' as const,
 		GetNetworkHistogram: 'GetNetworkHistogram' as const,
 		GetSessionPayload: 'GetSessionPayload' as const,
 		GetCommentTagsForProject: 'GetCommentTagsForProject' as const,

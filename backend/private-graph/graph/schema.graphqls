@@ -893,6 +893,7 @@ enum ReservedLogKey {
 enum ReservedTraceKey {
 	level
 	message
+	metric
 	secure_session_id
 	span_id
 	trace_id
@@ -954,17 +955,29 @@ type LogsHistogram {
 	sampleFactor: Float!
 }
 
-enum TracesMetricType {
-	count
-	count_distinct_key
-	p50
-	p90
+enum MetricAggregator {
+	Count
+	CountDistinctKey
+	Min
+	Avg
+	P50
+	P90
+	P95
+	P99
+	Max
+	Sum
+}
+
+enum TracesMetricColumn {
+	Duration
+	MetricValue
 }
 
 type TracesMetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
-	metric_type: TracesMetricType!
+	column: TracesMetricColumn!
+	metric_type: MetricAggregator!
 	metric_value: Float!
 }
 
@@ -1029,24 +1042,13 @@ input SearchParamsInput {
 }
 
 input DashboardParamsInput {
-	date_range: DateRangeInput
+	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
 	timezone: String
 	units: String
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	filters: [MetricTagFilterInput!]
 	groups: [String!]
-}
-
-input HistogramParamsInput {
-	date_range: DateRangeInput
-	buckets: Int
-	min_value: Float
-	min_percentile: Float
-	max_value: Float
-	max_percentile: Float
-	units: String
-	filters: [MetricTagFilterInput!]
 }
 
 input ErrorGroupFrequenciesParamsInput {
@@ -1105,7 +1107,7 @@ enum NetworkRequestAttribute {
 }
 
 input NetworkHistogramParamsInput {
-	lookback_days: Int
+	lookback_days: Float!
 	attribute: NetworkRequestAttribute
 }
 
@@ -1574,7 +1576,7 @@ type Metric {
 type DashboardPayload {
 	date: String!
 	value: Float!
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	group: String
 }
 
@@ -1583,12 +1585,6 @@ type HistogramBucket {
 	range_start: Float!
 	range_end: Float!
 	count: Int!
-}
-
-type HistogramPayload {
-	buckets: [HistogramBucket!]!
-	min: Float!
-	max: Float!
 }
 
 type CategoryHistogramBucket {
@@ -1610,18 +1606,6 @@ enum DashboardChartType {
 	Timeline
 	TimelineBar
 	Histogram
-}
-
-enum MetricAggregator {
-	Avg
-	P50
-	P75
-	P90
-	P95
-	P99
-	Max
-	Count
-	Sum
 }
 
 input DashboardMetricConfigInput {
@@ -1788,7 +1772,7 @@ type Query {
 	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
 	rageClicksForProject(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): [RageClickEventForProject!]!
 	error_groups_clickhouse(
 		project_id: ID!
@@ -1864,16 +1848,16 @@ type Query {
 		use_clickhouse: Boolean
 	): [ErrorGroupTagAggregation!]!
 
-	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
-	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
-	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+	referrers(project_id: ID!, lookback_days: Float!): [ReferrerTablePayload]!
+	newUsersCount(project_id: ID!, lookback_days: Float!): NewUsersCount
+	topUsers(project_id: ID!, lookback_days: Float!): [TopUsersPayload]!
 	averageSessionLength(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): AverageSessionLength
 	userFingerprintCount(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): UserFingerprintCount
 	sessions_clickhouse(
 		project_id: ID!
@@ -1998,11 +1982,6 @@ type Query {
 		metric_name: String!
 		params: DashboardParamsInput!
 	): [DashboardPayload]!
-	metrics_histogram(
-		project_id: ID!
-		metric_name: String!
-		params: HistogramParamsInput!
-	): HistogramPayload
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!
@@ -2062,7 +2041,8 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		metric_types: [TracesMetricType!]!
+		column: TracesMetricColumn!
+		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 	): TracesMetrics!
 	traces_keys(

@@ -19,7 +19,7 @@ export const HOME_DASHBOARD_CONFIGURATION: {
 		name: 'sessions',
 		description: 'Sessions',
 		chart_type: DashboardChartType.TimelineBar,
-		aggregator: MetricAggregator.Sum,
+		aggregator: MetricAggregator.CountDistinctKey,
 	},
 	Errors: {
 		name: 'errors',

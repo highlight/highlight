@@ -327,8 +327,8 @@ export type DashboardMetricConfigInput = {
 }
 
 export type DashboardParamsInput = {
-	aggregator?: InputMaybe<MetricAggregator>
-	date_range?: InputMaybe<DateRangeInput>
+	aggregator: MetricAggregator
+	date_range: DateRangeRequiredInput
 	filters?: InputMaybe<Array<MetricTagFilterInput>>
 	groups?: InputMaybe<Array<Scalars['String']>>
 	resolution_minutes?: InputMaybe<Scalars['Int']>
@@ -338,7 +338,7 @@ export type DashboardParamsInput = {
 
 export type DashboardPayload = {
 	__typename?: 'DashboardPayload'
-	aggregator?: Maybe<MetricAggregator>
+	aggregator: MetricAggregator
 	date: Scalars['String']
 	group?: Maybe<Scalars['String']>
 	value: Scalars['Float']
@@ -722,24 +722,6 @@ export type HistogramBucket = {
 	range_start: Scalars['Float']
 }
 
-export type HistogramParamsInput = {
-	buckets?: InputMaybe<Scalars['Int']>
-	date_range?: InputMaybe<DateRangeInput>
-	filters?: InputMaybe<Array<MetricTagFilterInput>>
-	max_percentile?: InputMaybe<Scalars['Float']>
-	max_value?: InputMaybe<Scalars['Float']>
-	min_percentile?: InputMaybe<Scalars['Float']>
-	min_value?: InputMaybe<Scalars['Float']>
-	units?: InputMaybe<Scalars['String']>
-}
-
-export type HistogramPayload = {
-	__typename?: 'HistogramPayload'
-	buckets: Array<HistogramBucket>
-	max: Scalars['Float']
-	min: Scalars['Float']
-}
-
 export enum IngestReason {
 	Filter = 'Filter',
 	Rate = 'Rate',
@@ -971,9 +953,10 @@ export type Metric = {
 export enum MetricAggregator {
 	Avg = 'Avg',
 	Count = 'Count',
+	CountDistinctKey = 'CountDistinctKey',
 	Max = 'Max',
+	Min = 'Min',
 	P50 = 'P50',
-	P75 = 'P75',
 	P90 = 'P90',
 	P95 = 'P95',
 	P99 = 'P99',
@@ -1671,7 +1654,7 @@ export type NamedCount = {
 
 export type NetworkHistogramParamsInput = {
 	attribute?: InputMaybe<NetworkRequestAttribute>
-	lookback_days?: InputMaybe<Scalars['Int']>
+	lookback_days: Scalars['Float']
 }
 
 export enum NetworkRequestAttribute {
@@ -1845,7 +1828,6 @@ export type Query = {
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
-	metrics_histogram?: Maybe<HistogramPayload>
 	metrics_timeline: Array<Maybe<DashboardPayload>>
 	network_histogram?: Maybe<CategoryHistogramPayload>
 	newUsersCount?: Maybe<NewUsersCount>
@@ -1937,7 +1919,7 @@ export type QueryApp_Version_SuggestionArgs = {
 }
 
 export type QueryAverageSessionLengthArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2285,12 +2267,6 @@ export type QueryMetric_TagsArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryMetrics_HistogramArgs = {
-	metric_name: Scalars['String']
-	params: HistogramParamsInput
-	project_id: Scalars['ID']
-}
-
 export type QueryMetrics_TimelineArgs = {
 	metric_name: Scalars['String']
 	params: DashboardParamsInput
@@ -2303,7 +2279,7 @@ export type QueryNetwork_HistogramArgs = {
 }
 
 export type QueryNewUsersCountArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2342,7 +2318,7 @@ export type QueryProperty_SuggestionArgs = {
 }
 
 export type QueryRageClicksForProjectArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2355,7 +2331,7 @@ export type QueryRage_ClicksArgs = {
 }
 
 export type QueryReferrersArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2458,7 +2434,7 @@ export type QueryTimeline_Indicator_EventsArgs = {
 }
 
 export type QueryTopUsersArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2492,8 +2468,9 @@ export type QueryTraces_KeysArgs = {
 }
 
 export type QueryTraces_MetricsArgs = {
+	column: TracesMetricColumn
 	group_by: Array<Scalars['String']>
-	metric_types: Array<TracesMetricType>
+	metric_types: Array<MetricAggregator>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2507,7 +2484,7 @@ export type QueryUnprocessedSessionsCountArgs = {
 }
 
 export type QueryUserFingerprintCountArgs = {
-	lookBackPeriod: Scalars['Int']
+	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
 }
 
@@ -2638,6 +2615,7 @@ export enum ReservedTraceKey {
 	Duration = 'duration',
 	Level = 'level',
 	Message = 'message',
+	Metric = 'metric',
 	ParentSpanId = 'parent_span_id',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
@@ -3205,16 +3183,15 @@ export type TracePayload = {
 export type TracesMetricBucket = {
 	__typename?: 'TracesMetricBucket'
 	bucket_id: Scalars['UInt64']
+	column: TracesMetricColumn
 	group: Array<Scalars['String']>
-	metric_type: TracesMetricType
+	metric_type: MetricAggregator
 	metric_value: Scalars['Float']
 }
 
-export enum TracesMetricType {
-	Count = 'count',
-	CountDistinctKey = 'count_distinct_key',
-	P50 = 'p50',
-	P90 = 'p90',
+export enum TracesMetricColumn {
+	Duration = 'Duration',
+	MetricValue = 'MetricValue',
 }
 
 export type TracesMetrics = {

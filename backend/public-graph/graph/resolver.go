@@ -20,6 +20,7 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/google/uuid"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -32,14 +33,12 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/private-graph/graph"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -63,7 +62,6 @@ import (
 
 type Resolver struct {
 	DB               *gorm.DB
-	TDB              timeseries.DB
 	ProducerQueue    kafka_queue.MessageQueue
 	BatchedQueue     kafka_queue.MessageQueue
 	DataSyncQueue    kafka_queue.MessageQueue
@@ -1203,6 +1201,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, session.SecureID),
 	)
 	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
 		{
@@ -1512,6 +1511,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, session.Identifier),
 	}
 	for k, v := range allUserProperties {
 		hTags = append(hTags, attribute.String(k, v))
@@ -1951,6 +1951,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 	sessionID := session.ID
 	projectID := session.ProjectID
 
+	var traceRows []*clickhouse.TraceRow
 	metricsByGroup := make(map[string][]*publicModel.MetricInput)
 	for _, m := range metrics {
 		group := ""
@@ -1961,13 +1962,35 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			metricsByGroup[group] = []*publicModel.MetricInput{}
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
+
+		attributes := map[string]string{}
+		for _, t := range m.Tags {
+			attributes[t.Name] = t.Value
+		}
+		if m.Category != nil {
+			attributes["category"] = *m.Category
+		}
+		if m.Group != nil {
+			attributes["group"] = *m.Group
+		}
+
+		event := map[string]any{
+			"Name":       "metric",
+			"Timestamp":  m.Timestamp,
+			"Attributes": map[string]any{"metric.name": m.Name, "metric.value": m.Value},
+		}
+		traceRows = append(traceRows, clickhouse.NewTraceRow(m.Timestamp, projectID).
+			WithSecureSessionId(session.SecureID).
+			WithTraceId(uuid.New().String()).
+			WithSpanName("highlight-metric").
+			WithServiceName(session.ServiceName).
+			WithServiceVersion(ptr.ToString(session.AppVersion)).
+			WithTraceAttributes(attributes).
+			WithEvents([]map[string]any{event}))
 	}
-	var points []timeseries.Point
-	var aggregatePoints []timeseries.Point
 	for groupName, metricInputs := range metricsByGroup {
 		var mg *model.MetricGroup
 		var newMetrics []*model.Metric
-		downsampledMetric := false
 		firstTime := time.Time{}
 		fields := map[string]interface{}{}
 		tags := map[string]string{
@@ -2027,39 +2050,26 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			for _, t := range m.Tags {
 				tags[t.Name] = t.Value
 			}
-			// the SessionActiveMetricName metric has a ts of the session creation but is
-			// written when the session is processed which may be a long time after
-			// the session is created. this would mean that the downsample task does not
-			// see the metric, causing it to be lost. instead, write it directly to the
-			// downsampled bucket.
-			downsampledMetric = downsampledMetric || m.Name == graph.SessionActiveMetricName
 		}
+		// TODO(vkorolik) we should query session metrics from CH as well
 		if len(newMetrics) > 0 {
 			if err := r.DB.Create(&newMetrics).Error; err != nil {
 				return err
 			}
 		}
-		if downsampledMetric {
-			aggregatePoints = append(aggregatePoints, timeseries.Point{
-				Time:   firstTime,
-				Tags:   tags,
-				Fields: fields,
-			})
-		} else {
-			points = append(points, timeseries.Point{
-				Time:   firstTime,
-				Tags:   tags,
-				Fields: fields,
-			})
-		}
 	}
-	if len(points) > 0 {
-		r.TDB.Write(ctx, strconv.Itoa(projectID), timeseries.Metrics, points)
+
+	// TODO(vkorolik) write to an actual metrics table
+	var messages []*kafka_queue.Message
+	for _, traceRow := range traceRows {
+		messages = append(messages, &kafka_queue.Message{
+			Type: kafka_queue.PushTraces,
+			PushTraces: &kafka_queue.PushTracesArgs{
+				TraceRow: traceRow,
+			},
+		})
 	}
-	if len(aggregatePoints) > 0 {
-		r.TDB.Write(ctx, strconv.Itoa(projectID), timeseries.Metric.AggName, aggregatePoints)
-	}
-	return nil
+	return r.TracesQueue.Submit(ctx, "", messages...)
 }
 
 func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorObject) []*model.ErrorField {
@@ -2252,18 +2262,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 	}
 
-	influxSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.recordErrorGroupMetrics", util.ResourceName("influx.errors"))
-	for groupID, errorObjects := range groupedErrors {
-		errorGroup := groups[groupID].Group
-		if err := r.RecordErrorGroupMetrics(spanCtx, errorGroup, errorObjects); err != nil {
-			log.WithContext(spanCtx).WithFields(log.Fields{
-				"project_id":     projectID,
-				"error_group_id": groupID,
-			}).Error(err)
-		}
-	}
-	influxSpan.Finish()
-
 	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
 		eSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
 			util.ResourceName("BatchGenerateEmbeddings"))
@@ -2273,42 +2271,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		eSpan.Finish(err)
 	}
 	putErrorsToDBSpan.Finish()
-}
-
-func (r *Resolver) RecordErrorGroupMetrics(ctx context.Context, errorGroup *model.ErrorGroup, errors []*model.ErrorObject) error {
-	var points []timeseries.Point
-	sessions := make(map[int]*model.Session)
-	for _, e := range errors {
-		if e.SessionID == nil {
-			continue
-		}
-		if _, ok := sessions[*e.SessionID]; !ok {
-			sess, err := r.Store.GetSession(ctx, *e.SessionID)
-			if err != nil {
-				return err
-			}
-			sessions[*e.SessionID] = sess
-		}
-		tags := map[string]string{
-			"ErrorGroupID": strconv.Itoa(errorGroup.ID),
-			"SessionID":    strconv.Itoa(*e.SessionID),
-		}
-		identifier := sessions[*e.SessionID].Identifier
-		if identifier == "" {
-			identifier = sessions[*e.SessionID].ClientID
-		}
-		fields := map[string]interface{}{
-			"Environment": e.Environment,
-			"Identifier":  identifier,
-		}
-		points = append(points, timeseries.Point{
-			Time:   e.Timestamp,
-			Tags:   tags,
-			Fields: fields,
-		})
-	}
-	r.TDB.Write(ctx, strconv.Itoa(errorGroup.ProjectID), timeseries.Errors, points)
-	return nil
 }
 
 // Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
@@ -2770,18 +2732,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 		}
 
-		influxSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("influx.errors"))
-		for groupID, errorObjects := range groupedErrors {
-			errorGroup := groups[groupID].Group
-			if err := r.RecordErrorGroupMetrics(spanCtx, errorGroup, errorObjects); err != nil {
-				log.WithContext(spanCtx).WithFields(log.Fields{
-					"project_id":     projectID,
-					"error_group_id": groupID,
-				}).Error(err)
-			}
-		}
-		influxSpan.Finish()
-
 		var newInstances []*model.ErrorObject
 		for _, errorInstances := range groupedErrors {
 			newInstances = append(newInstances, errorInstances...)
@@ -3053,6 +3003,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			attribute.Int(highlight.ProjectIDAttribute, sessionObj.ProjectID),
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, re.RequestResponsePairs.Request.ID),
+			attribute.String(highlight.TraceKeyAttribute, re.Name),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURLKey.String(re.Name),
