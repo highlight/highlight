@@ -33,7 +33,7 @@ jobs:
             - name: Check for GORM Debug
               run: if [ "$(grep --exclude-dir migrations -rE 'DB.[\s\n]*Debug\(\)' ./backend | wc -l)" -gt 0 ]; then grep --exclude-dir migrations -rE 'DB.[\s\n]*Debug\(\)' ./backend && exit 1; fi
             - name: Check for GORM usage without context
-              run: if [ "$(grep --exclude "*_test.go" -rE -i 'db\.(Where|Model|Raw|Create|Update|Preload)' ./backend/{public-graph,private-graph,worker} | grep -v 'WithContext' | wc -l)" -gt 0 ]; then grep --exclude "*_test.go" -rE -i 'db\.(Where|Model|Raw|Create|Update|Preload)' ./backend/{public-graph,private-graph,worker} | grep -v 'WithContext' && exit 1; fi
+              run: if [ "$(grep --exclude "*_test.go" -rE '(?i:db)\.(Where|Model|Raw|Create|Update|Preload)' ./backend/{public-graph,private-graph,worker,store,pricing} | grep -v 'WithContext' | wc -l)" -gt 0 ]; then grep --exclude "*_test.go" -rE '(?i:db)\.(Where|Model|Raw|Create|Update|Preload)' ./backend/{public-graph,private-graph,worker,store,pricing} | grep -v 'WithContext' && exit 1; fi
             - name: Check for logrus without context
               run: if [ "$(grep --exclude-dir migrations --exclude main.go --exclude recovery.go --exclude logging.go -rE '\s+log\.(Debug|Info|Warn|Error|Fatal)' ./backend | grep -v 'WithContext' | grep -v 'Level' | wc -l)" -gt 0 ]; then grep --exclude-dir migrations --exclude main.go --exclude recovery.go --exclude logging.go -rE '\s+log\.(Debug|Info|Warn|Error|Fatal)' ./backend | grep -v 'WithContext' | grep -v 'Level' && exit 1; fi
             - name: Run linter
