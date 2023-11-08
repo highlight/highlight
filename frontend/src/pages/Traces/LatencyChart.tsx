@@ -152,7 +152,7 @@ export const LatencyChart = ({ loading, metricsBuckets }: Props) => {
 						dataKey={key}
 						stroke={LINE_COLORS.get(key)}
 						strokeWidth={2}
-						animationDuration={100}
+						animationDuration={0}
 						dot={false}
 						connectNulls
 					/>
