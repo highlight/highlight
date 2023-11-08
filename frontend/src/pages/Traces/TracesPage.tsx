@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import LoadingBox from '@/components/LoadingBox'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -189,6 +190,7 @@ export const TracesPage: React.FC = () => {
 							padding="8"
 							paddingBottom="4"
 							borderRight="dividerWeak"
+							position="relative"
 						>
 							<Box
 								display="flex"
@@ -197,12 +199,13 @@ export const TracesPage: React.FC = () => {
 								paddingBottom="4"
 							>
 								{metricsLoading ? (
-									<Text
+									<LoadingBox
+										height="auto"
+										width="auto"
+										position="absolute"
 										size="xSmall"
-										color="secondaryContentOnDisabled"
-									>
-										Loading
-									</Text>
+										style={{ top: 0, left: 0, zIndex: 1 }}
+									/>
 								) : (
 									<Text size="xSmall">Traces</Text>
 								)}
@@ -230,14 +233,16 @@ export const TracesPage: React.FC = () => {
 							padding="8"
 							paddingBottom="4"
 							cssClass={styles.chart}
+							position="relative"
 						>
 							{metricsLoading ? (
-								<Text
+								<LoadingBox
+									height="auto"
+									width="auto"
+									position="absolute"
 									size="xSmall"
-									color="secondaryContentOnDisabled"
-								>
-									Loading
-								</Text>
+									style={{ top: 0, left: 0, zIndex: 1 }}
+								/>
 							) : (
 								<Text cssClass={styles.chartText} size="xSmall">
 									Latency
