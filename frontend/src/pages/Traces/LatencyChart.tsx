@@ -1,4 +1,4 @@
-import { Box } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import clsx from 'clsx'
 import { useState } from 'react'
 import { Legend, Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'
@@ -59,27 +59,33 @@ const CustomLegend = ({
 							}
 						})
 					}}
-					className="flex items-center gap-x-1 overflow-hidden p-0 text-xs text-gray-500"
+					style={{
+						padding: 4,
+					}}
 				>
-					<div
-						className={clsx(styles.legendIcon, {
-							[styles.notShowingIcon]: !dataTypesToShow.includes(
-								entry.value,
-							),
-						})}
-						style={{
-							background: entry.color,
-						}}
-					></div>
-					<span
-						className={clsx(styles.legendValue, {
-							[styles.notShowingValue]: !dataTypesToShow.includes(
-								entry.value,
-							),
-						})}
-					>
-						{entry.value}
-					</span>
+					<Stack gap="2" direction="row">
+						<Box
+							cssClass={clsx(styles.legendIcon, {
+								[styles.notShowingIcon]:
+									!dataTypesToShow.includes(entry.value),
+							})}
+							style={{
+								background: entry.color,
+							}}
+						/>
+
+						<Text
+							size="xSmall"
+							color="secondaryContentText"
+							decoration={
+								!dataTypesToShow.includes(entry.value)
+									? 'line-through'
+									: undefined
+							}
+						>
+							{entry.value}
+						</Text>
+					</Stack>
 				</Button>
 			))}
 		</Box>
