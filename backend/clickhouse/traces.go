@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	"strconv"
 	"time"
+
+	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"golang.org/x/exp/slices"
@@ -25,6 +26,7 @@ const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
 const TraceMetricsTable = "trace_metrics"
+const TracesByIdTable = "traces_by_id"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
@@ -245,7 +247,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	var err error
 	var args []interface{}
 
-	sb.From("traces").
+	sb.From(TracesByIdTable).
 		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID))
