@@ -6,14 +6,12 @@ import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import styles from '../components/Home/Home.module.scss'
 
-import HeroBugLeft from '../public/images/hero-bug-left.gif'
-import HeroBugRight from '../public/images/hero-bug-right.gif'
 import LandingInfoRowSecurity from '../public/images/landingInfoRowSecurity.png'
 
 import { Collapse } from 'antd'
 import classNames from 'classnames'
 import Link from 'next/link'
-import { AnimateBugLeft, AnimateBugRight } from '../components/Animate'
+import { FaPlay } from 'react-icons/fa'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToAction'
 import Footer from '../components/common/Footer/Footer'
@@ -26,7 +24,6 @@ import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarou
 import LandingInfoRow from '../components/Home/LandingInfoRow'
 import { Review } from '../components/Home/Reviews'
 import InfoRow from '../components/Products/InfoRow'
-import { FaPlay } from 'react-icons/fa'
 
 const IMAGE_SHOW_OFFSET = 450
 
@@ -154,26 +151,6 @@ const Home: NextPage = () => {
 			<Navbar />
 			<main>
 				<Section className={styles.heroVideoWrapper}>
-					<AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}>
-						<div className={styles.heroBug}>
-							<Image
-								src={HeroBugLeft}
-								alt="bug left"
-								onLoadingComplete={() => setLeftBugLoaded(true)}
-							/>
-						</div>
-					</AnimateBugLeft>
-					<AnimateBugRight loaded={leftBugLoaded && rightBugLoaded}>
-						<div className={styles.heroBug}>
-							<Image
-								src={HeroBugRight}
-								alt="bug right"
-								onLoadingComplete={() =>
-									setRightBugLoaded(true)
-								}
-							/>
-						</div>
-					</AnimateBugRight>
 					<div className={styles.anchorFeature}>
 						<h2
 							className={classNames(
