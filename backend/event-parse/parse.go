@@ -20,6 +20,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
@@ -425,7 +426,17 @@ var excludedMediaURLQueryParams = map[string]bool{
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client) (map[string]string, error) {
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client, store *store.Store) (map[string]string, error) {
+	project, err := store.GetProject(ctx, projectId)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
 	urlMap := make(map[string]string)
 	for _, u := range lo.Uniq(originalUrls) {
@@ -537,7 +548,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					hashVal = strings.ReplaceAll(hashVal, "+", "_")
 					hashVal = strings.ReplaceAll(hashVal, "=", "~")
 					contentType := response.Header.Get("Content-Type")
-					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file)
+					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file, workspace.GetRetentionPeriod())
 					if err != nil {
 						return errors.Wrap(err, "error uploading asset")
 					}
@@ -656,9 +667,9 @@ lexerLoop:
 	return
 }
 
-func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client) error {
+func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client, store *store.Store) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
-	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis)
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis, store)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}

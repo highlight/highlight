@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
 )
 
@@ -156,7 +157,7 @@ func main() {
 					if err := writer.Close(); err != nil {
 						log.WithContext(ctx).Error(errors.Wrap(err, "ZANE_MIGRATION error closing TimelineIndicatorEvents writer"))
 					}
-					if _, err := storageClient.PushCompressedFile(context.Background(), sessionId, projectId, f, storage.TimelineIndicatorEvents); err != nil {
+					if _, err := storageClient.PushCompressedFile(context.Background(), sessionId, projectId, f, storage.TimelineIndicatorEvents, modelInputs.RetentionPeriodSixMonths); err != nil {
 						return errors.Wrap(err, "error pushing to s3")
 					}
 					if err := f.Close(); err != nil {

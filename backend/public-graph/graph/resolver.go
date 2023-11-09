@@ -2508,7 +2508,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 					// Replace any static resources with our own, hosted in S3
 					if settings != nil && settings.ReplaceAssets {
-						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
+						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis, r.Store)
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}

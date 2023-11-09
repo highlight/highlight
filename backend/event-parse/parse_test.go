@@ -231,7 +231,7 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
 		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 	}
-	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient()); err != nil {
+	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient(), nil); err != nil {
 		t.Fatalf("failed to replace assets %+v", err)
 	}
 
