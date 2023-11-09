@@ -204,14 +204,14 @@ func (k *KafkaBatchWorker) getQuotaExceededByProject(ctx context.Context, projec
 		}
 
 		var workspace model.Workspace
-		if err := k.Worker.Resolver.DB.Model(&workspace).
+		if err := k.Worker.Resolver.DB.WithContext(ctx).Model(&workspace).
 			Where("id = ?", project.WorkspaceID).Find(&workspace).Error; err != nil {
 			log.WithContext(ctxW).Error(e.Wrap(err, "error querying workspace"))
 			continue
 		}
 
 		projects := []model.Project{}
-		if err := k.Worker.Resolver.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+		if err := k.Worker.Resolver.DB.WithContext(ctx).Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
 			log.WithContext(ctxW).Error(e.Wrap(err, "error querying associated projects"))
 			continue
 		}
@@ -390,7 +390,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		for _, chunk := range sessionIdChunks {
 			sessionObjs := []*model.Session{}
 			sessionSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readSessions", k.Name)))
-			if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Preload("ViewedByAdmins").Where("id in ?", chunk).Find(&sessionObjs).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.Session{}).Preload("ViewedByAdmins").Where("id in ?", chunk).Find(&sessionObjs).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}
@@ -398,7 +398,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 
 			fieldObjs := []*model.Field{}
 			fieldSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readFields", k.Name)))
-			if err := k.Worker.PublicResolver.DB.Model(&model.Field{}).Where("id IN (SELECT field_id FROM session_fields sf WHERE sf.session_id IN ?)", chunk).Find(&fieldObjs).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.Field{}).Where("id IN (SELECT field_id FROM session_fields sf WHERE sf.session_id IN ?)", chunk).Find(&fieldObjs).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}
@@ -413,7 +413,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 			}
 			sessionFieldObjs := []*sessionField{}
 			sessionFieldSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readSessionFields", k.Name)))
-			if err := k.Worker.PublicResolver.DB.Table("session_fields").Where("session_id IN ?", chunk).Find(&sessionFieldObjs).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Table("session_fields").Where("session_id IN ?", chunk).Find(&sessionFieldObjs).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}
@@ -438,7 +438,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 					session.Excluded = true
 					session.ExcludedReason = &reason
 					span.SetAttribute("reason", session.ExcludedReason)
-					if err := k.Worker.PublicResolver.DB.Model(&model.Session{Model: model.Model{ID: session.ID}}).
+					if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: session.ID}}).
 						Select("Excluded", "ExcludedReason").Updates(&session).Error; err != nil {
 						return err
 					}
@@ -465,7 +465,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		for _, chunk := range errorGroupIdChunks {
 			errorGroups := []*model.ErrorGroup{}
 			errorGroupSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorGroups"))
-			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorGroup{}).Joins("ErrorTag").Where("error_groups.id in ?", chunk).Find(&errorGroups).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.ErrorGroup{}).Joins("ErrorTag").Where("error_groups.id in ?", chunk).Find(&errorGroups).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}
@@ -488,7 +488,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		for _, chunk := range errorObjectIdChunks {
 			errorObjects := []*model.ErrorObject{}
 			errorObjectSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorObjects"))
-			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorObject{}).Where("id in ?", chunk).Find(&errorObjects).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.ErrorObject{}).Where("id in ?", chunk).Find(&errorObjects).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}
@@ -507,7 +507,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		for _, chunk := range sessionIdChunks {
 			sessions := []*model.Session{}
 			sessionSpan, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorObjectSessions"))
-			if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Where("id in ?", chunk).Find(&sessions).Error; err != nil {
+			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.Session{}).Where("id in ?", chunk).Find(&sessions).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
 			}

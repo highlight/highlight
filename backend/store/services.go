@@ -43,7 +43,7 @@ func (store *Store) UpsertService(ctx context.Context, project model.Project, na
 			return nil, err
 		}
 
-		err = store.db.Model(&model.Service{}).Where(model.Service{
+		err = store.db.WithContext(ctx).Model(&model.Service{}).Where(model.Service{
 			Name:      name,
 			ProjectID: project.ID,
 		}).Take(&service).Error
@@ -56,7 +56,7 @@ func (store *Store) FindService(ctx context.Context, projectID int, name string)
 	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, projectID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
 		service := model.Service{}
 
-		err := store.db.Where(&model.Service{
+		err := store.db.WithContext(ctx).Where(&model.Service{
 			ProjectID: projectID,
 			Name:      name,
 		}).Take(&service).Error
@@ -66,7 +66,7 @@ func (store *Store) FindService(ctx context.Context, projectID int, name string)
 }
 
 func (store *Store) UpdateServiceErrorState(ctx context.Context, serviceID int, errorDetails []string) error {
-	err := store.db.Model(&model.Service{Model: model.Model{ID: serviceID}}).Updates(&model.Service{
+	err := store.db.WithContext(ctx).Model(&model.Service{Model: model.Model{ID: serviceID}}).Updates(&model.Service{
 		Status: "error", ErrorDetails: errorDetails}).Error
 
 	return err
@@ -93,7 +93,7 @@ func (store *Store) ListServices(project model.Project, params ListServicesParam
 
 	var services []model.Service
 
-	query := store.db.Where(&model.Service{ProjectID: project.ID}).Limit(SERVICE_LIMIT + 1)
+	query := store.db.WithContext(context.TODO()).Where(&model.Service{ProjectID: project.ID}).Limit(SERVICE_LIMIT + 1)
 
 	if params.Query != nil {
 		filters := queryparser.Parse(*params.Query)

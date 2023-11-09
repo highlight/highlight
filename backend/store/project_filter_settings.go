@@ -3,9 +3,10 @@ package store
 import (
 	"context"
 	"fmt"
+	"time"
+
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
-	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 )
@@ -17,7 +18,7 @@ func getKey(projectID int) string {
 func (store *Store) GetProjectFilterSettings(ctx context.Context, projectID int, opts ...redis.Option) (*model.ProjectFilterSettings, error) {
 	return redis.CachedEval(ctx, store.redis, getKey(projectID), 250*time.Millisecond, time.Minute, func() (*model.ProjectFilterSettings, error) {
 		var projectFilterSettings model.ProjectFilterSettings
-		if err := store.db.Where(&model.ProjectFilterSettings{ProjectID: projectID}).FirstOrCreate(&projectFilterSettings).Error; err != nil {
+		if err := store.db.WithContext(ctx).Where(&model.ProjectFilterSettings{ProjectID: projectID}).FirstOrCreate(&projectFilterSettings).Error; err != nil {
 			return nil, err
 		}
 		return &projectFilterSettings, nil
@@ -100,7 +101,7 @@ func (store *Store) UpdateProjectFilterSettings(ctx context.Context, projectID i
 
 func (store *Store) FindProjectsWithAutoResolveSetting() ([]*model.ProjectFilterSettings, error) {
 	var projectFilterSettings []*model.ProjectFilterSettings
-	if err := store.db.Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings).Error; err != nil {
+	if err := store.db.WithContext(context.TODO()).Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings).Error; err != nil {
 		return nil, err
 	}
 	return projectFilterSettings, nil

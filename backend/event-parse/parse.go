@@ -460,7 +460,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			dateTrunc,
 		}
 	})
-	if err := db.Where("(project_id, original_url, date) IN ?", keys).Find(&results).Error; err != nil {
+	if err := db.WithContext(ctx).Where("(project_id, original_url, date) IN ?", keys).Find(&results).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying saved assets")
 	}
 
