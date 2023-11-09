@@ -63,7 +63,7 @@ export const TracesList: React.FC<Props> = ({
 							<Table.Header>Secure Session ID</Table.Header>
 							<Table.Header>Timestamp</Table.Header>
 						</Table.Row>
-						{numMoreTraces !== undefined && (
+						{numMoreTraces !== undefined && numMoreTraces > 0 && (
 							<Table.Row>
 								<Box width="full">
 									<AdditionalFeedResults
