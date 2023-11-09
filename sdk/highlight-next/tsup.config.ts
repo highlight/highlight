@@ -14,4 +14,5 @@ export default defineConfig({
 	dts: true,
 	sourcemap: true,
 	noExternal: [],
+	external: ['next'],
 })
