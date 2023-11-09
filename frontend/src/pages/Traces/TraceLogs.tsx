@@ -1,7 +1,7 @@
 import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { LinkButton } from '@/components/LinkButton'
@@ -29,7 +29,6 @@ export const TraceLogs: React.FC = () => {
 	const { traceId } = useTrace()
 	const { projectId } = useProjectId()
 	const [query, setQuery] = useState('')
-	const tableContainerRef = useRef<HTMLDivElement>(null)
 
 	const {
 		logEdges,
@@ -113,17 +112,7 @@ export const TraceLogs: React.FC = () => {
 						fetchKeys={useGetLogsKeysQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
-					<Box
-						height="screen"
-						pt="4"
-						px="12"
-						pb="12"
-						overflowY="auto"
-						onScroll={(e) =>
-							fetchMoreWhenScrolled(e.target as HTMLDivElement)
-						}
-						ref={tableContainerRef}
-					>
+					<Box height="full" pt="4" px="12" pb="12">
 						{(!loading && logEdges.length === 0) || !traceId ? (
 							<NoLogsFound />
 						) : (
@@ -134,8 +123,8 @@ export const TraceLogs: React.FC = () => {
 								refetch={refetch}
 								loadingAfter={loadingAfter}
 								query={query}
-								tableContainerRef={tableContainerRef}
 								selectedCursor={undefined}
+								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 							/>
 						)}
 					</Box>
