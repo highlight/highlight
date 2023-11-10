@@ -141,8 +141,6 @@ export const TracesPage: React.FC = () => {
 		}, []),
 	})
 
-	console.log('::: moreTraces', numMoreTraces)
-
 	const histogramBuckets = metricsData?.traces_metrics.buckets
 		.filter((b) => b.metric_type === MetricAggregator.Count)
 		.map((b) => ({
