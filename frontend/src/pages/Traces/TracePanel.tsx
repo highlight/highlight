@@ -21,8 +21,13 @@ import { useParams } from '@/util/react-router/useParams'
 import * as styles from './TracePanel.css'
 
 export const TracePanel: React.FC = () => {
-	const { project_id: projectId, span_id: spanId } = useParams<{
+	const {
+		project_id: projectId,
+		trace_id: traceId,
+		span_id: spanId,
+	} = useParams<{
 		project_id: string
+		trace_id: string
 		span_id?: string
 	}>()
 	const navigate = useNavigate()
@@ -31,7 +36,6 @@ export const TracePanel: React.FC = () => {
 	const currentTraceIndex = traces.findIndex(
 		(trace) => trace.spanID === spanId,
 	)
-	const currentTrace = traces[currentTraceIndex]
 	const nextTrace = traces[currentTraceIndex + 1]
 	const previousTrace = traces[currentTraceIndex - 1]
 
@@ -123,7 +127,7 @@ export const TracePanel: React.FC = () => {
 			</Box>
 			<TraceProvider
 				projectId={projectId!}
-				traceId={currentTrace?.traceID}
+				traceId={traceId!}
 				spanId={spanId}
 			>
 				<TracePage />
