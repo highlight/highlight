@@ -10887,6 +10887,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@eslint/eslintrc@npm:^2.1.3":
+  version: 2.1.3
+  resolution: "@eslint/eslintrc@npm:2.1.3"
+  dependencies:
+    ajv: ^6.12.4
+    debug: ^4.3.2
+    espree: ^9.6.0
+    globals: ^13.19.0
+    ignore: ^5.2.0
+    import-fresh: ^3.2.1
+    js-yaml: ^4.1.0
+    minimatch: ^3.1.2
+    strip-json-comments: ^3.1.1
+  checksum: 5c6c3878192fe0ddffa9aff08b4e2f3bcc8f1c10d6449b7295a5f58b662019896deabfc19890455ffd7e60a5bd28d25d0eaefb2f78b2d230aae3879af92b89e5
+  languageName: node
+  linkType: hard
+
 "@eslint/js@npm:8.39.0":
   version: 8.39.0
   resolution: "@eslint/js@npm:8.39.0"
@@ -10912,6 +10929,13 @@ __metadata:
   version: 8.50.0
   resolution: "@eslint/js@npm:8.50.0"
   checksum: 302478f2acaaa7228729ec6a04f56641590185e1d8cd1c836a6db8a6b8009f80a57349341be9fbb9aa1721a7a569d1be3ffc598a33300d22816f11832095386c
+  languageName: node
+  linkType: hard
+
+"@eslint/js@npm:8.53.0":
+  version: 8.53.0
+  resolution: "@eslint/js@npm:8.53.0"
+  checksum: e0d5cfb0000aaee237c8e6d6d6e366faa60b1ef7f928ce17778373aa44d3b886368f6d5e1f97f913f0f16801aad016db8b8df78418c9d18825c15590328028af
   languageName: node
   linkType: hard
 
@@ -13513,6 +13537,7 @@ __metadata:
     "@types/node": ^20.8.7
     copy-webpack-plugin: ^11.0.0
     css-loader: ^6.7.3
+    eslint: ^8.53.0
     eslint-plugin-deprecation: ^2.0.0
     eslint-plugin-jsdoc: ^46.8.2
     eslint-webpack-plugin: ^4.0.1
@@ -13983,6 +14008,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@humanwhocodes/config-array@npm:^0.11.13":
+  version: 0.11.13
+  resolution: "@humanwhocodes/config-array@npm:0.11.13"
+  dependencies:
+    "@humanwhocodes/object-schema": ^2.0.1
+    debug: ^4.1.1
+    minimatch: ^3.0.5
+  checksum: f8ea57b0d7ed7f2d64cd3944654976829d9da91c04d9c860e18804729a33f7681f78166ef4c761850b8c324d362f7d53f14c5c44907a6b38b32c703ff85e4805
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.11.8":
   version: 0.11.8
   resolution: "@humanwhocodes/config-array@npm:0.11.8"
@@ -14027,6 +14063,13 @@ __metadata:
   version: 1.2.1
   resolution: "@humanwhocodes/object-schema@npm:1.2.1"
   checksum: a824a1ec31591231e4bad5787641f59e9633827d0a2eaae131a288d33c9ef0290bd16fda8da6f7c0fcb014147865d12118df10db57f27f41e20da92369fcb3f1
+  languageName: node
+  linkType: hard
+
+"@humanwhocodes/object-schema@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@humanwhocodes/object-schema@npm:2.0.1"
+  checksum: 24929487b1ed48795d2f08346a0116cc5ee4634848bce64161fb947109352c562310fd159fc64dda0e8b853307f5794605191a9547f7341158559ca3c8262a45
   languageName: node
   linkType: hard
 
@@ -26155,6 +26198,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ungap/structured-clone@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@ungap/structured-clone@npm:1.2.0"
+  checksum: 4f656b7b4672f2ce6e272f2427d8b0824ed11546a601d8d5412b9d7704e83db38a8d9f402ecdf2b9063fc164af842ad0ec4a55819f621ed7e7ea4d1efcc74524
+  languageName: node
+  linkType: hard
+
 "@vanilla-extract/babel-plugin-debug-ids@npm:^1.0.2":
   version: 1.0.2
   resolution: "@vanilla-extract/babel-plugin-debug-ids@npm:1.0.2"
@@ -36905,6 +36955,54 @@ __metadata:
   bin:
     eslint: bin/eslint.js
   checksum: d06309ce4aafb9d27d558c8e5e5aa5cba3bbec3ce8ceccbc7d4b7a35f2b67fd40189159155553270e2e6febeb69bd8a3b60d6241c8f5ddc2ef1702ccbd328501
+  languageName: node
+  linkType: hard
+
+"eslint@npm:^8.53.0":
+  version: 8.53.0
+  resolution: "eslint@npm:8.53.0"
+  dependencies:
+    "@eslint-community/eslint-utils": ^4.2.0
+    "@eslint-community/regexpp": ^4.6.1
+    "@eslint/eslintrc": ^2.1.3
+    "@eslint/js": 8.53.0
+    "@humanwhocodes/config-array": ^0.11.13
+    "@humanwhocodes/module-importer": ^1.0.1
+    "@nodelib/fs.walk": ^1.2.8
+    "@ungap/structured-clone": ^1.2.0
+    ajv: ^6.12.4
+    chalk: ^4.0.0
+    cross-spawn: ^7.0.2
+    debug: ^4.3.2
+    doctrine: ^3.0.0
+    escape-string-regexp: ^4.0.0
+    eslint-scope: ^7.2.2
+    eslint-visitor-keys: ^3.4.3
+    espree: ^9.6.1
+    esquery: ^1.4.2
+    esutils: ^2.0.2
+    fast-deep-equal: ^3.1.3
+    file-entry-cache: ^6.0.1
+    find-up: ^5.0.0
+    glob-parent: ^6.0.2
+    globals: ^13.19.0
+    graphemer: ^1.4.0
+    ignore: ^5.2.0
+    imurmurhash: ^0.1.4
+    is-glob: ^4.0.0
+    is-path-inside: ^3.0.3
+    js-yaml: ^4.1.0
+    json-stable-stringify-without-jsonify: ^1.0.1
+    levn: ^0.4.1
+    lodash.merge: ^4.6.2
+    minimatch: ^3.1.2
+    natural-compare: ^1.4.0
+    optionator: ^0.9.3
+    strip-ansi: ^6.0.1
+    text-table: ^0.2.0
+  bin:
+    eslint: bin/eslint.js
+  checksum: 2da808655c7aa4b33f8970ba30d96b453c3071cc4d6cd60d367163430677e32ff186b65270816b662d29139283138bff81f28dddeb2e73265495245a316ed02c
   languageName: node
   linkType: hard
 

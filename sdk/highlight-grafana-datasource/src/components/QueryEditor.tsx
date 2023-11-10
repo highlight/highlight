@@ -62,7 +62,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
       <Field label="Table">
         <Select value={table} onChange={onTableChange} options={tableOptions} />
       </Field>
-      <Field label="Metric" error="why isn't this displayed???">
+      <Field label="Metric">
         <Select value={metric} onChange={onMetricChange} options={metricOptions} />
       </Field>
       {metric !== undefined && metric !== 'Count' && (
