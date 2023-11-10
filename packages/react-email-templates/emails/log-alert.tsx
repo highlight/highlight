@@ -8,9 +8,9 @@ import {
 	CtaLink,
 	Footer,
 	highlightedTextStyle,
+	Subtitle,
 	textStyle,
 	Title,
-	Subtitle,
 } from '../components/alerts'
 
 export interface LogAlertEmailProps {

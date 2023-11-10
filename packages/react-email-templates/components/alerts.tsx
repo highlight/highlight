@@ -20,8 +20,8 @@ const headingText = {
 	...textStyle,
 	fontSize: '26px',
 	lineHeight: '36px',
-	paddingTop: '16px',
 	paddingBottom: '8px',
+	paddingTop: '16px',
 }
 
 export const Subtitle: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -46,9 +46,9 @@ export const AlertContainer: React.FC<React.PropsWithChildren> = ({
 const alertContainer = {
 	border: '1px solid #30294e',
 	borderRadius: '6px',
-	padding: '12px',
-	margin: '36px 0',
 	fontSize: '14px',
+	margin: '36px 0',
+	padding: '12px',
 }
 
 export const Break: React.FC = () => {
@@ -56,8 +56,8 @@ export const Break: React.FC = () => {
 }
 
 const hr = {
-	color: '#30294e',
 	borderTop: '1px solid #30294e',
+	color: '#30294e',
 	margin: '12px 0',
 }
 
@@ -71,12 +71,12 @@ export const CtaLink: React.FC<CtaLinkProps> = ({ href, label }) => {
 		<Link href={href} style={cta}>
 			{label}
 			<svg
-				width="18"
-				height="18"
-				viewBox="0 0 20 20"
 				fill="none"
-				xmlns="http://www.w3.org/2000/svg"
+				height="18"
 				style={ctaIcon}
+				viewBox="0 0 20 20"
+				width="18"
+				xmlns="http://www.w3.org/2000/svg"
 			>
 				<path
 					d="M11 3C10.4477 3 10 3.44772 10 4C10 4.55228 10.4477 5 11 5H13.5858L7.29289 11.2929C6.90237 11.6834 6.90237 12.3166 7.29289 12.7071C7.68342 13.0976 8.31658 13.0976 8.70711 12.7071L15 6.41421V9C15 9.55228 15.4477 10 16 10C16.5523 10 17 9.55228 17 9V4C17 3.44772 16.5523 3 16 3H11Z"
@@ -92,13 +92,13 @@ export const CtaLink: React.FC<CtaLinkProps> = ({ href, label }) => {
 }
 
 const cta = {
-	padding: '4px 0',
-	color: '#ffffff',
-	outline: '1px solid #ffffff',
 	borderRadius: '6px',
+	color: '#ffffff',
+	display: 'table',
 	fontSize: '16px',
 	lineHeight: '26px',
-	display: 'table',
+	outline: '1px solid #ffffff',
+	padding: '4px 0',
 	width: '100%',
 }
 
@@ -120,11 +120,11 @@ export const Footer: React.FC<FooterProps> = ({ alertLink }) => {
 				<Link href={alertLink}>here</Link>.
 			</Text>
 			<Img
-				style={logoFull}
-				src="https://static.highlight.io/assets/digest/highlight-logo.png"
-				width="70"
-				height="16"
 				alt="Highlight logo"
+				height="16"
+				src="https://static.highlight.io/assets/digest/highlight-logo.png"
+				style={logoFull}
+				width="70"
 			/>
 			<Text style={footer}>Seattle, WA 98122</Text>
 		</>

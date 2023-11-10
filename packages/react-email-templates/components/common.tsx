@@ -44,25 +44,25 @@ const main = {
 }
 
 const container = {
-	width: '400px',
+	margin: '0 auto',
 	padding: '0 16px',
 	textAlign: 'center' as const,
-	margin: '0 auto',
+	width: '400px',
 }
 
 export const HighlightLogo = () => {
 	return (
 		<Img
-			src="https://static.highlight.io/assets/digest/logo-on-dark.png"
-			width="32"
-			height="32"
 			alt="Highlight logo"
+			height="32"
+			src="https://static.highlight.io/assets/digest/logo-on-dark.png"
 			style={logo}
+			width="32"
 		/>
 	)
 }
 
 const logo = {
-	paddingTop: '32px',
 	margin: '0 auto',
+	paddingTop: '32px',
 }
