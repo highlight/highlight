@@ -13632,6 +13632,7 @@ __metadata:
     "@types/jest": ^29.2.0
     "@types/lru-cache": ^7.10.10
     "@types/node": 17.0.13
+    encoding: ^0.1.13
     highlight.run: "workspace:*"
     jest: ^29.2.2
     rollup: ^4.1.4
