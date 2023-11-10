@@ -25,7 +25,6 @@ import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { auth } from '@util/auth'
 import { setIndexedDBEnabled } from '@util/db'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
@@ -93,32 +92,6 @@ export const ProjectRouter = () => {
 			clearInterval(intervalId)
 		}
 	}, [projectId])
-
-	useEffect(() => {
-		if (data?.workspace?.id) {
-			window.Intercom('update', {
-				company: {
-					id: data?.workspace.id,
-					name: data?.workspace.name,
-				},
-			})
-		}
-	}, [data?.workspace])
-
-	useEffect(() => {
-		if (!isOnPrem) {
-			window.Intercom('update', {
-				hide_default_launcher: true,
-			})
-		}
-		return () => {
-			if (!isOnPrem) {
-				window.Intercom('update', {
-					hide_default_launcher: false,
-				})
-			}
-		}
-	}, [])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)

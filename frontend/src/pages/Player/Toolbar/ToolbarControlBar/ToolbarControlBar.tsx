@@ -62,7 +62,7 @@ import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import { showIntercomMessage } from '@util/window'
+import { showSupportMessage } from '@util/window'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useCallback } from 'react'
@@ -443,7 +443,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			await message.warn(
 				'Downloading sessions is only available on enterprise plans.',
 			)
-			showIntercomMessage(
+			showSupportMessage(
 				'Hi! I would like to use the session export feature.',
 			)
 			return

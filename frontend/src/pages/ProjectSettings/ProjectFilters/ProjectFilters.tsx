@@ -53,7 +53,7 @@ import SessionQueryBuilder, {
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { buildQueryStateString } from '@util/url/params'
-import { showIntercomMessage } from '@util/window'
+import { showSupportMessage } from '@util/window'
 import { message } from 'antd'
 import _, { upperFirst } from 'lodash'
 import moment from 'moment'
@@ -220,7 +220,7 @@ export const ProjectProductFilters: React.FC<{
 		await message.warn(
 			'Setting up ingest sampling is only available on enterprise plans.',
 		)
-		showIntercomMessage(
+		showSupportMessage(
 			'Hi! I would like to use the ingest sampling feature.',
 		)
 	}, [currentWorkspace?.id, product])
