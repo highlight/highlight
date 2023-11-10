@@ -162,7 +162,11 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
 	sb := sqlbuilder.NewSelectBuilder()
 	cols := []string{selectStr}
 	for _, group := range groupBy {
-		cols = append(cols, "toString(TraceAttributes["+sb.Var(group)+"])")
+		if lo.Contains(config.selectColumns, group) {
+			cols = append(cols, group)
+		} else {
+			cols = append(cols, "toString(TraceAttributes["+sb.Var(group)+"])")
+		}
 	}
 	sb.Select(cols...)
 	sb.From(config.tableName)
