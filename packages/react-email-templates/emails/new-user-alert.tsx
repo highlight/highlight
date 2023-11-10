@@ -12,7 +12,7 @@ import {
 } from '../components/alerts'
 import { Session, SessionPreview } from '../components/sessions'
 
-export interface NewSessionAlertEmailProps {
+export interface NewUserAlertEmailProps {
 	alertLink?: string
 	projectName?: string
 	session?: Session
@@ -31,22 +31,24 @@ const sessionExample = {
 	activeLength: '1h 25m',
 }
 
-export const NewSessionAlertEmail = ({
+export const NewUserAlertEmail = ({
 	alertLink = 'https://localhost:3000/1/alerts/sessions/1',
 	projectName = 'Highlight Production (app.highlight.io)',
 	session = sessionExample,
 	userIdentifier = '1',
-}: NewSessionAlertEmailProps) => (
-	<EmailHtml previewText={`${userIdentifier} just started a new session`}>
+}: NewUserAlertEmailProps) => (
+	<EmailHtml
+		previewText={`${userIdentifier} just started their first session`}
+	>
 		<HighlightLogo />
 		<Title>
 			<span style={highlightedTextStyle}>{userIdentifier}</span> just
-			started a new session
+			started their first session
 		</Title>
 		<Subtitle>{projectName}</Subtitle>
 
 		<AlertContainer>
-			<SessionPreview session={session} hideViewSessionButton />
+			<SessionPreview session={session} hideViewSessionButton />s
 			<CtaLink href={session.url} label="Open" />
 		</AlertContainer>
 
@@ -56,4 +58,4 @@ export const NewSessionAlertEmail = ({
 	</EmailHtml>
 )
 
-export default NewSessionAlertEmail
+export default NewUserAlertEmail
