@@ -13476,7 +13476,7 @@ __metadata:
     react-files-hooks: ^2.0.0
     react-grid-layout: ^1.3.3
     react-helmet: ^6.1.0
-    react-highlight-words: ^0.17.0
+    react-highlight-words: ^0.20.0
     react-hotkeys-hook: ^3.3.1
     react-icons: ^4.7.1
     react-json-view: ^1.21.3
@@ -40458,7 +40458,7 @@ __metadata:
     react-device-detect: ^2.2.3
     react-dom: ^18.2.0
     react-github-btn: ^1.4.0
-    react-highlight-words: ^0.18.0
+    react-highlight-words: ^0.20.0
     react-icons: ^4.7.1
     react-is: ^18.2.0
     react-markdown: ^8.0.4
@@ -54346,7 +54346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-highlight-words@npm:0.20.0":
+"react-highlight-words@npm:0.20.0, react-highlight-words@npm:^0.20.0":
   version: 0.20.0
   resolution: "react-highlight-words@npm:0.20.0"
   dependencies:
@@ -54356,32 +54356,6 @@ __metadata:
   peerDependencies:
     react: ^0.14.0 || ^15.0.0 || ^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0
   checksum: 6794b6fe409ee81390e342ccdb951696e06354d8591b4cac050a6d64dbc77dfc7bb636fee0aabcfda841e57778aa5108fe351e7c1dc27b28abedd36aec8141e7
-  languageName: node
-  linkType: hard
-
-"react-highlight-words@npm:^0.17.0":
-  version: 0.17.0
-  resolution: "react-highlight-words@npm:0.17.0"
-  dependencies:
-    highlight-words-core: ^1.2.0
-    memoize-one: ^4.0.0
-    prop-types: ^15.5.8
-  peerDependencies:
-    react: ^0.14.0 || ^15.0.0 || ^16.0.0-0 || ^17.0.0-0
-  checksum: 41b3d0e4516cbc12fd4e0b620b72d309eaa3e207f1089a377d76040f99edb717b99a34e0bef5f83d7d28d408542f3138ca3a5c06e08359e4f13f241432327485
-  languageName: node
-  linkType: hard
-
-"react-highlight-words@npm:^0.18.0":
-  version: 0.18.0
-  resolution: "react-highlight-words@npm:0.18.0"
-  dependencies:
-    highlight-words-core: ^1.2.0
-    memoize-one: ^4.0.0
-    prop-types: ^15.5.8
-  peerDependencies:
-    react: ^0.14.0 || ^15.0.0 || ^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0
-  checksum: ff9759e7ebeb140067854d8cad3021123ba0e3b78bda14d35d9b21dd7890986c858955885ddbcb537e9f88472aebe4a23a1841b7af190989efb0a8ecf7dc2a57
   languageName: node
   linkType: hard
 
