@@ -14,22 +14,22 @@ import {
 } from '../components/alerts'
 
 export interface LogAlertEmailProps {
-	projectId?: number
 	projectName?: string
 	alertName?: string
 	alertLink?: string
 	query?: string
+  logsLink?: string
 	belowThreshold?: boolean
 	count?: number
 	threshold?: number
 }
 
 export const LogAlertEmail = ({
-	projectId = 1,
 	projectName = 'Highlight Production (app.highlight.io)',
 	alertName = 'Log Alert',
 	alertLink = 'https://localhost:3000/1/alerts/logs/1',
 	query = 'level:info',
+  logsLink = 'https://localhost:3000/1/logs'
 	belowThreshold = false,
 	count = 24,
 	threshold = 20,
@@ -64,7 +64,7 @@ export const LogAlertEmail = ({
 					</Text>
 				</Column>
 			</Row>
-			<CtaLink href={'https://localhost:3000/1/logs'} label="View logs" />
+			<CtaLink href={logsLink} label="View logs" />
 		</AlertContainer>
 
 		<Break />
