@@ -1,5 +1,13 @@
 # @highlight-run/next
 
+## 7.2.1
+
+### Patch Changes
+
+-   9ad2c786c: Externalize next package
+-   Updated dependencies [9ad2c786c]
+    -   @highlight-run/node@3.6.1
+
 ## 7.2.0
 
 ### Minor Changes
