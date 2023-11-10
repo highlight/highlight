@@ -532,9 +532,7 @@ func (s *S3Client) PushCompressedFile(ctx context.Context, sessionId, projectId 
 	options := s3.PutObjectInput{
 		ContentType:     ptr.String(MIME_TYPE_JSON),
 		ContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
-		Metadata: map[string]string{
-			"x-amz-tagging": fmt.Sprintf("RetentionPeriod:%s", retentionPeriod),
-		},
+		Tagging:         pointy.String(fmt.Sprintf("RetentionPeriod=%s", retentionPeriod)),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, payloadType, options)
 }
@@ -880,10 +878,10 @@ func (s *S3Client) UploadAsset(ctx context.Context, uuid string, contentType str
 		Key:    pointy.String(uuid),
 		Body:   reader,
 		Metadata: map[string]string{
-			"Content-Type":  contentType,
-			"x-amz-tagging": fmt.Sprintf("RetentionPeriod:%s", retentionPeriod),
+			"Content-Type": contentType,
 		},
 		ContentType: pointy.String(contentType),
+		Tagging:     pointy.String(fmt.Sprintf("RetentionPeriod=%s", retentionPeriod)),
 	}, s3.WithAPIOptions(
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,
 	))
