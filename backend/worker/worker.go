@@ -1240,7 +1240,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		c.ErrorCountLastDay += errorResults[idx].ErrorCountLastDay
 
 		workspace := &model.Workspace{}
-		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
 		c.TrialEndDate = workspace.TrialEndDate
@@ -1596,7 +1596,7 @@ func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod,
 	for {
 		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
 		var count int64
-		if err := db.Raw(`
+		if err := db.WithContext(ctx).Raw(`
 			SELECT COUNT(*)
 			FROM sessions
 			WHERE (processed = false)

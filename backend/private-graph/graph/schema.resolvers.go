@@ -1511,6 +1511,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			workspace.LinearAccessToken != nil &&
 			*workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
+				ctx,
 				workspace,
 				attachment,
 				*issueTitle,
@@ -1528,6 +1529,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			workspace.ClickupAccessToken != nil &&
 			*workspace.ClickupAccessToken != "" {
 			if err := r.CreateClickUpTaskAndAttachment(
+				ctx,
 				workspace,
 				attachment,
 				title,
@@ -1612,7 +1614,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 	}
 
 	sessionComment := &model.SessionComment{}
-	if err := r.DB.Preload("Attachments").Where(&model.SessionComment{Model: model.Model{ID: sessionCommentID}}).Find(sessionComment).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Preload("Attachments").Where(&model.SessionComment{Model: model.Model{ID: sessionCommentID}}).Find(sessionComment).Error; err != nil {
 		return nil, err
 	}
 
@@ -1629,13 +1631,13 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+			if err := r.CreateLinearIssueAndAttachment(ctx, workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, title, desc, issueTeamID); err != nil {
+			if err := r.CreateClickUpTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 
@@ -1737,7 +1739,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	}
 
 	var sessionComment model.SessionComment
-	if err := r.DB.Preload("Followers").Preload("Threads").Where(model.SessionComment{Model: model.Model{ID: commentID}}).Take(&sessionComment).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Preload("Followers").Preload("Threads").Where(model.SessionComment{Model: model.Model{ID: commentID}}).Take(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
@@ -1936,6 +1938,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
+				ctx,
 				workspace,
 				attachment,
 				*issueTitle,
@@ -1951,6 +1954,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
 			if err := r.CreateClickUpTaskAndAttachment(
+				ctx,
 				workspace,
 				attachment,
 				title,
@@ -2091,7 +2095,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 	}
 
 	errorComment := &model.ErrorComment{}
-	if err := r.DB.Preload("Attachments").Where(&model.ErrorComment{Model: model.Model{ID: errorCommentID}}).Find(errorComment).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Preload("Attachments").Where(&model.ErrorComment{Model: model.Model{ID: errorCommentID}}).Find(errorComment).Error; err != nil {
 		return nil, err
 	}
 
@@ -2113,6 +2117,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
 			if err := r.CreateLinearIssueAndAttachment(
+				ctx,
 				workspace,
 				attachment,
 				*issueTitle,
@@ -2128,6 +2133,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
 			if err := r.CreateClickUpTaskAndAttachment(
+				ctx,
 				workspace,
 				attachment,
 				title,
@@ -2189,7 +2195,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	}
 
 	var errorComment model.ErrorComment
-	if err := r.DB.Preload("Threads").Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).Take(&errorComment).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Preload("Threads").Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).Take(&errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comment")
 	}
 
@@ -3389,7 +3395,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 
 	var dashboard *model.Dashboard = &model.Dashboard{ProjectID: projectID}
 	if id != nil {
-		if err := r.DB.Preload("Metrics").Where(&model.Dashboard{Model: model.Model{ID: *id}}).FirstOrCreate(&dashboard).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Preload("Metrics").Where(&model.Dashboard{Model: model.Model{ID: *id}}).FirstOrCreate(&dashboard).Error; err != nil {
 			return -1, err
 		}
 	} else {
@@ -4115,7 +4121,7 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
-		if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
 			return nil, e.Wrap(err, "error reading from session")
 		}
 		return sessionObj, nil
@@ -4131,7 +4137,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, err
 	}
 	sessionObj := &model.Session{}
-	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).
+	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).
 		First(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
@@ -4495,7 +4501,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	// preload `Fields` children
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
-	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
 	details := &modelInputs.EnhancedUserDetailsResult{}
@@ -5679,8 +5685,8 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, q
 	}
 	fields := []*model.Field{}
 	res := r.DB.WithContext(ctx).Where(&model.Field{Type: typeArg}).Where("project_id = ?", projectID).Where(r.DB.
-		Where(r.DB.Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
-		Or(r.DB.Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
+		Where(r.DB.WithContext(ctx).Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
+		Or(r.DB.WithContext(ctx).Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {

@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import LoadingBox from '@/components/LoadingBox'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -179,12 +180,17 @@ export const TracesPage: React.FC = () => {
 						fetchKeys={useGetTracesKeysQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
-					<Box display="flex" borderBottom="dividerWeak">
+					<Box
+						display="flex"
+						borderBottom="dividerWeak"
+						style={{ height: 92 }}
+					>
 						<Box
 							width="full"
 							padding="8"
 							paddingBottom="4"
 							borderRight="dividerWeak"
+							position="relative"
 						>
 							<Box
 								display="flex"
@@ -192,7 +198,17 @@ export const TracesPage: React.FC = () => {
 								gap="4"
 								paddingBottom="4"
 							>
-								<Text size="xSmall">Traces</Text>
+								{metricsLoading ? (
+									<LoadingBox
+										height="auto"
+										width="auto"
+										position="absolute"
+										size="xSmall"
+										style={{ top: 0, left: 0, zIndex: 1 }}
+									/>
+								) : (
+									<Text size="xSmall">Traces</Text>
+								)}
 								{!metricsLoading && (
 									<Text size="xSmall" color="weak">
 										{formatNumber(totalCount)} total
@@ -217,11 +233,25 @@ export const TracesPage: React.FC = () => {
 							padding="8"
 							paddingBottom="4"
 							cssClass={styles.chart}
+							position="relative"
 						>
-							<Text cssClass={styles.chartText} size="xSmall">
-								Latency
-							</Text>
-							<LatencyChart metricsBuckets={metricsBuckets} />
+							{metricsLoading ? (
+								<LoadingBox
+									height="auto"
+									width="auto"
+									position="absolute"
+									size="xSmall"
+									style={{ top: 0, left: 0, zIndex: 1 }}
+								/>
+							) : (
+								<Text cssClass={styles.chartText} size="xSmall">
+									Latency
+								</Text>
+							)}
+							<LatencyChart
+								loading={metricsLoading}
+								metricsBuckets={metricsBuckets}
+							/>
 						</Box>
 					</Box>
 

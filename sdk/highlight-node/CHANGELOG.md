@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.6.1
+
+### Patch Changes
+
+-   9ad2c786c: Remove circular dependency
+
 ## 3.6.0
 
 ### Minor Changes

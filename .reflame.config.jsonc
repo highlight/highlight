@@ -7,9 +7,9 @@
   // "appId": "01GSXZYQT1W0TZDJAG94P9S4BZ", // prod fork
   // "appId": "01GR550WASJY2G2NSYZ4P54JJV", // dev
   // This is what shows up in the browser's tab bar.
-  "title": "Reflame App",
+  "title": "highlight.io",
   // This is the description that shows up in Google search.
-  "description": "A new Reflame app.",
+  "description": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
   // Reflame will watch this directory for your React source code and ship changes
   // instantly.
   "sourceDirectory": "frontend/src",
@@ -46,18 +46,124 @@
   },
   "defaultEnvironment": "production",
   "scripts": [
+    "/gtm.js",
     "/intercom.js",
     "/index",
     "/vanilla.js",
     "/canny.js",
     "https://js.hs-scripts.com/20473940.js",
-    // TODO: google tag manager
   ],
   "stylesheets": [
     "https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap",
     "https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
     "/public.css",
   ],
+  "metas": [
+    {
+      "name": "msapplication-TileColor",
+      "content": "#5629c6",
+    },
+    {
+      "name": "title",
+      "content": "highlight.io | The Open Source, Fullstack Monitoring Platform"
+    },
+    {
+      "property": "og:type",
+      "content": "website"
+    },
+    {
+      "property": "og:url",
+      "content": "https://app.highlight.io/"
+    },
+    {
+      "property": "og:title",
+      "content": "highlight.io | The Open Source, Fullstack Monitoring Platform"
+    },
+    {
+      "property": "og:description",
+      "content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application."
+    },
+    {
+      "property": "og:image",
+      "content": "/hero.png"
+    },
+    {
+      "property": "twitter:card",
+      "content": "/hero.png"
+    },
+    {
+      "property": "twitter:url",
+      "content": "https://app.highlight.io/"
+    },
+    {
+      "property": "twitter:title",
+      "content": "highlight.io | The Open Source, Fullstack Monitoring Platform"
+    },
+    {
+      "property": "twitter:description",
+      "content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application."
+    },
+    {
+      "property": "twitter:image",
+      "content": "/hero.png"
+    },
+  ],
+  "links": [
+    {
+      "rel": "apple-touch-icon",
+      "sizes": "180x180",
+      "href": "/apple-touch-icon.png",
+    },
+    {
+      "rel": "apple-touch-icon",
+      "href": "/logo192.png",
+    },
+    {
+      "rel": "icon",
+      "sizes": "32x32",
+      "href": "/favicon-32x32.png",
+    },
+    {
+      "rel": "icon",
+      "sizes": "16x16",
+      "href": "/favicon-16x16.png",
+    },
+    {
+      "rel": "mask-icon",
+      "color": "#5629c6",
+      "href": "/safari-pinned-tab.svg",
+    },
+    {
+      "rel": "preconnect",
+      "href": "https://fonts.gstatic.com",
+      "crossorigin": true
+    }
+  ],
+  "manifest": {
+    "short_name": "highlight.io",
+    "name": "highlight.io | The Open Source, Fullstack Monitoring Platform",
+    "icons": [
+      {
+        "src": "/icon.ico",
+        "sizes": "64x64 32x32 24x24 16x16",
+        "type": "image/x-icon"
+      },
+      {
+        "src": "/logo192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      },
+      {
+        "src": "/logo512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#5629c6",
+    "background_color": "#ffffff"
+  },  
   "storybookCompatibility": {
     "testStories": true,
   },
@@ -81,15 +187,12 @@
         "primary-2": "#6C37F4",
         "primary-3": "#5420D1",
         "primary-4": "#0D0225",
-  
         "secondary-1": "#B9F2FE",
         "secondary-2": "#72E4FC",
         "secondary-3": "#23B6E2",
         "secondary-4": "#0B75AA",
-  
         "highlight-1": "#EBFF5E",
         "highlight-2": "#8DC31A",
-  
         "selection": "#EBFF5E",
         "error": "#FF5377",
         "warning": "#FF9457",
@@ -98,7 +201,10 @@
         "pale-purple": "#645D74",
       },
       "fontFamily": {
-        "poppins": ["Poppins", "sans-serif"],
+        "poppins": [
+          "Poppins",
+          "sans-serif"
+        ],
       },
     }
   },

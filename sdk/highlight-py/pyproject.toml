@@ -48,6 +48,7 @@ pytest-mock = ">=3"
 pytest-cov = ">=4"
 pytest-asyncio = ">=0"
 loguru = ">=0"
+stripe = ">=6"
 
 [tool.poetry.extras]
 Django = ["django"]
