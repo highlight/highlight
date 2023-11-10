@@ -1,7 +1,7 @@
 ---
 title: Next.js Quick Start
 slug: nextjs
-heading: Next.js Quick-start
+heading: Next.js Quick Start
 quickstart: true
 ---
 
