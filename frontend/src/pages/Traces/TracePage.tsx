@@ -1,4 +1,4 @@
-import { Badge, Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui'
+import { Badge, Box, Callout, Heading, Stack, Tabs } from '@highlight-run/ui'
 import moment from 'moment'
 import React, { useState } from 'react'
 
@@ -35,8 +35,8 @@ export const TracePage: React.FC<Props> = () => {
 		return loading ? (
 			<LoadingBox />
 		) : (
-			<Box>
-				<Text>Trace not found</Text>
+			<Box p="8">
+				<Callout kind="error" title="Trace not found" />
 			</Box>
 		)
 	}

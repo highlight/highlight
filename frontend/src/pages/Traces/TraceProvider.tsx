@@ -63,6 +63,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			}
 		},
 		skip: !projectId || !traceId,
+		fetchPolicy: 'cache-and-network',
 	})
 
 	const { startTime, duration: totalDuration } = useMemo(() => {
