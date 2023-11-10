@@ -18,7 +18,7 @@ export interface LogAlertEmailProps {
 	alertName?: string
 	alertLink?: string
 	query?: string
-  logsLink?: string
+	logsLink?: string
 	belowThreshold?: boolean
 	count?: number
 	threshold?: number
@@ -29,7 +29,7 @@ export const LogAlertEmail = ({
 	alertName = 'Log Alert',
 	alertLink = 'https://localhost:3000/1/alerts/logs/1',
 	query = 'level:info',
-  logsLink = 'https://localhost:3000/1/logs'
+	logsLink = 'https://localhost:3000/1/logs',
 	belowThreshold = false,
 	count = 24,
 	threshold = 20,
