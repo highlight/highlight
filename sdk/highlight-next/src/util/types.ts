@@ -39,6 +39,7 @@ export interface HighlightInterface {
 		requestId?: string,
 		metadata?: Attributes,
 	) => void
+	waitForFlush: () => Promise<void>
 	consumeAndFlush: (
 		error: Error,
 		secureSessionId?: string,

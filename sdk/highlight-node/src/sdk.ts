@@ -44,6 +44,7 @@ export interface HighlightInterface {
 		requestId?: string,
 		metadata?: Attributes,
 	) => Promise<void>
+	waitForFlush: () => Promise<void>
 	setAttributes: (attributes: ResourceAttributes) => void
 	_debug: (...data: any[]) => void
 }
@@ -145,13 +146,21 @@ export const H: HighlightInterface = {
 	setHeaders: (headers: IncomingHttpHeaders) => {
 		return highlight_obj.setHeaders(headers)
 	},
+	waitForFlush: async function () {
+		try {
+			return await highlight_obj.waitForFlush()
+		} catch (e) {
+			console.warn('highlight-node waitForFlush error: ', e)
+		}
+	},
 	consumeAndFlush: async function (...args) {
-		const waitPromise = highlight_obj.waitForFlush()
-
-		this.consumeError(...args)
-		const flushPromise = this.flush()
-
-		await Promise.allSettled([waitPromise, flushPromise])
+		try {
+			const waitPromise = await this.waitForFlush()
+			this.consumeError(...args)
+			await Promise.allSettled([waitPromise, this.flush()])
+		} catch (e) {
+			console.warn('highlight-node consumeAndFlush error: ', e)
+		}
 	},
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)
