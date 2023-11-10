@@ -93,10 +93,8 @@ export const H: HighlightInterface = {
 	stop: async () => {
 		throw new Error('H.stop is not supported by the Edge runtime.')
 	},
-	flush: async () => {
-		throw new Error(
-			'H.flush is not supported by the Edge runtime. try H.consumeAndFlush instead.',
-		)
+	flush: async function () {
+		await this.waitForFlush()
 	},
 	recordMetric: (
 		secureSessionId: string,
