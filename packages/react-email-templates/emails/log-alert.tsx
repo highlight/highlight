@@ -14,24 +14,24 @@ import {
 } from '../components/alerts'
 
 export interface LogAlertEmailProps {
-	projectName?: string
-	alertName?: string
 	alertLink?: string
-	query?: string
-	logsLink?: string
+	alertName?: string
 	belowThreshold?: boolean
 	count?: number
+	logsLink?: string
+	projectName?: string
+	query?: string
 	threshold?: number
 }
 
 export const LogAlertEmail = ({
-	projectName = 'Highlight Production (app.highlight.io)',
-	alertName = 'Log Alert',
 	alertLink = 'https://localhost:3000/1/alerts/logs/1',
-	query = 'level:info',
-	logsLink = 'https://localhost:3000/1/logs',
+	alertName = 'Log Alert',
 	belowThreshold = false,
 	count = 24,
+	logsLink = 'https://localhost:3000/1/logs',
+	projectName = 'Highlight Production (app.highlight.io)',
+	query = 'level:info',
 	threshold = 20,
 }: LogAlertEmailProps) => (
 	<EmailHtml previewText={`${alertName} alert fired`}>

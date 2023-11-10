@@ -22,11 +22,11 @@ export interface RageClickAlertEmailProps {
 }
 
 export const RageClickAlertEmail = ({
+	alertName = 'Rage Click Alert',
+	alertLink = 'https://localhost:3000/1/alerts/sessions/1',
 	projectName = 'Highlight Production (app.highlight.io)',
-	alertName = 'Log Alert',
-	alertLink = 'https://localhost:3000/1/alerts/logs/1',
-	userIdentifier = '1',
 	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
+	userIdentifier = '1',
 }: RageClickAlertEmailProps) => (
 	<EmailHtml previewText={`${alertName} alert fired`}>
 		<HighlightLogo />
