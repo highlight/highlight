@@ -18,7 +18,7 @@ type UserProperty = {
 	value: string
 }
 
-export interface TrackUserAlertEmailProps {
+export interface TrackUserPropertiesAlertEmailProps {
 	alertLink?: string
 	alertName?: string
 	projectName?: string
@@ -27,9 +27,9 @@ export interface TrackUserAlertEmailProps {
 	userProperties?: UserProperty[]
 }
 
-export const TrackUserAlertEmail = ({
+export const TrackUserPropertiesAlertEmail = ({
 	alertLink = 'https://localhost:3000/1/alerts/sessions/1',
-	alertName = 'Track User Alert',
+	alertName = 'Track Event Alert',
 	projectName = 'Highlight Production (app.highlight.io)',
 	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
 	userIdentifier = '1',
@@ -43,7 +43,7 @@ export const TrackUserAlertEmail = ({
 			value: 'Super Mario Bros.',
 		},
 	],
-}: TrackUserAlertEmailProps) => (
+}: TrackUserPropertiesAlertEmailProps) => (
 	<EmailHtml previewText={`${alertName} alert fired`}>
 		<HighlightLogo />
 		<Title>
@@ -59,7 +59,7 @@ export const TrackUserAlertEmail = ({
 
 			<Break />
 
-			<Section style={userPropertiesContainer}>
+			<Section style={eventPropertiesContainer}>
 				{userProperties.map((property: UserProperty) => (
 					<Row style={propertyRow}>
 						<Column style={propertyHeader}>{property.key}</Column>
@@ -77,7 +77,7 @@ export const TrackUserAlertEmail = ({
 	</EmailHtml>
 )
 
-const userPropertiesContainer = {
+const eventPropertiesContainer = {
 	marginBottom: '12px',
 }
 
@@ -97,4 +97,4 @@ const propertyValue = {
 	textAlign: 'start' as const,
 }
 
-export default TrackUserAlertEmail
+export default TrackUserPropertiesAlertEmail
