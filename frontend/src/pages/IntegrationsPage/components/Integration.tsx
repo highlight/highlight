@@ -171,7 +171,7 @@ const Integration = ({
 						})
 					}
 					if (showUpdateSettings) {
-						configurationPage({
+						return configurationPage({
 							setModalOpen: setShowUpdateSettings,
 							setIntegrationEnabled,
 							action: IntegrationAction.Settings,
