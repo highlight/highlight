@@ -1,1 +1,27 @@
-var r=98,e=120,o=2,t="_155k3sw8",a="_155k3sw6",p="_155k3sw3",v="_155k3sw2",_="_155k3sw1",x="_155k3sw4",s="_155k3sw5",w="_155k3sw0",k="_155k3sw7";export{r as LEGEND_HISTOGRAM_HEIGHT,e as OUTLINE_HISTOGRAM_HEIGHT,o as OUTLINE_PADDING,t as barsLoading,a as dragSelection,p as hover,v as legendHeight,_ as outlineHeight,x as popoverContent,s as popoverContentRow,w as regularHeight,k as thresholdArea};
+// src/pages/LogsPage/LogsHistogram/LogsHistogram.css.ts
+var LEGEND_HISTOGRAM_HEIGHT = 98;
+var OUTLINE_HISTOGRAM_HEIGHT = 120;
+var OUTLINE_PADDING = 2;
+var barsLoading = "_155k3sw8";
+var dragSelection = "_155k3sw6";
+var hover = "_155k3sw3";
+var legendHeight = "_155k3sw2";
+var outlineHeight = "_155k3sw1";
+var popoverContent = "_155k3sw4";
+var popoverContentRow = "_155k3sw5";
+var regularHeight = "_155k3sw0";
+var thresholdArea = "_155k3sw7";
+export {
+  LEGEND_HISTOGRAM_HEIGHT,
+  OUTLINE_HISTOGRAM_HEIGHT,
+  OUTLINE_PADDING,
+  barsLoading,
+  dragSelection,
+  hover,
+  legendHeight,
+  outlineHeight,
+  popoverContent,
+  popoverContentRow,
+  regularHeight,
+  thresholdArea
+};
