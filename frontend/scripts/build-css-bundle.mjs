@@ -48,7 +48,12 @@ export const run = async ({
 				await Promise.all([
 					fs.promises.writeFile(
 						path_.join(outputDirectory, 'index.css'),
-						cssOutput.contents,
+						// vanilla extract outputs comments that seem to depend on absolute path
+						// need to strip them for consistent output between local and ci
+						cssOutput.text.replaceAll(
+							/\n\/\* vanilla-extract-css-ns\:.*\n/g,
+							'',
+						),
 					),
 					...result.outputFiles
 						.filter(
