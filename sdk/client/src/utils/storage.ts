@@ -5,7 +5,7 @@ let mode: Mode = 'localStorage'
 class Storage {
 	private storage: { [key: string]: string } = {}
 	public getItem(key: string) {
-		return this.storage[key]
+		return this.storage[key] ?? ''
 	}
 	public setItem(key: string, value: string) {
 		this.storage[key] = value

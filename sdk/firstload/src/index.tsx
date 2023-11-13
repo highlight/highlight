@@ -150,6 +150,7 @@ const H: HighlightPublicInterface = {
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
 				storageMode: options?.storageMode,
+				sendMode: options?.sendMode,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {

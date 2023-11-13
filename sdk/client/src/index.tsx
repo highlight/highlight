@@ -116,6 +116,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
+	sendMode?: 'webworker' | 'local'
 }
 
 /**
@@ -1255,7 +1256,28 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			) {
 				await this._reset({})
 			}
-			await this._sendPayload({ isBeacon: false })
+			let sendFn = undefined
+			if (this.options?.sendMode === 'local') {
+				sendFn = async (payload: any) => {
+					let blob = new Blob(
+						[
+							JSON.stringify({
+								query: print(PushPayloadDocument),
+								variables: payload,
+							}),
+						],
+						{
+							type: 'application/json',
+						},
+					)
+					await window.fetch(`${this._backendUrl}`, {
+						method: 'POST',
+						body: blob,
+					})
+					return 0
+				}
+			}
+			await this._sendPayload({ isBeacon: false, sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
 		} catch (e) {
