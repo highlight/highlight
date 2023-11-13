@@ -15,7 +15,6 @@ if [[ "$*" == *"--go-docker"* ]]; then
 else
     export OTLP_ENDPOINT=http://localhost:4318
     export CLICKHOUSE_ADDRESS=localhost:9000
-    export INFLUXDB_SERVER=http://localhost:8086
     export KAFKA_SERVERS=localhost:9092
     export PSQL_HOST=localhost
     export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379

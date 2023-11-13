@@ -1,4 +1,3 @@
-import BarChartV2 from '@components/BarChartV2/BarCharV2'
 import Button from '@components/Button/Button/Button'
 import CategoricalBarChart from '@components/CategoricalBarChart/CategoricalBarChar'
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown'
@@ -10,13 +9,9 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import {
 	useGetMetricMonitorsQuery,
-	useGetMetricsHistogramLazyQuery,
 	useGetMetricsTimelineLazyQuery,
 } from '@graph/hooks'
-import {
-	GetMetricsHistogramQuery,
-	GetMetricsTimelineQuery,
-} from '@graph/operations'
+import { GetMetricsTimelineQuery } from '@graph/operations'
 import {
 	DashboardChartType,
 	DashboardMetricConfig,
@@ -53,14 +48,15 @@ export const UNIT_OPTIONS = [
 ]
 
 export const LINE_COLORS = {
+	[MetricAggregator.Min]: 'var(--color-gray-200)',
 	[MetricAggregator.Max]: 'var(--color-red-500)',
 	[MetricAggregator.P99]: 'var(--color-red-400)',
 	[MetricAggregator.P95]: 'var(--color-orange-500)',
-	[MetricAggregator.P90]: 'var(--color-orange-400)',
-	[MetricAggregator.P75]: 'var(--color-green-600)',
+	[MetricAggregator.P90]: 'var(--color-green-600)',
 	[MetricAggregator.P50]: 'var(--color-blue-400)',
 	[MetricAggregator.Avg]: 'var(--color-gray-400)',
 	[MetricAggregator.Count]: 'var(--color-green-500)',
+	[MetricAggregator.CountDistinctKey]: 'var(--color-green-700)',
 	[MetricAggregator.Sum]: 'var(--color-purple-700)',
 }
 
@@ -359,15 +355,12 @@ const ChartContainer = React.memo(
 		setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>
 		setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 	}) => {
-		const NUM_BUCKETS = 60
 		const NUM_BUCKETS_TIMELINE = 30
 		const TICK_EVERY_BUCKETS = 10
 		const { project_id } = useParams<{ project_id: string }>()
 		const [chartInitialLoading, setChartInitialLoading] = useState(true)
 		const { timeRange, setTimeRange } = useDataTimeRange()
 		const { lookback: lookbackMinutes } = timeRange
-		const [histogramData, setHistogramData] =
-			useState<GetMetricsHistogramQuery>()
 		const [timelineData, setTimelineData] =
 			useState<GetMetricsTimelineQuery>()
 		const [referenceArea, setReferenceArea] = useState<{
@@ -395,7 +388,7 @@ const ChartContainer = React.memo(
 				project_id: project_id!,
 				metric_name: metricConfig.name,
 				params: {
-					aggregator: aggregator,
+					aggregator: aggregator ?? MetricAggregator.Avg,
 					date_range: _.pick(timeRange, 'start_date', 'end_date'),
 					timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 					resolution_minutes: resolutionMinutes,
@@ -406,58 +399,16 @@ const ChartContainer = React.memo(
 			},
 			fetchPolicy: 'cache-first',
 		})
-		const [
-			loadHistogram,
-			{
-				loading: histogramLoading,
-				refetch: refetchHistogram,
-				data: nextHistogramData,
-				called: histogramCalled,
-			},
-		] = useGetMetricsHistogramLazyQuery({
-			variables: {
-				project_id: project_id!,
-				metric_name: metricConfig.name,
-				params: {
-					date_range: _.pick(timeRange, 'start_date', 'end_date'),
-					buckets: NUM_BUCKETS,
-					units: metricConfig.units,
-					min_value: metricConfig.min_value,
-					min_percentile: metricConfig.min_percentile,
-					max_value: metricConfig.max_value,
-					max_percentile: metricConfig.max_percentile,
-					filters: metricConfig.filters,
-				},
-			},
-			fetchPolicy: 'cache-first',
-			onError: console.error,
-		})
 
 		useEffect(() => {
-			if (histogramCalled && !histogramLoading) {
-				setHistogramData(nextHistogramData)
-				setChartInitialLoading(false)
-			} else if (timelineCalled && !timelineLoading) {
+			if (timelineCalled && !timelineLoading) {
 				setTimelineData(nextTimelineData)
 				setChartInitialLoading(false)
 			}
-		}, [
-			timelineLoading,
-			nextTimelineData,
-			timelineCalled,
-			histogramLoading,
-			nextHistogramData,
-			histogramCalled,
-		])
+		}, [timelineLoading, nextTimelineData, timelineCalled])
 
 		useEffect(() => {
-			if (chartType === DashboardChartType.Histogram) {
-				if (refetchHistogram) {
-					refetchHistogram()?.catch(console.error)
-				} else {
-					loadHistogram()
-				}
-			} else if (
+			if (
 				chartType === DashboardChartType.Timeline ||
 				chartType === DashboardChartType.TimelineBar
 			) {
@@ -503,8 +454,8 @@ const ChartContainer = React.memo(
 		}, [timeRange.absolute, lookbackMinutes])
 
 		useEffect(() => {
-			setUpdatingData(timelineLoading || histogramLoading)
-		}, [setUpdatingData, timelineLoading, histogramLoading])
+			setUpdatingData(timelineLoading)
+		}, [setUpdatingData, timelineLoading])
 
 		useEffect(() => {
 			// build out the ticks array based on data and lookbackMinutes
@@ -608,10 +559,7 @@ const ChartContainer = React.memo(
 		return (
 			<div
 				className={clsx('h-full w-full pt-6 pb-20 pl-3 pr-5', {
-					[styles.blurChart]:
-						timelineLoading ||
-						histogramLoading ||
-						chartInitialLoading,
+					[styles.blurChart]: timelineLoading || chartInitialLoading,
 				})}
 			>
 				<EditMetricModal
@@ -624,30 +572,12 @@ const ChartContainer = React.memo(
 					updateMetric={updateMetric}
 				/>
 				{!chartInitialLoading &&
-				!timelineData?.metrics_timeline.length &&
-				!histogramData?.metrics_histogram?.buckets.length ? (
+				!timelineData?.metrics_timeline.length ? (
 					<div className={styles.noDataContainer}>
 						<EmptyCardPlaceholder
 							message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here soon after integrating.`}
 						/>
 					</div>
-				) : chartType === DashboardChartType.Histogram ? (
-					<BarChartV2
-						syncId="dashboardHistogramChart"
-						data={histogramData?.metrics_histogram?.buckets || []}
-						referenceLines={referenceLines}
-						barColorMapping={{
-							count: 'var(--color-purple-500)',
-						}}
-						xAxisDataKeyName="range_end"
-						xAxisLabel={metricConfig.units || undefined}
-						xAxisTickFormatter={(value: number) =>
-							value < 1 ? value.toFixed(2) : value.toFixed(0)
-						}
-						xAxisUnits={metricConfig.units || undefined}
-						yAxisLabel="occurrences"
-						yAxisKeys={['count']}
-					/>
 				) : chartType === DashboardChartType.Timeline ? (
 					<LineChart
 						syncId="dashboardChart"

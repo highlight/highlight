@@ -15,10 +15,11 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
+	MetricAggregator,
 	PlanType,
 	ProductType,
 	Sampling,
-	TracesMetricType,
+	TracesMetricColumn,
 } from '@graph/schemas'
 import {
 	Badge,
@@ -643,7 +644,8 @@ const IngestTimeline: React.FC<{
 	const { data, loading } = useGetTracesMetricsQuery({
 		variables: {
 			project_id: projectId,
-			metric_types: [TracesMetricType.CountDistinctKey],
+			column: TracesMetricColumn.Duration,
+			metric_types: [MetricAggregator.CountDistinctKey],
 			group_by: ['ingested'],
 			params: {
 				query: `span_name:IsIngestedBy product:${product}`,

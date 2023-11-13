@@ -31,7 +31,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 
 	var errorObjects []model.ErrorObject
 
-	query := store.db.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
+	query := store.db.WithContext(context.TODO()).Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
 
 	if params.Query != "" {
 		filters := queryparser.Parse(params.Query)
@@ -105,7 +105,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 
 	// Preload sessions for non-null session IDs
 	var sessions []model.Session
-	err := store.db.Where("id IN (?)", sessionIDs).Find(&sessions).Error
+	err := store.db.WithContext(context.TODO()).Where("id IN (?)", sessionIDs).Find(&sessions).Error
 	if err != nil {
 		return privateModel.ErrorObjectConnection{}, errors.New("Failed to preload sessions for error objects")
 	}
@@ -207,7 +207,7 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 
 	var errorGroup model.ErrorGroup
 
-	if err := store.db.Where(&model.ErrorGroup{
+	if err := store.db.WithContext(ctx).Where(&model.ErrorGroup{
 		Model: model.Model{
 			ID: params.ID,
 		},

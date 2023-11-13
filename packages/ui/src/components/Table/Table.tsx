@@ -1,16 +1,13 @@
 import React from 'react'
 
-import { Body, Props as BodyProps } from './Body/Body'
-import { Cell, Props as CellProps } from './Cell/Cell'
-import {
-	Discoverable,
-	Props as DiscoverableProps,
-} from './Discoverable/Discoverable'
-import { FullRow, Props as FullRowProps } from './FullRow/FullRow'
-import { Head, Props as HeadProps } from './Head/Head'
-import { Header, Props as HeaderProps } from './Header/Header'
-import { Row, Props as RowProps } from './Row/Row'
-import { Search, Props as SearchProps } from './Search/Search'
+import { Body } from './Body/Body'
+import { Cell } from './Cell/Cell'
+import { Discoverable } from './Discoverable/Discoverable'
+import { FullRow } from './FullRow/FullRow'
+import { Head } from './Head/Head'
+import { Header } from './Header/Header'
+import { Row } from './Row/Row'
+import { Search } from './Search/Search'
 
 import { Box, BoxProps } from '../Box/Box'
 import clsx from 'clsx'
@@ -47,14 +44,14 @@ const TableComponent: React.FC<Props> = ({
 }
 
 type TableWithComponents = React.FC<Props> & {
-	Body: React.FC<BodyProps>
-	Cell: React.FC<CellProps>
-	Discoverable: React.FC<DiscoverableProps>
-	FullRow: React.FC<FullRowProps>
-	Head: React.FC<HeadProps>
-	Header: React.FC<HeaderProps>
-	Row: React.FC<RowProps>
-	Search: React.FC<SearchProps>
+	Body: typeof Body
+	Cell: typeof Cell
+	Discoverable: typeof Discoverable
+	FullRow: typeof FullRow
+	Head: typeof Head
+	Header: typeof Header
+	Row: typeof Row
+	Search: typeof Search
 }
 
 const Table = TableComponent as TableWithComponents

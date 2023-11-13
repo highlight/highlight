@@ -33,7 +33,7 @@ const highlightConfig = {
 	serviceName: 'my-express-app',
 	serviceVersion: 'git-sha'
 }
-H.init(config)
+H.init(highlightConfig)
 
 // This should be before any controllers (route definitions)
 app.use(Handlers.middleware(highlightConfig))

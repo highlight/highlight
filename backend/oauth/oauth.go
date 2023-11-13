@@ -160,6 +160,11 @@ func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret stri
 	if clientID, clientSecret, err = server.ClientBasicHandler(r); err == nil {
 		return
 	}
+
+	if clientID, clientSecret, err = server.ClientFormHandler(r); err == nil {
+		return
+	}
+
 	// single-page auth flow, per https://www.oauth.com/oauth2-servers/single-page-apps/
 	clientID = r.URL.Query().Get("client_id")
 	if clientID == "" {

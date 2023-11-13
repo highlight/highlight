@@ -30,12 +30,12 @@ const (
 )
 
 func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
-	return DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
+	return DB.WithContext(context.TODO()).Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
 
 func GetSessions7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
 	var avg float64
-	if err := DB.Raw(`
+	if err := DB.WithContext(ctx).Raw(`
 			SELECT COALESCE(AVG(count), 0) as trailingAvg
 			FROM daily_session_counts_view
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
@@ -54,7 +54,7 @@ func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *click
 	defer meterSpan.Finish()
 
 	var meter int64
-	if err := DB.Raw(`
+	if err := DB.WithContext(ctx).Raw(`
 		WITH materialized_rows AS (
 			SELECT count, date
 			FROM daily_session_counts_view
@@ -90,7 +90,7 @@ func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *click
 
 func GetErrors7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
 	var avg float64
-	if err := DB.Raw(`
+	if err := DB.WithContext(ctx).Raw(`
 			SELECT COALESCE(AVG(count), 0) as trailingAvg
 			FROM daily_error_counts_view
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
@@ -109,7 +109,7 @@ func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 	defer meterSpan.Finish()
 
 	var meter int64
-	if err := DB.Raw(`
+	if err := DB.WithContext(ctx).Raw(`
 		WITH materialized_rows AS (
 			SELECT count, date
 			FROM daily_error_counts_view
@@ -596,11 +596,11 @@ func (w *Worker) ReportUsageForWorkspace(ctx context.Context, workspaceID int) e
 
 func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *model.PricingProductType) error {
 	var workspace model.Workspace
-	if err := w.db.Model(&workspace).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
+	if err := w.db.WithContext(ctx).Model(&workspace).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
 	}
 	var projects []model.Project
-	if err := w.db.Model(&model.Project{}).Where("workspace_id = ?", workspaceID).Find(&projects).Error; err != nil {
+	if err := w.db.WithContext(ctx).Model(&model.Project{}).Where("workspace_id = ?", workspaceID).Find(&projects).Error; err != nil {
 		return e.Wrap(err, "error querying projects in workspace")
 	}
 	workspace.Projects = projects
@@ -698,7 +698,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 		if updated.NextPendingInvoiceItemInvoice != 0 {
 			timestamp := time.Unix(updated.NextPendingInvoiceItemInvoice, 0)
-			if err := w.db.Model(&workspace).Where("id = ?", workspaceID).
+			if err := w.db.WithContext(ctx).Model(&workspace).Where("id = ?", workspaceID).
 				Updates(&model.Workspace{
 					NextInvoiceDate: &timestamp,
 				}).Error; err != nil {
@@ -886,7 +886,7 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 func (w *Worker) ReportAllUsage(ctx context.Context) {
 	// Get all workspace IDs
 	var workspaceIDs []int
-	if err := w.db.Raw(`
+	if err := w.db.WithContext(ctx).Raw(`
 		SELECT id
 		FROM workspaces
 		WHERE billing_period_start is not null

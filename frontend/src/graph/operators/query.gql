@@ -110,27 +110,6 @@ query GetMetricsTimeline(
 	}
 }
 
-query GetMetricsHistogram(
-	$project_id: ID!
-	$metric_name: String!
-	$params: HistogramParamsInput!
-) {
-	metrics_histogram(
-		project_id: $project_id
-		metric_name: $metric_name
-		params: $params
-	) {
-		buckets {
-			bucket
-			range_start
-			range_end
-			count
-		}
-		min
-		max
-	}
-}
-
 query GetNetworkHistogram(
 	$project_id: ID!
 	$params: NetworkHistogramParamsInput!
@@ -1427,51 +1406,51 @@ query GetTracesIntegration($project_id: ID!) {
 	}
 }
 
-query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
+query GetKeyPerformanceIndicators($project_id: ID!, $lookback_days: Float!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
-	newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+	newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 		count
 	}
 	averageSessionLength(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		length
 	}
 	userFingerprintCount(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		count
 	}
 }
 
-query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
-	referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetReferrersCount($project_id: ID!, $lookback_days: Float!) {
+	referrers(project_id: $project_id, lookback_days: $lookback_days) {
 		host
 		count
 		percent
 	}
 }
 
-query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
-	newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetNewUsersCount($project_id: ID!, $lookback_days: Float!) {
+	newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 		count
 	}
 }
 
-query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
+query GetAverageSessionLength($project_id: ID!, $lookback_days: Float!) {
 	averageSessionLength(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		length
 	}
 }
 
-query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
-	topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetTopUsers($project_id: ID!, $lookback_days: Float!) {
+	topUsers(project_id: $project_id, lookback_days: $lookback_days) {
 		identifier
 		total_active_time
 		active_time_percentage
@@ -1494,10 +1473,10 @@ query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
 	}
 }
 
-query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+query GetRageClicksForProject($project_id: ID!, $lookback_days: Float!) {
 	rageClicksForProject(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		identifier
 		session_secure_id
@@ -2391,12 +2370,14 @@ query GetTraces(
 query GetTracesMetrics(
 	$project_id: ID!
 	$params: QueryInput!
-	$metric_types: [TracesMetricType!]!
+	$column: TracesMetricColumn!
+	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
 ) {
 	traces_metrics(
 		project_id: $project_id
 		params: $params
+		column: $column
 		metric_types: $metric_types
 		group_by: $group_by
 	) {

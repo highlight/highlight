@@ -828,6 +828,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	highlight.RecordMetric(
 		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
@@ -836,6 +837,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
 		{
@@ -1150,11 +1152,11 @@ func (w *Worker) MigrateDB(ctx context.Context) {
 }
 
 func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
-	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
+	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.MailClient, w.Resolver.RH)
 }
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
-	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
@@ -1238,7 +1240,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		c.ErrorCountLastDay += errorResults[idx].ErrorCountLastDay
 
 		workspace := &model.Workspace{}
-		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
 		c.TrialEndDate = workspace.TrialEndDate
@@ -1595,7 +1597,7 @@ func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod,
 	for {
 		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
 		var count int64
-		if err := db.Raw(`
+		if err := db.WithContext(ctx).Raw(`
 			SELECT COUNT(*)
 			FROM sessions
 			WHERE (processed = false)
