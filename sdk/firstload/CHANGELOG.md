@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.2.2
+
+### Patch Changes
+
+-   b6172b0da: support bypassing sessionStorage entirely with the storageMode option and provide a globalStorage fallback
+
 ## 8.2.1
 
 ### Patch Changes

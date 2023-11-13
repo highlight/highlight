@@ -1,5 +1,13 @@
 # @highlight-run/nest
 
+## 3.4.2
+
+### Patch Changes
+
+-   Updated dependencies [e3590078e]
+-   Updated dependencies [8e91dbe55]
+    -   @highlight-run/node@3.6.2
+
 ## 3.4.1
 
 ### Patch Changes
