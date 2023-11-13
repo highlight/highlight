@@ -231,11 +231,11 @@ export class Highlight {
 			this.debugOptions = this.options?.debug ?? {}
 		}
 		this.logger = new Logger(this.debugOptions.clientInteractions)
-		if (options.storageMode === 'sessionStorage') {
+		if (options.storageMode) {
 			this.logger.log(
-				'initializing in sessionStorage non-persistent session mode',
+				`initializing in ${options.storageMode} session mode`,
 			)
-			setStorageMode('sessionStorage')
+			setStorageMode(options.storageMode)
 		}
 
 		this._worker =
