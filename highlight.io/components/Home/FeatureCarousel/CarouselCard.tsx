@@ -32,8 +32,9 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 					className="absolute border-2 right-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]"
 				>
 					<Image
+						priority
 						className={`${
-							feature.right ? 'right-0' : 'left-0'
+							imageLoaded ? '' : 'hidden'
 						} object-contain absolute bottom-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]`}
 						src={feature.desktopImage}
 						alt="Feature Spotlight"

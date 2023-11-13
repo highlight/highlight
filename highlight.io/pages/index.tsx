@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
 import Image from 'next/legacy/image'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { PrimaryButton } from '../components/common/Buttons/PrimaryButton'
 import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import styles from '../components/Home/Home.module.scss'
@@ -9,15 +8,12 @@ import styles from '../components/Home/Home.module.scss'
 import LandingInfoRowSecurity from '../public/images/landingInfoRowSecurity.png'
 
 import { Collapse } from 'antd'
-import classNames from 'classnames'
 import Link from 'next/link'
-import { FaPlay } from 'react-icons/fa'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import { Typography } from '../components/common/Typography/Typography'
 import { BigHeroArt } from '../components/Home/BigHeroArt'
-import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarousel'
@@ -151,53 +147,7 @@ const Home: NextPage = () => {
 			<Navbar />
 			<main>
 				<Section className={styles.heroVideoWrapper}>
-					<div className={styles.anchorFeature}>
-						<h2
-							className={classNames(
-								styles.landingAnchorHead,
-								'px-5',
-							)}
-						>
-							The open source, fullstack <br />
-							<span className="text-highlight-yellow">
-								Monitoring Platform.
-							</span>
-						</h2>
-						<div className="flex justify-center mt-8">
-							<div className="flex flex-col justify-center w-screen gap-4 px-5 sm:flex-row sm:w-auto">
-								<PrimaryButton
-									className={classNames(
-										styles.solidButton,
-										'min-w-[180px]',
-									)}
-									href="https://app.highlight.io/sign_up"
-								>
-									<Typography type="copy2" emphasis={true}>
-										Get started
-									</Typography>
-								</PrimaryButton>
-
-								<PrimaryButton
-									href={'https://app.highlight.io/demo'}
-									className={classNames(styles.hollowButton)}
-								>
-									<div className="flex items-center gap-2">
-										<FaPlay />
-										<Typography
-											type="copy2"
-											emphasis={true}
-										>
-											Live demo
-										</Typography>
-									</div>
-								</PrimaryButton>
-							</div>
-						</div>
-						<div className="relative flex flex-col items-center mt-8 mb-28">
-							<CalendlyPopover />
-						</div>
-						<FeatureCarousel />
-					</div>
+					<FeatureCarousel />
 				</Section>
 				<Section>
 					<div className={styles.anchorFeature} id="features">
