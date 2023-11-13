@@ -13,6 +13,6 @@ export default defineConfig({
 	minify: 'terser',
 	dts: true,
 	sourcemap: true,
-	noExternal: [],
+	noExternal: ['highlight.run'],
 	external: ['next'],
 })
