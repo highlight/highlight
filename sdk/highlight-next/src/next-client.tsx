@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
-import { HighlightOptions, H as localH } from 'highlight.run'
+import { useEffect } from 'react'
+import { H, HighlightOptions } from 'highlight.run'
 
-export { localH as H }
+export { H } from 'highlight.run'
 export { ErrorBoundary } from '@highlight-run/react'
 
 export interface Props extends HighlightOptions {
@@ -21,7 +21,7 @@ export function HighlightInit({
 				(hostname) => !window.location.hostname.includes(hostname),
 			)
 
-		shouldRender && localH.init(projectId, highlightOptions)
+		shouldRender && H.init(projectId, highlightOptions)
 	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 
 	return null
