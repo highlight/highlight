@@ -79,7 +79,7 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
-import { getItem, setItem, setStorageMode } from './utils/storage'
+import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -116,6 +116,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
+	sendMode?: 'webworker' | 'local'
 }
 
 /**
@@ -231,11 +232,11 @@ export class Highlight {
 			this.debugOptions = this.options?.debug ?? {}
 		}
 		this.logger = new Logger(this.debugOptions.clientInteractions)
-		if (options.storageMode === 'sessionStorage') {
+		if (options.storageMode) {
 			this.logger.log(
-				'initializing in sessionStorage non-persistent session mode',
+				`initializing in ${options.storageMode} session mode`,
 			)
-			setStorageMode('sessionStorage')
+			setStorageMode(options.storageMode)
 		}
 
 		this._worker =
@@ -275,7 +276,7 @@ export class Highlight {
 		} else {
 			// new session. we should clear any session storage data
 			for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
-				window.sessionStorage.removeItem(storageKeyName)
+				removeItem(storageKeyName)
 			}
 			this.sessionData = {
 				sessionSecureID: this.options.sessionSecureID,
@@ -313,10 +314,8 @@ export class Highlight {
 		let user_identifier, user_object
 		if (!forceNew) {
 			try {
-				user_identifier = window.sessionStorage.getItem(
-					SESSION_STORAGE_KEYS.USER_IDENTIFIER,
-				)
-				const user_object_string = window.sessionStorage.getItem(
+				user_identifier = getItem(SESSION_STORAGE_KEYS.USER_IDENTIFIER)
+				const user_object_string = getItem(
 					SESSION_STORAGE_KEYS.USER_OBJECT,
 				)
 				if (user_object_string) {
@@ -325,7 +324,7 @@ export class Highlight {
 			} catch (err) {}
 		}
 		for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
-			window.sessionStorage.removeItem(storageKeyName)
+			removeItem(storageKeyName)
 		}
 
 		// no need to set the sessionStorage value here since firstload won't call
@@ -427,14 +426,8 @@ export class Highlight {
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
 		this._lastVisibilityChangeTime = new Date().getTime()
-		this._payloadId =
-			Number(
-				window.sessionStorage.getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID),
-			) ?? 1
-		window.sessionStorage.setItem(
-			SESSION_STORAGE_KEYS.PAYLOAD_ID,
-			this._payloadId.toString(),
-		)
+		this._payloadId = Number(getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)) ?? 1
+		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
 	}
 
 	identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -447,14 +440,11 @@ export class Highlight {
 		}
 		this.sessionData.userIdentifier = user_identifier.toString()
 		this.sessionData.userObject = user_object
-		window.sessionStorage.setItem(
+		setItem(
 			SESSION_STORAGE_KEYS.USER_IDENTIFIER,
 			user_identifier.toString(),
 		)
-		window.sessionStorage.setItem(
-			SESSION_STORAGE_KEYS.USER_OBJECT,
-			JSON.stringify(user_object),
-		)
+		setItem(SESSION_STORAGE_KEYS.USER_OBJECT, JSON.stringify(user_object))
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Identify,
@@ -542,12 +532,12 @@ export class Highlight {
 				return
 			}
 
-			const recordingStartTime = window.sessionStorage.getItem(
+			const recordingStartTime = getItem(
 				SESSION_STORAGE_KEYS.RECORDING_START_TIME,
 			)
 			if (!recordingStartTime) {
 				this._recordingStartTime = new Date().getTime()
-				window.sessionStorage.setItem(
+				setItem(
 					SESSION_STORAGE_KEYS.RECORDING_START_TIME,
 					this._recordingStartTime.toString(),
 				)
@@ -563,7 +553,7 @@ export class Highlight {
 			}
 
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
-			window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA)
+			removeItem(SESSION_STORAGE_KEYS.SESSION_DATA)
 
 			// Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
 			// needed for initializeSession
@@ -651,7 +641,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					recordingStartTime: this._recordingStartTime,
 				},
 			})
-			window.sessionStorage.setItem(
+			setItem(
 				SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
 				this.sessionData.sessionSecureID,
 			)
@@ -1097,7 +1087,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
-			window.sessionStorage.setItem(
+			setItem(
 				SESSION_STORAGE_KEYS.SESSION_DATA,
 				JSON.stringify(this.sessionData),
 			)
@@ -1114,7 +1104,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (isOnIOS) {
 			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
-				window.sessionStorage.setItem(
+				setItem(
 					SESSION_STORAGE_KEYS.SESSION_DATA,
 					JSON.stringify(this.sessionData),
 				)
@@ -1266,7 +1256,28 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			) {
 				await this._reset({})
 			}
-			await this._sendPayload({ isBeacon: false })
+			let sendFn = undefined
+			if (this.options?.sendMode === 'local') {
+				sendFn = async (payload: any) => {
+					let blob = new Blob(
+						[
+							JSON.stringify({
+								query: print(PushPayloadDocument),
+								variables: payload,
+							}),
+						],
+						{
+							type: 'application/json',
+						},
+					)
+					await window.fetch(`${this._backendUrl}`, {
+						method: 'POST',
+						body: blob,
+					})
+					return 0
+				}
+			}
+			await this._sendPayload({ isBeacon: false, sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
 		} catch (e) {
@@ -1381,10 +1392,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			})
 		}
 		this._payloadId++
-		window.sessionStorage.setItem(
-			SESSION_STORAGE_KEYS.PAYLOAD_ID,
-			this._payloadId.toString(),
-		)
+		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
 
 		// If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
 		// SendBeacon is not guaranteed to succeed, so we will treat it the same way.

@@ -1,5 +1,5 @@
 import { SESSION_STORAGE_KEYS } from '../utils/sessionStorage/sessionStorageKeys'
-import { getItem, monkeyPatchLocalStorage } from '../utils/storage'
+import { getItem, monkeyPatchLocalStorage, setItem } from '../utils/storage'
 
 enum SEGMENT_LOCAL_STORAGE_KEYS {
 	USER_ID = 'ajs_user_id',
@@ -122,23 +122,17 @@ const shouldSend = (payload: any) => {
 
 	const hashDigest = hashCode(hashMessage)
 
-	const lastSentHash = window.sessionStorage.getItem(
+	const lastSentHash = getItem(
 		SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY,
 	)
 
 	if (lastSentHash === undefined) {
-		window.sessionStorage.setItem(
-			SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY,
-			hashDigest,
-		)
+		setItem(SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY, hashDigest)
 		return true
 	}
 
 	if (hashDigest !== lastSentHash) {
-		window.sessionStorage.setItem(
-			SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY,
-			hashDigest,
-		)
+		setItem(SESSION_STORAGE_KEYS.SEGMENT_LAST_SENT_HASH_KEY, hashDigest)
 		return true
 	}
 

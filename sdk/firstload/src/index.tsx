@@ -26,12 +26,13 @@ import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import configureElectronHighlight from './environments/electron.js'
 import firstloadVersion from './__generated/version.js'
 import {
-	SessionData,
 	getPreviousSessionData,
+	SessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { initializeFetchListener } from './listeners/fetch/index.js'
 import { initializeWebSocketListener } from './listeners/web-socket/index.js'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
+import { setItem } from '@highlight-run/client/src/utils/storage.js'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -102,7 +103,7 @@ const H: HighlightPublicInterface = {
 					sessionSecureID,
 				}
 
-				window.sessionStorage.setItem(
+				setItem(
 					SESSION_STORAGE_KEYS.SESSION_DATA,
 					JSON.stringify(sessionData),
 				)
@@ -149,6 +150,7 @@ const H: HighlightPublicInterface = {
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
 				storageMode: options?.storageMode,
+				sendMode: options?.sendMode,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
