@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
 	useComboboxStore,
 	useSelectStore,
@@ -183,4 +183,45 @@ export const ComboboxSelect = <T extends string | string[]>({
 			</SelectPopover>
 		</div>
 	)
+}
+
+export const ComboboxSelect_test = () => {
+	const [value, setValue] = useState('')
+	const options = [
+		{ key: 'red', render: 'Red' },
+		{ key: 'blue', render: 'Blue' },
+		{ key: 'green', render: 'Green' },
+	]
+	const label = 'Select a color'
+	return (
+		<ComboboxSelect
+			label={label}
+			value={value}
+			valueRender={value || label}
+			options={options}
+			onChange={(valueNext: string) => {
+				setValue(valueNext)
+			}}
+			queryPlaceholder="Filter..."
+		/>
+	)
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+ComboboxSelect_test.run = async ({ user, screen, captureScreenshot }) => {
+	const combobox = await screen.findByRole('combobox')
+	await captureScreenshot(combobox, { name: 'initial' })
+
+	await user.click(combobox)
+	const dialog = await screen.findByRole('dialog')
+	await captureScreenshot(dialog, { name: 'dialog opened' })
+
+	const filterInput = await screen.findByPlaceholderText('Filter...')
+
+	await user.type(filterInput, 're')
+	await captureScreenshot(dialog, { name: 'filter entered' })
+
+	const redOption = await screen.findByText('Red')
+	await user.click(redOption)
 }

@@ -70,7 +70,15 @@ type Worker struct {
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payloadManager *payload.PayloadManager) error {
-	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
+	project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+	if err != nil {
+		return err
+	}
+	workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager, workspace.GetRetentionPeriod())
 	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing files to s3")
@@ -127,8 +135,17 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 			}
 			curChunkedFile := manager.GetFile(payload.EventsChunked)
 			if curChunkedFile != nil {
+				project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+				if err != nil {
+					return err
+				}
+				workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+				if err != nil {
+					return err
+				}
+
 				curOffset := manager.ChunkIndex
-				_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset))
+				_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset), workspace.GetRetentionPeriod())
 				if err != nil {
 					return errors.Wrap(err, "error pushing event chunk file to s3")
 				}
@@ -224,11 +241,20 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 
 	// If the last event chunk file hasn't been closed / written to s3, do that here
 	if manager.EventsChunked != nil {
+		project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+		if err != nil {
+			return err
+		}
+		workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+		if err != nil {
+			return err
+		}
+
 		if err := manager.EventsChunked.Close(); err != nil {
 			return errors.Wrap(err, "error closing compressed events chunk writer")
 		}
 		curOffset := manager.ChunkIndex
-		_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset))
+		_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset), workspace.GetRetentionPeriod())
 		if err != nil {
 			return errors.Wrap(err, "error pushing event chunk file to s3")
 		}
@@ -828,6 +854,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	highlight.RecordMetric(
 		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
@@ -836,6 +863,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
 		{
@@ -1150,11 +1178,11 @@ func (w *Worker) MigrateDB(ctx context.Context) {
 }
 
 func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
-	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
+	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.MailClient, w.Resolver.RH)
 }
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
-	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
@@ -1238,7 +1266,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		c.ErrorCountLastDay += errorResults[idx].ErrorCountLastDay
 
 		workspace := &model.Workspace{}
-		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
 		c.TrialEndDate = workspace.TrialEndDate
@@ -1594,7 +1622,7 @@ func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod,
 	for {
 		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
 		var count int64
-		if err := db.Raw(`
+		if err := db.WithContext(ctx).Raw(`
 			SELECT COUNT(*)
 			FROM sessions
 			WHERE (processed = false)

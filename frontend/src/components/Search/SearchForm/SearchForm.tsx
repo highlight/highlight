@@ -12,6 +12,7 @@ import {
 	Combobox,
 	defaultPresets,
 	getNow,
+	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
@@ -36,6 +37,7 @@ import {
 } from 'use-query-params'
 
 import { Button } from '@/components/Button'
+import { LinkButton } from '@/components/LinkButton'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -321,12 +323,12 @@ export const Search: React.FC<{
 		const isValueSelect = typeof key === 'string'
 		const activeTermKey = queryTerms[activeTermIndex].key
 		const isLastTerm = activeTermIndex === queryTerms.length - 1
+		const prefix = activeTerm.value.startsWith('-') ? '-' : ''
 
-		// If string, it's a value not a key
 		if (isValueSelect) {
 			queryTerms[activeTermIndex].value = !!noQuotes
 				? key
-				: quoteQueryValue(key)
+				: `${prefix}${quoteQueryValue(key)}`
 		} else {
 			if (activeTermKey === BODY_KEY && activeTerm.value.endsWith(' ')) {
 				queryTerms[activeTermIndex].value =
@@ -573,10 +575,17 @@ export const Search: React.FC<{
 							alignItems="center"
 							gap="6"
 						>
-							<Badge variant="gray" size="small" label="*" />
-							<Text color="weak" size="xSmall">
-								Wildcard
-							</Text>
+							<LinkButton
+								trackingId="search-form_search-specification-docs-link"
+								to="https://www.highlight.io/docs/general/product-features/logging/log-search#attributes-search"
+								target="_blank"
+								size="xSmall"
+								kind="secondary"
+								emphasis="high"
+								iconRight={<IconSolidExternalLink />}
+							>
+								View docs
+							</LinkButton>
 						</Box>
 					</Box>
 				</Combobox.Popover>
@@ -661,15 +670,17 @@ const getVisibleKeys = (
 }
 
 const getVisibleValues = (activeQueryTerm: SearchParam, values?: string[]) => {
+	const activeTerm = activeQueryTerm.value.replace('-', '')
+
 	return (
 		values?.filter(
 			(v) =>
 				// Don't filter if no value has been typed
-				!activeQueryTerm.value.length ||
+				!activeTerm.length ||
 				// Exclude the current term since that is given special treatment
-				(v !== activeQueryTerm.value &&
+				(v !== activeTerm &&
 					// Return values that match the query term
-					v.indexOf(activeQueryTerm.value) > -1),
+					v.indexOf(activeTerm) > -1),
 		) || []
 	)
 }

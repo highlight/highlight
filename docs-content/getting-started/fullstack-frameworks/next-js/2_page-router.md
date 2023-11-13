@@ -139,11 +139,45 @@ function ThrowerOfErrors({
 }
 ```
 
-## Catch server-side render (SSR) errors (optional)
+## Enable server-side tracing
+
+We use `experimental.instrumentationHook` to capture [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This method captures detailed API route tracing as well as server-side errors.
+
+1. Enable `experimental.instrumentationHook` in `next.config.js`.
+```javascript
+// next.config.mjs
+import { withHighlightConfig } from '@highlight-run/next/config'
+
+const nextConfig = {
+	experimental: {
+		instrumentationHook: true,
+	},
+	// ...additional config
+}
+
+export default withHighlightConfig(nextConfig)
+```
+
+2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `pages` folder. 
+```jsx
+// instrumentation.ts or src/instrumentation.ts
+import { CONSTANTS } from './constants'
+
+export async function register() {
+	const { registerHighlight } = await import('@highlight-run/next/server')
+
+	registerHighlight({
+		projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+		serviceName: 'my-nextjs-backend',
+	})
+}
+```
+
+## Catch server-side render (SSR) errors
 
 Page Router uses [pages/_error.tsx](https://nextjs.org/docs/pages/building-your-application/routing/custom-error#more-advanced-error-page-customizing) to send server-side render errors to the client. We can catch and consume those errors with a custom error page.
 
-All SSR error will display as client errors on your Highlight dashboard.
+These SSR error will display as client errors on your Highlight dashboard.
 
 ```jsx
 // pages/_error.tsx

@@ -4,10 +4,7 @@ import { Box, BoxProps } from '../../Box/Box'
 import * as styles from './styles.css'
 
 export interface Props
-	extends Omit<
-		BoxProps,
-		'display' | 'flexDirection' | 'alignItems' | 'gap' | 'cssClass'
-	> {
+	extends Omit<BoxProps, 'display' | 'flexDirection' | 'gap' | 'cssClass'> {
 	children: React.ReactNode
 	icon?: React.ReactNode
 }

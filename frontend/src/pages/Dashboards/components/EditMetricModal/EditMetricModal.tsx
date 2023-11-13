@@ -50,11 +50,6 @@ const CHART_TYPES: {
 		description: `Bar graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`,
 		chartType: DashboardChartType.TimelineBar,
 	},
-	{
-		title: 'Distribution / Bar',
-		description: `Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and view outliers.`,
-		chartType: DashboardChartType.Histogram,
-	},
 ]
 
 export type UpdateMetricFn = (idx: number, value: DashboardMetricConfig) => void

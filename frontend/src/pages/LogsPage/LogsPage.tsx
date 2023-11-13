@@ -1,4 +1,3 @@
-import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { LogLevel, ProductType } from '@graph/schemas'
 import { Box, defaultPresets, getNow } from '@highlight-run/ui'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
@@ -8,7 +7,7 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useRef } from 'react'
+import React from 'react'
 import { Helmet } from 'react-helmet'
 import { QueryParamConfig, useQueryParam } from 'use-query-params'
 
@@ -58,7 +57,6 @@ type Props = {
 }
 
 const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
-	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -90,6 +88,10 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
 		setEndDate(newEndDate)
+	}
+
+	const handleAdditionalLogsDateChange = () => {
+		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
 	}
 
 	const handleLevelChange = (level: LogLevel) => {
@@ -177,32 +179,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						histogramBuckets={histogramData?.logs_histogram.buckets}
 						bucketCount={histogramData?.logs_histogram.totalCount}
 					/>
-					<Box width="full">
-						<AdditionalFeedResults
-							more={moreLogs}
-							type="logs"
-							onClick={() => {
-								clearMoreLogs()
-								handleDatesChange(
-									defaultPresets[0].startDate,
-									getNow().toDate(),
-								)
-							}}
-						/>
-					</Box>
-					<Box
-						borderTop="dividerWeak"
-						height="screen"
-						pt="4"
-						px="12"
-						pb="12"
-						overflowY="auto"
-						onScroll={(e) =>
-							fetchMoreWhenScrolled(e.target as HTMLDivElement)
-						}
-						ref={tableContainerRef}
-					>
-						<Box my="4">
+					<Box borderTop="dividerWeak" height="full">
+						<Box my="4" px="12">
 							<OverageCard productType={ProductType.Logs} />
 						</Box>
 						<IntegrationCta />
@@ -213,8 +191,13 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							refetch={refetch}
 							loadingAfter={loadingAfter}
 							query={query}
-							tableContainerRef={tableContainerRef}
 							selectedCursor={logCursor}
+							moreLogs={moreLogs}
+							clearMoreLogs={clearMoreLogs}
+							handleAdditionalLogsDateChange={
+								handleAdditionalLogsDateChange
+							}
+							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 						/>
 					</Box>
 				</Box>

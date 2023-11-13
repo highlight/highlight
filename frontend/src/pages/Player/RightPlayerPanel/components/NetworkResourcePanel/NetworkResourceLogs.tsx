@@ -1,6 +1,6 @@
 import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
 import { stringify } from 'query-string'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
@@ -38,7 +38,6 @@ export const NetworkResourceLogs: React.FC<{
 	}>()
 	const requestId = resource.requestResponsePairs?.request?.id
 	const [query, setQuery] = useState('')
-	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const startDate = useMemo(
 		() => new Date(sessionStartTime + resource.startTime - TIME_BUFFER),
 		[sessionStartTime, resource.startTime],
@@ -129,17 +128,7 @@ export const NetworkResourceLogs: React.FC<{
 						fetchKeys={useGetLogsKeysQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
-					<Box
-						height="screen"
-						pt="4"
-						px="12"
-						pb="12"
-						overflowY="auto"
-						onScroll={(e) =>
-							fetchMoreWhenScrolled(e.target as HTMLDivElement)
-						}
-						ref={tableContainerRef}
-					>
+					<Box height="full" pt="4" px="12" pb="12">
 						{(!loading && logEdges.length === 0) || !requestId ? (
 							<NoLogsFound />
 						) : (
@@ -150,8 +139,8 @@ export const NetworkResourceLogs: React.FC<{
 								refetch={refetch}
 								loadingAfter={loadingAfter}
 								query={query}
-								tableContainerRef={tableContainerRef}
 								selectedCursor={undefined}
+								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 							/>
 						)}
 					</Box>

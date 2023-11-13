@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
@@ -231,7 +232,7 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
 		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 	}
-	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient()); err != nil {
+	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient(), modelInputs.RetentionPeriodThreeMonths); err != nil {
 		t.Fatalf("failed to replace assets %+v", err)
 	}
 

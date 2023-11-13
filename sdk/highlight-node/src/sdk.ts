@@ -1,9 +1,9 @@
 import { IncomingHttpHeaders } from 'http'
 import { Highlight } from '.'
-import { NodeOptions } from './types.js'
 import log from './log'
 import { ResourceAttributes } from '@opentelemetry/resources'
 import type { Attributes } from '@opentelemetry/api'
+import type { NodeOptions, HighlightContext } from './types.js'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -12,10 +12,7 @@ export interface HighlightInterface {
 	stop: () => Promise<void>
 	isInitialized: () => boolean
 	// Use parseHeaders to extract the headers from the current context or from the headers.
-	parseHeaders: (headers: IncomingHttpHeaders) => {
-		secureSessionId: string | undefined
-		requestId: string | undefined
-	}
+	parseHeaders: (headers: IncomingHttpHeaders) => HighlightContext
 	// Use setHeaders to define the highlight context for the entire async request
 	setHeaders: (headers: IncomingHttpHeaders) => void
 	// Use runWithHeaders to execute a method with a highlight context
@@ -111,7 +108,10 @@ export const H: HighlightInterface = {
 	},
 	flush: async () => {
 		try {
-			await highlight_obj.flush()
+			await Promise.allSettled([
+				highlight_obj.waitForFlush(),
+				highlight_obj.flush(),
+			])
 		} catch (e) {
 			console.warn('highlight-node flush error: ', e)
 		}
@@ -139,12 +139,7 @@ export const H: HighlightInterface = {
 			console.warn('highlight-node log error: ', e)
 		}
 	},
-	parseHeaders: (
-		headers: IncomingHttpHeaders,
-	): {
-		secureSessionId: string | undefined
-		requestId: string | undefined
-	} => {
+	parseHeaders: (headers: IncomingHttpHeaders): HighlightContext => {
 		return highlight_obj.parseHeaders(headers)
 	},
 	runWithHeaders: (headers, cb) => {
@@ -154,12 +149,12 @@ export const H: HighlightInterface = {
 		return highlight_obj.setHeaders(headers)
 	},
 	consumeAndFlush: async function (...args) {
-		const waitPromise = highlight_obj.waitForFlush()
-
-		this.consumeError(...args)
-		const flushPromise = this.flush()
-
-		await Promise.allSettled([waitPromise, flushPromise])
+		try {
+			this.consumeError(...args)
+			await this.flush()
+		} catch (e) {
+			console.warn('highlight-node consumeAndFlush error: ', e)
+		}
 	},
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)

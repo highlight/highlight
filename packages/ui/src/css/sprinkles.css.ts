@@ -150,6 +150,7 @@ const staticProperties = defineProperties({
 			normal: 'normal',
 			breakWord: 'break-word',
 		},
+		textDecoration: ['none', 'underline', 'line-through'],
 		textTransform: [
 			'none',
 			'capitalize',

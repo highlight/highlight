@@ -28,3 +28,8 @@ export interface NodeOptions extends HighlightOptions {
 	 */
 	enableFsInstrumentation?: boolean
 }
+
+export interface HighlightContext {
+	secureSessionId: string | undefined
+	requestId: string | undefined
+}

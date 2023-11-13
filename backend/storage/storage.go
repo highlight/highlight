@@ -34,13 +34,13 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 var (
-	S3SessionsPayloadBucketName    = os.Getenv("AWS_S3_BUCKET_NAME")
 	S3SessionsPayloadBucketNameNew = os.Getenv("AWS_S3_BUCKET_NAME_NEW")
 	S3SessionsStagingBucketName    = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
 	S3SourceMapBucketNameNew       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME_NEW")
@@ -85,15 +85,15 @@ type Client interface {
 	GetSourceMapUploadUrl(ctx context.Context, key string) (string, error)
 	GetSourcemapFiles(ctx context.Context, projectId int, version *string) ([]s3Types.Object, error)
 	GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error)
-	PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error)
-	PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error)
+	PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType, retentionPeriod privateModel.RetentionPeriod) (*int64, error)
+	PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager, retentionPeriod privateModel.RetentionPeriod) (int64, error)
 	PushRawEvents(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
-	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader) error
+	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader, retentionPeriod privateModel.RetentionPeriod) error
 	ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error)
 	PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error)
 }
@@ -202,7 +202,7 @@ func (f *FilesystemClient) GetSourcemapVersions(_ context.Context, projectId int
 	}), nil
 }
 
-func (f *FilesystemClient) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
+func (f *FilesystemClient) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType, retentionPeriod privateModel.RetentionPeriod) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
@@ -212,7 +212,7 @@ func (f *FilesystemClient) PushCompressedFile(ctx context.Context, sessionId, pr
 	return &size, err
 }
 
-func (f *FilesystemClient) PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error) {
+func (f *FilesystemClient) PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager, retentionPeriod privateModel.RetentionPeriod) (int64, error) {
 	var totalSize int64
 	for fileType, payloadType := range StoredPayloadTypes {
 		file := payloadManager.GetFile(fileType)
@@ -220,7 +220,7 @@ func (f *FilesystemClient) PushFiles(ctx context.Context, sessionId, projectId i
 		if err != nil {
 			return 0, errors.Wrap(err, "error seeking to beginning of file")
 		}
-		size, err := f.PushCompressedFile(ctx, sessionId, projectId, file, payloadType)
+		size, err := f.PushCompressedFile(ctx, sessionId, projectId, file, payloadType, retentionPeriod)
 
 		if err != nil {
 			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
@@ -302,7 +302,7 @@ func (f *FilesystemClient) GetAssetURL(_ context.Context, projectId string, hash
 	return fmt.Sprintf("%s/direct/assets/%s/%s", f.origin, projectId, hashVal), nil
 }
 
-func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, reader io.Reader) error {
+func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, reader io.Reader, retentionPeriod privateModel.RetentionPeriod) error {
 	_, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/assets/%s", f.fsRoot, uuid), reader)
 	return err
 }
@@ -446,22 +446,12 @@ func NewFSClient(_ context.Context, origin, fsRoot string) (*FilesystemClient, e
 }
 
 type S3Client struct {
-	S3Client        *s3.Client
 	S3ClientEast2   *s3.Client
 	S3PresignClient *s3.PresignClient
 	URLSigner       *sign.URLSigner
 }
 
 func NewS3Client(ctx context.Context) (*S3Client, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-west-2"))
-	if err != nil {
-		return nil, errors.Wrap(err, "error loading default from config")
-	}
-	// Create Amazon S3 API client using path style addressing.
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-	})
-
 	// Create a separate s3 client for us-east-2
 	// Eventually, the us-west-2 s3 client should be deprecated
 	cfgEast2, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
@@ -474,7 +464,6 @@ func NewS3Client(ctx context.Context) (*S3Client, error) {
 	})
 
 	return &S3Client{
-		S3Client:        client,
 		S3ClientEast2:   clientEast2,
 		S3PresignClient: s3.NewPresignClient(clientEast2),
 		URLSigner:       getURLSigner(ctx),
@@ -502,12 +491,8 @@ func UseNewSessionBucket(sessionId int) bool {
 }
 
 func (s *S3Client) getSessionClientAndBucket(sessionId int) (*s3.Client, *string) {
-	client := s.S3Client
-	bucket := pointy.String(S3SessionsPayloadBucketName)
-	if UseNewSessionBucket(sessionId) {
-		client = s.S3ClientEast2
-		bucket = pointy.String(S3SessionsPayloadBucketNameNew)
-	}
+	client := s.S3ClientEast2
+	bucket := pointy.String(S3SessionsPayloadBucketNameNew)
 
 	return client, bucket
 }
@@ -543,10 +528,11 @@ func (s *S3Client) pushFileToS3WithOptions(ctx context.Context, sessionId, proje
 }
 
 // PushCompressedFile pushes a compressed file to S3, adding the relevant metadata
-func (s *S3Client) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
+func (s *S3Client) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType, retentionPeriod privateModel.RetentionPeriod) (*int64, error) {
 	options := s3.PutObjectInput{
 		ContentType:     ptr.String(MIME_TYPE_JSON),
 		ContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
+		Tagging:         pointy.String(fmt.Sprintf("RetentionPeriod=%s", retentionPeriod)),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, payloadType, options)
 }
@@ -643,10 +629,10 @@ func (s *S3Client) PushFileToS3(ctx context.Context, sessionId, projectId int, f
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, payloadType, s3.PutObjectInput{})
 }
 
-func (s *S3Client) PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error) {
+func (s *S3Client) PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager, retentionPeriod privateModel.RetentionPeriod) (int64, error) {
 	var totalSize int64
 	for fileType, payloadType := range StoredPayloadTypes {
-		size, err := s.PushCompressedFile(ctx, sessionId, projectId, payloadManager.GetFile(fileType), payloadType)
+		size, err := s.PushCompressedFile(ctx, sessionId, projectId, payloadManager.GetFile(fileType), payloadType, retentionPeriod)
 
 		if err != nil {
 			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
@@ -886,7 +872,7 @@ func (s *S3Client) GetSourceMapUploadUrl(ctx context.Context, key string) (strin
 	return resp.URL, nil
 }
 
-func (s *S3Client) UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader) error {
+func (s *S3Client) UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader, retentionPeriod privateModel.RetentionPeriod) error {
 	_, err := s.S3ClientEast2.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: pointy.String(S3ResourcesBucketName),
 		Key:    pointy.String(uuid),
@@ -895,6 +881,7 @@ func (s *S3Client) UploadAsset(ctx context.Context, uuid string, contentType str
 			"Content-Type": contentType,
 		},
 		ContentType: pointy.String(contentType),
+		Tagging:     pointy.String(fmt.Sprintf("RetentionPeriod=%s", retentionPeriod)),
 	}, s3.WithAPIOptions(
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,
 	))

@@ -14,7 +14,7 @@ on:
                     - test
                     - deploy
     push:
-        branches: ['main']
+        branches: ['main', 'changeset-release/main']
         tags: ['sdk/highlight-java/**']
     pull_request:
         types: [opened, reopened, synchronize, assigned, review_requested]

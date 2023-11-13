@@ -9,7 +9,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
@@ -28,7 +27,7 @@ import (
 const maxWorkers = 40
 const alertEvalFreq = 15 * time.Second
 
-func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
+func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Starting to watch log alerts")
 
 	alertsByFrequency := &map[int64][]*model.LogAlert{}
@@ -73,7 +72,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 					alertWorkerpool.SubmitRecover(
 						func() {
 							ctx := context.Background()
-							err := processLogAlert(ctx, DB, TDB, MailClient, alert, rh, redis, ccClient)
+							err := processLogAlert(ctx, DB, MailClient, alert, rh, redis, ccClient)
 							if err != nil {
 								log.WithContext(ctx).Error(err)
 							}
@@ -96,7 +95,7 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 	return alerts
 }
 
-func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) error {
+func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) error {
 	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(alert.Frequency) * time.Second)
 

@@ -211,6 +211,12 @@ export declare type HighlightOptions = {
 	 * as the session ID will not persist.
 	 */
 	storageMode?: 'sessionStorage' | 'localStorage'
+	/**
+	 * By default, data is serialized and send by the Web Worker. Set to `local` to force
+	 * sending from the main js thread. Only use `local` for custom environments where Web Workers
+	 * are not available (ie. Figma plugins).
+	 */
+	sendMode?: 'webworker' | 'local'
 }
 
 export declare interface HighlightPublicInterface {

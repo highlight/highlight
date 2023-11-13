@@ -51,3 +51,6 @@ __pycache__
 .vercel
 temp
 .env
+
+scripts/invoices.csv
+

@@ -12,6 +12,7 @@ import {
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import { GetTracesQuery } from '@/graph/generated/operations'
@@ -21,12 +22,21 @@ import { useParams } from '@/util/react-router/useParams'
 
 type Props = {
 	loading: boolean
+	numMoreTraces?: number
 	traces?: GetTracesQuery['traces']
+	handleAdditionalTracesDateChange?: () => void
+	resetMoreTraces?: () => void
 }
 
 const gridColumns = ['2fr', '1fr', '2fr', '1fr', '2fr', '1.2fr']
 
-export const TracesList: React.FC<Props> = ({ loading, traces }) => {
+export const TracesList: React.FC<Props> = ({
+	loading,
+	numMoreTraces,
+	traces,
+	handleAdditionalTracesDateChange,
+	resetMoreTraces,
+}) => {
 	const { projectId } = useProjectId()
 	const { span_id } = useParams<{ span_id?: string }>()
 	const navigate = useNavigate()
@@ -53,13 +63,31 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 							<Table.Header>Secure Session ID</Table.Header>
 							<Table.Header>Timestamp</Table.Header>
 						</Table.Row>
+						{numMoreTraces !== undefined && numMoreTraces > 0 && (
+							<Table.Row>
+								<Box width="full">
+									<AdditionalFeedResults
+										more={numMoreTraces}
+										type="traces"
+										onClick={() => {
+											resetMoreTraces && resetMoreTraces()
+											handleAdditionalTracesDateChange &&
+												handleAdditionalTracesDateChange()
+										}}
+									/>
+								</Box>
+							</Table.Row>
+						)}
 					</Table.Head>
 					<Table.Body
 						height="full"
 						overflowY="auto"
 						style={{
 							// Subtract height of search filters + table header + charts
-							height: `calc(100% - 163px)`,
+							height:
+								numMoreTraces && numMoreTraces > 0
+									? `calc(100% - 191px)`
+									: `calc(100% - 163px)`,
 						}}
 					>
 						{traces.edges

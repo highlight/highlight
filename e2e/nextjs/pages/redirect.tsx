@@ -5,7 +5,7 @@ type Props = {
 }
 export default function RedirectPage({ shouldRedirect }: Props) {
 	if (shouldRedirect) {
-		return redirect(`/isr`)
+		return redirect(`/ssr`)
 	}
 
 	return (
