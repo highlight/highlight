@@ -1,1 +1,6 @@
-import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var e=a({defaultClassName:"_118xo1h2",variantClassNames:{kind:{info:"_118xo1h3",error:"_118xo1h4",warning:"_118xo1h5"},border:{true:"mt0ih2es mt0ih2d",false:"_118xo1h1"}},defaultVariants:{kind:"info",border:!0},compoundVariants:[]});export{e as variants};
+// ../packages/ui/src/components/Callout/styles.css.ts
+import { createRuntimeFn as _7a468 } from "@vanilla-extract/recipes/createRuntimeFn";
+var variants = _7a468({ defaultClassName: "_118xo1h2", variantClassNames: { kind: { info: "_118xo1h3", error: "_118xo1h4", warning: "_118xo1h5" }, border: { true: "mt0ih2es mt0ih2d", false: "_118xo1h1" } }, defaultVariants: { kind: "info", border: true }, compoundVariants: [] });
+export {
+  variants
+};

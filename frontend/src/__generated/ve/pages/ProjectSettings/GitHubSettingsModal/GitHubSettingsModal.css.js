@@ -1,1 +1,9 @@
-var o="_1kp6do41",e="_1kp6do40",p="_1kp6do42";export{o as example,e as repoSelect,p as tooltipContent};
+// src/pages/ProjectSettings/GitHubSettingsModal/GitHubSettingsModal.css.ts
+var example = "_1kp6do41";
+var repoSelect = "_1kp6do40";
+var tooltipContent = "_1kp6do42";
+export {
+  example,
+  repoSelect,
+  tooltipContent
+};

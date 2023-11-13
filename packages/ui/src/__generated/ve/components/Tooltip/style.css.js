@@ -1,1 +1,5 @@
-var t="_4etpxc0";export{t as tooltipContent};
+// ../packages/ui/src/components/Tooltip/style.css.ts
+var tooltipContent = "_4etpxc0";
+export {
+  tooltipContent
+};

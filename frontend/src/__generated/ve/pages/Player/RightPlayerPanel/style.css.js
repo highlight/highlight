@@ -1,1 +1,13 @@
-var r=300,t="ltrwrc0",a="ltrwrc1",e="ltrwrc2",n="ltrwrc3";export{r as RIGHT_PANEL_WIDTH,t as playerRightColumn,a as playerRightPanelContainerHidden,e as tabContentContainer,n as tabs};
+// src/pages/Player/RightPlayerPanel/style.css.ts
+var RIGHT_PANEL_WIDTH = 300;
+var playerRightColumn = "ltrwrc0";
+var playerRightPanelContainerHidden = "ltrwrc1";
+var tabContentContainer = "ltrwrc2";
+var tabs = "ltrwrc3";
+export {
+  RIGHT_PANEL_WIDTH,
+  playerRightColumn,
+  playerRightPanelContainerHidden,
+  tabContentContainer,
+  tabs
+};

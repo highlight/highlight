@@ -1,1 +1,9 @@
-var e="bzezgw1",r="bzezgw0",z="bzezgw2";export{e as noBorder,r as table,z as withSearch};
+// ../packages/ui/src/components/Table/styles.css.ts
+var noBorder = "bzezgw1";
+var table = "bzezgw0";
+var withSearch = "bzezgw2";
+export {
+  noBorder,
+  table,
+  withSearch
+};
