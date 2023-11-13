@@ -309,6 +309,14 @@ type Workspace struct {
 	PromoCode                   *string
 }
 
+func (w *Workspace) GetRetentionPeriod() modelInputs.RetentionPeriod {
+	if w.RetentionPeriod != nil {
+		return *w.RetentionPeriod
+	}
+	// Retention period is six months for any workspace grandfathered in
+	return modelInputs.RetentionPeriodSixMonths
+}
+
 type WorkspaceAdmin struct {
 	AdminID     int        `gorm:"primaryKey"`
 	WorkspaceID int        `gorm:"primaryKey"`
