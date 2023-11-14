@@ -15,7 +15,7 @@ const codeTheme = {
 }
 
 const CarouselImage = ({ feature }: { feature: Feature }) => {
-	const [imageLoaded, setImageLoaded] = useState(false)
+	const [imageLoaded, setImageLoaded] = useState(true)
 
 	const orig = { bottom: -20, opacity: 0 }
 	const final = { bottom: -20, opacity: 1 }
@@ -25,20 +25,21 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 			<div className="absolute right-0 top-0 bottom-0">
 				<motion.div
 					initial={orig}
-					animate={imageLoaded ? final : orig}
+					animate={final}
 					transition={{
 						duration: 0.4,
 					}}
-					className="absolute border-2 right-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]"
+					className="absolute right-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]"
 				>
+					{/* Using next/Image causes flickering of the image on first load*/}
 					<Image
 						priority
-						className={`${
-							imageLoaded ? '' : 'hidden'
-						} object-contain absolute bottom-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]`}
+						className={
+							'object-contain sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]'
+						}
 						src={feature.desktopImage}
 						alt="Feature Spotlight"
-						onLoadingComplete={() => setImageLoaded(true)}
+						crossOrigin="anonymous"
 					/>
 				</motion.div>
 			</div>
