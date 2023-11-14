@@ -114,6 +114,13 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		[fetchMoreForward, fetchMoreBackward],
 	)
 
+	const enableLogsHistogram = window.H.getFeatureToggle(
+		'spencers-test-toggle',
+	)
+	const enableLogsCount = window.H.getFeatureToggle('spencers-test-toggle-2')
+
+	console.log('toggleValues', enableLogsHistogram, enableLogsCount)
+
 	const { projectId } = useNumericProjectId()
 	const { data: histogramData, loading: histogramLoading } =
 		useGetLogsHistogramQuery({
@@ -163,22 +170,32 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						fetchKeys={useGetLogsKeysQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
-					<LogsCount
-						startDate={startDate}
-						endDate={endDate}
-						presets={defaultPresets}
-						totalCount={histogramData?.logs_histogram.objectCount}
-						loading={histogramLoading}
-					/>
-					<LogsHistogram
-						startDate={startDate}
-						endDate={endDate}
-						onDatesChange={handleDatesChange}
-						onLevelChange={handleLevelChange}
-						loading={histogramLoading}
-						histogramBuckets={histogramData?.logs_histogram.buckets}
-						bucketCount={histogramData?.logs_histogram.totalCount}
-					/>
+					{enableLogsCount && (
+						<LogsCount
+							startDate={startDate}
+							endDate={endDate}
+							presets={defaultPresets}
+							totalCount={
+								histogramData?.logs_histogram.objectCount
+							}
+							loading={histogramLoading}
+						/>
+					)}
+					{enableLogsHistogram && (
+						<LogsHistogram
+							startDate={startDate}
+							endDate={endDate}
+							onDatesChange={handleDatesChange}
+							onLevelChange={handleLevelChange}
+							loading={histogramLoading}
+							histogramBuckets={
+								histogramData?.logs_histogram.buckets
+							}
+							bucketCount={
+								histogramData?.logs_histogram.totalCount
+							}
+						/>
+					)}
 					<Box borderTop="dividerWeak" height="full">
 						<Box my="4" px="12">
 							<OverageCard productType={ProductType.Logs} />
