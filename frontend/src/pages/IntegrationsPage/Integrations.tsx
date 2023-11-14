@@ -17,6 +17,7 @@ import HeightListSelector from '@pages/IntegrationsPage/components/HeightIntegra
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import LinearTeamSelector from '@pages/IntegrationsPage/components/LinearIntegration/LinearTeamSelector'
+import MicrosoftTeamsIntegrationConfig from '@pages/IntegrationsPage/components/MicrosoftTeamsIntegration/MicrosoftTeamsIntegrationConfig'
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
 import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
@@ -58,6 +59,17 @@ export const SLACK_INTEGRATION: Integration = {
 		'Bring your Highlight comments and alerts to slack as messages.',
 	icon: '/images/integrations/slack.jpg',
 	configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
+	hasSettings: false,
+}
+
+export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
+	key: 'microsoft_teams',
+	name: 'Microsoft Teams',
+	configurationPath: 'microsoft_teams',
+	description:
+		'Bring your Highlight comments and alerts to microsoft teams as messages.',
+	icon: '/images/integrations/microsoft-teams.jpeg',
+	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
 
@@ -210,6 +222,7 @@ const INTEGRATIONS: Integration[] = [
 	HEIGHT_INTEGRATION,
 	GITHUB_INTEGRATION,
 	JIRA_INTEGRATION,
+	MICROSOFT_TEAMS_INTEGRATION,
 ]
 
 export default INTEGRATIONS

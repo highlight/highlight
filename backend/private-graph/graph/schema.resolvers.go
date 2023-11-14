@@ -2385,6 +2385,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddDiscordToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		if err := r.AddMicrosoftTeamsToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2434,6 +2438,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeGitHub {
 		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -6102,6 +6110,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.SlackAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeZapier {
 		return project.ZapierAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		return workspace.MicrosoftTeamsTenantId != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeFront {
 		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
 			return false, nil
@@ -6141,6 +6151,8 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 
 	if integrationType == modelInputs.IntegrationTypeClickUp {
 		return workspace.ClickupAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		return workspace.MicrosoftTeamsTenantId != nil, nil
 	} else {
 		workspaceMapping := &model.IntegrationWorkspaceMapping{}
 		if err := r.DB.Where(&model.IntegrationWorkspaceMapping{

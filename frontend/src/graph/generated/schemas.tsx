@@ -772,6 +772,7 @@ export enum IntegrationType {
 	Height = 'Height',
 	Jira = 'Jira',
 	Linear = 'Linear',
+	MicrosoftTeams = 'MicrosoftTeams',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
 	Zapier = 'Zapier',

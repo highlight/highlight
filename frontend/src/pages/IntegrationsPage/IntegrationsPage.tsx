@@ -20,6 +20,7 @@ import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
+import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
@@ -53,6 +54,11 @@ const IntegrationsPage = () => {
 
 	const { isDiscordIntegratedWithProject, loading: loadingDiscord } =
 		useDiscordIntegration()
+
+	const {
+		isMicrosoftTeamsConnectedToWorkspace,
+		loading: loadingMicrosoftTeams,
+	} = useMicrosoftTeamsBot()
 
 	const {
 		settings: {
@@ -93,7 +99,8 @@ const IntegrationsPage = () => {
 		loadingClickUp ||
 		loadingHeight ||
 		loadingGitHub ||
-		loadingJira
+		loadingJira ||
+		loadingMicrosoftTeams
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
@@ -132,7 +139,9 @@ const IntegrationsPage = () => {
 				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
 				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
 				(inter.key === 'height' && isHeightIntegratedWithProject) ||
-				(inter.key === 'jira' && isJiraIntegratedWithProject),
+				(inter.key === 'jira' && isJiraIntegratedWithProject) ||
+				(inter.key === 'microsoft_teams' &&
+					isMicrosoftTeamsConnectedToWorkspace),
 		}))
 	}, [
 		currentWorkspace?.id,
@@ -148,6 +157,7 @@ const IntegrationsPage = () => {
 		isClickUpIntegratedWithProject,
 		isHeightIntegratedWithProject,
 		isJiraIntegratedWithProject,
+		isMicrosoftTeamsConnectedToWorkspace,
 	])
 
 	useEffect(() => analytics.page(), [])

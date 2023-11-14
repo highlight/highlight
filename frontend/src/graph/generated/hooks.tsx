@@ -10743,6 +10743,62 @@ export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithSlackQuery,
 	Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithMicrosoftTeamsDocument = gql`
+	query GetWorkspaceIsIntegratedWithMicrosoftTeams($project_id: ID!) {
+		is_integrated_with_microsoft_teams: is_integrated_with(
+			integration_type: MicrosoftTeams
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>(GetWorkspaceIsIntegratedWithMicrosoftTeamsDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithMicrosoftTeamsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>(GetWorkspaceIsIntegratedWithMicrosoftTeamsDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryHookResult =
+	ReturnType<typeof useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery>
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsLazyQueryHookResult =
+	ReturnType<typeof useGetWorkspaceIsIntegratedWithMicrosoftTeamsLazyQuery>
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryResult =
+	Apollo.QueryResult<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>
 export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
 	query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(

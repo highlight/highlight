@@ -1188,16 +1188,17 @@ func (e IngestReason) MarshalGQL(w io.Writer) {
 type IntegrationType string
 
 const (
-	IntegrationTypeSlack   IntegrationType = "Slack"
-	IntegrationTypeLinear  IntegrationType = "Linear"
-	IntegrationTypeZapier  IntegrationType = "Zapier"
-	IntegrationTypeFront   IntegrationType = "Front"
-	IntegrationTypeVercel  IntegrationType = "Vercel"
-	IntegrationTypeDiscord IntegrationType = "Discord"
-	IntegrationTypeClickUp IntegrationType = "ClickUp"
-	IntegrationTypeHeight  IntegrationType = "Height"
-	IntegrationTypeGitHub  IntegrationType = "GitHub"
-	IntegrationTypeJira    IntegrationType = "Jira"
+	IntegrationTypeSlack          IntegrationType = "Slack"
+	IntegrationTypeLinear         IntegrationType = "Linear"
+	IntegrationTypeZapier         IntegrationType = "Zapier"
+	IntegrationTypeFront          IntegrationType = "Front"
+	IntegrationTypeVercel         IntegrationType = "Vercel"
+	IntegrationTypeDiscord        IntegrationType = "Discord"
+	IntegrationTypeClickUp        IntegrationType = "ClickUp"
+	IntegrationTypeHeight         IntegrationType = "Height"
+	IntegrationTypeGitHub         IntegrationType = "GitHub"
+	IntegrationTypeJira           IntegrationType = "Jira"
+	IntegrationTypeMicrosoftTeams IntegrationType = "MicrosoftTeams"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1211,11 +1212,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeHeight,
 	IntegrationTypeGitHub,
 	IntegrationTypeJira,
+	IntegrationTypeMicrosoftTeams,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams:
 		return true
 	}
 	return false

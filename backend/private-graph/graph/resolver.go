@@ -2057,6 +2057,22 @@ func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToke
 	return nil
 }
 
+func (r *Resolver) AddMicrosoftTeamsToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	// code is indeed just the tenant Id - we store this and we are done.
+	// wonder if there is a way to "validate" this tenantId - so we don't get maliscious actors sending it to us
+	// either way they'd have a hard time creating the right "state"
+	// TODO: explore means of validating code/tenantId. Or not?
+	updates := &model.Workspace{
+		MicrosoftTeamsTenantId: &code,
+	}
+
+	if err := r.DB.Where(&workspace).Select("microsoft_teams_tenant_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -2100,6 +2116,23 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 		SlackChannels: &channelString,
 	}).Error; err != nil {
 		return e.Wrap(err, "error updating project fields")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace) error {
+	// TODO: UPDATE THIS WHEN WE ADD CHANNELS AND STUFF
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		// remove slack integration from workspace
+		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id").Updates(&model.Workspace{MicrosoftTeamsTenantId: nil}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams tenant from workspace")
+		}
+
+		// no errors updating DB
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil

@@ -1529,6 +1529,13 @@ query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
 	)
 }
 
+query GetWorkspaceIsIntegratedWithMicrosoftTeams($project_id: ID!) {
+	is_integrated_with_microsoft_teams: is_integrated_with(
+		integration_type: MicrosoftTeams
+		project_id: $project_id
+	)
+}
+
 query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 	is_integrated_with_linear: is_integrated_with(
 		integration_type: Linear

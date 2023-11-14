@@ -8,6 +8,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
+	microsoft_teams "github.com/highlight-run/highlight/backend/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"golang.org/x/oauth2"
@@ -38,6 +39,10 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 		return jira.GetOAuthConfig()
 	}
 
+	if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		return microsoft_teams.GetOAuthConfig()
+	}
+
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
 }
 
@@ -48,6 +53,10 @@ func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrati
 
 	if integrationType == modelInputs.IntegrationTypeJira {
 		return jira.GetRefreshToken(ctx, oldToken)
+	}
+
+	if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
+		return microsoft_teams.GetRefreshToken(ctx, oldToken)
 	}
 
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)

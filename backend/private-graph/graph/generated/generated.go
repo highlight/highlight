@@ -10731,6 +10731,7 @@ enum IntegrationType {
 	Height
 	GitHub
 	Jira
+	MicrosoftTeams
 }
 
 enum ErrorState {

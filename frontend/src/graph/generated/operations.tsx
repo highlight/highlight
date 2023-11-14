@@ -3677,6 +3677,15 @@ export type GetWorkspaceIsIntegratedWithSlackQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_slack: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables =
+	Types.Exact<{
+		project_id: Types.Scalars['ID']
+	}>
+
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_microsoft_teams: Types.Query['is_integrated_with'] }
+
 export type GetWorkspaceIsIntegratedWithLinearQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4966,6 +4975,8 @@ export const namedOperations = {
 		GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
 		GetWorkspaceIsIntegratedWithSlack:
 			'GetWorkspaceIsIntegratedWithSlack' as const,
+		GetWorkspaceIsIntegratedWithMicrosoftTeams:
+			'GetWorkspaceIsIntegratedWithMicrosoftTeams' as const,
 		GetWorkspaceIsIntegratedWithLinear:
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
