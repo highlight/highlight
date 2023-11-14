@@ -101,7 +101,7 @@ export function hookConsole(
 					level: highlightLevel,
 					message: data
 						.filter((d) => typeof d !== 'object')
-						.map((o) => o.toString())
+						.map((o) => `${o}`)
 						.join(' '),
 					attributes: data
 						.filter((d) => typeof d === 'object')
