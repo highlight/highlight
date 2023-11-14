@@ -146,6 +146,7 @@ type Mutation {
 
 type Query {
 	ignore(id: ID!): Any
+	fetchFeatureToggles(organization_verbose_id: String!): Any
 }
 
 enum PublicGraphError {

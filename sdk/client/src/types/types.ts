@@ -211,6 +211,10 @@ export declare type HighlightOptions = {
 	 * as the session ID will not persist.
 	 */
 	storageMode?: 'sessionStorage' | 'localStorage'
+	/**
+	 * load in your toggles from Highlight
+	 */
+	enableFeatureToggles?: boolean
 }
 
 export declare interface HighlightPublicInterface {

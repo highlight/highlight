@@ -212,6 +212,7 @@ var Models = []interface{}{
 	&SystemConfiguration{},
 	&SessionInsight{},
 	&ErrorTag{},
+	&SessionToggle{},
 }
 
 func init() {
@@ -1061,6 +1062,16 @@ type ErrorTag struct {
 	Title       string `gorm:"uniqueIndex;not null"`
 	Description string
 	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
+}
+
+type SessionToggle struct {
+	Model
+	Name         string
+	Description  string
+	ProjectID    int
+	Threshold    int
+	HashKey      string
+	DefaultValue bool
 }
 
 type MatchedErrorObject struct {

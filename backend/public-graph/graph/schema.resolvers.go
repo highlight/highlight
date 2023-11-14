@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"hash/fnv"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -184,6 +185,36 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecure
 // Ignore is the resolver for the ignore field.
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
+}
+
+// FetchFeatureToggles is the resolver for the fetchFeatureToggles field.
+func (r *queryResolver) FetchFeatureToggles(ctx context.Context, organizationVerboseID string) (interface{}, error) {
+	projectID, err := model.FromVerboseID(organizationVerboseID)
+	if err != nil {
+		return nil, err
+	}
+
+	var featureToggles []*model.SessionToggle
+	if err := r.DB.Raw(`
+		SELECT *
+		FROM session_toggles
+		WHERE project_id = ?
+	`, projectID).Scan(&featureToggles).Error; err != nil {
+		return nil, err
+	}
+
+	var featureToggleMap = make(map[string]bool)
+	for _, featureToggle := range featureToggles {
+		h := fnv.New32a()
+		h.Write([]byte(featureToggle.HashKey))
+		numericalValue := h.Sum32() % 100
+
+		value := uint32(featureToggle.Threshold) < numericalValue
+
+		featureToggleMap[featureToggle.Name] = value
+	}
+
+	return featureToggleMap, nil
 }
 
 // Mutation returns generated1.MutationResolver implementation.

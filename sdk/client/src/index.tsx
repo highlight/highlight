@@ -80,6 +80,7 @@ import {
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
 import { getItem, setItem, setStorageMode } from './utils/storage'
+import { FeatureToggles, getFeatureToggles } from './utils/feature-toggles'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -116,6 +117,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
+	enableFeatureToggles?: boolean
 }
 
 /**
@@ -191,6 +193,7 @@ export class Highlight {
 	/** The end-user's app version. This isn't Highlight's version. */
 	appVersion!: string | undefined
 	serviceName!: string
+	featureToggles!: FeatureToggles
 	_worker!: HighlightClientRequestWorker
 	_optionsInternal!: HighlightClassOptionsInternal
 	_backendUrl!: string
@@ -560,6 +563,14 @@ export class Highlight {
 			if (!clientID) {
 				clientID = GenerateSecureID()
 				setItem(LOCAL_STORAGE_KEYS['CLIENT_ID'], clientID)
+			}
+
+			this.featureToggles = {}
+			// fetch feature toggles
+			if (this.options.enableFeatureToggles) {
+				this.featureToggles = await getFeatureToggles(
+					this.organizationID,
+				)
 			}
 
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
