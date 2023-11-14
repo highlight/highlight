@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Code } from 'react-code-blocks'
 import { HiArrowRight } from 'react-icons/hi'
+import { AnimateCarouselImage } from '../../Animate'
 import highlightCodeTheme from '../../common/CodeBlock/highlight-code-theme'
 import { Typography } from '../../common/Typography/Typography'
 import styles from '../Home.module.scss'
@@ -15,23 +15,12 @@ const codeTheme = {
 }
 
 const CarouselImage = ({ feature }: { feature: Feature }) => {
-	const [imageLoaded, setImageLoaded] = useState(true)
-
-	const orig = { bottom: -20, opacity: 0 }
-	const final = { bottom: -20, opacity: 1 }
+	const [imageLoaded, setImageLoaded] = useState(false)
 
 	return (
 		<div className="hidden sm:flex w-1/2">
 			<div className="absolute right-0 top-0 bottom-0">
-				<motion.div
-					initial={orig}
-					animate={final}
-					transition={{
-						duration: 0.4,
-					}}
-					className="absolute right-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]"
-				>
-					{/* Using next/Image causes flickering of the image on first load*/}
+				<AnimateCarouselImage loaded={imageLoaded}>
 					<Image
 						priority={feature.name == 'Session Replay'}
 						className={
@@ -40,16 +29,15 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 						src={feature.desktopImage}
 						alt="Feature Spotlight"
 						crossOrigin="anonymous"
+						onLoadingComplete={() => setImageLoaded(true)}
 					/>
-				</motion.div>
+				</AnimateCarouselImage>
 			</div>
 		</div>
 	)
 }
 
 const CarouselFeatures = ({ feature }: { feature: Feature }) => {
-	const [imageLoaded, setImageLoaded] = useState(false)
-
 	return (
 		<div
 			className={`${

@@ -78,19 +78,22 @@ export const AnimateBugRight = ({
 	)
 }
 
-export const AnimateCarouselImage = ({ children }: React.PropsWithChildren) => {
+export const AnimateCarouselImage = ({
+	loaded,
+	children,
+}: React.PropsWithChildren<{ loaded: boolean }>) => {
 	const orig = { bottom: -20, opacity: 0 }
 	const final = { bottom: -20, opacity: 1 }
 	return (
 		<motion.div
 			initial={orig}
-			animate={final}
+			animate={loaded ? final : orig}
 			transition={{
 				type: 'spring',
 				bounce: 0.2,
 				duration: 0.4,
 			}}
-			className="absolute border-2 right-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]"
+			className="absolute right-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]"
 		>
 			{children}
 		</motion.div>
