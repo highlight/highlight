@@ -33,7 +33,7 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 				>
 					{/* Using next/Image causes flickering of the image on first load*/}
 					<Image
-						priority
+						priority={feature.name == 'Session Replay'}
 						className={
 							'object-contain sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]'
 						}
