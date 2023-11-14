@@ -271,6 +271,7 @@ export declare interface HighlightPublicInterface {
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
 	snapshot: (element: HTMLCanvasElement) => Promise<void>
+	getFeatureToggle: (featureName: string) => boolean
 }
 
 export declare interface SessionDetails {

@@ -1425,6 +1425,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
 	}
+
+	getToggle(name: string) {
+		try {
+			return this.featureToggles[name]
+		} catch (e) {
+			return null
+		}
+	}
 }
 
 ;(window as any).HighlightIO = Highlight

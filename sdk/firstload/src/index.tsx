@@ -447,6 +447,15 @@ const H: HighlightPublicInterface = {
 			HighlightWarning('onHighlightReady', e)
 		}
 	},
+	getFeatureToggle: (name: string): boolean => {
+		const toggleValue = highlight_obj.getToggle(name)
+		if (toggleValue == null) {
+			return false
+		}
+
+		highlight_obj.addProperties({ [name]: toggleValue })
+		return toggleValue
+	},
 }
 
 if (typeof window !== 'undefined') {
