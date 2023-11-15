@@ -1066,10 +1066,10 @@ type ErrorTag struct {
 
 type SessionToggle struct {
 	Model
-	Name      string
-	ProjectID int
-	Threshold int
-	HashKey   string
+	Name      string `gorm:"not null"`
+	ProjectID int    `gorm:"not null"`
+	Threshold int    `gorm:"not null;default:0"`
+	HashKey   string `gorm:"not null"`
 }
 
 type MatchedErrorObject struct {

@@ -1330,7 +1330,6 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationDeleteSessionToggleArgs = {
 	id: Scalars['ID']
-	project_id: Scalars['ID']
 }
 
 export type MutationDeleteSessionsArgs = {
@@ -1392,8 +1391,8 @@ export type MutationEditServiceGithubSettingsArgs = {
 
 export type MutationEditSessionToggleArgs = {
 	id: Scalars['ID']
-	project_id: Scalars['ID']
-	threshold?: InputMaybe<Scalars['Int']>
+	name: Scalars['String']
+	threshold: Scalars['Int']
 }
 
 export type MutationEditWorkspaceArgs = {

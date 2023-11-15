@@ -1468,6 +1468,56 @@ export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateSessionToggleMutationVariables = Types.Exact<{
+	name: Types.Scalars['String']
+	threshold: Types.Scalars['Int']
+	project_id: Types.Scalars['ID']
+}>
+
+export type CreateSessionToggleMutation = { __typename?: 'Mutation' } & {
+	createSessionToggle?: Types.Maybe<
+		{ __typename?: 'SessionToggle' } & Pick<
+			Types.SessionToggle,
+			| 'id'
+			| 'name'
+			| 'threshold'
+			| 'project_id'
+			| 'updated_at'
+			| 'created_at'
+		>
+	>
+}
+
+export type EditSessionToggleMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+	threshold: Types.Scalars['Int']
+}>
+
+export type EditSessionToggleMutation = { __typename?: 'Mutation' } & {
+	editSessionToggle?: Types.Maybe<
+		{ __typename?: 'SessionToggle' } & Pick<
+			Types.SessionToggle,
+			| 'id'
+			| 'name'
+			| 'threshold'
+			| 'project_id'
+			| 'updated_at'
+			| 'created_at'
+		>
+	>
+}
+
+export type DeleteSessionToogleMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteSessionToogleMutation = { __typename?: 'Mutation' } & {
+	deleteSessionToggle?: Types.Maybe<
+		{ __typename?: 'SessionToggle' } & Pick<Types.SessionToggle, 'id'>
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -5121,6 +5171,9 @@ export const namedOperations = {
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		testErrorEnhancement: 'testErrorEnhancement' as const,
+		createSessionToggle: 'createSessionToggle' as const,
+		editSessionToggle: 'editSessionToggle' as const,
+		deleteSessionToogle: 'deleteSessionToogle' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

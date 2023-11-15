@@ -2451,8 +2451,8 @@ type Mutation {
 		name: String!
 		threshold: Int!
 	): SessionToggle
-	deleteSessionToggle(project_id: ID!, id: ID!): SessionToggle
-	editSessionToggle(project_id: ID!, id: ID!, threshold: Int): SessionToggle
+	deleteSessionToggle(id: ID!): SessionToggle
+	editSessionToggle(id: ID!, name: String!, threshold: Int!): SessionToggle
 }
 
 type Subscription {

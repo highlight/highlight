@@ -1252,3 +1252,39 @@ mutation testErrorEnhancement(
 		}
 	}
 }
+
+mutation createSessionToggle(
+	$name: String!
+	$threshold: Int!
+	$project_id: ID!
+) {
+	createSessionToggle(
+		name: $name
+		threshold: $threshold
+		project_id: $project_id
+	) {
+		id
+		name
+		threshold
+		project_id
+		updated_at
+		created_at
+	}
+}
+
+mutation editSessionToggle($id: ID!, $name: String!, $threshold: Int!) {
+	editSessionToggle(id: $id, name: $name, threshold: $threshold) {
+		id
+		name
+		threshold
+		project_id
+		updated_at
+		created_at
+	}
+}
+
+mutation deleteSessionToogle($id: ID!) {
+	deleteSessionToggle(id: $id) {
+		id
+	}
+}

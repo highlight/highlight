@@ -3915,17 +3915,70 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 
 // CreateSessionToggle is the resolver for the createSessionToggle field.
 func (r *mutationResolver) CreateSessionToggle(ctx context.Context, projectID int, name string, threshold int) (*model.SessionToggle, error) {
-	panic(fmt.Errorf("not implemented: CreateSessionToggle - createSessionToggle"))
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	hashKey, err := r.GenerateRandomStringURLSafe(16)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionToggle := &model.SessionToggle{
+		ProjectID: project.ID,
+		Name:      name,
+		Threshold: threshold,
+		HashKey:   hashKey,
+	}
+
+	if err := r.DB.WithContext(ctx).Create(sessionToggle).Error; err != nil {
+		return nil, err
+	}
+
+	return sessionToggle, nil
 }
 
 // DeleteSessionToggle is the resolver for the deleteSessionToggle field.
-func (r *mutationResolver) DeleteSessionToggle(ctx context.Context, projectID int, id int) (*model.SessionToggle, error) {
-	panic(fmt.Errorf("not implemented: DeleteSessionToggle - deleteSessionToggle"))
+func (r *mutationResolver) DeleteSessionToggle(ctx context.Context, id int) (*model.SessionToggle, error) {
+	var sessionToggle model.SessionToggle
+
+	if err := r.DB.Take(&sessionToggle, id).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProject(ctx, sessionToggle.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.DB.WithContext(ctx).Delete(&sessionToggle, id).Error; err != nil {
+		return nil, err
+	}
+
+	return &sessionToggle, nil
 }
 
 // EditSessionToggle is the resolver for the editSessionToggle field.
-func (r *mutationResolver) EditSessionToggle(ctx context.Context, projectID int, id int, threshold *int) (*model.SessionToggle, error) {
-	panic(fmt.Errorf("not implemented: EditSessionToggle - editSessionToggle"))
+func (r *mutationResolver) EditSessionToggle(ctx context.Context, id int, name string, threshold int) (*model.SessionToggle, error) {
+	var sessionToggle model.SessionToggle
+
+	if err := r.DB.Take(&sessionToggle, id).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProject(ctx, sessionToggle.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	updateErr := r.DB.WithContext(ctx).Where(&model.SessionToggle{
+		Model: model.Model{ID: id}}).Take(&sessionToggle).Updates(map[string]interface{}{
+		"Name":      name,
+		"Threshold": threshold,
+	}).Error
+
+	return &sessionToggle, updateErr
 }
 
 // Accounts is the resolver for the accounts field.
@@ -7601,7 +7654,7 @@ func (r *queryResolver) SessionToggles(ctx context.Context, projectID int) ([]*m
 		return nil, err
 	}
 	sessionToggles := []*model.SessionToggle{}
-	if err := r.DB.Order("created_at asc").Model(&model.SessionToggle{}).Where("project_id = ?", projectID).Find(&sessionToggles).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Order("created_at asc").Model(&model.SessionToggle{}).Where("project_id = ?", projectID).Find(&sessionToggles).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session toggles")
 	}
 	return sessionToggles, nil
@@ -8005,4 +8058,3 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
-type sessionToggleResolver struct{ *Resolver }

@@ -771,14 +771,14 @@ type ComplexityRoot struct {
 		DeleteSegment                    func(childComplexity int, segmentID int) int
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
-		DeleteSessionToggle              func(childComplexity int, projectID int, id int) int
+		DeleteSessionToggle              func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
-		EditSessionToggle                func(childComplexity int, projectID int, id int, threshold *int) int
+		EditSessionToggle                func(childComplexity int, id int, name string, threshold int) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -1673,8 +1673,8 @@ type MutationResolver interface {
 	UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model1.DiscordChannel, error)
 	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model1.ErrorObject, error)
 	CreateSessionToggle(ctx context.Context, projectID int, name string, threshold int) (*model1.SessionToggle, error)
-	DeleteSessionToggle(ctx context.Context, projectID int, id int) (*model1.SessionToggle, error)
-	EditSessionToggle(ctx context.Context, projectID int, id int, threshold *int) (*model1.SessionToggle, error)
+	DeleteSessionToggle(ctx context.Context, id int) (*model1.SessionToggle, error)
+	EditSessionToggle(ctx context.Context, id int, name string, threshold int) (*model1.SessionToggle, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -5359,7 +5359,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteSessionToggle(childComplexity, args["project_id"].(int), args["id"].(int)), true
+		return e.complexity.Mutation.DeleteSessionToggle(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteSessions":
 		if e.complexity.Mutation.DeleteSessions == nil {
@@ -5443,7 +5443,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditSessionToggle(childComplexity, args["project_id"].(int), args["id"].(int), args["threshold"].(*int)), true
+		return e.complexity.Mutation.EditSessionToggle(childComplexity, args["id"].(int), args["name"].(string), args["threshold"].(int)), true
 
 	case "Mutation.editWorkspace":
 		if e.complexity.Mutation.EditWorkspace == nil {
@@ -12875,8 +12875,8 @@ type Mutation {
 		name: String!
 		threshold: Int!
 	): SessionToggle
-	deleteSessionToggle(project_id: ID!, id: ID!): SessionToggle
-	editSessionToggle(project_id: ID!, id: ID!, threshold: Int): SessionToggle
+	deleteSessionToggle(id: ID!): SessionToggle
+	editSessionToggle(id: ID!, name: String!, threshold: Int!): SessionToggle
 }
 
 type Subscription {
@@ -14223,23 +14223,14 @@ func (ec *executionContext) field_Mutation_deleteSessionToggle_args(ctx context.
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg1
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -14634,27 +14625,27 @@ func (ec *executionContext) field_Mutation_editSessionToggle_args(ctx context.Co
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg1
-	var arg2 *int
+	args["name"] = arg1
+	var arg2 int
 	if tmp, ok := rawArgs["threshold"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
-		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -44649,7 +44640,7 @@ func (ec *executionContext) _Mutation_deleteSessionToggle(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSessionToggle(rctx, fc.Args["project_id"].(int), fc.Args["id"].(int))
+		return ec.resolvers.Mutation().DeleteSessionToggle(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44714,7 +44705,7 @@ func (ec *executionContext) _Mutation_editSessionToggle(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSessionToggle(rctx, fc.Args["project_id"].(int), fc.Args["id"].(int), fc.Args["threshold"].(*int))
+		return ec.resolvers.Mutation().EditSessionToggle(rctx, fc.Args["id"].(int), fc.Args["name"].(string), fc.Args["threshold"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
