@@ -25,8 +25,11 @@
 		}
 	},
 	"scripts": {
-		"build": "yarn typegen && rollup --config rollup.config.js",
-		"dev": "yarn build --watch",
+		"build": "yarn typegen && vite build && yarn build:umd",
+		"build:umd": "cp dist/index.umd.cjs dist/index.umd.js",
+		"build:watch": "yarn build --watch",
+		"dev": "vite dev",
+		"dev:watch": "run-p dev build:watch",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
@@ -59,10 +62,10 @@
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
 		"readdirp": "^3.6.0",
-		"rollup": "^4.1.4",
 		"size-limit": "^8.1.0",
 		"tslib": "^2.4.0",
 		"typescript": "^5.0.4",
+		"vite": "^4.3.9",
 		"vitest": "^0.32.0"
 	},
 	"size-limit": [
