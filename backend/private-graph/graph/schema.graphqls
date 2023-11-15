@@ -1750,6 +1750,15 @@ type SessionExportWithSession {
 	active_length: Int
 }
 
+type SessionToggle {
+	id: ID!
+	created_at: Timestamp!
+	updated_at: Timestamp!
+	name: String!
+	project_id: ID!
+	threshold: Int!
+}
+
 enum EmailOptOutCategory {
 	All
 	Digests
@@ -2054,6 +2063,7 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	session_toggles(project_id: ID!): [SessionToggle!]
 }
 
 type Mutation {
@@ -2436,6 +2446,13 @@ type Mutation {
 		build_prefix: String
 		save_error: Boolean
 	): ErrorObject
+	createSessionToggle(
+		project_id: ID!
+		name: String!
+		threshold: Int!
+	): SessionToggle
+	deleteSessionToggle(project_id: ID!, id: ID!): SessionToggle
+	editSessionToggle(project_id: ID!, id: ID!, threshold: Int): SessionToggle
 }
 
 type Subscription {

@@ -4868,6 +4868,26 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 	key_values: Types.Query['traces_key_values']
 }
 
+export type GetSessionTogglesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetSessionTogglesQuery = { __typename?: 'Query' } & {
+	session_toggles?: Types.Maybe<
+		Array<
+			{ __typename?: 'SessionToggle' } & Pick<
+				Types.SessionToggle,
+				| 'id'
+				| 'name'
+				| 'threshold'
+				| 'project_id'
+				| 'updated_at'
+				| 'created_at'
+			>
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5013,6 +5033,7 @@ export const namedOperations = {
 		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
+		GetSessionToggles: 'GetSessionToggles' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

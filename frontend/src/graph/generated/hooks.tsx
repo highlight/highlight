@@ -14396,3 +14396,64 @@ export type GetTracesKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetTracesKeyValuesQuery,
 	Types.GetTracesKeyValuesQueryVariables
 >
+export const GetSessionTogglesDocument = gql`
+	query GetSessionToggles($project_id: ID!) {
+		session_toggles(project_id: $project_id) {
+			id
+			name
+			threshold
+			project_id
+			updated_at
+			created_at
+		}
+	}
+`
+
+/**
+ * __useGetSessionTogglesQuery__
+ *
+ * To run a query within a React component, call `useGetSessionTogglesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionTogglesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionTogglesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetSessionTogglesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSessionTogglesQuery,
+		Types.GetSessionTogglesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionTogglesQuery,
+		Types.GetSessionTogglesQueryVariables
+	>(GetSessionTogglesDocument, baseOptions)
+}
+export function useGetSessionTogglesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionTogglesQuery,
+		Types.GetSessionTogglesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionTogglesQuery,
+		Types.GetSessionTogglesQueryVariables
+	>(GetSessionTogglesDocument, baseOptions)
+}
+export type GetSessionTogglesQueryHookResult = ReturnType<
+	typeof useGetSessionTogglesQuery
+>
+export type GetSessionTogglesLazyQueryHookResult = ReturnType<
+	typeof useGetSessionTogglesLazyQuery
+>
+export type GetSessionTogglesQueryResult = Apollo.QueryResult<
+	Types.GetSessionTogglesQuery,
+	Types.GetSessionTogglesQueryVariables
+>

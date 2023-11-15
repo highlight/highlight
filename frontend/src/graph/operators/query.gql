@@ -2410,3 +2410,14 @@ query GetTracesKeyValues(
 		date_range: $date_range
 	)
 }
+
+query GetSessionToggles($project_id: ID!) {
+	session_toggles(project_id: $project_id) {
+		id
+		name
+		threshold
+		project_id
+		updated_at
+		created_at
+	}
+}

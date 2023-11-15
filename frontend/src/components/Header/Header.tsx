@@ -35,6 +35,7 @@ import {
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
 	IconSolidSearch,
+	IconSolidSegment,
 	IconSolidSparkles,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
@@ -153,6 +154,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'alerts',
 			icon: IconSolidSpeakerphone,
+		},
+		{
+			key: 'toggles',
+			icon: IconSolidSegment,
 		},
 	]
 

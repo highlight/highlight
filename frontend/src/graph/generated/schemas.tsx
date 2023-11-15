@@ -1036,6 +1036,7 @@ export type Mutation = {
 	createSegment?: Maybe<Segment>
 	createSessionAlert?: Maybe<SessionAlert>
 	createSessionComment?: Maybe<SessionComment>
+	createSessionToggle?: Maybe<SessionToggle>
 	createWorkspace?: Maybe<Workspace>
 	deleteAdminFromProject?: Maybe<Scalars['ID']>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
@@ -1050,12 +1051,14 @@ export type Mutation = {
 	deleteSegment?: Maybe<Scalars['Boolean']>
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
+	deleteSessionToggle?: Maybe<SessionToggle>
 	deleteSessions: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editServiceGithubSettings?: Maybe<Service>
+	editSessionToggle?: Maybe<SessionToggle>
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
@@ -1255,6 +1258,12 @@ export type MutationCreateSessionCommentArgs = {
 	y_coordinate: Scalars['Float']
 }
 
+export type MutationCreateSessionToggleArgs = {
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	threshold: Scalars['Int']
+}
+
 export type MutationCreateWorkspaceArgs = {
 	name: Scalars['String']
 	promo_code?: InputMaybe<Scalars['String']>
@@ -1319,6 +1328,11 @@ export type MutationDeleteSessionCommentArgs = {
 	id: Scalars['ID']
 }
 
+export type MutationDeleteSessionToggleArgs = {
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
@@ -1374,6 +1388,12 @@ export type MutationEditServiceGithubSettingsArgs = {
 	github_repo_path?: InputMaybe<Scalars['String']>
 	id: Scalars['ID']
 	project_id: Scalars['ID']
+}
+
+export type MutationEditSessionToggleArgs = {
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+	threshold?: InputMaybe<Scalars['Int']>
 }
 
 export type MutationEditWorkspaceArgs = {
@@ -1858,6 +1878,7 @@ export type Query = {
 	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
+	session_toggles?: Maybe<Array<SessionToggle>>
 	sessions_clickhouse: SessionResults
 	sessions_histogram_clickhouse: SessionsHistogram
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
@@ -2390,6 +2411,10 @@ export type QuerySession_InsightArgs = {
 
 export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QuerySession_TogglesArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QuerySessions_ClickhouseArgs = {
@@ -2998,6 +3023,16 @@ export type SessionResults = {
 	__typename?: 'SessionResults'
 	sessions: Array<Session>
 	totalCount: Scalars['Int64']
+}
+
+export type SessionToggle = {
+	__typename?: 'SessionToggle'
+	created_at: Scalars['Timestamp']
+	id: Scalars['ID']
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	threshold: Scalars['Int']
+	updated_at: Scalars['Timestamp']
 }
 
 export type SessionsHistogram = {

@@ -18,6 +18,7 @@ import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceB
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
+import { TogglesPage } from '@/pages/TogglesPage/TogglesPage'
 import { TracePanel } from '@/pages/Traces/TracePanel'
 import { TracesPage } from '@/pages/Traces/TracesPage'
 
@@ -60,6 +61,7 @@ const ApplicationRouter: React.FC = () => {
 					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
 					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
+					<Route path="toggles/*" element={<TogglesPage />} />
 
 					<Route path="setup/*" element={<SetupRouter />} />
 

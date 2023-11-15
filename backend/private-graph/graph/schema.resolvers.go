@@ -3913,6 +3913,21 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	return &errorObject, nil
 }
 
+// CreateSessionToggle is the resolver for the createSessionToggle field.
+func (r *mutationResolver) CreateSessionToggle(ctx context.Context, projectID int, name string, threshold int) (*model.SessionToggle, error) {
+	panic(fmt.Errorf("not implemented: CreateSessionToggle - createSessionToggle"))
+}
+
+// DeleteSessionToggle is the resolver for the deleteSessionToggle field.
+func (r *mutationResolver) DeleteSessionToggle(ctx context.Context, projectID int, id int) (*model.SessionToggle, error) {
+	panic(fmt.Errorf("not implemented: DeleteSessionToggle - deleteSessionToggle"))
+}
+
+// EditSessionToggle is the resolver for the editSessionToggle field.
+func (r *mutationResolver) EditSessionToggle(ctx context.Context, projectID int, id int, threshold *int) (*model.SessionToggle, error) {
+	panic(fmt.Errorf("not implemented: EditSessionToggle - editSessionToggle"))
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -7578,6 +7593,20 @@ func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyN
 	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
+// SessionToggles is the resolver for the session_toggles field.
+func (r *queryResolver) SessionToggles(ctx context.Context, projectID int) ([]*model.SessionToggle, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+
+	if err != nil {
+		return nil, err
+	}
+	sessionToggles := []*model.SessionToggle{}
+	if err := r.DB.Order("created_at asc").Model(&model.SessionToggle{}).Where("project_id = ?", projectID).Find(&sessionToggles).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session toggles")
+	}
+	return sessionToggles, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
@@ -7976,3 +8005,4 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+type sessionToggleResolver struct{ *Resolver }

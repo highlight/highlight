@@ -1066,12 +1066,10 @@ type ErrorTag struct {
 
 type SessionToggle struct {
 	Model
-	Name         string
-	Description  string
-	ProjectID    int
-	Threshold    int
-	HashKey      string
-	DefaultValue bool
+	Name      string
+	ProjectID int
+	Threshold int
+	HashKey   string
 }
 
 type MatchedErrorObject struct {
