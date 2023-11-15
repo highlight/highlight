@@ -2,24 +2,19 @@
 	"name": "@highlight-run/node",
 	"version": "3.6.2",
 	"license": "Apache-2.0",
-	"scripts": {
-		"typegen": "tsc -d --emitDeclarationOnly",
-		"dev": "yarn build --watch",
-		"build": "rollup --config rollup.config.mjs",
-		"test": "jest"
-	},
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"import": "./dist/index.mjs",
-		"require": "./dist/index.js",
-		"default": "./dist/index.js"
-	},
+	"type": "module",
 	"files": [
 		"dist"
 	],
+	"scripts": {
+		"typegen": "tsc -d --emitDeclarationOnly",
+		"dev": "yarn build --watch",
+		"build": "rollup --config rollup.config.js",
+		"test": "jest"
+	},
 	"installConfig": {
 		"hoistingLimits": "workspaces"
 	},
