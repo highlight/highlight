@@ -25,10 +25,9 @@
 		}
 	},
 	"scripts": {
-		"build": "yarn typegen && vite build && yarn build:umd",
-		"build:umd": "cp dist/index.umd.cjs dist/index.umd.js",
+		"build": "yarn typegen && rollup --config rollup.config.js",
 		"build:watch": "yarn build --watch",
-		"dev": "vite dev",
+		"dev": "yarn build:watch",
 		"dev:watch": "run-p dev build:watch",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
@@ -36,16 +35,10 @@
 	},
 	"type": "module",
 	"main": "./dist/index.js",
+	"module": "./dist/index.js",
 	"unpkg": "./dist/index.umd.js",
 	"jsdelivr": "./dist/index.umd.js",
 	"types": "./dist/firstload/src/index.d.ts",
-	"exports": {
-		"types": "./dist/firstload/src/index.d.ts",
-		"import": "./dist/index.js",
-		"require": "./dist/index.cjs",
-		"node": "./dist/index.cjs",
-		"default": "./dist/index.js"
-	},
 	"files": [
 		"dist"
 	],
@@ -53,13 +46,18 @@
 		"hoistingLimits": "workspaces"
 	},
 	"devDependencies": {
+		"@rollup/plugin-commonjs": "^25.0.7",
+		"@rollup/plugin-json": "^6.0.1",
+		"@rollup/plugin-node-resolve": "^15.2.3",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@rollup/plugin-typescript": "^11.1.5",
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
 		"readdirp": "^3.6.0",
+		"rollup": "^4.1.4",
 		"size-limit": "^8.1.0",
 		"tslib": "^2.4.0",
 		"typescript": "^5.0.4",
-		"vite": "^4.3.9",
 		"vitest": "^0.32.0"
 	},
 	"size-limit": [
