@@ -26,9 +26,7 @@
 	},
 	"scripts": {
 		"build": "yarn typegen && rollup --config rollup.config.js",
-		"build:watch": "yarn build --watch",
-		"dev": "yarn build:watch",
-		"dev:watch": "run-p dev build:watch",
+		"dev": "yarn build --watch",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"

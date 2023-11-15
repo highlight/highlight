@@ -7,7 +7,6 @@ import terser from '@rollup/plugin-terser'
 /** @type {import('rollup').RollupOptions} */
 const config = {
 	input: 'src/index.tsx',
-	context: 'global',
 	plugins: [
 		json(),
 		commonjs(),
