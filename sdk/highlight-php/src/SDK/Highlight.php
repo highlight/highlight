@@ -15,10 +15,6 @@ use Highlight\SDK\HighlightOpenTelemetry;
 use Highlight\SDK\HighlightTracer;
 use Highlight\SDK\Common\HighlightHeader;
 
-// use Highlight\SDK\State;
-// use React\Promise\Promise;
-// use React\Promise\Timer\TimeoutException;
-
 /**
  * The Highlight class is the main entry point for Highlight.
  * It provides methods to initialize the library and capture logs and errors.
@@ -26,91 +22,21 @@ use Highlight\SDK\Common\HighlightHeader;
 class Highlight
 {
     private static ?Highlight $highlight = null;
-    private bool $initialized = false;
-
     private HighlightOptions $options;
     private HighlightOpenTelemetry $openTelemetry;
     private HighlightTracer $tracer;
     private HighlightLogger $logger;
 
-    // private \React\EventLoop\LoopInterface $loop;
-    // private \React\EventLoop\Timer\Timer $shutdownTimer;
-
     private function __construct(HighlightOptions $options)
     {
         echo "Highlight is initializing..." . PHP_EOL;
         $this->options = $options;
-        // $this->loop = \React\EventLoop\Factory::create();
-
+        
         $this->openTelemetry = new HighlightOpenTelemetry($this);
         $this->tracer = new HighlightTracer($this);
         $this->logger = new HighlightLogger($this);
 
-        // $this->loop->addSignal(\SIGINT, function () {
-        //     $this->shutdown();
-        // });
-
-        // $this->loop->addSignal(\SIGTERM, function () {
-        //     $this->shutdown();
-        // });
-
-        // $this->loop->addSignal(\SIGHUP, function () {
-        //     $this->shutdown();
-        // });
-
-        // $this->state = State::INITIALIZE;
-        $this->initialized = true;
-
         echo "Highlight was initialized." . PHP_EOL;
-    }
-
-    private function shutdown(): void
-    {
-        // if ($this->state === State::SHUTDOWN) {
-        //     return;
-        // }
-
-        if (!$this->initialized) {
-            return;
-        }
-
-        echo "Highlight is shutting down..." . PHP_EOL;
-
-        // $this->state = State::SHUTDOWN;
-        $this->initialized = false;
-
-        // if ($this->shutdownTimer === null) {
-        //     $this->shutdownTimer = $this->loop->addTimer(10.0, function () {
-        //         echo "Highlight was forcefully shut down." . PHP_EOL;
-        //         $this->loop->stop();
-        //     });
-        // }
-
-        # TODO:
-
-        // try {
-        //     $this->openTelemetry->shutdown()->then(function () {
-        //         $this->loop->cancelTimer($this->shutdownTimer);
-        //         echo "Highlight was successfully shut down." . PHP_EOL;
-        //         $this->loop->stop();
-        //     })->otherwise(function (\Throwable $e) {
-        //         if ($e instanceof TimeoutException) {
-        //             $this->loop->cancelTimer($this->shutdownTimer);
-        //             echo "Highlight was forcefully shut down." . PHP_EOL;
-        //         } else {
-        //             echo "Error while shutting down Highlight: " . $e->getMessage() . PHP_EOL;
-        //             $this->loop->cancelTimer($this->shutdownTimer);
-        //             echo "Highlight was forcefully shut down." . PHP_EOL;
-        //         }
-
-        //         $this->loop->stop();
-        //     });
-        // } catch (\Throwable $e) {
-        //     echo "Error while shutting down Highlight: " . $e->getMessage() . PHP_EOL;
-        //     $this->loop->cancelTimer($this->shutdownTimer);
-        //     echo "Highlight was forcefully shut down." . PHP_EOL;
-        //     $this->loop->stop();
-        // }
     }
 
     public function captureRecord(HighlightRecord $record): void
