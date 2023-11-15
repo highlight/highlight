@@ -23,13 +23,13 @@ const config = {
 	],
 	output: [
 		{
-			file: 'dist/index.js',
+			file: 'dist/index.mjs',
 			format: 'es',
 			sourcemap: true,
 			exports: 'named',
 		},
 		{
-			file: 'dist/index.cjs',
+			file: 'dist/index.js',
 			format: 'cjs',
 			sourcemap: true,
 			exports: 'named',
