@@ -2357,45 +2357,47 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	return nil
 }
 
-func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, saveToS3, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
+func (r *Resolver) MoveSessionDataToStorage(ctx context.Context, sessionId int, payloadId *int, projectId int, payloadType model.RawPayloadType) error {
+	zRangeSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+		util.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), util.Tag("project_id", projectId))
+	zRange, err := r.Redis.GetRawZRange(spanCtx, sessionId, payloadId, payloadType)
+	if err != nil {
+		return e.Wrap(err, "error retrieving previous event objects")
+	}
+	zRangeSpan.Finish()
+
+	// If there are prior events, push them to S3 and remove them from Redis
+	if len(zRange) != 0 {
+		pushToS3Span, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+			util.ResourceName("go.parseEvents.processWithRedis.pushToS3"), util.Tag("project_id", projectId))
+		if err := r.StorageClient.PushRawEvents(spanCtx, sessionId, projectId, payloadType, zRange); err != nil {
+			return e.Wrap(err, "error pushing events to S3")
+		}
+		pushToS3Span.Finish()
+
+		values := []interface{}{}
+		for _, z := range zRange {
+			values = append(values, z.Member)
+		}
+
+		removeValuesSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+			util.ResourceName("go.parseEvents.processWithRedis.removeValues"), util.Tag("project_id", projectId))
+		if err := r.Redis.RemoveValues(spanCtx, sessionId, payloadType, values); err != nil {
+			return e.Wrap(err, "error removing previous values")
+		}
+		removeValuesSpan.Finish()
+	}
+
+	return nil
+}
+
+func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
 	redisSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
 		util.ResourceName("go.parseEvents.processWithRedis"), util.Tag("project_id", projectId), util.Tag("payload_type", payloadType))
 	score := float64(payloadId)
 	// A little bit of a hack to encode
 	if isBeacon {
 		score += .5
-	}
-
-	if saveToS3 {
-		zRangeSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
-			util.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), util.Tag("project_id", projectId))
-		zRange, err := r.Redis.GetRawZRange(spanCtx, sessionId, payloadId)
-		if err != nil {
-			return e.Wrap(err, "error retrieving previous event objects")
-		}
-		zRangeSpan.Finish()
-
-		// If there are prior events, push them to S3 and remove them from Redis
-		if len(zRange) != 0 {
-			pushToS3Span, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
-				util.ResourceName("go.parseEvents.processWithRedis.pushToS3"), util.Tag("project_id", projectId))
-			if err := r.StorageClient.PushRawEvents(spanCtx, sessionId, projectId, payloadType, zRange); err != nil {
-				return e.Wrap(err, "error pushing events to S3")
-			}
-			pushToS3Span.Finish()
-
-			values := []interface{}{}
-			for _, z := range zRange {
-				values = append(values, z.Member)
-			}
-
-			removeValuesSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
-				util.ResourceName("go.parseEvents.processWithRedis.removeValues"), util.Tag("project_id", projectId))
-			if err := r.Redis.RemoveValues(spanCtx, sessionId, values); err != nil {
-				return e.Wrap(err, "error removing previous values")
-			}
-			removeValuesSpan.Finish()
-		}
 	}
 
 	if err := r.Redis.AddPayload(ctx, sessionId, score, payloadType, data); err != nil {
@@ -2564,7 +2566,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 			remarshalSpan.Finish()
 
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, hasFullSnapshot, isBeacon, model.PayloadTypeEvents, b); err != nil {
+			if hasFullSnapshot {
+				if err := r.MoveSessionDataToStorage(ctx, sessionID, pointy.Int(payloadIdDeref), projectID, model.PayloadTypeEvents); err != nil {
+					return err
+				}
+			}
+
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeEvents, b); err != nil {
 				return e.Wrap(err, "error saving events data")
 			}
 
@@ -2600,7 +2608,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			util.ResourceName("go.unmarshal.resources"), util.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
 			return e.Wrap(err, "error saving resources data")
 		}
 
@@ -2626,7 +2634,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				util.ResourceName("go.unmarshal.web_socket_events"), util.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
 				return e.Wrap(err, "error saving web socket events data")
 			}
 		}

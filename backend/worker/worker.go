@@ -192,6 +192,10 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
 
+	if err := w.PublicResolver.MoveSessionDataToStorage(ctx, s.ID, nil, s.ProjectID, payloadType); err != nil {
+		return err
+	}
+
 	s3Events, err := w.Resolver.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, payloadType)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving objects from S3")

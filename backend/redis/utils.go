@@ -146,18 +146,21 @@ func NewClient() *Client {
 	}
 }
 
-func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove []interface{}) error {
-	cmd := r.Client.ZRem(ctx, EventsKey(sessionId), valuesToRemove...)
+func (r *Client) RemoveValues(ctx context.Context, sessionId int, payloadType model.RawPayloadType, valuesToRemove []interface{}) error {
+	cmd := r.Client.ZRem(ctx, GetKey(sessionId, payloadType), valuesToRemove...)
 	if cmd.Err() != nil {
 		return errors.Wrap(cmd.Err(), "error removing values from Redis")
 	}
 	return nil
 }
 
-func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId int) ([]redis.Z, error) {
-	maxScore := "(" + strconv.FormatInt(int64(nextPayloadId), 10)
+func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId *int, payloadType model.RawPayloadType) ([]redis.Z, error) {
+	maxScore := "+inf"
+	if nextPayloadId != nil {
+		maxScore = "(" + strconv.FormatInt(int64(*nextPayloadId), 10)
+	}
 
-	vals, err := r.Client.ZRangeByScoreWithScores(ctx, EventsKey(sessionId), &redis.ZRangeBy{
+	vals, err := r.Client.ZRangeByScoreWithScores(ctx, GetKey(sessionId, payloadType), &redis.ZRangeBy{
 		Min: "-inf",
 		Max: maxScore,
 	}).Result()
@@ -306,7 +309,7 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 	return allEvents, nil, newCursor
 }
 
-func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interface{}, error) {
+func (r *Client) GetResources(ctx context.Context, s *model.Session, resources map[int]string) ([]interface{}, error) {
 	allResources := make([]interface{}, 0)
 
 	redisData, err := r.Client.ZRangeByScoreWithScores(ctx, NetworkResourcesKey(s.ID), &redis.ZRangeBy{
@@ -318,7 +321,28 @@ func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interfac
 	}
 
 	for _, z := range redisData {
-		asBytes := []byte(z.Member.(string))
+		intScore := int(z.Score)
+		// Skip beacon events
+		if z.Score != float64(intScore) {
+			continue
+		}
+
+		resources[intScore] = z.Member.(string)
+	}
+
+	keys := make([]int, 0, len(resources))
+	for k := range resources {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+
+	results := []string{}
+	for _, key := range keys {
+		results = append(results, resources[key])
+	}
+
+	for _, result := range results {
+		asBytes := []byte(result)
 
 		// Messages may be encoded with `snappy`.
 		// Try decoding them, but if decoding fails, use the original message.
