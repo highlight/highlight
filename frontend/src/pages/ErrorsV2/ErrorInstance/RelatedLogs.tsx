@@ -67,7 +67,7 @@ export const RelatedLogs = ({ data }: Props) => {
 			<Tag
 				kind="secondary"
 				emphasis="high"
-				size="medium"
+				size="small"
 				shape="basic"
 				disabled={!isLoggedIn || logsLink === ''}
 				iconLeft={<IconSolidLogs size={11} />}

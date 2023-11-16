@@ -44,11 +44,11 @@ export const TracesList: React.FC<Props> = ({
 	const [_, setSearchParams] = useSearchParams()
 	const location = useLocation()
 
-	const viewSession = (trace: Partial<Trace>) => {
+	const viewSession = (sessionSecureID: string, timestamp: string) => {
 		setSearchParams((params) => {
 			params.set('panel', 'session')
-			params.set('session_secure_id', trace.secureSessionID!)
-			params.set(PlayerSearchParameters.tsAbs, trace.timestamp!)
+			params.set('session_secure_id', sessionSecureID)
+			params.set(PlayerSearchParameters.tsAbs, timestamp!)
 			return params
 		})
 	}
@@ -174,7 +174,11 @@ export const TracesList: React.FC<Props> = ({
 										<Table.Cell
 											onClick={
 												trace.secureSessionID
-													? () => viewSession(trace)
+													? () =>
+															viewSession(
+																trace.secureSessionID,
+																trace.timestamp,
+															)
 													: undefined
 											}
 										>
