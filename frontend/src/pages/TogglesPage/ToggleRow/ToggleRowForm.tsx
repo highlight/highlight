@@ -20,6 +20,8 @@ import { namedOperations } from '@/graph/generated/operations'
 import { FeatureToggle } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 
+import * as styles from './styles.css'
+
 interface ToggleRowFormProps {
 	isCreate?: boolean
 	toggle?: FeatureToggle
@@ -118,98 +120,82 @@ export const ToggleRowForm: React.FC<ToggleRowFormProps> = ({
 				width="full"
 				display="flex"
 				p="12"
-				gap="16"
 				background="raised"
 				borderRadius="6"
 			>
-				<Stack width="full" gap="12">
-					<Box
-						display="flex"
-						alignItems="flex-start"
-						justifyContent="space-between"
-						gap="8"
-					>
-						<Stack gap="12">
-							<Box display="flex" alignItems="center">
-								<Form.Input
-									name={formStore.names.name}
-									placeholder="Toggle name..."
-									label="Toggle name"
-								/>
-							</Box>
-							{toggle && (
-								<Text
-									weight="medium"
-									size="xSmall"
-									color="weak"
-								>
-									{toggle.created_at === toggle.updated_at ? (
-										<>
-											<b>Created:</b>{' '}
-											{moment(
-												toggle.created_at,
-											).fromNow()}
-										</>
-									) : (
-										<>
-											<b>Updated:</b>{' '}
-											{moment(
-												toggle.updated_at,
-											).fromNow()}
-										</>
-									)}
-								</Text>
-							)}
-						</Stack>
-
-						<Stack gap="4">
+				<Box cssClass={styles.grid} width="full">
+					<Stack gap="12">
+						<Box display="flex" alignItems="center">
 							<Form.Input
-								name={formStore.names.threshold}
-								type="number"
-								label="Enabled percentage"
-								tag={
-									<Badge
-										shape="basic"
-										variant="red"
-										size="small"
-										label="Red"
-									/>
-								}
+								name={formStore.names.name}
+								placeholder="Toggle name..."
+								label="Toggle name"
 							/>
-						</Stack>
-						<Box display="flex" gap="8">
-							<Tag
-								kind="primary"
-								size="medium"
-								shape="basic"
-								emphasis="low"
-								onClick={onSubmit}
-							>
-								Cancel
-							</Tag>
-							{!isCreate && (
-								<Tag
-									kind="primary"
-									size="medium"
-									shape="basic"
-									emphasis="low"
-									onClick={handleDelete}
-								>
-									Delete
-								</Tag>
-							)}
-							<Tag
-								kind="primary"
-								size="medium"
-								shape="basic"
-								emphasis="low"
-								onClick={handleSave}
-							>
-								Save
-							</Tag>
 						</Box>
-					</Box>
-				</Stack>
+						{toggle && (
+							<Text weight="medium" size="xSmall" color="weak">
+								{toggle.created_at === toggle.updated_at ? (
+									<>
+										<b>Created:</b>{' '}
+										{moment(toggle.created_at).fromNow()}
+									</>
+								) : (
+									<>
+										<b>Updated:</b>{' '}
+										{moment(toggle.updated_at).fromNow()}
+									</>
+								)}
+							</Text>
+						)}
+					</Stack>
+
+					<Stack gap="4">
+						<Form.Input
+							name={formStore.names.threshold}
+							type="number"
+							label="Enabled percent"
+							tag={
+								<Badge
+									shape="basic"
+									variant="red"
+									size="small"
+									label="Red"
+								/>
+							}
+						/>
+					</Stack>
+					<Stack justifySelf="flex-end" alignItems="center" gap="4">
+						<Tag
+							kind="primary"
+							size="medium"
+							shape="basic"
+							emphasis="low"
+							onClick={onSubmit}
+						>
+							Cancel
+						</Tag>
+						{!isCreate && (
+							<Tag
+								kind="primary"
+								size="medium"
+								shape="basic"
+								emphasis="low"
+								onClick={handleDelete}
+							>
+								Delete
+							</Tag>
+						)}
+						<Tag
+							kind="primary"
+							size="medium"
+							shape="basic"
+							emphasis="low"
+							onClick={handleSave}
+						>
+							Save
+						</Tag>
+					</Stack>
+				</Box>
 			</Box>
 		</Form>
 	)

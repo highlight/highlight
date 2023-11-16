@@ -12,9 +12,9 @@ import {
 import React from 'react'
 
 import { useProjectId } from '@/hooks/useProjectId'
-import { ToggleRowForm } from '@/pages/TogglesPage/ToggleRowForm'
 
-import { ToggleRow } from './ToggleRow'
+import { ToggleRow } from './ToggleRow/ToggleRow'
+import { ToggleRowForm } from './ToggleRow/ToggleRowForm'
 
 export const TogglesPage: React.FC = () => {
 	const { projectId } = useProjectId()
