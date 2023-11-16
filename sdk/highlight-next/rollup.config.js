@@ -6,31 +6,29 @@ import terser from '@rollup/plugin-terser'
 
 /** @type {import('rollup').RollupOptions} */
 const config = {
-	input: 'src/index.ts',
-	context: 'global',
-	plugins: [
-		json(),
-		commonjs({
-			// required for @opentelemetry/resources which pretends to be an ESM build while using dynamic `require()`
-			transformMixedEsModules: true,
-		}),
-		resolve({
-			browser: false,
-			preferBuiltins: true,
-		}),
-		typescript(),
-		terser(),
+	input: [
+		'src/next-client.tsx',
+		'src/config.ts',
+		'src/server.edge.ts',
+		'src/server.ts',
+		'src/ssr.tsx',
 	],
+	external: ['next', 'react'],
+	plugins: [json(), commonjs(), resolve(), typescript(), terser()],
 	output: [
 		{
-			file: 'dist/index.js',
-			format: 'es',
-			sourcemap: true,
-		},
-		{
-			file: 'dist/index.cjs',
+			dir: 'dist',
 			format: 'cjs',
 			sourcemap: true,
+			entryFileNames: '[name].cjs',
+			exports: 'named',
+		},
+		{
+			dir: 'dist',
+			format: 'es',
+			sourcemap: true,
+			entryFileNames: '[name].js',
+			exports: 'named',
 		},
 	],
 	treeshake: 'smallest',
