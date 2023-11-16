@@ -51,6 +51,7 @@ __pycache__
 .vercel
 temp
 .env
+.rollup.cache
 
 scripts/invoices.csv
 

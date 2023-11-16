@@ -36,6 +36,7 @@
 	},
 	"type": "module",
 	"main": "./dist/index.js",
+	"module": "./dist/index.js",
 	"unpkg": "./dist/index.umd.js",
 	"jsdelivr": "./dist/index.umd.js",
 	"types": "./dist/firstload/src/index.d.ts",
@@ -53,6 +54,11 @@
 		"hoistingLimits": "workspaces"
 	},
 	"devDependencies": {
+		"@rollup/plugin-commonjs": "^25.0.7",
+		"@rollup/plugin-json": "^6.0.1",
+		"@rollup/plugin-node-resolve": "^15.2.3",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@rollup/plugin-typescript": "^11.1.5",
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
 		"readdirp": "^3.6.0",

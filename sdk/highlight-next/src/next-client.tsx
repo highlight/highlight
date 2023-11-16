@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { HighlightOptions, H as localH } from 'highlight.run'
 
 export { localH as H }
