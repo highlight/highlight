@@ -20,12 +20,12 @@ import (
 	"github.com/rs/cors"
 	"github.com/samber/lo"
 
+	"github.com/google/brotli/go/cbrotli"
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/andybalholm/brotli"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
@@ -647,7 +647,7 @@ func (s *S3Client) PushFiles(ctx context.Context, sessionId, projectId int, payl
 }
 func decompress(data *bytes.Buffer) (*bytes.Buffer, error) {
 	out := &bytes.Buffer{}
-	if _, err := io.Copy(out, brotli.NewReader(data)); err != nil {
+	if _, err := io.Copy(out, cbrotli.NewReader(data)); err != nil {
 		return nil, err
 	}
 	return out, nil

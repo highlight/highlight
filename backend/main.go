@@ -21,11 +21,11 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/andybalholm/brotli"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
+	"github.com/google/brotli/go/cbrotli"
 	"github.com/gorilla/websocket"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -359,7 +359,9 @@ func main() {
 	r.Use(httplog.RequestLogger(errorLogger))
 	compressor := middleware.NewCompressor(5, "application/json")
 	compressor.SetEncoder("br", func(w io.Writer, level int) io.Writer {
-		return brotli.NewWriterLevel(w, level)
+		return cbrotli.NewWriter(w, cbrotli.WriterOptions{
+			Quality: level,
+		})
 	})
 	r.Use(compressor.Handler)
 	r.Use(cors.New(cors.Options{

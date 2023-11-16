@@ -12,7 +12,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/andybalholm/brotli"
+	"github.com/google/brotli/go/cbrotli"
+
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/openlyinc/pointy"
@@ -245,7 +246,7 @@ func (h *handlers) GetJourney(ctx context.Context, input utils.JourneyInput) (*u
 	}
 
 	out := &bytes.Buffer{}
-	if _, err := io.Copy(out, brotli.NewReader(buf)); err != nil {
+	if _, err := io.Copy(out, cbrotli.NewReader(buf)); err != nil {
 		return nil, err
 	}
 

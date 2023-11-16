@@ -1,6 +1,12 @@
 FROM --platform=$BUILDPLATFORM golang:alpine as backend-build
 
-RUN apk update && apk add --no-cache build-base
+RUN apk update && apk add --no-cache build-base && apk add cmake
+
+WORKDIR /brotli
+RUN git clone https://github.com/google/brotli && cd brotli && \
+	mkdir out && cd out && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
+    cmake --build . --config Release --target install
 
 WORKDIR /highlight
 COPY ../go.work .

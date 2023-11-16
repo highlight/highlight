@@ -54,6 +54,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/snappy v0.0.4
+	github.com/google/brotli/go/cbrotli v0.0.0-20231026090320-9b83be233e0e
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
