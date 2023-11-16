@@ -356,6 +356,7 @@
         "/src/utils/sessionStorage/highlightSession.js": "/utils/sessionStorage/highlightSession.ts",
         "/src/utils/sessionStorage/sessionStorageKeys": "/utils/sessionStorage/sessionStorageKeys.ts",
         "/src/utils/sessionStorage/sessionStorageKeys.js": "/utils/sessionStorage/sessionStorageKeys.ts",
+        "/src/utils/storage.js": "/utils/storage.ts",
       },
       "nodejsCompatibility": {
         "omitModuleExtension": true,

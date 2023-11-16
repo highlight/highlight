@@ -1,5 +1,14 @@
 # @highlight-run/node
 
+## 3.6.2
+
+### Patch Changes
+
+-   e3590078e: fix @highlight-run/node crashing due to encoding not being polyfilled
+-   8e91dbe55: allow arbitrarily waiting for flush to wait for logs to be sent to highlight
+-   Updated dependencies [b6172b0da]
+    -   highlight.run@8.2.2
+
 ## 3.6.1
 
 ### Patch Changes

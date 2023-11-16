@@ -1,5 +1,16 @@
 # @highlight-run/next
 
+## 7.2.2
+
+### Patch Changes
+
+-   8e91dbe55: allow arbitrarily waiting for flush to wait for logs to be sent to highlight
+-   Updated dependencies [e3590078e]
+-   Updated dependencies [8e91dbe55]
+-   Updated dependencies [b6172b0da]
+    -   @highlight-run/node@3.6.2
+    -   highlight.run@8.2.2
+
 ## 7.2.1
 
 ### Patch Changes

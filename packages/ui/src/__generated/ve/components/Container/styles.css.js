@@ -1,1 +1,11 @@
-var e=940,r=980,c="_1ec5cce1",t="_1ec5cce2";export{e as CONTAINER_MAX_WIDTH,r as CONTAINER_WIDTH_WITH_PADDING,c as container,t as content};
+// ../packages/ui/src/components/Container/styles.css.ts
+var CONTAINER_MAX_WIDTH = 940;
+var CONTAINER_WIDTH_WITH_PADDING = 980;
+var container = "_1ec5cce1";
+var content = "_1ec5cce2";
+export {
+  CONTAINER_MAX_WIDTH,
+  CONTAINER_WIDTH_WITH_PADDING,
+  container,
+  content
+};

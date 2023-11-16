@@ -70,7 +70,15 @@ type Worker struct {
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payloadManager *payload.PayloadManager) error {
-	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
+	project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+	if err != nil {
+		return err
+	}
+	workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager, workspace.GetRetentionPeriod())
 	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing files to s3")
@@ -127,8 +135,17 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 			}
 			curChunkedFile := manager.GetFile(payload.EventsChunked)
 			if curChunkedFile != nil {
+				project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+				if err != nil {
+					return err
+				}
+				workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+				if err != nil {
+					return err
+				}
+
 				curOffset := manager.ChunkIndex
-				_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset))
+				_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset), workspace.GetRetentionPeriod())
 				if err != nil {
 					return errors.Wrap(err, "error pushing event chunk file to s3")
 				}
@@ -224,11 +241,20 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 
 	// If the last event chunk file hasn't been closed / written to s3, do that here
 	if manager.EventsChunked != nil {
+		project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+		if err != nil {
+			return err
+		}
+		workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+		if err != nil {
+			return err
+		}
+
 		if err := manager.EventsChunked.Close(); err != nil {
 			return errors.Wrap(err, "error closing compressed events chunk writer")
 		}
 		curOffset := manager.ChunkIndex
-		_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset))
+		_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset), workspace.GetRetentionPeriod())
 		if err != nil {
 			return errors.Wrap(err, "error pushing event chunk file to s3")
 		}

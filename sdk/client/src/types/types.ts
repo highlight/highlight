@@ -212,7 +212,13 @@ export declare type HighlightOptions = {
 	 */
 	storageMode?: 'sessionStorage' | 'localStorage'
 	/**
-	 * load in your toggles from Highlight
+	 * By default, data is serialized and send by the Web Worker. Set to `local` to force
+	 * sending from the main js thread. Only use `local` for custom environments where Web Workers
+	 * are not available (ie. Figma plugins).
+	 */
+	sendMode?: 'webworker' | 'local'
+	/**
+	 * * load in your toggles from Highlight
 	 */
 	enableFeatureToggles?: boolean
 }

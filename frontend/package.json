@@ -147,7 +147,7 @@
 		"@vanilla-extract/vite-plugin": "^3.9.0",
 		"@vitejs/plugin-react-swc": "^3.3.2",
 		"autoprefixer": "^10.4.8",
-		"esbuild": "0.17.17",
+		"esbuild": "0.19.5",
 		"eslint": "^7.0.0",
 		"eslint-config-prettier": "^7.2.0",
 		"eslint-plugin-import": "^2.27.5",

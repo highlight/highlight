@@ -1,1 +1,5 @@
-var d="_11k4duj0";export{d as body};
+// ../packages/ui/src/components/Table/Body/styles.css.ts
+var body = "_11k4duj0";
+export {
+  body
+};
