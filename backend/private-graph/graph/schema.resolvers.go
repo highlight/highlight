@@ -3925,10 +3925,12 @@ func (r *mutationResolver) CreateFeatureToggle(ctx context.Context, projectID in
 		return nil, err
 	}
 
+	boundThreshold := int(math.Max(0, math.Min(100, float64(threshold))))
+
 	featureToggle := &model.FeatureToggle{
 		ProjectID: project.ID,
 		Name:      name,
-		Threshold: threshold,
+		Threshold: boundThreshold,
 		HashKey:   hashKey,
 	}
 
@@ -3972,10 +3974,12 @@ func (r *mutationResolver) EditFeatureToggle(ctx context.Context, id int, name s
 		return nil, err
 	}
 
+	boundThreshold := int(math.Max(0, math.Min(100, float64(threshold))))
+
 	updateErr := r.DB.WithContext(ctx).Where(&model.FeatureToggle{
 		Model: model.Model{ID: id}}).Take(&featureToggle).Updates(map[string]interface{}{
 		"Name":      name,
-		"Threshold": threshold,
+		"Threshold": boundThreshold,
 	}).Error
 
 	return &featureToggle, updateErr

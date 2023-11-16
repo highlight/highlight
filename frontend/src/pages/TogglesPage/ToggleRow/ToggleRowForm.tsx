@@ -3,15 +3,7 @@ import {
 	useDeleteFeatureToggleMutation,
 	useEditFeatureToggleMutation,
 } from '@graph/hooks'
-import {
-	Badge,
-	Box,
-	Form,
-	Stack,
-	Tag,
-	Text,
-	useFormStore,
-} from '@highlight-run/ui'
+import { Box, Form, Stack, Tag, Text, useFormStore } from '@highlight-run/ui'
 import { message } from 'antd'
 import moment from 'moment'
 import React from 'react'
@@ -154,14 +146,6 @@ export const ToggleRowForm: React.FC<ToggleRowFormProps> = ({
 							name={formStore.names.threshold}
 							type="number"
 							label="Enabled percent"
-							tag={
-								<Badge
-									shape="basic"
-									variant="red"
-									size="small"
-									label="Red"
-								/>
-							}
 						/>
 					</Stack>
 					<Stack justifySelf="flex-end" alignItems="center" gap="4">

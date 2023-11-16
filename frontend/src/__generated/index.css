@@ -7240,6 +7240,11 @@ body {
 ._1q3ayoh6 {
   height: 20px;
 }
+.ooxlcx0 {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px;
+  grid-column-gap: 40px;
+}
 ._1r8lbz42 {
   background-color: var(--_1pyqka91k);
   border: 1px solid transparent;
