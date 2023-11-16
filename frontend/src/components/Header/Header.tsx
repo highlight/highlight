@@ -25,6 +25,7 @@ import {
 	IconSolidChartPie,
 	IconSolidChat,
 	IconSolidCheck,
+	IconSolidChip,
 	IconSolidCog,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
@@ -124,6 +125,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
+	const topbarToggle = window.H.getFeatureToggle('enable-topbar')
+	console.log('topbarToggle', topbarToggle)
+	const ToggleIcon = topbarToggle ? IconSolidSegment : IconSolidChip
+
 	const goBackPath = location.state?.previousPath ?? `/${projectId}/sessions`
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
@@ -154,10 +159,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'alerts',
 			icon: IconSolidSpeakerphone,
-		},
-		{
-			key: 'toggles',
-			icon: IconSolidSegment,
 		},
 	]
 
@@ -325,6 +326,31 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 															}
 														/>
 														Integrations
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${projectId}/toggles`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<ToggleIcon
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Toggles
 													</Box>
 												</Menu.Item>
 											</Link>
