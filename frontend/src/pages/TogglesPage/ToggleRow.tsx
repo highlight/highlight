@@ -11,12 +11,12 @@ import { Progress } from 'antd'
 import moment from 'moment'
 import React, { useState } from 'react'
 
-import { SessionToggle } from '@/graph/generated/schemas'
+import { FeatureToggle } from '@/graph/generated/schemas'
 
 import { ToggleRowForm } from './ToggleRowForm'
 
 type ToggleRowProps = {
-	toggle: SessionToggle
+	toggle: FeatureToggle
 }
 
 export const ToggleRow: React.FC<ToggleRowProps> = ({ toggle }) => {

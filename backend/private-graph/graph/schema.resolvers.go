@@ -3913,8 +3913,8 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	return &errorObject, nil
 }
 
-// CreateSessionToggle is the resolver for the createSessionToggle field.
-func (r *mutationResolver) CreateSessionToggle(ctx context.Context, projectID int, name string, threshold int) (*model.SessionToggle, error) {
+// CreateFeatureToggle is the resolver for the createFeatureToggle field.
+func (r *mutationResolver) CreateFeatureToggle(ctx context.Context, projectID int, name string, threshold int) (*model.FeatureToggle, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -3925,60 +3925,60 @@ func (r *mutationResolver) CreateSessionToggle(ctx context.Context, projectID in
 		return nil, err
 	}
 
-	sessionToggle := &model.SessionToggle{
+	featureToggle := &model.FeatureToggle{
 		ProjectID: project.ID,
 		Name:      name,
 		Threshold: threshold,
 		HashKey:   hashKey,
 	}
 
-	if err := r.DB.WithContext(ctx).Create(sessionToggle).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Create(featureToggle).Error; err != nil {
 		return nil, err
 	}
 
-	return sessionToggle, nil
+	return featureToggle, nil
 }
 
-// DeleteSessionToggle is the resolver for the deleteSessionToggle field.
-func (r *mutationResolver) DeleteSessionToggle(ctx context.Context, id int) (*model.SessionToggle, error) {
-	var sessionToggle model.SessionToggle
+// DeleteFeatureToggle is the resolver for the deleteFeatureToggle field.
+func (r *mutationResolver) DeleteFeatureToggle(ctx context.Context, id int) (*model.FeatureToggle, error) {
+	var featureToggle model.FeatureToggle
 
-	if err := r.DB.Take(&sessionToggle, id).Error; err != nil {
+	if err := r.DB.Take(&featureToggle, id).Error; err != nil {
 		return nil, err
 	}
 
-	_, err := r.isAdminInProject(ctx, sessionToggle.ProjectID)
+	_, err := r.isAdminInProject(ctx, featureToggle.ProjectID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := r.DB.WithContext(ctx).Delete(&sessionToggle, id).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(&featureToggle, id).Error; err != nil {
 		return nil, err
 	}
 
-	return &sessionToggle, nil
+	return &featureToggle, nil
 }
 
-// EditSessionToggle is the resolver for the editSessionToggle field.
-func (r *mutationResolver) EditSessionToggle(ctx context.Context, id int, name string, threshold int) (*model.SessionToggle, error) {
-	var sessionToggle model.SessionToggle
+// EditFeatureToggle is the resolver for the editFeatureToggle field.
+func (r *mutationResolver) EditFeatureToggle(ctx context.Context, id int, name string, threshold int) (*model.FeatureToggle, error) {
+	var featureToggle model.FeatureToggle
 
-	if err := r.DB.Take(&sessionToggle, id).Error; err != nil {
+	if err := r.DB.Take(&featureToggle, id).Error; err != nil {
 		return nil, err
 	}
 
-	_, err := r.isAdminInProject(ctx, sessionToggle.ProjectID)
+	_, err := r.isAdminInProject(ctx, featureToggle.ProjectID)
 	if err != nil {
 		return nil, err
 	}
 
-	updateErr := r.DB.WithContext(ctx).Where(&model.SessionToggle{
-		Model: model.Model{ID: id}}).Take(&sessionToggle).Updates(map[string]interface{}{
+	updateErr := r.DB.WithContext(ctx).Where(&model.FeatureToggle{
+		Model: model.Model{ID: id}}).Take(&featureToggle).Updates(map[string]interface{}{
 		"Name":      name,
 		"Threshold": threshold,
 	}).Error
 
-	return &sessionToggle, updateErr
+	return &featureToggle, updateErr
 }
 
 // Accounts is the resolver for the accounts field.
@@ -7646,18 +7646,18 @@ func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyN
 	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
-// SessionToggles is the resolver for the session_toggles field.
-func (r *queryResolver) SessionToggles(ctx context.Context, projectID int) ([]*model.SessionToggle, error) {
+// FeatureToggles is the resolver for the feature_toggles field.
+func (r *queryResolver) FeatureToggles(ctx context.Context, projectID int) ([]*model.FeatureToggle, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
 	if err != nil {
 		return nil, err
 	}
-	sessionToggles := []*model.SessionToggle{}
-	if err := r.DB.WithContext(ctx).Order("created_at asc").Model(&model.SessionToggle{}).Where("project_id = ?", projectID).Find(&sessionToggles).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session toggles")
+	featureToggles := []*model.FeatureToggle{}
+	if err := r.DB.WithContext(ctx).Order("updated_at desc").Model(&model.FeatureToggle{}).Where("project_id = ?", projectID).Find(&featureToggles).Error; err != nil {
+		return nil, e.Wrap(err, "error querying feature toggles")
 	}
-	return sessionToggles, nil
+	return featureToggles, nil
 }
 
 // Params is the resolver for the params field.

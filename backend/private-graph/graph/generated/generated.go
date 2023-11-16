@@ -525,6 +525,15 @@ type ComplexityRoot struct {
 		Title            func(childComplexity int) int
 	}
 
+	FeatureToggle struct {
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		ProjectID func(childComplexity int) int
+		Threshold func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+	}
+
 	Field struct {
 		ID    func(childComplexity int) int
 		Name  func(childComplexity int) int
@@ -747,6 +756,7 @@ type ComplexityRoot struct {
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateErrorTag                   func(childComplexity int, title string, description string) int
+		CreateFeatureToggle              func(childComplexity int, projectID int, name string, threshold int) int
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateLogAlert                   func(childComplexity int, input model.LogAlertInput) int
@@ -756,7 +766,6 @@ type ComplexityRoot struct {
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
 		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
 		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
-		CreateSessionToggle              func(childComplexity int, projectID int, name string, threshold int) int
 		CreateWorkspace                  func(childComplexity int, name string, promoCode *string) int
 		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
 		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
@@ -764,6 +773,7 @@ type ComplexityRoot struct {
 		DeleteErrorAlert                 func(childComplexity int, projectID int, errorAlertID int) int
 		DeleteErrorComment               func(childComplexity int, id int) int
 		DeleteErrorSegment               func(childComplexity int, segmentID int) int
+		DeleteFeatureToggle              func(childComplexity int, id int) int
 		DeleteInviteLinkFromWorkspace    func(childComplexity int, workspaceID int, workspaceInviteLinkID int) int
 		DeleteLogAlert                   func(childComplexity int, projectID int, id int) int
 		DeleteMetricMonitor              func(childComplexity int, projectID int, metricMonitorID int) int
@@ -771,14 +781,13 @@ type ComplexityRoot struct {
 		DeleteSegment                    func(childComplexity int, segmentID int) int
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
-		DeleteSessionToggle              func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
+		EditFeatureToggle                func(childComplexity int, id int, name string, threshold int) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
-		EditSessionToggle                func(childComplexity int, id int, name string, threshold int) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -923,6 +932,7 @@ type ComplexityRoot struct {
 		EventChunkURL                func(childComplexity int, secureID string, index int) int
 		EventChunks                  func(childComplexity int, secureID string) int
 		Events                       func(childComplexity int, sessionSecureID string) int
+		FeatureToggles               func(childComplexity int, projectID int) int
 		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
 		FieldTypesClickhouse         func(childComplexity int, projectID int, startDate time.Time, endDate time.Time) int
 		FieldsClickhouse             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) int
@@ -988,7 +998,6 @@ type ComplexityRoot struct {
 		SessionInsight               func(childComplexity int, secureID string) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
 		SessionLogs                  func(childComplexity int, projectID int, params model.QueryInput) int
-		SessionToggles               func(childComplexity int, projectID int) int
 		SessionsClickhouse           func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) int
 		SessionsHistogramClickhouse  func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
@@ -1284,15 +1293,6 @@ type ComplexityRoot struct {
 	SessionResults struct {
 		Sessions   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
-	}
-
-	SessionToggle struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		ProjectID func(childComplexity int) int
-		Threshold func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
 	}
 
 	SessionsHistogram struct {
@@ -1672,9 +1672,9 @@ type MutationResolver interface {
 	UpsertSlackChannel(ctx context.Context, projectID int, name string) (*model.SanitizedSlackChannel, error)
 	UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model1.DiscordChannel, error)
 	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model1.ErrorObject, error)
-	CreateSessionToggle(ctx context.Context, projectID int, name string, threshold int) (*model1.SessionToggle, error)
-	DeleteSessionToggle(ctx context.Context, id int) (*model1.SessionToggle, error)
-	EditSessionToggle(ctx context.Context, id int, name string, threshold int) (*model1.SessionToggle, error)
+	CreateFeatureToggle(ctx context.Context, projectID int, name string, threshold int) (*model1.FeatureToggle, error)
+	DeleteFeatureToggle(ctx context.Context, id int) (*model1.FeatureToggle, error)
+	EditFeatureToggle(ctx context.Context, id int, name string, threshold int) (*model1.FeatureToggle, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -1824,7 +1824,7 @@ type QueryResolver interface {
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) (*model.TracesMetrics, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
-	SessionToggles(ctx context.Context, projectID int) ([]*model1.SessionToggle, error)
+	FeatureToggles(ctx context.Context, projectID int) ([]*model1.FeatureToggle, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -4083,6 +4083,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ExternalAttachment.Title(childComplexity), true
 
+	case "FeatureToggle.created_at":
+		if e.complexity.FeatureToggle.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.FeatureToggle.CreatedAt(childComplexity), true
+
+	case "FeatureToggle.id":
+		if e.complexity.FeatureToggle.ID == nil {
+			break
+		}
+
+		return e.complexity.FeatureToggle.ID(childComplexity), true
+
+	case "FeatureToggle.name":
+		if e.complexity.FeatureToggle.Name == nil {
+			break
+		}
+
+		return e.complexity.FeatureToggle.Name(childComplexity), true
+
+	case "FeatureToggle.project_id":
+		if e.complexity.FeatureToggle.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.FeatureToggle.ProjectID(childComplexity), true
+
+	case "FeatureToggle.threshold":
+		if e.complexity.FeatureToggle.Threshold == nil {
+			break
+		}
+
+		return e.complexity.FeatureToggle.Threshold(childComplexity), true
+
+	case "FeatureToggle.updated_at":
+		if e.complexity.FeatureToggle.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.FeatureToggle.UpdatedAt(childComplexity), true
+
 	case "Field.id":
 		if e.complexity.Field.ID == nil {
 			break
@@ -5061,6 +5103,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateErrorTag(childComplexity, args["title"].(string), args["description"].(string)), true
 
+	case "Mutation.createFeatureToggle":
+		if e.complexity.Mutation.CreateFeatureToggle == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createFeatureToggle_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateFeatureToggle(childComplexity, args["project_id"].(int), args["name"].(string), args["threshold"].(int)), true
+
 	case "Mutation.createIssueForErrorComment":
 		if e.complexity.Mutation.CreateIssueForErrorComment == nil {
 			break
@@ -5169,18 +5223,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType), args["tags"].([]*model.SessionCommentTagInput), args["additional_context"].(*string)), true
 
-	case "Mutation.createSessionToggle":
-		if e.complexity.Mutation.CreateSessionToggle == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createSessionToggle_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateSessionToggle(childComplexity, args["project_id"].(int), args["name"].(string), args["threshold"].(int)), true
-
 	case "Mutation.createWorkspace":
 		if e.complexity.Mutation.CreateWorkspace == nil {
 			break
@@ -5264,6 +5306,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteErrorSegment(childComplexity, args["segment_id"].(int)), true
+
+	case "Mutation.deleteFeatureToggle":
+		if e.complexity.Mutation.DeleteFeatureToggle == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteFeatureToggle_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteFeatureToggle(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteInviteLinkFromWorkspace":
 		if e.complexity.Mutation.DeleteInviteLinkFromWorkspace == nil {
@@ -5349,18 +5403,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteSessionComment(childComplexity, args["id"].(int)), true
 
-	case "Mutation.deleteSessionToggle":
-		if e.complexity.Mutation.DeleteSessionToggle == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteSessionToggle_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteSessionToggle(childComplexity, args["id"].(int)), true
-
 	case "Mutation.deleteSessions":
 		if e.complexity.Mutation.DeleteSessions == nil {
 			break
@@ -5384,6 +5426,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditErrorSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.ErrorSearchParamsInput), args["name"].(string)), true
+
+	case "Mutation.editFeatureToggle":
+		if e.complexity.Mutation.EditFeatureToggle == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editFeatureToggle_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditFeatureToggle(childComplexity, args["id"].(int), args["name"].(string), args["threshold"].(int)), true
 
 	case "Mutation.editProject":
 		if e.complexity.Mutation.EditProject == nil {
@@ -5432,18 +5486,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditServiceGithubSettings(childComplexity, args["id"].(int), args["project_id"].(int), args["github_repo_path"].(*string), args["build_prefix"].(*string), args["github_prefix"].(*string)), true
-
-	case "Mutation.editSessionToggle":
-		if e.complexity.Mutation.EditSessionToggle == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_editSessionToggle_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.EditSessionToggle(childComplexity, args["id"].(int), args["name"].(string), args["threshold"].(int)), true
 
 	case "Mutation.editWorkspace":
 		if e.complexity.Mutation.EditWorkspace == nil {
@@ -6746,6 +6788,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Events(childComplexity, args["session_secure_id"].(string)), true
 
+	case "Query.feature_toggles":
+		if e.complexity.Query.FeatureToggles == nil {
+			break
+		}
+
+		args, err := ec.field_Query_feature_toggles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FeatureToggles(childComplexity, args["project_id"].(int)), true
+
 	case "Query.field_suggestion":
 		if e.complexity.Query.FieldSuggestion == nil {
 			break
@@ -7510,18 +7564,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SessionLogs(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput)), true
-
-	case "Query.session_toggles":
-		if e.complexity.Query.SessionToggles == nil {
-			break
-		}
-
-		args, err := ec.field_Query_session_toggles_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SessionToggles(childComplexity, args["project_id"].(int)), true
 
 	case "Query.sessions_clickhouse":
 		if e.complexity.Query.SessionsClickhouse == nil {
@@ -9238,48 +9280,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
-
-	case "SessionToggle.created_at":
-		if e.complexity.SessionToggle.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.SessionToggle.CreatedAt(childComplexity), true
-
-	case "SessionToggle.id":
-		if e.complexity.SessionToggle.ID == nil {
-			break
-		}
-
-		return e.complexity.SessionToggle.ID(childComplexity), true
-
-	case "SessionToggle.name":
-		if e.complexity.SessionToggle.Name == nil {
-			break
-		}
-
-		return e.complexity.SessionToggle.Name(childComplexity), true
-
-	case "SessionToggle.project_id":
-		if e.complexity.SessionToggle.ProjectID == nil {
-			break
-		}
-
-		return e.complexity.SessionToggle.ProjectID(childComplexity), true
-
-	case "SessionToggle.threshold":
-		if e.complexity.SessionToggle.Threshold == nil {
-			break
-		}
-
-		return e.complexity.SessionToggle.Threshold(childComplexity), true
-
-	case "SessionToggle.updated_at":
-		if e.complexity.SessionToggle.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.SessionToggle.UpdatedAt(childComplexity), true
 
 	case "SessionsHistogram.bucket_times":
 		if e.complexity.SessionsHistogram.BucketTimes == nil {
@@ -12174,7 +12174,7 @@ type SessionExportWithSession {
 	active_length: Int
 }
 
-type SessionToggle {
+type FeatureToggle {
 	id: ID!
 	created_at: Timestamp!
 	updated_at: Timestamp!
@@ -12487,7 +12487,7 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
-	session_toggles(project_id: ID!): [SessionToggle!]
+	feature_toggles(project_id: ID!): [FeatureToggle!]
 }
 
 type Mutation {
@@ -12870,13 +12870,13 @@ type Mutation {
 		build_prefix: String
 		save_error: Boolean
 	): ErrorObject
-	createSessionToggle(
+	createFeatureToggle(
 		project_id: ID!
 		name: String!
 		threshold: Int!
-	): SessionToggle
-	deleteSessionToggle(id: ID!): SessionToggle
-	editSessionToggle(id: ID!, name: String!, threshold: Int!): SessionToggle
+	): FeatureToggle
+	deleteFeatureToggle(id: ID!): FeatureToggle
+	editFeatureToggle(id: ID!, name: String!, threshold: Int!): FeatureToggle
 }
 
 type Subscription {
@@ -13298,6 +13298,39 @@ func (ec *executionContext) field_Mutation_createErrorTag_args(ctx context.Conte
 		}
 	}
 	args["description"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createFeatureToggle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["threshold"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["threshold"] = arg2
 	return args, nil
 }
 
@@ -13904,39 +13937,6 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createSessionToggle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg1
-	var arg2 int
-	if tmp, ok := rawArgs["threshold"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["threshold"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_createWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -14075,6 +14075,21 @@ func (ec *executionContext) field_Mutation_deleteErrorSegment_args(ctx context.C
 		}
 	}
 	args["segment_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteFeatureToggle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -14219,21 +14234,6 @@ func (ec *executionContext) field_Mutation_deleteSessionComment_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteSessionToggle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_deleteSessions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -14306,6 +14306,39 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 		}
 	}
 	args["name"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editFeatureToggle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["threshold"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["threshold"] = arg2
 	return args, nil
 }
 
@@ -14618,39 +14651,6 @@ func (ec *executionContext) field_Mutation_editServiceGithubSettings_args(ctx co
 		}
 	}
 	args["github_prefix"] = arg4
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_editSessionToggle_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg1
-	var arg2 int
-	if tmp, ok := rawArgs["threshold"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["threshold"] = arg2
 	return args, nil
 }
 
@@ -17105,6 +17105,21 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_feature_toggles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -18428,21 +18443,6 @@ func (ec *executionContext) field_Query_session_intervals_args(ctx context.Conte
 		}
 	}
 	args["session_secure_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_session_toggles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -33253,6 +33253,270 @@ func (ec *executionContext) fieldContext_ExternalAttachment_error_comment_id(ctx
 	return fc, nil
 }
 
+func (ec *executionContext) _FeatureToggle_id(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeatureToggle_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeatureToggle_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeatureToggle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeatureToggle_created_at(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeatureToggle_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeatureToggle_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeatureToggle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeatureToggle_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeatureToggle_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeatureToggle_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeatureToggle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeatureToggle_name(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeatureToggle_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeatureToggle_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeatureToggle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeatureToggle_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeatureToggle_project_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeatureToggle_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeatureToggle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FeatureToggle_threshold(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeatureToggle_threshold(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Threshold, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeatureToggle_threshold(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeatureToggle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Field_id(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Field_id(ctx, field)
 	if err != nil {
@@ -44561,8 +44825,8 @@ func (ec *executionContext) fieldContext_Mutation_testErrorEnhancement(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createSessionToggle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createSessionToggle(ctx, field)
+func (ec *executionContext) _Mutation_createFeatureToggle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createFeatureToggle(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -44575,7 +44839,7 @@ func (ec *executionContext) _Mutation_createSessionToggle(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionToggle(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["threshold"].(int))
+		return ec.resolvers.Mutation().CreateFeatureToggle(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["threshold"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44583,12 +44847,12 @@ func (ec *executionContext) _Mutation_createSessionToggle(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model1.SessionToggle)
+	res := resTmp.(*model1.FeatureToggle)
 	fc.Result = res
-	return ec.marshalOSessionToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggle(ctx, field.Selections, res)
+	return ec.marshalOFeatureToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggle(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createSessionToggle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_createFeatureToggle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -44597,19 +44861,19 @@ func (ec *executionContext) fieldContext_Mutation_createSessionToggle(ctx contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_SessionToggle_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_id(ctx, field)
 			case "created_at":
-				return ec.fieldContext_SessionToggle_created_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_SessionToggle_updated_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
-				return ec.fieldContext_SessionToggle_name(ctx, field)
+				return ec.fieldContext_FeatureToggle_name(ctx, field)
 			case "project_id":
-				return ec.fieldContext_SessionToggle_project_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
-				return ec.fieldContext_SessionToggle_threshold(ctx, field)
+				return ec.fieldContext_FeatureToggle_threshold(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionToggle", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type FeatureToggle", field.Name)
 		},
 	}
 	defer func() {
@@ -44619,15 +44883,15 @@ func (ec *executionContext) fieldContext_Mutation_createSessionToggle(ctx contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createSessionToggle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_createFeatureToggle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_deleteSessionToggle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteSessionToggle(ctx, field)
+func (ec *executionContext) _Mutation_deleteFeatureToggle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteFeatureToggle(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -44640,7 +44904,7 @@ func (ec *executionContext) _Mutation_deleteSessionToggle(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSessionToggle(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Mutation().DeleteFeatureToggle(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44648,12 +44912,12 @@ func (ec *executionContext) _Mutation_deleteSessionToggle(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model1.SessionToggle)
+	res := resTmp.(*model1.FeatureToggle)
 	fc.Result = res
-	return ec.marshalOSessionToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggle(ctx, field.Selections, res)
+	return ec.marshalOFeatureToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggle(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_deleteSessionToggle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_deleteFeatureToggle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -44662,19 +44926,19 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessionToggle(ctx contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_SessionToggle_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_id(ctx, field)
 			case "created_at":
-				return ec.fieldContext_SessionToggle_created_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_SessionToggle_updated_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
-				return ec.fieldContext_SessionToggle_name(ctx, field)
+				return ec.fieldContext_FeatureToggle_name(ctx, field)
 			case "project_id":
-				return ec.fieldContext_SessionToggle_project_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
-				return ec.fieldContext_SessionToggle_threshold(ctx, field)
+				return ec.fieldContext_FeatureToggle_threshold(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionToggle", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type FeatureToggle", field.Name)
 		},
 	}
 	defer func() {
@@ -44684,15 +44948,15 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessionToggle(ctx contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteSessionToggle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_deleteFeatureToggle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_editSessionToggle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_editSessionToggle(ctx, field)
+func (ec *executionContext) _Mutation_editFeatureToggle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_editFeatureToggle(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -44705,7 +44969,7 @@ func (ec *executionContext) _Mutation_editSessionToggle(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSessionToggle(rctx, fc.Args["id"].(int), fc.Args["name"].(string), fc.Args["threshold"].(int))
+		return ec.resolvers.Mutation().EditFeatureToggle(rctx, fc.Args["id"].(int), fc.Args["name"].(string), fc.Args["threshold"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44713,12 +44977,12 @@ func (ec *executionContext) _Mutation_editSessionToggle(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model1.SessionToggle)
+	res := resTmp.(*model1.FeatureToggle)
 	fc.Result = res
-	return ec.marshalOSessionToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggle(ctx, field.Selections, res)
+	return ec.marshalOFeatureToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggle(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_editSessionToggle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_editFeatureToggle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -44727,19 +44991,19 @@ func (ec *executionContext) fieldContext_Mutation_editSessionToggle(ctx context.
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_SessionToggle_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_id(ctx, field)
 			case "created_at":
-				return ec.fieldContext_SessionToggle_created_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_SessionToggle_updated_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
-				return ec.fieldContext_SessionToggle_name(ctx, field)
+				return ec.fieldContext_FeatureToggle_name(ctx, field)
 			case "project_id":
-				return ec.fieldContext_SessionToggle_project_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
-				return ec.fieldContext_SessionToggle_threshold(ctx, field)
+				return ec.fieldContext_FeatureToggle_threshold(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionToggle", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type FeatureToggle", field.Name)
 		},
 	}
 	defer func() {
@@ -44749,7 +45013,7 @@ func (ec *executionContext) fieldContext_Mutation_editSessionToggle(ctx context.
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_editSessionToggle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_editFeatureToggle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -55811,8 +56075,8 @@ func (ec *executionContext) fieldContext_Query_traces_key_values(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_session_toggles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_session_toggles(ctx, field)
+func (ec *executionContext) _Query_feature_toggles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_feature_toggles(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -55825,7 +56089,7 @@ func (ec *executionContext) _Query_session_toggles(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionToggles(rctx, fc.Args["project_id"].(int))
+		return ec.resolvers.Query().FeatureToggles(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -55833,12 +56097,12 @@ func (ec *executionContext) _Query_session_toggles(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.SessionToggle)
+	res := resTmp.([]*model1.FeatureToggle)
 	fc.Result = res
-	return ec.marshalOSessionToggle2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggleᚄ(ctx, field.Selections, res)
+	return ec.marshalOFeatureToggle2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggleᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_session_toggles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_feature_toggles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -55847,19 +56111,19 @@ func (ec *executionContext) fieldContext_Query_session_toggles(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_SessionToggle_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_id(ctx, field)
 			case "created_at":
-				return ec.fieldContext_SessionToggle_created_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_SessionToggle_updated_at(ctx, field)
+				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
-				return ec.fieldContext_SessionToggle_name(ctx, field)
+				return ec.fieldContext_FeatureToggle_name(ctx, field)
 			case "project_id":
-				return ec.fieldContext_SessionToggle_project_id(ctx, field)
+				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
-				return ec.fieldContext_SessionToggle_threshold(ctx, field)
+				return ec.fieldContext_FeatureToggle_threshold(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionToggle", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type FeatureToggle", field.Name)
 		},
 	}
 	defer func() {
@@ -55869,7 +56133,7 @@ func (ec *executionContext) fieldContext_Query_session_toggles(ctx context.Conte
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_session_toggles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_feature_toggles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -64511,270 +64775,6 @@ func (ec *executionContext) fieldContext_SessionResults_totalCount(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int64 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SessionToggle_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionToggle) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionToggle_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionToggle_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionToggle",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SessionToggle_created_at(ctx context.Context, field graphql.CollectedField, obj *model1.SessionToggle) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionToggle_created_at(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionToggle_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionToggle",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Timestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SessionToggle_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.SessionToggle) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionToggle_updated_at(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionToggle_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionToggle",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Timestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SessionToggle_name(ctx context.Context, field graphql.CollectedField, obj *model1.SessionToggle) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionToggle_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionToggle_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionToggle",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SessionToggle_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionToggle) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionToggle_project_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProjectID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionToggle_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionToggle",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SessionToggle_threshold(ctx context.Context, field graphql.CollectedField, obj *model1.SessionToggle) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionToggle_threshold(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Threshold, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionToggle_threshold(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionToggle",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -78091,6 +78091,69 @@ func (ec *executionContext) _ExternalAttachment(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var featureToggleImplementors = []string{"FeatureToggle"}
+
+func (ec *executionContext) _FeatureToggle(ctx context.Context, sel ast.SelectionSet, obj *model1.FeatureToggle) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, featureToggleImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FeatureToggle")
+		case "id":
+
+			out.Values[i] = ec._FeatureToggle_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_at":
+
+			out.Values[i] = ec._FeatureToggle_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._FeatureToggle_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._FeatureToggle_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "project_id":
+
+			out.Values[i] = ec._FeatureToggle_project_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "threshold":
+
+			out.Values[i] = ec._FeatureToggle_threshold(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var fieldImplementors = []string{"Field"}
 
 func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, obj *model1.Field) graphql.Marshaler {
@@ -80178,22 +80241,22 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_testErrorEnhancement(ctx, field)
 			})
 
-		case "createSessionToggle":
+		case "createFeatureToggle":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createSessionToggle(ctx, field)
+				return ec._Mutation_createFeatureToggle(ctx, field)
 			})
 
-		case "deleteSessionToggle":
+		case "deleteFeatureToggle":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteSessionToggle(ctx, field)
+				return ec._Mutation_deleteFeatureToggle(ctx, field)
 			})
 
-		case "editSessionToggle":
+		case "editFeatureToggle":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_editSessionToggle(ctx, field)
+				return ec._Mutation_editFeatureToggle(ctx, field)
 			})
 
 		default:
@@ -83468,7 +83531,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "session_toggles":
+		case "feature_toggles":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -83477,7 +83540,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_session_toggles(ctx, field)
+				res = ec._Query_feature_toggles(ctx, field)
 				return res
 			}
 
@@ -85363,69 +85426,6 @@ func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.Selecti
 		case "totalCount":
 
 			out.Values[i] = ec._SessionResults_totalCount(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var sessionToggleImplementors = []string{"SessionToggle"}
-
-func (ec *executionContext) _SessionToggle(ctx context.Context, sel ast.SelectionSet, obj *model1.SessionToggle) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, sessionToggleImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("SessionToggle")
-		case "id":
-
-			out.Values[i] = ec._SessionToggle_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "created_at":
-
-			out.Values[i] = ec._SessionToggle_created_at(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updated_at":
-
-			out.Values[i] = ec._SessionToggle_updated_at(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-
-			out.Values[i] = ec._SessionToggle_name(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "project_id":
-
-			out.Values[i] = ec._SessionToggle_project_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "threshold":
-
-			out.Values[i] = ec._SessionToggle_threshold(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -89033,6 +89033,16 @@ func (ec *executionContext) marshalNExternalAttachment2ᚕᚖgithubᚗcomᚋhigh
 	return ret
 }
 
+func (ec *executionContext) marshalNFeatureToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggle(ctx context.Context, sel ast.SelectionSet, v *model1.FeatureToggle) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FeatureToggle(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -91107,16 +91117,6 @@ func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋhighlight�
 	return ec._SessionResults(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSessionToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggle(ctx context.Context, sel ast.SelectionSet, v *model1.SessionToggle) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._SessionToggle(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNSessionsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v model1.SessionsHistogram) graphql.Marshaler {
 	return ec._SessionsHistogram(ctx, sel, &v)
 }
@@ -93039,6 +93039,60 @@ func (ec *executionContext) marshalOExternalAttachment2ᚖgithubᚗcomᚋhighlig
 	return ec._ExternalAttachment(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOFeatureToggle2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.FeatureToggle) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFeatureToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggle(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOFeatureToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐFeatureToggle(ctx context.Context, sel ast.SelectionSet, v *model1.FeatureToggle) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._FeatureToggle(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -94070,60 +94124,6 @@ func (ec *executionContext) marshalOSessionPayload2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._SessionPayload(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSessionToggle2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.SessionToggle) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNSessionToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggle(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalOSessionToggle2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionToggle(ctx context.Context, sel ast.SelectionSet, v *model1.SessionToggle) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SessionToggle(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx context.Context, sel ast.SelectionSet, v []*model.SocialLink) graphql.Marshaler {

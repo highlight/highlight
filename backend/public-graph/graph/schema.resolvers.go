@@ -194,10 +194,10 @@ func (r *queryResolver) FetchFeatureToggles(ctx context.Context, organizationVer
 		return nil, err
 	}
 
-	var featureToggles []*model.SessionToggle
+	var featureToggles []*model.FeatureToggle
 	if err := r.DB.Raw(`
 		SELECT *
-		FROM session_toggles
+		FROM feature_toggles
 		WHERE project_id = ?
 	`, projectID).Scan(&featureToggles).Error; err != nil {
 		return nil, err

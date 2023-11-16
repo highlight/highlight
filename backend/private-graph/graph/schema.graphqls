@@ -1750,7 +1750,7 @@ type SessionExportWithSession {
 	active_length: Int
 }
 
-type SessionToggle {
+type FeatureToggle {
 	id: ID!
 	created_at: Timestamp!
 	updated_at: Timestamp!
@@ -2063,7 +2063,7 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
-	session_toggles(project_id: ID!): [SessionToggle!]
+	feature_toggles(project_id: ID!): [FeatureToggle!]
 }
 
 type Mutation {
@@ -2446,13 +2446,13 @@ type Mutation {
 		build_prefix: String
 		save_error: Boolean
 	): ErrorObject
-	createSessionToggle(
+	createFeatureToggle(
 		project_id: ID!
 		name: String!
 		threshold: Int!
-	): SessionToggle
-	deleteSessionToggle(id: ID!): SessionToggle
-	editSessionToggle(id: ID!, name: String!, threshold: Int!): SessionToggle
+	): FeatureToggle
+	deleteFeatureToggle(id: ID!): FeatureToggle
+	editFeatureToggle(id: ID!, name: String!, threshold: Int!): FeatureToggle
 }
 
 type Subscription {

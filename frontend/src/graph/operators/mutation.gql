@@ -1253,12 +1253,12 @@ mutation testErrorEnhancement(
 	}
 }
 
-mutation createSessionToggle(
+mutation createFeatureToggle(
 	$name: String!
 	$threshold: Int!
 	$project_id: ID!
 ) {
-	createSessionToggle(
+	createFeatureToggle(
 		name: $name
 		threshold: $threshold
 		project_id: $project_id
@@ -1272,8 +1272,8 @@ mutation createSessionToggle(
 	}
 }
 
-mutation editSessionToggle($id: ID!, $name: String!, $threshold: Int!) {
-	editSessionToggle(id: $id, name: $name, threshold: $threshold) {
+mutation editFeatureToggle($id: ID!, $name: String!, $threshold: Int!) {
+	editFeatureToggle(id: $id, name: $name, threshold: $threshold) {
 		id
 		name
 		threshold
@@ -1283,8 +1283,8 @@ mutation editSessionToggle($id: ID!, $name: String!, $threshold: Int!) {
 	}
 }
 
-mutation deleteSessionToogle($id: ID!) {
-	deleteSessionToggle(id: $id) {
+mutation deleteFeatureToggle($id: ID!) {
+	deleteFeatureToggle(id: $id) {
 		id
 	}
 }

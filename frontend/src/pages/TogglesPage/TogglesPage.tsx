@@ -1,6 +1,6 @@
 import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
-import { useGetSessionTogglesQuery } from '@graph/hooks'
+import { useGetFeatureTogglesQuery } from '@graph/hooks'
 import {
 	Box,
 	Container,
@@ -18,7 +18,7 @@ import { ToggleRow } from './ToggleRow'
 
 export const TogglesPage: React.FC = () => {
 	const { projectId } = useProjectId()
-	const { data, loading } = useGetSessionTogglesQuery({
+	const { data, loading } = useGetFeatureTogglesQuery({
 		variables: {
 			project_id: projectId!,
 		},
@@ -76,9 +76,9 @@ export const TogglesPage: React.FC = () => {
 						)}
 						{loading && <LoadingBox />}
 						{!loading &&
-							(data?.session_toggles?.length ? (
+							(data?.feature_toggles?.length ? (
 								<>
-									{data.session_toggles.map((toggle) => (
+									{data.feature_toggles.map((toggle) => (
 										<ToggleRow
 											key={toggle.id}
 											toggle={toggle}

@@ -1468,16 +1468,16 @@ export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateSessionToggleMutationVariables = Types.Exact<{
+export type CreateFeatureToggleMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
 	threshold: Types.Scalars['Int']
 	project_id: Types.Scalars['ID']
 }>
 
-export type CreateSessionToggleMutation = { __typename?: 'Mutation' } & {
-	createSessionToggle?: Types.Maybe<
-		{ __typename?: 'SessionToggle' } & Pick<
-			Types.SessionToggle,
+export type CreateFeatureToggleMutation = { __typename?: 'Mutation' } & {
+	createFeatureToggle?: Types.Maybe<
+		{ __typename?: 'FeatureToggle' } & Pick<
+			Types.FeatureToggle,
 			| 'id'
 			| 'name'
 			| 'threshold'
@@ -1488,16 +1488,16 @@ export type CreateSessionToggleMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type EditSessionToggleMutationVariables = Types.Exact<{
+export type EditFeatureToggleMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	name: Types.Scalars['String']
 	threshold: Types.Scalars['Int']
 }>
 
-export type EditSessionToggleMutation = { __typename?: 'Mutation' } & {
-	editSessionToggle?: Types.Maybe<
-		{ __typename?: 'SessionToggle' } & Pick<
-			Types.SessionToggle,
+export type EditFeatureToggleMutation = { __typename?: 'Mutation' } & {
+	editFeatureToggle?: Types.Maybe<
+		{ __typename?: 'FeatureToggle' } & Pick<
+			Types.FeatureToggle,
 			| 'id'
 			| 'name'
 			| 'threshold'
@@ -1508,13 +1508,13 @@ export type EditSessionToggleMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type DeleteSessionToogleMutationVariables = Types.Exact<{
+export type DeleteFeatureToggleMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
 
-export type DeleteSessionToogleMutation = { __typename?: 'Mutation' } & {
-	deleteSessionToggle?: Types.Maybe<
-		{ __typename?: 'SessionToggle' } & Pick<Types.SessionToggle, 'id'>
+export type DeleteFeatureToggleMutation = { __typename?: 'Mutation' } & {
+	deleteFeatureToggle?: Types.Maybe<
+		{ __typename?: 'FeatureToggle' } & Pick<Types.FeatureToggle, 'id'>
 	>
 }
 
@@ -4918,15 +4918,15 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 	key_values: Types.Query['traces_key_values']
 }
 
-export type GetSessionTogglesQueryVariables = Types.Exact<{
+export type GetFeatureTogglesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
 
-export type GetSessionTogglesQuery = { __typename?: 'Query' } & {
-	session_toggles?: Types.Maybe<
+export type GetFeatureTogglesQuery = { __typename?: 'Query' } & {
+	feature_toggles?: Types.Maybe<
 		Array<
-			{ __typename?: 'SessionToggle' } & Pick<
-				Types.SessionToggle,
+			{ __typename?: 'FeatureToggle' } & Pick<
+				Types.FeatureToggle,
 				| 'id'
 				| 'name'
 				| 'threshold'
@@ -5083,7 +5083,7 @@ export const namedOperations = {
 		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
-		GetSessionToggles: 'GetSessionToggles' as const,
+		GetFeatureToggles: 'GetFeatureToggles' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -5171,9 +5171,9 @@ export const namedOperations = {
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		testErrorEnhancement: 'testErrorEnhancement' as const,
-		createSessionToggle: 'createSessionToggle' as const,
-		editSessionToggle: 'editSessionToggle' as const,
-		deleteSessionToogle: 'deleteSessionToogle' as const,
+		createFeatureToggle: 'createFeatureToggle' as const,
+		editFeatureToggle: 'editFeatureToggle' as const,
+		deleteFeatureToggle: 'deleteFeatureToggle' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

@@ -1,7 +1,7 @@
 import {
-	useCreateSessionToggleMutation,
-	useDeleteSessionToogleMutation,
-	useEditSessionToggleMutation,
+	useCreateFeatureToggleMutation,
+	useDeleteFeatureToggleMutation,
+	useEditFeatureToggleMutation,
 } from '@graph/hooks'
 import {
 	Badge,
@@ -17,12 +17,12 @@ import moment from 'moment'
 import React from 'react'
 
 import { namedOperations } from '@/graph/generated/operations'
-import { SessionToggle } from '@/graph/generated/schemas'
+import { FeatureToggle } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 
 interface ToggleRowFormProps {
 	isCreate?: boolean
-	toggle?: SessionToggle
+	toggle?: FeatureToggle
 	onSubmit: () => void
 }
 
@@ -44,21 +44,21 @@ export const ToggleRowForm: React.FC<ToggleRowFormProps> = ({
 		},
 	})
 
-	const [createSessionToggle] = useCreateSessionToggleMutation({
-		refetchQueries: [namedOperations.Query.GetSessionToggles],
+	const [createFeatureToggle] = useCreateFeatureToggleMutation({
+		refetchQueries: [namedOperations.Query.GetFeatureToggles],
 	})
 
-	const [editSessionToggle] = useEditSessionToggleMutation({
-		refetchQueries: [namedOperations.Query.GetSessionToggles],
+	const [editFeatureToggle] = useEditFeatureToggleMutation({
+		refetchQueries: [namedOperations.Query.GetFeatureToggles],
 	})
 
-	const [deleteSessionToggle] = useDeleteSessionToogleMutation({
-		refetchQueries: [namedOperations.Query.GetSessionToggles],
+	const [deleteFeatureToggle] = useDeleteFeatureToggleMutation({
+		refetchQueries: [namedOperations.Query.GetFeatureToggles],
 	})
 
 	const handleSave = () => {
 		if (isCreate) {
-			createSessionToggle({
+			createFeatureToggle({
 				variables: {
 					project_id: projectId,
 					name: formStore.getValue(formStore.names.name),
@@ -73,7 +73,7 @@ export const ToggleRowForm: React.FC<ToggleRowFormProps> = ({
 					message.error(`An error occurred.`)
 				})
 		} else if (toggle?.id) {
-			editSessionToggle({
+			editFeatureToggle({
 				variables: {
 					id: toggle.id,
 					name: formStore.getValue(formStore.names.name),
@@ -94,7 +94,7 @@ export const ToggleRowForm: React.FC<ToggleRowFormProps> = ({
 
 	const handleDelete = () => {
 		if (toggle?.id) {
-			deleteSessionToggle({
+			deleteFeatureToggle({
 				variables: {
 					id: toggle.id,
 				},

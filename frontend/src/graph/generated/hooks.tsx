@@ -5227,13 +5227,13 @@ export type TestErrorEnhancementMutationOptions = Apollo.BaseMutationOptions<
 	Types.TestErrorEnhancementMutation,
 	Types.TestErrorEnhancementMutationVariables
 >
-export const CreateSessionToggleDocument = gql`
-	mutation createSessionToggle(
+export const CreateFeatureToggleDocument = gql`
+	mutation createFeatureToggle(
 		$name: String!
 		$threshold: Int!
 		$project_id: ID!
 	) {
-		createSessionToggle(
+		createFeatureToggle(
 			name: $name
 			threshold: $threshold
 			project_id: $project_id
@@ -5247,23 +5247,23 @@ export const CreateSessionToggleDocument = gql`
 		}
 	}
 `
-export type CreateSessionToggleMutationFn = Apollo.MutationFunction<
-	Types.CreateSessionToggleMutation,
-	Types.CreateSessionToggleMutationVariables
+export type CreateFeatureToggleMutationFn = Apollo.MutationFunction<
+	Types.CreateFeatureToggleMutation,
+	Types.CreateFeatureToggleMutationVariables
 >
 
 /**
- * __useCreateSessionToggleMutation__
+ * __useCreateFeatureToggleMutation__
  *
- * To run a mutation, you first call `useCreateSessionToggleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateSessionToggleMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateFeatureToggleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateFeatureToggleMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createSessionToggleMutation, { data, loading, error }] = useCreateSessionToggleMutation({
+ * const [createFeatureToggleMutation, { data, loading, error }] = useCreateFeatureToggleMutation({
  *   variables: {
  *      name: // value for 'name'
  *      threshold: // value for 'threshold'
@@ -5271,29 +5271,29 @@ export type CreateSessionToggleMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useCreateSessionToggleMutation(
+export function useCreateFeatureToggleMutation(
 	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateSessionToggleMutation,
-		Types.CreateSessionToggleMutationVariables
+		Types.CreateFeatureToggleMutation,
+		Types.CreateFeatureToggleMutationVariables
 	>,
 ) {
 	return Apollo.useMutation<
-		Types.CreateSessionToggleMutation,
-		Types.CreateSessionToggleMutationVariables
-	>(CreateSessionToggleDocument, baseOptions)
+		Types.CreateFeatureToggleMutation,
+		Types.CreateFeatureToggleMutationVariables
+	>(CreateFeatureToggleDocument, baseOptions)
 }
-export type CreateSessionToggleMutationHookResult = ReturnType<
-	typeof useCreateSessionToggleMutation
+export type CreateFeatureToggleMutationHookResult = ReturnType<
+	typeof useCreateFeatureToggleMutation
 >
-export type CreateSessionToggleMutationResult =
-	Apollo.MutationResult<Types.CreateSessionToggleMutation>
-export type CreateSessionToggleMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateSessionToggleMutation,
-	Types.CreateSessionToggleMutationVariables
+export type CreateFeatureToggleMutationResult =
+	Apollo.MutationResult<Types.CreateFeatureToggleMutation>
+export type CreateFeatureToggleMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateFeatureToggleMutation,
+	Types.CreateFeatureToggleMutationVariables
 >
-export const EditSessionToggleDocument = gql`
-	mutation editSessionToggle($id: ID!, $name: String!, $threshold: Int!) {
-		editSessionToggle(id: $id, name: $name, threshold: $threshold) {
+export const EditFeatureToggleDocument = gql`
+	mutation editFeatureToggle($id: ID!, $name: String!, $threshold: Int!) {
+		editFeatureToggle(id: $id, name: $name, threshold: $threshold) {
 			id
 			name
 			threshold
@@ -5303,23 +5303,23 @@ export const EditSessionToggleDocument = gql`
 		}
 	}
 `
-export type EditSessionToggleMutationFn = Apollo.MutationFunction<
-	Types.EditSessionToggleMutation,
-	Types.EditSessionToggleMutationVariables
+export type EditFeatureToggleMutationFn = Apollo.MutationFunction<
+	Types.EditFeatureToggleMutation,
+	Types.EditFeatureToggleMutationVariables
 >
 
 /**
- * __useEditSessionToggleMutation__
+ * __useEditFeatureToggleMutation__
  *
- * To run a mutation, you first call `useEditSessionToggleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditSessionToggleMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useEditFeatureToggleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditFeatureToggleMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [editSessionToggleMutation, { data, loading, error }] = useEditSessionToggleMutation({
+ * const [editFeatureToggleMutation, { data, loading, error }] = useEditFeatureToggleMutation({
  *   variables: {
  *      id: // value for 'id'
  *      name: // value for 'name'
@@ -5327,74 +5327,74 @@ export type EditSessionToggleMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useEditSessionToggleMutation(
+export function useEditFeatureToggleMutation(
 	baseOptions?: Apollo.MutationHookOptions<
-		Types.EditSessionToggleMutation,
-		Types.EditSessionToggleMutationVariables
+		Types.EditFeatureToggleMutation,
+		Types.EditFeatureToggleMutationVariables
 	>,
 ) {
 	return Apollo.useMutation<
-		Types.EditSessionToggleMutation,
-		Types.EditSessionToggleMutationVariables
-	>(EditSessionToggleDocument, baseOptions)
+		Types.EditFeatureToggleMutation,
+		Types.EditFeatureToggleMutationVariables
+	>(EditFeatureToggleDocument, baseOptions)
 }
-export type EditSessionToggleMutationHookResult = ReturnType<
-	typeof useEditSessionToggleMutation
+export type EditFeatureToggleMutationHookResult = ReturnType<
+	typeof useEditFeatureToggleMutation
 >
-export type EditSessionToggleMutationResult =
-	Apollo.MutationResult<Types.EditSessionToggleMutation>
-export type EditSessionToggleMutationOptions = Apollo.BaseMutationOptions<
-	Types.EditSessionToggleMutation,
-	Types.EditSessionToggleMutationVariables
+export type EditFeatureToggleMutationResult =
+	Apollo.MutationResult<Types.EditFeatureToggleMutation>
+export type EditFeatureToggleMutationOptions = Apollo.BaseMutationOptions<
+	Types.EditFeatureToggleMutation,
+	Types.EditFeatureToggleMutationVariables
 >
-export const DeleteSessionToogleDocument = gql`
-	mutation deleteSessionToogle($id: ID!) {
-		deleteSessionToggle(id: $id) {
+export const DeleteFeatureToggleDocument = gql`
+	mutation deleteFeatureToggle($id: ID!) {
+		deleteFeatureToggle(id: $id) {
 			id
 		}
 	}
 `
-export type DeleteSessionToogleMutationFn = Apollo.MutationFunction<
-	Types.DeleteSessionToogleMutation,
-	Types.DeleteSessionToogleMutationVariables
+export type DeleteFeatureToggleMutationFn = Apollo.MutationFunction<
+	Types.DeleteFeatureToggleMutation,
+	Types.DeleteFeatureToggleMutationVariables
 >
 
 /**
- * __useDeleteSessionToogleMutation__
+ * __useDeleteFeatureToggleMutation__
  *
- * To run a mutation, you first call `useDeleteSessionToogleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteSessionToogleMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDeleteFeatureToggleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteFeatureToggleMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteSessionToogleMutation, { data, loading, error }] = useDeleteSessionToogleMutation({
+ * const [deleteFeatureToggleMutation, { data, loading, error }] = useDeleteFeatureToggleMutation({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useDeleteSessionToogleMutation(
+export function useDeleteFeatureToggleMutation(
 	baseOptions?: Apollo.MutationHookOptions<
-		Types.DeleteSessionToogleMutation,
-		Types.DeleteSessionToogleMutationVariables
+		Types.DeleteFeatureToggleMutation,
+		Types.DeleteFeatureToggleMutationVariables
 	>,
 ) {
 	return Apollo.useMutation<
-		Types.DeleteSessionToogleMutation,
-		Types.DeleteSessionToogleMutationVariables
-	>(DeleteSessionToogleDocument, baseOptions)
+		Types.DeleteFeatureToggleMutation,
+		Types.DeleteFeatureToggleMutationVariables
+	>(DeleteFeatureToggleDocument, baseOptions)
 }
-export type DeleteSessionToogleMutationHookResult = ReturnType<
-	typeof useDeleteSessionToogleMutation
+export type DeleteFeatureToggleMutationHookResult = ReturnType<
+	typeof useDeleteFeatureToggleMutation
 >
-export type DeleteSessionToogleMutationResult =
-	Apollo.MutationResult<Types.DeleteSessionToogleMutation>
-export type DeleteSessionToogleMutationOptions = Apollo.BaseMutationOptions<
-	Types.DeleteSessionToogleMutation,
-	Types.DeleteSessionToogleMutationVariables
+export type DeleteFeatureToggleMutationResult =
+	Apollo.MutationResult<Types.DeleteFeatureToggleMutation>
+export type DeleteFeatureToggleMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteFeatureToggleMutation,
+	Types.DeleteFeatureToggleMutationVariables
 >
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
@@ -14565,9 +14565,9 @@ export type GetTracesKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetTracesKeyValuesQuery,
 	Types.GetTracesKeyValuesQueryVariables
 >
-export const GetSessionTogglesDocument = gql`
-	query GetSessionToggles($project_id: ID!) {
-		session_toggles(project_id: $project_id) {
+export const GetFeatureTogglesDocument = gql`
+	query GetFeatureToggles($project_id: ID!) {
+		feature_toggles(project_id: $project_id) {
 			id
 			name
 			threshold
@@ -14579,50 +14579,50 @@ export const GetSessionTogglesDocument = gql`
 `
 
 /**
- * __useGetSessionTogglesQuery__
+ * __useGetFeatureTogglesQuery__
  *
- * To run a query within a React component, call `useGetSessionTogglesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionTogglesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetFeatureTogglesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFeatureTogglesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSessionTogglesQuery({
+ * const { data, loading, error } = useGetFeatureTogglesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
  *   },
  * });
  */
-export function useGetSessionTogglesQuery(
+export function useGetFeatureTogglesQuery(
 	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSessionTogglesQuery,
-		Types.GetSessionTogglesQueryVariables
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
 	>,
 ) {
 	return Apollo.useQuery<
-		Types.GetSessionTogglesQuery,
-		Types.GetSessionTogglesQueryVariables
-	>(GetSessionTogglesDocument, baseOptions)
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
+	>(GetFeatureTogglesDocument, baseOptions)
 }
-export function useGetSessionTogglesLazyQuery(
+export function useGetFeatureTogglesLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSessionTogglesQuery,
-		Types.GetSessionTogglesQueryVariables
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
 	>,
 ) {
 	return Apollo.useLazyQuery<
-		Types.GetSessionTogglesQuery,
-		Types.GetSessionTogglesQueryVariables
-	>(GetSessionTogglesDocument, baseOptions)
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
+	>(GetFeatureTogglesDocument, baseOptions)
 }
-export type GetSessionTogglesQueryHookResult = ReturnType<
-	typeof useGetSessionTogglesQuery
+export type GetFeatureTogglesQueryHookResult = ReturnType<
+	typeof useGetFeatureTogglesQuery
 >
-export type GetSessionTogglesLazyQueryHookResult = ReturnType<
-	typeof useGetSessionTogglesLazyQuery
+export type GetFeatureTogglesLazyQueryHookResult = ReturnType<
+	typeof useGetFeatureTogglesLazyQuery
 >
-export type GetSessionTogglesQueryResult = Apollo.QueryResult<
-	Types.GetSessionTogglesQuery,
-	Types.GetSessionTogglesQueryVariables
+export type GetFeatureTogglesQueryResult = Apollo.QueryResult<
+	Types.GetFeatureTogglesQuery,
+	Types.GetFeatureTogglesQueryVariables
 >

@@ -125,7 +125,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
-	const topbarToggle = window.H.getFeatureToggle('enable-topbar')
+	const topbarToggle = window.H.getFeatureToggle('enable-toggle-topbar-icon')
 	console.log('topbarToggle', topbarToggle)
 	const ToggleIcon = topbarToggle ? IconSolidSegment : IconSolidChip
 

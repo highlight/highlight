@@ -2411,8 +2411,8 @@ query GetTracesKeyValues(
 	)
 }
 
-query GetSessionToggles($project_id: ID!) {
-	session_toggles(project_id: $project_id) {
+query GetFeatureToggles($project_id: ID!) {
+	feature_toggles(project_id: $project_id) {
 		id
 		name
 		threshold

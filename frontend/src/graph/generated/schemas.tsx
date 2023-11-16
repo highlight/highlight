@@ -678,6 +678,16 @@ export type ExternalAttachment = {
 	title?: Maybe<Scalars['String']>
 }
 
+export type FeatureToggle = {
+	__typename?: 'FeatureToggle'
+	created_at: Scalars['Timestamp']
+	id: Scalars['ID']
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	threshold: Scalars['Int']
+	updated_at: Scalars['Timestamp']
+}
+
 export type Field = {
 	__typename?: 'Field'
 	id: Scalars['Int64']
@@ -1027,6 +1037,7 @@ export type Mutation = {
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
 	createErrorTag: ErrorTag
+	createFeatureToggle?: Maybe<FeatureToggle>
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	createLogAlert?: Maybe<LogAlert>
@@ -1036,7 +1047,6 @@ export type Mutation = {
 	createSegment?: Maybe<Segment>
 	createSessionAlert?: Maybe<SessionAlert>
 	createSessionComment?: Maybe<SessionComment>
-	createSessionToggle?: Maybe<SessionToggle>
 	createWorkspace?: Maybe<Workspace>
 	deleteAdminFromProject?: Maybe<Scalars['ID']>
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
@@ -1044,6 +1054,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteFeatureToggle?: Maybe<FeatureToggle>
 	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
@@ -1051,14 +1062,13 @@ export type Mutation = {
 	deleteSegment?: Maybe<Scalars['Boolean']>
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
-	deleteSessionToggle?: Maybe<SessionToggle>
 	deleteSessions: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
+	editFeatureToggle?: Maybe<FeatureToggle>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editServiceGithubSettings?: Maybe<Service>
-	editSessionToggle?: Maybe<SessionToggle>
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
@@ -1170,6 +1180,12 @@ export type MutationCreateErrorTagArgs = {
 	title: Scalars['String']
 }
 
+export type MutationCreateFeatureToggleArgs = {
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	threshold: Scalars['Int']
+}
+
 export type MutationCreateIssueForErrorCommentArgs = {
 	author_name: Scalars['String']
 	error_comment_id: Scalars['Int']
@@ -1258,12 +1274,6 @@ export type MutationCreateSessionCommentArgs = {
 	y_coordinate: Scalars['Float']
 }
 
-export type MutationCreateSessionToggleArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	threshold: Scalars['Int']
-}
-
 export type MutationCreateWorkspaceArgs = {
 	name: Scalars['String']
 	promo_code?: InputMaybe<Scalars['String']>
@@ -1294,6 +1304,10 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
+}
+
+export type MutationDeleteFeatureToggleArgs = {
+	id: Scalars['ID']
 }
 
 export type MutationDeleteInviteLinkFromWorkspaceArgs = {
@@ -1328,10 +1342,6 @@ export type MutationDeleteSessionCommentArgs = {
 	id: Scalars['ID']
 }
 
-export type MutationDeleteSessionToggleArgs = {
-	id: Scalars['ID']
-}
-
 export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
@@ -1343,6 +1353,12 @@ export type MutationEditErrorSegmentArgs = {
 	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
+}
+
+export type MutationEditFeatureToggleArgs = {
+	id: Scalars['ID']
+	name: Scalars['String']
+	threshold: Scalars['Int']
 }
 
 export type MutationEditProjectArgs = {
@@ -1387,12 +1403,6 @@ export type MutationEditServiceGithubSettingsArgs = {
 	github_repo_path?: InputMaybe<Scalars['String']>
 	id: Scalars['ID']
 	project_id: Scalars['ID']
-}
-
-export type MutationEditSessionToggleArgs = {
-	id: Scalars['ID']
-	name: Scalars['String']
-	threshold: Scalars['Int']
 }
 
 export type MutationEditWorkspaceArgs = {
@@ -1812,6 +1822,7 @@ export type Query = {
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
+	feature_toggles?: Maybe<Array<FeatureToggle>>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
@@ -1877,7 +1888,6 @@ export type Query = {
 	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
-	session_toggles?: Maybe<Array<SessionToggle>>
 	sessions_clickhouse: SessionResults
 	sessions_histogram_clickhouse: SessionsHistogram
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
@@ -2118,6 +2128,10 @@ export type QueryEvent_ChunksArgs = {
 
 export type QueryEventsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QueryFeature_TogglesArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QueryField_SuggestionArgs = {
@@ -2410,10 +2424,6 @@ export type QuerySession_InsightArgs = {
 
 export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
-}
-
-export type QuerySession_TogglesArgs = {
-	project_id: Scalars['ID']
 }
 
 export type QuerySessions_ClickhouseArgs = {
@@ -3022,16 +3032,6 @@ export type SessionResults = {
 	__typename?: 'SessionResults'
 	sessions: Array<Session>
 	totalCount: Scalars['Int64']
-}
-
-export type SessionToggle = {
-	__typename?: 'SessionToggle'
-	created_at: Scalars['Timestamp']
-	id: Scalars['ID']
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	threshold: Scalars['Int']
-	updated_at: Scalars['Timestamp']
 }
 
 export type SessionsHistogram = {
