@@ -26,13 +26,11 @@ const config = {
 			file: 'dist/index.js',
 			format: 'es',
 			sourcemap: true,
-			exports: 'named',
 		},
 		{
 			file: 'dist/index.cjs',
 			format: 'cjs',
 			sourcemap: true,
-			exports: 'named',
 		},
 	],
 	treeshake: 'smallest',
