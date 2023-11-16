@@ -1,7 +1,4 @@
 import typescript from '@rollup/plugin-typescript'
-import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import json from '@rollup/plugin-json'
 import terser from '@rollup/plugin-terser'
 
 /** @type {import('rollup').RollupOptions} */
@@ -14,21 +11,21 @@ const config = {
 		'src/ssr.tsx',
 	],
 	external: ['next', 'react'],
-	plugins: [json(), commonjs(), resolve(), typescript(), terser()],
+	plugins: [typescript(), terser()],
 	output: [
 		{
 			dir: 'dist',
 			format: 'cjs',
 			sourcemap: true,
 			entryFileNames: '[name].cjs',
-			exports: 'named',
+			exports: 'auto',
 		},
 		{
 			dir: 'dist',
 			format: 'es',
 			sourcemap: true,
 			entryFileNames: '[name].js',
-			exports: 'named',
+			exports: 'auto',
 		},
 	],
 	treeshake: 'smallest',

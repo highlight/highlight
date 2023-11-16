@@ -5,18 +5,15 @@
 	"scripts": {
 		"typegen": "tsc -d --emitDeclarationOnly",
 		"dev": "yarn build --watch",
-		"build": "rollup --config rollup.config.js",
+		"build": "rollup --config rollup.config.mjs",
 		"test": "jest"
 	},
-	"type": "module",
-	"main": "./dist/index.js",
+	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		"types": "./dist/index.d.ts",
-		"import": "./dist/index.js",
-		"require": "./dist/index.cjs",
-		"default": "./dist/index.js"
+		"default": "./dist/index.cjs"
 	},
 	"files": [
 		"dist"
