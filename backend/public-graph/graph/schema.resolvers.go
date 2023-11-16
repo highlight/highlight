@@ -188,7 +188,7 @@ func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error)
 }
 
 // FetchFeatureToggles is the resolver for the fetchFeatureToggles field.
-func (r *queryResolver) FetchFeatureToggles(ctx context.Context, organizationVerboseID string) (interface{}, error) {
+func (r *queryResolver) FetchFeatureToggles(ctx context.Context, organizationVerboseID string, userIdentifier string) (interface{}, error) {
 	projectID, err := model.FromVerboseID(organizationVerboseID)
 	if err != nil {
 		return nil, err
@@ -206,10 +206,10 @@ func (r *queryResolver) FetchFeatureToggles(ctx context.Context, organizationVer
 	var featureToggleMap = make(map[string]bool)
 	for _, featureToggle := range featureToggles {
 		h := fnv.New32a()
-		h.Write([]byte(featureToggle.HashKey))
+		h.Write([]byte(featureToggle.HashKey + userIdentifier))
 		numericalValue := h.Sum32() % 100
 
-		value := uint32(featureToggle.Threshold) < numericalValue
+		value := uint32(featureToggle.Threshold) > numericalValue
 
 		featureToggleMap[featureToggle.Name] = value
 	}

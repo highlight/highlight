@@ -5,13 +5,14 @@ export type FeatureToggles = {
 }
 
 const FETCH_FEATURE_TOGGLES_QUERY = `
-  query FetchFeatureToggles($organization_verbose_id: String!) {
-    fetchFeatureToggles(organization_verbose_id: $organization_verbose_id)
+  query FetchFeatureToggles($organization_verbose_id: String!, $user_identifier: String!) {
+    fetchFeatureToggles(organization_verbose_id: $organization_verbose_id, user_identifier: $user_identifier)
   }
 `
 
 export const getFeatureToggles = async (
 	organizationId: string,
+	userIdentifier: string,
 ): Promise<FeatureToggles> => {
 	if (!organizationId) {
 		return {}
@@ -28,7 +29,10 @@ export const getFeatureToggles = async (
 			},
 			body: JSON.stringify({
 				query: FETCH_FEATURE_TOGGLES_QUERY,
-				variables: { organization_verbose_id: organizationId },
+				variables: {
+					organization_verbose_id: organizationId,
+					user_identifier: userIdentifier,
+				},
 			}),
 		})
 

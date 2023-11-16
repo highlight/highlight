@@ -570,6 +570,7 @@ export class Highlight {
 			if (this.options.enableFeatureToggles) {
 				this.featureToggles = await getFeatureToggles(
 					this.organizationID,
+					clientID,
 				)
 			}
 

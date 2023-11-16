@@ -62,7 +62,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		FetchFeatureToggles func(childComplexity int, organizationVerboseID string) int
+		FetchFeatureToggles func(childComplexity int, organizationVerboseID string, userIdentifier string) int
 		Ignore              func(childComplexity int, id int) int
 	}
 
@@ -86,7 +86,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
-	FetchFeatureToggles(ctx context.Context, organizationVerboseID string) (interface{}, error)
+	FetchFeatureToggles(ctx context.Context, organizationVerboseID string, userIdentifier string) (interface{}, error)
 }
 
 type executableSchema struct {
@@ -224,7 +224,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FetchFeatureToggles(childComplexity, args["organization_verbose_id"].(string)), true
+		return e.complexity.Query.FetchFeatureToggles(childComplexity, args["organization_verbose_id"].(string), args["user_identifier"].(string)), true
 
 	case "Query.ignore":
 		if e.complexity.Query.Ignore == nil {
@@ -490,7 +490,10 @@ type Mutation {
 
 type Query {
 	ignore(id: ID!): Any
-	fetchFeatureToggles(organization_verbose_id: String!): Any
+	fetchFeatureToggles(
+		organization_verbose_id: String!
+		user_identifier: String!
+	): Any
 }
 
 enum PublicGraphError {
@@ -948,6 +951,15 @@ func (ec *executionContext) field_Query_fetchFeatureToggles_args(ctx context.Con
 		}
 	}
 	args["organization_verbose_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_identifier"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_identifier"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_identifier"] = arg1
 	return args, nil
 }
 
@@ -1601,7 +1613,7 @@ func (ec *executionContext) _Query_fetchFeatureToggles(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FetchFeatureToggles(rctx, fc.Args["organization_verbose_id"].(string))
+		return ec.resolvers.Query().FetchFeatureToggles(rctx, fc.Args["organization_verbose_id"].(string), fc.Args["user_identifier"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
