@@ -311,34 +311,9 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 
 func (r *Client) GetResources(ctx context.Context, s *model.Session, resources map[int]string) ([]interface{}, error) {
 	allResources := make([]interface{}, 0)
-
-	redisData, err := r.Client.ZRangeByScoreWithScores(ctx, NetworkResourcesKey(s.ID), &redis.ZRangeBy{
-		Min: "-inf",
-		Max: "+inf",
-	}).Result()
+	results, err := r.GetSessionData(ctx, s.ID, model.PayloadTypeResources, resources)
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving network resources from Redis")
-	}
-
-	for _, z := range redisData {
-		intScore := int(z.Score)
-		// Skip beacon events
-		if z.Score != float64(intScore) {
-			continue
-		}
-
-		resources[intScore] = z.Member.(string)
-	}
-
-	keys := make([]int, 0, len(resources))
-	for k := range resources {
-		keys = append(keys, k)
-	}
-	sort.Ints(keys)
-
-	results := []string{}
-	for _, key := range keys {
-		results = append(results, resources[key])
+		return nil, err
 	}
 
 	for _, result := range results {
