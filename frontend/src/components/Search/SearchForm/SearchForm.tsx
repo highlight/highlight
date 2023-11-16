@@ -346,11 +346,7 @@ export const Search: React.FC<{
 			}
 		}
 
-		let newQuery = stringifySearchQuery(queryTerms)
-		// Add space if it's the last term and a value is selected so people can
-		// start entering the next term.
-		isLastTerm && isValueSelect ? (newQuery += ' ') : null
-
+		const newQuery = stringifySearchQuery(queryTerms)
 		setQuery(newQuery)
 
 		if (isValueSelect) {

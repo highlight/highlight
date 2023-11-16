@@ -32,6 +32,7 @@ import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import { PRIVATE_GRAPH_URI } from '@/constants'
+import { PlayerPanel } from '@/pages/Sessions/PlayerPanel'
 import {
 	useClientIntegration,
 	useLogsIntegration,
@@ -203,6 +204,8 @@ export const ProjectRouter = () => {
 										error={error}
 										joinableWorkspace={joinableWorkspace}
 									/>
+
+									<PlayerPanel />
 								</div>
 							</>
 						}

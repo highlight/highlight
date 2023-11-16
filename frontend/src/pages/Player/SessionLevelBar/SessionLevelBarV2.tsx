@@ -24,7 +24,6 @@ import {
 	TextLink,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import { useProjectId } from '@hooks/useProjectId'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -34,7 +33,6 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import analytics from '@util/analytics'
-import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { delay } from 'lodash'
 import React, { useEffect, useRef, useState } from 'react'
@@ -42,6 +40,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
+import { useSessionParams } from '@/pages/Sessions/PlayerPanel'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
@@ -56,10 +55,7 @@ export const SessionLevelBarV2: React.FC<
 	const [copyShown, setCopyShown] = useState<boolean>(false)
 	const delayRef = useRef<number>()
 	const navigate = useNavigate()
-	const { projectId } = useProjectId()
-	const { session_secure_id } = useParams<{
-		session_secure_id: string
-	}>()
+	const { inPanel, projectId, sessionSecureId } = useSessionParams()
 	const { viewport, currentUrl, sessionResults, setSessionResults, session } =
 		useReplayerContext()
 	const { page, backendSearchQuery, searchQuery } = useSearchContext()
@@ -93,7 +89,7 @@ export const SessionLevelBarV2: React.FC<
 	const isDefaultView = DEFAULT_RIGHT_PANEL_VIEWS.includes(rightPanelView)
 
 	const sessionIdx = sessionResults.sessions.findIndex(
-		(s) => s.secure_id === session_secure_id,
+		(s) => s.secure_id === sessionSecureId,
 	)
 	const [prev, next] = [sessionIdx - 1, sessionIdx + 1]
 
@@ -122,7 +118,7 @@ export const SessionLevelBarV2: React.FC<
 	useHotkeys(
 		'j',
 		() => {
-			if (canMoveForward && projectId) {
+			if (canMoveForward && projectId && !inPanel) {
 				analytics.track('NextSessionKeyboardShortcut')
 				changeSession(
 					projectId,
@@ -137,7 +133,7 @@ export const SessionLevelBarV2: React.FC<
 	useHotkeys(
 		'k',
 		() => {
-			if (canMoveBackward && projectId) {
+			if (canMoveBackward && projectId && !inPanel) {
 				analytics.track('PrevSessionKeyboardShortcut')
 				changeSession(
 					projectId,
@@ -160,45 +156,49 @@ export const SessionLevelBarV2: React.FC<
 				align="center"
 			>
 				<Box cssClass={styles.leftButtons}>
-					{isLoggedIn && !showLeftPanel && (
-						<ButtonIcon
-							kind="secondary"
-							size="small"
-							shape="square"
-							emphasis="medium"
-							icon={
-								<IconSolidExitRight
-									size={14}
-									color={colors.n11}
+					{!inPanel && (
+						<>
+							{isLoggedIn && !showLeftPanel && (
+								<ButtonIcon
+									kind="secondary"
+									size="small"
+									shape="square"
+									emphasis="medium"
+									icon={
+										<IconSolidExitRight
+											size={14}
+											color={colors.n11}
+										/>
+									}
+									onClick={() => setShowLeftPanel(true)}
+									cssClass={styles.openLeftPanelButton}
 								/>
-							}
-							onClick={() => setShowLeftPanel(true)}
-							cssClass={styles.openLeftPanelButton}
-						/>
+							)}
+							<PreviousNextGroup
+								onPrev={() => {
+									if (projectId) {
+										changeSession(
+											projectId,
+											navigate,
+											sessionResults.sessions[prev],
+										)
+									}
+								}}
+								canMoveBackward={!!canMoveBackward}
+								onNext={() => {
+									if (projectId) {
+										changeSession(
+											projectId,
+											navigate,
+											sessionResults.sessions[next],
+										)
+									}
+								}}
+								canMoveForward={!!canMoveForward}
+								size="small"
+							/>
+						</>
 					)}
-					<PreviousNextGroup
-						onPrev={() => {
-							if (projectId) {
-								changeSession(
-									projectId,
-									navigate,
-									sessionResults.sessions[prev],
-								)
-							}
-						}}
-						canMoveBackward={!!canMoveBackward}
-						onNext={() => {
-							if (projectId) {
-								changeSession(
-									projectId,
-									navigate,
-									sessionResults.sessions[next],
-								)
-							}
-						}}
-						canMoveForward={!!canMoveForward}
-						size="small"
-					/>
 					{session && (
 						<Stack direction="row" gap="4" align="center">
 							{viewport?.width && viewport?.height && (

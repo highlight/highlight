@@ -41,6 +41,8 @@ import React, {
 } from 'react'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
+import { useSessionParams } from '@/pages/Sessions/PlayerPanel'
+
 import { ToolbarControlBar } from '../../ToolbarControlBar/ToolbarControlBar'
 import * as style from './style.css'
 import { TIMELINE_MARGIN } from './style.css'
@@ -69,7 +71,7 @@ const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
 	width,
 }: Props) => {
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId: session_secure_id } = useSessionParams()
 
 	const { showPlayerAbsoluteTime, showHistogram: shouldShowHistogram } =
 		usePlayerConfiguration()

@@ -11,6 +11,8 @@ import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
+import { useSessionParams } from '@/pages/Sessions/PlayerPanel'
+
 export enum LoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',
 	NetworkResourcesFetchFailed = 'failed to fetch.',
@@ -80,7 +82,7 @@ const buildResources = (resources: NetworkResource[]) => {
 export const useResources = (
 	session: Session | undefined,
 ): ResourcesContext => {
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId: session_secure_id } = useSessionParams()
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
 	const [error, setError] = useState<LoadingError>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)

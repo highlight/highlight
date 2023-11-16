@@ -44,7 +44,6 @@ import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/Se
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -55,6 +54,7 @@ import { useNavigate } from 'react-router-dom'
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
+import { useSessionParams } from '@/pages/Sessions/PlayerPanel'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -63,11 +63,8 @@ import * as style from './styles.css'
 const PlayerPage = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const { project_id, session_secure_id } = useParams<{
-		project_id: string
-		session_secure_id: string
-	}>()
-	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'client')
+	const { inPanel, projectId, sessionSecureId } = useSessionParams()
+	const [{ integrated }] = useIntegratedLocalStorage(projectId, 'client')
 
 	const [resizeListener, sizes] = useResizeAware()
 	const { width } = useWindowSize()
@@ -90,29 +87,28 @@ const PlayerPage = () => {
 	useEffect(() => {
 		if (
 			!isLoggedIn &&
-			project_id !== DEMO_PROJECT_ID &&
+			projectId !== DEMO_PROJECT_ID &&
 			sessionViewability === SessionViewability.VIEWABLE &&
-			((session && !session?.is_public) || !session_secure_id)
+			((session && !session?.is_public) || !sessionSecureId)
 		) {
 			navigate('/')
 		}
 	}, [
 		isLoggedIn,
 		navigate,
-		project_id,
+		projectId,
 		session,
 		session?.is_public,
 		sessionViewability,
-		session_secure_id,
+		sessionSecureId,
 	])
 
 	const { data: isSessionPendingData } = useIsSessionPendingQuery({
 		variables: {
-			session_secure_id: session_secure_id!,
+			session_secure_id: sessionSecureId!,
 		},
 		skip:
-			!session_secure_id ||
-			sessionViewability !== SessionViewability.ERROR,
+			!sessionSecureId || sessionViewability !== SessionViewability.ERROR,
 	})
 
 	const resourcesContext = useResources(session)
@@ -128,7 +124,8 @@ const PlayerPage = () => {
 	const { rightPanelView, setRightPanelView, setActiveError } =
 		usePlayerUIContext()
 	const showRightPanel =
-		showRightPanelPreference || rightPanelView === RightPanelView.Comments
+		(!inPanel && showRightPanelPreference) ||
+		(rightPanelView === RightPanelView.Comments && !inPanel)
 
 	const { errorObject } = useLinkErrorInstance()
 	useEffect(() => {
@@ -156,7 +153,7 @@ const PlayerPage = () => {
 		if (logCursor) {
 			setShowLeftPanel(false)
 		}
-	}, [logCursor, setShowLeftPanel])
+	}, [logCursor, inPanel, setShowLeftPanel])
 
 	const toolbarContext = useToolbarItems()
 
@@ -171,10 +168,10 @@ const PlayerPage = () => {
 	>(undefined)
 
 	useEffect(() => {
-		if (!session_secure_id) {
+		if (!sessionSecureId) {
 			setShowLeftPanel(true)
 		}
-	}, [session_secure_id, setShowLeftPanel])
+	}, [sessionSecureId, setShowLeftPanel])
 
 	const resizePlayer = useCallback(
 		(replayer: Replayer): boolean => {
@@ -248,11 +245,12 @@ const PlayerPage = () => {
 		playerBoundingClientRectHeight,
 	])
 
-	useEffect(() => analytics.page(), [session_secure_id])
+	useEffect(() => analytics.page(), [sessionSecureId])
 
 	const showLeftPanel =
+		!inPanel &&
 		showLeftPanelPreference &&
-		(isLoggedIn || project_id === DEMO_PROJECT_ID)
+		(isLoggedIn || projectId === DEMO_PROJECT_ID)
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width
@@ -288,7 +286,7 @@ const PlayerPage = () => {
 					width="full"
 					height="full"
 				>
-					{!isPlayerFullscreen && (
+					{!isPlayerFullscreen && !inPanel && (
 						<SessionLevelBarV2
 							width={
 								width -
@@ -358,7 +356,9 @@ const PlayerPage = () => {
 							</div>
 							<DevToolsWindowV2 width={controllerWidth} />
 						</div>
-						{!isPlayerFullscreen && <RightPlayerPanel />}
+						{!isPlayerFullscreen && !inPanel && (
+							<RightPlayerPanel />
+						)}
 						<NetworkResourcePanel />
 					</Box>
 				</Box>
@@ -499,13 +499,16 @@ const PlayerPage = () => {
 						width="full"
 						overflow="hidden"
 					>
-						<Box
-							cssClass={clsx(style.playerLeftPanel, {
-								[style.playerLeftPanelHidden]: !showLeftPanel,
-							})}
-						>
-							<SessionFeedV3 />
-						</Box>
+						{!inPanel && (
+							<Box
+								cssClass={clsx(style.playerLeftPanel, {
+									[style.playerLeftPanelHidden]:
+										!showLeftPanel,
+								})}
+							>
+								<SessionFeedV3 />
+							</Box>
+						)}
 						<div
 							id="playerCenterPanel"
 							className={style.playerCenterPanel}
@@ -519,7 +522,7 @@ const PlayerPage = () => {
 							commentPosition={commentPosition}
 							commentTime={time}
 							session={session}
-							session_secure_id={session_secure_id}
+							session_secure_id={sessionSecureId}
 							onCancel={() => {
 								setCommentModalPosition(undefined)
 							}}

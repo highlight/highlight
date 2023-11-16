@@ -10,7 +10,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
@@ -18,6 +18,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { GetTracesQuery } from '@/graph/generated/operations'
 import { Trace } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
+import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import { useParams } from '@/util/react-router/useParams'
 
 type Props = {
@@ -40,7 +41,17 @@ export const TracesList: React.FC<Props> = ({
 	const { projectId } = useProjectId()
 	const { span_id } = useParams<{ span_id?: string }>()
 	const navigate = useNavigate()
+	const [_, setSearchParams] = useSearchParams()
 	const location = useLocation()
+
+	const viewSession = (trace: Partial<Trace>) => {
+		setSearchParams((params) => {
+			params.set('panel', 'session')
+			params.set('session_secure_id', trace.secureSessionID!)
+			params.set(PlayerSearchParameters.tsAbs, trace.timestamp!)
+			return params
+		})
+	}
 
 	const viewTrace = (trace: Partial<Trace>) => {
 		navigate(
@@ -102,7 +113,9 @@ export const TracesList: React.FC<Props> = ({
 										selected={isSelected}
 									>
 										<Table.Cell
-											onClick={() => viewTrace(trace)}
+											onClick={() => {
+												viewTrace(trace)
+											}}
 										>
 											<Box
 												display="flex"
@@ -161,11 +174,7 @@ export const TracesList: React.FC<Props> = ({
 										<Table.Cell
 											onClick={
 												trace.secureSessionID
-													? () => {
-															navigate(
-																`/${projectId}/sessions/${trace.secureSessionID}`,
-															)
-													  }
+													? () => viewSession(trace)
 													: undefined
 											}
 										>

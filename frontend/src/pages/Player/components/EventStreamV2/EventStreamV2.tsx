@@ -23,12 +23,13 @@ import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { useSessionParams } from '@/pages/Sessions/PlayerPanel'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './EventStreamV2.css'
 
 const EventStreamV2 = function () {
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { sessionSecureId } = useSessionParams()
 	const {
 		sessionMetadata,
 		eventsForTimelineIndicator: replayerEvents,
@@ -58,9 +59,9 @@ const EventStreamV2 = function () {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
 		variables: {
-			session_secure_id: session_secure_id!,
+			session_secure_id: sessionSecureId!,
 		},
-		skip: !session_secure_id,
+		skip: !sessionSecureId,
 	})
 
 	useEffect(() => {
