@@ -175,6 +175,7 @@ export const ToggleRowForm: React.FC<ToggleRowFormProps> = ({
 							shape="basic"
 							emphasis="low"
 							onClick={handleSave}
+							disabled={!formStore.useValue(formStore.names.name)}
 						>
 							Save
 						</Tag>
