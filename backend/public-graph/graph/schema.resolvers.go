@@ -199,6 +199,7 @@ func (r *queryResolver) FetchFeatureToggles(ctx context.Context, organizationVer
 		SELECT *
 		FROM feature_toggles
 		WHERE project_id = ?
+		AND enabled = true
 	`, projectID).Scan(&featureToggles).Error; err != nil {
 		return nil, err
 	}

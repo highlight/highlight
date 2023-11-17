@@ -3962,7 +3962,7 @@ func (r *mutationResolver) DeleteFeatureToggle(ctx context.Context, id int) (*mo
 }
 
 // EditFeatureToggle is the resolver for the editFeatureToggle field.
-func (r *mutationResolver) EditFeatureToggle(ctx context.Context, id int, name string, threshold int) (*model.FeatureToggle, error) {
+func (r *mutationResolver) EditFeatureToggle(ctx context.Context, id int, name *string, threshold *int, enabled *bool) (*model.FeatureToggle, error) {
 	var featureToggle model.FeatureToggle
 
 	if err := r.DB.Take(&featureToggle, id).Error; err != nil {
@@ -3974,13 +3974,21 @@ func (r *mutationResolver) EditFeatureToggle(ctx context.Context, id int, name s
 		return nil, err
 	}
 
-	boundThreshold := int(math.Max(0, math.Min(100, float64(threshold))))
+	updatedModel := map[string]interface{}{}
+	if name != nil {
+		updatedModel["Name"] = *name
+	}
+	if threshold != nil {
+		boundThreshold := int(math.Max(0, math.Min(100, float64(*threshold))))
+		updatedModel["Threshold"] = boundThreshold
+	}
+	if enabled != nil {
+		updatedModel["Enabled"] = *enabled
+	}
 
-	updateErr := r.DB.WithContext(ctx).Where(&model.FeatureToggle{
-		Model: model.Model{ID: id}}).Take(&featureToggle).Updates(map[string]interface{}{
-		"Name":      name,
-		"Threshold": boundThreshold,
-	}).Error
+	updateErr := r.DB.WithContext(ctx).Where(
+		&model.FeatureToggle{Model: model.Model{ID: id}},
+	).Take(&featureToggle).Updates(updatedModel).Error
 
 	return &featureToggle, updateErr
 }

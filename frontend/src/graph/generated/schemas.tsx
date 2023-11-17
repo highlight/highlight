@@ -681,6 +681,7 @@ export type ExternalAttachment = {
 export type FeatureToggle = {
 	__typename?: 'FeatureToggle'
 	created_at: Scalars['Timestamp']
+	enabled: Scalars['Boolean']
 	id: Scalars['ID']
 	name: Scalars['String']
 	project_id: Scalars['ID']
@@ -1356,9 +1357,10 @@ export type MutationEditErrorSegmentArgs = {
 }
 
 export type MutationEditFeatureToggleArgs = {
+	enabled?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
-	name: Scalars['String']
-	threshold: Scalars['Int']
+	name?: InputMaybe<Scalars['String']>
+	threshold?: InputMaybe<Scalars['Int']>
 }
 
 export type MutationEditProjectArgs = {

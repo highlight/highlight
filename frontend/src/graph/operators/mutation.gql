@@ -1265,6 +1265,7 @@ mutation createFeatureToggle(
 	) {
 		id
 		name
+		enabled
 		threshold
 		project_id
 		updated_at
@@ -1272,10 +1273,21 @@ mutation createFeatureToggle(
 	}
 }
 
-mutation editFeatureToggle($id: ID!, $name: String!, $threshold: Int!) {
-	editFeatureToggle(id: $id, name: $name, threshold: $threshold) {
+mutation editFeatureToggle(
+	$id: ID!
+	$name: String
+	$threshold: Int
+	$enabled: Boolean
+) {
+	editFeatureToggle(
+		id: $id
+		name: $name
+		threshold: $threshold
+		enabled: $enabled
+	) {
 		id
 		name
+		enabled
 		threshold
 		project_id
 		updated_at

@@ -527,6 +527,7 @@ type ComplexityRoot struct {
 
 	FeatureToggle struct {
 		CreatedAt func(childComplexity int) int
+		Enabled   func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
 		ProjectID func(childComplexity int) int
@@ -783,7 +784,7 @@ type ComplexityRoot struct {
 		DeleteSessionComment             func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
-		EditFeatureToggle                func(childComplexity int, id int, name string, threshold int) int
+		EditFeatureToggle                func(childComplexity int, id int, name *string, threshold *int, enabled *bool) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
@@ -1674,7 +1675,7 @@ type MutationResolver interface {
 	TestErrorEnhancement(ctx context.Context, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) (*model1.ErrorObject, error)
 	CreateFeatureToggle(ctx context.Context, projectID int, name string, threshold int) (*model1.FeatureToggle, error)
 	DeleteFeatureToggle(ctx context.Context, id int) (*model1.FeatureToggle, error)
-	EditFeatureToggle(ctx context.Context, id int, name string, threshold int) (*model1.FeatureToggle, error)
+	EditFeatureToggle(ctx context.Context, id int, name *string, threshold *int, enabled *bool) (*model1.FeatureToggle, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -4090,6 +4091,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FeatureToggle.CreatedAt(childComplexity), true
 
+	case "FeatureToggle.enabled":
+		if e.complexity.FeatureToggle.Enabled == nil {
+			break
+		}
+
+		return e.complexity.FeatureToggle.Enabled(childComplexity), true
+
 	case "FeatureToggle.id":
 		if e.complexity.FeatureToggle.ID == nil {
 			break
@@ -5437,7 +5445,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditFeatureToggle(childComplexity, args["id"].(int), args["name"].(string), args["threshold"].(int)), true
+		return e.complexity.Mutation.EditFeatureToggle(childComplexity, args["id"].(int), args["name"].(*string), args["threshold"].(*int), args["enabled"].(*bool)), true
 
 	case "Mutation.editProject":
 		if e.complexity.Mutation.EditProject == nil {
@@ -12179,6 +12187,7 @@ type FeatureToggle {
 	created_at: Timestamp!
 	updated_at: Timestamp!
 	name: String!
+	enabled: Boolean!
 	project_id: ID!
 	threshold: Int!
 }
@@ -12876,7 +12885,12 @@ type Mutation {
 		threshold: Int!
 	): FeatureToggle
 	deleteFeatureToggle(id: ID!): FeatureToggle
-	editFeatureToggle(id: ID!, name: String!, threshold: Int!): FeatureToggle
+	editFeatureToggle(
+		id: ID!
+		name: String
+		threshold: Int
+		enabled: Boolean
+	): FeatureToggle
 }
 
 type Subscription {
@@ -14321,24 +14335,33 @@ func (ec *executionContext) field_Mutation_editFeatureToggle_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
-	var arg1 string
+	var arg1 *string
 	if tmp, ok := rawArgs["name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["name"] = arg1
-	var arg2 int
+	var arg2 *int
 	if tmp, ok := rawArgs["threshold"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold"))
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["threshold"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["enabled"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["enabled"] = arg3
 	return args, nil
 }
 
@@ -33429,6 +33452,50 @@ func (ec *executionContext) fieldContext_FeatureToggle_name(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _FeatureToggle_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeatureToggle_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FeatureToggle_enabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FeatureToggle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FeatureToggle_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.FeatureToggle) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FeatureToggle_project_id(ctx, field)
 	if err != nil {
@@ -44868,6 +44935,8 @@ func (ec *executionContext) fieldContext_Mutation_createFeatureToggle(ctx contex
 				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
 				return ec.fieldContext_FeatureToggle_name(ctx, field)
+			case "enabled":
+				return ec.fieldContext_FeatureToggle_enabled(ctx, field)
 			case "project_id":
 				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
@@ -44933,6 +45002,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteFeatureToggle(ctx contex
 				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
 				return ec.fieldContext_FeatureToggle_name(ctx, field)
+			case "enabled":
+				return ec.fieldContext_FeatureToggle_enabled(ctx, field)
 			case "project_id":
 				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
@@ -44969,7 +45040,7 @@ func (ec *executionContext) _Mutation_editFeatureToggle(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditFeatureToggle(rctx, fc.Args["id"].(int), fc.Args["name"].(string), fc.Args["threshold"].(int))
+		return ec.resolvers.Mutation().EditFeatureToggle(rctx, fc.Args["id"].(int), fc.Args["name"].(*string), fc.Args["threshold"].(*int), fc.Args["enabled"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44998,6 +45069,8 @@ func (ec *executionContext) fieldContext_Mutation_editFeatureToggle(ctx context.
 				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
 				return ec.fieldContext_FeatureToggle_name(ctx, field)
+			case "enabled":
+				return ec.fieldContext_FeatureToggle_enabled(ctx, field)
 			case "project_id":
 				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
@@ -56118,6 +56191,8 @@ func (ec *executionContext) fieldContext_Query_feature_toggles(ctx context.Conte
 				return ec.fieldContext_FeatureToggle_updated_at(ctx, field)
 			case "name":
 				return ec.fieldContext_FeatureToggle_name(ctx, field)
+			case "enabled":
+				return ec.fieldContext_FeatureToggle_enabled(ctx, field)
 			case "project_id":
 				return ec.fieldContext_FeatureToggle_project_id(ctx, field)
 			case "threshold":
@@ -78125,6 +78200,13 @@ func (ec *executionContext) _FeatureToggle(ctx context.Context, sel ast.Selectio
 		case "name":
 
 			out.Values[i] = ec._FeatureToggle_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "enabled":
+
+			out.Values[i] = ec._FeatureToggle_enabled(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

@@ -2415,6 +2415,7 @@ query GetFeatureToggles($project_id: ID!) {
 	feature_toggles(project_id: $project_id) {
 		id
 		name
+		enabled
 		threshold
 		project_id
 		updated_at

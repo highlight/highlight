@@ -1074,8 +1074,9 @@ type ErrorTag struct {
 
 type FeatureToggle struct {
 	Model
-	Name      string `gorm:"UNIQUE_INDEX:compositeindex;not null"`
-	ProjectID int    `gorm:"UNIQUE_INDEX:compositeindex;not null"`
+	Name      string `gorm:"uniqueIndex:compositeindex;not null"`
+	ProjectID int    `gorm:"uniqueIndex:compositeindex;not null"`
+	Enabled   bool   `gorm:"not null;default:true"`
 	Threshold int    `gorm:"not null;default:0"`
 	HashKey   string `gorm:"not null"`
 }

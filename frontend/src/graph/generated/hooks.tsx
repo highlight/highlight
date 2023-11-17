@@ -5240,6 +5240,7 @@ export const CreateFeatureToggleDocument = gql`
 		) {
 			id
 			name
+			enabled
 			threshold
 			project_id
 			updated_at
@@ -5292,10 +5293,21 @@ export type CreateFeatureToggleMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateFeatureToggleMutationVariables
 >
 export const EditFeatureToggleDocument = gql`
-	mutation editFeatureToggle($id: ID!, $name: String!, $threshold: Int!) {
-		editFeatureToggle(id: $id, name: $name, threshold: $threshold) {
+	mutation editFeatureToggle(
+		$id: ID!
+		$name: String
+		$threshold: Int
+		$enabled: Boolean
+	) {
+		editFeatureToggle(
+			id: $id
+			name: $name
+			threshold: $threshold
+			enabled: $enabled
+		) {
 			id
 			name
+			enabled
 			threshold
 			project_id
 			updated_at
@@ -5324,6 +5336,7 @@ export type EditFeatureToggleMutationFn = Apollo.MutationFunction<
  *      id: // value for 'id'
  *      name: // value for 'name'
  *      threshold: // value for 'threshold'
+ *      enabled: // value for 'enabled'
  *   },
  * });
  */
@@ -14570,6 +14583,7 @@ export const GetFeatureTogglesDocument = gql`
 		feature_toggles(project_id: $project_id) {
 			id
 			name
+			enabled
 			threshold
 			project_id
 			updated_at

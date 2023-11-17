@@ -1480,6 +1480,7 @@ export type CreateFeatureToggleMutation = { __typename?: 'Mutation' } & {
 			Types.FeatureToggle,
 			| 'id'
 			| 'name'
+			| 'enabled'
 			| 'threshold'
 			| 'project_id'
 			| 'updated_at'
@@ -1490,8 +1491,9 @@ export type CreateFeatureToggleMutation = { __typename?: 'Mutation' } & {
 
 export type EditFeatureToggleMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	threshold: Types.Scalars['Int']
+	name?: Types.Maybe<Types.Scalars['String']>
+	threshold?: Types.Maybe<Types.Scalars['Int']>
+	enabled?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type EditFeatureToggleMutation = { __typename?: 'Mutation' } & {
@@ -1500,6 +1502,7 @@ export type EditFeatureToggleMutation = { __typename?: 'Mutation' } & {
 			Types.FeatureToggle,
 			| 'id'
 			| 'name'
+			| 'enabled'
 			| 'threshold'
 			| 'project_id'
 			| 'updated_at'
@@ -4929,6 +4932,7 @@ export type GetFeatureTogglesQuery = { __typename?: 'Query' } & {
 				Types.FeatureToggle,
 				| 'id'
 				| 'name'
+				| 'enabled'
 				| 'threshold'
 				| 'project_id'
 				| 'updated_at'

@@ -1755,6 +1755,7 @@ type FeatureToggle {
 	created_at: Timestamp!
 	updated_at: Timestamp!
 	name: String!
+	enabled: Boolean!
 	project_id: ID!
 	threshold: Int!
 }
@@ -2452,7 +2453,12 @@ type Mutation {
 		threshold: Int!
 	): FeatureToggle
 	deleteFeatureToggle(id: ID!): FeatureToggle
-	editFeatureToggle(id: ID!, name: String!, threshold: Int!): FeatureToggle
+	editFeatureToggle(
+		id: ID!
+		name: String
+		threshold: Int
+		enabled: Boolean
+	): FeatureToggle
 }
 
 type Subscription {
