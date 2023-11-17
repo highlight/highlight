@@ -175,6 +175,8 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
+const PAYLOAD_STAGING_COUNT_MAX = 100
+
 var NumberRegex = regexp.MustCompile(`^\d+$`)
 
 var ErrNoisyError = e.New("Filtering out noisy error")
@@ -2400,10 +2402,15 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 		score += .5
 	}
 
-	if err := r.Redis.AddPayload(ctx, sessionId, score, payloadType, data); err != nil {
+	count, err := r.Redis.AddPayload(ctx, sessionId, score, payloadType, data)
+	if err != nil {
 		return e.Wrap(err, "error adding event payload")
 	}
 	redisSpan.Finish()
+
+	if count >= PAYLOAD_STAGING_COUNT_MAX {
+		return r.MoveSessionDataToStorage(ctx, sessionId, &payloadId, projectId, payloadType)
+	}
 
 	return nil
 }
