@@ -5,7 +5,7 @@ RUN apk update && apk add --no-cache build-base && apk add cmake
 WORKDIR /brotli
 RUN git clone https://github.com/google/brotli && cd brotli && \
 	mkdir out && cd out && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DSHARE_INSTALL_PREFIX=/usr/local/share .. && \
     cmake --build . --config Release --target install
 
 WORKDIR /highlight

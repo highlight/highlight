@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+brotliFolder=".brotli"
+
 ./telemetry.sh
 source env.sh
 
@@ -8,12 +10,18 @@ pushd ../backend
 go install github.com/cosmtrek/air@latest
 go install github.com/go-delve/delve/cmd/dlv@latest
 
-git clone https://github.com/google/brotli
-cd brotli
-mkdir out
-cd out
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
-cmake --build . --config Release --target install
+
+if [ ! /usr/local/bin/brotli ]; then
+    rm -rf $brotliFolder
+    git clone https://github.com/google/brotli $brotliFolder
+    cd $brotliFolder
+    rm -rf out
+    mkdir out
+    cd out
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DSHARE_INSTALL_PREFIX=/usr/local/share ..
+    cmake --build . --config Release --target install
+    cd ../..
+fi
 
 make start-no-doppler
 popd
