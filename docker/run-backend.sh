@@ -15,7 +15,6 @@ if [ ! /usr/local/bin/brotli ]; then
     rm -rf $brotliFolder
     git clone https://github.com/google/brotli $brotliFolder
     cd $brotliFolder
-    rm -rf out
     mkdir out
     cd out
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DSHARE_INSTALL_PREFIX=/usr/local/share ..
