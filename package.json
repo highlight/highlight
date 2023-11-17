@@ -43,6 +43,7 @@
 		"dev:highlight.io": "doppler run -- yarn turbo run dev --filter highlight.io",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:watch": "yarn turbo run dev:watch --concurrency=30",
+		"docs:scrape": "npx ts-node-esm ./scripts/docs-scraper.ts",
 		"reflame": "cd frontend && yarn reflame",
 		"reflame-build": "cd frontend && yarn reflame-build",
 		"reflame-check": "./scripts/reflame-check.sh",
@@ -155,5 +156,11 @@
 		"@opentelemetry/instrumentation@0.44.0": "patch:@opentelemetry/instrumentation@npm%3A0.44.0#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch",
 		"@opentelemetry/instrumentation@^0.41.2": "patch:@opentelemetry/instrumentation@npm%3A0.44.0#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch",
 		"@opentelemetry/instrumentation@0.41.2": "patch:@opentelemetry/instrumentation@npm%3A0.44.0#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch"
+	},
+	"dependencies": {
+		"lodash": "^4.17.21",
+		"p-limit": "^5.0.0",
+		"puppeteer": "^21.5.2",
+		"x-ray": "^2.3.4"
 	}
 }
