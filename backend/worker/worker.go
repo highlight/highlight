@@ -896,24 +896,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.WithContext(ctx).Errorf("failed to submit session processing metric for %s: %s", s.SecureID, err)
 	}
 
-	// Update session count on dailydb
-	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	dailySession := &model.DailySessionCount{}
-	if err := w.Resolver.DB.WithContext(ctx).
-		Where(&model.DailySessionCount{
-			ProjectID: s.ProjectID,
-			Date:      &currentDate,
-		}).Attrs(&model.DailySessionCount{Count: 0}).
-		FirstOrCreate(&dailySession).Error; err != nil {
-		return e.Wrap(err, "Error creating new daily session")
-	}
-
-	if err := w.Resolver.DB.WithContext(ctx).
-		Where(&model.DailySessionCount{Model: model.Model{ID: dailySession.ID}}).
-		Updates(&model.DailySessionCount{Count: dailySession.Count + 1}).Error; err != nil {
-		return e.Wrap(err, "Error incrementing session count in db")
-	}
-
 	var g errgroup.Group
 	projectID := s.ProjectID
 
