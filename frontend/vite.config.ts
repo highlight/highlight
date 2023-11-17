@@ -88,7 +88,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		build: {
-			minify: 'esbuild',
+			minify: 'terser',
 			outDir: 'build',
 			// Vite sourcemaps are broken in development
 			// https://github.com/highlight-run/highlight/pull/3171
