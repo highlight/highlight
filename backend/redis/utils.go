@@ -22,6 +22,7 @@ import (
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
+const CacheKeySessionsToProcess = "sessions-to-process"
 
 type Client struct {
 	Client  redis.Cmdable
@@ -342,6 +343,82 @@ func (r *Client) GetResources(ctx context.Context, s *model.Session, resources m
 	}
 
 	return allResources, nil
+}
+
+func (r *Client) AddSessionToProcess(ctx context.Context, sessionId int, delaySeconds int) error {
+	score := float64(time.Now().Unix() + int64(delaySeconds))
+
+	cmd := r.Client.ZAdd(ctx, CacheKeySessionsToProcess, redis.Z{
+		Score:  score,
+		Member: sessionId,
+	})
+	if err := cmd.Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Client) RemoveSessionToProcess(ctx context.Context, sessionId int) error {
+	var script = redis.NewScript(`
+		local key = KEYS[1]
+		local sessionId = ARGV[1]
+		
+		local score = tonumber(redis.call("ZSCORE", key, sessionId))
+		if score ~= nil and score ~= math.floor(score) then
+			return redis.call("ZREM", key, sessionId)
+		end
+		
+		return 0
+	`)
+
+	keys := []string{CacheKeySessionsToProcess}
+	values := []interface{}{sessionId}
+	cmd := script.Run(ctx, r.Client, keys, values...)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit int) ([]int64, error) {
+	now := time.Now().Unix()
+	timeAfterLock := float64(now+int64(60*lockPeriod)) + .5
+	var script = redis.NewScript(`
+		local key = KEYS[1]
+		local now = ARGV[1]
+		local timeAfterLock = ARGV[2]
+		local limit = ARGV[3]
+		local range = redis.call("ZRANGEBYSCORE", key, 0, now, "LIMIT", 0, limit)
+
+		local input = {}
+		local count = 0
+		for k, item in pairs(range) do 
+			table.insert(input, timeAfterLock)
+			table.insert(input, item)
+			count = count + 1
+		end
+
+		if count == 0 then
+			return {}
+		end
+
+		redis.call("ZADD", key, unpack(input))
+
+		return range
+	`)
+
+	keys := []string{CacheKeySessionsToProcess}
+	values := []interface{}{time.Now().Unix(), timeAfterLock, limit}
+	cmd := script.Run(ctx, r.Client, keys, values...)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return nil, err
+	}
+
+	return cmd.Int64Slice()
 }
 
 func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) error {
