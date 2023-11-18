@@ -443,19 +443,131 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 	)
 }
 
-const formatNumber = (n: number) =>
-	n.toLocaleString(undefined, {
-		minimumFractionDigits: 0,
-	})
+interface GraduatedPriceItem {
+	rate: number
+	unit: number
+	usage?: number
+}
+const prices = {
+	Sessions: {
+		free: 500,
+		unit: 1_000,
+		items: [
+			{
+				usage: 15_000,
+				rate: 20 / 1_000,
+			},
+			{
+				usage: 50_000,
+				rate: 15 / 1_000,
+			},
+			{
+				usage: 150_000,
+				rate: 12 / 1_000,
+			},
+			{
+				usage: 500_000,
+				rate: 6.5 / 1_000,
+			},
+			{
+				usage: 1_000_000,
+				rate: 3.5 / 1_000,
+			},
+			{
+				rate: 2.5 / 1_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+	Errors: {
+		free: 1_000,
+		unit: 1_000,
+		items: [
+			{
+				usage: 50_000,
+				rate: 2 / 1_000,
+			},
+			{
+				usage: 100_000,
+				rate: 0.5 / 1_000,
+			},
+			{
+				usage: 200_000,
+				rate: 0.25 / 1_000,
+			},
+			{
+				usage: 500_000,
+				rate: 0.2 / 1_000,
+			},
+			{
+				usage: 5_000_000,
+				rate: 0.1 / 1_000,
+			},
+			{
+				rate: 0.05 / 1_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+	Logs: {
+		free: 1_000_000,
+		unit: 1_000_000,
+		items: [
+			{
+				usage: 1_000_000,
+				rate: 2.5 / 1_000_000,
+			},
+			{
+				usage: 10_000_000,
+				rate: 2 / 1_000_000,
+			},
+			{
+				usage: 100_000_000,
+				rate: 1.5 / 1_000_000,
+			},
+			{
+				usage: 1_000_000_000,
+				rate: 1 / 1_000_000,
+			},
+			{
+				rate: 0.5 / 1_000_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+	Traces: {
+		free: 50_000_000,
+		unit: 1_000_000,
+		items: [
+			{
+				usage: 1_000_000,
+				rate: 2.5 / 1_000_000,
+			},
+			{
+				usage: 10_000_000,
+				rate: 2 / 1_000_000,
+			},
+			{
+				usage: 100_000_000,
+				rate: 1.5 / 1_000_000,
+			},
+			{
+				usage: 1_000_000_000,
+				rate: 1 / 1_000_000,
+			},
+			{
+				rate: 0.5 / 1_000_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+} as const
 
-const formatPrice = (price: number) =>
-	price
-		.toLocaleString(undefined, {
-			style: 'currency',
-			currency: 'USD',
-			signDisplay: 'always',
-		})
-		.replace('+', '+ ')
+const formatPrice = (
+	price: number,
+	signDisplay?: 'auto' | 'never' | 'always' | 'exceptZero' | undefined,
+) =>
+	price.toLocaleString(undefined, {
+		style: 'currency',
+		currency: 'USD',
+		signDisplay: signDisplay ?? 'always',
+	})
 
 const PriceCalculator = () => {
 	const defaultErrors = 1_000
@@ -474,38 +586,50 @@ const PriceCalculator = () => {
 
 	const getUsagePrice = (
 		usage: number,
-		price: number,
-		size: number,
+		product: 'Sessions' | 'Errors' | 'Logs' | 'Traces',
 		retention: Retention,
-	) =>
-		Math.trunc(
-			((Math.max(usage, 0) * price) / size) *
-				retentionMultipliers[retention] *
-				100,
-		) / 100
+	) => {
+		const cost = prices[product]
+		let remainder = usage - cost.free
+		let tier = 0
+		let price = 0
+		let rate = 0
+		while (remainder > 0) {
+			const item = cost.items[tier]
+			if (!item) break
+			const itemUsage = Math.min(remainder, item.usage ?? Infinity)
+			price += itemUsage * item.rate
+			rate += item.rate * itemUsage
+			remainder -= itemUsage
+			tier += 1
+		}
+		return [
+			Math.trunc(price * retentionMultipliers[retention] * 100) / 100,
+			rate
+				? Math.trunc((rate / (usage - cost.free)) * cost.unit * 100) /
+				  100
+				: 0,
+		]
+	}
 
-	const errorsCost = getUsagePrice(
+	const [errorsCost, errorsRate] = getUsagePrice(
 		errorUsage - defaultErrors,
-		0.2,
-		1_000,
+		'Errors',
 		errorRetention,
 	)
-	const sessionsCost = getUsagePrice(
+	const [sessionsCost, sessionsRate] = getUsagePrice(
 		sessionUsage - defaultSessions,
-		20.0,
-		1_000,
+		'Sessions',
 		sessionRetention,
 	)
-	const loggingCost = getUsagePrice(
+	const [loggingCost, loggingRate] = getUsagePrice(
 		loggingUsage - defaultLogs,
-		1.5,
-		1_000_000,
+		'Logs',
 		'30 days',
 	)
-	const tracesCost = getUsagePrice(
+	const [tracesCost, tracesRate] = getUsagePrice(
 		tracesUsage - defaultTraces,
-		1.5,
-		1_000_000,
+		'Traces',
 		'30 days',
 	)
 
@@ -531,6 +655,7 @@ const PriceCalculator = () => {
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						value={errorUsage}
 						cost={errorsCost}
+						rate={errorsRate}
 						includedRange={defaultErrors}
 						retention={errorRetention}
 						onChange={setErrorUsage}
@@ -541,6 +666,7 @@ const PriceCalculator = () => {
 						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
 						value={sessionUsage}
 						cost={sessionsCost}
+						rate={sessionsRate}
 						includedRange={defaultSessions}
 						retention={sessionRetention}
 						onChange={setSessionUsage}
@@ -551,6 +677,7 @@ const PriceCalculator = () => {
 						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
 						value={loggingUsage}
 						cost={loggingCost}
+						rate={loggingRate}
 						includedRange={defaultLogs}
 						rangeMultiplier={100}
 						retention="30 days"
@@ -561,6 +688,7 @@ const PriceCalculator = () => {
 						description="Tracing usage is defined by the number of spans collected per month. Traces consist of multiple spans, each instrumenting a single section of code with customizable attributes."
 						value={tracesUsage}
 						cost={tracesCost}
+						rate={tracesRate}
 						includedRange={defaultTraces}
 						rangeMultiplier={100}
 						retention="30 days"
@@ -581,6 +709,13 @@ const PriceCalculator = () => {
 				<div className="hidden border border-t-0 rounded-b-lg md:block h-52 border-divider-on-dark">
 					<CalculatorCostDisplay
 						heading="Monthly Total"
+						rate={
+							(sessionsRate +
+								errorsRate +
+								loggingRate +
+								tracesRate) /
+							4
+						}
 						cost={
 							sessionsCost + errorsCost + loggingCost + tracesCost
 						}
@@ -596,6 +731,7 @@ const CalculatorRowDesktop = ({
 	description,
 	value,
 	cost,
+	rate,
 	includedRange,
 	rangeMultiplier = 1,
 	retention,
@@ -607,6 +743,7 @@ const CalculatorRowDesktop = ({
 	value: number
 	includedRange: number
 	cost: number
+	rate: number
 	rangeMultiplier?: number
 	retention: Retention
 	onChange: (value: number) => void
@@ -658,6 +795,7 @@ const CalculatorRowDesktop = ({
 				<CalculatorCostDisplay
 					heading="Base + Usage (Monthly)"
 					cost={cost}
+					rate={rate}
 				/>
 			</div>
 		</div>
@@ -770,18 +908,32 @@ export const RangedInput = ({
 
 const CalculatorCostDisplay = ({
 	cost,
+	rate,
 	heading,
 }: {
 	cost: number
+	rate: number
 	heading: string
-}) => (
-	<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
-		<Typography type="copy3" emphasis onDark>
-			{heading}
-		</Typography>
-		<span className="text-4xl font-semibold">{formatPrice(cost)}</span>
-	</div>
-)
+}) => {
+	console.log({ cost, rate, heading })
+	return (
+		<div className="gap-4 grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
+			<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
+				<Typography type="copy3" emphasis onDark>
+					{heading}
+				</Typography>
+				<span className="text-4xl font-semibold">
+					{formatPrice(cost)}
+				</span>
+			</div>
+			<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
+				<Typography type="copy4" onDark>
+					Average rate: {formatPrice(rate, 'auto')}
+				</Typography>
+			</div>
+		</div>
+	)
+}
 
 const RadioOptions = <T extends string>({
 	title,
