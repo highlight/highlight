@@ -421,7 +421,7 @@ func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit
 	return cmd.Int64Slice()
 }
 
-func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) error {
+func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) (int, error) {
 	encoded := string(snappy.Encode(nil, payload))
 
 	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
@@ -430,14 +430,14 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 		local score = ARGV[1]
 		local value = ARGV[2]
 
-		local count = redis.call("EXISTS", key)
+		local count = redis.call("ZCARD", key)
 		redis.call("ZADD", key, score, value)
 
 		if count == 0 then
 			redis.call("EXPIRE", key, 30000)
 		end
 
-		return
+		return count + 1
 	`)
 
 	keys := []string{GetKey(sessionID, payloadType)}
@@ -445,9 +445,9 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 	cmd := zAddAndExpire.Run(ctx, r.Client, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return errors.Wrap(err, "error adding events payload in Redis")
+		return 0, errors.Wrap(err, "error adding events payload in Redis")
 	}
-	return nil
+	return cmd.Int()
 }
 
 func (r *Client) getString(ctx context.Context, key string) (string, error) {
