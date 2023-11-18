@@ -345,6 +345,7 @@ func (r *Client) GetResources(ctx context.Context, s *model.Session, resources m
 	return allResources, nil
 }
 
+// Adds a session to be processed `delaySeconds` in the future
 func (r *Client) AddSessionToProcess(ctx context.Context, sessionId int, delaySeconds int) error {
 	score := float64(time.Now().Unix() + int64(delaySeconds))
 
@@ -359,6 +360,9 @@ func (r *Client) AddSessionToProcess(ctx context.Context, sessionId int, delaySe
 	return nil
 }
 
+// Removes a session after processing (successfully or with errors)
+// Only removes the session if its processing time is from a 'lock',
+// in case more events were added after it started processing.
 func (r *Client) RemoveSessionToProcess(ctx context.Context, sessionId int) error {
 	var script = redis.NewScript(`
 		local key = KEYS[1]
@@ -383,6 +387,9 @@ func (r *Client) RemoveSessionToProcess(ctx context.Context, sessionId int) erro
 	return nil
 }
 
+// Retrieves up to `limit` sessions to process. Sets the processing time
+// for each to `lockPeriod` minutes after the current time, so they
+// can be retried in case processing fails.
 func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit int) ([]int64, error) {
 	now := time.Now().Unix()
 	timeAfterLock := float64(now+int64(60*lockPeriod)) + .5
