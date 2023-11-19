@@ -559,6 +559,25 @@ const prices = {
 	},
 } as const
 
+const formatNumber = (num: number, digits?: number) => {
+	let si = [
+			{ value: 1e9, symbol: 'B' },
+			{ value: 1e6, symbol: 'M' },
+			{ value: 1e3, symbol: 'K' },
+		],
+		i
+	for (i = 0; i < si.length; i++) {
+		if (num >= si[i].value) {
+			return (
+				(num / si[i].value)
+					.toFixed(digits ?? 2)
+					.replace(/\.0+$|(\.[0-9]*[1-9])0+$/, '$1') + si[i].symbol
+			)
+		}
+	}
+	return num.toString()
+}
+
 const formatPrice = (
 	price: number,
 	signDisplay?: 'auto' | 'never' | 'always' | 'exceptZero' | undefined,
@@ -653,6 +672,7 @@ const PriceCalculator = () => {
 					<CalculatorRowDesktop
 						title="Error Monitoring"
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
+						product={'Errors'}
 						value={errorUsage}
 						cost={errorsCost}
 						rate={errorsRate}
@@ -664,6 +684,7 @@ const PriceCalculator = () => {
 					<CalculatorRowDesktop
 						title="Session Replay"
 						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
+						product={'Sessions'}
 						value={sessionUsage}
 						cost={sessionsCost}
 						rate={sessionsRate}
@@ -675,6 +696,7 @@ const PriceCalculator = () => {
 					<CalculatorRowDesktop
 						title="Logging"
 						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
+						product={'Logs'}
 						value={loggingUsage}
 						cost={loggingCost}
 						rate={loggingRate}
@@ -686,6 +708,7 @@ const PriceCalculator = () => {
 					<CalculatorRowDesktop
 						title="Traces"
 						description="Tracing usage is defined by the number of spans collected per month. Traces consist of multiple spans, each instrumenting a single section of code with customizable attributes."
+						product={'Traces'}
 						value={tracesUsage}
 						cost={tracesCost}
 						rate={tracesRate}
@@ -709,13 +732,6 @@ const PriceCalculator = () => {
 				<div className="hidden border border-t-0 rounded-b-lg md:block h-52 border-divider-on-dark">
 					<CalculatorCostDisplay
 						heading="Monthly Total"
-						rate={
-							(sessionsRate +
-								errorsRate +
-								loggingRate +
-								tracesRate) /
-							4
-						}
 						cost={
 							sessionsCost + errorsCost + loggingCost + tracesCost
 						}
@@ -729,6 +745,7 @@ const PriceCalculator = () => {
 const CalculatorRowDesktop = ({
 	title,
 	description,
+	product,
 	value,
 	cost,
 	rate,
@@ -740,6 +757,7 @@ const CalculatorRowDesktop = ({
 }: {
 	title: string
 	description: string
+	product: 'Sessions' | 'Errors' | 'Logs' | 'Traces'
 	value: number
 	includedRange: number
 	cost: number
@@ -795,7 +813,11 @@ const CalculatorRowDesktop = ({
 				<CalculatorCostDisplay
 					heading="Base + Usage (Monthly)"
 					cost={cost}
-					rate={rate}
+					rate={{
+						value: rate,
+						unit: prices[product].unit,
+						product,
+					}}
 				/>
 			</div>
 		</div>
@@ -912,8 +934,12 @@ const CalculatorCostDisplay = ({
 	heading,
 }: {
 	cost: number
-	rate: number
 	heading: string
+	rate?: {
+		value: number
+		unit: number
+		product: 'Sessions' | 'Errors' | 'Logs' | 'Traces'
+	}
 }) => {
 	console.log({ cost, rate, heading })
 	return (
@@ -926,11 +952,14 @@ const CalculatorCostDisplay = ({
 					{formatPrice(cost)}
 				</span>
 			</div>
-			<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
-				<Typography type="copy4" onDark>
-					Average rate: {formatPrice(rate, 'auto')}
-				</Typography>
-			</div>
+			{rate ? (
+				<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
+					<Typography type="copy4" onDark>
+						Average rate: {formatPrice(rate.value, 'auto')} /{' '}
+						{formatNumber(rate.unit)} {rate.product.toLowerCase()}
+					</Typography>
+				</div>
+			) : null}
 		</div>
 	)
 }
