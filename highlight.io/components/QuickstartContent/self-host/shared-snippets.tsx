@@ -3,7 +3,7 @@ import { QuickStartStep } from '../QuickstartContent'
 export const dependencies: QuickStartStep = {
 	title: 'Prerequisites',
 	content:
-		'Before we get started, you should install [Go](https://go.dev/) (1.20), [Node.js](https://nodejs.org/en) (18), and [yarn](https://yarnpkg.com/getting-started/install) (v3+).' +
+		'Before we get started, you should install [Go](https://go.dev/) (1.20), [Node.js](https://nodejs.org/en) (18), and [yarn](https://yarnpkg.com/getting-started/install) (v3+). ' +
 		'You should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
 		'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
 		'We suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
@@ -70,13 +70,13 @@ export const start: QuickStartStep = {
 export const dashboard: QuickStartStep = {
 	title: 'Visit the dashboard.',
 	content:
-		'Visit https://localhost:3000 to view the dashboard and go through the login flow; use the password set in docker/.env variable ADMIN_PASSWORD with any valid email address.',
+		'Visit https://localhost:3000 to view the dashboard and go through the login flow; use the password set in docker/.env variable `ADMIN_PASSWORD` with any valid email address.',
 }
 
 export const troubleshoot: QuickStartStep = {
 	title: 'Troubleshoot the deployment.',
 	content:
-		"Having issues? Here's some things ot try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. " +
+		"Having issues? Here's some things to try. First run the `docker ps` command and ensure that all containers are in a 'healthy' state. " +
 		'As a second step, run `docker compose logs` to see the logs for the infra containers. ' +
 		'Looking at the logs, if any containers are not healthy, use the follow commands to start from scratch. ' +
 		"If this doesn't help with troubleshooting, please [reach out](https://highlight.io/community).",
