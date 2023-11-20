@@ -1,5 +1,5 @@
 ---
-heading: Error Monitoring in Go
+toc: Overview
 title: Error Monitoring in Go
 slug: go
 createdAt: 2021-09-13T22:07:04.000Z

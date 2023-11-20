@@ -1,6 +1,6 @@
 ---
-title: Nest.js
-heading: Logging in Nest.js
+toc: Nest.js
+title: Logging in Nest.js
 slug: nestjs
 quickstart: true
 ---
