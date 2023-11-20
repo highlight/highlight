@@ -1,6 +1,13 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
+/**
+ * Esplin 2023.11.20
+ * We have a problem with duplicate titles in our docs.
+ * Delete this file whenever we've either refactored our docs
+ * or settled into a better pattern for doc titles.
+ */
+
 const folderPath = path.resolve(__dirname, '../docs-content')
 
 interface Frontmatter {
