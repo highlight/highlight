@@ -236,7 +236,7 @@ const LogsTableInner = ({
 		count: rows.length,
 		estimateSize: () => 600,
 		getScrollElement: () => bodyRef.current,
-		overscan: 25,
+		overscan: 50,
 	})
 
 	const totalSize = rowVirtualizer.getTotalSize()
