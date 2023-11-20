@@ -1,6 +1,7 @@
 import { Box, Text } from '@highlight-run/ui'
 import { throttle } from 'lodash'
 import {
+	Fragment,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -13,7 +14,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
-import { getMaxDepth, getTraceDurationString } from '@/pages/Traces/utils'
+import { getTraceDurationString } from '@/pages/Traces/utils'
 
 const MAX_TICKS = 6
 export const ticksHeight = 24
@@ -29,8 +30,7 @@ const timeUnits = [
 ]
 
 export const TraceFlameGraph: React.FC = () => {
-	const { hoveredSpan, loading, selectedSpan, totalDuration, traces } =
-		useTrace()
+	const { hoveredSpan, loading, totalDuration, traces } = useTrace()
 	const svgContainerRef = useRef<HTMLDivElement>(null)
 	const [zoom, setZoom] = useState(1)
 	const [width, setWidth] = useState(defaultCanvasWidth)
@@ -49,7 +49,7 @@ export const TraceFlameGraph: React.FC = () => {
 	const height = useMemo(() => {
 		if (!traces.length) return 260
 
-		const maxDepth = getMaxDepth(traces)
+		const maxDepth = traces.length
 		const lineHeightWithPadding = lineHeight + 4
 		return maxDepth * lineHeightWithPadding + ticksHeight + outsidePadding
 	}, [traces])
@@ -202,20 +202,24 @@ export const TraceFlameGraph: React.FC = () => {
 							</g>
 						)
 					})}
-					{Object.entries(traces).map(([index, span]) => {
+					{traces.map((spans, index) => {
 						return (
-							<TraceFlameGraphNode
-								key={index}
-								span={span}
-								depth={0}
-								height={height}
-								width={width - outsidePadding * 2}
-								zoom={zoom}
-								selectedSpanID={selectedSpan?.spanID}
-								setTooltipCoordinates={
-									setTooltipCoordinatesImpl
-								}
-							/>
+							<Fragment key={index}>
+								{spans.map((span) => {
+									return (
+										<TraceFlameGraphNode
+											key={span.spanID}
+											span={span}
+											depth={index}
+											width={width - outsidePadding * 2}
+											zoom={zoom}
+											setTooltipCoordinates={
+												setTooltipCoordinatesImpl
+											}
+										/>
+									)
+								})}
+							</Fragment>
 						)
 					})}
 				</svg>

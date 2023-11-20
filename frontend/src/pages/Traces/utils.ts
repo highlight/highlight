@@ -59,7 +59,10 @@ export type FlameGraphSpan = {
 	children?: FlameGraphSpan[]
 } & Trace
 
-export const organizeSpans = (spans: Trace[]) => {
+// Organizes spans into a tree structure based on their parentSpanID. Spans
+// without a parentSpanID are considered root spans. Spans with a parentSpanID
+// are added as children to the span with the matching spanID.
+export const organizeSpansWithChildren = (spans: Partial<Trace>[]) => {
 	// Object is not modifieable, so we need to clone it to add children
 	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
 
@@ -90,20 +93,54 @@ export const organizeSpans = (spans: Trace[]) => {
 	return sortedTrace
 }
 
-export const getMaxDepth = (spans: FlameGraphSpan[]) => {
-	return spans.reduce((acc, span) => {
-		const depth = getDepth(span)
-		return depth > acc ? depth : acc
-	}, 1)
+// Organizes spans into levels based on their start and end times. Spans that
+// overlap are bumped to the next level.
+export const organizeSpansForFlameGraph = (trace: Partial<Trace>[]) => {
+	const rootSpan = trace.find((span) => !span.parentSpanID)
+	const spans = [[]]
+
+	organizeSpanInLevel(rootSpan!, trace, spans, 0)
+
+	return spans as FlameGraphSpan[][]
 }
 
-const getDepth = (span: FlameGraphSpan, depth = 1): number => {
-	if (span.children) {
-		return span.children.reduce((acc, child) => {
-			const childDepth = getDepth(child, depth + 1)
-			return childDepth > acc ? childDepth : acc
-		}, depth)
+const organizeSpanInLevel = (
+	span: Partial<Trace>,
+	trace: Partial<Trace>[],
+	spans: Partial<Trace>[][],
+	depthIndex: number,
+) => {
+	spans[depthIndex] = spans[depthIndex] ?? []
+
+	const isOverlapping = spans[depthIndex].some((s) =>
+		spanOverlaps(s as Trace, span as Trace),
+	)
+
+	if (isOverlapping) {
+		organizeSpanInLevel(span, trace, spans, depthIndex + 1)
+		return
 	} else {
-		return depth
+		spans[depthIndex].push(span)
 	}
+
+	const children = trace.filter((s) => s.parentSpanID === span.spanID)
+
+	if (children.length > 0) {
+		children.forEach((child) => {
+			organizeSpanInLevel(child, trace, spans, depthIndex + 1)
+		})
+	}
+}
+
+export const spanOverlaps = (span1: Trace, span2: Trace) => {
+	const span1StartTime = span1.startTime
+	const span2StartTime = span2.startTime
+	const span1EndTime = span1StartTime + span1.duration
+	const span2EndTime = span2StartTime + span2.duration
+
+	return (
+		(span1StartTime >= span2StartTime && span1StartTime <= span2EndTime) ||
+		(span1EndTime >= span2StartTime && span1EndTime <= span2EndTime) ||
+		(span1StartTime <= span2StartTime && span1EndTime >= span2EndTime)
+	)
 }

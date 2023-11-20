@@ -11,7 +11,6 @@ import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 type Props = {
 	depth: number
 	span: FlameGraphSpan
-	height: number
 	width: number
 	zoom: number
 	selectedSpanID?: string
@@ -63,15 +62,7 @@ const minWidthToDisplayText = 20
 const fontSize = 12
 
 export const TraceFlameGraphNode = memo<Props>(
-	({
-		depth,
-		span,
-		height,
-		selectedSpanID,
-		width,
-		zoom,
-		setTooltipCoordinates,
-	}) => {
+	({ depth, span, width, zoom, setTooltipCoordinates }) => {
 		const {
 			errors,
 			totalDuration,
@@ -160,19 +151,6 @@ export const TraceFlameGraphNode = memo<Props>(
 						</foreignObject>
 					)}
 				</g>
-
-				{span.children?.map((childSpan: FlameGraphSpan) => (
-					<TraceFlameGraphNode
-						key={`${childSpan.parentSpanID}-${childSpan.spanID}`}
-						depth={depth + 1}
-						span={childSpan}
-						height={height}
-						selectedSpanID={selectedSpanID}
-						width={width}
-						zoom={zoom}
-						setTooltipCoordinates={setTooltipCoordinates}
-					/>
-				))}
 			</>
 		)
 	},
