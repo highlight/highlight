@@ -2,7 +2,7 @@ name: 'Golang SDK code checks'
 
 on:
     push:
-        branches: ['main', 'changeset-release/main']
+        branches: ['main']
     pull_request:
         types: [opened, reopened, synchronize, assigned, review_requested]
         paths:
