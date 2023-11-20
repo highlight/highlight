@@ -392,6 +392,8 @@ func (r *Client) RemoveSessionToProcess(ctx context.Context, sessionId int) erro
 // can be retried in case processing fails.
 func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit int) ([]int64, error) {
 	now := time.Now().Unix()
+	// Use a non-integer score, then check the score again when removing processed sessions
+	// in case a session had new events added to it while it was being processed.
 	timeAfterLock := float64(now+int64(60*lockPeriod)) + .5
 	var script = redis.NewScript(`
 		local key = KEYS[1]
