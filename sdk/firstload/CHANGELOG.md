@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.2.3
+
+### Patch Changes
+
+-   f966390c1: ensure compatibility for JS SDKs in ES and CJS environments
+
 ## 8.2.2
 
 ### Patch Changes

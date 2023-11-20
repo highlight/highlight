@@ -1,5 +1,14 @@
 # @highlight-run/node
 
+## 3.6.3
+
+### Patch Changes
+
+-   f966390c1: ensure compatibility for JS SDKs in ES and CJS environments
+-   66b94f3f7: change serialization for node to avoid reporting objects as the message
+-   Updated dependencies [f966390c1]
+    -   highlight.run@8.2.3
+
 ## 3.6.2
 
 ### Patch Changes
