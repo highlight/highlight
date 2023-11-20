@@ -309,6 +309,10 @@ class H(object):
             except:
                 pass
 
+            if record.exc_info:
+                attributes["exception.detail"] = message
+                return self.record_exception(record.exc_info[1], attributes=attributes)
+
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,
