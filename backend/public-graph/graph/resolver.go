@@ -186,6 +186,15 @@ var ErrUserFilteredError = e.New("User filtered error")
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
 
+var SessionProcessDelaySeconds = 60 // a session will be processed after not receiving events for this time
+var SessionProcessLockMinutes = 30  // a session marked as processing can be reprocessed after this time
+func init() {
+	if util.IsDevEnv() {
+		SessionProcessDelaySeconds = 8
+		SessionProcessLockMinutes = 1
+	}
+}
+
 // Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
@@ -2864,6 +2873,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
+			return err
+		}
+
+		if err := r.Redis.AddSessionToProcess(ctx, sessionID, SessionProcessDelaySeconds); err != nil {
 			return err
 		}
 	}
