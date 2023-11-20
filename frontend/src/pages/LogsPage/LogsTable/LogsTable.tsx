@@ -228,14 +228,13 @@ const LogsTableInner = ({
 		getRowCanExpand: (row) => row.original.node.logAttributes,
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
-		debugTable: true,
 	})
 
 	const { rows } = table.getRowModel()
 
 	const rowVirtualizer = useVirtualizer({
 		count: rows.length,
-		estimateSize: () => 26,
+		estimateSize: () => 44,
 		getScrollElement: () => bodyRef.current,
 		overscan: 10,
 	})
@@ -321,6 +320,7 @@ const LogsTableInner = ({
 							onClick={row.getToggleExpandedHandler()}
 							forwardRef={rowVirtualizer.measureElement}
 							selected={row.getIsExpanded()}
+							data-index={virtualRow.key}
 						>
 							{row.getVisibleCells().map((cell) => {
 								return (
