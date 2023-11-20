@@ -83,20 +83,17 @@ export const H: HighlightInterface = {
 			}
 		}
 	},
-	consumeAndFlush: async (error: Error) => {
-		CloudflareH.consumeError(error)
-
+	flush: async () => {
 		if (executionContext?.waitUntilFinished) {
 			await executionContext.waitUntilFinished()
 		}
 	},
+	consumeAndFlush: async function (error: Error) {
+		CloudflareH.consumeError(error)
+		await this.flush()
+	},
 	stop: async () => {
 		throw new Error('H.stop is not supported by the Edge runtime.')
-	},
-	flush: async () => {
-		throw new Error(
-			'H.flush is not supported by the Edge runtime. try H.consumeAndFlush instead.',
-		)
 	},
 	recordMetric: (
 		secureSessionId: string,

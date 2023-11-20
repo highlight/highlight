@@ -1,11 +1,12 @@
-import { Box, defaultPresets, Text } from '@highlight-run/ui'
+import { Box, defaultPresets, getNow, Text } from '@highlight-run/ui'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import LoadingBox from '@/components/LoadingBox'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -23,9 +24,14 @@ import {
 import {
 	useGetTracesKeysQuery,
 	useGetTracesKeyValuesLazyQuery,
+	useGetTracesLazyQuery,
 	useGetTracesMetricsQuery,
 	useGetTracesQuery,
 } from '@/graph/generated/hooks'
+import {
+	GetTracesQuery,
+	GetTracesQueryVariables,
+} from '@/graph/generated/operations'
 import {
 	MetricAggregator,
 	SortDirection,
@@ -37,6 +43,7 @@ import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
 import { formatNumber } from '@/util/numbers'
+import { usePollQuery } from '@/util/search'
 
 import * as styles from './TracesPage.css'
 
@@ -58,6 +65,10 @@ export const TracesPage: React.FC = () => {
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
 		setEndDate(newEndDate)
+	}
+
+	const handleAdditionTracesDateChange = () => {
+		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
 	}
 
 	const { data, loading } = useGetTracesQuery({
@@ -95,7 +106,40 @@ export const TracesPage: React.FC = () => {
 				],
 			},
 			skip: !projectId,
+			fetchPolicy: 'cache-and-network',
 		})
+
+	const [moreDataQuery] = useGetTracesLazyQuery({
+		fetchPolicy: 'network-only',
+	})
+
+	const { numMore: numMoreTraces, reset: resetMoreTraces } = usePollQuery<
+		GetTracesQuery,
+		GetTracesQueryVariables
+	>({
+		variableFn: useCallback(
+			() => ({
+				project_id: projectId!,
+				direction: SortDirection.Desc,
+				params: {
+					query: serverQuery,
+					date_range: {
+						start_date: moment(endDate).format(TIME_FORMAT),
+						end_date: moment(endDate)
+							.add(1, 'hour')
+							.format(TIME_FORMAT),
+					},
+				},
+			}),
+			[endDate, projectId, serverQuery],
+		),
+		moreDataQuery,
+		getResultCount: useCallback((result) => {
+			if (result?.data?.traces.edges.length !== undefined) {
+				return result?.data?.traces.edges.length
+			}
+		}, []),
+	})
 
 	const histogramBuckets = metricsData?.traces_metrics.buckets
 		.filter((b) => b.metric_type === MetricAggregator.Count)
@@ -179,12 +223,17 @@ export const TracesPage: React.FC = () => {
 						fetchKeys={useGetTracesKeysQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
-					<Box display="flex" borderBottom="dividerWeak">
+					<Box
+						display="flex"
+						borderBottom="dividerWeak"
+						style={{ height: 92 }}
+					>
 						<Box
 							width="full"
 							padding="8"
 							paddingBottom="4"
 							borderRight="dividerWeak"
+							position="relative"
 						>
 							<Box
 								display="flex"
@@ -192,7 +241,17 @@ export const TracesPage: React.FC = () => {
 								gap="4"
 								paddingBottom="4"
 							>
-								<Text size="xSmall">Traces</Text>
+								{metricsLoading ? (
+									<LoadingBox
+										height="auto"
+										width="auto"
+										position="absolute"
+										size="xSmall"
+										style={{ top: 0, left: 0, zIndex: 1 }}
+									/>
+								) : (
+									<Text size="xSmall">Traces</Text>
+								)}
 								{!metricsLoading && (
 									<Text size="xSmall" color="weak">
 										{formatNumber(totalCount)} total
@@ -217,15 +276,37 @@ export const TracesPage: React.FC = () => {
 							padding="8"
 							paddingBottom="4"
 							cssClass={styles.chart}
+							position="relative"
 						>
-							<Text cssClass={styles.chartText} size="xSmall">
-								Latency
-							</Text>
-							<LatencyChart metricsBuckets={metricsBuckets} />
+							{metricsLoading ? (
+								<LoadingBox
+									height="auto"
+									width="auto"
+									position="absolute"
+									size="xSmall"
+									style={{ top: 0, left: 0, zIndex: 1 }}
+								/>
+							) : (
+								<Text cssClass={styles.chartText} size="xSmall">
+									Latency
+								</Text>
+							)}
+							<LatencyChart
+								loading={metricsLoading}
+								metricsBuckets={metricsBuckets}
+							/>
 						</Box>
 					</Box>
 
-					<TracesList traces={data?.traces} loading={loading} />
+					<TracesList
+						loading={loading}
+						numMoreTraces={numMoreTraces}
+						traces={data?.traces}
+						handleAdditionalTracesDateChange={
+							handleAdditionTracesDateChange
+						}
+						resetMoreTraces={resetMoreTraces}
+					/>
 				</Box>
 			</Box>
 

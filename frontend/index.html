@@ -7,22 +7,36 @@
 		<link
 			rel="apple-touch-icon"
 			sizes="180x180"
-			href="/apple-touch-icon.png"
+			href="./src/apple-touch-icon.png"
 		/>
+		<link rel="apple-touch-icon" href="./src/logo192.png" />
 		<link
 			rel="icon"
 			type="image/png"
 			sizes="32x32"
-			href="/favicon-32x32.png"
+			href="./src/favicon-32x32.png"
 		/>
 		<link
 			rel="icon"
 			type="image/png"
 			sizes="16x16"
-			href="/favicon-16x16.png"
+			href="./src/favicon-16x16.png"
 		/>
-		<link rel="manifest" href="/site.webmanifest" />
-		<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5629c6" />
+		<link
+			rel="mask-icon"
+			href="./src/safari-pinned-tab.svg"
+			color="#5629c6"
+		/>
+		<!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+		<link rel="manifest" href="/manifest.json" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
+			rel="stylesheet"
+		/>
 		<meta name="msapplication-TileColor" content="#5629c6" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#5629c6" />
@@ -70,35 +84,9 @@
 		/>
 		<meta property="twitter:image" content="/hero.png" />
 
-		<link rel="apple-touch-icon" href="/logo192.png" />
-		<!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-		<link rel="manifest" href="/manifest.json" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
-			rel="stylesheet"
-		/>
 		<title>highlight.io</title>
 		<!-- Google Tag Manager -->
-		<script>
-			;(function (w, d, s, l, i) {
-				w[l] = w[l] || []
-				w[l].push({
-					'gtm.start': new Date().getTime(),
-					event: 'gtm.js',
-				})
-				var f = d.getElementsByTagName(s)[0],
-					j = d.createElement(s),
-					dl = l != 'dataLayer' ? '&l=' + l : ''
-				j.async = true
-				j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
-				f.parentNode.insertBefore(j, f)
-			})(window, document, 'script', 'dataLayer', 'GTM-PT4CCQ4')
-		</script>
+		<script type="module" src="./src/gtm.js" defer></script>
 		<!-- End Google Tag Manager -->
 		<script type="module" src="./src/intercom.js" defer></script>
 		<script>

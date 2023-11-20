@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Highlight.io",
+  "id": "highlight-grafana-datasource",
+  "metrics": true,
+  "info": {
+    "description": "highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)",
+    "author": {
+      "name": "Highlight.io"
+    },
+    "keywords": ["highlight", "opentelemetry", "observability", "monitoring", "datasource"],
+    "logos": {
+      "small": "img/highlight.svg",
+      "large": "img/highlight.svg"
+    },
+    "links": [
+      {
+        "name": "Home",
+        "url": "https://www.highlight.io/"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=10.0.3",
+    "plugins": []
+  },
+  "routes": [
+    {
+      "path": "highlight",
+      "url": "https://pri.highlight.io/",
+      "tokenAuth": {
+        "url": "https://pri.highlight.io/oauth/token",
+        "params": {
+          "grant_type": "client_credentials",
+          "client_id": "{{ .JsonData.clientID }}",
+          "client_secret": "{{ .SecureJsonData.clientSecret }}"
+        }
+      }
+    }
+  ]
+}

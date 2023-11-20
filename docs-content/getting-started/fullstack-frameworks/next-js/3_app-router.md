@@ -151,9 +151,9 @@ const nextConfig = {
 export default withHighlightConfig(nextConfig)
 ```
 
-2. Call `registerHighlight` in `instrumentation.ts`
+2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `pages` folder. 
 ```jsx
-// instrumentation.ts
+// instrumentation.ts or src/instrumentation.ts
 import { CONSTANTS } from './constants'
 
 export async function register() {
@@ -164,12 +164,6 @@ export async function register() {
 		serviceName: 'my-nextjs-backend',
 	})
 }
-```
-
-3. App Router instrumentation requires `app/instrumentation.ts` to be defined, so re-export your handler from `./instrumentation.ts`
-```typescript
-// src/instrumentation.ts:
-export { register } from '../instrumentation'
 ```
 
 ## Catch server-side render (SSR) errors

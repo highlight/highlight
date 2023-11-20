@@ -9,6 +9,7 @@ export type Props = React.PropsWithChildren &
 	styles.Variants & {
 		as?: BoxProps['as']
 		color?: BoxProps['color']
+		decoration?: BoxProps['textDecoration']
 		display?: BoxProps['display']
 		lines?: TruncateProps['lines']
 		transform?: BoxProps['textTransform']
@@ -25,6 +26,7 @@ export const Text = React.forwardRef<unknown, Props>(
 			as,
 			children,
 			color,
+			decoration,
 			display,
 			lines,
 			transform,
@@ -48,14 +50,15 @@ export const Text = React.forwardRef<unknown, Props>(
 		return (
 			<Box
 				as={as}
-				display={display}
 				color={color}
-				ref={lines ? undefined : ref}
-				userSelect={userSelect}
-				textTransform={transform}
 				cssClass={clsx(styles.variants({ ...props }), cssClass)}
-				title={title}
+				display={display}
 				overflowWrap={wrap}
+				ref={lines ? undefined : ref}
+				textDecoration={decoration}
+				textTransform={transform}
+				title={title}
+				userSelect={userSelect}
 				whiteSpace={whiteSpace}
 			>
 				{content}

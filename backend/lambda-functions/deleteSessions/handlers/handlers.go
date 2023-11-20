@@ -35,16 +35,14 @@ type Handlers interface {
 type handlers struct {
 	db               *gorm.DB
 	clickhouseClient *clickhouse.Client
-	s3Client         *s3.Client
 	s3ClientEast2    *s3.Client
 	sendgridClient   *sendgrid.Client
 }
 
-func InitHandlers(db *gorm.DB, clickhouseClient *clickhouse.Client, s3Client *s3.Client, s3ClientEast2 *s3.Client, sendgridClient *sendgrid.Client) *handlers {
+func InitHandlers(db *gorm.DB, clickhouseClient *clickhouse.Client, s3ClientEast2 *s3.Client, sendgridClient *sendgrid.Client) *handlers {
 	return &handlers{
 		db:               db,
 		clickhouseClient: clickhouseClient,
-		s3Client:         s3Client,
 		s3ClientEast2:    s3ClientEast2,
 		sendgridClient:   sendgridClient,
 	}
@@ -62,14 +60,6 @@ func NewHandlers() *handlers {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error creating clickhouse client"))
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
-	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error loading default from config"))
-	}
-	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-	})
-
 	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
 	if err != nil {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error loading default from config"))
@@ -80,16 +70,12 @@ func NewHandlers() *handlers {
 
 	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 
-	return InitHandlers(db, clickhouseClient, s3Client, s3ClientEast2, sendgridClient)
+	return InitHandlers(db, clickhouseClient, s3ClientEast2, sendgridClient)
 }
 
 func (h *handlers) getSessionClientAndBucket(sessionId int) (*s3.Client, *string) {
-	client := h.s3Client
-	bucket := pointy.String(storage.S3SessionsPayloadBucketName)
-	if storage.UseNewSessionBucket(sessionId) {
-		client = h.s3ClientEast2
-		bucket = pointy.String(storage.S3SessionsPayloadBucketNameNew)
-	}
+	client := h.s3ClientEast2
+	bucket := pointy.String(storage.S3SessionsPayloadBucketNameNew)
 
 	return client, bucket
 }
@@ -148,10 +134,7 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 	for _, sessionId := range sessionIds {
 		client, bucket := h.getSessionClientAndBucket(sessionId)
 
-		versionPart := ""
-		if storage.UseNewSessionBucket(sessionId) {
-			versionPart = "v2/"
-		}
+		versionPart := "v2/"
 		devStr := ""
 		if util.IsDevOrTestEnv() {
 			devStr = "dev/"

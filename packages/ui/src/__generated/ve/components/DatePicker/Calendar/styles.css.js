@@ -1,1 +1,10 @@
-import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var r="ybwwtm1",e=a({defaultClassName:"ybwwtm2",variantClassNames:{},defaultVariants:{},compoundVariants:[]}),s="ybwwtm0";export{r as days,e as variants,s as weekDays};
+// ../packages/ui/src/components/DatePicker/Calendar/styles.css.ts
+import { createRuntimeFn as _7a468 } from "@vanilla-extract/recipes/createRuntimeFn";
+var days = "ybwwtm1";
+var variants = _7a468({ defaultClassName: "ybwwtm2", variantClassNames: {}, defaultVariants: {}, compoundVariants: [] });
+var weekDays = "ybwwtm0";
+export {
+  days,
+  variants,
+  weekDays
+};

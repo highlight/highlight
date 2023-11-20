@@ -1,6 +1,6 @@
-import { Box } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Legend, Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import Button from '@/components/Button/Button/Button'
@@ -14,11 +14,18 @@ const LINE_COLORS: Map<string, string> = new Map([
 	['p90', '#6346AF'],
 ])
 
+const LOADING_LINE_COLORS: Map<string, string> = new Map([
+	['avg', '#eee'],
+	['p50', '#eaeaea'],
+	['p90', '#efefef'],
+])
+
 interface Props {
 	metricsBuckets: {
 		p50: number | undefined
 		p90: number | undefined
 	}[]
+	loading?: boolean
 }
 
 const CustomLegend = ({
@@ -59,39 +66,50 @@ const CustomLegend = ({
 							}
 						})
 					}}
-					className="flex items-center gap-x-1 overflow-hidden p-0 text-xs text-gray-500"
+					style={{
+						padding: 4,
+					}}
 				>
-					<div
-						className={clsx(styles.legendIcon, {
-							[styles.notShowingIcon]: !dataTypesToShow.includes(
-								entry.value,
-							),
-						})}
-						style={{
-							background: entry.color,
-						}}
-					></div>
-					<span
-						className={clsx(styles.legendValue, {
-							[styles.notShowingValue]: !dataTypesToShow.includes(
-								entry.value,
-							),
-						})}
-					>
-						{entry.value}
-					</span>
+					<Stack gap="2" direction="row">
+						<Box
+							cssClass={clsx(styles.legendIcon, {
+								[styles.notShowingIcon]:
+									!dataTypesToShow.includes(entry.value),
+							})}
+							style={{
+								background: entry.color,
+							}}
+						/>
+
+						<Text
+							size="xSmall"
+							color="secondaryContentText"
+							decoration={
+								!dataTypesToShow.includes(entry.value)
+									? 'line-through'
+									: undefined
+							}
+						>
+							{entry.value}
+						</Text>
+					</Stack>
 				</Button>
 			))}
 		</Box>
 	)
 }
 
-export const LatencyChart = ({ metricsBuckets }: Props) => {
-	const [dataTypesToShow, setDataTypesToShow] = useState([
-		'avg',
-		'p50',
-		'p90',
-	])
+const DEFAULT_DATA_TYPES_TO_SHOW = ['avg', 'p50', 'p90']
+
+export const LatencyChart = ({ loading, metricsBuckets }: Props) => {
+	const [dataTypesToShow, setDataTypesToShow] = useState(
+		DEFAULT_DATA_TYPES_TO_SHOW,
+	)
+
+	if (loading) {
+		return <LoadingLatencyGraph />
+	}
+
 	return (
 		<ResponsiveContainer width="100%" height="100%">
 			<LineChart data={metricsBuckets}>
@@ -134,8 +152,46 @@ export const LatencyChart = ({ metricsBuckets }: Props) => {
 						dataKey={key}
 						stroke={LINE_COLORS.get(key)}
 						strokeWidth={2}
-						animationDuration={100}
+						animationDuration={0}
 						dot={false}
+						connectNulls
+					/>
+				))}
+			</LineChart>
+		</ResponsiveContainer>
+	)
+}
+
+const LoadingLatencyGraph = () => {
+	const metricsBuckets = useMemo(
+		() =>
+			Array.from({ length: 48 }, () => {
+				const point = Math.random()
+				return {
+					avg: point * 100 * 20,
+					p50: point * 100 * 2,
+					p90: point * 100 * 10,
+				}
+			}),
+		[],
+	)
+
+	return (
+		<ResponsiveContainer width="100%" height="100%">
+			<LineChart data={metricsBuckets}>
+				{(metricsBuckets.length > 0
+					? Object.keys(metricsBuckets[0])
+					: []
+				).map((key) => (
+					<Line
+						key={key}
+						type="linear"
+						dataKey={key}
+						stroke={LOADING_LINE_COLORS.get(key)}
+						strokeWidth={2}
+						animationDuration={0}
+						dot={false}
+						connectNulls
 					/>
 				))}
 			</LineChart>

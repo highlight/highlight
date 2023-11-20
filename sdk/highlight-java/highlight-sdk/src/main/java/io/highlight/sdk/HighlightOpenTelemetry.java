@@ -75,9 +75,11 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 		SpanExporter tracerExporter = OtlpHttpSpanExporter.builder()
 				.setEndpoint(HighlightRoute.buildTraceRoute(options.backendUrl()))
 				.setCompression("gzip")
+				.setTimeout(Duration.ofSeconds(30))
 				.build();
 
 		BatchSpanProcessor tracerProcessor = BatchSpanProcessor.builder(tracerExporter)
+				.setExporterTimeout(Duration.ofSeconds(30))
 		        .setScheduleDelay(Duration.ofSeconds(1))
 		        .setMaxExportBatchSize(128)
 		        .setMaxQueueSize(1024)
@@ -92,9 +94,15 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 		// Log
 		LogRecordExporter logExporter = OtlpHttpLogRecordExporter.builder()
 				.setEndpoint(HighlightRoute.buildLogRoute(options.backendUrl()))
+				.setCompression("gzip")
+				.setTimeout(Duration.ofSeconds(30))
 				.build();
 
 		LogRecordProcessor logProcessor = BatchLogRecordProcessor.builder(logExporter)
+				.setExporterTimeout(Duration.ofSeconds(30))
+				.setScheduleDelay(Duration.ofSeconds(1))
+				.setMaxExportBatchSize(128)
+				.setMaxQueueSize(1024)
 				.build();
 
 		this.loggerProvider = SdkLoggerProvider.builder()

@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Next.js Fullstack Overview
 slug: overview
 heading: Next.js Overview
 createdAt: 2023-05-10T00:00:00.000Z

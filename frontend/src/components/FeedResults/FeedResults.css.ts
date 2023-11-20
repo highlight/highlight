@@ -8,11 +8,9 @@ export const variants = recipe({
 	},
 	variants: {
 		type: {
-			sessions: {},
-			errors: {},
-			logs: {
-				border: 'none',
-				borderTop: vars.border.dividerWeak,
+			rounded: {},
+			square: {
+				border: 0,
 				borderRadius: 0,
 			},
 		},

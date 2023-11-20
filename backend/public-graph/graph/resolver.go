@@ -175,6 +175,8 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
+const PAYLOAD_STAGING_COUNT_MAX = 100
+
 var NumberRegex = regexp.MustCompile(`^\d+$`)
 
 var ErrNoisyError = e.New("Filtering out noisy error")
@@ -421,7 +423,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			newErrorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
 		}
 
-		if err := r.DB.Create(newErrorGroup).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
 
@@ -557,7 +559,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 		return nil, nil
 	}
 	start := time.Now()
-	if err := r.DB.Raw(`
+	if err := r.DB.WithContext(context.TODO()).Raw(`
 		WITH json_results AS (
 			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
 			FROM json_array_elements_text(@jsonString) with ordinality
@@ -809,7 +811,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 	errorObj.ErrorGroupID = errorGroup.ID
 
-	if err := r.DB.Create(errorObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
 	}
 
@@ -891,7 +893,7 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 			`, f.ProjectID, f.Name, f.Value, f.Value).Take(&field)
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.Create(f).Error; err != nil {
+			if err := r.DB.WithContext(ctx).Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
@@ -1149,7 +1151,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	session.Longitude = location.Longitude.(float64)
 	session.WithinBillingQuota = &withinBillingQuota
 
-	if err := r.DB.Create(session).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Create(session).Error; err != nil {
 		if input.SessionSecureID == "" || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			log.WithContext(ctx).Errorf("error creating session: %s", err)
 			return nil, e.Wrap(err, "error creating session")
@@ -1325,7 +1327,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	sessionTimestamp := input.Timestamp.UnixMilli() - session.CreatedAt.UnixMilli()
 
 	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Timestamp: int(sessionTimestamp), Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
-	if err := r.DB.Create(feedbackComment).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Create(feedbackComment).Error; err != nil {
 		return e.Wrap(err, "error creating session feedback")
 	}
 
@@ -2053,7 +2055,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 		// TODO(vkorolik) we should query session metrics from CH as well
 		if len(newMetrics) > 0 {
-			if err := r.DB.Create(&newMetrics).Error; err != nil {
+			if err := r.DB.WithContext(ctx).Create(&newMetrics).Error; err != nil {
 				return err
 			}
 		}
@@ -2357,7 +2359,41 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	return nil
 }
 
-func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, saveToS3, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
+func (r *Resolver) MoveSessionDataToStorage(ctx context.Context, sessionId int, payloadId *int, projectId int, payloadType model.RawPayloadType) error {
+	zRangeSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+		util.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), util.Tag("project_id", projectId))
+	zRange, err := r.Redis.GetRawZRange(spanCtx, sessionId, payloadId, payloadType)
+	if err != nil {
+		return e.Wrap(err, "error retrieving previous event objects")
+	}
+	zRangeSpan.Finish()
+
+	// If there are prior events, push them to S3 and remove them from Redis
+	if len(zRange) != 0 {
+		pushToS3Span, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+			util.ResourceName("go.parseEvents.processWithRedis.pushToS3"), util.Tag("project_id", projectId))
+		if err := r.StorageClient.PushRawEvents(spanCtx, sessionId, projectId, payloadType, zRange); err != nil {
+			return e.Wrap(err, "error pushing events to S3")
+		}
+		pushToS3Span.Finish()
+
+		values := []interface{}{}
+		for _, z := range zRange {
+			values = append(values, z.Member)
+		}
+
+		removeValuesSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
+			util.ResourceName("go.parseEvents.processWithRedis.removeValues"), util.Tag("project_id", projectId))
+		if err := r.Redis.RemoveValues(spanCtx, sessionId, payloadType, values); err != nil {
+			return e.Wrap(err, "error removing previous values")
+		}
+		removeValuesSpan.Finish()
+	}
+
+	return nil
+}
+
+func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
 	redisSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
 		util.ResourceName("go.parseEvents.processWithRedis"), util.Tag("project_id", projectId), util.Tag("payload_type", payloadType))
 	score := float64(payloadId)
@@ -2366,42 +2402,15 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 		score += .5
 	}
 
-	if saveToS3 {
-		zRangeSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
-			util.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), util.Tag("project_id", projectId))
-		zRange, err := r.Redis.GetRawZRange(spanCtx, sessionId, payloadId)
-		if err != nil {
-			return e.Wrap(err, "error retrieving previous event objects")
-		}
-		zRangeSpan.Finish()
-
-		// If there are prior events, push them to S3 and remove them from Redis
-		if len(zRange) != 0 {
-			pushToS3Span, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
-				util.ResourceName("go.parseEvents.processWithRedis.pushToS3"), util.Tag("project_id", projectId))
-			if err := r.StorageClient.PushRawEvents(spanCtx, sessionId, projectId, payloadType, zRange); err != nil {
-				return e.Wrap(err, "error pushing events to S3")
-			}
-			pushToS3Span.Finish()
-
-			values := []interface{}{}
-			for _, z := range zRange {
-				values = append(values, z.Member)
-			}
-
-			removeValuesSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
-				util.ResourceName("go.parseEvents.processWithRedis.removeValues"), util.Tag("project_id", projectId))
-			if err := r.Redis.RemoveValues(spanCtx, sessionId, values); err != nil {
-				return e.Wrap(err, "error removing previous values")
-			}
-			removeValuesSpan.Finish()
-		}
-	}
-
-	if err := r.Redis.AddPayload(ctx, sessionId, score, payloadType, data); err != nil {
+	count, err := r.Redis.AddPayload(ctx, sessionId, score, payloadType, data)
+	if err != nil {
 		return e.Wrap(err, "error adding event payload")
 	}
 	redisSpan.Finish()
+
+	if count >= PAYLOAD_STAGING_COUNT_MAX {
+		return r.MoveSessionDataToStorage(ctx, sessionId, &payloadId, projectId, payloadType)
+	}
 
 	return nil
 }
@@ -2508,7 +2517,17 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 					// Replace any static resources with our own, hosted in S3
 					if settings != nil && settings.ReplaceAssets {
-						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
+						project, err := r.Store.GetProject(ctx, projectID)
+						if err != nil {
+							return err
+						}
+
+						workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+						if err != nil {
+							return err
+						}
+
+						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis, workspace.GetRetentionPeriod())
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}
@@ -2554,7 +2573,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 			remarshalSpan.Finish()
 
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, hasFullSnapshot, isBeacon, model.PayloadTypeEvents, b); err != nil {
+			if hasFullSnapshot {
+				if err := r.MoveSessionDataToStorage(ctx, sessionID, pointy.Int(payloadIdDeref), projectID, model.PayloadTypeEvents); err != nil {
+					return err
+				}
+			}
+
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeEvents, b); err != nil {
 				return e.Wrap(err, "error saving events data")
 			}
 
@@ -2590,7 +2615,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			util.ResourceName("go.unmarshal.resources"), util.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
 			return e.Wrap(err, "error saving resources data")
 		}
 
@@ -2616,7 +2641,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				util.ResourceName("go.unmarshal.web_socket_events"), util.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
 				return e.Wrap(err, "error saving web socket events data")
 			}
 		}
@@ -2892,7 +2917,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	}
 
 	sessionObj := &model.Session{}
-	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&sessionObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
 		log.WithContext(ctx).Error(retErr)
 		return nil

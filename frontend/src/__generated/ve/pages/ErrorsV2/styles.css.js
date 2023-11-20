@@ -1,1 +1,17 @@
-var r="_75g8nf0",e="_75g8nf2",t="_75g8nf3",n="_75g8nf4",a="_75g8nf5",o="_75g8nf1",i="_75g8nf6";export{r as container,e as detailsContainer,t as errorDetails,n as errorMetrics,a as moveDetailsRight,o as searchPanelContainer,i as sessionSwitchButton};
+// src/pages/ErrorsV2/styles.css.ts
+var container = "_75g8nf0";
+var detailsContainer = "_75g8nf2";
+var errorDetails = "_75g8nf3";
+var errorMetrics = "_75g8nf4";
+var moveDetailsRight = "_75g8nf5";
+var searchPanelContainer = "_75g8nf1";
+var sessionSwitchButton = "_75g8nf6";
+export {
+  container,
+  detailsContainer,
+  errorDetails,
+  errorMetrics,
+  moveDetailsRight,
+  searchPanelContainer,
+  sessionSwitchButton
+};

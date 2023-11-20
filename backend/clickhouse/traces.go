@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	"strconv"
 	"time"
+
+	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"golang.org/x/exp/slices"
@@ -25,6 +26,7 @@ const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
 const TraceMetricsTable = "trace_metrics"
+const TracesByIdTable = "traces_by_id"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
@@ -40,30 +42,32 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
 }
 
+var traceColumns = []string{
+	"Timestamp",
+	"UUID",
+	"TraceId",
+	"SpanId",
+	"ParentSpanId",
+	"ProjectId",
+	"SecureSessionId",
+	"TraceState",
+	"SpanName",
+	"SpanKind",
+	"Duration",
+	"ServiceName",
+	"ServiceVersion",
+	"TraceAttributes",
+	"StatusCode",
+	"StatusMessage",
+}
+
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	bodyColumn:       "SpanName",
 	attributesColumn: "TraceAttributes",
-	selectColumns: []string{
-		"Timestamp",
-		"UUID",
-		"TraceId",
-		"SpanId",
-		"ParentSpanId",
-		"ProjectId",
-		"SecureSessionId",
-		"TraceState",
-		"SpanName",
-		"SpanKind",
-		"Duration",
-		"ServiceName",
-		"ServiceVersion",
-		"TraceAttributes",
-		"StatusCode",
-		"StatusMessage",
-	},
+	selectColumns:    traceColumns,
 	defaultFilters: map[string]string{
 		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
 	},
@@ -75,6 +79,7 @@ var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	attributesColumn: "TraceAttributes",
+	selectColumns:    traceColumns,
 }
 
 type ClickhouseTraceRow struct {
@@ -245,7 +250,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	var err error
 	var args []interface{}
 
-	sb.From("traces").
+	sb.From(TracesByIdTable).
 		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID))
@@ -347,7 +352,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		case modelInputs.MetricAggregatorMax:
 			fnStr += fmt.Sprintf(", max(%s)", metricColName)
 		case modelInputs.MetricAggregatorSum:
-			fnStr += fmt.Sprintf(", sum(%s)", metricColName)
+			fnStr += fmt.Sprintf(", sum(%s) * any(_sample_factor)", metricColName)
 		}
 	}
 
@@ -394,12 +399,15 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		return nil, err
 	}
 
+	base := 3 + len(metricTypes)
+
 	groupByCols := []string{"1"}
-	for i := 4; i < 4+len(groupBy); i++ {
+	for i := base; i < base+len(groupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
 	fromSb.GroupBy(groupByCols...)
 	fromSb.OrderBy(groupByCols...)
+	fromSb.Limit(10000)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
 

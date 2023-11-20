@@ -1,1 +1,5 @@
-var a="hgp31e0";export{a as modalContainer};
+// src/pages/Player/Toolbar/NewCommentModal/styles.css.ts
+var modalContainer = "hgp31e0";
+export {
+  modalContainer
+};
