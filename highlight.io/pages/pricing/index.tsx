@@ -533,7 +533,7 @@ const prices = {
 		] as GraduatedPriceItem[],
 	},
 	Traces: {
-		free: 50_000_000,
+		free: 25_000_000,
 		unit: 1_000_000,
 		items: [
 			{
@@ -589,10 +589,10 @@ const formatPrice = (
 	})
 
 const PriceCalculator = () => {
-	const defaultErrors = 1_000
-	const defaultLogs = 1_000_000
-	const defaultTraces = 1_000_000
-	const defaultSessions = 500
+	const defaultErrors = prices.Errors.free
+	const defaultLogs = prices.Logs.free
+	const defaultTraces = prices.Traces.free
+	const defaultSessions = prices.Sessions.free
 
 	const [errorUsage, setErrorUsage] = useState(defaultErrors)
 	const [sessionUsage, setSessionUsage] = useState(defaultSessions)
@@ -630,6 +630,8 @@ const PriceCalculator = () => {
 				: 0,
 		]
 	}
+
+	const base = 50
 
 	const [errorsCost, errorsRate] = getUsagePrice(
 		errorUsage - defaultErrors,
@@ -677,6 +679,7 @@ const PriceCalculator = () => {
 						cost={errorsCost}
 						rate={errorsRate}
 						includedRange={defaultErrors}
+						rangeMultiplier={100}
 						retention={errorRetention}
 						onChange={setErrorUsage}
 						onChangeRetention={setErrorRetention}
@@ -701,7 +704,7 @@ const PriceCalculator = () => {
 						cost={loggingCost}
 						rate={loggingRate}
 						includedRange={defaultLogs}
-						rangeMultiplier={100}
+						rangeMultiplier={10000}
 						retention="30 days"
 						onChange={setLoggingUsage}
 					/>
@@ -713,7 +716,7 @@ const PriceCalculator = () => {
 						cost={tracesCost}
 						rate={tracesRate}
 						includedRange={defaultTraces}
-						rangeMultiplier={100}
+						rangeMultiplier={10000}
 						retention="30 days"
 						onChange={setTracesUsage}
 					/>
@@ -733,8 +736,13 @@ const PriceCalculator = () => {
 					<CalculatorCostDisplay
 						heading="Monthly Total"
 						cost={
-							sessionsCost + errorsCost + loggingCost + tracesCost
+							base +
+							sessionsCost +
+							errorsCost +
+							loggingCost +
+							tracesCost
 						}
+						subtitle={'Includes base fee and usage charges.'}
 					/>
 				</div>
 			</div>
@@ -769,7 +777,7 @@ const CalculatorRowDesktop = ({
 }) => {
 	const rangeOptions = [
 		0, 500, 1_000, 5_000, 10_000, 100_000, 250_000, 500_000, 750_000,
-		1_000_000,
+		1_000_000, 10_000_000,
 	].map((v) => v * rangeMultiplier)
 
 	return (
@@ -811,7 +819,7 @@ const CalculatorRowDesktop = ({
 			</div>
 			<div className="hidden border-l border-divider-on-dark md:inline-block">
 				<CalculatorCostDisplay
-					heading="Base + Usage (Monthly)"
+					heading="Usage (Monthly)"
 					cost={cost}
 					rate={{
 						value: rate,
@@ -916,8 +924,8 @@ export const RangedInput = ({
 					/>
 				</Slider.Track>
 				<Slider.Thumb className="relative w-6 h-6 border-2 focus:border-blue-cta hover:shadow-white/25 hover:shadow-[0_0_0_4px] outline-none bg-[#F5F5F5] border-copy-on-dark rounded-full flex flex-col items-center transition-all">
-					<div className="absolute w-2.5 h-2.5 rotate-45 rounded-sm -top-4 bg-blue-cta" />
-					<div className="absolute px-1 py-0.5 mb-2 text-divider-on-dark font-semibold text-[10px] rounded-sm bottom-full bg-blue-cta">
+					<div className="absolute top-[24px] w-2.5 h-2.5 rotate-45 rounded-sm -top-4 bg-blue-cta" />
+					<div className="absolute top-[28px] h-5 px-1 py-0.5 mb-2 text-divider-on-dark font-semibold text-[10px] rounded-sm bottom-full bg-blue-cta">
 						{value.toLocaleString(undefined, {
 							notation: 'compact',
 						})}
@@ -932,9 +940,11 @@ const CalculatorCostDisplay = ({
 	cost,
 	rate,
 	heading,
+	subtitle,
 }: {
 	cost: number
 	heading: string
+	subtitle?: string
 	rate?: {
 		value: number
 		unit: number
@@ -957,6 +967,13 @@ const CalculatorCostDisplay = ({
 					<Typography type="copy4" onDark>
 						Average rate: {formatPrice(rate.value, 'auto')} /{' '}
 						{formatNumber(rate.unit)} {rate.product.toLowerCase()}
+					</Typography>
+				</div>
+			) : null}
+			{subtitle ? (
+				<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
+					<Typography type="copy4" onDark>
+						{subtitle}
 					</Typography>
 				</div>
 			) : null}
