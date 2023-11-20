@@ -56,7 +56,7 @@ export const ErrorAlertEmail = ({
 				<Row style={statContainer}>
 					<Column>
 						<Text style={leftStat}>
-							<span style={statHeader}>Occurances</span>
+							<span style={statHeader}>Occurences</span>
 							{errorCount}
 						</Text>
 					</Column>
