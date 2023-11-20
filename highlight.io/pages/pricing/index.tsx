@@ -951,7 +951,6 @@ const CalculatorCostDisplay = ({
 		product: 'Sessions' | 'Errors' | 'Logs' | 'Traces'
 	}
 }) => {
-	console.log({ cost, rate, heading })
 	return (
 		<div className="gap-4 grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
 			<div className="grid flex-shrink-0 place-content-center place-items-center w-[343px] h-full">
