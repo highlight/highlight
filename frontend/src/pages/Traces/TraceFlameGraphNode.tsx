@@ -105,10 +105,10 @@ export const TraceFlameGraphNode = memo<Props>(
 						fill={fill}
 						stroke={stroke}
 						strokeDasharray={
-							hasError && !isSelectedSpan ? '4' : undefined
+							hasError && !isSelectedSpan ? '3' : undefined
 						}
 						strokeWidth="1"
-						rx="4"
+						rx="3"
 						height={lineHeight}
 						width={spanWidth}
 						data-parent-id={span.parentSpanID}
