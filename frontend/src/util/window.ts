@@ -1,3 +1,4 @@
+import analytics from '@util/analytics'
 import { message } from 'antd'
 
 import { FRONTEND_URI } from '@/constants'
@@ -7,10 +8,17 @@ export function GetBaseURL(): string {
 }
 
 export const showSupportBubble = () => {
+	analytics.track('showSupportBubble')
 	window.open('https://highlight.io/community', '_blank')
 }
 
-export const showSupportMessage = async (_ = '') => {
-	await message.info(`Please reach out for help on our Discord!`, 3)
+export const showSupportMessage = async (msg = '') => {
+	analytics.track('showSupportMessage', { msg })
+	await message.info(
+		msg.length
+			? `Please send the following on our discord: ${msg}`
+			: `Please reach out for help on our Discord!`,
+		3,
+	)
 	showSupportBubble()
 }
