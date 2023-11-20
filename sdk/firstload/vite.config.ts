@@ -1,6 +1,11 @@
 // vite.config.ts
-import { resolve } from 'path'
+import { resolve as resolvePath } from 'path'
 import { defineConfig } from 'vite'
+import typescript from '@rollup/plugin-typescript'
+import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import json from '@rollup/plugin-json'
+import terser from '@rollup/plugin-terser'
 
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],
@@ -16,7 +21,7 @@ export default defineConfig({
 		target: 'es6',
 		lib: {
 			formats: ['es', 'cjs', 'umd'],
-			entry: resolve(__dirname, 'src/index.tsx'),
+			entry: resolvePath(__dirname, 'src/index.tsx'),
 			name: 'H',
 			fileName: 'index',
 		},
@@ -25,6 +30,18 @@ export default defineConfig({
 		// sourcemaps are not published to reduce package size
 		sourcemap: false,
 		rollupOptions: {
+			treeshake: 'smallest',
+			plugins: [
+				json(),
+				commonjs(),
+				resolve({
+					browser: true,
+				}),
+				typescript({
+					outputToFilesystem: true,
+				}),
+				terser(),
+			],
 			output: {
 				exports: 'named',
 			},

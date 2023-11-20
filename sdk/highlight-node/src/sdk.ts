@@ -108,7 +108,10 @@ export const H: HighlightInterface = {
 	},
 	flush: async () => {
 		try {
-			await highlight_obj.flush()
+			await Promise.allSettled([
+				highlight_obj.waitForFlush(),
+				highlight_obj.flush(),
+			])
 		} catch (e) {
 			console.warn('highlight-node flush error: ', e)
 		}
@@ -146,12 +149,12 @@ export const H: HighlightInterface = {
 		return highlight_obj.setHeaders(headers)
 	},
 	consumeAndFlush: async function (...args) {
-		const waitPromise = highlight_obj.waitForFlush()
-
-		this.consumeError(...args)
-		const flushPromise = this.flush()
-
-		await Promise.allSettled([waitPromise, flushPromise])
+		try {
+			this.consumeError(...args)
+			await this.flush()
+		} catch (e) {
+			console.warn('highlight-node consumeAndFlush error: ', e)
+		}
 	},
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)

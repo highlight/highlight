@@ -1,7 +1,7 @@
 // vite.config.ts
 
+import { resolve as resolvePath } from 'path'
 import { defineConfig } from 'vite'
-import { resolve } from 'path'
 
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],
@@ -17,18 +17,19 @@ export default defineConfig({
 		target: 'es6',
 		lib: {
 			formats: ['umd'],
-			entry: resolve(__dirname, 'src/index.tsx'),
+			entry: resolvePath(__dirname, 'src/index.tsx'),
 			name: '@highlight-run/client',
 			fileName: 'index',
-		},
-		rollupOptions: {
-			output: {
-				entryFileNames: `[name].js`,
-			},
 		},
 		minify: 'terser',
 		emptyOutDir: false,
 		sourcemap: false,
+		rollupOptions: {
+			treeshake: 'smallest',
+			output: {
+				entryFileNames: `[name].js`,
+			},
+		},
 	},
 	define: {
 		// used by dependencies of highlight-client-worker

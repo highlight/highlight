@@ -4630,7 +4630,12 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 		return nil, err
 	}
 
-	resources, err := r.Redis.GetResources(ctx, s)
+	s3Resources, err := r.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, model.PayloadTypeResources)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving events objects from S3")
+	}
+
+	resources, err := r.Redis.GetResources(ctx, s, s3Resources)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources from redis")
 	}
