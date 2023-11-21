@@ -1,6 +1,6 @@
 ---
-title: Python
-heading: Logging in Python
+toc: Python
+title: Python Logging Quick Start
 slug: other
 quickstart: true
 ---

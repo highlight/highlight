@@ -1,6 +1,6 @@
 ---
-title: Overview
-headline: Logging in Python
+toc: Overview
+title: Logging in Python
 slug: logging-in-python
 ---
 

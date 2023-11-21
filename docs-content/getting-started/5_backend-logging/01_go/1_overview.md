@@ -1,6 +1,6 @@
 ---
-title: Overview
-headline: Logging in Go
+toc: Overview
+title: Logging in Go
 slug: logging-in-go
 ---
 

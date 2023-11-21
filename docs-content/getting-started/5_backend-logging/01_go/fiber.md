@@ -1,6 +1,6 @@
 ---
-title: fiber
-heading: Logging in Go / Fiber
+toc: fiber
+title: Logging in Go / Fiber
 quickstart: true
 ---
 

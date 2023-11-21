@@ -1,6 +1,6 @@
 ---
-title: Overview
-headline: Logging in Ruby
+toc: Overview
+title: Logging in Ruby
 slug: logging-in-ruby
 ---
 
