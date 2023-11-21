@@ -383,7 +383,7 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 	(prevProps, nextProps) => {
 		return (
 			prevProps.expanded === nextProps.expanded &&
-			prevProps.row.original.cursor === nextProps.row.original.cursor
+			prevProps.virtualRowKey === nextProps.virtualRowKey
 		)
 	},
 )
