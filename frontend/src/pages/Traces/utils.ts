@@ -110,7 +110,7 @@ const organizeSpanInLevel = (
 	trace: Partial<FlameGraphSpan>[],
 	spans: Partial<FlameGraphSpan>[][],
 	depthIndex: number,
-	parent?: FlameGraphSpan,
+	parent?: Partial<FlameGraphSpan>,
 ) => {
 	spans[depthIndex] = spans[depthIndex] ?? []
 

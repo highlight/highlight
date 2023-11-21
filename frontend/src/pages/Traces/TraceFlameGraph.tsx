@@ -19,7 +19,7 @@ const MAX_TICKS = 6
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
-const depthMultiplier = lineHeight + 3 + (ticksHeight + outsidePadding)
+export const depthMultiplier = lineHeight + 3 + (ticksHeight + outsidePadding)
 const timeUnits = [
 	{ unit: 'h', divider: 1e9 * 60 * 60 },
 	{ unit: 'm', divider: 1e9 * 60 },
