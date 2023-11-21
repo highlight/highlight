@@ -6889,6 +6889,7 @@ body {
 .essfm40::-webkit-scrollbar {
   -webkit-appearance: none;
   height: 7px;
+  width: 7px;
 }
 .essfm40::-webkit-scrollbar-thumb {
   border-radius: 4px;
