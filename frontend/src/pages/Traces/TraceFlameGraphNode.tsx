@@ -126,18 +126,22 @@ export const TraceFlameGraphNode = memo<Props>(
 								x1={1}
 								y1={1}
 								x2={
-									offsetX -
-									((span.parent.startTime / totalDuration) *
-										width *
-										zoom +
-										outsidePadding) *
-										-1
+									Math.abs(
+										offsetX -
+											((span.parent.startTime /
+												totalDuration) *
+												width *
+												zoom +
+												outsidePadding),
+									) * -1
 								}
 								y2={
 									offsetY -
-									(span.parent.depth * (lineHeight + 3) +
-										(ticksHeight + outsidePadding) -
-										lineHeight / 2) *
+									Math.abs(
+										span.parent.depth * (lineHeight + 3) +
+											(ticksHeight + outsidePadding) -
+											lineHeight / 2,
+									) *
 										-1
 								}
 								stroke={stroke}
