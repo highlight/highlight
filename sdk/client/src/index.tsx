@@ -885,7 +885,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			`highlight setting up cross origin iframe parent notification`,
 		)
 		// notify iframes that highlight is ready
-		const iframeInterval = setInterval(() => {
+		setInterval(() => {
 			window.document.querySelectorAll('iframe').forEach((iframe) => {
 				iframe.contentWindow?.postMessage(
 					{
@@ -896,20 +896,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					'*',
 				)
 			})
-		}, 100) as unknown as number
-		// once an iframe responds that it got our message and it ready, clear the interval
-		const listener = (message: MessageEvent) => {
+		}, FIRST_SEND_FREQUENCY)
+		window.addEventListener('message', (message: MessageEvent) => {
 			if (message.data.highlight === IFRAME_PARENT_RESPONSE) {
 				this.logger.log(
 					`highlight got response from initialized iframe`,
 				)
-				// stop sending iframe messages
-				window.clearInterval(iframeInterval)
-				// stop listening to parent messages
-				window.removeEventListener('message', listener)
 			}
-		}
-		window.addEventListener('message', listener)
+		})
 	}
 
 	_setupWindowListeners() {
