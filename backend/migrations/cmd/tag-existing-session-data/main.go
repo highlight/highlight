@@ -43,12 +43,12 @@ func main() {
 	}
 
 	projects := []*model.Project{}
-	if err := db.Model(&model.Project{}).Find(&projects); err != nil {
+	if err := db.Model(&model.Project{}).Find(&projects).Error; err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
 
 	workspaces := []*model.Workspace{}
-	if err := db.Model(&model.Workspace{}).Find(&workspaces); err != nil {
+	if err := db.Model(&model.Workspace{}).Find(&workspaces).Error; err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
 
@@ -67,42 +67,65 @@ func main() {
 	projectIds := lo.Keys(projectIdToRetentionPeriod)
 	slices.Sort(projectIds)
 
-	for _, projectId := range projectIds {
-		log.WithContext(ctx).Infof("starting tagging for project %d", projectId)
+	type config struct {
+		bucket string
+		prefix string
+	}
 
-		retentionPeriod := projectIdToRetentionPeriod[projectId]
+	configs := []config{
+		{
+			bucket: storage.S3SessionsPayloadBucketNameNew,
+			prefix: "v2/",
+		},
+		{
+			bucket: storage.S3ResourcesBucketName,
+			prefix: "",
+		},
+	}
 
-		var continuationToken *string
-		for {
-			resp, err := storageClient.S3ClientEast2.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-				Bucket:            pointy.String(storage.S3SessionsPayloadBucketNameNew),
-				Prefix:            pointy.String(fmt.Sprintf("dev/%d/", projectId)),
-				ContinuationToken: continuationToken,
-			})
-			if err != nil {
-				log.WithContext(ctx).Fatal(err)
-			}
+	for _, config := range configs {
+		log.WithContext(ctx).Infof("starting tagging for bucket %s", config.bucket)
 
-			for _, item := range resp.Contents {
-				storageClient.S3ClientEast2.PutObjectTagging(ctx, &s3.PutObjectTaggingInput{
-					Bucket: pointy.String(storage.S3SessionsPayloadBucketNameNew),
-					Key:    item.Key,
-					Tagging: &types.Tagging{
-						TagSet: []types.Tag{
-							{
-								Key:   pointy.String("RetentionPeriod"),
-								Value: pointy.String(string(retentionPeriod))},
-						},
-					},
+		for _, projectId := range projectIds {
+			log.WithContext(ctx).Infof("starting tagging for project %d", projectId)
+
+			retentionPeriod := projectIdToRetentionPeriod[projectId]
+
+			var continuationToken *string
+			for {
+				resp, err := storageClient.S3ClientEast2.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
+					Bucket:            pointy.String(config.bucket),
+					Prefix:            pointy.String(fmt.Sprintf("%s%d/", config.prefix, projectId)),
+					ContinuationToken: continuationToken,
 				})
+				if err != nil {
+					log.WithContext(ctx).Fatal(err)
+				}
+
+				for _, item := range resp.Contents {
+					_, err := storageClient.S3ClientEast2.PutObjectTagging(ctx, &s3.PutObjectTaggingInput{
+						Bucket: pointy.String(config.bucket),
+						Key:    item.Key,
+						Tagging: &types.Tagging{
+							TagSet: []types.Tag{
+								{
+									Key:   pointy.String("RetentionPeriod"),
+									Value: pointy.String(string(retentionPeriod))},
+							},
+						},
+					})
+					if err != nil {
+						log.WithContext(ctx).Fatal(err)
+					}
+				}
+
+				if !resp.IsTruncated {
+					break
+				}
+				continuationToken = resp.NextContinuationToken
 			}
 
-			if !resp.IsTruncated {
-				break
-			}
-			continuationToken = resp.NextContinuationToken
+			log.WithContext(ctx).Infof("done tagging for project %d", projectId)
 		}
-
-		log.WithContext(ctx).Infof("done tagging for project %d", projectId)
 	}
 }
