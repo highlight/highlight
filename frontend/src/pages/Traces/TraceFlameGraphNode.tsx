@@ -92,7 +92,10 @@ export const TraceFlameGraphNode = memo<Props>(
 		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
 		const distanceFromParent = span.depth - (span.parent?.depth ?? 0)
 		const parentOffsetX = span.parent?.depth
-			? span.parent.depth * depthMultiplier
+			? offsetX - span.parent.depth * depthMultiplier
+			: undefined
+		const parentOffsetY = span.parent?.depth
+			? offsetY - span.parent.depth * depthMultiplier
 			: undefined
 
 		return (
@@ -120,12 +123,10 @@ export const TraceFlameGraphNode = memo<Props>(
 
 					{distanceFromParent > 1 && (
 						<line
-							x1={parentOffsetX}
-							y1="-3px"
+							x1={0}
+							y1="-4px"
 							x2={parentOffsetX}
-							y2={`-${
-								(distanceFromParent - 1) * lineHeight + 6
-							}px`}
+							y2={parentOffsetY}
 							stroke={stroke}
 							strokeWidth="1"
 						/>
