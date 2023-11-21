@@ -133,7 +133,10 @@ const organizeSpanInLevel = (
 
 	if (children.length > 0) {
 		children.forEach((child) => {
-			organizeSpanInLevel(child, trace, spans, depthIndex + 1, span)
+			organizeSpanInLevel(child, trace, spans, depthIndex + 1, {
+				...span,
+				depth: depthIndex,
+			})
 		})
 	}
 }

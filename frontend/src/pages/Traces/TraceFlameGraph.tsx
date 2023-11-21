@@ -19,7 +19,6 @@ const MAX_TICKS = 6
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
-export const depthMultiplier = lineHeight + 3 + (ticksHeight + outsidePadding)
 const timeUnits = [
 	{ unit: 'h', divider: 1e9 * 60 * 60 },
 	{ unit: 'm', divider: 1e9 * 60 },
@@ -144,7 +143,7 @@ export const TraceFlameGraph: React.FC = () => {
 				ref={svgContainerRef}
 				overflowX="scroll"
 				style={{
-					maxHeight: 300,
+					maxHeight: 400,
 				}}
 			>
 				{width && (

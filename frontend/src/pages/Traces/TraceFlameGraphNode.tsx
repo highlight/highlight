@@ -1,7 +1,6 @@
 import { memo } from 'react'
 
 import {
-	depthMultiplier,
 	lineHeight,
 	outsidePadding,
 	ticksHeight,
@@ -74,7 +73,7 @@ export const TraceFlameGraphNode = memo<Props>(
 		const offsetX =
 			(span.startTime / totalDuration) * width * zoom + outsidePadding
 		const offsetY = span.depth
-			? span.depth * depthMultiplier
+			? span.depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const hasError = errors.find((error) => error.span_id === span.spanID)
@@ -90,14 +89,20 @@ export const TraceFlameGraphNode = memo<Props>(
 		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
 		const color = isSelectedSpan ? theme.selectedColor : theme.color
 		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
-		const distanceFromParent = span.depth - (span.parent?.depth ?? 0)
-		const parentOffsetX = span.parent?.depth
-			? offsetX - span.parent.depth * depthMultiplier
+		const distanceFromParent = span.parent?.depth
+			? span.depth - span.parent.depth
+			: 0
+		const parentOffsetX = span.parent?.startTime
+			? (span.parent?.startTime / totalDuration) * width * zoom +
+			  outsidePadding
 			: undefined
 		const parentOffsetY = span.parent?.depth
-			? offsetY - span.parent.depth * depthMultiplier
+			? span.parent.depth * lineHeight +
+			  3 +
+			  (ticksHeight + outsidePadding)
 			: undefined
 
+		console.log(distanceFromParent)
 		return (
 			<>
 				<g
@@ -124,11 +129,12 @@ export const TraceFlameGraphNode = memo<Props>(
 					{distanceFromParent > 1 && (
 						<line
 							x1={0}
-							y1="-4px"
+							y1={0}
 							x2={parentOffsetX}
 							y2={parentOffsetY}
 							stroke={stroke}
 							strokeWidth="1"
+							data-attrs={JSON.stringify({})}
 						/>
 					)}
 
