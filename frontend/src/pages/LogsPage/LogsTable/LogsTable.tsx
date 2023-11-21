@@ -27,7 +27,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Key, useEffect, useRef, useState } from 'react'
 
 import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
 import { LogEdge } from '@/graph/generated/schemas'
@@ -228,16 +228,15 @@ const LogsTableInner = ({
 		getRowCanExpand: (row) => row.original.node.logAttributes,
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
-		debugTable: true,
 	})
 
 	const { rows } = table.getRowModel()
 
 	const rowVirtualizer = useVirtualizer({
 		count: rows.length,
-		estimateSize: () => 26,
+		estimateSize: () => 29,
 		getScrollElement: () => bodyRef.current,
-		overscan: 10,
+		overscan: 50,
 	})
 
 	const totalSize = rowVirtualizer.getTotalSize()
@@ -315,27 +314,13 @@ const LogsTableInner = ({
 					const row = rows[virtualRow.index]
 
 					return (
-						<Table.Row
+						<LogsTableRow
 							key={virtualRow.key}
-							gridColumns={GRID_COLUMNS}
-							onClick={row.getToggleExpandedHandler()}
-							forwardRef={rowVirtualizer.measureElement}
-							selected={row.getIsExpanded()}
-						>
-							{row.getVisibleCells().map((cell) => {
-								return (
-									<Table.Cell
-										key={cell.id}
-										alignItems="flex-start"
-									>
-										{flexRender(
-											cell.column.columnDef.cell,
-											cell.getContext(),
-										)}
-									</Table.Cell>
-								)
-							})}
-						</Table.Row>
+							row={row}
+							rowVirtualizer={rowVirtualizer}
+							expanded={row.getIsExpanded()}
+							virtualRowKey={virtualRow.key}
+						/>
 					)
 				})}
 				{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
@@ -360,4 +345,45 @@ export const IconExpanded: React.FC = () => (
 
 export const IconCollapsed: React.FC = () => (
 	<IconSolidCheveronRight color="#6F6E77" size="12" />
+)
+
+type LogsTableRowProps = {
+	row: any
+	rowVirtualizer: any
+	expanded: boolean
+	virtualRowKey: Key
+}
+
+const LogsTableRow = React.memo<LogsTableRowProps>(
+	({ row, rowVirtualizer, expanded, virtualRowKey }) => {
+		return (
+			<Table.Row
+				data-index={virtualRowKey}
+				gridColumns={GRID_COLUMNS}
+				onClick={row.getToggleExpandedHandler()}
+				forwardRef={rowVirtualizer.measureElement}
+				selected={expanded}
+			>
+				{row.getVisibleCells().map((cell: any) => {
+					return (
+						<Table.Cell
+							key={cell.column.id}
+							alignItems="flex-start"
+						>
+							{flexRender(
+								cell.column.columnDef.cell,
+								cell.getContext(),
+							)}
+						</Table.Cell>
+					)
+				})}
+			</Table.Row>
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.expanded === nextProps.expanded &&
+			prevProps.virtualRowKey === nextProps.virtualRowKey
+		)
+	},
 )
