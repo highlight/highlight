@@ -97,10 +97,12 @@ export const organizeSpansWithChildren = (spans: Partial<FlameGraphSpan>[]) => {
 export const organizeSpansForFlameGraph = (
 	trace: Partial<FlameGraphSpan>[],
 ) => {
-	const rootSpan = trace.find((span) => !span.parentSpanID)
+	const rootSpans = trace.filter((span) => !span.parentSpanID)
 	const spans = [[]]
 
-	organizeSpanInLevel(rootSpan!, trace, spans, 0)
+	rootSpans.forEach((rootSpan) =>
+		organizeSpanInLevel(rootSpan!, trace, spans, 0),
+	)
 
 	return spans as FlameGraphSpan[][]
 }
