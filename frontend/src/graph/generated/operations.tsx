@@ -753,6 +753,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 	webhook_destinations:
 		| Array<Types.WebhookDestinationInput>
 		| Types.WebhookDestinationInput
+	microsoft_teams_channels:
+		| Array<Types.MicrosoftTeamsChannelInput>
+		| Types.MicrosoftTeamsChannelInput
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -964,6 +967,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
 	discord_channels:
 		| Array<Types.DiscordChannelInput>
 		| Types.DiscordChannelInput
+	microsoft_teams_channels:
+		| Array<Types.MicrosoftTeamsChannelInput>
+		| Types.MicrosoftTeamsChannelInput
 	webhook_destinations:
 		| Array<Types.WebhookDestinationInput>
 		| Types.WebhookDestinationInput
@@ -1008,6 +1014,12 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
 				DiscordChannelsToNotify: Array<
 					{ __typename?: 'DiscordChannel' } & Pick<
 						Types.DiscordChannel,
+						'id' | 'name'
+					>
+				>
+				MicrosoftTeamsChannelsToNotify: Array<
+					{ __typename?: 'MicrosoftTeamsChannel' } & Pick<
+						Types.MicrosoftTeamsChannel,
 						'id' | 'name'
 					>
 				>
@@ -1567,6 +1579,11 @@ export type SessionAlertFragmentFragment = {
 		DiscordChannelsToNotify: Array<
 			{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 		>
+		MicrosoftTeamsChannelsToNotify: Array<
+			{
+				__typename?: 'MicrosoftTeamsChannel'
+			} & MicrosoftTeamsChannelFragmentFragment
+		>
 		WebhookDestinations: Array<
 			{ __typename?: 'WebhookDestination' } & Pick<
 				Types.WebhookDestination,
@@ -1594,6 +1611,10 @@ export type SessionAlertFragmentFragment = {
 export type DiscordChannelFragmentFragment = {
 	__typename?: 'DiscordChannel'
 } & Pick<Types.DiscordChannel, 'name' | 'id'>
+
+export type MicrosoftTeamsChannelFragmentFragment = {
+	__typename?: 'MicrosoftTeamsChannel'
+} & Pick<Types.MicrosoftTeamsChannel, 'name' | 'id'>
 
 export type GetMetricsTimelineQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -3669,6 +3690,20 @@ export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetMicrosoftTeamsChannelSuggestionQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetMicrosoftTeamsChannelSuggestionQuery = {
+	__typename?: 'Query'
+} & {
+	microsoft_teams_channel_suggestions: Array<
+		{
+			__typename?: 'MicrosoftTeamsChannel'
+		} & MicrosoftTeamsChannelFragmentFragment
+	>
+}
+
 export type GetWorkspaceIsIntegratedWithSlackQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3934,6 +3969,11 @@ export type GetLogAlertQuery = { __typename?: 'Query' } & {
 					__typename?: 'DiscordChannel'
 				} & DiscordChannelFragmentFragment
 			>
+			MicrosoftTeamsChannelsToNotify: Array<
+				{
+					__typename?: 'MicrosoftTeamsChannel'
+				} & MicrosoftTeamsChannelFragmentFragment
+			>
 			WebhookDestinations: Array<
 				{ __typename?: 'WebhookDestination' } & Pick<
 					Types.WebhookDestination,
@@ -3950,12 +3990,18 @@ export type GetLogAlertsPagePayloadQueryVariables = Types.Exact<{
 export type GetLogAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 	is_integrated_with_slack: Types.Query['is_integrated_with']
 	is_integrated_with_discord: Types.Query['is_integrated_with']
+	is_integrated_with_microsoft_teams: Types.Query['is_integrated_with']
 } & {
 	slack_channel_suggestion: Array<
 		{ __typename?: 'SanitizedSlackChannel' } & Pick<
 			Types.SanitizedSlackChannel,
 			'webhook_channel' | 'webhook_channel_id'
 		>
+	>
+	microsoft_teams_channel_suggestions: Array<
+		{
+			__typename?: 'MicrosoftTeamsChannel'
+		} & MicrosoftTeamsChannelFragmentFragment
 	>
 	discord_channel_suggestions: Array<
 		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
@@ -3984,6 +4030,7 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 	is_integrated_with_slack: Types.Query['is_integrated_with']
 	is_integrated_with_discord: Types.Query['is_integrated_with']
+	is_integrated_with_microsoft_teams: Types.Query['is_integrated_with']
 } & {
 	slack_channel_suggestion: Array<
 		{ __typename?: 'SanitizedSlackChannel' } & Pick<
@@ -3993,6 +4040,11 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 	>
 	discord_channel_suggestions: Array<
 		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
+	>
+	microsoft_teams_channel_suggestions: Array<
+		{
+			__typename?: 'MicrosoftTeamsChannel'
+		} & MicrosoftTeamsChannelFragmentFragment
 	>
 	admins: Array<
 		{ __typename?: 'WorkspaceAdminRole' } & {
@@ -4040,6 +4092,11 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 						{
 							__typename?: 'DiscordChannel'
 						} & DiscordChannelFragmentFragment
+					>
+					MicrosoftTeamsChannelsToNotify: Array<
+						{
+							__typename?: 'MicrosoftTeamsChannel'
+						} & MicrosoftTeamsChannelFragmentFragment
 					>
 					WebhookDestinations: Array<
 						{ __typename?: 'WebhookDestination' } & Pick<
@@ -4152,6 +4209,11 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 						{
 							__typename?: 'DiscordChannel'
 						} & DiscordChannelFragmentFragment
+					>
+					MicrosoftTeamsChannelsToNotify: Array<
+						{
+							__typename?: 'MicrosoftTeamsChannel'
+						} & MicrosoftTeamsChannelFragmentFragment
 					>
 				}
 		>
@@ -4973,6 +5035,8 @@ export const namedOperations = {
 		GetRageClicksForProject: 'GetRageClicksForProject' as const,
 		GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
 		GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
+		GetMicrosoftTeamsChannelSuggestion:
+			'GetMicrosoftTeamsChannelSuggestion' as const,
 		GetWorkspaceIsIntegratedWithSlack:
 			'GetWorkspaceIsIntegratedWithSlack' as const,
 		GetWorkspaceIsIntegratedWithMicrosoftTeams:
@@ -5134,6 +5198,7 @@ export const namedOperations = {
 		SessionPayloadFragment: 'SessionPayloadFragment' as const,
 		SessionAlertFragment: 'SessionAlertFragment' as const,
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
+		MicrosoftTeamsChannelFragment: 'MicrosoftTeamsChannelFragment' as const,
 		ErrorObject: 'ErrorObject' as const,
 		ErrorTag: 'ErrorTag' as const,
 	},

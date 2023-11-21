@@ -122,6 +122,7 @@ export const LogAlertPage = () => {
 			excludedEnvironments: [],
 			slackChannels: [],
 			discordChannels: [],
+			microsoftTeamsChannels: [],
 			webhookDestinations: [],
 			emails: [],
 			threshold: undefined,
@@ -166,6 +167,13 @@ export const LogAlertPage = () => {
 						id: c.id,
 					}),
 				),
+				microsoftTeamsChannels:
+					data?.log_alert.MicrosoftTeamsChannelsToNotify.map((c) => ({
+						...c,
+						displayValue: c.name,
+						value: c.id,
+						id: c.id,
+					})),
 				webhookDestinations: data?.log_alert.WebhookDestinations.map(
 					(d) => d.url,
 				),
@@ -268,6 +276,11 @@ export const LogAlertPage = () => {
 									id: c.id,
 								}),
 							),
+							microsoft_teams_channels:
+								formValues.microsoftTeamsChannels.map((c) => ({
+									name: c.name,
+									id: c.id,
+								})),
 							emails: formValues.emails,
 							environments: formValues.excludedEnvironments,
 							name: formValues.name,
@@ -566,6 +579,14 @@ const LogAlertForm = () => {
 		id: id,
 	}))
 
+	const microsoftTeamsChannels = (
+		alertsPayload?.microsoft_teams_channel_suggestions ?? []
+	).map(({ name, id }) => ({
+		displayValue: name,
+		value: id,
+		id: id,
+	}))
+
 	const emails = (alertsPayload?.admins ?? [])
 		.map((wa) => wa.admin!.email)
 		.map((email) => ({
@@ -761,6 +782,43 @@ const LogAlertForm = () => {
 							labelInValue
 							value={formStore.getValue(
 								formStore.names.discordChannels,
+							)}
+						/>
+					</Form.NamedSection>
+
+					<Form.NamedSection
+						label="Microsoft teams channels to notify"
+						name={formStore.names.microsoftTeamsChannels}
+					>
+						<Select
+							aria-label="Microsoft teams channels to notify"
+							placeholder="Select Microsoft Teams channels"
+							options={microsoftTeamsChannels}
+							optionFilterProp="label"
+							onChange={(values) => {
+								formStore.setValue(
+									formStore.names.microsoftTeamsChannels,
+									values.map((v: any) => ({
+										name: v.label,
+										id: v.value,
+										...v,
+									})),
+								)
+							}}
+							notFoundContent={
+								microsoftTeamsChannels.length === 0 ? (
+									<Link to="/integrations">
+										Connect Highlight with Microsoft Teams
+									</Link>
+								) : (
+									'Microsoft Teams channel not found'
+								)
+							}
+							className={styles.selectContainer}
+							mode="multiple"
+							labelInValue
+							value={formStore.getValue(
+								formStore.names.microsoftTeamsChannels,
 							)}
 						/>
 					</Form.NamedSection>

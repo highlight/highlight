@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
@@ -165,4 +166,14 @@ func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token
 	}
 
 	return newToken, nil
+}
+
+func GetTeamsChannel(tenantId string) ([]*model.MicrosoftTeamsChannel, error) {
+	// TODO: Implement this
+	fmt.Println("fetching teams channel at tenant", tenantId)
+	channels := []*model.MicrosoftTeamsChannel{
+		{ID: "19:e70b1e83561948a5bdbd80e83c209aa9@thread.tacv2", Name: "General"},
+		{ID: "19:8687bd996c76416eb10ff37f5a0a1164@thread.tacv2", Name: "Monthly Reports"},
+	}
+	return channels, nil
 }

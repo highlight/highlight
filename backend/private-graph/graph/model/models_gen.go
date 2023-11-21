@@ -508,19 +508,20 @@ type Log struct {
 }
 
 type LogAlertInput struct {
-	ProjectID           int                           `json:"project_id"`
-	Name                string                        `json:"name"`
-	CountThreshold      int                           `json:"count_threshold"`
-	BelowThreshold      bool                          `json:"below_threshold"`
-	ThresholdWindow     int                           `json:"threshold_window"`
-	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
-	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
-	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
-	Emails              []string                      `json:"emails"`
-	Environments        []string                      `json:"environments"`
-	Disabled            bool                          `json:"disabled"`
-	Default             *bool                         `json:"default"`
-	Query               string                        `json:"query"`
+	ProjectID              int                           `json:"project_id"`
+	Name                   string                        `json:"name"`
+	CountThreshold         int                           `json:"count_threshold"`
+	BelowThreshold         bool                          `json:"below_threshold"`
+	ThresholdWindow        int                           `json:"threshold_window"`
+	SlackChannels          []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels        []*DiscordChannelInput        `json:"discord_channels"`
+	MicrosoftTeamsChannels []*MicrosoftTeamsChannelInput `json:"microsoft_teams_channels"`
+	WebhookDestinations    []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails                 []string                      `json:"emails"`
+	Environments           []string                      `json:"environments"`
+	Disabled               bool                          `json:"disabled"`
+	Default                *bool                         `json:"default"`
+	Query                  string                        `json:"query"`
 }
 
 type LogConnection struct {
@@ -578,6 +579,11 @@ type MetricTagFilterInput struct {
 	Tag   string            `json:"tag"`
 	Op    MetricTagFilterOp `json:"op"`
 	Value string            `json:"value"`
+}
+
+type MicrosoftTeamsChannelInput struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
 }
 
 type NamedCount struct {
@@ -746,21 +752,22 @@ type ServiceNode struct {
 }
 
 type SessionAlertInput struct {
-	ProjectID           int                           `json:"project_id"`
-	Name                string                        `json:"name"`
-	CountThreshold      int                           `json:"count_threshold"`
-	ThresholdWindow     int                           `json:"threshold_window"`
-	SlackChannels       []*SanitizedSlackChannelInput `json:"slack_channels"`
-	DiscordChannels     []*DiscordChannelInput        `json:"discord_channels"`
-	WebhookDestinations []*WebhookDestinationInput    `json:"webhook_destinations"`
-	Emails              []string                      `json:"emails"`
-	Environments        []string                      `json:"environments"`
-	Disabled            bool                          `json:"disabled"`
-	Default             *bool                         `json:"default"`
-	Type                SessionAlertType              `json:"type"`
-	UserProperties      []*UserPropertyInput          `json:"user_properties"`
-	ExcludeRules        []string                      `json:"exclude_rules"`
-	TrackProperties     []*TrackPropertyInput         `json:"track_properties"`
+	ProjectID              int                           `json:"project_id"`
+	Name                   string                        `json:"name"`
+	CountThreshold         int                           `json:"count_threshold"`
+	ThresholdWindow        int                           `json:"threshold_window"`
+	SlackChannels          []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels        []*DiscordChannelInput        `json:"discord_channels"`
+	MicrosoftTeamsChannels []*MicrosoftTeamsChannelInput `json:"microsoft_teams_channels"`
+	WebhookDestinations    []*WebhookDestinationInput    `json:"webhook_destinations"`
+	Emails                 []string                      `json:"emails"`
+	Environments           []string                      `json:"environments"`
+	Disabled               bool                          `json:"disabled"`
+	Default                *bool                         `json:"default"`
+	Type                   SessionAlertType              `json:"type"`
+	UserProperties         []*UserPropertyInput          `json:"user_properties"`
+	ExcludeRules           []string                      `json:"exclude_rules"`
+	TrackProperties        []*TrackPropertyInput         `json:"track_properties"`
 }
 
 type SessionCommentTagInput struct {

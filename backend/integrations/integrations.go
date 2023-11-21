@@ -6,9 +6,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
-	microsoft_teams "github.com/highlight-run/highlight/backend/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"golang.org/x/oauth2"

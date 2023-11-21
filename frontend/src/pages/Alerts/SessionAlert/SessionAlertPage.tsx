@@ -72,6 +72,7 @@ const SessionAlertDefaultValues = {
 	excludedEnvironments: [],
 	slackChannels: [],
 	discordChannels: [],
+	microsoftTeamsChannels: [],
 	webhookDestinations: [],
 	emails: [],
 	threshold: undefined,
@@ -132,6 +133,13 @@ export const SessionAlertPage = () => {
 						id: c.id,
 					}),
 				),
+				microsoftTeamsChannels:
+					alert.MicrosoftTeamsChannelsToNotify.map((c: any) => ({
+						...c,
+						displayValue: c.name,
+						value: c.id,
+						id: c.id,
+					})),
 				webhookDestinations: alert.WebhookDestinations.map(
 					(d: any) => d.url,
 				),
@@ -244,6 +252,11 @@ export const SessionAlertPage = () => {
 									id: c.id,
 								}),
 							),
+							microsoft_teams_channels:
+								values.microsoftTeamsChannels.map((c) => ({
+									name: c.name,
+									id: c.id,
+								})),
 							emails: formStore.getValue(formStore.names.emails),
 							environments: formStore.getValue(
 								formStore.names.excludedEnvironments,

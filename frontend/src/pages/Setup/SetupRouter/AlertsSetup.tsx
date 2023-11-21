@@ -129,6 +129,7 @@ export const AlertsSetup: React.FC = function () {
 		| 'slack'
 		| 'discord'
 		| 'email'
+		| 'microsoft_teams'
 		| undefined
 
 	// cache the state of the alerts setup so that we only decide
@@ -310,7 +311,7 @@ const PlatformPicker: React.FC = function () {
 const AlertPicker = function ({
 	platform,
 }: {
-	platform: 'slack' | 'discord' | 'email'
+	platform: 'slack' | 'discord' | 'email' | 'microsoft_teams'
 }) {
 	const { projectId } = useProjectId()
 	const createLoading = useRef<boolean>(false)
@@ -380,6 +381,7 @@ const AlertPicker = function ({
 				})
 				channelID = data?.upsertDiscordChannel.id ?? ''
 			}
+			// TODO: do we have to do same for microsoft_teams platform?
 			return channelID
 		},
 		[platform, projectId, upsertDiscordChannel, upsertSlackChannel],
@@ -419,6 +421,15 @@ const AlertPicker = function ({
 								: [],
 						discord_channels:
 							platform === 'discord'
+								? [
+										{
+											id: channelID,
+											name: destination,
+										},
+								  ]
+								: [],
+						microsoft_teams_channels:
+							platform === 'microsoft_teams'
 								? [
 										{
 											id: channelID,

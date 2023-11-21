@@ -12,6 +12,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidMicrosoftTeams,
 	IconSolidPlayCircle,
 	IconSolidRefresh,
 	Menu,
@@ -38,6 +39,7 @@ import { useNavigate } from 'react-router-dom'
 import { Link } from '@/components/Link'
 import {
 	DiscordChannel,
+	MicrosoftTeamsChannel,
 	SanitizedSlackChannel,
 } from '@/graph/generated/schemas'
 
@@ -185,6 +187,10 @@ function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
 		DiscordChannelsToNotify:
 			alert?.DiscordChannelsToNotify ||
 			alert?.discord_channels_to_notify ||
+			[],
+		MicrosoftTeamsChennelsToNotify:
+			alert?.MicrosoftTeamsChennelsToNotify ||
+			alert?.microsoft_teams_channels_to_notify ||
 			[],
 		EmailsToNotify: alert?.EmailsToNotify || alert?.emails_to_notify || [],
 		WebhookDestinations:
@@ -505,6 +511,11 @@ function AlertsPageLoaded({
 																		0 ||
 																	getAlertNotifyField(
 																		record,
+																		'MicrosoftTeamsChannelsToNotify',
+																	).length >
+																		0 ||
+																	getAlertNotifyField(
+																		record,
 																		'EmailsToNotify',
 																	).length >
 																		0 ||
@@ -547,7 +558,7 @@ function AlertsPageLoaded({
 																			)}
 																			{getAlertNotifyField(
 																				record,
-																				'DiscordChannelsToNotify',
+																				'Discord',
 																			).map(
 																				(
 																					channel: DiscordChannel,
@@ -565,6 +576,50 @@ function AlertsPageLoaded({
 																						}
 																						iconLeft={
 																							<IconSolidDiscord
+																								size={
+																									12
+																								}
+																								fill={
+																									vars
+																										.theme
+																										.interactive
+																										.fill
+																										.secondary
+																										.content
+																										.text
+																								}
+																							/>
+																						}
+																						onClick={() =>
+																							navigateToAlert(
+																								record,
+																							)
+																						}
+																					>
+																						{`${channel.name}`}
+																					</Tag>
+																				),
+																			)}
+																			{getAlertNotifyField(
+																				record,
+																				'MicrosoftTeamsChannelsToNotify',
+																			).map(
+																				(
+																					channel: MicrosoftTeamsChannel,
+																				) => (
+																					<Tag
+																						key={
+																							channel.id
+																						}
+																						kind="secondary"
+																						size="medium"
+																						shape="basic"
+																						emphasis="medium"
+																						disabled={
+																							record.disabled
+																						}
+																						iconLeft={
+																							<IconSolidMicrosoftTeams
 																								size={
 																									12
 																								}
