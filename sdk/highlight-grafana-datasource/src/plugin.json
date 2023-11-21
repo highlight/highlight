@@ -3,6 +3,8 @@
   "type": "datasource",
   "name": "Highlight.io",
   "id": "highlight-grafana-datasource",
+  "backend": true,
+  "executable": "gpx_highlight_grafana_backend_datasource",
   "metrics": true,
   "info": {
     "description": "highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)",
@@ -31,9 +33,9 @@
   "routes": [
     {
       "path": "highlight",
-      "url": "https://pri.highlight.io/",
+      "url": "https://37aafe780e03.ngrok.app/private",
       "tokenAuth": {
-        "url": "https://pri.highlight.io/oauth/token",
+        "url": "https://37aafe780e03.ngrok.app/oauth/token",
         "params": {
           "grant_type": "client_credentials",
           "client_id": "{{ .JsonData.clientID }}",
