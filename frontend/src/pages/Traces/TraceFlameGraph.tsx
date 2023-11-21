@@ -1,4 +1,5 @@
 import { Box, Text } from '@highlight-run/ui'
+import clsx from 'clsx'
 import { throttle } from 'lodash'
 import {
 	Fragment,
@@ -14,6 +15,10 @@ import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
 import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { getTraceDurationString } from '@/pages/Traces/utils'
+import {
+	styledHorizontalScrollbar,
+	styledVerticalScrollbar,
+} from '@/style/common.css'
 
 import * as styles from './TraceFlameGraph.css'
 
@@ -144,10 +149,11 @@ export const TraceFlameGraph: React.FC = () => {
 			<Box
 				ref={svgContainerRef}
 				overflowX="scroll"
-				cssClass={styles.flameGraph}
-				style={{
-					maxHeight: 400,
-				}}
+				cssClass={clsx(
+					styledVerticalScrollbar,
+					styledHorizontalScrollbar,
+					styles.flameGraph,
+				)}
 			>
 				{width && (
 					<svg
