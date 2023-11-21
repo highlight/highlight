@@ -92,9 +92,20 @@ export const TraceFlameGraphNode = memo<Props>(
 		const color = isSelectedSpan ? theme.selectedColor : theme.color
 		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
 
-		const distanceFromParent = span.parent
+		const distanceFromParent = span.parent?.depth
 			? span.depth - span.parent.depth
 			: 0
+		const parentOffsetX = span.parent?.startTime
+			? offsetX -
+			  ((span.parent.startTime / totalDuration) * width * zoom +
+					outsidePadding)
+			: undefined
+		const parentOffsetY = span.parent?.depth
+			? offsetY -
+			  (span.parent.depth * (lineHeight + 3) +
+					(ticksHeight + outsidePadding) -
+					lineHeight / 2)
+			: undefined
 
 		return (
 			<>
@@ -119,31 +130,15 @@ export const TraceFlameGraphNode = memo<Props>(
 						data-parent-id={span.parentSpanID}
 					/>
 
-					{span.parent &&
-						distanceFromParent > 1 &&
+					{distanceFromParent > 1 &&
+						parentOffsetX &&
+						parentOffsetY &&
 						(isHoveredSpan || isSelectedSpan) && (
 							<line
 								x1={1}
 								y1={1}
-								x2={
-									Math.abs(
-										offsetX -
-											((span.parent.startTime /
-												totalDuration) *
-												width *
-												zoom +
-												outsidePadding),
-									) * -1
-								}
-								y2={
-									Math.abs(
-										offsetY -
-											span.parent.depth *
-												(lineHeight + 3) +
-											(ticksHeight + outsidePadding) -
-											lineHeight / 2,
-									) * -1
-								}
+								x2={-parentOffsetX}
+								y2={-parentOffsetY}
 								stroke={stroke}
 								strokeWidth="1"
 								data-attrs={JSON.stringify({})}
