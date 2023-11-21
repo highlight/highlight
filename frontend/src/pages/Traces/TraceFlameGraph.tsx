@@ -15,6 +15,8 @@ import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 
+import * as styles from './TraceFlameGraph.css'
+
 const MAX_TICKS = 6
 export const ticksHeight = 24
 export const outsidePadding = 4
@@ -142,6 +144,7 @@ export const TraceFlameGraph: React.FC = () => {
 			<Box
 				ref={svgContainerRef}
 				overflowX="scroll"
+				cssClass={styles.flameGraph}
 				style={{
 					maxHeight: 400,
 				}}
