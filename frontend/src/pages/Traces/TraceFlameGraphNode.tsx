@@ -132,8 +132,8 @@ export const TraceFlameGraphNode = memo<Props>(
 						parentOffsetX &&
 						parentOffsetY && (
 							<line
-								x1={0}
-								y1={0}
+								x1={-1}
+								y1={-1}
 								x2={-parentOffsetX}
 								y2={-parentOffsetY}
 								stroke={stroke}
