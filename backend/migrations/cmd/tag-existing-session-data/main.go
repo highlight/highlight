@@ -131,7 +131,7 @@ func main() {
 					continuationToken = resp.NextContinuationToken
 				}
 
-				log.WithContext(ctx).Infof("done tagging for project %d", projectId)
+				log.WithContext(ctx).Infof("done deleting for project %d", projectId)
 			})
 		}
 	}
