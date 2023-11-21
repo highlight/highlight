@@ -141,9 +141,9 @@ export const TraceFlameGraphNode = memo<Props>(
 								stroke={stroke}
 								strokeWidth="1"
 								opacity={
-									isHoveredSpan || isSelectedSpan ? 1 : 0.5
+									isHoveredSpan || isSelectedSpan ? 1 : 0.15
 								}
-								data-attrs={JSON.stringify({})}
+								pointerEvents="none"
 							/>
 						)}
 
