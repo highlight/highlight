@@ -16,18 +16,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/pkg/errors"
 )
-
-const BatchSize = 100
-
-func createFile(name string) (*os.File, error) {
-	file, err := os.Create(name)
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating file")
-	}
-	return file, nil
-}
 
 func main() {
 	ctx := context.Background()
