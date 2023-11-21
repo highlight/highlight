@@ -1,6 +1,7 @@
 import { memo } from 'react'
 
 import {
+	depthMultiplier,
 	lineHeight,
 	outsidePadding,
 	ticksHeight,
@@ -9,7 +10,6 @@ import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
 type Props = {
-	depth: number
 	span: FlameGraphSpan
 	width: number
 	zoom: number
@@ -62,7 +62,7 @@ const minWidthToDisplayText = 20
 const fontSize = 12
 
 export const TraceFlameGraphNode = memo<Props>(
-	({ depth, span, width, zoom, setTooltipCoordinates }) => {
+	({ span, width, zoom, setTooltipCoordinates }) => {
 		const {
 			errors,
 			totalDuration,
@@ -73,8 +73,8 @@ export const TraceFlameGraphNode = memo<Props>(
 		const spanWidth = (span.duration / totalDuration) * width * zoom
 		const offsetX =
 			(span.startTime / totalDuration) * width * zoom + outsidePadding
-		const offsetY = depth
-			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
+		const offsetY = span.depth
+			? span.depth * depthMultiplier
 			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const hasError = errors.find((error) => error.span_id === span.spanID)
@@ -90,6 +90,10 @@ export const TraceFlameGraphNode = memo<Props>(
 		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
 		const color = isSelectedSpan ? theme.selectedColor : theme.color
 		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
+		const distanceFromParent = span.depth - (span.parent?.depth ?? 0)
+		const parentOffsetX = span.parent?.depth
+			? span.parent.depth * depthMultiplier
+			: undefined
 
 		return (
 			<>
@@ -113,6 +117,19 @@ export const TraceFlameGraphNode = memo<Props>(
 						width={spanWidth}
 						data-parent-id={span.parentSpanID}
 					/>
+
+					{distanceFromParent > 1 && (
+						<line
+							x1={parentOffsetX}
+							y1="-3px"
+							x2={parentOffsetX}
+							y2={`-${
+								(distanceFromParent - 1) * lineHeight + 6
+							}px`}
+							stroke={stroke}
+							strokeWidth="1"
+						/>
+					)}
 
 					{spanWidth > minWidthToDisplayText && (
 						<foreignObject

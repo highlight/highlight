@@ -54,21 +54,20 @@ export const getTraceDurationString = (duration: number) => {
 }
 
 export type FlameGraphSpan = {
-	name: string
-	start: number // nanoseconds since start of trace
+	depth: number
+	parent?: FlameGraphSpan
 	children?: FlameGraphSpan[]
 } & Trace
 
 // Organizes spans into a tree structure based on their parentSpanID. Spans
 // without a parentSpanID are considered root spans. Spans with a parentSpanID
 // are added as children to the span with the matching spanID.
-export const organizeSpansWithChildren = (spans: Partial<Trace>[]) => {
+export const organizeSpansWithChildren = (spans: Partial<FlameGraphSpan>[]) => {
 	// Object is not modifieable, so we need to clone it to add children
 	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
 
 	const sortedTrace = tempSpans.reduce((acc, span) => {
 		const parentSpanID = span.parentSpanID
-		span.name = span.spanName
 
 		if (parentSpanID) {
 			const parentSpan = tempSpans.find(
@@ -95,7 +94,9 @@ export const organizeSpansWithChildren = (spans: Partial<Trace>[]) => {
 
 // Organizes spans into levels based on their start and end times. Spans that
 // overlap are bumped to the next level.
-export const organizeSpansForFlameGraph = (trace: Partial<Trace>[]) => {
+export const organizeSpansForFlameGraph = (
+	trace: Partial<FlameGraphSpan>[],
+) => {
 	const rootSpan = trace.find((span) => !span.parentSpanID)
 	const spans = [[]]
 
@@ -105,10 +106,11 @@ export const organizeSpansForFlameGraph = (trace: Partial<Trace>[]) => {
 }
 
 const organizeSpanInLevel = (
-	span: Partial<Trace>,
-	trace: Partial<Trace>[],
-	spans: Partial<Trace>[][],
+	span: Partial<FlameGraphSpan>,
+	trace: Partial<FlameGraphSpan>[],
+	spans: Partial<FlameGraphSpan>[][],
 	depthIndex: number,
+	parent?: FlameGraphSpan,
 ) => {
 	spans[depthIndex] = spans[depthIndex] ?? []
 
@@ -117,17 +119,21 @@ const organizeSpanInLevel = (
 	)
 
 	if (isOverlapping) {
-		organizeSpanInLevel(span, trace, spans, depthIndex + 1)
+		organizeSpanInLevel(span, trace, spans, depthIndex + 1, parent)
 		return
 	} else {
-		spans[depthIndex].push(span)
+		spans[depthIndex].push({
+			...span,
+			depth: depthIndex,
+			parent: parent as FlameGraphSpan,
+		})
 	}
 
 	const children = trace.filter((s) => s.parentSpanID === span.spanID)
 
 	if (children.length > 0) {
 		children.forEach((child) => {
-			organizeSpanInLevel(child, trace, spans, depthIndex + 1)
+			organizeSpanInLevel(child, trace, spans, depthIndex + 1, span)
 		})
 	}
 }

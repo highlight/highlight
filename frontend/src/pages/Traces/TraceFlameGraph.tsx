@@ -19,7 +19,7 @@ const MAX_TICKS = 6
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
-const defaultCanvasWidth = 660
+const depthMultiplier = lineHeight + 3 + (ticksHeight + outsidePadding)
 const timeUnits = [
 	{ unit: 'h', divider: 1e9 * 60 * 60 },
 	{ unit: 'm', divider: 1e9 * 60 },
@@ -54,6 +54,7 @@ export const TraceFlameGraph: React.FC = () => {
 			timeUnits.find(
 				({ divider }) => totalDuration / length / divider > 1,
 			) ?? timeUnits[timeUnits.length - 2]
+
 		return Array.from({ length }).map((_, index) => {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
@@ -206,7 +207,6 @@ export const TraceFlameGraph: React.FC = () => {
 											<TraceFlameGraphNode
 												key={span.spanID}
 												span={span}
-												depth={index}
 												width={
 													width - outsidePadding * 2
 												}

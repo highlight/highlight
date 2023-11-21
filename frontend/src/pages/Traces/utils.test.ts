@@ -107,12 +107,12 @@ const flattenSpans = (spans: any) => {
 }
 
 const spans = {
-	a: { startTime: 10, duration: 100, spanID: 'a', parentSpanID: undefined }, // 1
-	b: { startTime: 15, duration: 10, spanID: 'b', parentSpanID: 'a' }, // 2
-	c: { startTime: 20, duration: 10, spanID: 'c', parentSpanID: 'b' }, // 3
-	d: { startTime: 26, duration: 10, spanID: 'd', parentSpanID: 'a' }, // 2
-	e: { startTime: 50, duration: 10, spanID: 'e', parentSpanID: 'd' }, // 3 - child of 2
-	f: { startTime: 60, duration: 10, spanID: 'f', parentSpanID: 'e' }, // 4 - child of 3
+	a: { startTime: 10, duration: 100, spanID: 'a', parentSpanID: undefined }, // 0
+	b: { startTime: 15, duration: 10, spanID: 'b', parentSpanID: 'a' }, // 1
+	c: { startTime: 20, duration: 10, spanID: 'c', parentSpanID: 'b' }, // 2
+	d: { startTime: 26, duration: 10, spanID: 'd', parentSpanID: 'a' }, // 1
+	e: { startTime: 50, duration: 10, spanID: 'e', parentSpanID: 'd' }, // 2 - child of 1
+	f: { startTime: 60, duration: 10, spanID: 'f', parentSpanID: 'e' }, // 3 - child of 2
 }
 
 const unsortedSpansWithOverlaps = [
