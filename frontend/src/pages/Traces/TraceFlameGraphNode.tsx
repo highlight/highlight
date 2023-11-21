@@ -128,17 +128,19 @@ export const TraceFlameGraphNode = memo<Props>(
 						data-parent-id={span.parentSpanID}
 					/>
 
-					{distanceFromParent > 1 && (
-						<line
-							x1={0}
-							y1={0}
-							x2={parentOffsetX}
-							y2={parentOffsetY}
-							stroke={stroke}
-							strokeWidth="1"
-							data-attrs={JSON.stringify({})}
-						/>
-					)}
+					{distanceFromParent > 1 &&
+						parentOffsetX &&
+						parentOffsetY && (
+							<line
+								x1={0}
+								y1={0}
+								x2={-parentOffsetX}
+								y2={-parentOffsetY}
+								stroke={stroke}
+								strokeWidth="1"
+								data-attrs={JSON.stringify({})}
+							/>
+						)}
 
 					{spanWidth > minWidthToDisplayText && (
 						<foreignObject
