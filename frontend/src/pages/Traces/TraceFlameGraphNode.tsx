@@ -77,6 +77,7 @@ export const TraceFlameGraphNode = memo<Props>(
 			? span.depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
+		const isHoveredSpan = hoveredSpan?.spanID === span.spanID
 		const hasError = errors.find((error) => error.span_id === span.spanID)
 		const isDbSpan = !!span.traceAttributes?.db?.system
 		const isFrontendSpan =
@@ -90,6 +91,7 @@ export const TraceFlameGraphNode = memo<Props>(
 		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
 		const color = isSelectedSpan ? theme.selectedColor : theme.color
 		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
+
 		const distanceFromParent = span.parent?.depth
 			? span.depth - span.parent.depth
 			: 0
@@ -100,11 +102,9 @@ export const TraceFlameGraphNode = memo<Props>(
 			: undefined
 		const parentOffsetY = span.parent?.depth
 			? offsetY -
-			  (span.parent.depth * lineHeight +
-					3 +
+			  (span.parent.depth * (lineHeight + 3) +
 					(ticksHeight + outsidePadding))
 			: undefined
-		const isHoveredSpan = hoveredSpan?.spanID === span.spanID
 
 		return (
 			<>
@@ -132,7 +132,7 @@ export const TraceFlameGraphNode = memo<Props>(
 					{distanceFromParent > 1 &&
 						parentOffsetX &&
 						parentOffsetY &&
-						isHoveredSpan && (
+						(isHoveredSpan || isSelectedSpan) && (
 							<line
 								x1={1}
 								y1={1}
