@@ -140,7 +140,7 @@ export const TraceFlameGraphNode = memo<Props>(
 								x2={-parentOffsetX}
 								y2={-parentOffsetY}
 								stroke={stroke}
-								strokeWidth="2"
+								strokeWidth="1"
 								data-attrs={JSON.stringify({})}
 							/>
 						)}
