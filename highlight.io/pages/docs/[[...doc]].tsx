@@ -364,7 +364,10 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			}
 			if (d.array_path.indexOf(a) == d.array_path.length - 1) {
 				foundEntry.docPathId = docid
-				foundEntry.tocHeading = docPaths[docid].metadata.title || 'test'
+				foundEntry.tocHeading =
+					docPaths[docid].metadata.toc ||
+					docPaths[docid].metadata.title ||
+					'missing metadata.toc'
 			}
 			currentEntry = foundEntry
 		}

@@ -1,6 +1,6 @@
 ---
-title: Ruby App
-heading: Using highlight.io with Other Ruby Frameworks
+toc: Ruby App
+title: Using highlight.io with Other Ruby Frameworks
 slug: other
 quickstart: true
 ---

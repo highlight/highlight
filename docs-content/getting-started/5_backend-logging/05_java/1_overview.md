@@ -1,6 +1,6 @@
 ---
-title: Overview
-headline: Logging in Java
+toc: Overview
+title: Logging in Java
 slug: logging-in-java
 ---
 

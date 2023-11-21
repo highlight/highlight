@@ -1,4 +1,5 @@
 ---
+toc: Overview
 title: SDK Configuration Overview
 slug: welcome-to-highlight
 ---

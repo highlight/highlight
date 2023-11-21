@@ -9,7 +9,6 @@ import {
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
 import { Ariakit } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
@@ -34,21 +33,6 @@ export const WorkspaceRouter = () => {
 		variables: { workspace_id: workspace_id ?? '' },
 		skip: !isLoggedIn || !workspace_id, // Higher level routers decide when guests are allowed to hit this router
 	})
-
-	useEffect(() => {
-		if (!isOnPrem) {
-			window.Intercom('update', {
-				hide_default_launcher: true,
-			})
-		}
-		return () => {
-			if (!isOnPrem) {
-				window.Intercom('update', {
-					hide_default_launcher: false,
-				})
-			}
-		}
-	}, [])
 
 	useEffect(() => {
 		if (isLoggedIn) {

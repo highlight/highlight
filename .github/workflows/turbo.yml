@@ -2,7 +2,7 @@ name: Monorepo
 
 on:
     push:
-        branches: ['main', 'changeset-release/main']
+        branches: ['main']
     pull_request:
         types: [opened, reopened, synchronize, assigned, review_requested]
 
@@ -57,7 +57,7 @@ jobs:
               run: yarn format-check
 
             - name: Configure AWS credentials
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/changeset-release/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               uses: aws-actions/configure-aws-credentials@v2
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -70,7 +70,7 @@ jobs:
             # setting REACT_APP_COMMIT_SHA to a dummy value in CI to allow consistent turborepo remote caching
 
             - name: Build & test (with render environment)
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/changeset-release/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
@@ -87,14 +87,14 @@ jobs:
                   REACT_APP_COMMIT_SHA: abcdef1234567890a1b2c3d4e5f6fedcba098765
 
             - name: Test session screenshot lambda
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/changeset-release/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: doppler run -- yarn test:render
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
             - name: Validate session screenshot lambda size
               # this can only run after `yarn test:render` runs
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/changeset-release/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn workspace render zip && yarn workspace render check
 
             - name: Publish client bundle (preview)
@@ -184,7 +184,7 @@ jobs:
               run: poetry install --all-extras
 
             - name: Login to Docker Hub
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/changeset-release/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               uses: docker/login-action@v2
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}

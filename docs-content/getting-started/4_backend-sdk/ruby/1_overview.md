@@ -1,5 +1,5 @@
 ---
-heading: Error Monitoring in Ruby
+toc: Overview
 title: Error Monitoring in Ruby
 slug: ruby
 createdAt: 2021-09-13T22:07:04.000Z

@@ -1,5 +1,6 @@
 ---
-title: Overview
+toc: Overview
+title: Open Source Contributing Overview
 heading: Contributing Overview
 slug: getting-started
 createdAt: 2023-01-24T20:28:14.000Z

@@ -1,6 +1,6 @@
 ---
-headline: Self Host & Local Development
-title: Overview
+toc: Overview
+title: Self Host & Local Development
 slug: self-host
 ---
 
