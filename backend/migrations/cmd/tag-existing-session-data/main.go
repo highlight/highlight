@@ -114,7 +114,7 @@ func main() {
 					}
 
 					if len(objectsToDelete) > 0 {
-						log.WithContext(ctx).Infof("deleting %d objects in bucket %s project %d iteration %d", objectsToDelete, config.bucket, projectId, n)
+						log.WithContext(ctx).Infof("deleting %d objects in bucket %s project %d iteration %d", len(objectsToDelete), config.bucket, projectId, n)
 						if _, err := storageClient.S3ClientEast2.DeleteObjects(ctx, &s3.DeleteObjectsInput{
 							Bucket: pointy.String(config.bucket),
 							Delete: &types.Delete{
