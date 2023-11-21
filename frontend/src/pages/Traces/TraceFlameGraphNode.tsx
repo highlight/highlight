@@ -64,6 +64,7 @@ export const TraceFlameGraphNode = memo<Props>(
 	({ span, width, zoom, setTooltipCoordinates }) => {
 		const {
 			errors,
+			hoveredSpan,
 			totalDuration,
 			selectedSpan,
 			setHoveredSpan,
@@ -103,8 +104,8 @@ export const TraceFlameGraphNode = memo<Props>(
 					3 +
 					(ticksHeight + outsidePadding))
 			: undefined
+		const isHoveredSpan = hoveredSpan?.spanID === span.spanID
 
-		console.log(distanceFromParent)
 		return (
 			<>
 				<g
@@ -130,7 +131,8 @@ export const TraceFlameGraphNode = memo<Props>(
 
 					{distanceFromParent > 1 &&
 						parentOffsetX &&
-						parentOffsetY && (
+						parentOffsetY &&
+						isHoveredSpan && (
 							<line
 								x1={1}
 								y1={1}
