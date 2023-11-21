@@ -35,6 +35,10 @@ class FastAPIMiddleware(BaseHTTPMiddleware):
                     status_code=resp.status_code,
                     headers=resp.headers.__dict__,
                     detail=body.decode(),
+                    attributes={
+                        "http.method": request.method,
+                        "http.url": request.url,
+                    },
                 )
                 return Response(
                     content=body,

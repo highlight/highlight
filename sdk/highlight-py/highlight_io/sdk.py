@@ -228,6 +228,8 @@ class H(object):
             "exception.message": detail,
             "exception.stacktrace": "".join(traceback.format_stack()),
             "http.status_code": status_code,
+            "http.headers": headers,
+            "http.detail": detail,
         }
         attrs.update(attributes or dict())
         for k, v in headers.items():
