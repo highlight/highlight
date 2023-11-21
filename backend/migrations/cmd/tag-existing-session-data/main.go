@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
@@ -73,61 +74,67 @@ func main() {
 		},
 	}
 
-	for _, config := range configs {
-		for _, projectId := range projectIds {
-			retentionPeriod := projectIdToRetentionPeriod[projectId]
+	pool := workerpool.New(20)
+	for _, c := range configs {
+		for _, p := range projectIds {
+			config := c
+			projectId := p
+			pool.SubmitRecover(func() {
+				retentionPeriod := projectIdToRetentionPeriod[projectId]
 
-			var continuationToken *string
-			for n := 0; ; n++ {
-				log.WithContext(ctx).Infof("tagging for bucket %s project %d iteration %d", config.bucket, projectId, n)
-
-				resp, err := storageClient.S3ClientEast2.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-					Bucket:            pointy.String(config.bucket),
-					Prefix:            pointy.String(fmt.Sprintf("%s%d/", config.prefix, projectId)),
-					ContinuationToken: continuationToken,
-				})
-				if err != nil {
-					log.WithContext(ctx).Fatal(err)
-				}
-
-				var objectsToDelete []types.ObjectIdentifier
-				for _, item := range resp.Contents {
-					var retainUntil time.Time
-					switch retentionPeriod {
-					case modelInputs.RetentionPeriodThreeMonths:
-						retainUntil = item.LastModified.AddDate(0, 3, 0)
-					case modelInputs.RetentionPeriodSixMonths:
-						retainUntil = item.LastModified.AddDate(0, 6, 0)
-					case modelInputs.RetentionPeriodTwelveMonths:
-						retainUntil = item.LastModified.AddDate(0, 12, 0)
-					case modelInputs.RetentionPeriodTwoYears:
-						retainUntil = item.LastModified.AddDate(2, 0, 0)
-					default:
-						log.WithContext(ctx).Fatalf("invalid retention period %s", retentionPeriod)
-					}
-					if retainUntil.Before(time.Now()) {
-						objectsToDelete = append(objectsToDelete, types.ObjectIdentifier{Key: pointy.String(*item.Key)})
-					}
-				}
-
-				if len(objectsToDelete) > 0 {
-					if _, err := storageClient.S3ClientEast2.DeleteObjects(ctx, &s3.DeleteObjectsInput{
-						Bucket: pointy.String(config.bucket),
-						Delete: &types.Delete{
-							Objects: objectsToDelete,
-						},
-					}); err != nil {
+				var continuationToken *string
+				for n := 0; ; n++ {
+					resp, err := storageClient.S3ClientEast2.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
+						Bucket:            pointy.String(config.bucket),
+						Prefix:            pointy.String(fmt.Sprintf("%s%d/", config.prefix, projectId)),
+						ContinuationToken: continuationToken,
+					})
+					if err != nil {
 						log.WithContext(ctx).Fatal(err)
 					}
+
+					var objectsToDelete []types.ObjectIdentifier
+					for _, item := range resp.Contents {
+						var retainUntil time.Time
+						switch retentionPeriod {
+						case modelInputs.RetentionPeriodThreeMonths:
+							retainUntil = item.LastModified.AddDate(0, 3, 0)
+						case modelInputs.RetentionPeriodSixMonths:
+							retainUntil = item.LastModified.AddDate(0, 6, 0)
+						case modelInputs.RetentionPeriodTwelveMonths:
+							retainUntil = item.LastModified.AddDate(0, 12, 0)
+						case modelInputs.RetentionPeriodTwoYears:
+							retainUntil = item.LastModified.AddDate(2, 0, 0)
+						default:
+							log.WithContext(ctx).Fatalf("invalid retention period %s", retentionPeriod)
+						}
+						if retainUntil.Before(time.Now()) {
+							objectsToDelete = append(objectsToDelete, types.ObjectIdentifier{Key: pointy.String(*item.Key)})
+						}
+					}
+
+					if len(objectsToDelete) > 0 {
+						log.WithContext(ctx).Infof("deleting %d objects in bucket %s project %d iteration %d", objectsToDelete, config.bucket, projectId, n)
+						if _, err := storageClient.S3ClientEast2.DeleteObjects(ctx, &s3.DeleteObjectsInput{
+							Bucket: pointy.String(config.bucket),
+							Delete: &types.Delete{
+								Objects: objectsToDelete,
+							},
+						}); err != nil {
+							log.WithContext(ctx).Fatal(err)
+						}
+					}
+
+					if !resp.IsTruncated {
+						break
+					}
+					continuationToken = resp.NextContinuationToken
 				}
 
-				if !resp.IsTruncated {
-					break
-				}
-				continuationToken = resp.NextContinuationToken
-			}
-
-			log.WithContext(ctx).Infof("done tagging for project %d", projectId)
+				log.WithContext(ctx).Infof("done tagging for project %d", projectId)
+			})
 		}
 	}
+
+	pool.StopWait()
 }
