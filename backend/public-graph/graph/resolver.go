@@ -2875,7 +2875,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
+	}
 
+	if !excluded {
 		if err := r.Redis.AddSessionToProcess(ctx, sessionID, SessionProcessDelaySeconds); err != nil {
 			return err
 		}
