@@ -103,8 +103,8 @@ export const TraceFlameGraphNode = memo<Props>(
 		const parentOffsetY = span.parent?.depth
 			? offsetY -
 			  (span.parent.depth * (lineHeight + 3) +
-					(ticksHeight + outsidePadding) -
-					lineHeight / 2)
+					(ticksHeight + outsidePadding)) -
+			  lineHeight / 2
 			: undefined
 
 		return (
