@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -73,15 +74,13 @@ func main() {
 	}
 
 	for _, config := range configs {
-		log.WithContext(ctx).Infof("starting tagging for bucket %s", config.bucket)
-
 		for _, projectId := range projectIds {
-			log.WithContext(ctx).Infof("starting tagging for project %d", projectId)
-
 			retentionPeriod := projectIdToRetentionPeriod[projectId]
 
 			var continuationToken *string
-			for {
+			for n := 0; ; n++ {
+				log.WithContext(ctx).Infof("tagging for bucket %s project %d iteration %d", config.bucket, projectId, n)
+
 				resp, err := storageClient.S3ClientEast2.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 					Bucket:            pointy.String(config.bucket),
 					Prefix:            pointy.String(fmt.Sprintf("%s%d/", config.prefix, projectId)),
@@ -91,19 +90,33 @@ func main() {
 					log.WithContext(ctx).Fatal(err)
 				}
 
+				var objectsToDelete []types.ObjectIdentifier
 				for _, item := range resp.Contents {
-					_, err := storageClient.S3ClientEast2.PutObjectTagging(ctx, &s3.PutObjectTaggingInput{
+					var retainUntil time.Time
+					switch retentionPeriod {
+					case modelInputs.RetentionPeriodThreeMonths:
+						retainUntil = item.LastModified.AddDate(0, 3, 0)
+					case modelInputs.RetentionPeriodSixMonths:
+						retainUntil = item.LastModified.AddDate(0, 6, 0)
+					case modelInputs.RetentionPeriodTwelveMonths:
+						retainUntil = item.LastModified.AddDate(0, 12, 0)
+					case modelInputs.RetentionPeriodTwoYears:
+						retainUntil = item.LastModified.AddDate(2, 0, 0)
+					default:
+						log.WithContext(ctx).Fatalf("invalid retention period %s", retentionPeriod)
+					}
+					if retainUntil.Before(time.Now()) {
+						objectsToDelete = append(objectsToDelete, types.ObjectIdentifier{Key: pointy.String(*item.Key)})
+					}
+				}
+
+				if len(objectsToDelete) > 0 {
+					if _, err := storageClient.S3ClientEast2.DeleteObjects(ctx, &s3.DeleteObjectsInput{
 						Bucket: pointy.String(config.bucket),
-						Key:    item.Key,
-						Tagging: &types.Tagging{
-							TagSet: []types.Tag{
-								{
-									Key:   pointy.String("RetentionPeriod"),
-									Value: pointy.String(string(retentionPeriod))},
-							},
+						Delete: &types.Delete{
+							Objects: objectsToDelete,
 						},
-					})
-					if err != nil {
+					}); err != nil {
 						log.WithContext(ctx).Fatal(err)
 					}
 				}
