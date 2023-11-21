@@ -1,16 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { UserDropdown } from '@components/Header/UserDropdown/UserDropdown'
 import { Box } from '@highlight-run/ui'
-import { ReactNode, useEffect } from 'react'
+import { ReactNode } from 'react'
 
 export const Landing = ({ children }: { children: ReactNode }) => {
 	const { isLoggedIn } = useAuthContext()
-
-	useEffect(() => {
-		window.Intercom('update', {
-			hide_default_launcher: false,
-		})
-	}, [])
 
 	return (
 		<Box

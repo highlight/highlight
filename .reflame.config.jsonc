@@ -47,7 +47,6 @@
   "defaultEnvironment": "production",
   "scripts": [
     "/gtm.js",
-    "/intercom.js",
     "/index",
     "/vanilla.js",
     "/canny.js",
