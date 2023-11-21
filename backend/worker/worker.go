@@ -63,6 +63,8 @@ const EVENTS_READ_TIMEOUT = 300000
 // cancel refreshing materialized views after 30 minutes
 const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 30 * 60 * 1000
 
+const processSessionLimit = 200
+
 type Worker struct {
 	Resolver       *mgraph.Resolver
 	PublicResolver *pubgraph.Resolver
@@ -557,6 +559,10 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+	if s.Excluded {
+		return nil
+	}
+
 	project := &model.Project{}
 	if err := w.Resolver.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).Take(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
@@ -999,86 +1005,47 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	return nil
 }
 
-// Start begins the worker's tasks.
-func (w *Worker) Start(ctx context.Context) {
-	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
-	lockPeriod := 30            // time in minutes
+func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod int, lockPeriod int, limit int) ([]*model.Session, error) {
+	sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
+	defer sessionsSpan.Finish()
 
-	if util.IsDevEnv() {
-		payloadLookbackPeriod = 8
-		lockPeriod = 1
+	sessionIds, err := w.Resolver.Redis.GetSessionsToProcess(ctx, lockPeriod, limit)
+	if err != nil {
+		return nil, err
 	}
 
-	go reportProcessSessionCount(ctx, w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
+	sessions := []*model.Session{}
+	if err := w.Resolver.DB.Model(&model.Session{}).Where("id in ?", sessionIds).Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	rand.Shuffle(len(sessions), func(i, j int) {
+		sessions[i], sessions[j] = sessions[j], sessions[i]
+	})
+
+	// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
+	hlog.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
+
+	return sessions, nil
+}
+
+// Start begins the worker's tasks.
+func (w *Worker) Start(ctx context.Context) {
+	go reportProcessSessionCount(ctx, w.Resolver.DB, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes)
 	maxWorkerCount := 10
-	processSessionLimit := 200
 	wp := workerpool.New(maxWorkerCount)
 	wp.SetPanicHandler(util.Recover)
 	for {
 		time.Sleep(1 * time.Second)
-		sessions := []*model.Session{}
-		sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
-		sessionLimitJitter := rand.Intn(100)
-		limit := processSessionLimit + sessionLimitJitter
-		txStart := time.Now()
-		if err := w.Resolver.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
-			defer cancel()
 
-			errs := make(chan error, 1)
-			go func() {
-				defer util.Recover()
-				if err := tx.Raw(`
-						WITH t AS (
-							UPDATE sessions
-							SET lock=NOW()
-							WHERE id in (
-								SELECT ID FROM (
-									SELECT id
-									FROM sessions
-									WHERE (processed = false)
-										AND (excluded = false)
-										AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
-										AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
-										AND (retry_count < ?)
-									LIMIT ?
-									FOR UPDATE SKIP LOCKED
-								) s
-								ORDER BY id
-								FOR UPDATE SKIP LOCKED
-							)
-							RETURNING *
-						)
-						SELECT * FROM t;
-					`, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, limit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Error; err != nil {
-					errs <- err
-					return
-				}
-				errs <- nil
-			}()
-
-			select {
-			case <-transactionCtx.Done():
-				return e.New("transaction timeout occurred")
-			case err := <-errs:
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		}); err != nil {
-			log.WithContext(ctx).Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
-			sessionsSpan.Finish()
+		limit := processSessionLimit + rand.Intn(100)
+		sessions, err := w.GetSessionsToProcess(ctx, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes, limit)
+		if err != nil {
+			log.WithContext(ctx).Error(err)
 			continue
 		}
-		rand.New(rand.NewSource(time.Now().UnixNano()))
-		rand.Shuffle(len(sessions), func(i, j int) {
-			sessions[i], sessions[j] = sessions[j], sessions[i]
-		})
-		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
-		hlog.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
-		sessionsSpan.Finish()
+
 		type SessionLog struct {
 			SessionID int
 			ProjectID int
@@ -1116,6 +1083,9 @@ func (w *Worker) Start(ctx context.Context) {
 					var excluded bool
 					if nextCount >= MAX_RETRIES {
 						excluded = true
+						if err := w.Resolver.Redis.RemoveSessionToProcess(ctx, session.ID); err != nil {
+							log.WithContext(ctx).Error(err)
+						}
 					}
 
 					if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{}).
@@ -1138,6 +1108,10 @@ func (w *Worker) Start(ctx context.Context) {
 					}
 
 					return
+				}
+
+				if err := w.Resolver.Redis.RemoveSessionToProcess(ctx, session.ID); err != nil {
+					log.WithContext(ctx).Error(err)
 				}
 				hlog.Incr("sessionsProcessed", nil, 1)
 				span.Finish()

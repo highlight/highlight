@@ -5203,7 +5203,7 @@ var hyphenateRE = /\B([A-Z])/g;
 var hyphenate = (str) => {
   return str.replace(hyphenateRE, "-$1").toLowerCase();
 };
-var BaseRRNode = class {
+var BaseRRNode = class _BaseRRNode {
   constructor(..._args) {
     this.parentElement = null;
     this.parentNode = null;
@@ -5224,7 +5224,7 @@ var BaseRRNode = class {
     return childNodes;
   }
   contains(node) {
-    if (!(node instanceof BaseRRNode))
+    if (!(node instanceof _BaseRRNode))
       return false;
     else if (node.ownerDocument !== this.ownerDocument)
       return false;
@@ -5987,7 +5987,7 @@ function nodeMatching(node1, node2, domMirror, rrdomMirror) {
     return false;
   return sameNodeType(node1, node2);
 }
-var RRDocument = class extends BaseRRDocumentImpl(BaseRRNode) {
+var RRDocument = class _RRDocument extends BaseRRDocumentImpl(BaseRRNode) {
   get unserializedId() {
     return this._unserializedId--;
   }
@@ -6002,7 +6002,7 @@ var RRDocument = class extends BaseRRDocumentImpl(BaseRRNode) {
     }
   }
   createDocument(_namespace, _qualifiedName, _doctype) {
-    return new RRDocument();
+    return new _RRDocument();
   }
   createDocumentType(qualifiedName, publicId, systemId) {
     const documentTypeNode = new RRDocumentType(qualifiedName, publicId, systemId);

@@ -1,6 +1,6 @@
 ---
-title: Overview
-headline: Logging in Typescript / Javascript
+toc: Overview
+title: Logging in Typescript / Javascript
 slug: logging-in-js
 ---
 
