@@ -4,6 +4,7 @@ export const flameGraph = style({
 	'::-webkit-scrollbar': {
 		WebkitAppearance: 'none',
 		height: 7,
+		width: 7,
 	},
 
 	'::-webkit-scrollbar-thumb': {
