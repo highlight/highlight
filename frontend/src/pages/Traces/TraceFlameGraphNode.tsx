@@ -132,8 +132,7 @@ export const TraceFlameGraphNode = memo<Props>(
 
 					{distanceFromParent > 1 &&
 						parentOffsetX &&
-						parentOffsetY &&
-						(isHoveredSpan || isSelectedSpan) && (
+						parentOffsetY && (
 							<line
 								x1={1}
 								y1={1}
