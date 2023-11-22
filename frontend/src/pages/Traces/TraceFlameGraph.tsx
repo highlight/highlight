@@ -298,6 +298,17 @@ export const TraceFlameGraph: React.FC = () => {
 						cursor="pointer"
 						position="relative"
 						userSelect="none"
+						onClick={(e) => {
+							const { clientX } = e
+							const { left, width } =
+								zoomBar.current!.getBoundingClientRect()
+							const percent = Math.max(
+								0,
+								Math.min(1, (clientX - left) / width),
+							)
+
+							setZoom(percent * MAX_ZOOM)
+						}}
 						style={{
 							height: 8,
 							width: 80,
@@ -311,6 +322,13 @@ export const TraceFlameGraph: React.FC = () => {
 							cursor="pointer"
 							position="absolute"
 							draggable
+							onDragStart={(e) => {
+								const dragImg = new Image()
+								dragImg.src =
+									'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
+								e.dataTransfer.setDragImage(dragImg, 0, 0)
+							}}
 							onDrag={throttle((e) => {
 								e.preventDefault()
 								e.stopPropagation()
@@ -325,16 +343,6 @@ export const TraceFlameGraph: React.FC = () => {
 
 								setZoom(percent * MAX_ZOOM)
 							}, 50)}
-							onClick={(e) => {
-								const { clientX } = e
-								const { left, width } =
-									zoomBar.current!.getBoundingClientRect()
-								const percent = Math.max(
-									0,
-									Math.min(1, (clientX - left) / width),
-								)
-								setZoom(percent * MAX_ZOOM)
-							}}
 							style={{
 								height: 10,
 								width: 10,
