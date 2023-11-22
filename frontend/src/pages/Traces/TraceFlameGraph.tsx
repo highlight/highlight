@@ -1,4 +1,11 @@
-import { Box, Text } from '@highlight-run/ui'
+import {
+	Box,
+	ButtonIcon,
+	IconSolidMinus,
+	IconSolidPlus,
+	Stack,
+	Text,
+} from '@highlight-run/ui'
 import clsx from 'clsx'
 import { throttle } from 'lodash'
 import {
@@ -23,6 +30,7 @@ import {
 import * as styles from './TraceFlameGraph.css'
 
 const MAX_TICKS = 6
+const MAX_ZOOM = 1000
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
@@ -35,6 +43,7 @@ const timeUnits = [
 ]
 
 export const TraceFlameGraph: React.FC = () => {
+	const zoomBar = useRef<HTMLDivElement>(null)
 	const { hoveredSpan, loading, totalDuration, traces } = useTrace()
 	const svgContainerRef = useRef<HTMLDivElement>(null)
 	const [zoom, setZoom] = useState(1)
@@ -86,7 +95,13 @@ export const TraceFlameGraph: React.FC = () => {
 
 	const handleZoom = useCallback((dz: number) => {
 		setZoom((prevZoom) => {
-			const newZoom = Math.max(1, prevZoom + dz)
+			const change = dz * (prevZoom / 4)
+			console.log('::: change', change)
+			const newZoom = Math.min(
+				Math.max(prevZoom + change / 1000, 1),
+				MAX_ZOOM,
+			)
+
 			const newScrollPosition =
 				(svgContainerRef.current?.scrollLeft ?? 0) *
 				(newZoom / prevZoom)
@@ -116,6 +131,9 @@ export const TraceFlameGraph: React.FC = () => {
 		},
 		{ passive: false },
 	)
+
+	// useHTMLElementEvent('pointermove', (event: PointerEvent) => {
+	// 	)
 
 	useEffect(() => {
 		setZoom(1)
@@ -262,6 +280,75 @@ export const TraceFlameGraph: React.FC = () => {
 						</Text>
 					</Box>
 				)}
+			</Box>
+
+			<Box p="2" borderTop="dividerWeak">
+				<Stack gap="2" direction="row" align="center">
+					<ButtonIcon
+						onClick={() => handleZoom(-1000)}
+						kind="secondary"
+						emphasis="low"
+						size="xSmall"
+						icon={<IconSolidMinus />}
+					/>
+					<Box
+						ref={zoomBar}
+						backgroundColor="surfaceNeutral"
+						borderRadius="8"
+						cursor="pointer"
+						position="relative"
+						style={{
+							height: 8,
+							width: 80,
+						}}
+					>
+						<Box
+							backgroundColor="white"
+							border="dividerStrong"
+							borderRadius="8"
+							borderWidth="medium"
+							cursor="pointer"
+							position="absolute"
+							draggable
+							onDrag={throttle((e) => {
+								const { clientX } = e
+								const { left, width } =
+									zoomBar.current!.getBoundingClientRect()
+								const percent = Math.max(
+									0,
+									Math.min(1, (clientX - left) / width),
+								)
+								setZoom(percent * MAX_ZOOM)
+							}, 50)}
+							onClick={(e) => {
+								const { clientX } = e
+								const { left, width } =
+									zoomBar.current!.getBoundingClientRect()
+								const percent = Math.max(
+									0,
+									Math.min(1, (clientX - left) / width),
+								)
+								setZoom(percent * MAX_ZOOM)
+							}}
+							style={{
+								height: 10,
+								width: 10,
+								top: -1,
+								left: `${
+									(zoom / MAX_ZOOM) * 100 -
+									(zoom / MAX_ZOOM) * 10
+								}%`,
+							}}
+						/>
+					</Box>
+					<ButtonIcon
+						onClick={() => handleZoom(1000)}
+						kind="secondary"
+						emphasis="low"
+						size="xSmall"
+						icon={<IconSolidPlus />}
+					/>
+				</Stack>
 			</Box>
 		</Box>
 	)
