@@ -987,6 +987,7 @@ query GetBillingDetails($workspace_id: ID!) {
 			errorsRateCents
 			logsRateCents
 			tracesRateCents
+			enableBillingLimits
 		}
 		meter
 		membersMeter

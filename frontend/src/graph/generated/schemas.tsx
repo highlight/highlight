@@ -1701,6 +1701,7 @@ export type PageInfo = {
 
 export type Plan = {
 	__typename?: 'Plan'
+	enableBillingLimits: Scalars['Boolean']
 	errorsLimit: Scalars['Int64']
 	errorsRateCents: Scalars['Int64']
 	interval: SubscriptionInterval

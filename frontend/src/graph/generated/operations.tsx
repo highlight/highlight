@@ -2865,6 +2865,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'errorsRateCents'
 				| 'logsRateCents'
 				| 'tracesRateCents'
+				| 'enableBillingLimits'
 			>
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<

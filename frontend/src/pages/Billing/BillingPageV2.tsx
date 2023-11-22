@@ -60,6 +60,7 @@ type UsageCardProps = {
 	usageAmount: number
 	includedQuantity: number
 	isPaying: boolean
+	enableBillingLimits: boolean | undefined
 }
 
 const UsageCard = ({
@@ -71,6 +72,7 @@ const UsageCard = ({
 	usageAmount,
 	includedQuantity,
 	isPaying,
+	enableBillingLimits,
 }: UsageCardProps) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
@@ -142,24 +144,26 @@ const UsageCard = ({
 							</Tooltip>
 						}
 					></Badge>
-					<Badge
-						size="medium"
-						shape="basic"
-						kind="secondary"
-						label={`Billing Limit: ${
-							limitFormatted ?? 'Unlimited'
-						}`}
-						iconEnd={
-							<Tooltip
-								trigger={
-									<IconSolidInformationCircle size={12} />
-								}
-							>
-								{productType} will not be recorded once this
-								billing limit is reached.
-							</Tooltip>
-						}
-					></Badge>
+					{enableBillingLimits ? (
+						<Badge
+							size="medium"
+							shape="basic"
+							kind="secondary"
+							label={`Billing Limit: ${
+								limitFormatted ?? 'Unlimited'
+							}`}
+							iconEnd={
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+								>
+									{productType} will not be recorded once this
+									billing limit is reached.
+								</Tooltip>
+							}
+						></Badge>
+					) : null}
 					<Tag
 						iconRight={<IconSolidCheveronRight />}
 						kind="secondary"
@@ -435,6 +439,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						includedQuantity={includedSessions}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -447,6 +454,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						includedQuantity={includedErrors}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -459,6 +469,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						includedQuantity={includedLogs}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -471,6 +484,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						includedQuantity={includedTraces}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 				</Box>
 				<Stack

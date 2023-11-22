@@ -1329,8 +1329,17 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	columns := []interface{}{"errors_retention_period", "retention_period"}
+	if settings.EnableBillingLimits {
+		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents")
+	}
 	if err := r.DB.WithContext(ctx).Model(&workspace).
-		Select("sessions_max_cents", "retention_period", "errors_max_cents", "errors_retention_period", "logs_max_cents").
+		Select(columns[0], columns[1:]...).
 		Updates(&model.Workspace{
 			SessionsMaxCents:      sessionsLimitCents,
 			RetentionPeriod:       &sessionsRetention,
@@ -5517,6 +5526,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, err
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
 	planType := modelInputs.PlanType(workspace.PlanTier)
 
 	interval := modelInputs.SubscriptionIntervalMonthly
@@ -5648,17 +5662,18 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:              modelInputs.PlanType(planType.String()),
-			Interval:          interval,
-			MembersLimit:      membersLimit,
-			SessionsLimit:     sessionsIncluded,
-			ErrorsLimit:       errorsIncluded,
-			LogsLimit:         logsIncluded,
-			TracesLimit:       tracesIncluded,
-			SessionsRateCents: sessionsRateCents,
-			ErrorsRateCents:   errorsRateCents,
-			LogsRateCents:     logsRateCents,
-			TracesRateCents:   tracesRateCents,
+			Type:                modelInputs.PlanType(planType.String()),
+			Interval:            interval,
+			MembersLimit:        membersLimit,
+			SessionsLimit:       sessionsIncluded,
+			ErrorsLimit:         errorsIncluded,
+			LogsLimit:           logsIncluded,
+			TracesLimit:         tracesIncluded,
+			SessionsRateCents:   sessionsRateCents,
+			ErrorsRateCents:     errorsRateCents,
+			LogsRateCents:       logsRateCents,
+			TracesRateCents:     tracesRateCents,
+			EnableBillingLimits: settings.EnableBillingLimits,
 		},
 		Meter:                sessionsMeter,
 		MembersMeter:         membersMeter,

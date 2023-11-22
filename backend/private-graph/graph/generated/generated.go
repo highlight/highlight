@@ -846,17 +846,18 @@ type ComplexityRoot struct {
 	}
 
 	Plan struct {
-		ErrorsLimit       func(childComplexity int) int
-		ErrorsRateCents   func(childComplexity int) int
-		Interval          func(childComplexity int) int
-		LogsLimit         func(childComplexity int) int
-		LogsRateCents     func(childComplexity int) int
-		MembersLimit      func(childComplexity int) int
-		SessionsLimit     func(childComplexity int) int
-		SessionsRateCents func(childComplexity int) int
-		TracesLimit       func(childComplexity int) int
-		TracesRateCents   func(childComplexity int) int
-		Type              func(childComplexity int) int
+		EnableBillingLimits func(childComplexity int) int
+		ErrorsLimit         func(childComplexity int) int
+		ErrorsRateCents     func(childComplexity int) int
+		Interval            func(childComplexity int) int
+		LogsLimit           func(childComplexity int) int
+		LogsRateCents       func(childComplexity int) int
+		MembersLimit        func(childComplexity int) int
+		SessionsLimit       func(childComplexity int) int
+		SessionsRateCents   func(childComplexity int) int
+		TracesLimit         func(childComplexity int) int
+		TracesRateCents     func(childComplexity int) int
+		Type                func(childComplexity int) int
 	}
 
 	Project struct {
@@ -6001,6 +6002,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
+	case "Plan.enableBillingLimits":
+		if e.complexity.Plan.EnableBillingLimits == nil {
+			break
+		}
+
+		return e.complexity.Plan.EnableBillingLimits(childComplexity), true
+
 	case "Plan.errorsLimit":
 		if e.complexity.Plan.ErrorsLimit == nil {
 			break
@@ -10513,6 +10521,7 @@ type Plan {
 	type: PlanType!
 	interval: SubscriptionInterval!
 	membersLimit: Int64
+	enableBillingLimits: Boolean!
 
 	sessionsLimit: Int64!
 	errorsLimit: Int64!
@@ -22062,6 +22071,8 @@ func (ec *executionContext) fieldContext_BillingDetails_plan(ctx context.Context
 				return ec.fieldContext_Plan_interval(ctx, field)
 			case "membersLimit":
 				return ec.fieldContext_Plan_membersLimit(ctx, field)
+			case "enableBillingLimits":
+				return ec.fieldContext_Plan_enableBillingLimits(ctx, field)
 			case "sessionsLimit":
 				return ec.fieldContext_Plan_sessionsLimit(ctx, field)
 			case "errorsLimit":
@@ -44952,6 +44963,50 @@ func (ec *executionContext) fieldContext_Plan_membersLimit(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_enableBillingLimits(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_enableBillingLimits(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableBillingLimits, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_enableBillingLimits(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -79847,6 +79902,13 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Plan_membersLimit(ctx, field, obj)
 
+		case "enableBillingLimits":
+
+			out.Values[i] = ec._Plan_enableBillingLimits(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "sessionsLimit":
 
 			out.Values[i] = ec._Plan_sessionsLimit(ctx, field, obj)

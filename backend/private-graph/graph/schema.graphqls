@@ -164,6 +164,7 @@ type Plan {
 	type: PlanType!
 	interval: SubscriptionInterval!
 	membersLimit: Int64
+	enableBillingLimits: Boolean!
 
 	sessionsLimit: Int64!
 	errorsLimit: Int64!

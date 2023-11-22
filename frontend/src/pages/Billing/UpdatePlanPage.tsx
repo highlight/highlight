@@ -684,6 +684,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 
 	const hasExtras =
 		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
+	const enableBillingLimits = data?.billingDetails.plan.enableBillingLimits
 	const baseAmountFormatted =
 		'$' + toDecimal(dinero({ amount: baseAmount, currency: USD }))
 	const discountAmountFormatted =
@@ -869,11 +870,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									)
 								}
 								limitCents={formState.values.sessionsLimitCents}
-								setLimitCents={(l) =>
-									formStore.setValue(
-										formStore.names.sessionsLimitCents,
-										l,
-									)
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.sessionsLimitCents,
+													l,
+												)
+										: undefined
 								}
 								usageAmount={sessionsUsage}
 								predictedUsageAmount={predictedSessionsUsage}
@@ -897,11 +902,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									)
 								}
 								limitCents={formState.values.errorsLimitCents}
-								setLimitCents={(l) =>
-									formStore.setValue(
-										formStore.names.errorsLimitCents,
-										l,
-									)
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.errorsLimitCents,
+													l,
+												)
+										: undefined
 								}
 								usageAmount={errorsUsage}
 								predictedUsageAmount={predictedErrorsUsage}
@@ -923,11 +932,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									)
 								}
 								limitCents={formState.values.logsLimitCents}
-								setLimitCents={(l) =>
-									formStore.setValue(
-										formStore.names.logsLimitCents,
-										l,
-									)
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.logsLimitCents,
+													l,
+												)
+										: undefined
 								}
 								usageAmount={logsUsage}
 								predictedUsageAmount={predictedLogsUsage}

@@ -8437,6 +8437,7 @@ export const GetBillingDetailsDocument = gql`
 				errorsRateCents
 				logsRateCents
 				tracesRateCents
+				enableBillingLimits
 			}
 			meter
 			membersMeter
