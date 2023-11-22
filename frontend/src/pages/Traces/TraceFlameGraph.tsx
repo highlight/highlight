@@ -311,6 +311,9 @@ export const TraceFlameGraph: React.FC = () => {
 							position="absolute"
 							draggable
 							onDrag={throttle((e) => {
+								e.preventDefault()
+								e.stopPropagation()
+
 								const { clientX } = e
 								const { left, width } =
 									zoomBar.current!.getBoundingClientRect()
@@ -318,6 +321,7 @@ export const TraceFlameGraph: React.FC = () => {
 									0,
 									Math.min(1, (clientX - left) / width),
 								)
+
 								setZoom(percent * MAX_ZOOM)
 							}, 50)}
 							onClick={(e) => {
