@@ -5817,10 +5817,10 @@ body {
 :hover._14ud0dc0::-webkit-scrollbar-thumb {
   background-color: var(--_1pyqka91p);
 }
-:hover._14ud0dc0::-webkit-scrollbar {
+:hover._14ud0dc0::-webkit-scrollbar:horizontal {
   border-top: var(--_1pyqka9k) solid 1px;
 }
-._14ud0dc0::-webkit-scrollbar-thumb {
+._14ud0dc0::-webkit-scrollbar-thumb:horizontal {
   background-clip: padding-box;
   background-color: var(--_1pyqka91o);
   border: 1px solid transparent;
@@ -5834,10 +5834,10 @@ body {
 :hover._14ud0dc1::-webkit-scrollbar-thumb {
   background-color: var(--_1pyqka91p);
 }
-:hover._14ud0dc1::-webkit-scrollbar {
+:hover._14ud0dc1::-webkit-scrollbar:vertical {
   border-left: var(--_1pyqka9k) solid 1px;
 }
-._14ud0dc1::-webkit-scrollbar-thumb {
+._14ud0dc1::-webkit-scrollbar-thumb:vertical {
   background-clip: padding-box;
   background-color: var(--_1pyqka91o);
   border: 1px solid transparent;
