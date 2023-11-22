@@ -1536,12 +1536,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// Not sure if this is desired behavior in the long term, but
 	// this matches the current prod behavior.
 	useEffect(() => {
-		if (setDefault !== false) {
-			return () => {
+		return () => {
+			if (selectedSegment && setDefault !== false) {
 				removeSelectedSegment()
 			}
 		}
-	}, [removeSelectedSegment, setDefault])
+	}, [removeSelectedSegment, setDefault, selectedSegment])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
