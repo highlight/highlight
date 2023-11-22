@@ -115,13 +115,12 @@ export const getCostCents = (
 	const unitCost = EXISTING_PLANS.includes(planType)
 		? COMMITTED_UNIT_COST_CENTS
 		: BASE_UNIT_COST_CENTS
-	const a = Math.floor(
+	return Math.floor(
 		(unitCost[productType] *
 			RETENTION_MULTIPLIER[retentionPeriod] *
 			Math.max(quantity - includedQuantity, 0)) /
 			UNIT_QUANTITY[productType],
 	)
-	return a
 }
 
 export const getQuantity = (
@@ -576,7 +575,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			daysUntilNextBillingDate *
 				(data?.billingDetails.sessionsDailyAverage ?? 0),
 	)
-	const includedSessions = data?.billingDetails.plan.quota ?? 0
+	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	let predictedSessionsCost = getCostCents(
 		'Sessions',
 		formState.values.sessionsRetention,

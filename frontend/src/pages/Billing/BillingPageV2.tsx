@@ -284,7 +284,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const logsUsage = data?.billingDetails.logsMeter ?? 0
 	const tracesUsage = data?.billingDetails.tracesMeter ?? 0
 
-	const includedSessions = data?.billingDetails.plan.quota ?? 0
+	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0

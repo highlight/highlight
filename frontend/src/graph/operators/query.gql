@@ -941,9 +941,9 @@ query GetBillingDetailsForProject($project_id: ID!) {
 	billingDetailsForProject(project_id: $project_id) {
 		plan {
 			type
-			quota
 			interval
 			membersLimit
+			sessionsLimit
 			errorsLimit
 			logsLimit
 			tracesLimit
@@ -973,9 +973,9 @@ query GetBillingDetails($workspace_id: ID!) {
 	billingDetails(workspace_id: $workspace_id) {
 		plan {
 			type
-			quota
 			interval
 			membersLimit
+			sessionsLimit
 			errorsLimit
 			logsLimit
 			tracesLimit

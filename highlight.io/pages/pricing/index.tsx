@@ -445,7 +445,6 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 
 interface GraduatedPriceItem {
 	rate: number
-	unit: number
 	usage?: number
 }
 const prices = {
@@ -594,10 +593,10 @@ const PriceCalculator = () => {
 	const defaultTraces = prices.Traces.free
 	const defaultSessions = prices.Sessions.free
 
-	const [errorUsage, setErrorUsage] = useState(defaultErrors)
-	const [sessionUsage, setSessionUsage] = useState(defaultSessions)
-	const [loggingUsage, setLoggingUsage] = useState(defaultLogs)
-	const [tracesUsage, setTracesUsage] = useState(defaultTraces)
+	const [errorUsage, setErrorUsage] = useState<number>(defaultErrors)
+	const [sessionUsage, setSessionUsage] = useState<number>(defaultSessions)
+	const [loggingUsage, setLoggingUsage] = useState<number>(defaultLogs)
+	const [tracesUsage, setTracesUsage] = useState<number>(defaultTraces)
 
 	const [errorRetention, setErrorRetention] = useState<Retention>('3 months')
 	const [sessionRetention, setSessionRetention] =
@@ -612,20 +611,18 @@ const PriceCalculator = () => {
 		let remainder = usage - cost.free
 		let tier = 0
 		let price = 0
-		let rate = 0
 		while (remainder > 0) {
 			const item = cost.items[tier]
 			if (!item) break
 			const itemUsage = Math.min(remainder, item.usage ?? Infinity)
 			price += itemUsage * item.rate
-			rate += item.rate * itemUsage
 			remainder -= itemUsage
 			tier += 1
 		}
 		return [
 			Math.trunc(price * retentionMultipliers[retention] * 100) / 100,
-			rate
-				? Math.trunc((rate / (usage - cost.free)) * cost.unit * 100) /
+			price
+				? Math.trunc((price / (usage - cost.free)) * cost.unit * 100) /
 				  100
 				: 0,
 		]

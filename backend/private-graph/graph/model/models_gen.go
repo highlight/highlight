@@ -591,13 +591,13 @@ type PageInfo struct {
 }
 
 type Plan struct {
-	Type         PlanType             `json:"type"`
-	Interval     SubscriptionInterval `json:"interval"`
-	Quota        int                  `json:"quota"`
-	MembersLimit *int                 `json:"membersLimit"`
-	ErrorsLimit  int                  `json:"errorsLimit"`
-	LogsLimit    int                  `json:"logsLimit"`
-	TracesLimit  int                  `json:"tracesLimit"`
+	Type          PlanType             `json:"type"`
+	Interval      SubscriptionInterval `json:"interval"`
+	MembersLimit  *int64               `json:"membersLimit"`
+	SessionsLimit int64                `json:"sessionsLimit"`
+	ErrorsLimit   int64                `json:"errorsLimit"`
+	LogsLimit     int64                `json:"logsLimit"`
+	TracesLimit   int64                `json:"tracesLimit"`
 }
 
 type QueryInput struct {
@@ -1620,6 +1620,7 @@ const (
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
 	PlanTypeUsageBased PlanType = "UsageBased"
+	PlanTypeGraduated  PlanType = "Graduated"
 )
 
 var AllPlanType = []PlanType{
@@ -1629,11 +1630,12 @@ var AllPlanType = []PlanType{
 	PlanTypeStartup,
 	PlanTypeEnterprise,
 	PlanTypeUsageBased,
+	PlanTypeGraduated,
 }
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased, PlanTypeGraduated:
 		return true
 	}
 	return false

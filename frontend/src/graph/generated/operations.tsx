@@ -2805,9 +2805,9 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
 					| 'type'
-					| 'quota'
 					| 'interval'
 					| 'membersLimit'
+					| 'sessionsLimit'
 					| 'errorsLimit'
 					| 'logsLimit'
 					| 'tracesLimit'
@@ -2851,9 +2851,9 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
 				| 'type'
-				| 'quota'
 				| 'interval'
 				| 'membersLimit'
+				| 'sessionsLimit'
 				| 'errorsLimit'
 				| 'logsLimit'
 				| 'tracesLimit'

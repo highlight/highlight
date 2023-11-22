@@ -4034,11 +4034,16 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 
 		planTier := modelInputs.PlanType(account.PlanTier)
 		if account.SessionLimit == 0 {
-			account.SessionLimit = pricing.TypeToSessionsLimit(planTier)
+			account.SessionLimit = int(pricing.IncludedAmount(planTier, model.PricingProductTypeSessions))
 		}
 
 		if account.MemberLimit != nil && *account.MemberLimit == 0 {
-			account.MemberLimit = pricing.TypeToMemberLimit(planTier, account.UnlimitedMembers)
+			limit := pricing.TypeToMemberLimit(planTier, account.UnlimitedMembers)
+			if limit == nil {
+				account.MemberLimit = nil
+			} else {
+				account.MemberLimit = pointy.Int(int(*limit))
+			}
 		}
 	}
 
@@ -5594,33 +5599,33 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	sessionsIncluded := pricing.TypeToSessionsLimit(planType)
+	sessionsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeSessions)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
-		sessionsIncluded = *workspace.MonthlySessionLimit
+		sessionsIncluded = int64(*workspace.MonthlySessionLimit)
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
 	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
-		membersLimit = workspace.MonthlyMembersLimit
+		membersLimit = pointy.Int64(int64(*workspace.MonthlyMembersLimit))
 	}
 
-	errorsIncluded := pricing.TypeToErrorsLimit(planType)
+	errorsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeErrors)
 	// use monthly session limit if it exists
 	if workspace.MonthlyErrorsLimit != nil {
-		errorsIncluded = *workspace.MonthlyErrorsLimit
+		errorsIncluded = int64(*workspace.MonthlyErrorsLimit)
 	}
 
-	logsIncluded := pricing.TypeToLogsLimit(planType)
+	logsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeLogs)
 	// use monthly session limit if it exists
 	if workspace.MonthlyLogsLimit != nil {
-		logsIncluded = *workspace.MonthlyLogsLimit
+		logsIncluded = int64(*workspace.MonthlyLogsLimit)
 	}
 
-	tracesIncluded := pricing.TypeToTracesLimit(planType)
+	tracesIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeTraces)
 	// use monthly traces limit if it exists
 	if workspace.MonthlyTracesLimit != nil {
-		tracesIncluded = *workspace.MonthlyLogsLimit
+		tracesIncluded = int64(*workspace.MonthlyLogsLimit)
 	}
 
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
@@ -5638,13 +5643,13 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:         modelInputs.PlanType(planType.String()),
-			Quota:        sessionsIncluded,
-			Interval:     interval,
-			MembersLimit: membersLimit,
-			ErrorsLimit:  errorsIncluded,
-			LogsLimit:    logsIncluded,
-			TracesLimit:  tracesIncluded,
+			Type:          modelInputs.PlanType(planType.String()),
+			Interval:      interval,
+			MembersLimit:  membersLimit,
+			SessionsLimit: sessionsIncluded,
+			ErrorsLimit:   errorsIncluded,
+			LogsLimit:     logsIncluded,
+			TracesLimit:   tracesIncluded,
 		},
 		Meter:                sessionsMeter,
 		MembersMeter:         membersMeter,
