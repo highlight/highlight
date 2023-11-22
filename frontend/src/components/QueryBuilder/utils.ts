@@ -14,6 +14,10 @@ export const searchesAreEqual = (
 	const { rules } = searchObjectFromString(search)
 	const { rules: newRules } = searchObjectFromString(newSearch)
 
+	if (rules.length !== newRules.length) {
+		return false
+	}
+
 	return rules.every((rule) => {
 		if (rule.field?.value === timeRangeField.value) {
 			return true
