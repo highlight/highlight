@@ -1,4 +1,5 @@
 from fastapi import Request, Response
+from opentelemetry.semconv.trace import SpanAttributes
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 import highlight_io
@@ -33,11 +34,13 @@ class FastAPIMiddleware(BaseHTTPMiddleware):
                         body += chunk
                 highlight_io.H.get_instance().record_http_error(
                     status_code=resp.status_code,
-                    headers=resp.headers.__dict__,
                     detail=body.decode(),
                     attributes={
-                        "http.method": request.method,
-                        "http.url": request.url,
+                        "http.response.headers": resp.headers,
+                        "http.request.headers": request.headers,
+                        "http.request.detail": await request.body(),
+                        SpanAttributes.HTTP_METHOD: request.method,
+                        SpanAttributes.HTTP_URL: str(request.url),
                     },
                 )
                 return Response(
