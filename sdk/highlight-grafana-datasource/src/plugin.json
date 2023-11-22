@@ -33,9 +33,9 @@
   "routes": [
     {
       "path": "highlight",
-      "url": "https://37aafe780e03.ngrok.app/private",
+      "url": "https://409dbd07e479.ngrok.app/private",
       "tokenAuth": {
-        "url": "https://37aafe780e03.ngrok.app/oauth/token",
+        "url": "https://409dbd07e479.ngrok.app/oauth/token",
         "params": {
           "grant_type": "client_credentials",
           "client_id": "{{ .JsonData.clientID }}",
