@@ -5613,6 +5613,24 @@ body {
 ._1vb6x0p0:hover {
   color: var(--_1pyqka9y);
 }
+._1ukfp2a0 {
+  border-radius: 0;
+  border: 0 !important;
+}
+._1ukfp2a0:focus,
+._1ukfp2a0:active {
+  background: inherit;
+}
+._1ukfp2a1 {
+  border-right: var(--_1pyqka91o) solid 1px !important;
+}
+._1ukfp2a2 {
+  background: var(--_1pyqka9t);
+}
+._1ukfp2a2:focus,
+._1ukfp2a2:active {
+  background: var(--_1pyqka9u);
+}
 ._1hht64e1 {
   height: 20px;
 }
@@ -6163,24 +6181,6 @@ body {
 .ccrj1p2 {
   border: 0;
   border-radius: 0;
-}
-._1ukfp2a0 {
-  border-radius: 0;
-  border: 0 !important;
-}
-._1ukfp2a0:focus,
-._1ukfp2a0:active {
-  background: inherit;
-}
-._1ukfp2a1 {
-  border-right: var(--_1pyqka91o) solid 1px !important;
-}
-._1ukfp2a2 {
-  background: var(--_1pyqka9t);
-}
-._1ukfp2a2:focus,
-._1ukfp2a2:active {
-  background: var(--_1pyqka9u);
 }
 ._3dlaof0 {
   height: 20px;
