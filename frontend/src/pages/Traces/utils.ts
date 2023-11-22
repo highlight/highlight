@@ -54,18 +54,20 @@ export const getTraceDurationString = (duration: number) => {
 }
 
 export type FlameGraphSpan = {
-	name: string
-	start: number // nanoseconds since start of trace
+	depth: number
+	parent?: FlameGraphSpan
 	children?: FlameGraphSpan[]
 } & Trace
 
-export const organizeSpans = (spans: Trace[]) => {
+// Organizes spans into a tree structure based on their parentSpanID. Spans
+// without a parentSpanID are considered root spans. Spans with a parentSpanID
+// are added as children to the span with the matching spanID.
+export const organizeSpansWithChildren = (spans: Partial<FlameGraphSpan>[]) => {
 	// Object is not modifieable, so we need to clone it to add children
 	const tempSpans = JSON.parse(JSON.stringify(spans)) as FlameGraphSpan[]
 
 	const sortedTrace = tempSpans.reduce((acc, span) => {
 		const parentSpanID = span.parentSpanID
-		span.name = span.spanName
 
 		if (parentSpanID) {
 			const parentSpan = tempSpans.find(
@@ -90,20 +92,66 @@ export const organizeSpans = (spans: Trace[]) => {
 	return sortedTrace
 }
 
-export const getMaxDepth = (spans: FlameGraphSpan[]) => {
-	return spans.reduce((acc, span) => {
-		const depth = getDepth(span)
-		return depth > acc ? depth : acc
-	}, 1)
+// Organizes spans into levels based on their start and end times. Spans that
+// overlap are bumped to the next level.
+export const organizeSpansForFlameGraph = (
+	trace: Partial<FlameGraphSpan>[],
+) => {
+	const rootSpans = trace.filter((span) => !span.parentSpanID)
+	const spans = [[]]
+
+	rootSpans.forEach((rootSpan) =>
+		organizeSpanInLevel(rootSpan!, trace, spans, 0),
+	)
+
+	return spans as FlameGraphSpan[][]
 }
 
-const getDepth = (span: FlameGraphSpan, depth = 1): number => {
-	if (span.children) {
-		return span.children.reduce((acc, child) => {
-			const childDepth = getDepth(child, depth + 1)
-			return childDepth > acc ? childDepth : acc
-		}, depth)
+const organizeSpanInLevel = (
+	span: Partial<FlameGraphSpan>,
+	trace: Partial<FlameGraphSpan>[],
+	spans: Partial<FlameGraphSpan>[][],
+	depthIndex: number,
+	parent?: Partial<FlameGraphSpan>,
+) => {
+	spans[depthIndex] = spans[depthIndex] ?? []
+
+	const isOverlapping = spans[depthIndex].some((s) =>
+		spanOverlaps(s as Trace, span as Trace),
+	)
+
+	if (isOverlapping) {
+		organizeSpanInLevel(span, trace, spans, depthIndex + 1, parent)
+		return
 	} else {
-		return depth
+		spans[depthIndex].push({
+			...span,
+			depth: depthIndex,
+			parent: parent as FlameGraphSpan,
+		})
 	}
+
+	const children = trace.filter((s) => s.parentSpanID === span.spanID)
+
+	if (children.length > 0) {
+		children.forEach((child) => {
+			organizeSpanInLevel(child, trace, spans, depthIndex + 1, {
+				...span,
+				depth: depthIndex,
+			})
+		})
+	}
+}
+
+export const spanOverlaps = (span1: Trace, span2: Trace) => {
+	const span1StartTime = span1.startTime
+	const span2StartTime = span2.startTime
+	const span1EndTime = span1StartTime + span1.duration
+	const span2EndTime = span2StartTime + span2.duration
+
+	return (
+		(span1StartTime >= span2StartTime && span1StartTime <= span2EndTime) ||
+		(span1EndTime >= span2StartTime && span1EndTime <= span2EndTime) ||
+		(span1StartTime <= span2StartTime && span1EndTime >= span2EndTime)
+	)
 }

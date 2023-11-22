@@ -6886,6 +6886,12 @@ body {
   height: 24px;
   align-items: center;
 }
+.essfm40 {
+  max-height: 400px;
+}
+.essfm40::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
 ._1h7r9xv0 {
   height: 100%;
   overflow-y: hidden;
