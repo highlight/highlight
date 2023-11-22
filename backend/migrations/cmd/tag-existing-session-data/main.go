@@ -74,6 +74,7 @@ func main() {
 		},
 	}
 
+	limiter := time.Tick(350 * time.Millisecond)
 	pool := workerpool.New(5)
 	for _, c := range configs {
 		for _, p := range projectIds {
@@ -115,6 +116,7 @@ func main() {
 
 					if len(objectsToDelete) > 0 {
 						log.WithContext(ctx).Infof("deleting %d objects in bucket %s project %d iteration %d", len(objectsToDelete), config.bucket, projectId, n)
+						<-limiter
 						if _, err := storageClient.S3ClientEast2.DeleteObjects(ctx, &s3.DeleteObjectsInput{
 							Bucket: pointy.String(config.bucket),
 							Delete: &types.Delete{
@@ -129,12 +131,10 @@ func main() {
 						break
 					}
 
-
 					if !resp.IsTruncated {
 						break
 					}
 					continuationToken = resp.NextContinuationToken
-					time.Sleep(350 * time.Millisecond)
 				}
 
 				log.WithContext(ctx).Infof("done deleting for project %d", projectId)
