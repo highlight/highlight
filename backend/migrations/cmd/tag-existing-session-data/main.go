@@ -74,7 +74,7 @@ func main() {
 		},
 	}
 
-	pool := workerpool.New(20)
+	pool := workerpool.New(5)
 	for _, c := range configs {
 		for _, p := range projectIds {
 			config := c
@@ -125,10 +125,16 @@ func main() {
 						}
 					}
 
+					if len(objectsToDelete) == 0 {
+						break
+					}
+
+
 					if !resp.IsTruncated {
 						break
 					}
 					continuationToken = resp.NextContinuationToken
+					time.Sleep(350 * time.Millisecond)
 				}
 
 				log.WithContext(ctx).Infof("done deleting for project %d", projectId)
