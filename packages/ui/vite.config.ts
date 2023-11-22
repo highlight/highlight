@@ -7,7 +7,16 @@ import dts from 'vite-plugin-dts'
 export default defineConfig({
 	build: {
 		lib: {
-			entry: path.resolve(__dirname, 'src/index.ts'),
+			entry: {
+				components: path.resolve(__dirname, 'src/components/index.ts'),
+				css: path.resolve(__dirname, 'src/css.ts'),
+				keyframes: path.resolve(__dirname, 'src/keyframes.ts'),
+				sprinkles: path.resolve(__dirname, 'src/sprinkles.ts'),
+				vars: path.resolve(__dirname, 'src/vars.ts'),
+				theme: path.resolve(__dirname, 'src/theme.ts'),
+				colors: path.resolve(__dirname, 'src/colors.ts'),
+				borders: path.resolve(__dirname, 'src/borders.ts'),
+			},
 			name: '@highlight-run/ui',
 		},
 	},

@@ -1,5 +1,5 @@
 import { LogLevel as Level } from '@graph/schemas'
-import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
+import { Box, BoxProps, Popover, Text } from '@highlight-run/ui/components'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'

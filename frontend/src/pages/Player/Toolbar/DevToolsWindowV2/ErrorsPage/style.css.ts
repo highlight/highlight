@@ -1,7 +1,7 @@
-import { keepsLines } from '@highlight-run/ui'
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
-import { colors } from '@highlight-run/ui/src/css/colors'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { colors } from '@highlight-run/ui/colors'
+import { buttonStyles } from '@highlight-run/ui/components'
+import { keepsLines } from '@highlight-run/ui/css'
+import { themeVars } from '@highlight-run/ui/theme'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
@@ -37,7 +37,7 @@ export const errorRowVariants = recipe({
 			true: {
 				backgroundColor:
 					themeVars.interactive.overlay.secondary.pressed,
-				boxShadow: shadows.grey,
+				boxShadow: buttonStyles.shadows.grey,
 			},
 			false: {},
 		},

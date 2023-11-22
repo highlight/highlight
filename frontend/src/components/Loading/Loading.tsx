@@ -3,7 +3,7 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { IconSolidLoading } from '@highlight-run/ui'
+import { IconSolidLoading } from '@highlight-run/ui/components'
 import SvgHighlightLogoWithNoBackground from '@icons/HighlightLogoWithNoBackground'
 import { Spin } from 'antd'
 import clsx from 'clsx'

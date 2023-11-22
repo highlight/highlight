@@ -2,7 +2,12 @@ import { Button } from '@components/Button'
 import Tabs from '@components/Tabs/Tabs'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { AdminRole, WorkspaceAdminRole } from '@graph/schemas'
-import { Badge, Box, IconSolidUserAdd, Stack } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	IconSolidUserAdd,
+	Stack,
+} from '@highlight-run/ui/components'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal'

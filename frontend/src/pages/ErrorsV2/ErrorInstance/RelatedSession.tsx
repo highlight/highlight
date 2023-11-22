@@ -1,4 +1,4 @@
-import { IconSolidPlayCircle, Tag, Tooltip } from '@highlight-run/ui'
+import { IconSolidPlayCircle, Tag, Tooltip } from '@highlight-run/ui/components'
 import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'

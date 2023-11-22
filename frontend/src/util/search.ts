@@ -1,6 +1,6 @@
 import { LazyQueryExecFunction, QueryResult } from '@apollo/client'
 import { QueryBuilderState } from '@components/QueryBuilder/QueryBuilder'
-import { resetRelativeDates } from '@highlight-run/ui'
+import { resetRelativeDates } from '@highlight-run/ui/components'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import log from '@util/log'

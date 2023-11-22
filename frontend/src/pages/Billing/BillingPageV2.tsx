@@ -17,7 +17,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'

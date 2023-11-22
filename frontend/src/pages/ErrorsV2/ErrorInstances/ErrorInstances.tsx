@@ -9,7 +9,7 @@ import {
 	SwitchButton,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import React, { useState } from 'react'
 

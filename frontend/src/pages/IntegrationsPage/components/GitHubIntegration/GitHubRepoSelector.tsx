@@ -1,5 +1,5 @@
 import Select from '@components/Select/Select'
-import { Form, Text } from '@highlight-run/ui'
+import { Form, Text } from '@highlight-run/ui/components'
 import {
 	GitHubRepoSelectionKey,
 	useGitHubIntegration,

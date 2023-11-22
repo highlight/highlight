@@ -1,6 +1,6 @@
 import Select from '@components/Select/Select'
 import { useGetHeightListsQuery } from '@graph/hooks'
-import { Form } from '@highlight-run/ui'
+import { Form } from '@highlight-run/ui/components'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'

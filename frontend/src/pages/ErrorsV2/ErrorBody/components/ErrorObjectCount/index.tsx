@@ -6,7 +6,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { showChangeThresholdPercent } from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import { getErrorGroupStats } from '@pages/ErrorsV2/utils'
 

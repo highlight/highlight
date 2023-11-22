@@ -12,8 +12,8 @@ import {
 	Stack,
 	Text,
 	Tooltip,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 

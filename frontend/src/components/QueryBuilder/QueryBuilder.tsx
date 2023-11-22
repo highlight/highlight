@@ -14,6 +14,7 @@ import {
 	namedOperations,
 } from '@graph/operations'
 import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
+import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
 	ButtonIcon,
@@ -58,8 +59,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { formatNumber } from '@util/numbers'

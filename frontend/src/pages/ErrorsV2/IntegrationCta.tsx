@@ -1,7 +1,7 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
 import { useGetServerIntegrationQuery } from '@graph/hooks'
-import { Box, Callout, Stack, Text } from '@highlight-run/ui'
+import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
 import React from 'react'

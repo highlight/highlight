@@ -8,8 +8,8 @@ import {
 	IconSolidX,
 	Tag,
 	Text,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import {
 	EVENT_TYPES_TO_COLORS,
 	EVENT_TYPES_TO_VARIANTS,

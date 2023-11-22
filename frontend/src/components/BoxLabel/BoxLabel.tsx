@@ -1,4 +1,4 @@
-import { Stack, Text } from '@highlight-run/ui'
+import { Stack, Text } from '@highlight-run/ui/components'
 import React from 'react'
 
 interface BoxLabelProps {

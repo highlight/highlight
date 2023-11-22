@@ -4,7 +4,7 @@ import {
 	Callout,
 	IconSolidInformationCircle,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import {
 	RequestStatus,
 	RequestType,

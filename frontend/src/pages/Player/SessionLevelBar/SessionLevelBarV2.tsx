@@ -9,6 +9,7 @@ import {
 	useGetAlertsPagePayloadQuery,
 	useGetSessionsClickhouseQuery,
 } from '@graph/hooks'
+import { colors } from '@highlight-run/ui/colors'
 import {
 	Badge,
 	Box,
@@ -22,8 +23,7 @@ import {
 	Stack,
 	SwitchButton,
 	TextLink,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import {
 	RightPanelView,

@@ -1,6 +1,6 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
-import { Stack } from '@highlight-run/ui'
+import { Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
