@@ -591,13 +591,17 @@ type PageInfo struct {
 }
 
 type Plan struct {
-	Type          PlanType             `json:"type"`
-	Interval      SubscriptionInterval `json:"interval"`
-	MembersLimit  *int64               `json:"membersLimit"`
-	SessionsLimit int64                `json:"sessionsLimit"`
-	ErrorsLimit   int64                `json:"errorsLimit"`
-	LogsLimit     int64                `json:"logsLimit"`
-	TracesLimit   int64                `json:"tracesLimit"`
+	Type              PlanType             `json:"type"`
+	Interval          SubscriptionInterval `json:"interval"`
+	MembersLimit      *int64               `json:"membersLimit"`
+	SessionsLimit     int64                `json:"sessionsLimit"`
+	ErrorsLimit       int64                `json:"errorsLimit"`
+	LogsLimit         int64                `json:"logsLimit"`
+	TracesLimit       int64                `json:"tracesLimit"`
+	SessionsRateCents int64                `json:"sessionsRateCents"`
+	ErrorsRateCents   int64                `json:"errorsRateCents"`
+	LogsRateCents     int64                `json:"logsRateCents"`
+	TracesRateCents   int64                `json:"tracesRateCents"`
 }
 
 type QueryInput struct {

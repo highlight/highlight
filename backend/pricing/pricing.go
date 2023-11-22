@@ -35,7 +35,6 @@ type GraduatedPriceItem struct {
 }
 
 type ProductPricing struct {
-	// TODO(vkorolik) consider workspace overrides
 	Included int64
 	Items    []GraduatedPriceItem
 }

@@ -2811,6 +2811,10 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'errorsLimit'
 					| 'logsLimit'
 					| 'tracesLimit'
+					| 'sessionsRateCents'
+					| 'errorsRateCents'
+					| 'logsRateCents'
+					| 'tracesRateCents'
 				>
 			}
 	>
@@ -2857,6 +2861,10 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'errorsLimit'
 				| 'logsLimit'
 				| 'tracesLimit'
+				| 'sessionsRateCents'
+				| 'errorsRateCents'
+				| 'logsRateCents'
+				| 'tracesRateCents'
 			>
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<

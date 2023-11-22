@@ -50,9 +50,7 @@ import * as style from './UpdatePlanPage.css'
 
 type ProductType = 'Sessions' | 'Errors' | 'Logs' | 'Traces'
 
-const RETENTION_OPTIONS: {
-	readonly [k in ProductType]: readonly RetentionPeriod[]
-} = {
+const RETENTION_OPTIONS = {
 	Sessions: [
 		RetentionPeriod.ThreeMonths,
 		RetentionPeriod.SixMonths,
@@ -67,56 +65,41 @@ const RETENTION_OPTIONS: {
 	],
 	Logs: [RetentionPeriod.ThirtyDays],
 	Traces: [RetentionPeriod.ThirtyDays],
-}
+} as const
 
-const RETENTION_MULTIPLIER: { readonly [k in RetentionPeriod]: number } = {
+const RETENTION_MULTIPLIER = {
 	[RetentionPeriod.ThirtyDays]: 1,
 	[RetentionPeriod.ThreeMonths]: 1,
 	[RetentionPeriod.SixMonths]: 1.5,
 	[RetentionPeriod.TwelveMonths]: 2,
 	[RetentionPeriod.TwoYears]: 2.5,
-}
+} as const
 
-const BASE_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
+const BASE_UNIT_COST_CENTS = {
 	Sessions: 2000,
 	Errors: 20,
 	Logs: 150,
 	Traces: 150,
-}
+} as const
 
-const COMMITTED_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
-	Sessions: 500,
-	Errors: 20,
-	Logs: 150,
-	Traces: 150,
-}
-
-const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
+const UNIT_QUANTITY = {
 	Sessions: 1_000,
 	Errors: 1_000,
 	Logs: 1_000_000,
 	Traces: 1_000_000,
-}
-
-const EXISTING_PLANS: PlanType[] = [
-	PlanType.Basic,
-	PlanType.Enterprise,
-	PlanType.Lite,
-	PlanType.Startup,
-]
+} as const
 
 export const getCostCents = (
 	productType: ProductType,
+	rateCents: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	quantity: number,
 	includedQuantity: number,
-	planType: PlanType,
 ): number => {
-	const unitCost = EXISTING_PLANS.includes(planType)
-		? COMMITTED_UNIT_COST_CENTS
-		: BASE_UNIT_COST_CENTS
+	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	return Math.floor(
-		(unitCost[productType] *
+		((rateCents || unitCost) *
+			100 *
 			RETENTION_MULTIPLIER[retentionPeriod] *
 			Math.max(quantity - includedQuantity, 0)) /
 			UNIT_QUANTITY[productType],
@@ -125,22 +108,21 @@ export const getCostCents = (
 
 export const getQuantity = (
 	productType: ProductType,
+	rateCents: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	totalCents: number | undefined,
 	includedQuantity: number,
-	planType: PlanType,
 ): number | undefined => {
 	if (totalCents === undefined) {
 		return undefined
 	}
 
-	const unitCost = EXISTING_PLANS.includes(planType)
-		? COMMITTED_UNIT_COST_CENTS
-		: BASE_UNIT_COST_CENTS
-
+	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	return Math.floor(
 		(totalCents * UNIT_QUANTITY[productType]) /
-			(unitCost[productType] * RETENTION_MULTIPLIER[retentionPeriod]) +
+			((rateCents || unitCost) *
+				100 *
+				RETENTION_MULTIPLIER[retentionPeriod]) +
 			includedQuantity,
 	)
 }
@@ -174,6 +156,7 @@ const stripePromiseOrNull = getStripePromiseOrNull()
 type ProductCardProps = {
 	productIcon: React.ReactElement<IconProps>
 	productType: ProductType
+	rateCents: number | undefined
 	retentionPeriod: RetentionPeriod
 	planType: PlanType
 	setRetentionPeriod: (rp: RetentionPeriod) => void
@@ -256,6 +239,7 @@ const LimitButton = ({
 const ProductCard = ({
 	productIcon,
 	productType,
+	rateCents,
 	retentionPeriod,
 	setRetentionPeriod,
 	limitCents,
@@ -263,14 +247,10 @@ const ProductCard = ({
 	includedQuantity,
 	usageAmount,
 	predictedUsageAmount,
-	planType,
 }: ProductCardProps) => {
-	const unitCost = EXISTING_PLANS.includes(planType)
-		? COMMITTED_UNIT_COST_CENTS
-		: BASE_UNIT_COST_CENTS
-
+	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	const unitCostCents =
-		unitCost[productType] * RETENTION_MULTIPLIER[retentionPeriod]
+		(rateCents || unitCost) * RETENTION_MULTIPLIER[retentionPeriod]
 
 	const unitQuantity = UNIT_QUANTITY[productType]
 	const quantityFormatted = formatNumber(unitQuantity)
@@ -282,18 +262,18 @@ const ProductCard = ({
 
 	const predictedCostCents = getCostCents(
 		productType,
+		rateCents,
 		retentionPeriod,
 		predictedUsageAmount,
 		includedQuantity,
-		planType,
 	)
 
 	const currentCostCents = getCostCents(
 		productType,
+		rateCents,
 		retentionPeriod,
 		usageAmount,
 		includedQuantity,
-		planType,
 	)
 
 	const totalCostCents =
@@ -578,17 +558,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	let predictedSessionsCost = getCostCents(
 		'Sessions',
+		data?.billingDetails.plan.sessionsRateCents,
 		formState.values.sessionsRetention,
 		predictedSessionsUsage,
 		includedSessions,
-		planType,
 	)
 	const actualSessionsCost = getCostCents(
 		'Sessions',
+		data?.billingDetails.plan.sessionsRateCents,
 		formState.values.sessionsRetention,
 		sessionsUsage,
 		includedSessions,
-		planType,
 	)
 	if (formState.values.sessionsLimitCents !== undefined) {
 		predictedSessionsCost = Math.min(
@@ -607,17 +587,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	let predictedErrorsCost = getCostCents(
 		'Errors',
+		data?.billingDetails.plan.errorsRateCents,
 		formState.values.errorsRetention,
 		predictedErrorsUsage,
 		includedErrors,
-		planType,
 	)
 	const actualErrorsCost = getCostCents(
 		'Errors',
+		data?.billingDetails.plan.errorsRateCents,
 		formState.values.errorsRetention,
 		errorsUsage,
 		includedErrors,
-		planType,
 	)
 	if (formState.values.errorsLimitCents !== undefined) {
 		predictedErrorsCost = Math.min(
@@ -636,17 +616,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	let predictedLogsCost = getCostCents(
 		'Logs',
+		data?.billingDetails.plan.logsRateCents,
 		formState.values.logsRetention,
 		predictedLogsUsage,
 		includedLogs,
-		planType,
 	)
 	const actualLogsCost = getCostCents(
 		'Logs',
+		data?.billingDetails.plan.logsRateCents,
 		formState.values.logsRetention,
 		logsUsage,
 		includedLogs,
-		planType,
 	)
 	if (formState.values.logsLimitCents !== undefined) {
 		predictedLogsCost = Math.min(
@@ -665,17 +645,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
 	let predictedTracesCost = getCostCents(
 		'Traces',
+		data?.billingDetails.plan.tracesRateCents,
 		formState.values.tracesRetention,
 		predictedTracesUsage,
 		includedTraces,
-		planType,
 	)
 	const actualTracesCost = getCostCents(
 		'Traces',
+		data?.billingDetails.plan.tracesRateCents,
 		formState.values.logsRetention,
 		tracesUsage,
 		includedTraces,
-		planType,
 	)
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
@@ -876,6 +856,9 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidPlayCircle />}
 								productType="Sessions"
+								rateCents={
+									data?.billingDetails.plan.sessionsRateCents
+								}
 								retentionPeriod={
 									formState.values.sessionsRetention
 								}
@@ -901,6 +884,9 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidLightningBolt />}
 								productType="Errors"
+								rateCents={
+									data?.billingDetails.plan.errorsRateCents
+								}
 								retentionPeriod={
 									formState.values.errorsRetention
 								}
@@ -926,6 +912,9 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidLogs />}
 								productType="Logs"
+								rateCents={
+									data?.billingDetails.plan.logsRateCents
+								}
 								retentionPeriod={formState.values.logsRetention}
 								setRetentionPeriod={(rp) =>
 									formStore.setValue(
@@ -949,6 +938,9 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidSparkles />}
 								productType="Traces"
+								rateCents={
+									data?.billingDetails.plan.tracesRateCents
+								}
 								retentionPeriod={
 									formState.values.tracesRetention
 								}

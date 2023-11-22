@@ -8347,6 +8347,10 @@ export const GetBillingDetailsForProjectDocument = gql`
 				errorsLimit
 				logsLimit
 				tracesLimit
+				sessionsRateCents
+				errorsRateCents
+				logsRateCents
+				tracesRateCents
 			}
 			meter
 			membersMeter
@@ -8429,6 +8433,10 @@ export const GetBillingDetailsDocument = gql`
 				errorsLimit
 				logsLimit
 				tracesLimit
+				sessionsRateCents
+				errorsRateCents
+				logsRateCents
+				tracesRateCents
 			}
 			meter
 			membersMeter

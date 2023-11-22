@@ -1702,11 +1702,15 @@ export type PageInfo = {
 export type Plan = {
 	__typename?: 'Plan'
 	errorsLimit: Scalars['Int64']
+	errorsRateCents: Scalars['Int64']
 	interval: SubscriptionInterval
 	logsLimit: Scalars['Int64']
+	logsRateCents: Scalars['Int64']
 	membersLimit?: Maybe<Scalars['Int64']>
 	sessionsLimit: Scalars['Int64']
+	sessionsRateCents: Scalars['Int64']
 	tracesLimit: Scalars['Int64']
+	tracesRateCents: Scalars['Int64']
 	type: PlanType
 }
 

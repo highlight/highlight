@@ -53,6 +53,7 @@ import * as style from './BillingPageV2.css'
 type UsageCardProps = {
 	productIcon: React.ReactElement<IconProps>
 	productType: ProductType
+	rateCents: number | undefined
 	retentionPeriod: RetentionPeriod
 	planType: PlanType
 	billingLimitCents: number | undefined
@@ -64,8 +65,8 @@ type UsageCardProps = {
 const UsageCard = ({
 	productIcon,
 	productType,
+	rateCents,
 	retentionPeriod,
-	planType,
 	billingLimitCents,
 	usageAmount,
 	includedQuantity,
@@ -80,18 +81,18 @@ const UsageCard = ({
 	const costCents = isPaying
 		? getCostCents(
 				productType,
+				rateCents,
 				retentionPeriod,
 				usageAmount,
 				includedQuantity,
-				planType,
 		  )
 		: 0
 	const usageLimitAmount = getQuantity(
 		productType,
+		rateCents,
 		retentionPeriod,
 		billingLimitCents,
 		includedQuantity,
-		planType,
 	)
 
 	const costFormatted =
@@ -270,6 +271,11 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		billingPeriodEnd,
 	)
 
+	const sessionsRateCents = data?.billingDetails.plan.sessionsRateCents
+	const errorsRateCents = data?.billingDetails.plan.errorsRateCents
+	const logsRateCents = data?.billingDetails.plan.logsRateCents
+	const tracesRateCents = data?.billingDetails.plan.tracesRateCents
+
 	const sessionsRetention =
 		data?.workspace?.retention_period ?? RetentionPeriod.SixMonths
 
@@ -294,31 +300,31 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const productSubtotal =
 		getCostCents(
 			ProductType.Sessions,
+			sessionsRateCents,
 			sessionsRetention,
 			sessionsUsage,
 			includedSessions,
-			planType,
 		) +
 		getCostCents(
 			ProductType.Errors,
+			errorsRateCents,
 			errorsRetention,
 			errorsUsage,
 			includedErrors,
-			planType,
 		) +
 		getCostCents(
 			ProductType.Logs,
+			logsRateCents,
 			logsRetention,
 			logsUsage,
 			includedLogs,
-			planType,
 		) +
 		getCostCents(
 			ProductType.Traces,
+			tracesRateCents,
 			tracesRetention,
 			tracesUsage,
 			includedTraces,
-			planType,
 		)
 
 	const discountRatio = (100 - discountPercent) / 100
@@ -422,6 +428,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidPlayCircle />}
 						productType={ProductType.Sessions}
+						rateCents={sessionsRateCents}
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
@@ -433,6 +440,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidLightningBolt />}
 						productType={ProductType.Errors}
+						rateCents={errorsRateCents}
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
@@ -444,6 +452,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidLogs />}
 						productType={ProductType.Logs}
+						rateCents={logsRateCents}
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
@@ -455,6 +464,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidSparkles />}
 						productType={ProductType.Traces}
+						rateCents={tracesRateCents}
 						retentionPeriod={tracesRetention}
 						billingLimitCents={tracesLimit}
 						usageAmount={tracesUsage}
