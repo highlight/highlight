@@ -85,7 +85,7 @@ export const TracesPage: React.FC = () => {
 		},
 	})
 
-	const { data: metricsData, loading: metricsLoadingz } =
+	const { data: metricsData, loading: metricsLoading } =
 		useGetTracesMetricsQuery({
 			variables: {
 				project_id: projectId!,
@@ -108,7 +108,6 @@ export const TracesPage: React.FC = () => {
 			skip: !projectId,
 			fetchPolicy: 'cache-and-network',
 		})
-	const metricsLoading = true
 
 	const [moreDataQuery] = useGetTracesLazyQuery({
 		fetchPolicy: 'network-only',
