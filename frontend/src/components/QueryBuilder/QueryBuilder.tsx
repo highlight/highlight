@@ -73,6 +73,7 @@ import { useLocation } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
+import { searchesAreEqual } from '@/components/QueryBuilder/utils'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -1535,21 +1536,21 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// Not sure if this is desired behavior in the long term, but
 	// this matches the current prod behavior.
 	useEffect(() => {
-		if (setDefault !== false) {
-			return () => {
+		return () => {
+			if (selectedSegment && !readonly && setDefault !== false) {
 				removeSelectedSegment()
 			}
 		}
-	}, [removeSelectedSegment, setDefault])
+	}, [removeSelectedSegment, setDefault, selectedSegment, readonly])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const mode = (() => {
 		if (selectedSegment !== undefined) {
-			if (searchQuery !== existingQuery) {
-				return QueryBuilderMode.SEGMENT_UPDATE
-			} else {
+			if (searchesAreEqual(searchQuery, existingQuery, timeRangeField)) {
 				return QueryBuilderMode.SEGMENT
+			} else {
+				return QueryBuilderMode.SEGMENT_UPDATE
 			}
 		}
 		return QueryBuilderMode.CUSTOM
@@ -1802,6 +1803,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		<>
 			<CreateAnySegmentModal
 				showModal={segmentModalState !== SegmentModalState.HIDDEN}
+				timeRangeField={timeRangeField}
 				onHideModal={() => {
 					setSegmentModalState(SegmentModalState.HIDDEN)
 				}}

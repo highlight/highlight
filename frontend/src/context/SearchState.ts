@@ -25,8 +25,10 @@ import {
 	SESSION_TYPE,
 	TIME_MAX_LENGTH,
 } from '@/components/QueryBuilder/QueryBuilder'
+import { searchObjectFromString } from '@/components/QueryBuilder/utils'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetHistogramBucketSize } from '@/components/SearchResultsHistogram/SearchResultsHistogram'
+import { SearchOption } from '@/components/Select/SearchSelect/SearchSelect'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
@@ -128,7 +130,11 @@ export const SearchReducer = (
 			)
 			break
 		case SearchActionType.setSelectedSegment:
-			const query = tryAddDefaultDate(action.query, action.timeRangeField)
+			const query = tryPreserveDateFromExistingOrAddDefault(
+				s.searchQuery,
+				action.query,
+				action.timeRangeField,
+			)
 			s.selectedSegment = evaluateAction(
 				action.selectedSegment,
 				s.selectedSegment,
@@ -182,6 +188,50 @@ const tryAddDefaultDate = (
 	return JSON.stringify({
 		isAnd,
 		rules: serializeRules(newRules),
+	})
+}
+
+// If the user is searching withing a time range, we want to preserve that time
+// range when applying a segment.
+const tryPreserveDateFromExistingOrAddDefault = (
+	searchQuery: string,
+	newSearchQuery: string,
+	timeRangeField: SelectOption,
+) => {
+	const { isAnd, rules } = searchObjectFromString(searchQuery)
+	const existingTimeRangeRule = rules.find(
+		(rule: any) => rule.field?.value === timeRangeField.value,
+	)
+
+	let { rules: newRules } = searchObjectFromString(newSearchQuery)
+	newRules = newRules.filter(
+		(rule: any) => rule.field?.value !== timeRangeField.value,
+	)
+
+	if (existingTimeRangeRule) {
+		newRules.push(existingTimeRangeRule)
+	} else {
+		newRules.push(getDefaultTimeRangeRule(timeRangeField))
+	}
+
+	return JSON.stringify({
+		isAnd,
+		rules: serializeRules(newRules),
+	})
+}
+
+export const removeTimeField = (
+	searchQuery: string,
+	timeRangeField: SearchOption,
+): string => {
+	const { isAnd, rules } = searchObjectFromString(searchQuery)
+	const filteredRules = rules.filter(
+		(rule: RuleProps) => rule.field?.value !== timeRangeField.value,
+	)
+
+	return JSON.stringify({
+		isAnd,
+		rules: serializeRules(filteredRules),
 	})
 }
 

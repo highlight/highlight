@@ -11,10 +11,14 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 
+import { SearchOption } from '@/components/Select/SearchSelect/SearchSelect'
+import { removeTimeField } from '@/context/SearchState'
+
 import styles from './SegmentButtons.module.css'
 
 interface Props {
 	showModal: boolean
+	timeRangeField: SearchOption
 	onHideModal: () => void
 	/** Called after a segment is created. */
 	afterCreateHandler?: (segmentId: string, segmentValue: string) => void
@@ -23,6 +27,7 @@ interface Props {
 
 const CreateSegmentModal = ({
 	showModal,
+	timeRangeField,
 	onHideModal,
 	afterCreateHandler,
 	currentSegment,
@@ -61,13 +66,18 @@ const CreateSegmentModal = ({
 			return
 		}
 
+		const queryWithoutTimeRange = removeTimeField(
+			searchQuery,
+			timeRangeField,
+		)
+
 		if (shouldUpdate) {
 			editSegment({
 				variables: {
 					project_id,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					params: { query: searchQuery },
+					params: { query: queryWithoutTimeRange },
 				},
 				onCompleted: () => {
 					message.success(
@@ -91,7 +101,7 @@ const CreateSegmentModal = ({
 				variables: {
 					project_id,
 					name: newSegmentName,
-					params: { query: searchQuery },
+					params: { query: queryWithoutTimeRange },
 				},
 				refetchQueries: [namedOperations.Query.GetSegments],
 				onCompleted: (r) => {
