@@ -1,6 +1,6 @@
 // src/pages/Alerts/components/AlertNotifyForm/styles.css.ts
-var sectionHeader = "_1hht64e1 mt0ih220 mt0ih22 mt0ih2te mt0ih27v";
-var selectContainer = "_1hht64e2";
+var sectionHeader = "_1hht64e0 _1faqfmv20 _1faqfmv2 _1faqfmvte _1faqfmv7v";
+var selectContainer = "_1hht64e1";
 export {
   sectionHeader,
   selectContainer
