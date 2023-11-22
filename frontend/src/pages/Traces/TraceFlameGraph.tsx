@@ -297,6 +297,7 @@ export const TraceFlameGraph: React.FC = () => {
 						borderRadius="8"
 						cursor="pointer"
 						position="relative"
+						userSelect="none"
 						style={{
 							height: 8,
 							width: 80,
