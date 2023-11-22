@@ -24,6 +24,7 @@ import {
 } from './constants'
 import { Logger } from '../logger'
 import { MetricCategory } from '../types/client'
+import { compressSync, gzipSync, strToU8 } from 'fflate'
 
 export interface HighlightClientRequestWorker {
 	postMessage: (message: HighlightClientWorkerParams) => void
@@ -36,6 +37,18 @@ interface HighlightClientResponseWorker {
 		| ((message: MessageEvent<HighlightClientWorkerParams>) => void)
 
 	postMessage(e: HighlightClientWorkerResponse): void
+}
+
+async function bufferToBase64(buffer: Uint8Array) {
+	// use a FileReader to generate a base64 data URI:
+	const base64url = await new Promise<string>((r) => {
+		const reader = new FileReader()
+		// remove data:*/*;base64, prefix
+		reader.onload = () => r((reader.result as string).slice(16))
+		reader.readAsDataURL(new Blob([buffer]))
+	})
+	// remove the `data:...;base64,` part from the start
+	return base64url.slice(base64url.indexOf(',') + 1)
 }
 
 // `as any` because: https://github.com/Microsoft/TypeScript/issues/20595
@@ -143,6 +156,7 @@ function stringifyProperties(
 		const messagesString = stringify({ messages: messages })
 		let payload: PushPayloadMutationVariables = {
 			session_secure_id: sessionSecureID,
+			payload_id: id.toString(),
 			events: { events } as ReplayEventsInput,
 			messages: messagesString,
 			resources: resourcesString,
@@ -150,15 +164,25 @@ function stringifyProperties(
 			errors,
 			is_beacon: isBeacon,
 			has_session_unloaded: hasSessionUnloaded,
-			payload_id: id.toString(),
 		}
 		if (highlightLogs) {
 			payload.highlight_logs = highlightLogs
 		}
 
+		const buf = strToU8(JSON.stringify(payload))
+		const compressed = compressSync(buf, {
+			level: 9,
+			mem: 12,
+		})
+		const compressedBase64 = await bufferToBase64(compressed)
+
 		const eventsSize = graphqlSDK
-			.PushPayload(payload)
-			.then((res) => res.pushPayload ?? 0)
+			.PushPayloadCompressed({
+				session_secure_id: sessionSecureID,
+				payload_id: id.toString(),
+				data: compressedBase64,
+			})
+			.then((res) => res.pushPayloadCompressed ?? 0)
 
 		if (metricsPayload.length) {
 			const metrics = graphqlSDK.pushMetrics({

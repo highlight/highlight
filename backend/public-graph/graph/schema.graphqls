@@ -119,6 +119,7 @@ type Mutation {
 	): String!
 	pushPayload(
 		session_secure_id: String!
+		payload_id: ID # Optional for backwards compatibility with older clients
 		events: ReplayEventsInput!
 		messages: String!
 		resources: String!
@@ -127,7 +128,11 @@ type Mutation {
 		is_beacon: Boolean
 		has_session_unloaded: Boolean
 		highlight_logs: String
-		payload_id: ID # Optional for backwards compatibility with older clients
+	): Int!
+	pushPayloadCompressed(
+		session_secure_id: String!
+		payload_id: ID!
+		data: String!
 	): Int!
 	pushBackendPayload(
 		project_id: String
