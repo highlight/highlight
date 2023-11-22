@@ -28,7 +28,11 @@ const LogsCount = ({
 	}, [endDate, presets, startDate])
 
 	if (loading) {
-		return <LoadingBox justifyContent="flex-start" size="xSmall" />
+		return (
+			<Box>
+				<LoadingBox justifyContent="flex-start" size="xSmall" />
+			</Box>
+		)
 	}
 
 	return (
