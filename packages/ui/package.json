@@ -57,6 +57,9 @@
 			"types": "./dist/borders.d.ts",
 			"import": "./dist/borders.js",
 			"require": "./dist/borders.cjs"
+		},
+		"./styles.css": {
+			"default": "./dist/style.css"
 		}
 	},
 	"dependencies": {
