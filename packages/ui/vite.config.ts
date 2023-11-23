@@ -19,6 +19,12 @@ export default defineConfig({
 			},
 			name: '@highlight-run/ui',
 		},
+		minify: 'esbuild',
+		sourcemap: true,
+		rollupOptions: {
+			treeshake: 'smallest',
+			external: ['react'],
+		},
 	},
 	resolve: {
 		alias: {
