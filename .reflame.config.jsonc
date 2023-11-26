@@ -282,6 +282,7 @@
         "/theme": "/theme.ts",
         "/colors": "/colors.ts",
         "/borders": "/borders.ts",
+        "/styles.css": "/noop.ts",
       },
       "npmPackages": {
         "ariakit": {

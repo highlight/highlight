@@ -5,8 +5,8 @@ var hoveredSpan = "_1r8lbz41";
 var selectedSpan = "_1r8lbz44";
 var span = "_1r8lbz42";
 var tabs = "_1r8lbz45";
-var tabsContainer = "_1faqfmv4p _1faqfmv56 _1faqfmvh4";
-var tabsPageContainer = "_1faqfmv7t _1faqfmv8g _1faqfmv27";
+var tabsContainer = "mt0ih24p mt0ih256 mt0ih2h4";
+var tabsPageContainer = "mt0ih27t mt0ih28g mt0ih227";
 export {
   container,
   errorSpan,

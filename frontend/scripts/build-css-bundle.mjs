@@ -3,6 +3,8 @@ import esbuild from 'esbuild'
 import * as fs from 'node:fs'
 import * as path_ from 'node:path'
 
+import entryPointsUi from '../../packages/ui/entryPoints.mjs'
+
 export const run = async ({
 	rootDirectory,
 	rootDirectoryFrontend,
@@ -146,7 +148,39 @@ export const run = async ({
 					}))
 				},
 			},
-			vanillaExtractPlugin({ identifiers: 'short' }),
+			vanillaExtractPlugin({
+				identifiers: 'short',
+				esbuildOptions: {
+					plugins: [
+						{
+							// resolve to TS source for UI entry points
+							// to make sure all styles are included
+							name: 'uiResolvePlugin',
+							setup: ({ onResolve }) => {
+								onResolve(
+									{
+										filter: new RegExp(
+											`^@highlight-run/ui/.*$`,
+										),
+										namespace: 'file',
+									},
+									({ path }) => {
+										const entryPoint = path.slice(
+											'@highlight-run/ui/'.length,
+										)
+										const resolved =
+											entryPointsUi[entryPoint]
+
+										return {
+											path: resolved,
+										}
+									},
+								)
+							},
+						},
+					],
+				},
+			}),
 			resultPlugin,
 		],
 		external: [
