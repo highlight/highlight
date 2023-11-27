@@ -314,7 +314,8 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
-	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
+	// always sample - use a comparison here to trick the compiler into not complaining about unused branches
+	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 0
 
 	metricColName := "Duration"
 	switch column {

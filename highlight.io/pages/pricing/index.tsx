@@ -249,6 +249,121 @@ const retentionMultipliers: Record<Retention, number> = {
 	'2 years': 2.5,
 } as const
 
+interface GraduatedPriceItem {
+	rate: number
+	usage?: number
+}
+const prices = {
+	Sessions: {
+		free: 500,
+		unit: 1_000,
+		items: [
+			{
+				usage: 15_000,
+				rate: 20 / 1_000,
+			},
+			{
+				usage: 50_000,
+				rate: 15 / 1_000,
+			},
+			{
+				usage: 150_000,
+				rate: 12 / 1_000,
+			},
+			{
+				usage: 500_000,
+				rate: 6.5 / 1_000,
+			},
+			{
+				usage: 1_000_000,
+				rate: 3.5 / 1_000,
+			},
+			{
+				rate: 2.5 / 1_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+	Errors: {
+		free: 1_000,
+		unit: 1_000,
+		items: [
+			{
+				usage: 50_000,
+				rate: 2 / 1_000,
+			},
+			{
+				usage: 100_000,
+				rate: 0.5 / 1_000,
+			},
+			{
+				usage: 200_000,
+				rate: 0.25 / 1_000,
+			},
+			{
+				usage: 500_000,
+				rate: 0.2 / 1_000,
+			},
+			{
+				usage: 5_000_000,
+				rate: 0.1 / 1_000,
+			},
+			{
+				rate: 0.05 / 1_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+	Logs: {
+		free: 1_000_000,
+		unit: 1_000_000,
+		items: [
+			{
+				usage: 1_000_000,
+				rate: 2.5 / 1_000_000,
+			},
+			{
+				usage: 10_000_000,
+				rate: 2 / 1_000_000,
+			},
+			{
+				usage: 100_000_000,
+				rate: 1.5 / 1_000_000,
+			},
+			{
+				usage: 1_000_000_000,
+				rate: 1 / 1_000_000,
+			},
+			{
+				rate: 0.5 / 1_000_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+	Traces: {
+		free: 25_000_000,
+		unit: 1_000_000,
+		items: [
+			{
+				usage: 1_000_000,
+				rate: 2.5 / 1_000_000,
+			},
+			{
+				usage: 10_000_000,
+				rate: 2 / 1_000_000,
+			},
+			{
+				usage: 100_000_000,
+				rate: 1.5 / 1_000_000,
+			},
+			{
+				usage: 1_000_000_000,
+				rate: 1 / 1_000_000,
+			},
+			{
+				rate: 0.5 / 1_000_000,
+			},
+		] as GraduatedPriceItem[],
+	},
+} as const
+
 const tierOptions = ['Free', 'UsageBased', 'Enterprise'] as const
 type TierName = typeof tierOptions[number]
 
@@ -269,16 +384,16 @@ const priceTiers: Record<TierName, PricingTier> = {
 		label: 'Free forever',
 		features: [
 			{
-				feature: '500 monthly sessions',
+				feature: `${prices.Sessions.free.toLocaleString()} monthly sessions`,
 			},
 			{
-				feature: '1,000 monthly errors',
+				feature: `${prices.Errors.free.toLocaleString()} monthly errors`,
 			},
 			{
-				feature: '1,000,000 monthly logs',
+				feature: `${prices.Logs.free.toLocaleString()} monthly logs`,
 			},
 			{
-				feature: '1,000,000 monthly traces',
+				feature: `${prices.Traces.free.toLocaleString()} monthly traces`,
 			},
 			{
 				feature: 'Unlimited seats',
@@ -291,16 +406,16 @@ const priceTiers: Record<TierName, PricingTier> = {
 		label: 'Pay as you go',
 		features: [
 			{
-				feature: '500+ monthly sessions',
+				feature: `${prices.Sessions.free.toLocaleString()}+ monthly sessions`,
 			},
 			{
-				feature: '1,000+ monthly errors',
+				feature: `${prices.Errors.free.toLocaleString()}+ monthly errors`,
 			},
 			{
-				feature: '1,000,000+ monthly logs',
+				feature: `${prices.Logs.free.toLocaleString()}+ monthly logs`,
 			},
 			{
-				feature: '1,000,000+ monthly traces',
+				feature: `${prices.Traces.free.toLocaleString()}+ monthly traces`,
 			},
 			{
 				feature: 'Unlimited seats',
@@ -442,121 +557,6 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 		</div>
 	)
 }
-
-interface GraduatedPriceItem {
-	rate: number
-	usage?: number
-}
-const prices = {
-	Sessions: {
-		free: 500,
-		unit: 1_000,
-		items: [
-			{
-				usage: 15_000,
-				rate: 20 / 1_000,
-			},
-			{
-				usage: 50_000,
-				rate: 15 / 1_000,
-			},
-			{
-				usage: 150_000,
-				rate: 12 / 1_000,
-			},
-			{
-				usage: 500_000,
-				rate: 6.5 / 1_000,
-			},
-			{
-				usage: 1_000_000,
-				rate: 3.5 / 1_000,
-			},
-			{
-				rate: 2.5 / 1_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-	Errors: {
-		free: 1_000,
-		unit: 1_000,
-		items: [
-			{
-				usage: 50_000,
-				rate: 2 / 1_000,
-			},
-			{
-				usage: 100_000,
-				rate: 0.5 / 1_000,
-			},
-			{
-				usage: 200_000,
-				rate: 0.25 / 1_000,
-			},
-			{
-				usage: 500_000,
-				rate: 0.2 / 1_000,
-			},
-			{
-				usage: 5_000_000,
-				rate: 0.1 / 1_000,
-			},
-			{
-				rate: 0.05 / 1_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-	Logs: {
-		free: 1_000_000,
-		unit: 1_000_000,
-		items: [
-			{
-				usage: 1_000_000,
-				rate: 2.5 / 1_000_000,
-			},
-			{
-				usage: 10_000_000,
-				rate: 2 / 1_000_000,
-			},
-			{
-				usage: 100_000_000,
-				rate: 1.5 / 1_000_000,
-			},
-			{
-				usage: 1_000_000_000,
-				rate: 1 / 1_000_000,
-			},
-			{
-				rate: 0.5 / 1_000_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-	Traces: {
-		free: 25_000_000,
-		unit: 1_000_000,
-		items: [
-			{
-				usage: 1_000_000,
-				rate: 2.5 / 1_000_000,
-			},
-			{
-				usage: 10_000_000,
-				rate: 2 / 1_000_000,
-			},
-			{
-				usage: 100_000_000,
-				rate: 1.5 / 1_000_000,
-			},
-			{
-				usage: 1_000_000_000,
-				rate: 1 / 1_000_000,
-			},
-			{
-				rate: 0.5 / 1_000_000,
-			},
-		] as GraduatedPriceItem[],
-	},
-} as const
 
 const formatNumber = (num: number, digits?: number) => {
 	let si = [

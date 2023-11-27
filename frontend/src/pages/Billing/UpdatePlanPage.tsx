@@ -91,23 +91,24 @@ const UNIT_QUANTITY = {
 
 export const getCostCents = (
 	productType: ProductType,
-	rateCents: number | undefined,
+	rate: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	quantity: number,
 	includedQuantity: number,
 ): number => {
-	const unitCost = BASE_UNIT_COST_CENTS[productType]
+	if (!rate) {
+		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	}
 	return Math.floor(
-		((rateCents || unitCost) *
+		rate *
 			RETENTION_MULTIPLIER[retentionPeriod] *
-			Math.max(quantity - includedQuantity, 0)) /
-			UNIT_QUANTITY[productType],
+			Math.max(quantity - includedQuantity, 0),
 	)
 }
 
 export const getQuantity = (
 	productType: ProductType,
-	rateCents: number | undefined,
+	rate: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	totalCents: number | undefined,
 	includedQuantity: number,
@@ -116,12 +117,12 @@ export const getQuantity = (
 		return undefined
 	}
 
-	const unitCost = BASE_UNIT_COST_CENTS[productType]
+	if (!rate) {
+		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	}
 	return Math.floor(
-		(totalCents * UNIT_QUANTITY[productType]) /
-			((rateCents || unitCost) *
-				100 *
-				RETENTION_MULTIPLIER[retentionPeriod]) +
+		((totalCents / 100) * UNIT_QUANTITY[productType]) /
+			(rate * RETENTION_MULTIPLIER[retentionPeriod]) +
 			includedQuantity,
 	)
 }
