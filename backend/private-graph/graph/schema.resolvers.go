@@ -5648,16 +5648,16 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	var sessionsLimit, errorsLimit, logsLimit, tracesLimit *int64
-	var sessionsRateCents, errorsRateCents, logsRateCents, tracesRateCents int64
+	var sessionsRate, errorsRate, logsRate, tracesRate float64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
 		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
 		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
 		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
 		tracesLimit = pricing.GetLimitAmount(nil, model.PricingProductTypeTraces, planType, retentionPeriod)
-		sessionsRateCents = int64(pricing.ProductToBasePriceCents(model.PricingProductTypeSessions, planType, sessionsMeter))
-		errorsRateCents = int64(pricing.ProductToBasePriceCents(model.PricingProductTypeErrors, planType, errorsMeter))
-		logsRateCents = int64(pricing.ProductToBasePriceCents(model.PricingProductTypeLogs, planType, logsMeter))
-		tracesRateCents = int64(pricing.ProductToBasePriceCents(model.PricingProductTypeTraces, planType, tracesMeter))
+		sessionsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeSessions, planType, sessionsMeter)
+		errorsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeErrors, planType, errorsMeter)
+		logsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeLogs, planType, logsMeter)
+		tracesRate = pricing.ProductToBasePriceCents(model.PricingProductTypeTraces, planType, tracesMeter)
 	}
 
 	details := &modelInputs.BillingDetails{
@@ -5669,10 +5669,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			ErrorsLimit:         errorsIncluded,
 			LogsLimit:           logsIncluded,
 			TracesLimit:         tracesIncluded,
-			SessionsRateCents:   sessionsRateCents,
-			ErrorsRateCents:     errorsRateCents,
-			LogsRateCents:       logsRateCents,
-			TracesRateCents:     tracesRateCents,
+			SessionsRate:        sessionsRate,
+			ErrorsRate:          errorsRate,
+			LogsRate:            logsRate,
+			TracesRate:          tracesRate,
 			EnableBillingLimits: settings.EnableBillingLimits,
 		},
 		Meter:                sessionsMeter,

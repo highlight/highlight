@@ -275,10 +275,10 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		billingPeriodEnd,
 	)
 
-	const sessionsRateCents = data?.billingDetails.plan.sessionsRateCents
-	const errorsRateCents = data?.billingDetails.plan.errorsRateCents
-	const logsRateCents = data?.billingDetails.plan.logsRateCents
-	const tracesRateCents = data?.billingDetails.plan.tracesRateCents
+	const sessionsRate = data?.billingDetails.plan.sessionsRate ?? 0
+	const errorsRate = data?.billingDetails.plan.errorsRate ?? 0
+	const logsRate = data?.billingDetails.plan.logsRate ?? 0
+	const tracesRate = data?.billingDetails.plan.tracesRate ?? 0
 
 	const sessionsRetention =
 		data?.workspace?.retention_period ?? RetentionPeriod.SixMonths
@@ -304,28 +304,28 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const productSubtotal =
 		getCostCents(
 			ProductType.Sessions,
-			sessionsRateCents,
+			sessionsRate,
 			sessionsRetention,
 			sessionsUsage,
 			includedSessions,
 		) +
 		getCostCents(
 			ProductType.Errors,
-			errorsRateCents,
+			errorsRate,
 			errorsRetention,
 			errorsUsage,
 			includedErrors,
 		) +
 		getCostCents(
 			ProductType.Logs,
-			logsRateCents,
+			logsRate,
 			logsRetention,
 			logsUsage,
 			includedLogs,
 		) +
 		getCostCents(
 			ProductType.Traces,
-			tracesRateCents,
+			tracesRate,
 			tracesRetention,
 			tracesUsage,
 			includedTraces,
@@ -432,7 +432,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidPlayCircle />}
 						productType={ProductType.Sessions}
-						rateCents={sessionsRateCents}
+						rateCents={sessionsRate * 100}
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
@@ -447,7 +447,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidLightningBolt />}
 						productType={ProductType.Errors}
-						rateCents={errorsRateCents}
+						rateCents={errorsRate * 100}
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
@@ -462,7 +462,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidLogs />}
 						productType={ProductType.Logs}
-						rateCents={logsRateCents}
+						rateCents={logsRate * 100}
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
@@ -477,7 +477,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidSparkles />}
 						productType={ProductType.Traces}
-						rateCents={tracesRateCents}
+						rateCents={tracesRate * 100}
 						retentionPeriod={tracesRetention}
 						billingLimitCents={tracesLimit}
 						usageAmount={tracesUsage}

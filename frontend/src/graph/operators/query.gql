@@ -947,10 +947,10 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			errorsLimit
 			logsLimit
 			tracesLimit
-			sessionsRateCents
-			errorsRateCents
-			logsRateCents
-			tracesRateCents
+			sessionsRate
+			errorsRate
+			logsRate
+			tracesRate
 		}
 		meter
 		membersMeter
@@ -983,10 +983,10 @@ query GetBillingDetails($workspace_id: ID!) {
 			errorsLimit
 			logsLimit
 			tracesLimit
-			sessionsRateCents
-			errorsRateCents
-			logsRateCents
-			tracesRateCents
+			sessionsRate
+			errorsRate
+			logsRate
+			tracesRate
 			enableBillingLimits
 		}
 		meter

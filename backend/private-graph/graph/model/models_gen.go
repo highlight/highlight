@@ -599,10 +599,10 @@ type Plan struct {
 	ErrorsLimit         int64                `json:"errorsLimit"`
 	LogsLimit           int64                `json:"logsLimit"`
 	TracesLimit         int64                `json:"tracesLimit"`
-	SessionsRateCents   int64                `json:"sessionsRateCents"`
-	ErrorsRateCents     int64                `json:"errorsRateCents"`
-	LogsRateCents       int64                `json:"logsRateCents"`
-	TracesRateCents     int64                `json:"tracesRateCents"`
+	SessionsRate        float64              `json:"sessionsRate"`
+	ErrorsRate          float64              `json:"errorsRate"`
+	LogsRate            float64              `json:"logsRate"`
+	TracesRate          float64              `json:"tracesRate"`
 }
 
 type QueryInput struct {

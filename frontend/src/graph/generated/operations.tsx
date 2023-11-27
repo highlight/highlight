@@ -2811,10 +2811,10 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'errorsLimit'
 					| 'logsLimit'
 					| 'tracesLimit'
-					| 'sessionsRateCents'
-					| 'errorsRateCents'
-					| 'logsRateCents'
-					| 'tracesRateCents'
+					| 'sessionsRate'
+					| 'errorsRate'
+					| 'logsRate'
+					| 'tracesRate'
 				>
 			}
 	>
@@ -2861,10 +2861,10 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'errorsLimit'
 				| 'logsLimit'
 				| 'tracesLimit'
-				| 'sessionsRateCents'
-				| 'errorsRateCents'
-				| 'logsRateCents'
-				| 'tracesRateCents'
+				| 'sessionsRate'
+				| 'errorsRate'
+				| 'logsRate'
+				| 'tracesRate'
 				| 'enableBillingLimits'
 			>
 		}

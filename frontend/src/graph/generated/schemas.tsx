@@ -1703,15 +1703,15 @@ export type Plan = {
 	__typename?: 'Plan'
 	enableBillingLimits: Scalars['Boolean']
 	errorsLimit: Scalars['Int64']
-	errorsRateCents: Scalars['Int64']
+	errorsRate: Scalars['Float']
 	interval: SubscriptionInterval
 	logsLimit: Scalars['Int64']
-	logsRateCents: Scalars['Int64']
+	logsRate: Scalars['Float']
 	membersLimit?: Maybe<Scalars['Int64']>
 	sessionsLimit: Scalars['Int64']
-	sessionsRateCents: Scalars['Int64']
+	sessionsRate: Scalars['Float']
 	tracesLimit: Scalars['Int64']
-	tracesRateCents: Scalars['Int64']
+	tracesRate: Scalars['Float']
 	type: PlanType
 }
 

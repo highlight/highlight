@@ -171,10 +171,10 @@ type Plan {
 	logsLimit: Int64!
 	tracesLimit: Int64!
 
-	sessionsRateCents: Int64!
-	errorsRateCents: Int64!
-	logsRateCents: Int64!
-	tracesRateCents: Int64!
+	sessionsRate: Float!
+	errorsRate: Float!
+	logsRate: Float!
+	tracesRate: Float!
 }
 
 enum PlanType {

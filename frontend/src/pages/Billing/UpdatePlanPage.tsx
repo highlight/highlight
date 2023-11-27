@@ -99,7 +99,6 @@ export const getCostCents = (
 	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	return Math.floor(
 		((rateCents || unitCost) *
-			100 *
 			RETENTION_MULTIPLIER[retentionPeriod] *
 			Math.max(quantity - includedQuantity, 0)) /
 			UNIT_QUANTITY[productType],
@@ -156,7 +155,7 @@ const stripePromiseOrNull = getStripePromiseOrNull()
 type ProductCardProps = {
 	productIcon: React.ReactElement<IconProps>
 	productType: ProductType
-	rateCents: number | undefined
+	rate: number | undefined
 	retentionPeriod: RetentionPeriod
 	planType: PlanType
 	setRetentionPeriod: (rp: RetentionPeriod) => void
@@ -239,7 +238,7 @@ const LimitButton = ({
 const ProductCard = ({
 	productIcon,
 	productType,
-	rateCents,
+	rate,
 	retentionPeriod,
 	setRetentionPeriod,
 	limitCents,
@@ -250,7 +249,8 @@ const ProductCard = ({
 }: ProductCardProps) => {
 	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	const unitCostCents =
-		(rateCents || unitCost) * RETENTION_MULTIPLIER[retentionPeriod]
+		(rate ? Math.round(rate * UNIT_QUANTITY[productType]) : unitCost) *
+		RETENTION_MULTIPLIER[retentionPeriod]
 
 	const unitQuantity = UNIT_QUANTITY[productType]
 	const quantityFormatted = formatNumber(unitQuantity)
@@ -262,7 +262,7 @@ const ProductCard = ({
 
 	const predictedCostCents = getCostCents(
 		productType,
-		rateCents,
+		rate,
 		retentionPeriod,
 		predictedUsageAmount,
 		includedQuantity,
@@ -270,7 +270,7 @@ const ProductCard = ({
 
 	const currentCostCents = getCostCents(
 		productType,
-		rateCents,
+		rate,
 		retentionPeriod,
 		usageAmount,
 		includedQuantity,
@@ -558,14 +558,14 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	let predictedSessionsCost = getCostCents(
 		'Sessions',
-		data?.billingDetails.plan.sessionsRateCents,
+		data?.billingDetails.plan.sessionsRate,
 		formState.values.sessionsRetention,
 		predictedSessionsUsage,
 		includedSessions,
 	)
 	const actualSessionsCost = getCostCents(
 		'Sessions',
-		data?.billingDetails.plan.sessionsRateCents,
+		data?.billingDetails.plan.sessionsRate,
 		formState.values.sessionsRetention,
 		sessionsUsage,
 		includedSessions,
@@ -587,14 +587,14 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	let predictedErrorsCost = getCostCents(
 		'Errors',
-		data?.billingDetails.plan.errorsRateCents,
+		data?.billingDetails.plan.errorsRate,
 		formState.values.errorsRetention,
 		predictedErrorsUsage,
 		includedErrors,
 	)
 	const actualErrorsCost = getCostCents(
 		'Errors',
-		data?.billingDetails.plan.errorsRateCents,
+		data?.billingDetails.plan.errorsRate,
 		formState.values.errorsRetention,
 		errorsUsage,
 		includedErrors,
@@ -616,14 +616,14 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	let predictedLogsCost = getCostCents(
 		'Logs',
-		data?.billingDetails.plan.logsRateCents,
+		data?.billingDetails.plan.logsRate,
 		formState.values.logsRetention,
 		predictedLogsUsage,
 		includedLogs,
 	)
 	const actualLogsCost = getCostCents(
 		'Logs',
-		data?.billingDetails.plan.logsRateCents,
+		data?.billingDetails.plan.logsRate,
 		formState.values.logsRetention,
 		logsUsage,
 		includedLogs,
@@ -645,14 +645,14 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
 	let predictedTracesCost = getCostCents(
 		'Traces',
-		data?.billingDetails.plan.tracesRateCents,
+		data?.billingDetails.plan.tracesRate,
 		formState.values.tracesRetention,
 		predictedTracesUsage,
 		includedTraces,
 	)
 	const actualTracesCost = getCostCents(
 		'Traces',
-		data?.billingDetails.plan.tracesRateCents,
+		data?.billingDetails.plan.tracesRate,
 		formState.values.logsRetention,
 		tracesUsage,
 		includedTraces,
@@ -857,9 +857,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidPlayCircle />}
 								productType="Sessions"
-								rateCents={
-									data?.billingDetails.plan.sessionsRateCents
-								}
+								rate={data?.billingDetails.plan.sessionsRate}
 								retentionPeriod={
 									formState.values.sessionsRetention
 								}
@@ -889,9 +887,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidLightningBolt />}
 								productType="Errors"
-								rateCents={
-									data?.billingDetails.plan.errorsRateCents
-								}
+								rate={data?.billingDetails.plan.errorsRate}
 								retentionPeriod={
 									formState.values.errorsRetention
 								}
@@ -921,9 +917,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidLogs />}
 								productType="Logs"
-								rateCents={
-									data?.billingDetails.plan.logsRateCents
-								}
+								rate={data?.billingDetails.plan.logsRate}
 								retentionPeriod={formState.values.logsRetention}
 								setRetentionPeriod={(rp) =>
 									formStore.setValue(
@@ -951,9 +945,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidSparkles />}
 								productType="Traces"
-								rateCents={
-									data?.billingDetails.plan.tracesRateCents
-								}
+								rate={data?.billingDetails.plan.tracesRate}
 								retentionPeriod={
 									formState.values.tracesRetention
 								}
