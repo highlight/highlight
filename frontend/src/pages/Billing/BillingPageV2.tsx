@@ -53,23 +53,26 @@ import * as style from './BillingPageV2.css'
 type UsageCardProps = {
 	productIcon: React.ReactElement<IconProps>
 	productType: ProductType
+	rateCents: number | undefined
 	retentionPeriod: RetentionPeriod
 	planType: PlanType
 	billingLimitCents: number | undefined
 	usageAmount: number
 	includedQuantity: number
 	isPaying: boolean
+	enableBillingLimits: boolean | undefined
 }
 
 const UsageCard = ({
 	productIcon,
 	productType,
+	rateCents,
 	retentionPeriod,
-	planType,
 	billingLimitCents,
 	usageAmount,
 	includedQuantity,
 	isPaying,
+	enableBillingLimits,
 }: UsageCardProps) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
@@ -80,18 +83,18 @@ const UsageCard = ({
 	const costCents = isPaying
 		? getCostCents(
 				productType,
+				rateCents,
 				retentionPeriod,
 				usageAmount,
 				includedQuantity,
-				planType,
 		  )
 		: 0
 	const usageLimitAmount = getQuantity(
 		productType,
+		rateCents,
 		retentionPeriod,
 		billingLimitCents,
 		includedQuantity,
-		planType,
 	)
 
 	const costFormatted =
@@ -141,24 +144,26 @@ const UsageCard = ({
 							</Tooltip>
 						}
 					></Badge>
-					<Badge
-						size="medium"
-						shape="basic"
-						kind="secondary"
-						label={`Billing Limit: ${
-							limitFormatted ?? 'Unlimited'
-						}`}
-						iconEnd={
-							<Tooltip
-								trigger={
-									<IconSolidInformationCircle size={12} />
-								}
-							>
-								{productType} will not be recorded once this
-								billing limit is reached.
-							</Tooltip>
-						}
-					></Badge>
+					{enableBillingLimits ? (
+						<Badge
+							size="medium"
+							shape="basic"
+							kind="secondary"
+							label={`Billing Limit: ${
+								limitFormatted ?? 'Unlimited'
+							}`}
+							iconEnd={
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+								>
+									{productType} will not be recorded once this
+									billing limit is reached.
+								</Tooltip>
+							}
+						></Badge>
+					) : null}
 					<Tag
 						iconRight={<IconSolidCheveronRight />}
 						kind="secondary"
@@ -270,6 +275,11 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		billingPeriodEnd,
 	)
 
+	const sessionsRate = data?.billingDetails.plan.sessionsRate ?? 0
+	const errorsRate = data?.billingDetails.plan.errorsRate ?? 0
+	const logsRate = data?.billingDetails.plan.logsRate ?? 0
+	const tracesRate = data?.billingDetails.plan.tracesRate ?? 0
+
 	const sessionsRetention =
 		data?.workspace?.retention_period ?? RetentionPeriod.SixMonths
 
@@ -284,7 +294,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const logsUsage = data?.billingDetails.logsMeter ?? 0
 	const tracesUsage = data?.billingDetails.tracesMeter ?? 0
 
-	const includedSessions = data?.billingDetails.plan.quota ?? 0
+	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
@@ -294,31 +304,31 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const productSubtotal =
 		getCostCents(
 			ProductType.Sessions,
+			sessionsRate,
 			sessionsRetention,
 			sessionsUsage,
 			includedSessions,
-			planType,
 		) +
 		getCostCents(
 			ProductType.Errors,
+			errorsRate,
 			errorsRetention,
 			errorsUsage,
 			includedErrors,
-			planType,
 		) +
 		getCostCents(
 			ProductType.Logs,
+			logsRate,
 			logsRetention,
 			logsUsage,
 			includedLogs,
-			planType,
 		) +
 		getCostCents(
 			ProductType.Traces,
+			tracesRate,
 			tracesRetention,
 			tracesUsage,
 			includedTraces,
-			planType,
 		)
 
 	const discountRatio = (100 - discountPercent) / 100
@@ -422,45 +432,61 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidPlayCircle />}
 						productType={ProductType.Sessions}
+						rateCents={sessionsRate * 100}
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
 						includedQuantity={includedSessions}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
 						productIcon={<IconSolidLightningBolt />}
 						productType={ProductType.Errors}
+						rateCents={errorsRate * 100}
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
 						includedQuantity={includedErrors}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
 						productIcon={<IconSolidLogs />}
 						productType={ProductType.Logs}
+						rateCents={logsRate * 100}
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
 						includedQuantity={includedLogs}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
 						productIcon={<IconSolidSparkles />}
 						productType={ProductType.Traces}
+						rateCents={tracesRate * 100}
 						retentionPeriod={tracesRetention}
 						billingLimitCents={tracesLimit}
 						usageAmount={tracesUsage}
 						includedQuantity={includedTraces}
 						isPaying={isPaying}
 						planType={planType}
+						enableBillingLimits={
+							data?.billingDetails.plan.enableBillingLimits
+						}
 					/>
 				</Box>
 				<Stack

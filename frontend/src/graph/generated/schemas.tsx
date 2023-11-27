@@ -1701,12 +1701,17 @@ export type PageInfo = {
 
 export type Plan = {
 	__typename?: 'Plan'
-	errorsLimit: Scalars['Int']
+	enableBillingLimits: Scalars['Boolean']
+	errorsLimit: Scalars['Int64']
+	errorsRate: Scalars['Float']
 	interval: SubscriptionInterval
-	logsLimit: Scalars['Int']
-	membersLimit?: Maybe<Scalars['Int']>
-	quota: Scalars['Int']
-	tracesLimit: Scalars['Int']
+	logsLimit: Scalars['Int64']
+	logsRate: Scalars['Float']
+	membersLimit?: Maybe<Scalars['Int64']>
+	sessionsLimit: Scalars['Int64']
+	sessionsRate: Scalars['Float']
+	tracesLimit: Scalars['Int64']
+	tracesRate: Scalars['Float']
 	type: PlanType
 }
 
@@ -1714,6 +1719,7 @@ export enum PlanType {
 	Basic = 'Basic',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
+	Graduated = 'Graduated',
 	Lite = 'Lite',
 	Startup = 'Startup',
 	UsageBased = 'UsageBased',
