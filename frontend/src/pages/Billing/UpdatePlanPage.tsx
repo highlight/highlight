@@ -99,22 +99,11 @@ export const getCostCents = (
 	if (!rate) {
 		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
 	}
-	const result = Math.floor(
+	return Math.floor(
 		rate *
 			RETENTION_MULTIPLIER[retentionPeriod] *
 			Math.max(quantity - includedQuantity, 0),
 	)
-	console.log('vadim', {
-		result,
-		productType,
-		rate,
-		retentionPeriod,
-		quantity,
-		includedQuantity,
-		unit: UNIT_QUANTITY[productType],
-		ret: RETENTION_MULTIPLIER[retentionPeriod],
-	})
-	return result
 }
 
 export const getQuantity = (
