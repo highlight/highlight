@@ -1,4 +1,4 @@
-import { Box, IconSolidCheveronLeft, Stack } from '@highlight-run/ui'
+import { Box, IconSolidCheveronLeft, Stack } from '@highlight-run/ui/components'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/Button'

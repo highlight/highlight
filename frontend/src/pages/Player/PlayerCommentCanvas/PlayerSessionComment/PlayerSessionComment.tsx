@@ -1,5 +1,5 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import clsx from 'clsx'

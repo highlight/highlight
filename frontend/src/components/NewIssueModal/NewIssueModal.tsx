@@ -20,8 +20,8 @@ import {
 	Stack,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
-import { vars } from '@highlight-run/ui/src/css/vars'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import {
 	CLICKUP_INTEGRATION,
 	JIRA_INTEGRATION,

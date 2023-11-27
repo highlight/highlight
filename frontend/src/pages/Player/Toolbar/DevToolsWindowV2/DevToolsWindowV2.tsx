@@ -10,8 +10,8 @@ import {
 	Tabs,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+} from '@highlight-run/ui/components'
+import { themeVars } from '@highlight-run/ui/theme'
 import { useProjectId } from '@hooks/useProjectId'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'

@@ -1,4 +1,9 @@
-import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidExternalLink,
+	Text,
+} from '@highlight-run/ui/components'
 import { stringify } from 'query-string'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'

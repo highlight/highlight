@@ -1,6 +1,7 @@
-import { pulseKeyframes, vars } from '@highlight-run/ui'
-import { borders } from '@highlight-run/ui/src/css/borders'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { borders } from '@highlight-run/ui/borders'
+import { colors } from '@highlight-run/ui/colors'
+import { pulseKeyframes } from '@highlight-run/ui/keyframes'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const OUTLINE_HISTOGRAM_HEIGHT = 120

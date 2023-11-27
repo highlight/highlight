@@ -1,9 +1,6 @@
 export { Badge } from './Badge/Badge'
 export { Box } from './Box/Box'
 export type { BoxProps } from './Box/Box'
-export { Button, ButtonContent } from './Button/Button'
-export type { ButtonProps } from './Button/Button'
-export * as buttonStyles from './Button/styles.css'
 export { ButtonIcon } from './ButtonIcon/ButtonIcon'
 export { ButtonLink } from './ButtonLink/ButtonLink'
 export { Callout } from './Callout/Callout'
@@ -11,13 +8,6 @@ export { Card } from './Card/Card'
 export { Column } from './Column/Column'
 export * from './Combobox/Combobox'
 export { Container } from './Container/Container'
-export {
-	PreviousDateRangePicker,
-	defaultPresets,
-	resetRelativeDates,
-	getNow,
-} from './DatePicker/PreviousDateRangePicker'
-export type { Preset } from './DatePicker/PreviousDateRangePicker'
 export * from './Dialog/Dialog'
 export * from './Form/Form'
 export { Heading } from './Heading/Heading'
@@ -34,6 +24,10 @@ export { Tag } from './Tag/Tag'
 export { Text } from './Text/Text'
 export { TextLink } from './TextLink/TextLink'
 export { Tooltip, TooltipContent } from './Tooltip/Tooltip'
+export { sMonotype, typographyStyles } from './Text/styles.css'
+export * from './Button/Button'
+export * as buttonStyles from './Button/styles.css'
+export * from './DatePicker/PreviousDateRangePicker'
 export * from './icons'
 
 // Expose Ariakit so you can access the building blocks if needed. Shouldn't be

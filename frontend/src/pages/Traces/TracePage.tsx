@@ -1,4 +1,11 @@
-import { Badge, Box, Callout, Heading, Stack, Tabs } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	Callout,
+	Heading,
+	Stack,
+	Tabs,
+} from '@highlight-run/ui/components'
 import moment from 'moment'
 import React, { useState } from 'react'
 

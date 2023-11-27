@@ -8,7 +8,7 @@ import {
 	useGetWorkspacePendingInvitesQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'

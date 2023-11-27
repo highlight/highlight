@@ -6,7 +6,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	Stack,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { Header } from '@pages/Setup/Header'
 import analytics from '@util/analytics'

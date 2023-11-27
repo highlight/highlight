@@ -44,8 +44,8 @@ import {
 	Stack,
 	Text,
 	TextLink,
-} from '@highlight-run/ui'
-import { vars } from '@highlight-run/ui/src/css/vars'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'

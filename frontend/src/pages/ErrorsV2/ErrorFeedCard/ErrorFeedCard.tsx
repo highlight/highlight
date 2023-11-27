@@ -9,8 +9,8 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
 import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'

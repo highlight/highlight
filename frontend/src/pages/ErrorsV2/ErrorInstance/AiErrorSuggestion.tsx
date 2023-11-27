@@ -10,7 +10,7 @@ import {
 	IconSolidThumbUp,
 	Stack,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { message } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'

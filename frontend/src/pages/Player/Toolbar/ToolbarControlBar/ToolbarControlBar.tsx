@@ -33,7 +33,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'

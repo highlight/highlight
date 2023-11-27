@@ -20,7 +20,7 @@ import {
 	Text,
 	Tooltip,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { loadStripe } from '@stripe/stripe-js'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'

@@ -5,7 +5,7 @@ import {
 	Stack,
 	Table,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 

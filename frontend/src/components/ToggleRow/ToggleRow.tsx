@@ -1,4 +1,4 @@
-import { Box, Stack, Text, Tooltip } from '@highlight-run/ui'
+import { Box, Stack, Text, Tooltip } from '@highlight-run/ui/components'
 
 import Switch from '@/components/Switch/Switch'
 

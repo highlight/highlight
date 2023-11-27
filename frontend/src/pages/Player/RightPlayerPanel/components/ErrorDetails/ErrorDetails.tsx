@@ -20,7 +20,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import AffectedUserCount from '@pages/ErrorsV2/ErrorBody/components/AffectedUserCount'
 import ErrorBodyText from '@pages/ErrorsV2/ErrorBody/components/ErrorBodyText'

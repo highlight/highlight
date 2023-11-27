@@ -6,7 +6,7 @@ import {
 	IconSolidExclamation,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { Divider } from 'antd'

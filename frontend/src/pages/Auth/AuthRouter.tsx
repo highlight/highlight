@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import { MultiFactor } from '@pages/Auth/MultiFactor'
 import { ResetPassword } from '@pages/Auth/ResetPassword'
 import { SignIn } from '@pages/Auth/SignIn'

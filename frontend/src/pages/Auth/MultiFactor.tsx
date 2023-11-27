@@ -11,8 +11,8 @@ import {
 	Stack,
 	Text,
 	useFormStore,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import firebase from 'firebase/compat/app'

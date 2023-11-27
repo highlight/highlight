@@ -8,7 +8,7 @@ import {
 	IconSolidLinear,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import React from 'react'
 
 interface AttachmentListProps {

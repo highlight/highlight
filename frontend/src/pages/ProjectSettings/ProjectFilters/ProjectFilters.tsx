@@ -37,7 +37,7 @@ import {
 	Text,
 	Tooltip,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorQueryBuilder, {

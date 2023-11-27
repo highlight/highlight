@@ -1,4 +1,4 @@
-import { defaultPresets, getNow } from '@highlight-run/ui'
+import { defaultPresets, getNow } from '@highlight-run/ui/components'
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
 import { useLocation } from 'react-router-dom'

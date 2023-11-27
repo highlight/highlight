@@ -7,8 +7,8 @@ import {
 	Stack,
 	Text,
 	useFormStore,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import analytics from '@util/analytics'

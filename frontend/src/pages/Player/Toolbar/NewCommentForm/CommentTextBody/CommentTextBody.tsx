@@ -6,7 +6,7 @@ import {
 	MentionsInput,
 	OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui/components'
 import { useSlackSync } from '@hooks/useSlackSync'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'

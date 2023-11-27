@@ -1,6 +1,7 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
+import '@highlight-run/ui/styles.css'
 import './index.css'
 import './style/tailwind.css'
 

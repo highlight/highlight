@@ -1,4 +1,4 @@
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 
 import { LinkButton } from '@/components/LinkButton'
 import { ErrorObjectFragment } from '@/graph/generated/operations'

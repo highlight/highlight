@@ -1,5 +1,5 @@
-import { vars } from '@highlight-run/ui'
-import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
+import { vars } from '@/vars'
+import { sprinkles } from '@/sprinkles'
 import { style } from '@vanilla-extract/css'
 
 import * as rowStyles from '../Row/styles.css'

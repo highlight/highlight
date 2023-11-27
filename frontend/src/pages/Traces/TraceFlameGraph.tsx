@@ -1,4 +1,4 @@
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { throttle } from 'lodash'
 import {

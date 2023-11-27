@@ -1,5 +1,5 @@
-import { colors } from '@highlight-run/ui/src/css/colors'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { colors } from '@highlight-run/ui/colors'
+import { themeVars } from '@highlight-run/ui/theme'
 import { style } from '@vanilla-extract/css'
 
 export const zoomArea = style({

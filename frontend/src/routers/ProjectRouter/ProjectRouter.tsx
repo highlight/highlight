@@ -11,7 +11,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
-import { Ariakit } from '@highlight-run/ui'
+import { Ariakit } from '@highlight-run/ui/components'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {

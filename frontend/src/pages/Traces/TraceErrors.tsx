@@ -1,4 +1,4 @@
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 import moment from 'moment'
 import React from 'react'
 
