@@ -141,6 +141,7 @@ export const NetworkResourceLogs: React.FC<{
 								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+								bodyHeight="calc(100% - 28px)"
 							/>
 						)}
 					</Box>

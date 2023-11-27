@@ -107,6 +107,7 @@ type LogsTableInnerProps = {
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
+	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
 }
@@ -121,6 +122,7 @@ const LogsTableInner = ({
 	query,
 	selectedCursor,
 	moreLogs,
+	bodyHeight,
 	clearMoreLogs,
 	handleAdditionalLogsDateChange,
 	fetchMoreWhenScrolled,
@@ -301,9 +303,7 @@ const LogsTableInner = ({
 				overflowY="scroll"
 				style={{
 					// Subtract heights of elements above, including loading more loads when relevant
-					height: moreLogs
-						? `calc(100vh - 256px)`
-						: `calc(100vh - 228px)`,
+					height: bodyHeight,
 				}}
 				onScroll={(e) =>
 					fetchMoreWhenScrolled(e.target as HTMLDivElement)

@@ -104,6 +104,12 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
+				console.log(
+					'SCROLLING LOGS',
+					scrollHeight,
+					scrollTop,
+					clientHeight,
+				)
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
 				} else if (scrollTop === 0) {
@@ -129,6 +135,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 			},
 			skip: !projectId,
 		})
+
+	let otherElementsHeight = 228
+	if (moreLogs) {
+		otherElementsHeight += 28
+	}
 
 	return (
 		<>
@@ -198,6 +209,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 								handleAdditionalLogsDateChange
 							}
 							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 						/>
 					</Box>
 				</Box>
