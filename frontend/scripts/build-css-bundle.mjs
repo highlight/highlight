@@ -52,10 +52,13 @@ export const run = async ({
 						path_.join(outputDirectory, 'index.css'),
 						// vanilla extract outputs comments that seem to depend on absolute path
 						// need to strip them for consistent output between local and ci
-						cssOutput.text.replaceAll(
-							/\n\/\* vanilla-extract-css-ns\:.*\n/g,
-							'',
-						),
+						cssOutput.text
+							.replaceAll(
+								/\n\/\* vanilla-extract-css-ns\:.*\n/g,
+								'',
+							)
+							// also remove comment in first line without leading line break
+							.replace(/\/\* vanilla-extract-css-ns\:.*\n/g, ''),
 					),
 					...result.outputFiles
 						.filter(
