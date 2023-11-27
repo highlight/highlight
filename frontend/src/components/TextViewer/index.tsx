@@ -6,7 +6,7 @@ import {
 	IconSolidDownload,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { copyToClipboard } from '@util/string'
 import React from 'react'
 // @ts-ignore

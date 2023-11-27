@@ -3,7 +3,7 @@ import {
 	Box,
 	IconSolidFilter,
 	MultiSelectButton,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import {
 	getNetworkResourcesDisplayName,
 	RequestType,

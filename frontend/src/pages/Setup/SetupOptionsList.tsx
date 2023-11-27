@@ -1,5 +1,5 @@
 import { LinkButton } from '@components/LinkButton'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { Header } from '@pages/Setup/Header'
 import {
 	QuickStartContent,

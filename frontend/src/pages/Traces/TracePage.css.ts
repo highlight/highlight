@@ -1,5 +1,5 @@
-import { sprinkles } from '@highlight-run/ui'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
+import { themeVars } from '@highlight-run/ui/theme'
 import { style } from '@vanilla-extract/css'
 
 export const container = style({})

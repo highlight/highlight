@@ -11,7 +11,7 @@ import {
 	Stack,
 	Table,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'

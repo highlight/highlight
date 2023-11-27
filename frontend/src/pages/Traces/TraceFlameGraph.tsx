@@ -5,7 +5,7 @@ import {
 	IconSolidPlus,
 	Stack,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { throttle } from 'lodash'
 import {
@@ -121,7 +121,7 @@ export const TraceFlameGraph: React.FC = () => {
 
 	const throttledZoom = useRef(throttle((dz: number) => handleZoom(dz), 50))
 
-	const handleDrag = useCallback((e) => {
+	const handleDrag = useCallback((e: DragEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
 

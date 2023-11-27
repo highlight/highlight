@@ -1,5 +1,5 @@
-import { borders } from '@highlight-run/ui/src/css/borders'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { borders } from '@highlight-run/ui/borders'
+import { themeVars } from '@highlight-run/ui/theme'
 import { style } from '@vanilla-extract/css'
 
 export const ERROR_CARD_PX = 12

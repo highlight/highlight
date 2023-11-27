@@ -4,7 +4,7 @@ import {
 	IconSolidHeight,
 	IconSolidJira,
 	IconSolidLinear,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
 import ClickUpIntegrationConfig from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpIntegrationConfig'

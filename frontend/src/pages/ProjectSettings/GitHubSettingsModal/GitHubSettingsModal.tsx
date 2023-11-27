@@ -13,8 +13,8 @@ import {
 	Text,
 	TextLink,
 	Tooltip,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { Select } from 'antd'
 import React, { useMemo } from 'react'
 

@@ -4,7 +4,7 @@ import {
 	useSendEmailSignupMutation,
 } from '@graph/hooks'
 import { SampleBuggyButton } from '@highlight-run/react'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas'
 import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { H } from 'highlight.run'

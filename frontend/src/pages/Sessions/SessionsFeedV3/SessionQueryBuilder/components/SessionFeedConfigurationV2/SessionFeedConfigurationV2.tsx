@@ -1,6 +1,11 @@
 import { Button } from '@components/Button'
 import Switch from '@components/Switch/Switch'
-import { Box, IconSolidDotsHorizontal, Menu, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidDotsHorizontal,
+	Menu,
+	Text,
+} from '@highlight-run/ui/components'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	formatCount,

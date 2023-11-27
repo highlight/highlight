@@ -1,5 +1,5 @@
 import Select from '@components/Select/Select'
-import { Form, Text } from '@highlight-run/ui'
+import { Form, Text } from '@highlight-run/ui/components'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import * as style from '@pages/IntegrationsPage/components/style.css'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'

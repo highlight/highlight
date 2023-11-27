@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui/src/css/vars'
+import { vars } from '@highlight-run/ui/vars'
 import { globalStyle, style } from '@vanilla-extract/css'
 
 export const aiSuggestionPrompt = style({

@@ -5,7 +5,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { PropsWithChildren, useState } from 'react'
 import ReactCollapsible from 'react-collapsible'

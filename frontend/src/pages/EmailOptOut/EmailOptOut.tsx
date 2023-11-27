@@ -8,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Ariakit, Heading, Stack, Text } from '@highlight-run/ui'
+import { Ariakit, Heading, Stack, Text } from '@highlight-run/ui/components'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useEffect } from 'react'

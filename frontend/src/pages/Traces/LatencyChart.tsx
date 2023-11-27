@@ -1,4 +1,4 @@
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { useMemo, useState } from 'react'
 import { Legend, Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'

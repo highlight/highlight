@@ -1,10 +1,10 @@
+import { colors } from '@highlight-run/ui/colors'
 import {
 	IconSolidFire,
 	IconSolidHashtag,
 	IconSolidSparkles,
 	Tabs,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import EventStreamV2 from '@pages/Player/components/EventStreamV2/EventStreamV2'
 import {
 	RightPlayerTab,

@@ -1,7 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import LoadingBox from '@components/LoadingBox'
 import { TableList, TableListItem } from '@components/TableList/TableList'
-import { Box, ButtonLink } from '@highlight-run/ui'
+import { Box, ButtonLink } from '@highlight-run/ui/components'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'

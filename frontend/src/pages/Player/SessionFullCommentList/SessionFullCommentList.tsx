@@ -1,5 +1,5 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui/components'
 import React, { useRef } from 'react'
 
 import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'

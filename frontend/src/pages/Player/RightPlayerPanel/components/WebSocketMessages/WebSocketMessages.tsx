@@ -6,8 +6,8 @@ import {
 	IconSolidChevronDoubleRight,
 	IconSolidExclamation,
 	Text,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 

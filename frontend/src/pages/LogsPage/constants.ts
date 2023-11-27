@@ -1,5 +1,5 @@
 import { LogLevel } from '@graph/schemas'
-import { vars } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/vars'
 
 export const COLOR_MAPPING: {
 	[key in LogLevel | 'Ingested' | 'Dropped']: string

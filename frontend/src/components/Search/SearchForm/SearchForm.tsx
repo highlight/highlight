@@ -22,7 +22,7 @@ import {
 	Stack,
 	Text,
 	useComboboxStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'

@@ -1,4 +1,4 @@
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { colors } from '@highlight-run/ui/colors'
 import { style } from '@vanilla-extract/css'
 
 export const devToolsWindowV2 = style({

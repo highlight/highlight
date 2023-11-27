@@ -4,47 +4,6 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// ../rrweb/packages/rrweb/es/rrweb/ext/tslib/tslib.es6.js
-function __rest(s2, e2) {
-  var t2 = {};
-  for (var p in s2)
-    if (Object.prototype.hasOwnProperty.call(s2, p) && e2.indexOf(p) < 0)
-      t2[p] = s2[p];
-  if (s2 != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i2 = 0, p = Object.getOwnPropertySymbols(s2); i2 < p.length; i2++) {
-      if (e2.indexOf(p[i2]) < 0 && Object.prototype.propertyIsEnumerable.call(s2, p[i2]))
-        t2[p[i2]] = s2[p[i2]];
-    }
-  return t2;
-}
-function __awaiter(thisArg, _arguments, P, generator) {
-  function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve) {
-      resolve(value);
-    });
-  }
-  return new (P || (P = Promise))(function(resolve, reject) {
-    function fulfilled(value) {
-      try {
-        step(generator.next(value));
-      } catch (e2) {
-        reject(e2);
-      }
-    }
-    function rejected(value) {
-      try {
-        step(generator["throw"](value));
-      } catch (e2) {
-        reject(e2);
-      }
-    }
-    function step(result) {
-      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-    }
-    step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
-}
-
 // ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb-snapshot/es/rrweb-snapshot.js
 var NodeType;
 (function(NodeType3) {
@@ -152,6 +111,19 @@ var Mirror = function() {
 function createMirror() {
   return new Mirror();
 }
+function maskInputValue(_a2) {
+  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, value = _a2.value, maskInputFn = _a2.maskInputFn;
+  var text = value || "";
+  var actualType = type && type.toLowerCase();
+  if (maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType]) {
+    if (maskInputFn) {
+      text = maskInputFn(text);
+    } else {
+      text = "*".repeat(text.length);
+    }
+  }
+  return text;
+}
 var ORIGINAL_ATTRIBUTE_NAME = "__rrweb_original__";
 function is2DCanvasBlank(canvas) {
   var ctx = canvas.getContext("2d");
@@ -197,53 +169,6 @@ function obfuscateText(text) {
 }
 function isElementSrcBlocked(tagName) {
   return tagName === "img" || tagName === "video" || tagName === "audio" || tagName === "source";
-}
-var EMAIL_REGEX = new RegExp("[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*");
-var LONG_NUMBER_REGEX = new RegExp("[0-9]{9,16}");
-var SSN_REGEX = new RegExp("[0-9]{3}-?[0-9]{2}-?[0-9]{4}");
-var PHONE_NUMBER_REGEX = new RegExp("[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}");
-var CREDIT_CARD_REGEX = new RegExp("[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}");
-var ADDRESS_REGEX = new RegExp("[0-9]{1,5}.?[0-9]{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}");
-var IP_REGEX = new RegExp("(?:[0-9]{1,3}.){3}[0-9]{1,3}");
-var DEFAULT_OBFUSCATE_REGEXES = [
-  EMAIL_REGEX,
-  LONG_NUMBER_REGEX,
-  SSN_REGEX,
-  PHONE_NUMBER_REGEX,
-  CREDIT_CARD_REGEX,
-  ADDRESS_REGEX,
-  IP_REGEX
-];
-function shouldObfuscateTextByDefault(text) {
-  if (!text)
-    return false;
-  return DEFAULT_OBFUSCATE_REGEXES.some(function(regex) {
-    return regex.test(text);
-  });
-}
-var maskedInputType = function(_a2) {
-  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, inputId = _a2.inputId, inputName = _a2.inputName, autocomplete = _a2.autocomplete;
-  var actualType = type && type.toLowerCase();
-  return maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType] || inputId && maskInputOptions[inputId] || inputName && maskInputOptions[inputName] || !!autocomplete && typeof autocomplete === "string" && !!maskInputOptions[autocomplete];
-};
-function maskInputValue(_a2) {
-  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, inputId = _a2.inputId, inputName = _a2.inputName, autocomplete = _a2.autocomplete, value = _a2.value, maskInputFn = _a2.maskInputFn;
-  var text = value || "";
-  if (maskedInputType({
-    maskInputOptions,
-    tagName,
-    type,
-    inputId,
-    inputName,
-    autocomplete
-  })) {
-    if (maskInputFn) {
-      text = maskInputFn(text);
-    } else {
-      text = "*".repeat(text.length);
-    }
-  }
-  return text;
 }
 var _id = 1;
 var tagNameRegex = new RegExp("[^a-z0-9-_:]");
@@ -527,7 +452,7 @@ function onceStylesheetLoaded(link, listener, styleSheetLoadTimeout) {
   });
 }
 function serializeNode(n2, options) {
-  var doc = options.doc, mirror2 = options.mirror, blockClass = options.blockClass, blockSelector = options.blockSelector, maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskTextFn = options.maskTextFn, maskInputFn = options.maskInputFn, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, privacySetting = options.privacySetting;
+  var doc = options.doc, mirror2 = options.mirror, blockClass = options.blockClass, blockSelector = options.blockSelector, maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskTextFn = options.maskTextFn, maskInputFn = options.maskInputFn, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, enableStrictPrivacy = options.enableStrictPrivacy;
   var rootId = getRootId(doc, mirror2);
   switch (n2.nodeType) {
     case n2.DOCUMENT_NODE:
@@ -565,7 +490,7 @@ function serializeNode(n2, options) {
         recordCanvas,
         keepIframeSrcFn,
         newlyAddedElement,
-        privacySetting,
+        enableStrictPrivacy,
         rootId
       });
     case n2.TEXT_NODE:
@@ -573,7 +498,7 @@ function serializeNode(n2, options) {
         maskTextClass,
         maskTextSelector,
         maskTextFn,
-        privacySetting,
+        enableStrictPrivacy,
         rootId
       });
     case n2.CDATA_SECTION_NODE:
@@ -600,7 +525,7 @@ function getRootId(doc, mirror2) {
 }
 function serializeTextNode(n2, options) {
   var _a2;
-  var maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, maskTextFn = options.maskTextFn, privacySetting = options.privacySetting, rootId = options.rootId;
+  var maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, maskTextFn = options.maskTextFn, enableStrictPrivacy = options.enableStrictPrivacy, rootId = options.rootId;
   var parentTagName = n2.parentNode && n2.parentNode.tagName;
   var textContent = n2.textContent;
   var isStyle = parentTagName === "STYLE" ? true : void 0;
@@ -628,9 +553,7 @@ function serializeTextNode(n2, options) {
   if (!isStyle && !isScript && textContent && needMaskingText(n2, maskTextClass, maskTextSelector)) {
     textContent = maskTextFn ? maskTextFn(textContent) : textContent.replace(/[\S]/g, "*");
   }
-  var enableStrictPrivacy = privacySetting === "strict";
-  var obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(textContent);
-  if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !textContentHandled && parentTagName) {
+  if (enableStrictPrivacy && !textContentHandled && parentTagName) {
     var IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
       "TITLE",
@@ -652,10 +575,9 @@ function serializeTextNode(n2, options) {
   };
 }
 function serializeElementNode(n2, options) {
-  var doc = options.doc, blockClass = options.blockClass, blockSelector = options.blockSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskInputFn = options.maskInputFn, maskTextClass = options.maskTextClass, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, privacySetting = options.privacySetting, rootId = options.rootId;
+  var doc = options.doc, blockClass = options.blockClass, blockSelector = options.blockSelector, inlineStylesheet = options.inlineStylesheet, _a2 = options.maskInputOptions, maskInputOptions = _a2 === void 0 ? {} : _a2, maskInputFn = options.maskInputFn, maskTextClass = options.maskTextClass, _b2 = options.dataURLOptions, dataURLOptions = _b2 === void 0 ? {} : _b2, inlineImages = options.inlineImages, recordCanvas = options.recordCanvas, keepIframeSrcFn = options.keepIframeSrcFn, _c = options.newlyAddedElement, newlyAddedElement = _c === void 0 ? false : _c, enableStrictPrivacy = options.enableStrictPrivacy, rootId = options.rootId;
   var needBlock = _isBlockedElement(n2, blockClass, blockSelector);
   var needMask = _isBlockedElement(n2, maskTextClass, null);
-  var enableStrictPrivacy = privacySetting === "strict";
   var tagName = getValidTagName(n2);
   var attributes = {};
   var len = n2.attributes.length;
@@ -694,9 +616,6 @@ function serializeElementNode(n2, options) {
         type,
         tagName,
         value,
-        inputId: n2.id,
-        inputName: n2.name,
-        autocomplete: n2.autocomplete,
         maskInputOptions,
         maskInputFn
       });
@@ -840,7 +759,7 @@ function slimDOMExcluded(sn, slimDOMOptions) {
 function serializeNodeWithId(n2, options) {
   var doc = options.doc, mirror2 = options.mirror, blockClass = options.blockClass, blockSelector = options.blockSelector, maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, _a2 = options.skipChild, skipChild = _a2 === void 0 ? false : _a2, _b2 = options.inlineStylesheet, inlineStylesheet = _b2 === void 0 ? true : _b2, _c = options.maskInputOptions, maskInputOptions = _c === void 0 ? {} : _c, maskTextFn = options.maskTextFn, maskInputFn = options.maskInputFn, slimDOMOptions = options.slimDOMOptions, _d = options.dataURLOptions, dataURLOptions = _d === void 0 ? {} : _d, _e = options.inlineImages, inlineImages = _e === void 0 ? false : _e, _f = options.recordCanvas, recordCanvas = _f === void 0 ? false : _f, onSerialize = options.onSerialize, onIframeLoad = options.onIframeLoad, _g = options.iframeLoadTimeout, iframeLoadTimeout = _g === void 0 ? 5e3 : _g, onStylesheetLoad = options.onStylesheetLoad, _h = options.stylesheetLoadTimeout, stylesheetLoadTimeout = _h === void 0 ? 5e3 : _h, _j = options.keepIframeSrcFn, keepIframeSrcFn = _j === void 0 ? function() {
     return false;
-  } : _j, _k = options.newlyAddedElement, newlyAddedElement = _k === void 0 ? false : _k, privacySetting = options.privacySetting;
+  } : _j, _k = options.newlyAddedElement, newlyAddedElement = _k === void 0 ? false : _k, enableStrictPrivacy = options.enableStrictPrivacy;
   var _l = options.preserveWhiteSpace, preserveWhiteSpace = _l === void 0 ? true : _l;
   var _serializedNode = serializeNode(n2, {
     doc,
@@ -858,7 +777,7 @@ function serializeNodeWithId(n2, options) {
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement,
-    privacySetting
+    enableStrictPrivacy
   });
   if (!_serializedNode) {
     console.warn(n2, "not serialized");
@@ -881,12 +800,10 @@ function serializeNodeWithId(n2, options) {
     onSerialize(n2);
   }
   var recordChild = !skipChild;
-  var overwrittenPrivacySetting = privacySetting;
-  var strictPrivacy = privacySetting === "strict";
+  var strictPrivacy = enableStrictPrivacy;
   if (serializedNode.type === NodeType.Element) {
     recordChild = recordChild && !serializedNode.needBlock;
-    strictPrivacy || (strictPrivacy = !!serializedNode.needBlock || !!serializedNode.needMask);
-    overwrittenPrivacySetting = strictPrivacy ? "strict" : overwrittenPrivacySetting;
+    strictPrivacy = enableStrictPrivacy || !!serializedNode.needBlock || !!serializedNode.needMask;
     if (strictPrivacy && isElementSrcBlocked(serializedNode.tagName)) {
       var clone = n2.cloneNode();
       clone.src = "";
@@ -925,7 +842,7 @@ function serializeNodeWithId(n2, options) {
       onStylesheetLoad,
       stylesheetLoadTimeout,
       keepIframeSrcFn,
-      privacySetting: overwrittenPrivacySetting
+      enableStrictPrivacy: strictPrivacy
     };
     for (var _i = 0, _m = Array.from(n2.childNodes); _i < _m.length; _i++) {
       var childN = _m[_i];
@@ -975,7 +892,7 @@ function serializeNodeWithId(n2, options) {
           onStylesheetLoad,
           stylesheetLoadTimeout,
           keepIframeSrcFn,
-          privacySetting
+          enableStrictPrivacy
         });
         if (serializedIframeNode) {
           onIframeLoad(n2, serializedIframeNode);
@@ -1009,7 +926,7 @@ function serializeNodeWithId(n2, options) {
           onStylesheetLoad,
           stylesheetLoadTimeout,
           keepIframeSrcFn,
-          privacySetting
+          enableStrictPrivacy
         });
         if (serializedLinkNode) {
           onStylesheetLoad(n2, serializedLinkNode);
@@ -1022,7 +939,7 @@ function serializeNodeWithId(n2, options) {
 function snapshot(n2, options) {
   var _a2 = options || {}, _b2 = _a2.mirror, mirror2 = _b2 === void 0 ? new Mirror() : _b2, _c = _a2.blockClass, blockClass = _c === void 0 ? "highlight-block" : _c, _d = _a2.blockSelector, blockSelector = _d === void 0 ? null : _d, _e = _a2.maskTextClass, maskTextClass = _e === void 0 ? "highlight-mask" : _e, _f = _a2.maskTextSelector, maskTextSelector = _f === void 0 ? null : _f, _g = _a2.inlineStylesheet, inlineStylesheet = _g === void 0 ? true : _g, _h = _a2.inlineImages, inlineImages = _h === void 0 ? false : _h, _j = _a2.recordCanvas, recordCanvas = _j === void 0 ? false : _j, _k = _a2.maskAllInputs, maskAllInputs = _k === void 0 ? false : _k, maskTextFn = _a2.maskTextFn, maskInputFn = _a2.maskInputFn, _l = _a2.slimDOM, slimDOM = _l === void 0 ? false : _l, dataURLOptions = _a2.dataURLOptions, preserveWhiteSpace = _a2.preserveWhiteSpace, onSerialize = _a2.onSerialize, onIframeLoad = _a2.onIframeLoad, iframeLoadTimeout = _a2.iframeLoadTimeout, onStylesheetLoad = _a2.onStylesheetLoad, stylesheetLoadTimeout = _a2.stylesheetLoadTimeout, _m = _a2.keepIframeSrcFn, keepIframeSrcFn = _m === void 0 ? function() {
     return false;
-  } : _m, _o = _a2.privacySetting, privacySetting = _o === void 0 ? "default" : _o;
+  } : _m, _o = _a2.enableStrictPrivacy, enableStrictPrivacy = _o === void 0 ? false : _o;
   var maskInputOptions = maskAllInputs === true ? {
     color: true,
     date: true,
@@ -1079,7 +996,7 @@ function snapshot(n2, options) {
     stylesheetLoadTimeout,
     keepIframeSrcFn,
     newlyAddedElement: false,
-    privacySetting
+    enableStrictPrivacy
   });
 }
 var commentre = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g;
@@ -1105,7 +1022,7 @@ function parse(css, options) {
       return node;
     };
   }
-  var Position = function() {
+  var Position = /* @__PURE__ */ function() {
     function Position2(start) {
       this.start = start;
       this.end = { line: lineno, column };
@@ -2479,7 +2396,7 @@ var MutationBuffer = class {
           dataURLOptions: this.dataURLOptions,
           recordCanvas: this.recordCanvas,
           inlineImages: this.inlineImages,
-          privacySetting: this.privacySetting,
+          enableStrictPrivacy: this.enableStrictPrivacy,
           onSerialize: (currentN) => {
             if (isSerializedIframe(currentN, this.mirror)) {
               this.iframeManager.addIframe(currentN);
@@ -2573,9 +2490,7 @@ var MutationBuffer = class {
       const payload = {
         texts: this.texts.map((text) => {
           let value = text.value;
-          const enableStrictPrivacy = this.privacySetting === "strict";
-          const obfuscateDefaultPrivacy = this.privacySetting === "default" && shouldObfuscateTextByDefault(value);
-          if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && value) {
+          if (this.enableStrictPrivacy && value) {
             value = obfuscateText(value);
           }
           return {
@@ -2628,9 +2543,6 @@ var MutationBuffer = class {
               tagName: target.tagName,
               type,
               value,
-              inputId: target.id,
-              inputName: target.getAttribute("name"),
-              autocomplete: target.getAttribute("autocomplete"),
               maskInputFn: this.maskInputFn
             });
           }
@@ -2769,7 +2681,7 @@ var MutationBuffer = class {
       "keepIframeSrcFn",
       "recordCanvas",
       "inlineImages",
-      "privacySetting",
+      "enableStrictPrivacy",
       "slimDOMOptions",
       "dataURLOptions",
       "doc",
@@ -3053,25 +2965,14 @@ function initInputObserver({ inputCb, doc, mirror: mirror2, blockClass, blockSel
     let text = target.value;
     let isChecked = false;
     const type = getInputType(target) || "";
-    const { id: inputId, name: inputName, autocomplete } = target;
     if (type === "radio" || type === "checkbox") {
       isChecked = target.checked;
-    } else if (maskedInputType({
-      maskInputOptions,
-      type,
-      tagName,
-      inputId,
-      inputName,
-      autocomplete
-    })) {
+    } else if (maskInputOptions[tagName.toLowerCase()] || maskInputOptions[type]) {
       text = maskInputValue({
         maskInputOptions,
         tagName,
         type,
         value: text,
-        inputId,
-        inputName,
-        autocomplete,
         maskInputFn
       });
     }
@@ -3939,6 +3840,47 @@ var ShadowDomManager = class {
   }
 };
 
+// ../rrweb/packages/rrweb/es/rrweb/ext/tslib/tslib.es6.js
+function __rest(s2, e2) {
+  var t2 = {};
+  for (var p in s2)
+    if (Object.prototype.hasOwnProperty.call(s2, p) && e2.indexOf(p) < 0)
+      t2[p] = s2[p];
+  if (s2 != null && typeof Object.getOwnPropertySymbols === "function")
+    for (var i2 = 0, p = Object.getOwnPropertySymbols(s2); i2 < p.length; i2++) {
+      if (e2.indexOf(p[i2]) < 0 && Object.prototype.propertyIsEnumerable.call(s2, p[i2]))
+        t2[p[i2]] = s2[p[i2]];
+    }
+  return t2;
+}
+function __awaiter(thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function(resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function(resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e2) {
+        reject(e2);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e2) {
+        reject(e2);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
+
 // ../rrweb/packages/rrweb/es/rrweb/ext/base64-arraybuffer/dist/base64-arraybuffer.es5.js
 var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 var lookup = typeof Uint8Array === "undefined" ? [] : new Uint8Array(256);
@@ -4134,19 +4076,16 @@ function initCanvas2DMutationObserver(cb, win, blockClass, blockSelector) {
 function initCanvasContextObserver(win, blockClass, blockSelector) {
   const handlers = [];
   try {
-    const restoreGetContext = patch(win.HTMLCanvasElement.prototype, "getContext", function(original) {
+    const restoreHandler = patch(win.HTMLCanvasElement.prototype, "getContext", function(original) {
       return function(contextType, ...args) {
-        const ctx = original.apply(this, [contextType, ...args]);
-        if (ctx) {
-          if (!isBlocked(this, blockClass, blockSelector, true)) {
-            if (!this.__context)
-              this.__context = contextType;
-          }
+        if (!isBlocked(this, blockClass, blockSelector, true)) {
+          if (!this.__context)
+            this.__context = contextType;
         }
-        return ctx;
+        return original.apply(this, [contextType, ...args]);
       };
     });
-    handlers.push(restoreGetContext);
+    handlers.push(restoreHandler);
   } catch (_a2) {
     console.error("failed to patch HTMLCanvasElement.prototype.getContext");
   }
@@ -4246,7 +4185,7 @@ function createBase64WorkerFactory(base64, sourcemapArg, enableUnicodeArg) {
 }
 
 // ../rrweb/packages/rrweb/es/rrweb/_virtual/image-bitmap-data-url-worker.js
-var WorkerFactory = createBase64WorkerFactory("Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwooZnVuY3Rpb24gKCkgewogICAgJ3VzZSBzdHJpY3QnOwoKICAgIC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCiAgICBDb3B5cmlnaHQgKGMpIE1pY3Jvc29mdCBDb3Jwb3JhdGlvbi4NCg0KICAgIFBlcm1pc3Npb24gdG8gdXNlLCBjb3B5LCBtb2RpZnksIGFuZC9vciBkaXN0cmlidXRlIHRoaXMgc29mdHdhcmUgZm9yIGFueQ0KICAgIHB1cnBvc2Ugd2l0aCBvciB3aXRob3V0IGZlZSBpcyBoZXJlYnkgZ3JhbnRlZC4NCg0KICAgIFRIRSBTT0ZUV0FSRSBJUyBQUk9WSURFRCAiQVMgSVMiIEFORCBUSEUgQVVUSE9SIERJU0NMQUlNUyBBTEwgV0FSUkFOVElFUyBXSVRIDQogICAgUkVHQVJEIFRPIFRISVMgU09GVFdBUkUgSU5DTFVESU5HIEFMTCBJTVBMSUVEIFdBUlJBTlRJRVMgT0YgTUVSQ0hBTlRBQklMSVRZDQogICAgQU5EIEZJVE5FU1MuIElOIE5PIEVWRU5UIFNIQUxMIFRIRSBBVVRIT1IgQkUgTElBQkxFIEZPUiBBTlkgU1BFQ0lBTCwgRElSRUNULA0KICAgIElORElSRUNULCBPUiBDT05TRVFVRU5USUFMIERBTUFHRVMgT1IgQU5ZIERBTUFHRVMgV0hBVFNPRVZFUiBSRVNVTFRJTkcgRlJPTQ0KICAgIExPU1MgT0YgVVNFLCBEQVRBIE9SIFBST0ZJVFMsIFdIRVRIRVIgSU4gQU4gQUNUSU9OIE9GIENPTlRSQUNULCBORUdMSUdFTkNFIE9SDQogICAgT1RIRVIgVE9SVElPVVMgQUNUSU9OLCBBUklTSU5HIE9VVCBPRiBPUiBJTiBDT05ORUNUSU9OIFdJVEggVEhFIFVTRSBPUg0KICAgIFBFUkZPUk1BTkNFIE9GIFRISVMgU09GVFdBUkUuDQogICAgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiogKi8NCg0KICAgIGZ1bmN0aW9uIF9fYXdhaXRlcih0aGlzQXJnLCBfYXJndW1lbnRzLCBQLCBnZW5lcmF0b3IpIHsNCiAgICAgICAgZnVuY3Rpb24gYWRvcHQodmFsdWUpIHsgcmV0dXJuIHZhbHVlIGluc3RhbmNlb2YgUCA/IHZhbHVlIDogbmV3IFAoZnVuY3Rpb24gKHJlc29sdmUpIHsgcmVzb2x2ZSh2YWx1ZSk7IH0pOyB9DQogICAgICAgIHJldHVybiBuZXcgKFAgfHwgKFAgPSBQcm9taXNlKSkoZnVuY3Rpb24gKHJlc29sdmUsIHJlamVjdCkgew0KICAgICAgICAgICAgZnVuY3Rpb24gZnVsZmlsbGVkKHZhbHVlKSB7IHRyeSB7IHN0ZXAoZ2VuZXJhdG9yLm5leHQodmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gcmVqZWN0ZWQodmFsdWUpIHsgdHJ5IHsgc3RlcChnZW5lcmF0b3JbInRocm93Il0odmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gc3RlcChyZXN1bHQpIHsgcmVzdWx0LmRvbmUgPyByZXNvbHZlKHJlc3VsdC52YWx1ZSkgOiBhZG9wdChyZXN1bHQudmFsdWUpLnRoZW4oZnVsZmlsbGVkLCByZWplY3RlZCk7IH0NCiAgICAgICAgICAgIHN0ZXAoKGdlbmVyYXRvciA9IGdlbmVyYXRvci5hcHBseSh0aGlzQXJnLCBfYXJndW1lbnRzIHx8IFtdKSkubmV4dCgpKTsNCiAgICAgICAgfSk7DQogICAgfQoKICAgIC8qCiAgICAgKiBiYXNlNjQtYXJyYXlidWZmZXIgMS4wLjEgPGh0dHBzOi8vZ2l0aHViLmNvbS9uaWtsYXN2aC9iYXNlNjQtYXJyYXlidWZmZXI+CiAgICAgKiBDb3B5cmlnaHQgKGMpIDIwMjEgTmlrbGFzIHZvbiBIZXJ0emVuIDxodHRwczovL2hlcnR6ZW4uY29tPgogICAgICogUmVsZWFzZWQgdW5kZXIgTUlUIExpY2Vuc2UKICAgICAqLwogICAgdmFyIGNoYXJzID0gJ0FCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXowMTIzNDU2Nzg5Ky8nOwogICAgLy8gVXNlIGEgbG9va3VwIHRhYmxlIHRvIGZpbmQgdGhlIGluZGV4LgogICAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAndW5kZWZpbmVkJyA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICAgIGZvciAodmFyIGkgPSAwOyBpIDwgY2hhcnMubGVuZ3RoOyBpKyspIHsKICAgICAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogICAgfQogICAgdmFyIGVuY29kZSA9IGZ1bmN0aW9uIChhcnJheWJ1ZmZlcikgewogICAgICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaSwgbGVuID0gYnl0ZXMubGVuZ3RoLCBiYXNlNjQgPSAnJzsKICAgICAgICBmb3IgKGkgPSAwOyBpIDwgbGVuOyBpICs9IDMpIHsKICAgICAgICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2ldID4+IDJdOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbKChieXRlc1tpXSAmIDMpIDw8IDQpIHwgKGJ5dGVzW2kgKyAxXSA+PiA0KV07CiAgICAgICAgICAgIGJhc2U2NCArPSBjaGFyc1soKGJ5dGVzW2kgKyAxXSAmIDE1KSA8PCAyKSB8IChieXRlc1tpICsgMl0gPj4gNildOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaSArIDJdICYgNjNdOwogICAgICAgIH0KICAgICAgICBpZiAobGVuICUgMyA9PT0gMikgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAxKSArICc9JzsKICAgICAgICB9CiAgICAgICAgZWxzZSBpZiAobGVuICUgMyA9PT0gMSkgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAyKSArICc9PSc7CiAgICAgICAgfQogICAgICAgIHJldHVybiBiYXNlNjQ7CiAgICB9OwoKICAgIGNvbnN0IGxhc3RCbG9iTWFwID0gbmV3IE1hcCgpOw0KICAgIGNvbnN0IHRyYW5zcGFyZW50QmxvYk1hcCA9IG5ldyBNYXAoKTsNCiAgICBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsNCiAgICAgICAgcmV0dXJuIF9fYXdhaXRlcih0aGlzLCB2b2lkIDAsIHZvaWQgMCwgZnVuY3Rpb24qICgpIHsNCiAgICAgICAgICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7DQogICAgICAgICAgICBpZiAoJ09mZnNjcmVlbkNhbnZhcycgaW4gZ2xvYmFsVGhpcykgew0KICAgICAgICAgICAgICAgIGlmICh0cmFuc3BhcmVudEJsb2JNYXAuaGFzKGlkKSkNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHRyYW5zcGFyZW50QmxvYk1hcC5nZXQoaWQpOw0KICAgICAgICAgICAgICAgIGNvbnN0IG9mZnNjcmVlbiA9IG5ldyBPZmZzY3JlZW5DYW52YXMod2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoJzJkJyk7DQogICAgICAgICAgICAgICAgY29uc3QgYmxvYiA9IHlpZWxkIG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsNCiAgICAgICAgICAgICAgICBjb25zdCBhcnJheUJ1ZmZlciA9IHlpZWxkIGJsb2IuYXJyYXlCdWZmZXIoKTsNCiAgICAgICAgICAgICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOw0KICAgICAgICAgICAgICAgIHRyYW5zcGFyZW50QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7DQogICAgICAgICAgICAgICAgcmV0dXJuIGJhc2U2NDsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIHJldHVybiAnJzsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KICAgIGNvbnN0IHdvcmtlciA9IHNlbGY7DQogICAgbGV0IGxvZ0RlYnVnID0gZmFsc2U7DQogICAgY29uc3QgZGVidWcgPSAoLi4uYXJncykgPT4gew0KICAgICAgICBpZiAobG9nRGVidWcpIHsNCiAgICAgICAgICAgIGNvbnNvbGUuZGVidWcoLi4uYXJncyk7DQogICAgICAgIH0NCiAgICB9Ow0KICAgIHdvcmtlci5vbm1lc3NhZ2UgPSBmdW5jdGlvbiAoZSkgew0KICAgICAgICByZXR1cm4gX19hd2FpdGVyKHRoaXMsIHZvaWQgMCwgdm9pZCAwLCBmdW5jdGlvbiogKCkgew0KICAgICAgICAgICAgbG9nRGVidWcgPSAhIWUuZGF0YS5sb2dEZWJ1ZzsNCiAgICAgICAgICAgIGlmICgnT2Zmc2NyZWVuQ2FudmFzJyBpbiBnbG9iYWxUaGlzKSB7DQogICAgICAgICAgICAgICAgY29uc3QgeyBpZCwgYml0bWFwLCB3aWR0aCwgaGVpZ2h0LCBkeCwgZHksIGR3LCBkaCwgZGF0YVVSTE9wdGlvbnMgfSA9IGUuZGF0YTsNCiAgICAgICAgICAgICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcih3aWR0aCwgaGVpZ2h0LCBkYXRhVVJMT3B0aW9ucyk7DQogICAgICAgICAgICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsNCiAgICAgICAgICAgICAgICBjb25zdCBjdHggPSBvZmZzY3JlZW4uZ2V0Q29udGV4dCgnMmQnKTsNCiAgICAgICAgICAgICAgICBjdHguZHJhd0ltYWdlKGJpdG1hcCwgMCwgMCwgd2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgYml0bWFwLmNsb3NlKCk7DQogICAgICAgICAgICAgICAgY29uc3QgYmxvYiA9IHlpZWxkIG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsNCiAgICAgICAgICAgICAgICBjb25zdCB0eXBlID0gYmxvYi50eXBlOw0KICAgICAgICAgICAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0geWllbGQgYmxvYi5hcnJheUJ1ZmZlcigpOw0KICAgICAgICAgICAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7DQogICAgICAgICAgICAgICAgaWYgKCFsYXN0QmxvYk1hcC5oYXMoaWQpICYmICh5aWVsZCB0cmFuc3BhcmVudEJhc2U2NCkgPT09IGJhc2U2NCkgew0KICAgICAgICAgICAgICAgICAgICBkZWJ1ZygnW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdHJhbnNwYXJlbnQnLCB7DQogICAgICAgICAgICAgICAgICAgICAgICBpZCwNCiAgICAgICAgICAgICAgICAgICAgICAgIGJhc2U2NCwNCiAgICAgICAgICAgICAgICAgICAgfSk7DQogICAgICAgICAgICAgICAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICd0cmFuc3BhcmVudCcgfSk7DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsNCiAgICAgICAgICAgICAgICAgICAgZGVidWcoJ1toaWdobGlnaHQtd29ya2VyXSBjYW52YXMgYml0bWFwIGlzIHVuY2hhbmdlZCcsIHsNCiAgICAgICAgICAgICAgICAgICAgICAgIGlkLA0KICAgICAgICAgICAgICAgICAgICAgICAgYmFzZTY0LA0KICAgICAgICAgICAgICAgICAgICB9KTsNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICd1bmNoYW5nZWQnIH0pOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgICAgICBkZWJ1ZygnW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkJywgew0KICAgICAgICAgICAgICAgICAgICBpZCwNCiAgICAgICAgICAgICAgICAgICAgYmFzZTY0LA0KICAgICAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgICAgIHdvcmtlci5wb3N0TWVzc2FnZSh7DQogICAgICAgICAgICAgICAgICAgIGlkLA0KICAgICAgICAgICAgICAgICAgICB0eXBlLA0KICAgICAgICAgICAgICAgICAgICBiYXNlNjQsDQogICAgICAgICAgICAgICAgICAgIHdpZHRoLA0KICAgICAgICAgICAgICAgICAgICBoZWlnaHQsDQogICAgICAgICAgICAgICAgICAgIGR4LA0KICAgICAgICAgICAgICAgICAgICBkeSwNCiAgICAgICAgICAgICAgICAgICAgZHcsDQogICAgICAgICAgICAgICAgICAgIGRoLA0KICAgICAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIGRlYnVnKCdbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQnLCB7DQogICAgICAgICAgICAgICAgICAgIGlkOiBlLmRhdGEuaWQsDQogICAgICAgICAgICAgICAgfSk7DQogICAgICAgICAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogJ3Vuc3VwcG9ydGVkJyB9KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfTsKCn0pKCk7Cgo=", null, false);
+var WorkerFactory = createBase64WorkerFactory("Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwooZnVuY3Rpb24gKCkgewogICAgJ3VzZSBzdHJpY3QnOwoKICAgIC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCiAgICBDb3B5cmlnaHQgKGMpIE1pY3Jvc29mdCBDb3Jwb3JhdGlvbi4NCg0KICAgIFBlcm1pc3Npb24gdG8gdXNlLCBjb3B5LCBtb2RpZnksIGFuZC9vciBkaXN0cmlidXRlIHRoaXMgc29mdHdhcmUgZm9yIGFueQ0KICAgIHB1cnBvc2Ugd2l0aCBvciB3aXRob3V0IGZlZSBpcyBoZXJlYnkgZ3JhbnRlZC4NCg0KICAgIFRIRSBTT0ZUV0FSRSBJUyBQUk9WSURFRCAiQVMgSVMiIEFORCBUSEUgQVVUSE9SIERJU0NMQUlNUyBBTEwgV0FSUkFOVElFUyBXSVRIDQogICAgUkVHQVJEIFRPIFRISVMgU09GVFdBUkUgSU5DTFVESU5HIEFMTCBJTVBMSUVEIFdBUlJBTlRJRVMgT0YgTUVSQ0hBTlRBQklMSVRZDQogICAgQU5EIEZJVE5FU1MuIElOIE5PIEVWRU5UIFNIQUxMIFRIRSBBVVRIT1IgQkUgTElBQkxFIEZPUiBBTlkgU1BFQ0lBTCwgRElSRUNULA0KICAgIElORElSRUNULCBPUiBDT05TRVFVRU5USUFMIERBTUFHRVMgT1IgQU5ZIERBTUFHRVMgV0hBVFNPRVZFUiBSRVNVTFRJTkcgRlJPTQ0KICAgIExPU1MgT0YgVVNFLCBEQVRBIE9SIFBST0ZJVFMsIFdIRVRIRVIgSU4gQU4gQUNUSU9OIE9GIENPTlRSQUNULCBORUdMSUdFTkNFIE9SDQogICAgT1RIRVIgVE9SVElPVVMgQUNUSU9OLCBBUklTSU5HIE9VVCBPRiBPUiBJTiBDT05ORUNUSU9OIFdJVEggVEhFIFVTRSBPUg0KICAgIFBFUkZPUk1BTkNFIE9GIFRISVMgU09GVFdBUkUuDQogICAgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiogKi8NCg0KICAgIGZ1bmN0aW9uIF9fYXdhaXRlcih0aGlzQXJnLCBfYXJndW1lbnRzLCBQLCBnZW5lcmF0b3IpIHsNCiAgICAgICAgZnVuY3Rpb24gYWRvcHQodmFsdWUpIHsgcmV0dXJuIHZhbHVlIGluc3RhbmNlb2YgUCA/IHZhbHVlIDogbmV3IFAoZnVuY3Rpb24gKHJlc29sdmUpIHsgcmVzb2x2ZSh2YWx1ZSk7IH0pOyB9DQogICAgICAgIHJldHVybiBuZXcgKFAgfHwgKFAgPSBQcm9taXNlKSkoZnVuY3Rpb24gKHJlc29sdmUsIHJlamVjdCkgew0KICAgICAgICAgICAgZnVuY3Rpb24gZnVsZmlsbGVkKHZhbHVlKSB7IHRyeSB7IHN0ZXAoZ2VuZXJhdG9yLm5leHQodmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gcmVqZWN0ZWQodmFsdWUpIHsgdHJ5IHsgc3RlcChnZW5lcmF0b3JbInRocm93Il0odmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICAgICAgZnVuY3Rpb24gc3RlcChyZXN1bHQpIHsgcmVzdWx0LmRvbmUgPyByZXNvbHZlKHJlc3VsdC52YWx1ZSkgOiBhZG9wdChyZXN1bHQudmFsdWUpLnRoZW4oZnVsZmlsbGVkLCByZWplY3RlZCk7IH0NCiAgICAgICAgICAgIHN0ZXAoKGdlbmVyYXRvciA9IGdlbmVyYXRvci5hcHBseSh0aGlzQXJnLCBfYXJndW1lbnRzIHx8IFtdKSkubmV4dCgpKTsNCiAgICAgICAgfSk7DQogICAgfQoKICAgIC8qCiAgICAgKiBiYXNlNjQtYXJyYXlidWZmZXIgMS4wLjEgPGh0dHBzOi8vZ2l0aHViLmNvbS9uaWtsYXN2aC9iYXNlNjQtYXJyYXlidWZmZXI+CiAgICAgKiBDb3B5cmlnaHQgKGMpIDIwMjEgTmlrbGFzIHZvbiBIZXJ0emVuIDxodHRwczovL2hlcnR6ZW4uY29tPgogICAgICogUmVsZWFzZWQgdW5kZXIgTUlUIExpY2Vuc2UKICAgICAqLwogICAgdmFyIGNoYXJzID0gJ0FCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXowMTIzNDU2Nzg5Ky8nOwogICAgLy8gVXNlIGEgbG9va3VwIHRhYmxlIHRvIGZpbmQgdGhlIGluZGV4LgogICAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAndW5kZWZpbmVkJyA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICAgIGZvciAodmFyIGkgPSAwOyBpIDwgY2hhcnMubGVuZ3RoOyBpKyspIHsKICAgICAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogICAgfQogICAgdmFyIGVuY29kZSA9IGZ1bmN0aW9uIChhcnJheWJ1ZmZlcikgewogICAgICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaSwgbGVuID0gYnl0ZXMubGVuZ3RoLCBiYXNlNjQgPSAnJzsKICAgICAgICBmb3IgKGkgPSAwOyBpIDwgbGVuOyBpICs9IDMpIHsKICAgICAgICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2ldID4+IDJdOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbKChieXRlc1tpXSAmIDMpIDw8IDQpIHwgKGJ5dGVzW2kgKyAxXSA+PiA0KV07CiAgICAgICAgICAgIGJhc2U2NCArPSBjaGFyc1soKGJ5dGVzW2kgKyAxXSAmIDE1KSA8PCAyKSB8IChieXRlc1tpICsgMl0gPj4gNildOwogICAgICAgICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaSArIDJdICYgNjNdOwogICAgICAgIH0KICAgICAgICBpZiAobGVuICUgMyA9PT0gMikgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAxKSArICc9JzsKICAgICAgICB9CiAgICAgICAgZWxzZSBpZiAobGVuICUgMyA9PT0gMSkgewogICAgICAgICAgICBiYXNlNjQgPSBiYXNlNjQuc3Vic3RyaW5nKDAsIGJhc2U2NC5sZW5ndGggLSAyKSArICc9PSc7CiAgICAgICAgfQogICAgICAgIHJldHVybiBiYXNlNjQ7CiAgICB9OwoKICAgIGNvbnN0IGxhc3RCbG9iTWFwID0gbmV3IE1hcCgpOw0KICAgIGNvbnN0IHRyYW5zcGFyZW50QmxvYk1hcCA9IG5ldyBNYXAoKTsNCiAgICBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsNCiAgICAgICAgcmV0dXJuIF9fYXdhaXRlcih0aGlzLCB2b2lkIDAsIHZvaWQgMCwgZnVuY3Rpb24qICgpIHsNCiAgICAgICAgICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7DQogICAgICAgICAgICBpZiAoJ09mZnNjcmVlbkNhbnZhcycgaW4gZ2xvYmFsVGhpcykgew0KICAgICAgICAgICAgICAgIGlmICh0cmFuc3BhcmVudEJsb2JNYXAuaGFzKGlkKSkNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHRyYW5zcGFyZW50QmxvYk1hcC5nZXQoaWQpOw0KICAgICAgICAgICAgICAgIGNvbnN0IG9mZnNjcmVlbiA9IG5ldyBPZmZzY3JlZW5DYW52YXMod2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoJzJkJyk7DQogICAgICAgICAgICAgICAgY29uc3QgYmxvYiA9IHlpZWxkIG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsNCiAgICAgICAgICAgICAgICBjb25zdCBhcnJheUJ1ZmZlciA9IHlpZWxkIGJsb2IuYXJyYXlCdWZmZXIoKTsNCiAgICAgICAgICAgICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOw0KICAgICAgICAgICAgICAgIHRyYW5zcGFyZW50QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7DQogICAgICAgICAgICAgICAgcmV0dXJuIGJhc2U2NDsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIHJldHVybiAnJzsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KICAgIGNvbnN0IHdvcmtlciA9IHNlbGY7DQogICAgd29ya2VyLm9ubWVzc2FnZSA9IGZ1bmN0aW9uIChlKSB7DQogICAgICAgIHJldHVybiBfX2F3YWl0ZXIodGhpcywgdm9pZCAwLCB2b2lkIDAsIGZ1bmN0aW9uKiAoKSB7DQogICAgICAgICAgICBpZiAoJ09mZnNjcmVlbkNhbnZhcycgaW4gZ2xvYmFsVGhpcykgew0KICAgICAgICAgICAgICAgIGNvbnN0IHsgaWQsIGJpdG1hcCwgd2lkdGgsIGhlaWdodCwgZHgsIGR5LCBkdywgZGgsIGRhdGFVUkxPcHRpb25zIH0gPSBlLmRhdGE7DQogICAgICAgICAgICAgICAgY29uc3QgdHJhbnNwYXJlbnRCYXNlNjQgPSBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpOw0KICAgICAgICAgICAgICAgIGNvbnN0IG9mZnNjcmVlbiA9IG5ldyBPZmZzY3JlZW5DYW52YXMod2lkdGgsIGhlaWdodCk7DQogICAgICAgICAgICAgICAgY29uc3QgY3R4ID0gb2Zmc2NyZWVuLmdldENvbnRleHQoJzJkJyk7DQogICAgICAgICAgICAgICAgY3R4LmRyYXdJbWFnZShiaXRtYXAsIDAsIDAsIHdpZHRoLCBoZWlnaHQpOw0KICAgICAgICAgICAgICAgIGJpdG1hcC5jbG9zZSgpOw0KICAgICAgICAgICAgICAgIGNvbnN0IGJsb2IgPSB5aWVsZCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7DQogICAgICAgICAgICAgICAgY29uc3QgdHlwZSA9IGJsb2IudHlwZTsNCiAgICAgICAgICAgICAgICBjb25zdCBhcnJheUJ1ZmZlciA9IHlpZWxkIGJsb2IuYXJyYXlCdWZmZXIoKTsNCiAgICAgICAgICAgICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOw0KICAgICAgICAgICAgICAgIGlmICghbGFzdEJsb2JNYXAuaGFzKGlkKSAmJiAoeWllbGQgdHJhbnNwYXJlbnRCYXNlNjQpID09PSBiYXNlNjQpIHsNCiAgICAgICAgICAgICAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOw0KICAgICAgICAgICAgICAgICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQgfSk7DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpDQogICAgICAgICAgICAgICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCB9KTsNCiAgICAgICAgICAgICAgICB3b3JrZXIucG9zdE1lc3NhZ2Uoew0KICAgICAgICAgICAgICAgICAgICBpZCwNCiAgICAgICAgICAgICAgICAgICAgdHlwZSwNCiAgICAgICAgICAgICAgICAgICAgYmFzZTY0LA0KICAgICAgICAgICAgICAgICAgICB3aWR0aCwNCiAgICAgICAgICAgICAgICAgICAgaGVpZ2h0LA0KICAgICAgICAgICAgICAgICAgICBkeCwNCiAgICAgICAgICAgICAgICAgICAgZHksDQogICAgICAgICAgICAgICAgICAgIGR3LA0KICAgICAgICAgICAgICAgICAgICBkaCwNCiAgICAgICAgICAgICAgICB9KTsNCiAgICAgICAgICAgICAgICBsYXN0QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7DQogICAgICAgICAgICB9DQogICAgICAgICAgICBlbHNlIHsNCiAgICAgICAgICAgICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQ6IGUuZGF0YS5pZCB9KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfTsKCn0pKCk7Cgo=", null, false);
 
 // ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/src/record/observers/canvas/canvas-manager.js
 var CanvasManager = class {
@@ -4269,8 +4208,6 @@ var CanvasManager = class {
   constructor(options) {
     this.pendingCanvasMutations = /* @__PURE__ */ new Map();
     this.rafStamps = { latestId: 0, invokeId: null };
-    this.snapshotInProgressMap = /* @__PURE__ */ new Map();
-    this.lastSnapshotTime = /* @__PURE__ */ new Map();
     this.frozen = false;
     this.locked = false;
     this.processMutation = (target, mutation) => {
@@ -4282,87 +4219,35 @@ var CanvasManager = class {
       }
       this.pendingCanvasMutations.get(target).push(mutation);
     };
-    this.snapshot = (element) => __awaiter(this, void 0, void 0, function* () {
-      var _a2;
-      const id = this.mirror.getId(element);
-      if (this.snapshotInProgressMap.get(id)) {
-        this.debug(element, "snapshotting already in progress for", id);
-        return;
-      }
-      const timeBetweenSnapshots = 1e3 / (typeof this.options.samplingManual === "number" ? this.options.samplingManual : 1);
-      const lastSnapshotTime = this.lastSnapshotTime.get(id);
-      if (lastSnapshotTime && (/* @__PURE__ */ new Date()).getTime() - lastSnapshotTime < timeBetweenSnapshots) {
-        return;
-      }
-      this.debug(element, "starting snapshotting");
-      this.lastSnapshotTime.set(id, (/* @__PURE__ */ new Date()).getTime());
-      this.snapshotInProgressMap.set(id, true);
-      try {
-        if (this.options.samplingManual === void 0 && this.options.clearWebGLBuffer !== false && ["webgl", "webgl2"].includes(element.__context)) {
-          const context = element.getContext(element.__context);
-          if (((_a2 = context === null || context === void 0 ? void 0 : context.getContextAttributes()) === null || _a2 === void 0 ? void 0 : _a2.preserveDrawingBuffer) === false) {
-            context === null || context === void 0 ? void 0 : context.clear(context === null || context === void 0 ? void 0 : context.COLOR_BUFFER_BIT);
-            this.debug(element, "cleared webgl canvas to load it into memory", {
-              attributes: context === null || context === void 0 ? void 0 : context.getContextAttributes()
-            });
-          }
-        }
-        if (element.width === 0 || element.height === 0) {
-          this.debug(element, "not yet ready", {
-            width: element.width,
-            height: element.height
-          });
-          return;
-        }
-        let scale = this.options.resizeFactor || 1;
-        if (this.options.maxSnapshotDimension) {
-          const maxDim = Math.max(element.width, element.height);
-          scale = Math.min(scale, this.options.maxSnapshotDimension / maxDim);
-        }
-        const width = element.width * scale;
-        const height = element.height * scale;
-        const bitmap = yield createImageBitmap(element, {
-          resizeWidth: width,
-          resizeHeight: height
-        });
-        this.debug(element, "created image bitmap", {
-          width: bitmap.width,
-          height: bitmap.height
-        });
-        this.worker.postMessage({
-          id,
-          bitmap,
-          width,
-          height,
-          dx: 0,
-          dy: 0,
-          dw: element.width,
-          dh: element.height,
-          dataURLOptions: this.options.dataURLOptions,
-          logDebug: !!this.logger
-        }, [bitmap]);
-        this.debug(element, "sent message");
-      } catch (e2) {
-        this.debug(element, "failed to snapshot", e2);
-      } finally {
-        this.snapshotInProgressMap.set(id, false);
-      }
-    });
-    const { sampling, win, blockClass, blockSelector, recordCanvas, recordVideos, initialSnapshotDelay, dataURLOptions } = options;
+    const { sampling = "all", win, blockClass, blockSelector, recordCanvas, recordVideos, dataURLOptions } = options;
     this.mutationCb = options.mutationCb;
     this.mirror = options.mirror;
     this.logger = options.logger;
-    this.worker = new WorkerFactory();
-    this.worker.onmessage = (e2) => {
+    if (recordCanvas && sampling === "all")
+      this.initCanvasMutationObserver(win, blockClass, blockSelector);
+    if (recordCanvas && typeof sampling === "number")
+      this.initCanvasFPSObserver(recordVideos, sampling, win, blockClass, blockSelector, {
+        dataURLOptions
+      }, options.resizeFactor, options.maxSnapshotDimension);
+  }
+  debug(element, ...args) {
+    if (!this.logger)
+      return;
+    let prefix = `[highlight-${element.tagName.toLowerCase()}]`;
+    if (element.tagName.toLowerCase() === "canvas") {
+      prefix += ` [ctx:${element.__context}]`;
+    }
+    this.logger.debug(prefix, element, ...args);
+  }
+  initCanvasFPSObserver(recordVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
+    const canvasContextReset = initCanvasContextObserver(win, blockClass, blockSelector);
+    const snapshotInProgressMap = /* @__PURE__ */ new Map();
+    const worker = new WorkerFactory();
+    worker.onmessage = (e2) => {
       const { id } = e2.data;
-      this.snapshotInProgressMap.set(id, false);
-      if (!("base64" in e2.data)) {
-        this.debug(null, "canvas worker received empty message", {
-          data: e2.data,
-          status: e2.data.status
-        });
+      snapshotInProgressMap.set(id, false);
+      if (!("base64" in e2.data))
         return;
-      }
       const { base64, type, dx, dy, dw, dh } = e2.data;
       this.mutationCb({
         id,
@@ -4394,52 +4279,20 @@ var CanvasManager = class {
         ]
       });
     };
-    this.options = options;
-    if (recordCanvas && sampling === "all") {
-      this.debug(null, "initializing canvas mutation observer", { sampling });
-      this.initCanvasMutationObserver(win, blockClass, blockSelector);
-    } else if (recordCanvas && typeof sampling === "number") {
-      this.debug(null, "initializing canvas fps observer", { sampling });
-      this.initCanvasFPSObserver(recordVideos, sampling, win, blockClass, blockSelector, {
-        initialSnapshotDelay,
-        dataURLOptions
-      }, options.resizeFactor, options.maxSnapshotDimension);
-    }
-  }
-  debug(element, ...args) {
-    if (!this.logger)
-      return;
-    const id = this.mirror.getId(element);
-    let prefix = "[highlight-canvas-manager]";
-    if (element) {
-      prefix = `[highlight-canvas] [id:${id}]`;
-      if (element.tagName.toLowerCase() === "canvas") {
-        prefix += ` [ctx:${element.__context}]`;
-      }
-    }
-    this.logger.debug(prefix, element, ...args);
-  }
-  initCanvasFPSObserver(recordVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
-    const canvasContextReset = initCanvasContextObserver(win, blockClass, blockSelector);
     const timeBetweenSnapshots = 1e3 / fps;
     let lastSnapshotTime = 0;
     let rafId;
-    const elementFoundTime = /* @__PURE__ */ new Map();
-    const getCanvas = (timestamp) => {
+    const getCanvas = () => {
       const matchedCanvas = [];
       win.document.querySelectorAll("canvas").forEach((canvas) => {
         if (!isBlocked(canvas, blockClass, blockSelector, true)) {
           this.debug(canvas, "discovered canvas");
           matchedCanvas.push(canvas);
-          const id = this.mirror.getId(canvas);
-          if (!elementFoundTime.has(id)) {
-            elementFoundTime.set(id, timestamp);
-          }
         }
       });
       return matchedCanvas;
     };
-    const getVideos = (timestamp) => {
+    const getVideos = () => {
       const matchedVideos = [];
       if (recordVideos) {
         win.document.querySelectorAll("video").forEach((video) => {
@@ -4447,10 +4300,6 @@ var CanvasManager = class {
             return;
           if (!isBlocked(video, blockClass, blockSelector, true)) {
             matchedVideos.push(video);
-            const id = this.mirror.getId(video);
-            if (!elementFoundTime.has(id)) {
-              elementFoundTime.set(id, timestamp);
-            }
           }
         });
       }
@@ -4462,27 +4311,68 @@ var CanvasManager = class {
         return;
       }
       lastSnapshotTime = timestamp;
-      const filterElementStartTime = (canvas) => {
-        const id = this.mirror.getId(canvas);
-        const foundTime = elementFoundTime.get(id);
-        const hadLoadingTime = !options.initialSnapshotDelay || timestamp - foundTime > options.initialSnapshotDelay;
-        this.debug(canvas, {
-          delay: options.initialSnapshotDelay,
-          delta: timestamp - foundTime,
-          hadLoadingTime
-        });
-        return hadLoadingTime;
-      };
       const promises = [];
-      promises.push(...getCanvas(timestamp).filter(filterElementStartTime).map(this.snapshot));
-      promises.push(...getVideos(timestamp).filter(filterElementStartTime).map((video) => __awaiter(this, void 0, void 0, function* () {
+      promises.push(...getCanvas().map((canvas) => __awaiter(this, void 0, void 0, function* () {
+        var _a2;
+        this.debug(canvas, "starting snapshotting");
+        const id = this.mirror.getId(canvas);
+        if (snapshotInProgressMap.get(id)) {
+          this.debug(canvas, "snapshotting already in progress for", id);
+          return;
+        }
+        snapshotInProgressMap.set(id, true);
+        try {
+          if (["webgl", "webgl2"].includes(canvas.__context)) {
+            const context = canvas.getContext(canvas.__context);
+            if (((_a2 = context === null || context === void 0 ? void 0 : context.getContextAttributes()) === null || _a2 === void 0 ? void 0 : _a2.preserveDrawingBuffer) === false) {
+              context === null || context === void 0 ? void 0 : context.clear(context.COLOR_BUFFER_BIT);
+            }
+          }
+          if (canvas.width === 0 || canvas.height === 0) {
+            this.debug(canvas, "not yet ready", {
+              width: canvas.width,
+              height: canvas.height
+            });
+            return;
+          }
+          let scale = resizeFactor || 1;
+          if (maxSnapshotDimension) {
+            const maxDim = Math.max(canvas.width, canvas.height);
+            scale = Math.min(scale, maxSnapshotDimension / maxDim);
+          }
+          const width = canvas.width * scale;
+          const height = canvas.height * scale;
+          const bitmap = yield createImageBitmap(canvas, {
+            resizeWidth: width,
+            resizeHeight: height
+          });
+          this.debug(canvas, "created image bitmap");
+          worker.postMessage({
+            id,
+            bitmap,
+            width,
+            height,
+            dx: 0,
+            dy: 0,
+            dw: canvas.width,
+            dh: canvas.height,
+            dataURLOptions: options.dataURLOptions
+          }, [bitmap]);
+          this.debug(canvas, "sent message");
+        } catch (e2) {
+          this.debug(canvas, "failed to snapshot", e2);
+        } finally {
+          snapshotInProgressMap.set(id, false);
+        }
+      })));
+      promises.push(...getVideos().map((video) => __awaiter(this, void 0, void 0, function* () {
         this.debug(video, "starting video snapshotting");
         const id = this.mirror.getId(video);
-        if (this.snapshotInProgressMap.get(id)) {
+        if (snapshotInProgressMap.get(id)) {
           this.debug(video, "video snapshotting already in progress for", id);
           return;
         }
-        this.snapshotInProgressMap.set(id, true);
+        snapshotInProgressMap.set(id, true);
         try {
           const { width: boxWidth, height: boxHeight } = video.getBoundingClientRect();
           const { actualWidth, actualHeight } = {
@@ -4519,7 +4409,7 @@ var CanvasManager = class {
             offsetX,
             offsetY
           });
-          this.worker.postMessage({
+          worker.postMessage({
             id,
             bitmap,
             width,
@@ -4528,25 +4418,22 @@ var CanvasManager = class {
             dy: offsetY,
             dw: outputWidth,
             dh: outputHeight,
-            dataURLOptions: options.dataURLOptions,
-            logDebug: !!this.logger
+            dataURLOptions: options.dataURLOptions
           }, [bitmap]);
           this.debug(video, "send message");
         } catch (e2) {
           this.debug(video, "failed to snapshot", e2);
         } finally {
-          this.snapshotInProgressMap.set(id, false);
+          snapshotInProgressMap.set(id, false);
         }
       })));
-      yield Promise.all(promises).catch(console.error);
+      yield Promise.all(promises);
       rafId = requestAnimationFrame(takeSnapshots);
     });
     rafId = requestAnimationFrame(takeSnapshots);
     this.resetObservers = () => {
       canvasContextReset();
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
+      cancelAnimationFrame(rafId);
     };
   }
   initCanvasMutationObserver(win, blockClass, blockSelector) {
@@ -4701,8 +4588,8 @@ var canvasManager;
 var recording = false;
 var mirror = createMirror();
 function record(options = {}) {
-  var _a2, _b2, _c, _d, _e, _f, _g, _h;
-  const { emit, checkoutEveryNms, checkoutEveryNth, blockClass = "highlight-block", blockSelector = null, ignoreClass = "highlight-ignore", maskTextClass = "highlight-mask", maskTextSelector = null, inlineStylesheet = true, maskAllInputs, maskInputOptions: _maskInputOptions, slimDOMOptions: _slimDOMOptions, maskInputFn, maskTextFn = obfuscateText, hooks, packFn, sampling = {}, mousemoveWait, recordCanvas = false, recordCrossOriginIframes = false, recordAfter = options.recordAfter === "DOMContentLoaded" ? options.recordAfter : "load", userTriggeredOnInput = false, collectFonts = false, inlineImages = false, plugins, keepIframeSrcFn = () => false, privacySetting = "default", ignoreCSSAttributes = /* @__PURE__ */ new Set([]), errorHandler: errorHandler2, logger } = options;
+  var _a2, _b2, _c, _d, _e;
+  const { emit, checkoutEveryNms, checkoutEveryNth, blockClass = "highlight-block", blockSelector = null, ignoreClass = "highlight-ignore", maskTextClass = "highlight-mask", maskTextSelector = null, inlineStylesheet = true, maskAllInputs, maskInputOptions: _maskInputOptions, slimDOMOptions: _slimDOMOptions, maskInputFn, maskTextFn = obfuscateText, hooks, packFn, sampling = {}, mousemoveWait, recordCanvas = false, recordCrossOriginIframes = false, recordAfter = options.recordAfter === "DOMContentLoaded" ? options.recordAfter : "load", userTriggeredOnInput = false, collectFonts = false, inlineImages = false, plugins, keepIframeSrcFn = () => false, enableStrictPrivacy = false, ignoreCSSAttributes = /* @__PURE__ */ new Set([]), errorHandler: errorHandler2, logger } = options;
   const dataURLOptions = Object.assign(Object.assign({}, options.dataURLOptions), (_b2 = (_a2 = options.sampling) === null || _a2 === void 0 ? void 0 : _a2.canvas) === null || _b2 === void 0 ? void 0 : _b2.dataURLOptions);
   registerErrorHandler(errorHandler2);
   const inEmittingFrame = recordCrossOriginIframes ? window.parent === window : true;
@@ -4845,12 +4732,9 @@ function record(options = {}) {
     blockSelector,
     mirror,
     sampling: (_c = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _c === void 0 ? void 0 : _c.fps,
-    samplingManual: (_d = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _d === void 0 ? void 0 : _d.fpsManual,
-    clearWebGLBuffer: (_e = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _e === void 0 ? void 0 : _e.clearWebGLBuffer,
-    initialSnapshotDelay: (_f = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _f === void 0 ? void 0 : _f.initialSnapshotDelay,
     dataURLOptions,
-    resizeFactor: (_g = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _g === void 0 ? void 0 : _g.resizeFactor,
-    maxSnapshotDimension: (_h = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _h === void 0 ? void 0 : _h.maxSnapshotDimension,
+    resizeFactor: (_d = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _d === void 0 ? void 0 : _d.resizeFactor,
+    maxSnapshotDimension: (_e = sampling === null || sampling === void 0 ? void 0 : sampling.canvas) === null || _e === void 0 ? void 0 : _e.maxSnapshotDimension,
     logger
   });
   const shadowDomManager = new ShadowDomManager({
@@ -4868,7 +4752,7 @@ function record(options = {}) {
       maskInputFn,
       recordCanvas,
       inlineImages,
-      privacySetting,
+      enableStrictPrivacy,
       sampling,
       slimDOMOptions,
       iframeManager,
@@ -4904,7 +4788,7 @@ function record(options = {}) {
       dataURLOptions,
       recordCanvas,
       inlineImages,
-      privacySetting,
+      enableStrictPrivacy,
       onSerialize: (n2) => {
         if (isSerializedIframe(n2, mirror)) {
           iframeManager.addIframe(n2);
@@ -5013,7 +4897,7 @@ function record(options = {}) {
         processedNodeManager,
         canvasManager,
         ignoreCSSAttributes,
-        privacySetting,
+        enableStrictPrivacy,
         plugins: ((_a3 = plugins === null || plugins === void 0 ? void 0 : plugins.filter((p) => p.observer)) === null || _a3 === void 0 ? void 0 : _a3.map((p) => ({
           observer: p.observer,
           options: p.options,
@@ -5090,12 +4974,6 @@ record.takeFullSnapshot = (isCheckout) => {
   }
   takeFullSnapshot(isCheckout);
 };
-record.snapshotCanvas = (element) => __awaiter(void 0, void 0, void 0, function* () {
-  if (!canvasManager) {
-    throw new Error("canvas manager is not initialized");
-  }
-  yield canvasManager.snapshot(element);
-});
 record.mirror = mirror;
 
 // ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrdom/es/rrdom.js

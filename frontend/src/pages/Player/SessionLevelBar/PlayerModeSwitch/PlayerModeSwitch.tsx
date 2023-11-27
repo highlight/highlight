@@ -4,8 +4,8 @@ import {
 	IconSolidInspect,
 	Stack,
 	Tooltip,
-} from '@highlight-run/ui'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+} from '@highlight-run/ui/components'
+import { themeVars } from '@highlight-run/ui/theme'
 import React from 'react'
 
 import { KeyboardShortcut } from '@/components/KeyboardShortcut/KeyboardShortcut'

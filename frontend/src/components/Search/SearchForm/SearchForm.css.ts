@@ -1,10 +1,7 @@
-import { vars } from '@highlight-run/ui'
-import {
-	sMonotype,
-	typographyStyles,
-} from '@highlight-run/ui/src/components/Text/styles.css'
-import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { sMonotype, typographyStyles } from '@highlight-run/ui/components'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
+import { themeVars } from '@highlight-run/ui/theme'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 import { styledVerticalScrollbar } from '@/style/common.css'

@@ -1,6 +1,11 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetWebVitalsQuery } from '@graph/hooks'
-import { Box, Form, IconSolidSearch, useFormStore } from '@highlight-run/ui'
+import {
+	Box,
+	Form,
+	IconSolidSearch,
+	useFormStore,
+} from '@highlight-run/ui/components'
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
 import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import {
