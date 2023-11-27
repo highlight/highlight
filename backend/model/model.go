@@ -2000,17 +2000,28 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	frontendURL := os.Getenv("FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
+	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
-	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", obj.Name, input.Group.Event, errorURL)
-	if input.SessionSecureID == "" || input.SessionExcluded {
-		message += " (No recorded session)"
-	} else {
-		sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
-		message += fmt.Sprintf(" <a href=\"%s\">View Session</a>", sessionURL)
+	alertUrl := fmt.Sprintf("%s/%d/alerts/errors/%d", frontendURL, obj.ProjectID, obj.ID)
+
+	templateData := map[string]string{
+		"alertLink":       alertUrl,
+		"errorCount":      strconv.FormatInt(*input.ErrorsCount, 10),
+		"errorEvent":      input.Group.Event,
+		"errorLink":       errorURL,
+		"firstError":      strconv.FormatBool(input.FirstErrorAlert),
+		"projectName":     *input.Project.Name,
+		"serviceName":     input.ErrorObject.ServiceName,
+		"sessionExcluded": strconv.FormatBool(input.SessionSecureID == "" || input.SessionExcluded),
+		"sessionLink":     sessionURL,
 	}
+	// TODO(spenny): allow use of lambda
+	emailHtml, err := s.FetchReactEmailHTML(ctx, "error-alert", templateData)
+
+	subjectLine := fmt.Sprintf("%s: %s", obj.Name, input.Group.Event)
 
 	for _, email := range emailsToNotify {
-		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", obj.Name, input.Group.Event)); err != nil {
+		if err := Email.SendReactEmailAlert(ctx, mailClient, *email, emailHtml, subjectLine); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
 	}
@@ -2134,7 +2145,6 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 	frontendURL := os.Getenv("FRONTEND_URI")
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 	alertType := ""
-	message := ""
 	subjectLine := ""
 	identifier := input.UserIdentifier
 	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
@@ -2149,42 +2159,38 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 	switch *obj.Type {
 	case AlertType.NEW_SESSION:
-		alertType = "New Session"
-		message = fmt.Sprintf("<b>%s</b> just started a new session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+		alertType = "new-session-alert"
 		subjectLine = fmt.Sprintf("%s just started a new session", identifier)
 	case AlertType.NEW_USER:
-		alertType = "New User"
-		message = fmt.Sprintf("<b>%s</b> just started their first session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+		alertType = "new-user-alert"
 		subjectLine = fmt.Sprintf("%s just started their first session", identifier)
 	case AlertType.RAGE_CLICK:
-		alertType = "Rage Click"
-		message = fmt.Sprintf("<b>%s</b> has been rage clicking in a session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
+		alertType = "rage-click-alert"
 		subjectLine = fmt.Sprintf("%s has been rage clicking in a session.", identifier)
 	case AlertType.ERROR_FEEDBACK:
+		// TODO(spenny): what to do with this alert
 		alertType = "Error Feedback"
-		message = fmt.Sprintf("<b>%s</b> just left feedback.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
 		subjectLine = fmt.Sprintf("%s just left feedback.", identifier)
 	case AlertType.TRACK_PROPERTIES:
-		alertType = "Track Property"
-		message = fmt.Sprintf("The following track events have been created by <b>%s</b>", identifier)
-		for _, addr := range input.MatchedFields {
-			message = fmt.Sprintf("%s<br>%s", message, fmt.Sprintf("{name: <b>%s</b>, value: <b>%s</b>}", addr.Name, addr.Value))
-		}
-		message = fmt.Sprintf("%s<br><br><a href=\"%s\">View Session</a>", message, sessionURL)
+		alertType = "track-event-properties-alert"
 		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
 	case AlertType.USER_PROPERTIES:
-		alertType = "User Property"
-		message = fmt.Sprintf("The following user properties have been created by <b>%s</b>", identifier)
-		for _, addr := range input.MatchedFields {
-			message = fmt.Sprintf("%s<br>%s", message, fmt.Sprintf("{name: <b>%s</b>, value: <b>%s</b>}", addr.Name, addr.Value))
-		}
-		message = fmt.Sprintf("%s<br><br><a href=\"%s\">View Session</a>", message, sessionURL)
+		alertType = "track-user-properties-alert"
 	default:
 		return
 	}
 
+	templateData := map[string]string{}
+
+	// fetch email from lambda
+	emailHtml, err := s.FetchReactEmailHTML(ctx, alertType, templateData)
+
 	for _, email := range emailsToNotify {
-		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine); err != nil {
+
+		// send email via email method
+		// Email.SendReactAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine)
+
+		if err := Email.SendReactEmailAlert(ctx, mailClient, *email, emailHtml, subjectLine); err != nil {
 			log.WithContext(ctx).Error(err)
 
 		}

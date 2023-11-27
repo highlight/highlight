@@ -3,6 +3,8 @@ package log_alerts
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
@@ -181,26 +183,28 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 			log.WithContext(ctx).Error(err)
 		}
 
-		alertUrl := model.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
+		logsUrl := model.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
+		frontendURL := os.Getenv("FRONTEND_URI")
+		alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
+
+		templateData := map[string]string{
+			"alertLink":      alertUrl,
+			"alertName":      alert.Name,
+			"belowThreshold": strconv.FormatBool(alert.BelowThreshold),
+			"count":          strconv.FormatInt(int64(count), 10),
+			"logsLink":       logsUrl,
+			// TODO(spenny): fetch project name
+			"projectName": "TODO",
+			"query":       alert.Query,
+			"threshold":   strconv.FormatInt(int64(alert.CountThreshold), 10),
+		}
+
+		subjectLine := alert.Name
+		// TODO(spenny): allow use of lambda
+		emailHtml, body := s.FetchReactEmailHTML(ctx, "log-alert", templateData)
 
 		for _, email := range emailsToNotify {
-			queryStr := ""
-			if alert.Query != "" {
-				queryStr = fmt.Sprintf(`for query <b>%s</b> `, alert.Query)
-			}
-			message := fmt.Sprintf(
-				"<b>%s</b> fired! Log count %sis currently %s the threshold.<br>"+
-					"<em>Count</em>: %d | <em>Threshold</em>: %d"+
-					"<br><br>"+
-					"<a href=\"%s\">View Logs</a>",
-				alert.Name,
-				queryStr,
-				aboveStr,
-				count,
-				alert.CountThreshold,
-				alertUrl,
-			)
-			if err := Email.SendAlertEmail(ctx, MailClient, *email, message, "Log Alert", alert.Name); err != nil {
+			if err := Email.SendReactEmailAlert(ctx, MailClient, *email, emailHtml, subjectLine); err != nil {
 				log.WithContext(ctx).Error(err)
 			}
 		}
