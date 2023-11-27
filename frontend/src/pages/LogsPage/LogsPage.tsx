@@ -56,6 +56,9 @@ type Props = {
 	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
 }
 
+const HEADERS_AND_CHARTS_HEIGHT = 228
+const LOAD_MORE_HEIGHT = 28
+
 const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -104,12 +107,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
-				console.log(
-					'SCROLLING LOGS',
-					scrollHeight,
-					scrollTop,
-					clientHeight,
-				)
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
 				} else if (scrollTop === 0) {
@@ -136,9 +133,9 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 			skip: !projectId,
 		})
 
-	let otherElementsHeight = 228
+	let otherElementsHeight = HEADERS_AND_CHARTS_HEIGHT
 	if (moreLogs) {
-		otherElementsHeight += 28
+		otherElementsHeight += LOAD_MORE_HEIGHT
 	}
 
 	return (

@@ -301,10 +301,7 @@ const LogsTableInner = ({
 			<Table.Body
 				ref={bodyRef}
 				overflowY="scroll"
-				style={{
-					// Subtract heights of elements above, including loading more loads when relevant
-					height: bodyHeight,
-				}}
+				style={{ height: bodyHeight }}
 				onScroll={(e) =>
 					fetchMoreWhenScrolled(e.target as HTMLDivElement)
 				}
