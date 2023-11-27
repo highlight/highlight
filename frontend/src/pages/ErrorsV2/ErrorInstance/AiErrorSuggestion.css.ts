@@ -20,6 +20,10 @@ export const aiSuggestion = style({
 			inset: 0,
 			mask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
 			maskComposite: 'exclude',
+			// Manual vendor prefixing for Reflame css bundle
+			WebkitMask:
+				'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+			WebkitMaskComposite: 'xor',
 			position: 'absolute',
 			zIndex: -1,
 		},
