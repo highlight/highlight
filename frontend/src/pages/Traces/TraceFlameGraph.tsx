@@ -29,6 +29,11 @@ import {
 
 import * as styles from './TraceFlameGraph.css'
 
+// Empty image
+const dragImg = new Image()
+dragImg.src =
+	'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
 const MAX_TICKS = 6
 const MAX_ZOOM = 1000
 export const ticksHeight = 24
@@ -115,6 +120,20 @@ export const TraceFlameGraph: React.FC = () => {
 	}, [])
 
 	const throttledZoom = useRef(throttle((dz: number) => handleZoom(dz), 50))
+
+	const handleDrag = useCallback((e) => {
+		e.preventDefault()
+		e.stopPropagation()
+
+		// TODO: Figure out why this isn't working
+		const { clientX } = e
+		const { left, width } = zoomBar.current!.getBoundingClientRect()
+		const percent = Math.max(0, Math.min(1, (clientX - left) / width))
+
+		setZoom(percent * MAX_ZOOM)
+	}, [])
+
+	const throttledDragHandler = useRef(throttle(handleDrag, 50))
 
 	useHTMLElementEvent(
 		svgContainerRef.current,
@@ -323,26 +342,9 @@ export const TraceFlameGraph: React.FC = () => {
 							position="absolute"
 							draggable
 							onDragStart={(e) => {
-								const dragImg = new Image()
-								dragImg.src =
-									'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-
 								e.dataTransfer.setDragImage(dragImg, 0, 0)
 							}}
-							onDrag={throttle((e) => {
-								e.preventDefault()
-								e.stopPropagation()
-
-								const { clientX } = e
-								const { left, width } =
-									zoomBar.current!.getBoundingClientRect()
-								const percent = Math.max(
-									0,
-									Math.min(1, (clientX - left) / width),
-								)
-
-								setZoom(percent * MAX_ZOOM)
-							}, 50)}
+							onDrag={throttledDragHandler.current}
 							style={{
 								height: 10,
 								width: 10,
