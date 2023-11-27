@@ -586,8 +586,11 @@ func GetOverageKey(productType model.PricingProductType, retentionPeriod backend
 	if retentionPeriod != backend.RetentionPeriodThreeMonths {
 		result += "|" + string(retentionPeriod)
 	}
-	if productType == model.PricingProductTypeSessions && planType == backend.PlanTypeUsageBased {
-		result += "|UsageBased"
+
+	if planType == backend.PlanTypeGraduated {
+		result += "|" + backend.PlanTypeGraduated.String()
+	} else if planType == backend.PlanTypeUsageBased && productType == model.PricingProductTypeSessions {
+		result += "|" + backend.PlanTypeUsageBased.String()
 	}
 	return result
 }
@@ -675,11 +678,11 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 	}
 	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
 	membersLookupKey := string(model.PricingProductTypeMembers)
+	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
 	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, rp, productTier)
-	logsLookupKey := string(model.PricingProductTypeLogs)
-	tracesLookupKey := string(model.PricingProductTypeTraces)
+	logsLookupKey := GetOverageKey(model.PricingProductTypeLogs, rp, productTier)
+	tracesLookupKey := GetOverageKey(model.PricingProductTypeTraces, rp, productTier)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey}
