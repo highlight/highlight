@@ -53,7 +53,7 @@ import * as style from './BillingPageV2.css'
 type UsageCardProps = {
 	productIcon: React.ReactElement<IconProps>
 	productType: ProductType
-	rateCents: number | undefined
+	rate: number | undefined
 	retentionPeriod: RetentionPeriod
 	planType: PlanType
 	billingLimitCents: number | undefined
@@ -66,7 +66,7 @@ type UsageCardProps = {
 const UsageCard = ({
 	productIcon,
 	productType,
-	rateCents,
+	rate,
 	retentionPeriod,
 	billingLimitCents,
 	usageAmount,
@@ -83,7 +83,7 @@ const UsageCard = ({
 	const costCents = isPaying
 		? getCostCents(
 				productType,
-				rateCents,
+				rate,
 				retentionPeriod,
 				usageAmount,
 				includedQuantity,
@@ -91,7 +91,7 @@ const UsageCard = ({
 		: 0
 	const usageLimitAmount = getQuantity(
 		productType,
-		rateCents,
+		rate,
 		retentionPeriod,
 		billingLimitCents,
 		includedQuantity,
@@ -432,7 +432,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidPlayCircle />}
 						productType={ProductType.Sessions}
-						rateCents={sessionsRate * 100}
+						rate={sessionsRate}
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
@@ -447,7 +447,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidLightningBolt />}
 						productType={ProductType.Errors}
-						rateCents={errorsRate * 100}
+						rate={errorsRate}
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
@@ -462,7 +462,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidLogs />}
 						productType={ProductType.Logs}
-						rateCents={logsRate * 100}
+						rate={logsRate}
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
@@ -477,7 +477,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					<UsageCard
 						productIcon={<IconSolidSparkles />}
 						productType={ProductType.Traces}
-						rateCents={tracesRate * 100}
+						rate={tracesRate}
 						retentionPeriod={tracesRetention}
 						billingLimitCents={tracesLimit}
 						usageAmount={tracesUsage}
