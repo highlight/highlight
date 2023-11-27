@@ -13,10 +13,12 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.semconv.resource import ResourceAttributes
+from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
-from opentelemetry.sdk.resources import Attributes, Resource
 
 from highlight_io.integrations import Integration
 
@@ -173,7 +175,6 @@ class H(object):
     def record_http_error(
         status_code: int,
         detail: str,
-        headers: typing.Dict[str, str],
         attributes: typing.Optional[typing.Dict[str, any]] = None,
     ) -> None:
         """
@@ -201,7 +202,6 @@ class H(object):
 
         :param status_code: the http status code to report
         :param detail: the error status details
-        :param headers: the headers of the http request
         :param attributes: additional metadata to attribute to this error.
         :return: None
         """
@@ -224,15 +224,21 @@ class H(object):
         # relies there being an exception raised. we manually `traceback.format_stack()` to get the current
         # execution stack for recording an http exception.
         attrs = {
-            "exception.type": "HTTPException",
-            "exception.message": detail,
-            "exception.stacktrace": "".join(traceback.format_stack()),
-            "http.status_code": status_code,
+            SpanAttributes.EXCEPTION_TYPE: "HTTPException",
+            SpanAttributes.EXCEPTION_MESSAGE: detail,
+            SpanAttributes.EXCEPTION_STACKTRACE: "".join(traceback.format_stack()),
+            SpanAttributes.HTTP_STATUS_CODE: status_code,
+            "http.response.detail": detail,
         }
-        attrs.update(attributes or dict())
-        for k, v in headers.items():
-            if type(v) in [bool, str, bytes, int, float]:
-                attrs[f"http.headers.{k}"] = v
+        if attributes:
+            attrs.update(attributes)
+        for req in ("request", "response"):
+            headers = attrs.pop(f"http.{req}.headers", None)
+            if not headers:
+                continue
+            for k, v in headers.items():
+                if type(v) in [bool, str, bytes, int, float]:
+                    attrs[f"http.{req}.headers.{k}"] = v
         span.add_event(name="exception", attributes=attrs)
 
     @staticmethod
@@ -290,10 +296,10 @@ class H(object):
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
             attributes = span.attributes.copy()
-            attributes["code.function"] = record.funcName
-            attributes["code.namespace"] = record.module
-            attributes["code.filepath"] = record.pathname
-            attributes["code.lineno"] = record.lineno
+            attributes[SpanAttributes.CODE_FUNCTION] = record.funcName
+            attributes[SpanAttributes.CODE_NAMESPACE] = record.module
+            attributes[SpanAttributes.CODE_FILEPATH] = record.pathname
+            attributes[SpanAttributes.CODE_LINENO] = record.lineno
             attributes.update(record.args or {})
 
             message = record.getMessage()
@@ -361,8 +367,8 @@ def _build_resource(
     attrs = {}
 
     if service_name:
-        attrs["service.name"] = service_name
+        attrs[ResourceAttributes.SERVICE_NAME] = service_name
     if service_version:
-        attrs["service.version"] = service_version
+        attrs[ResourceAttributes.SERVICE_VERSION] = service_version
 
     return Resource.create(attrs)
