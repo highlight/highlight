@@ -497,7 +497,7 @@ func GetLimitAmount(limitCostCents *int, productType model.PricingProductType, p
 func ProductToBasePriceCents(productType model.PricingProductType, planType backend.PlanType, meter int64) float64 {
 	included := IncludedAmount(planType, productType)
 	remainder := meter - included
-	if meter <= 0 || remainder <= 0 {
+	if remainder <= 0 {
 		return 0
 	}
 	var price float64
