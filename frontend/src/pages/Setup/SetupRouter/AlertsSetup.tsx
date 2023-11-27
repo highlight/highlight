@@ -21,6 +21,7 @@ import {
 	IconSolidCheck,
 	IconSolidCheveronRight,
 	IconSolidDiscord,
+	IconSolidMicrosoftTeams,
 	IconSolidNewspaper,
 	IconSolidSlack,
 	Stack,
@@ -43,10 +44,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
+import { getMicrosoftTeamsUrl } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 interface NotificationOption {
-	name: 'Slack' | 'Discord' | 'Email'
+	name: 'Slack' | 'Discord' | 'Email' | 'Microsoft Teams'
 	logo: JSX.Element
 	logoDisabled: JSX.Element
 }
@@ -68,6 +70,17 @@ const notificationOptions: NotificationOption[] = [
 		logo: <IconSolidDiscord height={16} width={16} />,
 		logoDisabled: (
 			<IconSolidDiscord
+				height={16}
+				width={16}
+				fill={vars.theme.interactive.fill.secondary.content.onDisabled}
+			/>
+		),
+	},
+	{
+		name: 'Microsoft Teams',
+		logo: <IconSolidMicrosoftTeams height={16} width={16} />,
+		logoDisabled: (
+			<IconSolidMicrosoftTeams
 				height={16}
 				width={16}
 				fill={vars.theme.interactive.fill.secondary.content.onDisabled}
@@ -200,6 +213,8 @@ const PlatformPicker: React.FC = function () {
 	useEffect(() => {
 		if (
 			(integratePlatform === 'slack' && data?.is_integrated_with_slack) ||
+			(integratePlatform === 'microsoft_teams' &&
+				data?.is_integrated_with_microsoft_teams) ||
 			(integratePlatform === 'discord' &&
 				data?.is_integrated_with_discord)
 		) {
@@ -210,6 +225,7 @@ const PlatformPicker: React.FC = function () {
 		integratePlatform,
 		data?.is_integrated_with_slack,
 		data?.is_integrated_with_discord,
+		data?.is_integrated_with_microsoft_teams,
 		navigate,
 		clearIntegratePlatform,
 	])
@@ -228,6 +244,8 @@ const PlatformPicker: React.FC = function () {
 			) : null}
 			{(integratePlatform === 'slack' &&
 				!data?.is_integrated_with_slack) ||
+			(integratePlatform === 'microsoft_teams' &&
+				!data?.is_integrated_with_microsoft_teams) ||
 			(integratePlatform === 'discord' &&
 				!data?.is_integrated_with_discord) ? (
 				<IntegrationCallout
@@ -272,6 +290,8 @@ const PlatformPicker: React.FC = function () {
 						<Box display="flex" alignItems="center" gap="8">
 							{(option.name === 'Slack' &&
 								data?.is_integrated_with_slack) ||
+							(option.name === 'Microsoft Teams' &&
+								data?.is_integrated_with_microsoft_teams) ||
 							(option.name === 'Discord' &&
 								data?.is_integrated_with_discord) ? (
 								<Badge
@@ -296,6 +316,10 @@ const PlatformPicker: React.FC = function () {
 										: 'Connect'
 									: option.name === 'Discord'
 									? data?.is_integrated_with_discord
+										? 'Continue'
+										: 'Connect'
+									: option.name === 'Microsoft Teams'
+									? data?.is_integrated_with_microsoft_teams
 										? 'Continue'
 										: 'Connect'
 									: 'Continue'}
@@ -665,19 +689,26 @@ const IntegrationCallout = function ({
 	type,
 	onCancel,
 }: {
-	type: 'slack' | 'discord'
+	type: 'slack' | 'discord' | 'microsoft_teams'
 	onCancel: () => void
 }) {
 	const { projectId } = useProjectId()
 	const { slackUrl } = useSlackBot(`setup/alerts/slack`)
-	const name = type === 'slack' ? 'Slack' : 'Discord'
+	const name =
+		type === 'slack'
+			? 'Slack'
+			: type === 'discord'
+			? 'Discord'
+			: 'Microsoft Teams'
 	const integrateUrl =
 		type === 'slack'
 			? slackUrl
-			: getDiscordOauthUrl(
+			: type === 'discord'
+			? getDiscordOauthUrl(
 					projectId,
 					`/${projectId}/setup/alerts/discord`,
 			  )
+			: getMicrosoftTeamsUrl(projectId)
 	const icon = notificationOptions.find((n) => n.name === name)?.logo
 	return (
 		<Modal
