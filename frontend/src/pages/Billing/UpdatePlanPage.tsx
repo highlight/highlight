@@ -743,7 +743,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										createOrUpdateStripeSubscription({
 											variables: {
 												workspace_id: workspace_id!,
-												plan_type: PlanType.UsageBased,
+												plan_type: PlanType.Graduated,
 												interval:
 													SubscriptionInterval.Monthly,
 												retention_period:
