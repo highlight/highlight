@@ -27,6 +27,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { throttle } from 'lodash'
 import React, { Key, useEffect, useRef, useState } from 'react'
 
 import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
@@ -276,10 +277,16 @@ const LogsTableInner = ({
 	}, [])
 
 	useEffect(() => {
-		if (bodyRef?.current) {
-			fetchMoreWhenScrolled(bodyRef.current)
-		}
-	}, [fetchMoreWhenScrolled])
+		setTimeout(() => {
+			if (!loadingAfter && bodyRef?.current) {
+				fetchMoreWhenScrolled(bodyRef.current)
+			}
+		}, 0)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [loadingAfter])
+
+	const handleThrottleScroll = (e: any) => fetchMoreWhenScrolled(e.target)
+	const throttledScroll = useRef(throttle(handleThrottleScroll, 1000))
 
 	return (
 		<Table height="full" noBorder>
@@ -308,9 +315,7 @@ const LogsTableInner = ({
 				ref={bodyRef}
 				overflowY="scroll"
 				style={{ height: bodyHeight }}
-				onScroll={(e) =>
-					fetchMoreWhenScrolled(e.target as HTMLDivElement)
-				}
+				onScroll={throttledScroll.current}
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {
