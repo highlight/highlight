@@ -406,6 +406,7 @@
         "/es/dropdown",
         "/es/message",
         "/dist/antd.css",
+        "/dist/antd.variable.min.css"
       ],
     },
     "firebase": {

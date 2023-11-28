@@ -1,0 +1,44 @@
+/* stylelint-disable scss/at-rule-no-unknown */
+/* These variables are used to override Ant Design's default variables. */
+/* Changes to this file requires you to restart the React dev server for the effects to take place in the browser. */
+
+/* https://ant.design/docs/react/customize-theme */
+:root {
+  --ant-font-family: var(--header-font-family);
+  --ant-primary-color: #5629c6;
+  --ant-border-radius-base: 5px;
+  --ant-message-notice-content-bg: rgba(0, 0, 0, 0.85);
+  --ant-switch-color: #6fcf97;
+
+  /* Buttons */
+  --ant-btn-font-weight: 300;
+  --ant-btn-border-radius-base: 8px;
+  --ant-btn-border-radius-sm: 8px;
+  --ant-btn-shadow: none;
+  --ant-btn-primary-shadow: none;
+  --ant-btn-text-shadow: none;
+
+  --ant-btn-primary-color: var(--text-primary-inverted);
+  --ant-btn-primary-bg: var(--ant-primary-color);
+
+  --ant-btn-default-color: var(--ant-primary-color);
+  --ant-btn-default-bg: var(--color-primary-background);
+  --ant-btn-default-border: var(--color-gray-400);
+
+  --ant-btn-disable-color: var(--text-primary-inverted);
+  --ant-btn-disable-bg: var(--color-gray-500);
+  --ant-btn-disable-border: var(--color-gray-500);
+
+  --ant-btn-font-size-lg: 16px;
+  --ant-btn-font-size-sm: 12px;
+  --ant-btn-padding-horizontal-base: 16px;
+
+  --ant-btn-danger-color: var(--text-primary-inverted);
+  --ant-btn-danger-bg: var(--color-red-400);
+  --ant-btn-danger-border: var(--color-red-400);
+
+  /* Progress */
+  --ant-progress-remaining-color: var(--color-purple-200);
+  --ant-progress-info-text-color: var(--color-gray-500);
+  --ant-progress-text-font-size: 12px;
+}

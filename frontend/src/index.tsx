@@ -1,8 +1,9 @@
-import 'antd/dist/antd.css'
+import 'antd/dist/antd.variable.min.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
 import '@highlight-run/ui/styles.css'
 import './index.css'
+import './style/AntDesign/antd.overrides.css'
 import './style/tailwind.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
@@ -50,6 +51,50 @@ import { AUTH_MODE, PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
+
+// const primaryColor = '#5629c6'
+// ConfigProvider.config({
+// 	theme: {
+// 		// https://ant.design/docs/react/customize-theme
+// 		fontFamily: 'var(--header-font-family)',
+// 		primaryColor,
+// 		borderRadiusBase: '5px',
+// 		messageNoticeContentBg: 'rgba(0, 0, 0, 0.85)',
+// 		switchColor: '#6fcf97',
+
+// 		// Buttons
+// 		btnFontWeight: '300',
+// 		btnBorderRadiusBase: '8px',
+// 		btnBorderRadiusSm: '8px',
+// 		btnShadow: 'none',
+// 		btnPrimaryShadow: 'none',
+// 		btnTextShadow: 'none',
+
+// 		btnPrimaryColor: 'var(--text-primary-inverted)',
+// 		btnPrimaryBg: primaryColor,
+
+// 		btnDefaultColor: primaryColor,
+// 		btnDefaultBg: 'var(--color-primary-background)',
+// 		btnDefaultBorder: 'var(--color-gray-400)',
+
+// 		btnDisableColor: 'var(--text-primary-inverted)',
+// 		btnDisableBg: 'var(--color-gray-500)',
+// 		btnDisableBorder: 'var(--color-gray-500)',
+
+// 		btnFontSizeLg: '16px',
+// 		btnFontSizeSm: '12px',
+// 		btnPaddingHorizontalBase: '16px',
+
+// 		btnDangerColor: 'var(--text-primary-inverted)',
+// 		btnDangerBg: 'var(--color-red-400)',
+// 		btnDangerBorder: 'var(--color-red-400)',
+
+// 		// Progress
+// 		progressRemainingColor: 'var(--color-purple-200)',
+// 		progressInfoTextColor: 'var(--color-gray-500)',
+// 		progressTextFontSize: '12px',
+// 	},
+// })
 
 document.body.className = 'highlight-light-theme'
 
