@@ -130,6 +130,14 @@ export const CUSTOM_FIELDS: CustomField[] = [
 			operators: BOOLEAN_OPERATORS,
 		},
 	},
+	{
+		type: CUSTOM_TYPE,
+		name: 'sample',
+		options: {
+			type: 'sample',
+			operators: ['is'],
+		},
+	},
 ]
 
 const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {

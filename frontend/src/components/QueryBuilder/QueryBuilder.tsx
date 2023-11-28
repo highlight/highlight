@@ -843,6 +843,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	has_comments: 'Has Comments',
 	service_name: 'Service',
 	service_version: 'Service Version',
+	sample: 'Sample',
 }
 
 const getOperator = (
@@ -866,7 +867,7 @@ const isSingle = (val: MultiselectOption | undefined) =>
 
 interface FieldOptions {
 	operators?: Operator[]
-	type?: string
+	type?: 'text' | 'long' | 'boolean' | 'sample'
 }
 
 interface HasOptions {
@@ -1000,6 +1001,8 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidLightningBolt />
 		case 'custom_has_rage_clicks':
 			return <IconSolidCursorClick />
+		case 'custom_sample':
+			return <IconSolidPencil />
 		case 'session_landing_page':
 			return <IconSolidDocumentAdd />
 		case 'custom_active_length':
@@ -1462,6 +1465,17 @@ function QueryBuilder(props: QueryBuilderProps) {
 						label: v,
 						value: v,
 					}))
+				} else if (getCustomFieldOptions(field)?.type === 'sample') {
+					options = [
+						{
+							label: 'Random Seed',
+							value: [...Array(16)]
+								.map(() =>
+									Math.floor(Math.random() * 16).toString(16),
+								)
+								.join(''),
+						},
+					]
 				}
 
 				if (options.length > 0) {

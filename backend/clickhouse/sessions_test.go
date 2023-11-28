@@ -150,3 +150,8 @@ func Test_SessionMatchesQuery(t *testing.T) {
 	matches = SessionMatchesQuery(&session, &filters)
 	assert.False(t, matches)
 }
+
+func Test_QuerySessionIds(t *testing.T) {
+	client := &Client{}
+	client.QuerySessionIds(context.Background(), nil, nil)
+}
