@@ -1,5 +1,6 @@
 import { Button } from '@components/Button'
 import Switch from '@components/Switch/Switch'
+import { useGetWorkspaceSettingsQuery } from '@graph/hooks'
 import {
 	Box,
 	IconSolidDotsHorizontal,
@@ -18,6 +19,7 @@ import {
 	sortOrders,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/hooks/useSessionFeedConfiguration'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import React, { useRef, useState } from 'react'
@@ -38,6 +40,16 @@ export const DropdownMenu = function ({
 		policyName: POLICY_NAMES.DeleteSessions,
 	})
 	const [showModal, setShowModal] = useState(false)
+
+	const { currentWorkspace } = useApplicationContext()
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
+
+	const showDeleteButton =
+		canDelete &&
+		workspaceSettingsData?.workspaceSettings?.enable_data_deletion !== false
 
 	const {
 		autoPlaySessions,
@@ -237,30 +249,34 @@ export const DropdownMenu = function ({
 						</Menu>
 					</Box>
 				</Menu.Item>
-				<Menu.Divider />
-				<Box
-					display="flex"
-					alignItems="center"
-					justifyContent="flex-end"
-					px="8"
-					width="full"
-				>
-					<Button
-						kind="danger"
-						disabled={!canDelete}
-						onClick={() => setShowModal(true)}
-						trackingId="sessionFeedDeleteSessions"
-					>
-						Delete {sessionCount} Session
-						{sessionCount !== 1 ? 's' : ''}?
-					</Button>
-				</Box>
-				<DeleteSessionsModal
-					visible={showModal}
-					setVisible={setShowModal}
-					query={sessionQuery}
-					sessionCount={sessionCount}
-				/>
+				{showDeleteButton ? (
+					<>
+						<Menu.Divider />
+						<Box
+							display="flex"
+							alignItems="center"
+							justifyContent="flex-end"
+							px="8"
+							width="full"
+						>
+							<Button
+								kind="danger"
+								disabled={!canDelete}
+								onClick={() => setShowModal(true)}
+								trackingId="sessionFeedDeleteSessions"
+							>
+								Delete {sessionCount} Session
+								{sessionCount !== 1 ? 's' : ''}?
+							</Button>
+						</Box>
+						<DeleteSessionsModal
+							visible={showModal}
+							setVisible={setShowModal}
+							query={sessionQuery}
+							sessionCount={sessionCount}
+						/>
+					</>
+				) : null}
 			</Menu.List>
 		</Menu>
 	)

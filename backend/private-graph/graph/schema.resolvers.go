@@ -3510,6 +3510,15 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 		return false, err
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if !settings.EnableDataDeletion {
+		return false, e.New("data deletion is disabled for this workspace")
+	}
+
 	email := ""
 	if admin.Email != nil {
 		email = *admin.Email

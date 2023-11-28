@@ -493,6 +493,7 @@ type AllWorkspaceSettings {
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
 	enable_ingest_sampling: Boolean!
+	enable_data_deletion: Boolean!
 }
 
 type Account {
