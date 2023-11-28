@@ -1,4 +1,4 @@
-import { Form, Stack, Text, useFormStore } from '@highlight-run/ui'
+import { Form, Stack, Text, useFormStore } from '@highlight-run/ui/components'
 import { message } from 'antd'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'

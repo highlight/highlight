@@ -274,14 +274,15 @@
     "@highlight-run/ui": {
       "sourceDirectory": "packages/ui/src",
       "entryPoints": {
-        "/": "/index.ts",
-        "/src": "/index.ts",
-        "/src/components/Box/Box": "/components/Box/Box.tsx",
-        "/src/components/DatePicker/PreviousDateRangePicker": "/components/DatePicker/PreviousDateRangePicker.tsx",
-        "/src/css/vars": "/css/vars.ts",
-        "/src/css/colors": "/css/colors.ts",
-        "/src/css/sprinkles.css": "/css/sprinkles.css",
-        "/src/css/theme.css": "/css/theme.css",
+        "/components": "/components/index.ts",
+        "/css": "/css.ts",
+        "/keyframes": "/keyframes.ts",
+        "/sprinkles": "/sprinkles.ts",
+        "/vars": "/vars.ts",
+        "/theme": "/theme.ts",
+        "/colors": "/colors.ts",
+        "/borders": "/borders.ts",
+        "/styles.css": "/noop.ts",
       },
       "npmPackages": {
         "ariakit": {

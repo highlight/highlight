@@ -11,8 +11,8 @@ import {
 	Stack,
 	Tag,
 	Text,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { copyToClipboard } from '@util/string'

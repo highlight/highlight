@@ -5,7 +5,7 @@ import {
 	IconSolidX,
 	Stack,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'

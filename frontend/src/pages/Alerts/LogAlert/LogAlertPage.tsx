@@ -30,7 +30,7 @@ import {
 	useForm,
 	useFormStore,
 	useMenu,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSlackSync } from '@hooks/useSlackSync'
 import {

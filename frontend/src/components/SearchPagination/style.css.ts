@@ -1,5 +1,5 @@
-import { borders } from '@highlight-run/ui/src/css/borders'
-import { vars } from '@highlight-run/ui/src/css/vars'
+import { borders } from '@highlight-run/ui/borders'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const simple = style({

@@ -2805,12 +2805,16 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
 					| 'type'
-					| 'quota'
 					| 'interval'
 					| 'membersLimit'
+					| 'sessionsLimit'
 					| 'errorsLimit'
 					| 'logsLimit'
 					| 'tracesLimit'
+					| 'sessionsRate'
+					| 'errorsRate'
+					| 'logsRate'
+					| 'tracesRate'
 				>
 			}
 	>
@@ -2851,12 +2855,17 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
 				| 'type'
-				| 'quota'
 				| 'interval'
 				| 'membersLimit'
+				| 'sessionsLimit'
 				| 'errorsLimit'
 				| 'logsLimit'
 				| 'tracesLimit'
+				| 'sessionsRate'
+				| 'errorsRate'
+				| 'logsRate'
+				| 'tracesRate'
+				| 'enableBillingLimits'
 			>
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<

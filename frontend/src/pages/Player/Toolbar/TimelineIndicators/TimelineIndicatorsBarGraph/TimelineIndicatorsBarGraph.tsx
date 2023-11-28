@@ -1,6 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { customEvent, EventType } from '@highlight-run/rrweb-types'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui/components'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'

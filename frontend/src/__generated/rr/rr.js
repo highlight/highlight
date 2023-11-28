@@ -1105,7 +1105,7 @@ function parse(css, options) {
       return node;
     };
   }
-  var Position = function() {
+  var Position = /* @__PURE__ */ function() {
     function Position2(start) {
       this.start = start;
       this.end = { line: lineno, column };

@@ -4,6 +4,7 @@ import {
 	useUpdateSessionIsPublicMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
 	IconSolidGlobeAlt,
@@ -12,8 +13,7 @@ import {
 	Menu,
 	Tag,
 	Text,
-} from '@highlight-run/ui/src'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import {
 	onGetLink,
 	onGetLinkWithTimestamp,

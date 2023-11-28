@@ -1,4 +1,4 @@
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import React, { CSSProperties, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/Button'

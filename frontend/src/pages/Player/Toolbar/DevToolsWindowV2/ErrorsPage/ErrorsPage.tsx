@@ -1,8 +1,13 @@
 import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
-import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import {
+	Box,
+	IconSolidArrowCircleRight,
+	Tag,
+	Text,
+} from '@highlight-run/ui/components'
+import { themeVars } from '@highlight-run/ui/theme'
 import {
 	RightPanelView,
 	usePlayerUIContext,

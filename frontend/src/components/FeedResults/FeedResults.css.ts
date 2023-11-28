@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/vars'
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
 export const variants = recipe({

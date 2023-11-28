@@ -1,7 +1,7 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import InputNumber from '@components/InputNumber/InputNumber'
 import { LoadingBar } from '@components/Loading/Loading'
-import { Box, Form, Stack } from '@highlight-run/ui'
+import { Box, Form, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 

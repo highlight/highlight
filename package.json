@@ -109,6 +109,7 @@
 		"cross-fetch": "3.1.5",
 		"deep-object-diff": "1.1.9",
 		"ejs": "3.1.7",
+		"esbuild": "0.19.7",
 		"eventsource": "1.1.1",
 		"fast-json-patch": "3.1.1",
 		"fastify": "3.29.4",
