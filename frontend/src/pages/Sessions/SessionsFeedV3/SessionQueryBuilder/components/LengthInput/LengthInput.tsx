@@ -1,5 +1,3 @@
-import 'antd/dist/antd.css'
-
 import Button from '@components/Button/Button/Button'
 import Input from '@components/Input/Input'
 import { Slider } from 'antd'
