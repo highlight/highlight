@@ -112,17 +112,6 @@ export default defineConfig(({ mode }) => {
 		},
 		css: {
 			devSourcemap: true,
-			preprocessorOptions: {
-				less: {
-					javascriptEnabled: true,
-					modifyVars: {
-						hack: `true; @import "${join(
-							__dirname,
-							'src/style/AntDesign/antd.overrides.less',
-						)}";`,
-					},
-				},
-			},
 		},
 	}
 })
