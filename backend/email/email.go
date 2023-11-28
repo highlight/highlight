@@ -54,7 +54,6 @@ func SendReactEmailAlert(ctx context.Context, MailClient *sendgrid.Client, email
 	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 
 	m := mail.NewV3MailInit(from, subjectLine, to, mail.NewContent("text/html", html))
-	// TODO(spenny): should we add a category
 
 	if resp, sendGridErr := MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
 		log.WithContext(ctx).Info("🔥", resp, sendGridErr)

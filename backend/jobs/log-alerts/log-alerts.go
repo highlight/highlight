@@ -192,10 +192,9 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 			"belowThreshold": alert.BelowThreshold,
 			"count":          count,
 			"logsLink":       logsUrl,
-			// TODO(spenny): fetch project name
-			"projectName": "TODO",
-			"query":       alert.Query,
-			"threshold":   alert.CountThreshold,
+			"projectName":    project.Name,
+			"query":          alert.Query,
+			"threshold":      alert.CountThreshold,
 		}
 
 		subjectLine := alert.Name

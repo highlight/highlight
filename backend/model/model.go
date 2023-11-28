@@ -2125,6 +2125,11 @@ type SessionAlertEvent struct {
 	SentAt          time.Time
 }
 
+type PropertyPair struct {
+	key   string
+	value string
+}
+
 func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
 	defer func() {
 		db.Create(&SessionAlertEvent{
@@ -2182,12 +2187,22 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 		alertType = "track-event-properties-alert"
 		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
 
-		templateData["eventProperties"] = "TODO"
+		propertyArray := []PropertyPair{}
+		for _, addr := range input.MatchedFields {
+			propertyArray = append(propertyArray, PropertyPair{key: addr.Name, value: addr.Value})
+		}
+
+		templateData["eventProperties"] = propertyArray
 	case AlertType.USER_PROPERTIES:
 		alertType = "track-user-properties-alert"
 		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
 
-		templateData["userProprties"] = "TODO"
+		propertyArray := []PropertyPair{}
+		for _, addr := range input.MatchedFields {
+			propertyArray = append(propertyArray, PropertyPair{key: addr.Name, value: addr.Value})
+		}
+
+		templateData["userProperties"] = propertyArray
 	default:
 		return
 	}
