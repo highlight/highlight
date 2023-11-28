@@ -115,7 +115,7 @@ type LogsTableInnerProps = {
 
 const LOADING_AFTER_HEIGHT = 28
 
-const GRID_COLUMNS = ['200px', '75px', '1fr']
+const GRID_COLUMNS = ['175px', '75px', '1fr']
 
 const LogsTableInner = ({
 	logEdges,

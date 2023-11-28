@@ -91,7 +91,7 @@ export const TraceLogs: React.FC = () => {
 				justifyContent="stretch"
 				display="flex"
 				overflow="hidden"
-				maxHeight="full"
+				height="full"
 			>
 				<Box
 					borderRadius="6"
