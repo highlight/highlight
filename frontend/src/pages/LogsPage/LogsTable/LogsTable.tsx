@@ -275,6 +275,12 @@ const LogsTableInner = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	useEffect(() => {
+		if (bodyRef?.current) {
+			fetchMoreWhenScrolled(bodyRef.current)
+		}
+	}, [fetchMoreWhenScrolled])
+
 	return (
 		<Table height="full" noBorder>
 			<Table.Head>
