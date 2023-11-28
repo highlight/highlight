@@ -441,6 +441,7 @@ export const Search: React.FC<{
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
+					data-hl-record
 				/>
 
 				{isDirty && !disableSearch && (
