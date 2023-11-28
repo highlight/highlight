@@ -12,6 +12,19 @@ import {
 	textStyle,
 	Title,
 } from '../components/alerts'
+import { Session, SessionPreview } from '../components/sessions'
+
+const sessionExample = {
+	url: 'https://app.highlight.io/1/sessions/123',
+	identifier: 'jay@highlight.io',
+	screenshotUrl: 'https://zane.test/404',
+	activityGraphUrl:
+		'https://static.highlight.io/assets/session-insights/activity.png',
+	avatarUrl:
+		'https://lh3.googleusercontent.com/a-/AOh14Gg3zY3_wfixRrZjjMuj2eTrBAOKDZrDWeYlHsjL=s96-c',
+	country: 'Germany',
+	activeLength: '1h 25m',
+}
 
 type EventProperty = {
 	key: string
@@ -21,18 +34,15 @@ type EventProperty = {
 export interface TrackEventPropertiesAlertEmailProps {
 	alertLink?: string
 	alertName?: string
-	projectName?: string
-	sessionLink?: string
-	userIdentifier?: string
 	eventProperties?: EventProperty[]
+	projectName?: string
+	session?: Session
+	userIdentifier?: string
 }
 
 export const TrackEventPropertiesAlertEmail = ({
 	alertLink = 'https://localhost:3000/1/alerts/sessions/1',
 	alertName = 'Track User Alert',
-	projectName = 'Highlight Production (app.highlight.io)',
-	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
-	userIdentifier = '1',
 	eventProperties = [
 		{
 			key: 'Event',
@@ -43,6 +53,9 @@ export const TrackEventPropertiesAlertEmail = ({
 			value: '/sessions',
 		},
 	],
+	projectName = 'Highlight Production (app.highlight.io)',
+	session = sessionExample,
+	userIdentifier = '1',
 }: TrackEventPropertiesAlertEmailProps) => (
 	<EmailHtml previewText={`${alertName} alert fired`}>
 		<HighlightLogo />
@@ -68,7 +81,10 @@ export const TrackEventPropertiesAlertEmail = ({
 				))}
 			</Section>
 
-			<CtaLink href={sessionLink} label="View session" />
+			<Break />
+
+			<SessionPreview session={session} hideViewSessionButton />
+			<CtaLink href={session.url} label="Open" />
 		</AlertContainer>
 
 		<Break />

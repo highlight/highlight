@@ -12,20 +12,33 @@ import {
 	textStyle,
 	Title,
 } from '../components/alerts'
+import { Session, SessionPreview } from '../components/sessions'
+
+const sessionExample = {
+	url: 'https://app.highlight.io/1/sessions/123',
+	identifier: 'jay@highlight.io',
+	screenshotUrl: 'https://zane.test/404',
+	activityGraphUrl:
+		'https://static.highlight.io/assets/session-insights/activity.png',
+	avatarUrl:
+		'https://lh3.googleusercontent.com/a-/AOh14Gg3zY3_wfixRrZjjMuj2eTrBAOKDZrDWeYlHsjL=s96-c',
+	country: 'Germany',
+	activeLength: '1h 25m',
+}
 
 export interface RageClickAlertEmailProps {
+	alertLink?: string
 	alertName?: string
 	projectName?: string
 	userIdentifier?: string
-	sessionLink?: string
-	alertLink?: string
+	session?: Session
 }
 
 export const RageClickAlertEmail = ({
 	alertName = 'Rage Click Alert',
 	alertLink = 'https://localhost:3000/1/alerts/sessions/1',
 	projectName = 'Highlight Production (app.highlight.io)',
-	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
+	session = sessionExample,
 	userIdentifier = '1',
 }: RageClickAlertEmailProps) => (
 	<EmailHtml previewText={`${alertName} alert fired`}>
@@ -43,7 +56,8 @@ export const RageClickAlertEmail = ({
 
 			<Break />
 
-			<CtaLink href={sessionLink} label="View session" />
+			<SessionPreview session={session} hideViewSessionButton />
+			<CtaLink href={session.url} label="Open" />
 		</AlertContainer>
 
 		<Break />

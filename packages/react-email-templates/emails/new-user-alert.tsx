@@ -48,7 +48,7 @@ export const NewUserAlertEmail = ({
 		<Subtitle>{projectName}</Subtitle>
 
 		<AlertContainer>
-			<SessionPreview session={session} hideViewSessionButton />s
+			<SessionPreview session={session} hideViewSessionButton />
 			<CtaLink href={session.url} label="Open" />
 		</AlertContainer>
 

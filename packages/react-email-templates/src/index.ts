@@ -22,7 +22,7 @@ export const handler = async (event?: APIGatewayEvent) => {
 		}
 	}
 
-	const html = render(EmailTemplate(args))
+	const html = render(EmailTemplate(args.data))
 	return {
 		statusCode: 200,
 		body: html,
@@ -44,6 +44,8 @@ const getEmailTemplate = (template: string) => {
 			return NewUserAlertEmail
 		case 'rage-click-alert':
 			return RageClickAlertEmail
+		case 'session-insights':
+			return SessionInsightsEmail
 		case 'track-event-properties-alert':
 			return TrackEventPropertiesAlertEmail
 		case 'track-user-properties-alert':
