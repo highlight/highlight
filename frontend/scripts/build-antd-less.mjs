@@ -17,5 +17,5 @@ const options = {
 const antdLess = await fs.readFile(options.filename, { encoding: 'utf-8' })
 
 less.render(antdLess, options).then(({ css }) =>
-	fs.writeFile(path.join(process.cwd(), 'src/style/AntDesign/antd.css'), css),
+	fs.writeFile(path.join(process.cwd(), 'src/__generated/antd.css'), css),
 )
