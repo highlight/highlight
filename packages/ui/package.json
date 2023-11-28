@@ -3,8 +3,6 @@
 	"private": true,
 	"packageManager": "yarn@3.2.3",
 	"type": "module",
-	"main": "./src/index.ts",
-	"types": "./src/index.ts",
 	"scripts": {
 		"build": "run-p --print-label 'build:**'",
 		"build:vite": "vite build",
@@ -18,6 +16,51 @@
 		"lint:ts": "tsc --noEmit",
 		"test": "TZ=UTC vitest --run",
 		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts"
+	},
+	"exports": {
+		"./components": {
+			"types": "./dist/components.d.ts",
+			"import": "./dist/components.js",
+			"require": "./dist/components.cjs"
+		},
+		"./css": {
+			"types": "./dist/css.d.ts",
+			"import": "./dist/css.js",
+			"require": "./dist/css.cjs"
+		},
+		"./keyframes": {
+			"types": "./dist/keyframes.d.ts",
+			"import": "./dist/keyframes.js",
+			"require": "./dist/keyframes.cjs"
+		},
+		"./sprinkles": {
+			"types": "./dist/sprinkles.d.ts",
+			"import": "./dist/sprinkles.js",
+			"require": "./dist/sprinkles.cjs"
+		},
+		"./vars": {
+			"types": "./dist/vars.d.ts",
+			"import": "./dist/vars.js",
+			"require": "./dist/vars.cjs"
+		},
+		"./theme": {
+			"types": "./dist/theme.d.ts",
+			"import": "./dist/theme.js",
+			"require": "./dist/theme.cjs"
+		},
+		"./colors": {
+			"types": "./dist/colors.d.ts",
+			"import": "./dist/colors.js",
+			"require": "./dist/colors.cjs"
+		},
+		"./borders": {
+			"types": "./dist/borders.d.ts",
+			"import": "./dist/borders.js",
+			"require": "./dist/borders.cjs"
+		},
+		"./styles.css": {
+			"default": "./dist/style.css"
+		}
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.2.17",

@@ -1,4 +1,8 @@
-import { Box, IconSolidFilter, MultiSelectButton } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidFilter,
+	MultiSelectButton,
+} from '@highlight-run/ui/components'
 import {
 	LogLevelValue,
 	titilize,

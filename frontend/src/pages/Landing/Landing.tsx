@@ -1,6 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { UserDropdown } from '@components/Header/UserDropdown/UserDropdown'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import { ReactNode } from 'react'
 
 export const Landing = ({ children }: { children: ReactNode }) => {

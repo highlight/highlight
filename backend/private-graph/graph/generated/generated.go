@@ -846,13 +846,18 @@ type ComplexityRoot struct {
 	}
 
 	Plan struct {
-		ErrorsLimit  func(childComplexity int) int
-		Interval     func(childComplexity int) int
-		LogsLimit    func(childComplexity int) int
-		MembersLimit func(childComplexity int) int
-		Quota        func(childComplexity int) int
-		TracesLimit  func(childComplexity int) int
-		Type         func(childComplexity int) int
+		EnableBillingLimits func(childComplexity int) int
+		ErrorsLimit         func(childComplexity int) int
+		ErrorsRate          func(childComplexity int) int
+		Interval            func(childComplexity int) int
+		LogsLimit           func(childComplexity int) int
+		LogsRate            func(childComplexity int) int
+		MembersLimit        func(childComplexity int) int
+		SessionsLimit       func(childComplexity int) int
+		SessionsRate        func(childComplexity int) int
+		TracesLimit         func(childComplexity int) int
+		TracesRate          func(childComplexity int) int
+		Type                func(childComplexity int) int
 	}
 
 	Project struct {
@@ -5997,12 +6002,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
+	case "Plan.enableBillingLimits":
+		if e.complexity.Plan.EnableBillingLimits == nil {
+			break
+		}
+
+		return e.complexity.Plan.EnableBillingLimits(childComplexity), true
+
 	case "Plan.errorsLimit":
 		if e.complexity.Plan.ErrorsLimit == nil {
 			break
 		}
 
 		return e.complexity.Plan.ErrorsLimit(childComplexity), true
+
+	case "Plan.errorsRate":
+		if e.complexity.Plan.ErrorsRate == nil {
+			break
+		}
+
+		return e.complexity.Plan.ErrorsRate(childComplexity), true
 
 	case "Plan.interval":
 		if e.complexity.Plan.Interval == nil {
@@ -6018,6 +6037,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Plan.LogsLimit(childComplexity), true
 
+	case "Plan.logsRate":
+		if e.complexity.Plan.LogsRate == nil {
+			break
+		}
+
+		return e.complexity.Plan.LogsRate(childComplexity), true
+
 	case "Plan.membersLimit":
 		if e.complexity.Plan.MembersLimit == nil {
 			break
@@ -6025,12 +6051,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Plan.MembersLimit(childComplexity), true
 
-	case "Plan.quota":
-		if e.complexity.Plan.Quota == nil {
+	case "Plan.sessionsLimit":
+		if e.complexity.Plan.SessionsLimit == nil {
 			break
 		}
 
-		return e.complexity.Plan.Quota(childComplexity), true
+		return e.complexity.Plan.SessionsLimit(childComplexity), true
+
+	case "Plan.sessionsRate":
+		if e.complexity.Plan.SessionsRate == nil {
+			break
+		}
+
+		return e.complexity.Plan.SessionsRate(childComplexity), true
 
 	case "Plan.tracesLimit":
 		if e.complexity.Plan.TracesLimit == nil {
@@ -6038,6 +6071,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.TracesLimit(childComplexity), true
+
+	case "Plan.tracesRate":
+		if e.complexity.Plan.TracesRate == nil {
+			break
+		}
+
+		return e.complexity.Plan.TracesRate(childComplexity), true
 
 	case "Plan.type":
 		if e.complexity.Plan.Type == nil {
@@ -10480,11 +10520,18 @@ type SubscriptionDetails {
 type Plan {
 	type: PlanType!
 	interval: SubscriptionInterval!
-	quota: Int!
-	membersLimit: Int
-	errorsLimit: Int!
-	logsLimit: Int!
-	tracesLimit: Int!
+	membersLimit: Int64
+	enableBillingLimits: Boolean!
+
+	sessionsLimit: Int64!
+	errorsLimit: Int64!
+	logsLimit: Int64!
+	tracesLimit: Int64!
+
+	sessionsRate: Float!
+	errorsRate: Float!
+	logsRate: Float!
+	tracesRate: Float!
 }
 
 enum PlanType {
@@ -10494,6 +10541,7 @@ enum PlanType {
 	Startup
 	Enterprise
 	UsageBased
+	Graduated
 }
 
 enum ProductType {
@@ -22021,16 +22069,26 @@ func (ec *executionContext) fieldContext_BillingDetails_plan(ctx context.Context
 				return ec.fieldContext_Plan_type(ctx, field)
 			case "interval":
 				return ec.fieldContext_Plan_interval(ctx, field)
-			case "quota":
-				return ec.fieldContext_Plan_quota(ctx, field)
 			case "membersLimit":
 				return ec.fieldContext_Plan_membersLimit(ctx, field)
+			case "enableBillingLimits":
+				return ec.fieldContext_Plan_enableBillingLimits(ctx, field)
+			case "sessionsLimit":
+				return ec.fieldContext_Plan_sessionsLimit(ctx, field)
 			case "errorsLimit":
 				return ec.fieldContext_Plan_errorsLimit(ctx, field)
 			case "logsLimit":
 				return ec.fieldContext_Plan_logsLimit(ctx, field)
 			case "tracesLimit":
 				return ec.fieldContext_Plan_tracesLimit(ctx, field)
+			case "sessionsRate":
+				return ec.fieldContext_Plan_sessionsRate(ctx, field)
+			case "errorsRate":
+				return ec.fieldContext_Plan_errorsRate(ctx, field)
+			case "logsRate":
+				return ec.fieldContext_Plan_logsRate(ctx, field)
+			case "tracesRate":
+				return ec.fieldContext_Plan_tracesRate(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -44869,50 +44927,6 @@ func (ec *executionContext) fieldContext_Plan_interval(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Plan_quota(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Plan_quota(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Quota, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Plan_quota(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Plan",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Plan_membersLimit(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Plan_membersLimit(ctx, field)
 	if err != nil {
@@ -44936,9 +44950,9 @@ func (ec *executionContext) _Plan_membersLimit(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*int64)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_membersLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44948,7 +44962,95 @@ func (ec *executionContext) fieldContext_Plan_membersLimit(ctx context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_enableBillingLimits(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_enableBillingLimits(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableBillingLimits, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_enableBillingLimits(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_sessionsLimit(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_sessionsLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_sessionsLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -44980,9 +45082,9 @@ func (ec *executionContext) _Plan_errorsLimit(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_errorsLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44992,7 +45094,7 @@ func (ec *executionContext) fieldContext_Plan_errorsLimit(ctx context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -45024,9 +45126,9 @@ func (ec *executionContext) _Plan_logsLimit(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_logsLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -45036,7 +45138,7 @@ func (ec *executionContext) fieldContext_Plan_logsLimit(ctx context.Context, fie
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -45068,9 +45170,9 @@ func (ec *executionContext) _Plan_tracesLimit(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_tracesLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -45080,7 +45182,183 @@ func (ec *executionContext) fieldContext_Plan_tracesLimit(ctx context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_sessionsRate(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_sessionsRate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_sessionsRate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_errorsRate(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_errorsRate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorsRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_errorsRate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_logsRate(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_logsRate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogsRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_logsRate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_tracesRate(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_tracesRate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_tracesRate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -79620,17 +79898,24 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "quota":
-
-			out.Values[i] = ec._Plan_quota(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "membersLimit":
 
 			out.Values[i] = ec._Plan_membersLimit(ctx, field, obj)
 
+		case "enableBillingLimits":
+
+			out.Values[i] = ec._Plan_enableBillingLimits(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sessionsLimit":
+
+			out.Values[i] = ec._Plan_sessionsLimit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "errorsLimit":
 
 			out.Values[i] = ec._Plan_errorsLimit(ctx, field, obj)
@@ -79648,6 +79933,34 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 		case "tracesLimit":
 
 			out.Values[i] = ec._Plan_tracesLimit(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sessionsRate":
+
+			out.Values[i] = ec._Plan_sessionsRate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "errorsRate":
+
+			out.Values[i] = ec._Plan_errorsRate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logsRate":
+
+			out.Values[i] = ec._Plan_logsRate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "tracesRate":
+
+			out.Values[i] = ec._Plan_tracesRate(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

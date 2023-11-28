@@ -1329,8 +1329,17 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	columns := []interface{}{"errors_retention_period", "retention_period"}
+	if settings.EnableBillingLimits {
+		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents")
+	}
 	if err := r.DB.WithContext(ctx).Model(&workspace).
-		Select("sessions_max_cents", "retention_period", "errors_max_cents", "errors_retention_period", "logs_max_cents").
+		Select(columns[0], columns[1:]...).
 		Updates(&model.Workspace{
 			SessionsMaxCents:      sessionsLimitCents,
 			RetentionPeriod:       &sessionsRetention,
@@ -4034,11 +4043,16 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 
 		planTier := modelInputs.PlanType(account.PlanTier)
 		if account.SessionLimit == 0 {
-			account.SessionLimit = pricing.TypeToSessionsLimit(planTier)
+			account.SessionLimit = int(pricing.IncludedAmount(planTier, model.PricingProductTypeSessions))
 		}
 
 		if account.MemberLimit != nil && *account.MemberLimit == 0 {
-			account.MemberLimit = pricing.TypeToMemberLimit(planTier, account.UnlimitedMembers)
+			limit := pricing.TypeToMemberLimit(planTier, account.UnlimitedMembers)
+			if limit == nil {
+				account.MemberLimit = nil
+			} else {
+				account.MemberLimit = pointy.Int(int(*limit))
+			}
 		}
 	}
 
@@ -5512,6 +5526,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, err
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
 	planType := modelInputs.PlanType(workspace.PlanTier)
 
 	interval := modelInputs.SubscriptionIntervalMonthly
@@ -5594,33 +5613,33 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	sessionsIncluded := pricing.TypeToSessionsLimit(planType)
+	sessionsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeSessions)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
-		sessionsIncluded = *workspace.MonthlySessionLimit
+		sessionsIncluded = int64(*workspace.MonthlySessionLimit)
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
 	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
-		membersLimit = workspace.MonthlyMembersLimit
+		membersLimit = pointy.Int64(int64(*workspace.MonthlyMembersLimit))
 	}
 
-	errorsIncluded := pricing.TypeToErrorsLimit(planType)
+	errorsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeErrors)
 	// use monthly session limit if it exists
 	if workspace.MonthlyErrorsLimit != nil {
-		errorsIncluded = *workspace.MonthlyErrorsLimit
+		errorsIncluded = int64(*workspace.MonthlyErrorsLimit)
 	}
 
-	logsIncluded := pricing.TypeToLogsLimit(planType)
+	logsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeLogs)
 	// use monthly session limit if it exists
 	if workspace.MonthlyLogsLimit != nil {
-		logsIncluded = *workspace.MonthlyLogsLimit
+		logsIncluded = int64(*workspace.MonthlyLogsLimit)
 	}
 
-	tracesIncluded := pricing.TypeToTracesLimit(planType)
+	tracesIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeTraces)
 	// use monthly traces limit if it exists
 	if workspace.MonthlyTracesLimit != nil {
-		tracesIncluded = *workspace.MonthlyLogsLimit
+		tracesIncluded = int64(*workspace.MonthlyLogsLimit)
 	}
 
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
@@ -5629,22 +5648,32 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	var sessionsLimit, errorsLimit, logsLimit, tracesLimit *int64
+	var sessionsRate, errorsRate, logsRate, tracesRate float64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
 		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
 		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
 		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
 		tracesLimit = pricing.GetLimitAmount(nil, model.PricingProductTypeTraces, planType, retentionPeriod)
+		sessionsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeSessions, planType, sessionsMeter)
+		errorsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeErrors, planType, errorsMeter)
+		logsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeLogs, planType, logsMeter)
+		tracesRate = pricing.ProductToBasePriceCents(model.PricingProductTypeTraces, planType, tracesMeter)
 	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:         modelInputs.PlanType(planType.String()),
-			Quota:        sessionsIncluded,
-			Interval:     interval,
-			MembersLimit: membersLimit,
-			ErrorsLimit:  errorsIncluded,
-			LogsLimit:    logsIncluded,
-			TracesLimit:  tracesIncluded,
+			Type:                modelInputs.PlanType(planType.String()),
+			Interval:            interval,
+			MembersLimit:        membersLimit,
+			SessionsLimit:       sessionsIncluded,
+			ErrorsLimit:         errorsIncluded,
+			LogsLimit:           logsIncluded,
+			TracesLimit:         tracesIncluded,
+			SessionsRate:        sessionsRate,
+			ErrorsRate:          errorsRate,
+			LogsRate:            logsRate,
+			TracesRate:          tracesRate,
+			EnableBillingLimits: settings.EnableBillingLimits,
 		},
 		Meter:                sessionsMeter,
 		MembersMeter:         membersMeter,

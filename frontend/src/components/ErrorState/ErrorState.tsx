@@ -3,7 +3,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import JoinWorkspace from '@components/ErrorState/JoinWorkspace/JoinWorkspace'
 import Space from '@components/Space/Space'
 import { Maybe } from '@graph/schemas'
-import { Callout } from '@highlight-run/ui'
+import { Callout } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { useState } from 'react'
 

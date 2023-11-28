@@ -1,4 +1,4 @@
-import { Heading, Stack } from '@highlight-run/ui'
+import { Heading, Stack } from '@highlight-run/ui/components'
 import { isIndexedDBEnabled, setIndexedDBEnabled } from '@util/db'
 import React from 'react'
 

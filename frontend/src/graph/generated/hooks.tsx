@@ -8341,12 +8341,16 @@ export const GetBillingDetailsForProjectDocument = gql`
 		billingDetailsForProject(project_id: $project_id) {
 			plan {
 				type
-				quota
 				interval
 				membersLimit
+				sessionsLimit
 				errorsLimit
 				logsLimit
 				tracesLimit
+				sessionsRate
+				errorsRate
+				logsRate
+				tracesRate
 			}
 			meter
 			membersMeter
@@ -8423,12 +8427,17 @@ export const GetBillingDetailsDocument = gql`
 		billingDetails(workspace_id: $workspace_id) {
 			plan {
 				type
-				quota
 				interval
 				membersLimit
+				sessionsLimit
 				errorsLimit
 				logsLimit
 				tracesLimit
+				sessionsRate
+				errorsRate
+				logsRate
+				tracesRate
+				enableBillingLimits
 			}
 			meter
 			membersMeter

@@ -3,7 +3,7 @@ import {
 	ATTRIBUTES,
 	CommandBarSearch,
 } from '@components/CommandBar/context'
-import { FormState } from '@highlight-run/ui'
+import { FormState } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import {

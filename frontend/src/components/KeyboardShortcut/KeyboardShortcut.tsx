@@ -1,4 +1,4 @@
-import { Badge, Stack, Text } from '@highlight-run/ui'
+import { Badge, Stack, Text } from '@highlight-run/ui/components'
 import React from 'react'
 
 type Props = React.PropsWithChildren<{

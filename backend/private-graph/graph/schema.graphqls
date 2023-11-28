@@ -163,11 +163,18 @@ type SubscriptionDetails {
 type Plan {
 	type: PlanType!
 	interval: SubscriptionInterval!
-	quota: Int!
-	membersLimit: Int
-	errorsLimit: Int!
-	logsLimit: Int!
-	tracesLimit: Int!
+	membersLimit: Int64
+	enableBillingLimits: Boolean!
+
+	sessionsLimit: Int64!
+	errorsLimit: Int64!
+	logsLimit: Int64!
+	tracesLimit: Int64!
+
+	sessionsRate: Float!
+	errorsRate: Float!
+	logsRate: Float!
+	tracesRate: Float!
 }
 
 enum PlanType {
@@ -177,6 +184,7 @@ enum PlanType {
 	Startup
 	Enterprise
 	UsageBased
+	Graduated
 }
 
 enum ProductType {

@@ -33,7 +33,7 @@ import {
 	ProductType,
 	Session,
 } from '@graph/schemas'
-import { Box, getNow } from '@highlight-run/ui'
+import { Box, getNow } from '@highlight-run/ui/components'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,

@@ -16,7 +16,7 @@ import {
 	Table,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'

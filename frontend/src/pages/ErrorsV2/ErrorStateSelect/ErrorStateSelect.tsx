@@ -12,7 +12,7 @@ import {
 	Stack,
 	Text,
 	useMenu,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'

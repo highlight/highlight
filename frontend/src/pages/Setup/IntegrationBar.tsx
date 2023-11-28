@@ -15,7 +15,7 @@ import {
 	IconSolidLoading,
 	Stack,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
 import React from 'react'

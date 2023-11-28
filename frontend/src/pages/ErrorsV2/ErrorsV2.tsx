@@ -22,7 +22,7 @@ import {
 	IconSolidExitRight,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { CompleteSetup } from '@pages/ErrorsV2/CompleteSetup/CompleteSetup'

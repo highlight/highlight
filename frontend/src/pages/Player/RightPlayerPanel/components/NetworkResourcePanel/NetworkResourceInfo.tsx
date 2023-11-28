@@ -1,4 +1,4 @@
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui/components'
 import { getResponseStatusCode } from '@pages/Player/helpers'
 
 import { TableList, TableListItem } from '@/components/TableList/TableList'

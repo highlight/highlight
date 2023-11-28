@@ -1,5 +1,5 @@
-import { borders } from '@highlight-run/ui/src/css/borders'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { borders } from '@highlight-run/ui/borders'
+import { colors } from '@highlight-run/ui/colors'
 import { style } from '@vanilla-extract/css'
 
 export const tag = style({

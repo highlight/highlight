@@ -1,4 +1,4 @@
-import { Box, Callout } from '@highlight-run/ui'
+import { Box, Callout } from '@highlight-run/ui/components'
 
 export const NoErrorInstancesFound = () => {
 	return (

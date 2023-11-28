@@ -7,11 +7,11 @@ import {
 	Heading,
 	IconSolidArrowCircleRight,
 	IconSolidX,
-	sprinkles,
 	Tabs,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'

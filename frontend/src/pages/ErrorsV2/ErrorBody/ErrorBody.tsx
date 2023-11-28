@@ -7,7 +7,7 @@ import {
 	IconSolidViewGrid,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import AffectedUserCount from '@pages/ErrorsV2/ErrorBody/components/AffectedUserCount'
 import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequencyChart'

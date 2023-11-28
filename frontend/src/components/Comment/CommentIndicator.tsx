@@ -1,4 +1,4 @@
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import { Maybe } from 'graphql/jsutils/Maybe'
 
 import { Avatar } from '@/components/Avatar/Avatar'

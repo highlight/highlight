@@ -1,5 +1,5 @@
 import { Maybe } from '@graph/schemas'
-import { Box, Tag, Text } from '@highlight-run/ui'
+import { Box, Tag, Text } from '@highlight-run/ui/components'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useEffect, useRef, useState } from 'react'
 
