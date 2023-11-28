@@ -94,23 +94,34 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string) (*model.MetricInput, error) {
+func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanID, parentSpanID, traceID string) (*model.MetricInput, error) {
 	if fields.metricEventName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
+	tags := lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
+		return &model.MetricTag{
+			Name:  t.Key,
+			Value: t.Value,
+		}
+	})
+	tags = append(tags, &model.MetricTag{
+		Name:  string(semconv.ServiceNameKey),
+		Value: fields.serviceName,
+	}, &model.MetricTag{
+		Name:  string(semconv.ServiceVersionKey),
+		Value: fields.serviceVersion,
+	})
 	return &model.MetricInput{
 		SessionSecureID: fields.sessionID,
+		SpanID:          pointy.String(spanID),
+		ParentSpanID:    pointy.String(parentSpanID),
+		TraceID:         pointy.String(traceID),
 		Group:           pointy.String(fields.requestID),
 		Name:            fields.metricEventName,
 		Value:           fields.metricEventValue,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
-		Tags: lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
-			return &model.MetricTag{
-				Name:  t.Key,
-				Value: t.Value,
-			}
-		}),
+		Tags:            tags,
 	}, nil
 }
 
@@ -264,7 +275,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
 						shouldWriteTrace = false
-						metric, err := getMetric(ctx, fields.timestamp, fields, traceID, spanID)
+						metric, err := getMetric(ctx, fields.timestamp, fields, spanID, span.ParentSpanID().String(), traceID)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
 							continue

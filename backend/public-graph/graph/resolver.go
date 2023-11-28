@@ -1997,9 +1997,23 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 
+		var spanID, parentSpanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.ParentSpanID), ptr.ToString(m.TraceID)
+		if spanID == "" {
+			spanID = uuid.New().String()
+		}
+		if traceID == "" {
+			traceID = uuid.New().String()
+		}
+
+		var serviceName, serviceVersion = session.ServiceName, ptr.ToString(session.AppVersion)
 		attributes := map[string]string{}
 		for _, t := range m.Tags {
 			attributes[t.Name] = t.Value
+			if t.Name == string(semconv.ServiceNameKey) {
+				serviceName = t.Value
+			} else if t.Name == string(semconv.ServiceVersionKey) {
+				serviceVersion = t.Value
+			}
 		}
 		if m.Category != nil {
 			attributes["category"] = *m.Category
@@ -2015,10 +2029,12 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 		traceRows = append(traceRows, clickhouse.NewTraceRow(m.Timestamp, projectID).
 			WithSecureSessionId(session.SecureID).
-			WithTraceId(uuid.New().String()).
+			WithSpanId(spanID).
+			WithParentSpanId(parentSpanID).
+			WithTraceId(traceID).
 			WithSpanName("highlight-metric").
-			WithServiceName(session.ServiceName).
-			WithServiceVersion(ptr.ToString(session.AppVersion)).
+			WithServiceName(serviceName).
+			WithServiceVersion(serviceVersion).
 			WithEnvironment(session.Environment).
 			WithTraceAttributes(attributes).
 			WithEvents([]map[string]any{event}))

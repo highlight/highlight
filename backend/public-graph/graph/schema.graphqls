@@ -63,6 +63,9 @@ input MetricTag {
 
 input MetricInput {
 	session_secure_id: String!
+	span_id: String
+	parent_span_id: String
+	trace_id: String
 	group: String
 	name: String!
 	value: Float!
