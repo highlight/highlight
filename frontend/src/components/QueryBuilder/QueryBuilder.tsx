@@ -441,6 +441,7 @@ const MultiselectPopout = ({
 
 	let multiValue: string[] = []
 	switch (type) {
+		case 'creatable':
 		case 'multiselect':
 			multiValue = value?.options.map((o) => o.value) ?? []
 			return (
@@ -452,33 +453,6 @@ const MultiselectPopout = ({
 						key: o.value,
 						render: getOption(o, lastQuery),
 					}))}
-					onChange={(val: string[]) => {
-						onChange({
-							kind: 'multi',
-							options: val.map((i) => ({
-								label: i,
-								value: i,
-							})),
-						})
-					}}
-					onChangeQuery={(val: string) => {
-						setQuery(val)
-					}}
-					cssClass={cssClass}
-					queryPlaceholder="Filter..."
-					defaultOpen={invalid}
-					disabled={disabled}
-					loadingRender={loadingBox}
-				/>
-			)
-		case 'creatable':
-			multiValue = value?.options.map((o) => o.value) ?? []
-			return (
-				<ComboboxSelect
-					label="value"
-					value={multiValue}
-					valueRender={label}
-					options={[]}
 					onChange={(val: string[]) => {
 						onChange({
 							kind: 'multi',
@@ -1468,7 +1442,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				} else if (getCustomFieldOptions(field)?.type === 'sample') {
 					options = [
 						{
-							label: 'Random Seed',
+							label: 'New Random Seed',
 							value: [...Array(16)]
 								.map(() =>
 									Math.floor(Math.random() * 16).toString(16),

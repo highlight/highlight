@@ -265,7 +265,7 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		if err != nil {
 			return "", nil, false, err
 		}
-		selectColumns = fmt.Sprintf("%s, farmHash64(SecureID) %% %d as hash", selectColumns, salt)
+		selectColumns = fmt.Sprintf("%s, toUInt64(farmHash64(SecureID) %% %d) as hash", selectColumns, salt)
 		orderBy = pointy.String("hash")
 	}
 	sb := sqlbuilder.NewSelectBuilder()
