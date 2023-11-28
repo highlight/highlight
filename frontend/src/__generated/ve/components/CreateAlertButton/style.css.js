@@ -1,5 +1,1 @@
-// src/components/CreateAlertButton/style.css.ts
-var divider = "xaifbz0";
-export {
-  divider
-};
+var i="xaifbz0";export{i as divider};

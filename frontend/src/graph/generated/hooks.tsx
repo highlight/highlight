@@ -5227,6 +5227,188 @@ export type TestErrorEnhancementMutationOptions = Apollo.BaseMutationOptions<
 	Types.TestErrorEnhancementMutation,
 	Types.TestErrorEnhancementMutationVariables
 >
+export const CreateFeatureToggleDocument = gql`
+	mutation createFeatureToggle(
+		$name: String!
+		$threshold: Int!
+		$project_id: ID!
+	) {
+		createFeatureToggle(
+			name: $name
+			threshold: $threshold
+			project_id: $project_id
+		) {
+			id
+			name
+			enabled
+			threshold
+			project_id
+			updated_at
+			created_at
+		}
+	}
+`
+export type CreateFeatureToggleMutationFn = Apollo.MutationFunction<
+	Types.CreateFeatureToggleMutation,
+	Types.CreateFeatureToggleMutationVariables
+>
+
+/**
+ * __useCreateFeatureToggleMutation__
+ *
+ * To run a mutation, you first call `useCreateFeatureToggleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateFeatureToggleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createFeatureToggleMutation, { data, loading, error }] = useCreateFeatureToggleMutation({
+ *   variables: {
+ *      name: // value for 'name'
+ *      threshold: // value for 'threshold'
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useCreateFeatureToggleMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateFeatureToggleMutation,
+		Types.CreateFeatureToggleMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateFeatureToggleMutation,
+		Types.CreateFeatureToggleMutationVariables
+	>(CreateFeatureToggleDocument, baseOptions)
+}
+export type CreateFeatureToggleMutationHookResult = ReturnType<
+	typeof useCreateFeatureToggleMutation
+>
+export type CreateFeatureToggleMutationResult =
+	Apollo.MutationResult<Types.CreateFeatureToggleMutation>
+export type CreateFeatureToggleMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateFeatureToggleMutation,
+	Types.CreateFeatureToggleMutationVariables
+>
+export const EditFeatureToggleDocument = gql`
+	mutation editFeatureToggle(
+		$id: ID!
+		$name: String
+		$threshold: Int
+		$enabled: Boolean
+	) {
+		editFeatureToggle(
+			id: $id
+			name: $name
+			threshold: $threshold
+			enabled: $enabled
+		) {
+			id
+			name
+			enabled
+			threshold
+			project_id
+			updated_at
+			created_at
+		}
+	}
+`
+export type EditFeatureToggleMutationFn = Apollo.MutationFunction<
+	Types.EditFeatureToggleMutation,
+	Types.EditFeatureToggleMutationVariables
+>
+
+/**
+ * __useEditFeatureToggleMutation__
+ *
+ * To run a mutation, you first call `useEditFeatureToggleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditFeatureToggleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editFeatureToggleMutation, { data, loading, error }] = useEditFeatureToggleMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      name: // value for 'name'
+ *      threshold: // value for 'threshold'
+ *      enabled: // value for 'enabled'
+ *   },
+ * });
+ */
+export function useEditFeatureToggleMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditFeatureToggleMutation,
+		Types.EditFeatureToggleMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditFeatureToggleMutation,
+		Types.EditFeatureToggleMutationVariables
+	>(EditFeatureToggleDocument, baseOptions)
+}
+export type EditFeatureToggleMutationHookResult = ReturnType<
+	typeof useEditFeatureToggleMutation
+>
+export type EditFeatureToggleMutationResult =
+	Apollo.MutationResult<Types.EditFeatureToggleMutation>
+export type EditFeatureToggleMutationOptions = Apollo.BaseMutationOptions<
+	Types.EditFeatureToggleMutation,
+	Types.EditFeatureToggleMutationVariables
+>
+export const DeleteFeatureToggleDocument = gql`
+	mutation deleteFeatureToggle($id: ID!) {
+		deleteFeatureToggle(id: $id) {
+			id
+		}
+	}
+`
+export type DeleteFeatureToggleMutationFn = Apollo.MutationFunction<
+	Types.DeleteFeatureToggleMutation,
+	Types.DeleteFeatureToggleMutationVariables
+>
+
+/**
+ * __useDeleteFeatureToggleMutation__
+ *
+ * To run a mutation, you first call `useDeleteFeatureToggleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteFeatureToggleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteFeatureToggleMutation, { data, loading, error }] = useDeleteFeatureToggleMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteFeatureToggleMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteFeatureToggleMutation,
+		Types.DeleteFeatureToggleMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteFeatureToggleMutation,
+		Types.DeleteFeatureToggleMutationVariables
+	>(DeleteFeatureToggleDocument, baseOptions)
+}
+export type DeleteFeatureToggleMutationHookResult = ReturnType<
+	typeof useDeleteFeatureToggleMutation
+>
+export type DeleteFeatureToggleMutationResult =
+	Apollo.MutationResult<Types.DeleteFeatureToggleMutation>
+export type DeleteFeatureToggleMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteFeatureToggleMutation,
+	Types.DeleteFeatureToggleMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -14404,4 +14586,66 @@ export type GetTracesKeyValuesLazyQueryHookResult = ReturnType<
 export type GetTracesKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetTracesKeyValuesQuery,
 	Types.GetTracesKeyValuesQueryVariables
+>
+export const GetFeatureTogglesDocument = gql`
+	query GetFeatureToggles($project_id: ID!) {
+		feature_toggles(project_id: $project_id) {
+			id
+			name
+			enabled
+			threshold
+			project_id
+			updated_at
+			created_at
+		}
+	}
+`
+
+/**
+ * __useGetFeatureTogglesQuery__
+ *
+ * To run a query within a React component, call `useGetFeatureTogglesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFeatureTogglesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFeatureTogglesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetFeatureTogglesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
+	>(GetFeatureTogglesDocument, baseOptions)
+}
+export function useGetFeatureTogglesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetFeatureTogglesQuery,
+		Types.GetFeatureTogglesQueryVariables
+	>(GetFeatureTogglesDocument, baseOptions)
+}
+export type GetFeatureTogglesQueryHookResult = ReturnType<
+	typeof useGetFeatureTogglesQuery
+>
+export type GetFeatureTogglesLazyQueryHookResult = ReturnType<
+	typeof useGetFeatureTogglesLazyQuery
+>
+export type GetFeatureTogglesQueryResult = Apollo.QueryResult<
+	Types.GetFeatureTogglesQuery,
+	Types.GetFeatureTogglesQueryVariables
 >

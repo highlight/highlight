@@ -678,6 +678,17 @@ export type ExternalAttachment = {
 	title?: Maybe<Scalars['String']>
 }
 
+export type FeatureToggle = {
+	__typename?: 'FeatureToggle'
+	created_at: Scalars['Timestamp']
+	enabled: Scalars['Boolean']
+	id: Scalars['ID']
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	threshold: Scalars['Int']
+	updated_at: Scalars['Timestamp']
+}
+
 export type Field = {
 	__typename?: 'Field'
 	id: Scalars['Int64']
@@ -1027,6 +1038,7 @@ export type Mutation = {
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
 	createErrorTag: ErrorTag
+	createFeatureToggle?: Maybe<FeatureToggle>
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	createLogAlert?: Maybe<LogAlert>
@@ -1043,6 +1055,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteFeatureToggle?: Maybe<FeatureToggle>
 	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
@@ -1052,6 +1065,7 @@ export type Mutation = {
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
+	editFeatureToggle?: Maybe<FeatureToggle>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
@@ -1165,6 +1179,12 @@ export type MutationCreateErrorSegmentArgs = {
 export type MutationCreateErrorTagArgs = {
 	description: Scalars['String']
 	title: Scalars['String']
+}
+
+export type MutationCreateFeatureToggleArgs = {
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	threshold: Scalars['Int']
 }
 
 export type MutationCreateIssueForErrorCommentArgs = {
@@ -1287,6 +1307,10 @@ export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
 }
 
+export type MutationDeleteFeatureToggleArgs = {
+	id: Scalars['ID']
+}
+
 export type MutationDeleteInviteLinkFromWorkspaceArgs = {
 	workspace_id: Scalars['ID']
 	workspace_invite_link_id: Scalars['ID']
@@ -1330,6 +1354,13 @@ export type MutationEditErrorSegmentArgs = {
 	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
+}
+
+export type MutationEditFeatureToggleArgs = {
+	enabled?: InputMaybe<Scalars['Boolean']>
+	id: Scalars['ID']
+	name?: InputMaybe<Scalars['String']>
+	threshold?: InputMaybe<Scalars['Int']>
 }
 
 export type MutationEditProjectArgs = {
@@ -1799,6 +1830,7 @@ export type Query = {
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
+	feature_toggles?: Maybe<Array<FeatureToggle>>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
@@ -2104,6 +2136,10 @@ export type QueryEvent_ChunksArgs = {
 
 export type QueryEventsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QueryFeature_TogglesArgs = {
+	project_id: Scalars['ID']
 }
 
 export type QueryField_SuggestionArgs = {

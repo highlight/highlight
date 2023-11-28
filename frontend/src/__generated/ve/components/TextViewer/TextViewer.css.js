@@ -1,7 +1,1 @@
-// src/components/TextViewer/TextViewer.css.ts
-var consoleText = "_1hjkzyj1";
-var jsonContainer = "_1hjkzyj0";
-export {
-  consoleText,
-  jsonContainer
-};
+var o="_1hjkzyj1",e="_1hjkzyj0";export{o as consoleText,e as jsonContainer};

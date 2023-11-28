@@ -1,5 +1,1 @@
-// src/components/Header/components/ProjectPicker/styles.css.ts
-var projectPickerStyle = "_6sbvcj0";
-export {
-  projectPickerStyle
-};
+var e="_6sbvcj0";export{e as projectPickerStyle};

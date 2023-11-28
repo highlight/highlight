@@ -1758,6 +1758,16 @@ type SessionExportWithSession {
 	active_length: Int
 }
 
+type FeatureToggle {
+	id: ID!
+	created_at: Timestamp!
+	updated_at: Timestamp!
+	name: String!
+	enabled: Boolean!
+	project_id: ID!
+	threshold: Int!
+}
+
 enum EmailOptOutCategory {
 	All
 	Digests
@@ -2062,6 +2072,7 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	feature_toggles(project_id: ID!): [FeatureToggle!]
 }
 
 type Mutation {
@@ -2444,6 +2455,18 @@ type Mutation {
 		build_prefix: String
 		save_error: Boolean
 	): ErrorObject
+	createFeatureToggle(
+		project_id: ID!
+		name: String!
+		threshold: Int!
+	): FeatureToggle
+	deleteFeatureToggle(id: ID!): FeatureToggle
+	editFeatureToggle(
+		id: ID!
+		name: String
+		threshold: Int
+		enabled: Boolean
+	): FeatureToggle
 }
 
 type Subscription {

@@ -1,7 +1,1 @@
-// src/pages/Traces/LatencyChart.css.ts
-var legendIcon = "_1yp8bvx0";
-var notShowingIcon = "_1yp8bvx1";
-export {
-  legendIcon,
-  notShowingIcon
-};
+var o="_1yp8bvx0",n="_1yp8bvx1";export{o as legendIcon,n as notShowingIcon};

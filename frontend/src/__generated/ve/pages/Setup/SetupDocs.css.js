@@ -1,9 +1,1 @@
-// src/pages/Setup/SetupDocs.css.ts
-var code = void 0;
-var codeBlock = "_1t72qig1";
-var sectionToggle = "_1t72qig0";
-export {
-  code,
-  codeBlock,
-  sectionToggle
-};
+var e=void 0,o="_1t72qig1",r="_1t72qig0";export{e as code,o as codeBlock,r as sectionToggle};

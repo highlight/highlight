@@ -1468,6 +1468,59 @@ export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateFeatureToggleMutationVariables = Types.Exact<{
+	name: Types.Scalars['String']
+	threshold: Types.Scalars['Int']
+	project_id: Types.Scalars['ID']
+}>
+
+export type CreateFeatureToggleMutation = { __typename?: 'Mutation' } & {
+	createFeatureToggle?: Types.Maybe<
+		{ __typename?: 'FeatureToggle' } & Pick<
+			Types.FeatureToggle,
+			| 'id'
+			| 'name'
+			| 'enabled'
+			| 'threshold'
+			| 'project_id'
+			| 'updated_at'
+			| 'created_at'
+		>
+	>
+}
+
+export type EditFeatureToggleMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	name?: Types.Maybe<Types.Scalars['String']>
+	threshold?: Types.Maybe<Types.Scalars['Int']>
+	enabled?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type EditFeatureToggleMutation = { __typename?: 'Mutation' } & {
+	editFeatureToggle?: Types.Maybe<
+		{ __typename?: 'FeatureToggle' } & Pick<
+			Types.FeatureToggle,
+			| 'id'
+			| 'name'
+			| 'enabled'
+			| 'threshold'
+			| 'project_id'
+			| 'updated_at'
+			| 'created_at'
+		>
+	>
+}
+
+export type DeleteFeatureToggleMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteFeatureToggleMutation = { __typename?: 'Mutation' } & {
+	deleteFeatureToggle?: Types.Maybe<
+		{ __typename?: 'FeatureToggle' } & Pick<Types.FeatureToggle, 'id'>
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4877,6 +4930,27 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 	key_values: Types.Query['traces_key_values']
 }
 
+export type GetFeatureTogglesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetFeatureTogglesQuery = { __typename?: 'Query' } & {
+	feature_toggles?: Types.Maybe<
+		Array<
+			{ __typename?: 'FeatureToggle' } & Pick<
+				Types.FeatureToggle,
+				| 'id'
+				| 'name'
+				| 'enabled'
+				| 'threshold'
+				| 'project_id'
+				| 'updated_at'
+				| 'created_at'
+			>
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -5022,6 +5096,7 @@ export const namedOperations = {
 		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetTracesKeys: 'GetTracesKeys' as const,
 		GetTracesKeyValues: 'GetTracesKeyValues' as const,
+		GetFeatureToggles: 'GetFeatureToggles' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -5109,6 +5184,9 @@ export const namedOperations = {
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		testErrorEnhancement: 'testErrorEnhancement' as const,
+		createFeatureToggle: 'createFeatureToggle' as const,
+		editFeatureToggle: 'editFeatureToggle' as const,
+		deleteFeatureToggle: 'deleteFeatureToggle' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

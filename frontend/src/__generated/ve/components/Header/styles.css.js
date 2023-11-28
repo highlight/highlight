@@ -1,7 +1,1 @@
-// src/components/Header/styles.css.ts
-var betaTag = "bsyaa21";
-var linkStyle = "bsyaa20";
-export {
-  betaTag,
-  linkStyle
-};
+var a="bsyaa21",e="bsyaa20";export{a as betaTag,e as linkStyle};

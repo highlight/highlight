@@ -1,5 +1,1 @@
-// src/pages/Auth/InviteTeam.css.ts
-var formButton = "u25ybo0";
-export {
-  formButton
-};
+var o="u25ybo0";export{o as formButton};

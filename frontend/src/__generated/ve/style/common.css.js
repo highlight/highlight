@@ -1,9 +1,1 @@
-// src/style/common.css.ts
-var SCROLLBAR_SIZE = 9;
-var styledHorizontalScrollbar = "_14ud0dc0";
-var styledVerticalScrollbar = "_14ud0dc1";
-export {
-  SCROLLBAR_SIZE,
-  styledHorizontalScrollbar,
-  styledVerticalScrollbar
-};
+var r=9,l="_14ud0dc0",a="_14ud0dc1";export{r as SCROLLBAR_SIZE,l as styledHorizontalScrollbar,a as styledVerticalScrollbar};

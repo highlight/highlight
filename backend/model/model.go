@@ -212,6 +212,7 @@ var Models = []interface{}{
 	&SystemConfiguration{},
 	&SessionInsight{},
 	&ErrorTag{},
+	&FeatureToggle{},
 }
 
 func init() {
@@ -1070,6 +1071,15 @@ type ErrorTag struct {
 	Title       string `gorm:"uniqueIndex;not null"`
 	Description string
 	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
+}
+
+type FeatureToggle struct {
+	Model
+	Name      string `gorm:"uniqueIndex:compositeindex;not null"`
+	ProjectID int    `gorm:"uniqueIndex:compositeindex;not null"`
+	Enabled   bool   `gorm:"not null;default:true"`
+	Threshold int    `gorm:"not null;default:0"`
+	HashKey   string `gorm:"not null"`
 }
 
 type MatchedErrorObject struct {

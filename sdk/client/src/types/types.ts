@@ -217,6 +217,10 @@ export declare type HighlightOptions = {
 	 * are not available (ie. Figma plugins).
 	 */
 	sendMode?: 'webworker' | 'local'
+	/**
+	 * * load in your toggles from Highlight
+	 */
+	enableFeatureToggles?: boolean
 }
 
 export declare interface HighlightPublicInterface {
@@ -273,6 +277,7 @@ export declare interface HighlightPublicInterface {
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
 	snapshot: (element: HTMLCanvasElement) => Promise<void>
+	getFeatureToggle: (featureName: string) => boolean
 }
 
 export declare interface SessionDetails {

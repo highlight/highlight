@@ -151,6 +151,7 @@ const H: HighlightPublicInterface = {
 				sessionSecureID: sessionSecureID,
 				storageMode: options?.storageMode,
 				sendMode: options?.sendMode,
+				enableFeatureToggles: options?.enableFeatureToggles,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
@@ -447,6 +448,15 @@ const H: HighlightPublicInterface = {
 		} catch (e) {
 			HighlightWarning('onHighlightReady', e)
 		}
+	},
+	getFeatureToggle: (name: string): boolean => {
+		const toggleValue = highlight_obj.getToggle(name)
+		if (toggleValue == null) {
+			return false
+		}
+
+		highlight_obj.addProperties({ [name]: toggleValue })
+		return toggleValue
 	},
 }
 

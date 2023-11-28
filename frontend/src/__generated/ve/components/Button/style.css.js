@@ -1,5 +1,1 @@
-// src/components/Button/style.css.ts
-var loadingIcon = "_1wdh3sj1";
-export {
-  loadingIcon
-};
+var o="_1wdh3sj1";export{o as loadingIcon};

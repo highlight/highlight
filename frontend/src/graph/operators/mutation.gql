@@ -1252,3 +1252,51 @@ mutation testErrorEnhancement(
 		}
 	}
 }
+
+mutation createFeatureToggle(
+	$name: String!
+	$threshold: Int!
+	$project_id: ID!
+) {
+	createFeatureToggle(
+		name: $name
+		threshold: $threshold
+		project_id: $project_id
+	) {
+		id
+		name
+		enabled
+		threshold
+		project_id
+		updated_at
+		created_at
+	}
+}
+
+mutation editFeatureToggle(
+	$id: ID!
+	$name: String
+	$threshold: Int
+	$enabled: Boolean
+) {
+	editFeatureToggle(
+		id: $id
+		name: $name
+		threshold: $threshold
+		enabled: $enabled
+	) {
+		id
+		name
+		enabled
+		threshold
+		project_id
+		updated_at
+		created_at
+	}
+}
+
+mutation deleteFeatureToggle($id: ID!) {
+	deleteFeatureToggle(id: $id) {
+		id
+	}
+}

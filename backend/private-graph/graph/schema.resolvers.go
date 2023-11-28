@@ -3922,6 +3922,86 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 	return &errorObject, nil
 }
 
+// CreateFeatureToggle is the resolver for the createFeatureToggle field.
+func (r *mutationResolver) CreateFeatureToggle(ctx context.Context, projectID int, name string, threshold int) (*model.FeatureToggle, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	hashKey, err := r.GenerateRandomStringURLSafe(16)
+	if err != nil {
+		return nil, err
+	}
+
+	boundThreshold := int(math.Max(0, math.Min(100, float64(threshold))))
+
+	featureToggle := &model.FeatureToggle{
+		ProjectID: project.ID,
+		Name:      name,
+		Threshold: boundThreshold,
+		HashKey:   hashKey,
+	}
+
+	if err := r.DB.WithContext(ctx).Create(featureToggle).Error; err != nil {
+		return nil, err
+	}
+
+	return featureToggle, nil
+}
+
+// DeleteFeatureToggle is the resolver for the deleteFeatureToggle field.
+func (r *mutationResolver) DeleteFeatureToggle(ctx context.Context, id int) (*model.FeatureToggle, error) {
+	var featureToggle model.FeatureToggle
+
+	if err := r.DB.Take(&featureToggle, id).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProject(ctx, featureToggle.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.DB.WithContext(ctx).Delete(&featureToggle, id).Error; err != nil {
+		return nil, err
+	}
+
+	return &featureToggle, nil
+}
+
+// EditFeatureToggle is the resolver for the editFeatureToggle field.
+func (r *mutationResolver) EditFeatureToggle(ctx context.Context, id int, name *string, threshold *int, enabled *bool) (*model.FeatureToggle, error) {
+	var featureToggle model.FeatureToggle
+
+	if err := r.DB.Take(&featureToggle, id).Error; err != nil {
+		return nil, err
+	}
+
+	_, err := r.isAdminInProject(ctx, featureToggle.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedModel := map[string]interface{}{}
+	if name != nil {
+		updatedModel["Name"] = *name
+	}
+	if threshold != nil {
+		boundThreshold := int(math.Max(0, math.Min(100, float64(*threshold))))
+		updatedModel["Threshold"] = boundThreshold
+	}
+	if enabled != nil {
+		updatedModel["Enabled"] = *enabled
+	}
+
+	updateErr := r.DB.WithContext(ctx).Where(
+		&model.FeatureToggle{Model: model.Model{ID: id}},
+	).Take(&featureToggle).Updates(updatedModel).Error
+
+	return &featureToggle, updateErr
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -7610,6 +7690,20 @@ func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyN
 	}
 
 	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+}
+
+// FeatureToggles is the resolver for the feature_toggles field.
+func (r *queryResolver) FeatureToggles(ctx context.Context, projectID int) ([]*model.FeatureToggle, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+
+	if err != nil {
+		return nil, err
+	}
+	featureToggles := []*model.FeatureToggle{}
+	if err := r.DB.WithContext(ctx).Order("updated_at desc").Model(&model.FeatureToggle{}).Where("project_id = ?", projectID).Find(&featureToggles).Error; err != nil {
+		return nil, e.Wrap(err, "error querying feature toggles")
+	}
+	return featureToggles, nil
 }
 
 // Params is the resolver for the params field.

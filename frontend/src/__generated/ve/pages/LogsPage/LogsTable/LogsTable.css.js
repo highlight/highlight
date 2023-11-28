@@ -1,5 +1,1 @@
-// src/pages/LogsPage/LogsTable/LogsTable.css.ts
-var textHighlight = "g2tqod0";
-export {
-  textHighlight
-};
+var t="g2tqod0";export{t as textHighlight};

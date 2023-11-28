@@ -1,5 +1,1 @@
-// src/components/CollapsibleSection/style.css.ts
-var collapsibleContent = "_1mjemv0";
-export {
-  collapsibleContent
-};
+var e="_1mjemv0";export{e as collapsibleContent};

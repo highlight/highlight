@@ -1,9 +1,1 @@
-// src/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights.css.ts
-var insight = "_1bsjoph0";
-var insightPanel = "_1bsjoph1";
-var insightPanelWithBanner = "_1bsjoph2";
-export {
-  insight,
-  insightPanel,
-  insightPanelWithBanner
-};
+var h="_1bsjoph0",i="_1bsjoph1",n="_1bsjoph2";export{h as insight,i as insightPanel,n as insightPanelWithBanner};
