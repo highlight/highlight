@@ -165,11 +165,21 @@ func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, proje
 	return req
 }
 
+type TemplateDataWithTemplate struct {
+	Template string
+	Data     interface{}
+}
+
 func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {
 	data.ToEmail = toEmail
 	data.UnsubscribeUrl = unsubscribeUrl
-	data.Template = "session-insights"
-	b, err := json.Marshal(data)
+
+	templateData := TemplateDataWithTemplate{
+		Template: "session-insights",
+		Data:     data,
+	}
+
+	b, err := json.Marshal(templateData)
 	if err != nil {
 		return "", err
 	}
@@ -193,10 +203,13 @@ func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string,
 	return string(b), nil
 }
 
-func (s *Client) FetchReactEmailHTML(ctx context.Context, alertType string, data map[string]string) (string, error) {
-	// TODO(spenny): do we need to manipulate the alert type here?
-	data["Template"] = alertType
-	b, err := json.Marshal(data)
+func (s *Client) FetchReactEmailHTML(ctx context.Context, alertType string, data map[string]interface{}) (string, error) {
+	templateData := TemplateDataWithTemplate{
+		Template: alertType,
+		Data:     data,
+	}
+
+	b, err := json.Marshal(templateData)
 	if err != nil {
 		return "", err
 	}

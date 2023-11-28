@@ -2003,16 +2003,17 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
 	alertUrl := fmt.Sprintf("%s/%d/alerts/errors/%d", frontendURL, obj.ProjectID, obj.ID)
+	sessionExcluded := input.SessionSecureID == "" || input.SessionExcluded
 
-	templateData := map[string]string{
+	templateData := map[string]interface{}{
 		"alertLink":       alertUrl,
-		"errorCount":      strconv.FormatInt(*input.ErrorsCount, 10),
+		"errorCount":      *input.ErrorsCount,
 		"errorEvent":      input.Group.Event,
 		"errorLink":       errorURL,
-		"firstError":      strconv.FormatBool(input.FirstErrorAlert),
+		"firstError":      input.FirstErrorAlert,
 		"projectName":     *input.Project.Name,
 		"serviceName":     input.ErrorObject.ServiceName,
-		"sessionExcluded": strconv.FormatBool(input.SessionSecureID == "" || input.SessionExcluded),
+		"sessionExcluded": sessionExcluded,
 		"sessionLink":     sessionURL,
 	}
 	// TODO(spenny): allow use of lambda
@@ -2157,6 +2158,16 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 		identifier = "Someone"
 	}
 
+	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
+
+	templateData := map[string]interface{}{
+		"alertLink":     alertUrl,
+		"alertName":     obj.Name,
+		"projectName":   *input.Project.Name,
+		"userIdentifer": identifier,
+		"session":       "TODO",
+	}
+
 	switch *obj.Type {
 	case AlertType.NEW_SESSION:
 		alertType = "new-session-alert"
@@ -2167,22 +2178,21 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 	case AlertType.RAGE_CLICK:
 		alertType = "rage-click-alert"
 		subjectLine = fmt.Sprintf("%s has been rage clicking in a session.", identifier)
-	case AlertType.ERROR_FEEDBACK:
-		// TODO(spenny): what to do with this alert
-		alertType = "Error Feedback"
-		subjectLine = fmt.Sprintf("%s just left feedback.", identifier)
 	case AlertType.TRACK_PROPERTIES:
 		alertType = "track-event-properties-alert"
 		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
+
+		templateData["eventProperties"] = "TODO"
 	case AlertType.USER_PROPERTIES:
 		alertType = "track-user-properties-alert"
+		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
+
+		templateData["userProprties"] = "TODO"
 	default:
 		return
 	}
 
-	templateData := map[string]string{}
-
-	// fetch email from lambda
+	// TODO(spenny): allow use of lambda
 	emailHtml, err := s.FetchReactEmailHTML(ctx, alertType, templateData)
 
 	for _, email := range emailsToNotify {

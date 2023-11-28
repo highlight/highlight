@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
@@ -187,16 +186,16 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 		frontendURL := os.Getenv("FRONTEND_URI")
 		alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
 
-		templateData := map[string]string{
+		templateData := map[string]interface{}{
 			"alertLink":      alertUrl,
 			"alertName":      alert.Name,
-			"belowThreshold": strconv.FormatBool(alert.BelowThreshold),
-			"count":          strconv.FormatInt(int64(count), 10),
+			"belowThreshold": alert.BelowThreshold,
+			"count":          count,
 			"logsLink":       logsUrl,
 			// TODO(spenny): fetch project name
 			"projectName": "TODO",
 			"query":       alert.Query,
-			"threshold":   strconv.FormatInt(int64(alert.CountThreshold), 10),
+			"threshold":   alert.CountThreshold,
 		}
 
 		subjectLine := alert.Name
