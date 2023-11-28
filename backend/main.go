@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"html/template"
 	"io"
 	"math/rand"
@@ -198,6 +199,7 @@ func main() {
 
 	// setup highlight
 	highlight.SetProjectID("1jdkoe52")
+	hmetric.SetSamplingRate(1. / 100)
 
 	// change OTLP endpoint when set in env
 	if otlpEndpoint != "" {
