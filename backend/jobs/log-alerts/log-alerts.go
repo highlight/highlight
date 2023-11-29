@@ -8,6 +8,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/lambda"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/util"
@@ -28,7 +29,7 @@ import (
 const maxWorkers = 40
 const alertEvalFreq = 15 * time.Second
 
-func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
+func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
 	log.WithContext(ctx).Info("Starting to watch log alerts")
 
 	alertsByFrequency := &map[int64][]*model.LogAlert{}
@@ -73,7 +74,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clien
 					alertWorkerpool.SubmitRecover(
 						func() {
 							ctx := context.Background()
-							err := processLogAlert(ctx, DB, MailClient, alert, rh, redis, ccClient)
+							err := processLogAlert(ctx, DB, MailClient, alert, rh, redis, ccClient, lambdaClient)
 							if err != nil {
 								log.WithContext(ctx).Error(err)
 							}
@@ -96,7 +97,7 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 	return alerts
 }
 
-func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) error {
+func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
 	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(alert.Frequency) * time.Second)
 
@@ -198,8 +199,10 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 		}
 
 		subjectLine := alert.Name
-		// TODO(spenny): allow use of lambda
-		emailHtml, body := s.FetchReactEmailHTML(ctx, "log-alert", templateData)
+		emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, "log-alert", templateData)
+		if err != nil {
+			return errors.Wrap(err, "error fetching email html")
+		}
 
 		for _, email := range emailsToNotify {
 			if err := Email.SendReactEmailAlert(ctx, MailClient, *email, emailHtml, subjectLine); err != nil {

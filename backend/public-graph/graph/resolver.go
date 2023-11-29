@@ -30,6 +30,7 @@ import (
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	stats "github.com/highlight-run/highlight/backend/hlog"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -39,6 +40,7 @@ import (
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -73,6 +75,7 @@ type Resolver struct {
 	Clickhouse       *clickhouse.Client
 	RH               *resthooks.Resthook
 	Store            *store.Store
+	LambdaClient     *lambda.Client
 }
 
 type Location struct {
@@ -1388,7 +1391,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 				Error(e.Wrap(err, "error fetching workspace"))
 		}
 
-		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendAlertFeedback(ctx, r.DB, r.MailClient, errorAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
@@ -1885,7 +1888,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				log.WithContext(ctx).Error(err)
 			}
 
-			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			tempalerts.SendErrorAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, errorAlert, &tempalerts.SendSlackAlertInput{
 				Workspace:       workspace,
 				Project:         &project,
 				SessionSecureID: sessionObj.SecureID,
@@ -3010,7 +3013,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: sessionObj.SecureID,
 			SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
@@ -3162,7 +3165,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
@@ -3241,7 +3244,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: refetchedSession.SecureID,
 			SessionExcluded: refetchedSession.Excluded && *refetchedSession.Processed,
@@ -3330,7 +3333,7 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
