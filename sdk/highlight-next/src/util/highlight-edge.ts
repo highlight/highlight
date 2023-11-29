@@ -113,23 +113,35 @@ export const H: HighlightInterface = {
 			tags,
 		})
 	},
-	parseHeaders(headers: IncomingHttpHeaders): HighlightContext {
+	parseHeaders(
+		headers: Headers | IncomingHttpHeaders | undefined,
+	): HighlightContext {
 		const highlightCtx = globalHighlightContext
 		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx
-		} else if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
-			const [secureSessionId, requestId] =
-				`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-			return { secureSessionId, requestId }
-		} else {
-			return { secureSessionId: undefined, requestId: undefined }
+		} else if (headers) {
+			let requestHeaders: IncomingHttpHeaders = {}
+			if (headers instanceof Headers) {
+				headers.forEach((k, v) => (requestHeaders[k] = v))
+			} else {
+				requestHeaders = headers
+			}
+			if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
+				const [secureSessionId, requestId] =
+					`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+				return { secureSessionId, requestId }
+			}
 		}
+		return { secureSessionId: undefined, requestId: undefined }
 	},
-	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
+	runWithHeaders<T>(
+		headers: Headers | IncomingHttpHeaders | undefined,
+		cb: () => T,
+	) {
 		this.setHeaders(headers)
 		return cb()
 	},
-	setHeaders(headers: IncomingHttpHeaders) {
+	setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
 		const highlightCtx = this.parseHeaders(headers)
 		if (highlightCtx) {
 			globalHighlightContext = highlightCtx

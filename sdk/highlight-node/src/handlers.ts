@@ -128,13 +128,7 @@ const makeHandler = (
 		if (!H.isInitialized()) {
 			H.init(options)
 		}
-		const headers: IncomingHttpHeaders = {}
-		const h = headersExtractor(args)
-		if (h) {
-			for (const [k, v] of Object.entries(h)) {
-				headers[k] = v
-			}
-		}
+		const headers = headersExtractor(args)
 		try {
 			return await H.runWithHeaders(headers, async () => {
 				return await origHandler(...args)
