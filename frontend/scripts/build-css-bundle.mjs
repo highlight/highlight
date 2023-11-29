@@ -52,10 +52,13 @@ export const run = async ({
 						path_.join(outputDirectory, 'index.css'),
 						// vanilla extract outputs comments that seem to depend on absolute path
 						// need to strip them for consistent output between local and ci
-						cssOutput.text.replaceAll(
-							/\n\/\* vanilla-extract-css-ns\:.*\n/g,
-							'',
-						),
+						cssOutput.text
+							.replaceAll(
+								/\n\/\* vanilla-extract-css-ns\:.*\n/g,
+								'',
+							)
+							// also remove comment in first line without leading line break
+							.replace(/\/\* vanilla-extract-css-ns\:.*\n/g, ''),
 					),
 					...result.outputFiles
 						.filter(
@@ -97,6 +100,35 @@ export const run = async ({
 		},
 	}
 
+	const uiResolvePlugin = {
+		// resolve to TS source for UI entry points
+		// to make sure all styles are included
+		name: 'uiResolvePlugin',
+		setup: ({ onResolve }) => {
+			onResolve(
+				{
+					filter: new RegExp(`^@highlight-run/ui/.*$`),
+					namespace: 'file',
+				},
+				({ path }) => {
+					const entryPoint = path.slice('@highlight-run/ui/'.length)
+
+					if (entryPoint === 'styles.css') {
+						return {
+							external: true,
+							sideEffects: false,
+						}
+					}
+					const resolved = entryPointsUi[entryPoint]
+
+					return {
+						path: resolved,
+					}
+				},
+			)
+		},
+	}
+
 	await fs.promises.mkdir(outputDirectory, { recursive: true })
 
 	const context = await esbuild.context({
@@ -120,27 +152,10 @@ export const run = async ({
 		target: 'esnext',
 		plugins: [
 			ignorePlugin,
-			// Style plugin doesn't respect esbuild externals
-			// FIXME: follow https://github.com/g45t345rt/esbuild-style-plugin/pull/18
+			uiResolvePlugin,
 			{
 				name: 'styleIgnorePlugin',
 				setup: ({ onResolve, onLoad }) => {
-					Object.keys({
-						...packageJson.dependencies,
-						...packageJsonUi.dependencies,
-					}).forEach((pkg) => {
-						onResolve(
-							{
-								filter: new RegExp(`^${pkg}/.*$`),
-								namespace: 'file',
-							},
-							() => ({
-								external: true,
-								sideEffects: false,
-							}),
-						)
-					})
-
 					// We don't need css handled by esbuild now that
 					// Reflame has native css modules and tailwind support
 					onLoad({ filter: /\.(css)$/ }, () => ({
@@ -151,34 +166,7 @@ export const run = async ({
 			vanillaExtractPlugin({
 				identifiers: 'short',
 				esbuildOptions: {
-					plugins: [
-						{
-							// resolve to TS source for UI entry points
-							// to make sure all styles are included
-							name: 'uiResolvePlugin',
-							setup: ({ onResolve }) => {
-								onResolve(
-									{
-										filter: new RegExp(
-											`^@highlight-run/ui/.*$`,
-										),
-										namespace: 'file',
-									},
-									({ path }) => {
-										const entryPoint = path.slice(
-											'@highlight-run/ui/'.length,
-										)
-										const resolved =
-											entryPointsUi[entryPoint]
-
-										return {
-											path: resolved,
-										}
-									},
-								)
-							},
-						},
-					],
+					plugins: [uiResolvePlugin],
 				},
 			}),
 			resultPlugin,
@@ -190,7 +178,10 @@ export const run = async ({
 				...packageJson.devDependencies,
 				...packageJsonUi.dependencies,
 				...packageJsonUi.devDependencies,
-			}).flatMap((pkg) => [pkg, `${pkg}/*`]),
+			})
+				// Need to keep resolving ui package to process vanilla extract styles
+				.filter((pkg) => pkg !== '@highlight-run/ui')
+				.flatMap((pkg) => [pkg, `${pkg}/*`]),
 		],
 		write: false,
 		logLevel: 'error',
