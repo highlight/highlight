@@ -7,7 +7,7 @@ import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils
 import { bytesToPrettyString } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
-import { capitalize } from 'lodash'
+import _, { capitalize } from 'lodash'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -274,15 +274,25 @@ const MetadataPanel = () => {
 			</Box>
 		)
 	}
+
+	const data = Object.entries({
+		[MetadataSection.Session]: sessionData,
+		[MetadataSection.User]: userData,
+		[MetadataSection.Device]: deviceData,
+		[MetadataSection.Environment]: environmentData,
+	}).map(([key, values]) => {
+		return [
+			key,
+			_.sortBy(
+				_.uniqBy(values, (x) => x.keyDisplayValue),
+				(x) => x.keyDisplayValue,
+			),
+		] as const
+	})
 	return (
 		<Box cssClass={style.container}>
 			<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
-				{Object.entries({
-					[MetadataSection.Session]: sessionData,
-					[MetadataSection.User]: userData,
-					[MetadataSection.Device]: deviceData,
-					[MetadataSection.Environment]: environmentData,
-				}).map(([key, value]) => {
+				{data.map(([key, value]) => {
 					return (
 						<CollapsibleSection title={key} key={key}>
 							<Box
