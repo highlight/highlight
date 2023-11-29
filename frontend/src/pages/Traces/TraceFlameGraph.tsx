@@ -241,19 +241,20 @@ export const TraceFlameGraph: React.FC = () => {
 
 			const { left } = svgContainerRef.current!.getBoundingClientRect()
 			const svgX = e.clientX - left + x
-			const deltaX = svgX - initialDragX
+			const deltaX = Math.abs(svgX - initialDragX)
 
-			if (Math.abs(deltaX) <= 1) return
+			if (deltaX <= 1) return
 
 			debugger
 			const newZoom = Math.max(
 				Math.min(((width! * zoom) / (deltaX * zoom)) * zoom, MAX_ZOOM),
 				1,
 			)
-			const newScrollPosition = (initialDragX / zoom) * newZoom
+			const newScrollPosition =
+				(Math.min(initialDragX, currentDragX) / zoom) * newZoom
 			updateZoom(newZoom, newScrollPosition)
 		},
-		[initialDragX, updateZoom, width, x, zoom],
+		[currentDragX, initialDragX, updateZoom, width, x, zoom],
 	)
 
 	if (loading) {
@@ -371,7 +372,11 @@ export const TraceFlameGraph: React.FC = () => {
 						{dragging && (
 							<rect
 								fill="rgba(255, 255, 255, 0.5)"
-								x={initialDragX}
+								x={
+									currentDragX < initialDragX
+										? currentDragX
+										: initialDragX
+								}
 								y={ticksHeight}
 								height={height}
 								width={Math.abs(currentDragX - initialDragX)}
