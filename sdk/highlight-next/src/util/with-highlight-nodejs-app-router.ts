@@ -1,7 +1,6 @@
 import type { NextRequest } from 'next/server'
 
 import { H, NodeOptions } from '@highlight-run/node'
-import { IncomingHttpHeaders } from 'http'
 
 type NextContext = { params: Record<string, string> }
 type NextHandler<Body = unknown> = (

@@ -322,7 +322,7 @@ export class Highlight {
 	): HighlightContext {
 		let requestHeaders: IncomingHttpHeaders = {}
 		if (headers instanceof Headers) {
-			headers.forEach((k, v) => (requestHeaders[k] = v))
+			headers.forEach((value, key) => (requestHeaders[key] = value))
 		} else if (headers) {
 			requestHeaders = headers
 		}
