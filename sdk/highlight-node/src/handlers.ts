@@ -2,7 +2,6 @@ import * as http from 'http'
 import { NodeOptions } from '.'
 import { H } from './sdk.js'
 import type { Attributes } from '@opentelemetry/api'
-import { IncomingHttpHeaders } from 'http'
 
 /** JSDoc */
 interface MiddlewareError extends Error {
@@ -128,13 +127,7 @@ const makeHandler = (
 		if (!H.isInitialized()) {
 			H.init(options)
 		}
-		const headers: IncomingHttpHeaders = {}
-		const h = headersExtractor(args)
-		if (h) {
-			for (const [k, v] of Object.entries(h)) {
-				headers[k] = v
-			}
-		}
+		const headers = headersExtractor(args)
 		try {
 			return await H.runWithHeaders(headers, async () => {
 				return await origHandler(...args)
