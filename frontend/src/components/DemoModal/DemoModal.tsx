@@ -35,7 +35,11 @@ export const DemoModal = () => {
 			setError('Please use your work email')
 			return
 		}
-		const attribution = getAttributionData()
+		let attribution = getAttributionData()
+		try {
+			const parsedReferral = JSON.parse(attribution.referral)
+			attribution = { ...attribution, ...parsedReferral }
+		} catch (e) {}
 		analytics.identify(email, {
 			// hubspot attribute to trigger sequence for this contact
 			demo_sign_up: true,
