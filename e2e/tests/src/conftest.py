@@ -60,7 +60,7 @@ def node_js_bin():
 
 
 @pytest.fixture(scope="session")
-def next_app(node_js_bin):
+def next_dev(node_js_bin):
     proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "dev"])
     try:
         for _ in range(15):
@@ -82,3 +82,41 @@ def next_app(node_js_bin):
             print(line)
         for line in stderr.splitlines():
             print(line)
+
+
+@pytest.fixture(scope="session")
+def next_prod(node_js_bin):
+    proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "build"])
+    stdout, stderr = proc.communicate()
+    print("next build output")
+    for line in stdout.splitlines():
+        print(line)
+    for line in stderr.splitlines():
+        print(line)
+
+    proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "start"])
+    try:
+        for _ in range(15):
+            try:
+                r = requests.get("http://localhost:3005/")
+                if r.ok:
+                    break
+            except requests.RequestException:
+                pass
+            time.sleep(1)
+        else:
+            raise Exception("next app not ready")
+        yield proc
+    finally:
+        proc.terminate()
+        stdout, stderr = proc.communicate()
+        print("next app output")
+        for line in stdout.splitlines():
+            print(line)
+        for line in stderr.splitlines():
+            print(line)
+
+
+@pytest.fixture(scope="session", params=["next_dev", "next_prod"])
+def next_app(request):
+    yield request.getfixturevalue(request.param)

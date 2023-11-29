@@ -57,6 +57,7 @@ def query(
         ("/api/app-router-test", "Error: /api/app-router-test (App Router)"),
         ("/api/edge-test", "Error: /api/edge-test (Edge Runtime)"),
     ],
+    ids=["page-router-test", "page-router-edge-test", "app-router-test", "edge-test"],
 )
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
