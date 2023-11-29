@@ -1,5 +1,16 @@
 # @highlight-run/next
 
+## 7.2.4
+
+### Patch Changes
+
+-   7c35f7d78: ensure header parsing is compatible with IncomingHTTPHeaders and Headers types
+-   Updated dependencies [84110aca1]
+-   Updated dependencies [c1773fa66]
+-   Updated dependencies [7c35f7d78]
+    -   highlight.run@8.3.0
+    -   @highlight-run/node@3.6.4
+
 ## 7.2.3
 
 ### Patch Changes
