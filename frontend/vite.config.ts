@@ -57,10 +57,6 @@ export default defineConfig(({ mode }) => {
 				// Likely due to some custom resolution algorithm that doesn't support hoisted monorepos?
 				exclude: ['lodash'],
 				libList: [
-					{
-						libName: 'antd',
-						style: (name) => `antd/es/${name}/style/index.js`,
-					},
 					// TODO: enable this later to reduce bundle size
 					// {
 					// 	libName: 'lodash',
