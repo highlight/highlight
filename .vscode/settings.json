@@ -97,6 +97,7 @@
 		"munge",
 		"opentelemetry",
 		"otlp",
+		"otel",
 		"runtimes",
 		"snapshotting",
 		"unobfuscated",
@@ -149,5 +150,8 @@
 			"name": "clickhouse-dev"
 		}
 	],
-	"sort-imports.on-save": false
+	"sort-imports.on-save": false,
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	}
 }
