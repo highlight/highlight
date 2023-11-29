@@ -58,7 +58,12 @@ def test_next_js(next_app, success, oauth_api):
         def validate(data: dict[str, any]):
             assert len(data["error_groups_clickhouse"]["error_groups"]) >= 1
             # check that we actually received the edge runtime error
-            events = set(map(lambda eg: eg["event"][0], data["error_groups_clickhouse"]["error_groups"]))
+            events = set(
+                map(
+                    lambda eg: eg["event"][0],
+                    data["error_groups_clickhouse"]["error_groups"],
+                )
+            )
             assert "Error: /api/edge-test (Edge Runtime)" in events
 
         query(
