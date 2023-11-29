@@ -13496,6 +13496,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_session_export
 			enable_unlisted_sharing
 			enable_ingest_sampling
+			enable_data_deletion
 		}
 	}
 `
