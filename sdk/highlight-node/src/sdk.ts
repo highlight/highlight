@@ -8,7 +8,7 @@ import type { NodeOptions, HighlightContext } from './types.js'
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
 export interface HighlightInterface {
-	init: (options: NodeOptions) => void
+	init: (options: NodeOptions) => Highlight | undefined
 	stop: () => Promise<void>
 	isInitialized: () => boolean
 	// Use parseHeaders to extract the headers from the current context or from the headers.
@@ -60,6 +60,8 @@ export const H: HighlightInterface = {
 		_debug = !!options.debug
 		try {
 			highlight_obj = new Highlight(options)
+
+			return highlight_obj
 		} catch (e) {
 			console.warn('highlight-node init error: ', e)
 		}

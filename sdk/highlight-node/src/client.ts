@@ -58,7 +58,7 @@ export class Highlight {
 	_projectID: string
 	_debug: boolean
 	otel: NodeSDK
-	private tracer: Tracer
+	tracer: Tracer
 	private processor: CustomSpanProcessor
 	private asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
@@ -115,7 +115,7 @@ export class Highlight {
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		})
 
-		const attributes: Attributes = {}
+		const attributes: Attributes = options.attributes || {}
 		attributes['highlight.project_id'] = this._projectID
 
 		if (options.serviceName) {
@@ -330,15 +330,13 @@ export class Highlight {
 			const highlightCtx = this.asyncLocalStorage.getStore()
 			if (highlightCtx) {
 				return highlightCtx
-			}
-			if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
-				const [secureSessionId, requestId] =
-					`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-				return { secureSessionId, requestId }
+			} else if (headers) {
+				return parseHeaders(headers)
 			}
 		} catch (e) {
 			this._log('parseHeaders error: ', e)
 		}
+
 		return { secureSessionId: undefined, requestId: undefined }
 	}
 
@@ -360,4 +358,15 @@ export class Highlight {
 			this.asyncLocalStorage.enterWith(highlightCtx)
 		}
 	}
+}
+
+export function parseHeaders(
+	headers: Headers | IncomingHttpHeaders,
+): HighlightContext {
+	if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+		const [secureSessionId, requestId] =
+			`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+		return { secureSessionId, requestId }
+	}
+	return { secureSessionId: undefined, requestId: undefined }
 }

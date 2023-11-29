@@ -1,4 +1,4 @@
-import { NodeOptions } from '@highlight-run/node'
+import { NodeOptions, parseHeaders } from '@highlight-run/node'
 import { H } from './highlight-node'
 
 import { IncomingHttpHeaders } from 'http'
@@ -8,23 +8,55 @@ export declare type HasStatus = { statusCode: number; statusMessage: string }
 export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 	req: T,
 	res: S,
+	highlight: HighlightInitReturnType,
 ) => unknown | Promise<unknown>
+type HighlightInitReturnType = ReturnType<typeof H.init>
+
+let NodeH: HighlightInitReturnType
 
 export const Highlight =
 	(options: NodeOptions) =>
 	<T extends HasHeaders, S extends HasStatus>(
-		origHandler: ApiHandler<T, S>,
+		originalHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
 		return async (req, res) => {
-			if (!H.isInitialized()) {
-				H.init(options)
+			if (!NodeH) {
+				const { secureSessionId, requestId } = parseHeaders(req.headers)
+				const attributes = {
+					...(options.attributes || {}),
+					['highlight.session_id']: secureSessionId,
+					['highlight.trace_id']: requestId,
+				}
+
+				NodeH = H.init({ ...options, attributes })
 			}
 
 			const { secureSessionId, requestId } = H.parseHeaders(req.headers)
 			const start = new Date()
 			try {
 				return await H.runWithHeaders(req.headers, async () => {
-					return await origHandler(req, res)
+					return new Promise((resolve, reject) => {
+						NodeH?.tracer.startActiveSpan(
+							'highlight-ctx',
+							async (span) => {
+								try {
+									const result = await originalHandler(
+										req,
+										res,
+										NodeH,
+									)
+
+									span?.end()
+
+									await NodeH?.flush()
+
+									return resolve(result)
+								} catch (error) {
+									reject(error)
+								}
+							},
+						)
+					})
 				})
 			} catch (e) {
 				if (e instanceof Error) {

@@ -15,7 +15,7 @@ export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
 		if (isNodeJs()) {
 			if (!NodeH.isInitialized()) {
-				NodeH.init(options)
+				return NodeH.init(options)
 			}
 		} else {
 			throw new Error(

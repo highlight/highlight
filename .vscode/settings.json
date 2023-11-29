@@ -95,6 +95,8 @@
 		"incentivizing",
 		"interactable",
 		"munge",
+		"opentelemetry",
+		"otlp",
 		"runtimes",
 		"snapshotting",
 		"unobfuscated",

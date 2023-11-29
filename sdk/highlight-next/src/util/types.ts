@@ -1,4 +1,4 @@
-import type { NodeOptions } from '@highlight-run/node'
+import type { NodeOptions, Highlight } from '@highlight-run/node'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 import type { ExecutionContext } from '@cloudflare/workers-types'
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
@@ -21,7 +21,7 @@ export type ExtendedExecutionContext = ExecutionContext & {
 }
 
 export interface HighlightInterface {
-	init: (options: NodeOptions) => void
+	init: (options: NodeOptions) => Highlight | undefined
 	initEdge: (
 		request: Request,
 		env: HighlightEnv,
