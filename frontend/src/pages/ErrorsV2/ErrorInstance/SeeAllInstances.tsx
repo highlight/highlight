@@ -1,4 +1,4 @@
-import { IconSolidArrowSmLeft, Tag } from '@highlight-run/ui'
+import { IconSolidArrowSmLeft, Tag } from '@highlight-run/ui/components'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'

@@ -6,7 +6,7 @@ import {
 	IconSolidTerminal,
 	IconSolidTrendingUp,
 	Stack,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { ErrorInstance } from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
 import ErrorMetrics from '@pages/ErrorsV2/ErrorMetrics/ErrorMetrics'
 import { useParams } from '@util/react-router/useParams'

@@ -1,4 +1,10 @@
-import { Box, IconSolidPlayCircle, Stack, Tag, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidPlayCircle,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui/components'
 import {
 	createColumnHelper,
 	flexRender,

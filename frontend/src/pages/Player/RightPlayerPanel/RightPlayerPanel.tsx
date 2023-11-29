@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import {
 	RightPanelView,
 	usePlayerUIContext,

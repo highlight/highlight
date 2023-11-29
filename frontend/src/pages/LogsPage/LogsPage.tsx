@@ -1,5 +1,5 @@
 import { LogLevel, ProductType } from '@graph/schemas'
-import { Box, defaultPresets, getNow } from '@highlight-run/ui'
+import { Box, defaultPresets, getNow } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'

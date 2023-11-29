@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Preset, Stack, Text } from '@highlight-run/ui'
+import { Box, Preset, Stack, Text } from '@highlight-run/ui/components'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
 import { useMemo } from 'react'

@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/vars'
 import { globalStyle, style } from '@vanilla-extract/css'
 
 export const modalContainer = style({})

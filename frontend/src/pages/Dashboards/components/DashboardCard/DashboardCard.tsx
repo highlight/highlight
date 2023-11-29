@@ -18,7 +18,7 @@ import {
 	Maybe,
 	MetricAggregator,
 } from '@graph/schemas'
-import { Text } from '@highlight-run/ui'
+import { Text } from '@highlight-run/ui/components'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon'
 import SvgDragIcon from '@icons/DragIcon'

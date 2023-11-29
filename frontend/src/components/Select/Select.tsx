@@ -1,5 +1,5 @@
-import { IconSolidCheveronDown } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { colors } from '@highlight-run/ui/colors'
+import { IconSolidCheveronDown } from '@highlight-run/ui/components'
 import {
 	// eslint-disable-next-line no-restricted-imports
 	Select as AntDesignSelect,

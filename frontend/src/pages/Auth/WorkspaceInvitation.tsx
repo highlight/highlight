@@ -9,7 +9,7 @@ import {
 	useGetWorkspaceForInviteLinkQuery,
 	useGetWorkspacesQuery,
 } from '@graph/hooks'
-import { Box, Callout, Stack, Text } from '@highlight-run/ui'
+import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import useLocalStorage from '@rehooks/local-storage'

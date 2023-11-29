@@ -1,4 +1,9 @@
-import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidArrowCircleRight,
+	Tag,
+	Text,
+} from '@highlight-run/ui/components'
 import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import { useNavigate } from 'react-router-dom'

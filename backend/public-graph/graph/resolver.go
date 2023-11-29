@@ -1613,11 +1613,11 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return *w.RetentionPeriod
 		},
 		func(w *model.Workspace) int64 {
-			limit := pricing.TypeToSessionsLimit(privateModel.PlanType(w.PlanTier))
+			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeSessions)
 			if w.MonthlySessionLimit != nil {
-				limit = *w.MonthlySessionLimit
+				limit = int64(*w.MonthlySessionLimit)
 			}
-			return int64(limit)
+			return limit
 		},
 	},
 	model.PricingProductTypeErrors: {
@@ -1630,11 +1630,11 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return *w.ErrorsRetentionPeriod
 		},
 		func(w *model.Workspace) int64 {
-			limit := pricing.TypeToErrorsLimit(privateModel.PlanType(w.PlanTier))
+			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeErrors)
 			if w.MonthlyErrorsLimit != nil {
-				limit = *w.MonthlyErrorsLimit
+				limit = int64(*w.MonthlyErrorsLimit)
 			}
-			return int64(limit)
+			return limit
 		},
 	},
 	model.PricingProductTypeLogs: {
@@ -1644,11 +1644,11 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return privateModel.RetentionPeriodThirtyDays
 		},
 		func(w *model.Workspace) int64 {
-			limit := pricing.TypeToLogsLimit(privateModel.PlanType(w.PlanTier))
+			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeLogs)
 			if w.MonthlyLogsLimit != nil {
-				limit = *w.MonthlyLogsLimit
+				limit = int64(*w.MonthlyLogsLimit)
 			}
-			return int64(limit)
+			return limit
 		},
 	},
 	model.PricingProductTypeTraces: {
@@ -1658,11 +1658,11 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 			return privateModel.RetentionPeriodThirtyDays
 		},
 		func(w *model.Workspace) int64 {
-			limit := pricing.TypeToTracesLimit(privateModel.PlanType(w.PlanTier))
+			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeTraces)
 			if w.MonthlyTracesLimit != nil {
-				limit = *w.MonthlyTracesLimit
+				limit = int64(*w.MonthlyTracesLimit)
 			}
-			return int64(limit)
+			return limit
 		},
 	},
 }
@@ -1705,12 +1705,13 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return false, 1
 	}
 
-	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan)
-	retentionPeriod := cfg.retentionPeriod(workspace)
-	overage := meter - includedQuantity
+	// offset by the default included amount since ProductToBasePriceCents will offset too,
+	// but we want to use the local offset of includedQuantity which respects overrides
+	overage := meter + pricing.IncludedAmount(stripePlan, productType) - includedQuantity
+	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan, overage)
 	cost := float64(overage) *
 		basePrice *
-		pricing.RetentionMultiplier(retentionPeriod)
+		pricing.RetentionMultiplier(cfg.retentionPeriod(workspace))
 
 	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
 }

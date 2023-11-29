@@ -8,7 +8,7 @@ import {
 	getFirstSpan,
 	getTraceDurationString,
 	getTraceTimes,
-	organizeSpans,
+	organizeSpansForFlameGraph,
 } from '@/pages/Traces/utils'
 
 type TraceContext = {
@@ -21,7 +21,7 @@ type TraceContext = {
 	selectedSpan: FlameGraphSpan | undefined
 	highlightedSpan: FlameGraphSpan | undefined
 	loading: boolean
-	traces: FlameGraphSpan[]
+	traces: FlameGraphSpan[][]
 	error?: ApolloError
 	traceId?: string
 	setHoveredSpan: (span?: FlameGraphSpan) => void
@@ -107,7 +107,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 			setSelectedSpan(firstSpan as FlameGraphSpan)
 		}
 
-		return organizeSpans(sortableTraces)
+		return organizeSpansForFlameGraph(sortableTraces)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.trace?.trace])
 

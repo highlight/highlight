@@ -11,8 +11,8 @@ import {
 	Stack,
 	Text,
 	Tooltip,
-	vars,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'

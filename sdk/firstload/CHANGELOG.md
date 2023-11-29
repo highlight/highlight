@@ -1,5 +1,15 @@
 # highlight.run
 
+## 8.3.0
+
+### Minor Changes
+
+-   84110aca1: Update default privacy mode to obfuscate all inputs by default. Allow user to override ofuscation with data-hl-record attribute. Fix regex expressions for telephone numbers and addresses.
+
+### Patch Changes
+
+-   c1773fa66: ensure cross origin iframe recording works even if the iframe reloads
+
 ## 8.2.3
 
 ### Patch Changes

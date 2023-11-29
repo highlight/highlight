@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { Button, ButtonProps } from '@components/Button'
-import { Box, BoxProps } from '@highlight-run/ui/src/components/Box/Box'
+import { Box } from '@highlight-run/ui/components'
+import type { BoxProps } from '@highlight-run/ui/src/components/Box/Box'
 
 type LoadingBoxProps = Omit<BoxProps, 'height' | 'width' | 'size'> & {
 	height?: string | number

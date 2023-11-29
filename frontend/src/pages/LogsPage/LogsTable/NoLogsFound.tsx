@@ -1,5 +1,5 @@
 import { LinkButton } from '@components/LinkButton'
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 import React from 'react'
 
 const NoLogsFound = () => {

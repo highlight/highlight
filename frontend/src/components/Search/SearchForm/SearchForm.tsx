@@ -22,7 +22,7 @@ import {
 	Stack,
 	Text,
 	useComboboxStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
@@ -441,6 +441,7 @@ export const Search: React.FC<{
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
+					data-hl-record
 				/>
 
 				{isDirty && !disableSearch && (

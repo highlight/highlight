@@ -6,8 +6,8 @@ import {
 	Stack,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
-import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
+} from '@highlight-run/ui/components'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { Select } from 'antd'
 import React, { useEffect, useState } from 'react'
 

@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui'
+import { vars } from '@/vars'
 import { style } from '@vanilla-extract/css'
 
 import { colors } from '../../css/colors'

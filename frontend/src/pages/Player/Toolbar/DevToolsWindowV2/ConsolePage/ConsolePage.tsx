@@ -6,7 +6,7 @@ import {
 	Stack,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'

@@ -4,7 +4,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetAdminQuery } from '@graph/hooks'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import { auth } from '@util/auth'

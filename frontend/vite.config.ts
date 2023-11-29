@@ -57,10 +57,6 @@ export default defineConfig(({ mode }) => {
 				// Likely due to some custom resolution algorithm that doesn't support hoisted monorepos?
 				exclude: ['lodash'],
 				libList: [
-					{
-						libName: 'antd',
-						style: (name) => `antd/es/${name}/style/index.js`,
-					},
 					// TODO: enable this later to reduce bundle size
 					// {
 					// 	libName: 'lodash',
@@ -90,9 +86,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			minify: 'esbuild',
 			outDir: 'build',
-			// Vite sourcemaps are broken in development
-			// https://github.com/highlight-run/highlight/pull/3171
-			sourcemap: env.RENDER_PREVIEW !== 'true' && mode !== 'development',
+			sourcemap: true,
 			rollupOptions: {
 				output: {
 					manualChunks: (id: string) => {
@@ -114,17 +108,6 @@ export default defineConfig(({ mode }) => {
 		},
 		css: {
 			devSourcemap: true,
-			preprocessorOptions: {
-				less: {
-					javascriptEnabled: true,
-					modifyVars: {
-						hack: `true; @import "${join(
-							__dirname,
-							'src/style/AntDesign/antd.overrides.less',
-						)}";`,
-					},
-				},
-			},
 		},
 	}
 })

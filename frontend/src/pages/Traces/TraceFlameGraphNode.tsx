@@ -9,9 +9,7 @@ import { useTrace } from '@/pages/Traces/TraceProvider'
 import { FlameGraphSpan, getTraceDurationString } from '@/pages/Traces/utils'
 
 type Props = {
-	depth: number
 	span: FlameGraphSpan
-	height: number
 	width: number
 	zoom: number
 	selectedSpanID?: string
@@ -63,17 +61,10 @@ const minWidthToDisplayText = 20
 const fontSize = 12
 
 export const TraceFlameGraphNode = memo<Props>(
-	({
-		depth,
-		span,
-		height,
-		selectedSpanID,
-		width,
-		zoom,
-		setTooltipCoordinates,
-	}) => {
+	({ span, width, zoom, setTooltipCoordinates }) => {
 		const {
 			errors,
+			hoveredSpan,
 			totalDuration,
 			selectedSpan,
 			setHoveredSpan,
@@ -82,10 +73,11 @@ export const TraceFlameGraphNode = memo<Props>(
 		const spanWidth = (span.duration / totalDuration) * width * zoom
 		const offsetX =
 			(span.startTime / totalDuration) * width * zoom + outsidePadding
-		const offsetY = depth
-			? depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
+		const offsetY = span.depth
+			? span.depth * (lineHeight + 3) + (ticksHeight + outsidePadding)
 			: ticksHeight + outsidePadding
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
+		const isHoveredSpan = hoveredSpan?.spanID === span.spanID
 		const hasError = errors.find((error) => error.span_id === span.spanID)
 		const isDbSpan = !!span.traceAttributes?.db?.system
 		const isFrontendSpan =
@@ -99,6 +91,21 @@ export const TraceFlameGraphNode = memo<Props>(
 		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
 		const color = isSelectedSpan ? theme.selectedColor : theme.color
 		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
+
+		const distanceFromParent = span.parent?.depth
+			? span.depth - span.parent.depth
+			: 0
+		const parentOffsetX = span.parent?.startTime
+			? offsetX -
+			  ((span.parent.startTime / totalDuration) * width * zoom +
+					outsidePadding)
+			: undefined
+		const parentOffsetY = span.parent?.depth
+			? offsetY -
+			  (span.parent.depth * (lineHeight + 3) +
+					(ticksHeight + outsidePadding)) -
+			  lineHeight / 2
+			: undefined
 
 		return (
 			<>
@@ -114,14 +121,31 @@ export const TraceFlameGraphNode = memo<Props>(
 						fill={fill}
 						stroke={stroke}
 						strokeDasharray={
-							hasError && !isSelectedSpan ? '4' : undefined
+							hasError && !isSelectedSpan ? '3' : undefined
 						}
 						strokeWidth="1"
-						rx="4"
+						rx="3"
 						height={lineHeight}
 						width={spanWidth}
 						data-parent-id={span.parentSpanID}
 					/>
+
+					{distanceFromParent > 1 &&
+						parentOffsetX &&
+						parentOffsetY && (
+							<line
+								x1={1}
+								y1={1}
+								x2={-parentOffsetX}
+								y2={-parentOffsetY}
+								stroke={stroke}
+								strokeWidth="1"
+								opacity={
+									isHoveredSpan || isSelectedSpan ? 1 : 0.15
+								}
+								pointerEvents="none"
+							/>
+						)}
 
 					{spanWidth > minWidthToDisplayText && (
 						<foreignObject
@@ -160,19 +184,6 @@ export const TraceFlameGraphNode = memo<Props>(
 						</foreignObject>
 					)}
 				</g>
-
-				{span.children?.map((childSpan: FlameGraphSpan) => (
-					<TraceFlameGraphNode
-						key={`${childSpan.parentSpanID}-${childSpan.spanID}`}
-						depth={depth + 1}
-						span={childSpan}
-						height={height}
-						selectedSpanID={selectedSpanID}
-						width={width}
-						zoom={zoom}
-						setTooltipCoordinates={setTooltipCoordinates}
-					/>
-				))}
 			</>
 		)
 	},

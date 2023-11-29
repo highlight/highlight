@@ -1,4 +1,4 @@
-import { Box, defaultPresets, getNow, Text } from '@highlight-run/ui'
+import { Box, defaultPresets, getNow, Text } from '@highlight-run/ui/components'
 import _ from 'lodash'
 import moment from 'moment'
 import React, { useCallback, useMemo } from 'react'
