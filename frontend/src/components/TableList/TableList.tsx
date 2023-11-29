@@ -4,6 +4,7 @@ import TextViewer from '@components/TextViewer'
 import { Box, Tag, Text } from '@highlight-run/ui/components'
 import { Props as TruncateProps } from '@highlight-run/ui/src/components/private/Truncate/Truncate'
 import { copyToClipboard } from '@util/string'
+import _ from 'lodash'
 import React, { isValidElement, ReactElement } from 'react'
 
 import * as style from './TableList.css'
@@ -30,7 +31,10 @@ export const TableList = ({
 	noDataMessage?: string | React.ReactNode
 }) => {
 	const [truncated, setTruncated] = React.useState(true)
-	const filtered = data.filter((x) => x.valueDisplayValue)
+	const filtered = _.uniqBy(
+		data.filter((x) => x.valueDisplayValue),
+		(x) => x.keyDisplayValue,
+	)
 	const items =
 		truncateable && truncated
 			? filtered.slice(0, TRUNCATED_ITEMS_LIMIT)
