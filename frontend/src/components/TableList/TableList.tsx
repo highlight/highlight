@@ -42,7 +42,7 @@ export const TableList = ({
 	return (
 		<Box display="flex" flexDirection="column" width="full">
 			<Box display="flex" flexDirection="column" gap="4" width="full">
-				{items.map((item) => {
+				{_.sortBy(items, (x) => x.keyDisplayValue).map((item) => {
 					if (!item.valueDisplayValue) {
 						return null
 					}
