@@ -111,20 +111,24 @@ export const TraceFlameGraph: React.FC = () => {
 		setTooltipCoordinates({ x, y })
 	}, [])
 
-	const updateZoom = useCallback((newZoom: number) => {
-		setZoom((prevZoom) => {
-			const newScrollPosition =
-				(svgContainerRef.current?.scrollLeft ?? 0) *
-				(newZoom / prevZoom)
+	const updateZoom = useCallback(
+		(newZoom: number, scrollPosition?: number) => {
+			setZoom((prevZoom) => {
+				const newScrollPosition =
+					scrollPosition ??
+					(svgContainerRef.current?.scrollLeft ?? 0) *
+						(newZoom / prevZoom)
 
-			setTimeout(() => {
-				svgContainerRef.current?.scrollTo(newScrollPosition, 0)
-				setX(newScrollPosition)
-			}, 0)
+				setTimeout(() => {
+					svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+					setX(newScrollPosition)
+				}, 0)
 
-			return newZoom
-		})
-	}, [])
+				return newZoom
+			})
+		},
+		[],
+	)
 
 	const handleZoom = useCallback(
 		(dz: number) => {
@@ -191,6 +195,67 @@ export const TraceFlameGraph: React.FC = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [loading])
 
+	const [dragging, setDragging] = useState(false)
+	const [initialDragX, setInitialDragX] = useState(0)
+	const [currentDragX, setCurrentDragX] = useState(0)
+
+	const handleMouseDown = useCallback(
+		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			const { clientX } = e
+			const { left } = svgContainerRef.current!.getBoundingClientRect()
+			const svgX = clientX - left + x
+
+			setDragging(true)
+			setInitialDragX(svgX)
+			setCurrentDragX(svgX)
+		},
+		[x],
+	)
+
+	const handleMouseMove = useCallback(
+		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			if (!dragging) return
+
+			const { clientX } = e
+			const { left } = svgContainerRef.current!.getBoundingClientRect()
+
+			setCurrentDragX(clientX - left + x)
+		},
+		[dragging, x],
+	)
+
+	const handleMouseUp = useCallback(
+		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			setDragging(false)
+			setCurrentDragX(0)
+			setInitialDragX(0)
+
+			const { left } = svgContainerRef.current!.getBoundingClientRect()
+			const svgX = e.clientX - left + x
+			const deltaX = svgX - initialDragX
+
+			if (Math.abs(deltaX) <= 1) return
+
+			debugger
+			const newZoom = Math.max(
+				Math.min(((width! * zoom) / (deltaX * zoom)) * zoom, MAX_ZOOM),
+				1,
+			)
+			const newScrollPosition = (initialDragX / zoom) * newZoom
+			updateZoom(newZoom, newScrollPosition)
+		},
+		[initialDragX, updateZoom, width, x, zoom],
+	)
+
 	if (loading) {
 		return (
 			<Box
@@ -229,6 +294,9 @@ export const TraceFlameGraph: React.FC = () => {
 						height={height + 20}
 						width={width * zoom}
 						style={{ display: 'block' }}
+						onMouseDown={handleMouseDown}
+						onMouseMove={handleMouseMove}
+						onMouseUp={handleMouseUp}
 					>
 						<line
 							stroke="#e4e2e4"
@@ -248,7 +316,10 @@ export const TraceFlameGraph: React.FC = () => {
 								: tick.x
 
 							return (
-								<g key={`${tick.time}-${index}`}>
+								<g
+									key={`${tick.time}-${index}`}
+									pointerEvents="none"
+								>
 									<line
 										x1={x}
 										y1={ticksHeight - 8}
@@ -296,6 +367,16 @@ export const TraceFlameGraph: React.FC = () => {
 								</Fragment>
 							)
 						})}
+
+						{dragging && (
+							<rect
+								fill="rgba(255, 255, 255, 0.5)"
+								x={initialDragX}
+								y={ticksHeight}
+								height={height}
+								width={Math.abs(currentDragX - initialDragX)}
+							/>
+						)}
 					</svg>
 				)}
 
