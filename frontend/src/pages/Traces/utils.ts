@@ -131,7 +131,9 @@ const organizeSpanInLevel = (
 		})
 	}
 
-	const children = trace.filter((s) => s.parentSpanID === span.spanID)
+	const children = trace.filter(
+		(s) => s.parentSpanID && s.parentSpanID === span.spanID,
+	)
 
 	if (children.length > 0) {
 		children.forEach((child) => {

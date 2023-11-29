@@ -189,12 +189,16 @@ export const MetadataBox = React.memo(() => {
 		const displayName = getDisplayName(session)
 		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
 
-		setSearchQuery((query) =>
-			buildQueryStateString({
+		setSearchQuery((query) => {
+			const params = session.identified
+				? { [`user_${userParam}`]: displayName }
+				: { session_device_id: String(session.fingerprint) }
+
+			return buildQueryStateString({
 				query,
-				[`user_${userParam}`]: displayName,
-			}),
-		)
+				...params,
+			})
+		})
 
 		setShowLeftPanel(true)
 	}, [session, setSearchQuery, setShowLeftPanel])

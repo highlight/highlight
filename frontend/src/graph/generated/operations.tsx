@@ -4581,6 +4581,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
 			| 'enable_ingest_sampling'
+			| 'enable_data_deletion'
 		>
 	>
 }
