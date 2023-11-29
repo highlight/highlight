@@ -44,6 +44,7 @@ def query(
 
 @pytest.mark.parametrize("success", ["true", "false"])
 def test_next_js(next_app, success, oauth_api):
+    start = datetime.utcnow()
     r = requests.get(
         "http://localhost:3005/api/edge-test", params={"success": success}, timeout=30
     )
@@ -56,7 +57,7 @@ def test_next_js(next_app, success, oauth_api):
     if success == "false":
 
         def validate(data: dict[str, any]):
-            assert len(data["error_groups_clickhouse"]["error_groups"]) >= 1
+            assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
             # check that we actually received the edge runtime error
             events = set(
                 map(
@@ -78,8 +79,8 @@ def test_next_js(next_app, success, oauth_api):
                         [
                             "error-field_timestamp",
                             "between_date",
-                            f"{(datetime.utcnow() - timedelta(minutes=15)).isoformat(timespec='milliseconds')}Z_"
-                            f"{(datetime.utcnow() + timedelta(minutes=15)).isoformat(timespec='milliseconds')}Z",
+                            f"{start.isoformat(timespec='milliseconds')}Z_"
+                            f"{(start + timedelta(minutes=15)).isoformat(timespec='milliseconds')}Z",
                         ],
                     ],
                 },
