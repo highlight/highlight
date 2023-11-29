@@ -6,12 +6,15 @@ pub mod sdk {
 }
 
 pub mod consts {
+    use crate::sdk::common::severity::HighlightLogSeverity;
+
     pub const DEFAULT_ENVIROMENT: &str = "development";
     pub const DEFAULT_VERSION: &str = "unknown";
     pub const DEFAULT_SERVICE_NAME: &str = "unknown";
     pub const ROUTE_LOGS: &str = "v1/logs";
     pub const ROUTE_TRACES: &str = "v1/traces";
     pub const DEFAULT_BACKEND: &str = "https://otel.highlight.io:4318";
+    pub const DEFAULT_LOG_SEVERITY: HighlightLogSeverity = HighlightLogSeverity::Info;
 }
 
 pub mod os {

@@ -1,18 +1,20 @@
 use std::borrow::Cow;
 use opentelemetry_api::KeyValue;
 use super::meta::consts;
+use super::severity::HighlightLogSeverity;
 
 type StringType = Cow<'static, str>;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub struct HighlightOptions {
     pub(crate) project_id: Option<StringType>,
     pub(crate) backend_url: Option<StringType>,
+    pub(crate) max_log_severity: Option<HighlightLogSeverity>,
     pub(crate) environment: Option<StringType>,
     pub(crate) version: Option<StringType>,
     pub(crate) service_name: Option<StringType>,
-    pub(crate) attributes: Option<Vec<KeyValue>>
+    pub(crate) attributes: Option<Vec<KeyValue>>,
 }
 
 impl HighlightOptions {
@@ -26,6 +28,7 @@ impl Default for HighlightOptions {
         Self {
             project_id: None,
             backend_url: Some(consts::DEFAULT_BACKEND.into()),
+            max_log_severity: Some(HighlightLogSeverity::Info),
             environment: Some(consts::DEFAULT_ENVIROMENT.into()),
             version: Some(consts::DEFAULT_VERSION.into()),
             service_name: Some(consts::DEFAULT_SERVICE_NAME.into()),
@@ -53,6 +56,15 @@ impl HighlightOptionsBuilder {
         Self {
             options: HighlightOptions {
                 backend_url: Some(url.into()),
+                ..self.options
+            }
+        }
+    }
+
+    pub fn with_max_log_severity(self, severity: HighlightLogSeverity) -> Self {
+        Self {
+            options: HighlightOptions {
+                max_log_severity: Some(severity),
                 ..self.options
             }
         }
@@ -102,13 +114,14 @@ impl HighlightOptionsBuilder {
 #[cfg(test)]
 mod tests {
     use crate::sdk::common::{attributes, meta::consts};
-    use super::HighlightOptions;
+    use super::{HighlightOptions, HighlightLogSeverity};
 
     #[test]
     fn build_default_highlight_options() {
         let options = HighlightOptions::default();
         assert_eq!(options.project_id, None);
         assert_eq!(options.backend_url.unwrap(), consts::DEFAULT_BACKEND);
+        assert_eq!(options.max_log_severity.unwrap(), consts::DEFAULT_LOG_SEVERITY);
         assert_eq!(options.environment.unwrap(), consts::DEFAULT_ENVIROMENT);
         assert_eq!(options.version.unwrap(), consts::DEFAULT_VERSION);
         assert_eq!(options.service_name.unwrap(), consts::DEFAULT_SERVICE_NAME);
@@ -119,6 +132,7 @@ mod tests {
     fn build_highlight_options_with_builder() {
         let project_id = "123abc";
         let backend_url = "https://otel.example.com:4318";
+        let severity = HighlightLogSeverity::Trace;
         let environment = "testing";
         let version = "0.1.0";
         let service_name = "highlight-options-test";
@@ -127,6 +141,7 @@ mod tests {
         ];
         let options = HighlightOptions::builder(project_id)
             .with_backend_url(backend_url)
+            .with_max_log_severity(severity)
             .with_environment(environment)
             .with_version(version)
             .with_service_name(service_name)
@@ -135,6 +150,7 @@ mod tests {
 
         assert_eq!(options.project_id.unwrap(), project_id);
         assert_eq!(options.backend_url.unwrap(), backend_url);
+        assert_eq!(options.max_log_severity.unwrap(), severity);
         assert_eq!(options.environment.unwrap(), environment);
         assert_eq!(options.version.unwrap(), version);
         assert_eq!(options.service_name.unwrap(), service_name);

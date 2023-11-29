@@ -1,5 +1,6 @@
-mod highlight;
+pub mod highlight;
 mod common;
+mod logger;
 
-pub use highlight::Highlight;
 pub use common::options::HighlightOptions;
+pub use common::severity::HighlightLogSeverity;

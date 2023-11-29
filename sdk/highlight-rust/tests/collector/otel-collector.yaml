@@ -1,0 +1,22 @@
+extensions:
+    health_check:
+receivers:
+    otlp:
+        protocols:
+            http:
+exporters:
+    file:
+        path: /tmp/highlight-sdk-out.json
+processors:
+    batch:
+service:
+    extensions: [health_check]
+    pipelines:
+        logs:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [file]
+        traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [file]
