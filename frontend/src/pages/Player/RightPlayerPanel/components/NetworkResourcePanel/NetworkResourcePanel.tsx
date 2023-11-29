@@ -336,7 +336,7 @@ function NetworkResourceDetails({
 					</Tag>
 				</Box>
 
-				{traceId && <TraceFlameGraph />}
+				{traceName && <TraceFlameGraph />}
 			</Box>
 
 			<Tabs<NetworkRequestTabs>
