@@ -58,6 +58,9 @@ let highlight_obj: Highlight
 export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
 		_debug = !!options.debug
+		if (!!highlight_obj) {
+			return
+		}
 		try {
 			highlight_obj = new Highlight(options)
 		} catch (e) {
