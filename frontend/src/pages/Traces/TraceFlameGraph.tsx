@@ -7,11 +7,11 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
-import { throttle } from 'lodash'
+import { debounce, throttle } from 'lodash'
 import {
+	BaseSyntheticEvent,
 	DragEventHandler,
 	Fragment,
-	UIEventHandler,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -31,7 +31,7 @@ import {
 
 import * as styles from './TraceFlameGraph.css'
 
-// Empty image
+// Empty image to replace drag image
 const dragImg = new Image()
 dragImg.src =
 	'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
@@ -79,7 +79,8 @@ export const TraceFlameGraph: React.FC = () => {
 				({ divider }) => totalDuration / length / divider > 1,
 			) ?? timeUnits[timeUnits.length - 2]
 
-		const scrollPercent = x / svgContainerRef.current!.scrollWidth
+		const scrollPercent =
+			x / Math.max(svgContainerRef.current!.scrollWidth, 1)
 		const ticksVisibleAtX = Math.round(length * scrollPercent)
 		const minIndex = Math.max(ticksVisibleAtX - MAX_TICKS / 2, 0)
 		const maxIndex = Math.min(ticksVisibleAtX + MAX_TICKS / 2, length - 1)
@@ -110,20 +111,13 @@ export const TraceFlameGraph: React.FC = () => {
 		setTooltipCoordinates({ x, y })
 	}, [])
 
-	const handleZoom = useCallback((dz: number) => {
+	const updateZoom = useCallback((newZoom: number) => {
 		setZoom((prevZoom) => {
-			const change = dz * (prevZoom / 4)
-			const newZoom = Math.min(
-				Math.max(prevZoom + change / 1000, 1),
-				MAX_ZOOM,
-			)
-
 			const newScrollPosition =
 				(svgContainerRef.current?.scrollLeft ?? 0) *
 				(newZoom / prevZoom)
 
 			setTimeout(() => {
-				// TODO: Fix ticks not showing after clicking on zoom bar
 				svgContainerRef.current?.scrollTo(newScrollPosition, 0)
 				setX(newScrollPosition)
 			}, 0)
@@ -131,27 +125,45 @@ export const TraceFlameGraph: React.FC = () => {
 			return newZoom
 		})
 	}, [])
+
+	const handleZoom = useCallback(
+		(dz: number) => {
+			const change = dz * (zoom / 4)
+			const newZoom = Math.min(
+				Math.max(zoom + change / MAX_ZOOM, 1),
+				MAX_ZOOM,
+			)
+
+			updateZoom(newZoom)
+		},
+		[updateZoom, zoom],
+	)
 	const throttledZoom = useRef(throttle(handleZoom, 50))
 
-	const handleScroll: UIEventHandler = useCallback((e) => {
-		const scrollLeft = e.currentTarget?.scrollLeft
-		if (scrollLeft !== undefined) {
-			setX(e.currentTarget.scrollLeft)
-		}
-	}, [])
-	const throttledScrollHandler = useRef(throttle(handleScroll, 50))
+	const handleScroll = useCallback(
+		(currentTarget: BaseSyntheticEvent['currentTarget']) => {
+			const scrollLeft = currentTarget?.scrollLeft
+			if (scrollLeft !== undefined) {
+				setX(currentTarget.scrollLeft)
+			}
+		},
+		[],
+	)
 
-	const handleDrag: DragEventHandler<HTMLElement> = useCallback((e) => {
-		e.preventDefault()
-		e.stopPropagation()
+	const handleDrag: DragEventHandler<HTMLElement> = useCallback(
+		(e) => {
+			e.preventDefault()
+			e.stopPropagation()
 
-		const { clientX } = e
-		if (!clientX) return
+			const { clientX } = e
+			if (!clientX) return
 
-		const { left, width } = zoomBar.current!.getBoundingClientRect()
-		const percent = Math.max(0, Math.min(1, (clientX - left) / width))
-		setZoom(percent * MAX_ZOOM)
-	}, [])
+			const { left, width } = zoomBar.current!.getBoundingClientRect()
+			const percent = Math.max(0, Math.min(1, (clientX - left) / width))
+			updateZoom(Math.max(percent * MAX_ZOOM, 1))
+		},
+		[updateZoom],
+	)
 	const throttledDragHandler = useRef(throttle(handleDrag, 50))
 
 	useHTMLElementEvent(
@@ -207,7 +219,9 @@ export const TraceFlameGraph: React.FC = () => {
 					styledHorizontalScrollbar,
 					styles.flameGraph,
 				)}
-				onScroll={throttledScrollHandler.current}
+				onScroll={({ currentTarget }) => {
+					debounce(handleScroll, 50)(currentTarget)
+				}}
 			>
 				{width && (
 					<svg
