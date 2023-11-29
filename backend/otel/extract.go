@@ -29,6 +29,7 @@ type extractedFields struct {
 	sessionID      string
 	requestID      string
 	logBody        string
+	environment    string
 	source         modelInputs.LogSource
 	serviceName    string
 	serviceVersion string
@@ -226,6 +227,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 			fields.metricEventValue = float64Value
 		}
 		delete(fields.attrs, highlight.MetricEventValue)
+	}
+
+	if val, ok := fields.attrs[highlight.EnvironmentAttribute]; ok {
+		fields.environment = val
+		delete(fields.attrs, highlight.EnvironmentAttribute)
 	}
 
 	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map

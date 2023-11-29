@@ -83,6 +83,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 			Name:    fields.serviceName,
 			Version: fields.serviceVersion,
 		},
+		Environment: &fields.environment,
 	}
 	if fields.sessionID != "" {
 		return false, err
