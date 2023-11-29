@@ -12,19 +12,6 @@ import {
 	textStyle,
 	Title,
 } from '../components/alerts'
-import { Session, SessionPreview } from '../components/sessions'
-
-const sessionExample = {
-	url: 'https://app.highlight.io/1/sessions/123',
-	identifier: 'jay@highlight.io',
-	screenshotUrl: 'https://zane.test/404',
-	activityGraphUrl:
-		'https://static.highlight.io/assets/session-insights/activity.png',
-	avatarUrl:
-		'https://lh3.googleusercontent.com/a-/AOh14Gg3zY3_wfixRrZjjMuj2eTrBAOKDZrDWeYlHsjL=s96-c',
-	country: 'Germany',
-	activeLength: '1h 25m',
-}
 
 type UserProperty = {
 	key: string
@@ -35,7 +22,7 @@ export interface TrackUserPropertiesAlertEmailProps {
 	alertLink?: string
 	alertName?: string
 	projectName?: string
-	session?: Session
+	sessionLink?: string
 	userIdentifier?: string
 	userProperties?: UserProperty[]
 }
@@ -44,7 +31,7 @@ export const TrackUserPropertiesAlertEmail = ({
 	alertLink = 'https://localhost:3000/1/alerts/sessions/1',
 	alertName = 'Track Event Alert',
 	projectName = 'Highlight Production (app.highlight.io)',
-	session = sessionExample,
+	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
 	userIdentifier = '1',
 	userProperties = [
 		{
@@ -81,10 +68,7 @@ export const TrackUserPropertiesAlertEmail = ({
 				))}
 			</Section>
 
-			<Break />
-
-			<SessionPreview session={session} hideViewSessionButton />
-			<CtaLink href={session.url} label="Open" />
+			<CtaLink href={sessionLink} label="View session" />
 		</AlertContainer>
 
 		<Break />

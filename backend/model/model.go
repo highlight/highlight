@@ -2151,6 +2151,8 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 	frontendURL := os.Getenv("FRONTEND_URI")
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
+
 	alertType := ""
 	subjectLine := ""
 	identifier := input.UserIdentifier
@@ -2164,14 +2166,12 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 		identifier = "Someone"
 	}
 
-	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
-
 	templateData := map[string]interface{}{
 		"alertLink":     alertUrl,
 		"alertName":     obj.Name,
 		"projectName":   *input.Project.Name,
 		"userIdentifer": identifier,
-		"session":       "TODO",
+		"sessionLink":   sessionURL,
 	}
 
 	switch *obj.Type {
@@ -2212,10 +2212,6 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 	emailHtml, err := s.FetchReactEmailHTML(ctx, alertType, templateData)
 
 	for _, email := range emailsToNotify {
-
-		// send email via email method
-		// Email.SendReactAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine)
-
 		if err := Email.SendReactEmailAlert(ctx, mailClient, *email, emailHtml, subjectLine); err != nil {
 			log.WithContext(ctx).Error(err)
 
