@@ -32,9 +32,7 @@ export const POST = withEdgeHighlight(async function POST(
 	})
 })
 
-export const PUT = withAppRouterHighlight(async function GET(
-	request: NextRequest,
-) {
+export const PUT = withEdgeHighlight(async function GET(request: NextRequest) {
 	try {
 		throw new Error('yo')
 	} catch (error: any) {
