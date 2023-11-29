@@ -245,7 +245,6 @@ export const TraceFlameGraph: React.FC = () => {
 
 			if (deltaX <= 1) return
 
-			debugger
 			const newZoom = Math.max(
 				Math.min(((width! * zoom) / (deltaX * zoom)) * zoom, MAX_ZOOM),
 				1,
