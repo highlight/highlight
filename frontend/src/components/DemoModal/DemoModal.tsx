@@ -9,6 +9,7 @@ import {
 } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
+import { getAttributionData } from '@util/attribution'
 import { Divider } from 'antd'
 import React from 'react'
 import { Helmet } from 'react-helmet'
@@ -34,13 +35,19 @@ export const DemoModal = () => {
 			setError('Please use your work email')
 			return
 		}
+		let attribution = getAttributionData()
+		try {
+			const parsedReferral = JSON.parse(attribution.referral)
+			attribution = { ...attribution, ...parsedReferral }
+		} catch (e) {}
 		analytics.identify(email, {
 			// hubspot attribute to trigger sequence for this contact
 			demo_sign_up: true,
 			referral_url: window.location.href.split('?')[0],
 			event: 'demo-email-submit',
+			...attribution,
 		})
-		analytics.track('demo-email-submit', { email })
+		analytics.track('demo-email-submit', { email, ...attribution })
 		setVisible(false)
 	}
 
