@@ -1,6 +1,5 @@
 import logging
 import os
-import signal
 import subprocess
 import time
 
@@ -77,22 +76,22 @@ def next_dev(node_js_bin):
     finally:
         proc.terminate()
         stdout, stderr = proc.communicate()
-        print("next app output")
+        logging.info("next app output")
         for line in stdout.splitlines():
-            print(line)
+            logging.info(line)
         for line in stderr.splitlines():
-            print(line)
+            logging.info(line)
 
 
 @pytest.fixture(scope="session")
 def next_prod(node_js_bin):
     proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "build"])
     stdout, stderr = proc.communicate()
-    print("next build output")
+    logging.info("next build output")
     for line in stdout.splitlines():
-        print(line)
+        logging.info(line)
     for line in stderr.splitlines():
-        print(line)
+        logging.info(line)
 
     proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "start"])
     try:
@@ -110,11 +109,11 @@ def next_prod(node_js_bin):
     finally:
         proc.terminate()
         stdout, stderr = proc.communicate()
-        print("next app output")
+        logging.info("next app output")
         for line in stdout.splitlines():
-            print(line)
+            logging.info(line)
         for line in stderr.splitlines():
-            print(line)
+            logging.info(line)
 
 
 @pytest.fixture(scope="session", params=["next_dev", "next_prod"])
