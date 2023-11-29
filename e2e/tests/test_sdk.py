@@ -8,11 +8,11 @@ from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_SESSIONS_CLICKHOUSE
 
 
 def query(
-    oauth_api: tuple[str, str],
-    operation_name: str,
-    query: str,
-    variables: dict[str, any],
-    fn: Optional[Callable[[dict[str, any]], None]] = None,
+        oauth_api: tuple[str, str],
+        operation_name: str,
+        query: str,
+        variables: dict[str, any],
+        fn: Optional[Callable[[dict[str, any]], None]] = None,
 ):
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
@@ -43,10 +43,16 @@ def query(
 
 
 @pytest.mark.parametrize("success", ["true", "false"])
-def test_next_js(next_app, success, oauth_api):
+@pytest.mark.parametrize("endpoint,expected_error", [
+    ("/api/page-router-test", "Error: /pages/api/page-router-test.ts (Page Router)"),
+    ("/api/page-router-edge-test", "Error: /api/page-router-edge-test (Edge Runtime)"),
+    ("/api/app-router-test", "Error: /api/app-router-test (App Router)"),
+    ("/api/edge-test", "Error: /api/edge-test (Edge Runtime)"),
+])
+def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
     r = requests.get(
-        "http://localhost:3005/api/edge-test", params={"success": success}, timeout=30
+        f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
     )
     if success == "true":
         assert r.ok
@@ -55,7 +61,6 @@ def test_next_js(next_app, success, oauth_api):
 
     # check that the error came thru to highlight
     if success == "false":
-
         def validate(data: dict[str, any]):
             assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
             # check that we actually received the edge runtime error
@@ -65,7 +70,7 @@ def test_next_js(next_app, success, oauth_api):
                     data["error_groups_clickhouse"]["error_groups"],
                 )
             )
-            assert "Error: /api/edge-test (Edge Runtime)" in events
+            assert expected_error in events
 
         query(
             oauth_api,
