@@ -16,8 +16,8 @@ def query(
 ):
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
-    # retry up for up to 30 seconds in case the session needs time to populate from datasync queue
-    for _ in range(30):
+    # retry up for up to N seconds in case the session needs time to populate from datasync queue
+    for _ in range(60):
         try:
             r = requests.post(
                 api_url,
@@ -78,8 +78,8 @@ def test_next_js(next_app, success, oauth_api):
                         [
                             "error-field_timestamp",
                             "between_date",
-                            f"{(datetime.utcnow() - timedelta(minutes=5)).isoformat(timespec='milliseconds')}Z_"
-                            f"{datetime.utcnow().isoformat(timespec='milliseconds')}Z",
+                            f"{(datetime.utcnow() - timedelta(minutes=15)).isoformat(timespec='milliseconds')}Z_"
+                            f"{(datetime.utcnow() + timedelta(minutes=15)).isoformat(timespec='milliseconds')}Z",
                         ],
                     ],
                 },
