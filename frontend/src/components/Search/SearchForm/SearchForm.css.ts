@@ -97,7 +97,7 @@ export const comboboxPopover = style({
 	flexGrow: 1,
 	maxWidth: 600,
 	maxHeight: 'min(var(--popover-available-height,300px),300px)',
-	zIndex: 1,
+	zIndex: 10,
 })
 
 export const comboboxItem = style({

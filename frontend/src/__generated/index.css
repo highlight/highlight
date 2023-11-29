@@ -5945,7 +5945,7 @@ body {
   flex-grow: 1;
   max-width: 600px;
   max-height: min(var(--popover-available-height,300px), 300px);
-  z-index: 1;
+  z-index: 10;
 }
 ._10xh0c28 {
   cursor: pointer;
@@ -6297,9 +6297,6 @@ body {
 ._75g8nf6 {
   border: 0 !important;
   border-radius: 0;
-}
-._1f99hkr0 {
-  display: flex;
 }
 .g2tqod0 {
   background-color: var(--_1pyqka96);
