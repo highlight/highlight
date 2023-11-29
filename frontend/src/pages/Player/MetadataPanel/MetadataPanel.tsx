@@ -267,34 +267,37 @@ const MetadataPanel = () => {
 				"Highlight detected a browser extension is installed and might interfere with your app's behavior.",
 		}),
 	)
-
+	if (!session) {
+		return (
+			<Box cssClass={style.container}>
+				<LoadingBox />
+			</Box>
+		)
+	}
 	return (
 		<Box cssClass={style.container}>
-			{!session ? (
-				<LoadingBox />
-			) : (
-				<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
-					{Object.entries({
-						[MetadataSection.Session]: sessionData,
-						[MetadataSection.User]: userData,
-						[MetadataSection.Device]: deviceData,
-						[MetadataSection.Environment]: environmentData,
-					}).map(([key, value]) => {
-						return (
-							<CollapsibleSection key={key} title={key}>
-								<Box
-									px="12"
-									display="flex"
-									justifyContent="space-between"
-									alignItems="center"
-								>
-									<TableList data={value} />
-								</Box>
-							</CollapsibleSection>
-						)
-					})}
-				</Box>
-			)}
+			<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
+				{Object.entries({
+					[MetadataSection.Session]: sessionData,
+					[MetadataSection.User]: userData,
+					[MetadataSection.Device]: deviceData,
+					[MetadataSection.Environment]: environmentData,
+				}).map(([key, value]) => {
+					return (
+						<CollapsibleSection title={key} key={key}>
+							<Box
+								key={`${session.secure_id}-${key}`}
+								px="12"
+								display="flex"
+								justifyContent="space-between"
+								alignItems="center"
+							>
+								<TableList data={value} />
+							</Box>
+						</CollapsibleSection>
+					)
+				})}
+			</Box>
 		</Box>
 	)
 }
