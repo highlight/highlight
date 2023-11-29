@@ -7,7 +7,7 @@ import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils
 import { bytesToPrettyString } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
-import { capitalize } from 'lodash'
+import _, { capitalize } from 'lodash'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -267,34 +267,47 @@ const MetadataPanel = () => {
 				"Highlight detected a browser extension is installed and might interfere with your app's behavior.",
 		}),
 	)
+	if (!session) {
+		return (
+			<Box cssClass={style.container}>
+				<LoadingBox />
+			</Box>
+		)
+	}
 
+	const data = Object.entries({
+		[MetadataSection.Session]: sessionData,
+		[MetadataSection.User]: userData,
+		[MetadataSection.Device]: deviceData,
+		[MetadataSection.Environment]: environmentData,
+	}).map(([key, values]) => {
+		return [
+			key,
+			_.sortBy(
+				_.uniqBy(values, (x) => x.keyDisplayValue),
+				(x) => x.keyDisplayValue,
+			),
+		] as const
+	})
 	return (
 		<Box cssClass={style.container}>
-			{!session ? (
-				<LoadingBox />
-			) : (
-				<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
-					{Object.entries({
-						[MetadataSection.Session]: sessionData,
-						[MetadataSection.User]: userData,
-						[MetadataSection.Device]: deviceData,
-						[MetadataSection.Environment]: environmentData,
-					}).map(([key, value]) => {
-						return (
-							<CollapsibleSection key={key} title={key}>
-								<Box
-									px="12"
-									display="flex"
-									justifyContent="space-between"
-									alignItems="center"
-								>
-									<TableList data={value} />
-								</Box>
-							</CollapsibleSection>
-						)
-					})}
-				</Box>
-			)}
+			<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
+				{data.map(([key, value]) => {
+					return (
+						<CollapsibleSection title={key} key={key}>
+							<Box
+								key={`${session.secure_id}-${key}`}
+								px="12"
+								display="flex"
+								justifyContent="space-between"
+								alignItems="center"
+							>
+								<TableList data={value} />
+							</Box>
+						</CollapsibleSection>
+					)
+				})}
+			</Box>
 		</Box>
 	)
 }
