@@ -146,7 +146,7 @@ function NetworkResourceDetails({
 }) {
 	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
-	const { selectedSpan, traceId, traceName } = useTrace()
+	const { selectedSpan, traceName } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
