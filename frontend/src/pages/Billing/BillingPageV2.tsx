@@ -98,11 +98,17 @@ const UsageCard = ({
 	)
 
 	const costFormatted =
-		'$ ' + toDecimal(dinero({ amount: costCents, currency: USD }))
+		'$ ' +
+		toDecimal(dinero({ amount: Math.round(costCents), currency: USD }))
 	const limitFormatted =
 		billingLimitCents !== undefined
 			? '$ ' +
-			  toDecimal(dinero({ amount: billingLimitCents, currency: USD }))
+			  toDecimal(
+					dinero({
+						amount: Math.round(billingLimitCents),
+						currency: USD,
+					}),
+			  )
 			: undefined
 	const usageRatio = usageLimitAmount && usageAmount / usageLimitAmount
 	const isOverage = usageRatio ? usageRatio >= 1 : false
@@ -344,7 +350,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		: 0
 
 	const totalFormatted =
-		'$ ' + toDecimal(dinero({ amount: totalCents, currency: USD }))
+		'$ ' +
+		toDecimal(dinero({ amount: Math.round(totalCents), currency: USD }))
 
 	const sessionsLimit = isPaying
 		? data?.workspace?.sessions_max_cents ?? undefined
@@ -363,9 +370,11 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const hasExtras =
 		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
 	const baseAmountFormatted =
-		'$' + toDecimal(dinero({ amount: baseAmount, currency: USD }))
+		'$' +
+		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
 	const discountAmountFormatted =
-		'$' + toDecimal(dinero({ amount: discountAmount, currency: USD }))
+		'$' +
+		toDecimal(dinero({ amount: Math.round(discountAmount), currency: USD }))
 
 	return (
 		<Box width="full" display="flex" justifyContent="center">
