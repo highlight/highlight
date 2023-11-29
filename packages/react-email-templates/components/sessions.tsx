@@ -3,7 +3,7 @@ import * as React from 'react'
 
 export interface Session {
 	activeLength: string
-	activityGraphUrl?: string
+	activityGraphUrl: string
 	avatarUrl: string
 	country: string
 	identifier: string

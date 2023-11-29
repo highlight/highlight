@@ -50,5 +50,4 @@ type SessionInsightsData struct {
 	DryRun              bool                 `json:"dryRun"`
 	ToEmail             string               `json:"toEmail"`
 	UnsubscribeUrl      string               `json:"unsubscribeUrl"`
-	Template            string               `json:"template"`
 }
