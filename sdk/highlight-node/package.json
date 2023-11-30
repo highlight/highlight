@@ -24,9 +24,6 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"dependencies": {
-		"highlight.run": "workspace:*"
-	},
 	"devDependencies": {
 		"@opentelemetry/api": "^1.7.0",
 		"@opentelemetry/auto-instrumentations-node": "^0.40.1",
@@ -45,6 +42,7 @@
 		"@types/lru-cache": "^7.10.10",
 		"@types/node": "17.0.13",
 		"encoding": "^0.1.13",
+		"highlight.run": "workspace:*",
 		"jest": "^29.2.2",
 		"rollup": "^4.1.4",
 		"ts-jest": "^29.0.3",
