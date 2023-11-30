@@ -1,0 +1,9 @@
+{
+	"name": "e2e-logux-client",
+	"packageManager": "yarn@3.5.0",
+	"dependencies": {
+		"@logux/client": "^0.20.1",
+		"@logux/core": "^0.8.5",
+		"nanostores": "^0.9.5"
+	}
+}

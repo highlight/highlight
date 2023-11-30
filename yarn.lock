@@ -14226,6 +14226,89 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@logux/actions@npm:^0.3.0, @logux/actions@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "@logux/actions@npm:0.3.1"
+  peerDependencies:
+    "@logux/core": ^0.8.0
+  checksum: 458805493c12774981b2e5f88237c44cc71cb70b232e49409077d5a2ce0327b7add84cd292a5a9e0f4b08ede58c4a0795c9a663c20a41d1816c127e593eaccf4
+  languageName: node
+  linkType: hard
+
+"@logux/client@npm:^0.20.1":
+  version: 0.20.1
+  resolution: "@logux/client@npm:0.20.1"
+  dependencies:
+    "@logux/actions": ^0.3.0
+    fast-json-stable-stringify: ^2.1.0
+    nanodelay: ^2.0.2
+    nanoevents: ^8.0.0
+    nanoid: ^4.0.2
+  peerDependencies:
+    "@logux/core": ^0.8.0
+    "@nanostores/preact": ">=0.0.0"
+    "@nanostores/react": ">=0.0.0"
+    "@nanostores/vue": ">=0.0.0"
+    nanostores: ^0.9.0
+    preact: ">=10.0.0"
+    react: ">=18.0.0"
+    react-dom: ">=16.8.0"
+    vue: ">=3.3.2"
+  peerDependenciesMeta:
+    "@nanostores/preact":
+      optional: true
+    "@nanostores/react":
+      optional: true
+    "@nanostores/vue":
+      optional: true
+    preact:
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    vue:
+      optional: true
+  checksum: bc76d1881f8ce992d549096730689dbf1f03e574d1ab7ed630b7c32c457c00d23bf4c2fdd2fbd20dd89ddaa1508359403d39a840da33cf735bf08a6f842ab83e
+  languageName: node
+  linkType: hard
+
+"@logux/core@npm:^0.8.5":
+  version: 0.8.5
+  resolution: "@logux/core@npm:0.8.5"
+  dependencies:
+    nanoevents: ^7.0.1
+  checksum: ce8573c4c3ce28990569d6d917ffbcb73ea878fcc018364e977e7d433a6bfa227603a7d91404d873376201824a4466fc60469f5738cc9f2dce2c07a37a95c600
+  languageName: node
+  linkType: hard
+
+"@logux/server@npm:^0.12.6":
+  version: 0.12.6
+  resolution: "@logux/server@npm:0.12.6"
+  dependencies:
+    "@logux/actions": ^0.3.1
+    "@logux/core": ^0.8.5
+    JSONStream: ^1.3.5
+    cookie: ^0.5.0
+    dotenv: ^16.3.1
+    fast-glob: ^3.3.1
+    ip: ^1.1.8
+    nanodelay: ^2.0.2
+    nanoevents: ^8.0.0
+    nanoid: ^4.0.2
+    node-fetch: ^3.3.2
+    picocolors: ^1.0.0
+    pino: 8.15.0
+    pino-abstract-transport: ^1.0.0
+    semver: ^7.5.4
+    strip-ansi: ^7.1.0
+    url-pattern: ^1.0.3
+    ws: ^8.13.0
+    yyyy-mm-dd: ^1.0.2
+  checksum: 992e4f8becdee853c839ed8909c4a32366e7e77a499e8b276634768cf6a5b5cfd1fc921cab9627131a53a4192c2ef3c38767ce0ed64da614ad5022c5b49f94ee
+  languageName: node
+  linkType: hard
+
 "@lukeed/csprng@npm:^1.0.0":
   version: 1.0.1
   resolution: "@lukeed/csprng@npm:1.0.1"
@@ -26021,6 +26104,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"JSONStream@npm:^1.3.5":
+  version: 1.3.5
+  resolution: "JSONStream@npm:1.3.5"
+  dependencies:
+    jsonparse: ^1.2.0
+    through: ">=2.2.7 <3"
+  bin:
+    JSONStream: ./bin.js
+  checksum: 2605fa124260c61bad38bb65eba30d2f72216a78e94d0ab19b11b4e0327d572b8d530c0c9cc3b0764f727ad26d39e00bf7ebad57781ca6368394d73169c59e46
+  languageName: node
+  linkType: hard
+
 "abab@npm:^2.0.3, abab@npm:^2.0.5":
   version: 2.0.5
   resolution: "abab@npm:2.0.5"
@@ -32807,6 +32902,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dotenv@npm:^16.3.1":
+  version: 16.3.1
+  resolution: "dotenv@npm:16.3.1"
+  checksum: 15d75e7279018f4bafd0ee9706593dd14455ddb71b3bcba9c52574460b7ccaf67d5cf8b2c08a5af1a9da6db36c956a04a1192b101ee102a3e0cf8817bbcf3dfd
+  languageName: node
+  linkType: hard
+
 "dset@npm:^3.1.2":
   version: 3.1.2
   resolution: "dset@npm:3.1.2"
@@ -32880,6 +32982,25 @@ __metadata:
   dependencies:
     "@highlight-run/node": "workspace:*"
     express: ^4.18.2
+  languageName: unknown
+  linkType: soft
+
+"e2e-logux-client@workspace:e2e/logux/client":
+  version: 0.0.0-use.local
+  resolution: "e2e-logux-client@workspace:e2e/logux/client"
+  dependencies:
+    "@logux/client": ^0.20.1
+    "@logux/core": ^0.8.5
+    nanostores: ^0.9.5
+  languageName: unknown
+  linkType: soft
+
+"e2e-logux-server@workspace:e2e/logux/server":
+  version: 0.0.0-use.local
+  resolution: "e2e-logux-server@workspace:e2e/logux/server"
+  dependencies:
+    "@logux/core": ^0.8.5
+    "@logux/server": ^0.12.6
   languageName: unknown
   linkType: soft
 
@@ -35585,6 +35706,19 @@ __metadata:
     merge2: ^1.3.0
     micromatch: ^4.0.4
   checksum: b6f3add6403e02cf3a798bfbb1183d0f6da2afd368f27456010c0bc1f9640aea308243d4cb2c0ab142f618276e65ecb8be1661d7c62a7b4e5ba774b9ce5432e5
+  languageName: node
+  linkType: hard
+
+"fast-glob@npm:^3.3.1":
+  version: 3.3.2
+  resolution: "fast-glob@npm:3.3.2"
+  dependencies:
+    "@nodelib/fs.stat": ^2.0.2
+    "@nodelib/fs.walk": ^1.2.3
+    glob-parent: ^5.1.2
+    merge2: ^1.3.0
+    micromatch: ^4.0.4
+  checksum: 900e4979f4dbc3313840078419245621259f349950411ca2fa445a2f9a1a6d98c3b5e7e0660c5ccd563aa61abe133a21765c6c0dec8e57da1ba71d8000b05ec1
   languageName: node
   linkType: hard
 
@@ -43035,6 +43169,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jsonparse@npm:^1.2.0":
+  version: 1.3.1
+  resolution: "jsonparse@npm:1.3.1"
+  checksum: 6514a7be4674ebf407afca0eda3ba284b69b07f9958a8d3113ef1005f7ec610860c312be067e450c569aab8b89635e332cee3696789c750692bb60daba627f4d
+  languageName: node
+  linkType: hard
+
 "jsonwebtoken@npm:9.0.0":
   version: 9.0.0
   resolution: "jsonwebtoken@npm:9.0.0"
@@ -46162,6 +46303,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nanodelay@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "nanodelay@npm:2.0.2"
+  checksum: 459fb58e3b9d262a16a5f5ab63ff71ca1f83a61c712b5ba7495d03d4d28dc96dcef3bbc282e277187d05e4ccfa7345e7c0082dcc76ae9790bb416eb2f6e627ae
+  languageName: node
+  linkType: hard
+
+"nanoevents@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "nanoevents@npm:7.0.1"
+  checksum: 5c0704cfeb7af9052a70b1ce53e556e3743cefbbd09758121e0062e4fac2cf70ebea1e6b1414f18a81975ee1bdf4af05e13c82e1b015975493ef8ef34737787d
+  languageName: node
+  linkType: hard
+
+"nanoevents@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "nanoevents@npm:8.0.0"
+  checksum: 46806fb1bca823de1dac0ec38352c9ebd25dd9f2186eada6357f2941983203c1c77fc383e460852a139b4ced569af2a2777f82cb574f705fd6f8402497f4bfc2
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:3.3.3":
   version: 3.3.3
   resolution: "nanoid@npm:3.3.3"
@@ -46189,7 +46351,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^4.0.0":
+"nanoid@npm:^4.0.0, nanoid@npm:^4.0.2":
   version: 4.0.2
   resolution: "nanoid@npm:4.0.2"
   bin:
@@ -46204,6 +46366,13 @@ __metadata:
   dependencies:
     picocolors: ^1.0.0
   checksum: 797f0a7c8b053d6fb5188d73e63bab44dec97ff0e7b67ac3d55e9356c6fe002f5af691a9d1232ca086e1fb19301d11c979dc5b0c56e6700004a96c19dfded8f0
+  languageName: node
+  linkType: hard
+
+"nanostores@npm:^0.9.5":
+  version: 0.9.5
+  resolution: "nanostores@npm:0.9.5"
+  checksum: 22b44014535279f258976f2d15070ef48736254a370e43b8f1a6e613938c0c4bf0edbf584ca016a37bc7663a488d6f8a912ae9dc2333f88ae566dcf0af725f79
   languageName: node
   linkType: hard
 
@@ -48360,6 +48529,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pino-abstract-transport@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "pino-abstract-transport@npm:1.1.0"
+  dependencies:
+    readable-stream: ^4.0.0
+    split2: ^4.0.0
+  checksum: cc84caabee5647b5753ae484d5f63a1bca0f6e1791845e2db2b6d830a561c2b5dd1177720f68d78994c8a93aecc69f2729e6ac2bc871a1bf5bb4b0ec17210668
+  languageName: node
+  linkType: hard
+
 "pino-abstract-transport@npm:v0.5.0":
   version: 0.5.0
   resolution: "pino-abstract-transport@npm:0.5.0"
@@ -48432,7 +48611,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pino@npm:^8.15.0":
+"pino@npm:8.15.0, pino@npm:^8.15.0":
   version: 8.15.0
   resolution: "pino@npm:8.15.0"
   dependencies:
@@ -56853,6 +57032,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"strip-ansi@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "strip-ansi@npm:7.1.0"
+  dependencies:
+    ansi-regex: ^6.0.1
+  checksum: 859c73fcf27869c22a4e4d8c6acfe690064659e84bef9458aa6d13719d09ca88dcfd40cbf31fd0be63518ea1a643fe070b4827d353e09533a5b0b9fd4553d64d
+  languageName: node
+  linkType: hard
+
 "strip-bom-buf@npm:^2.0.0":
   version: 2.0.0
   resolution: "strip-bom-buf@npm:2.0.0"
@@ -58025,7 +58213,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"through@npm:2, through@npm:^2.3.6, through@npm:^2.3.8":
+"through@npm:2, through@npm:>=2.2.7 <3, through@npm:^2.3.6, through@npm:^2.3.8":
   version: 2.3.8
   resolution: "through@npm:2.3.8"
   checksum: a38c3e059853c494af95d50c072b83f8b676a9ba2818dcc5b108ef252230735c54e0185437618596c790bbba8fcdaef5b290405981ffa09dce67b1f1bf190cbd
@@ -60046,6 +60234,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"url-pattern@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "url-pattern@npm:1.0.3"
+  checksum: 7f4c57707240f0eb18f4654c4206b8669de037594beb86abd090d4e3dacd4751fcb3a04e271a74cbbe2124bc573e857d8c0588c4accb17da03a62082a58559fc
+  languageName: node
+  linkType: hard
+
 "url@npm:0.10.3":
   version: 0.10.3
   resolution: "url@npm:0.10.3"
@@ -61681,6 +61876,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ws@npm:^8.13.0":
+  version: 8.14.2
+  resolution: "ws@npm:8.14.2"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 3ca0dad26e8cc6515ff392b622a1467430814c463b3368b0258e33696b1d4bed7510bc7030f7b72838b9fdeb8dbd8839cbf808367d6aae2e1d668ce741d4308b
+  languageName: node
+  linkType: hard
+
 "xdg-app-paths@npm:5.1.0":
   version: 5.1.0
   resolution: "xdg-app-paths@npm:5.1.0"
@@ -62212,6 +62422,13 @@ __metadata:
     load-script: ^1.0.0
     sister: ^3.0.0
   checksum: 42693af5d7cef728fb9d60f31e79bb9551fc6ec594fdcec45faa7b54f5b5f9800d3cda591dcc57ed5e6fa201b53a08571f776fbe4df919759b05e5a25aec9754
+  languageName: node
+  linkType: hard
+
+"yyyy-mm-dd@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "yyyy-mm-dd@npm:1.0.2"
+  checksum: a56d75fe7497885c193eaa4438b621109af8d2bf655e5e8f33b973535cf18d5cbb97ed9cd30075876d338d441565fe0929d8d155912465fc5ef3efaf118d0a9f
   languageName: node
   linkType: hard
 
