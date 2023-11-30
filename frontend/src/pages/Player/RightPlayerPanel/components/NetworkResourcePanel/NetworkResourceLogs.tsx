@@ -34,6 +34,8 @@ import { useParams } from '@/util/react-router/useParams'
 // logs for.
 const TIME_BUFFER = 200000
 
+const SEARCH_AND_HEADER_HEIGHT = 60
+
 export const NetworkResourceLogs: React.FC<{
 	resource: NetworkResource
 	sessionStartTime: number
@@ -149,7 +151,7 @@ export const NetworkResourceLogs: React.FC<{
 								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-								bodyHeight="calc(100% - 28px)"
+								bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}
 							/>
 						)}
 					</Box>

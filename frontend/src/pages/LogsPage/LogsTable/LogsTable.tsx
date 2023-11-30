@@ -320,7 +320,7 @@ const LogsTableInner = ({
 			</Table.Head>
 			<Table.Body
 				ref={bodyRef}
-				overflowY="scroll"
+				overflowY="auto"
 				style={{ height: bodyHeight }}
 				onScroll={handleFetchMoreWhenScrolled}
 			>
