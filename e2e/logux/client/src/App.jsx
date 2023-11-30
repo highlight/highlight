@@ -1,9 +1,19 @@
-import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import { useDispatch } from '@logux/redux'
 import { store } from './store'
+import { H } from 'highlight.run'
 import './App.css'
+
+H.init('3', {
+	backendUrl: 'https://localhost:8082/public',
+	serviceName: 'logux-client',
+	tracingOrigins: ['localhost:5173', 'localhost:31337'],
+	networkRecording: {
+		enabled: true,
+		recordHeadersAndBody: true,
+	},
+})
 
 function App() {
 	const { sync } = useDispatch()

@@ -13,6 +13,7 @@
 		"@logux/client": "^0.20.1",
 		"@logux/core": "^0.8.5",
 		"@logux/redux": "^0.8.4",
+		"highlight.run": "workspace:*",
 		"nanostores": "^0.9.5",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",

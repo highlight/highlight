@@ -6,6 +6,7 @@
 		"start": "node main.js"
 	},
 	"dependencies": {
+		"@highlight-run/node": "workspace:*",
 		"@logux/core": "^0.8.5",
 		"@logux/server": "^0.12.6"
 	}
