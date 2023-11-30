@@ -746,6 +746,7 @@ type Log {
 	source: String
 	serviceName: String
 	serviceVersion: String
+	environment: String
 }
 
 type LogEdge implements Edge {
@@ -889,6 +890,7 @@ enum ReservedLogKey {
 	"""
 	Keep this in alpha order
 	"""
+	environment
 	level
 	message
 	secure_session_id
@@ -916,6 +918,7 @@ enum ReservedTraceKey {
 }
 
 enum ReservedErrorObjectKey {
+	environment
 	event
 	log_cursor
 	payload

@@ -2048,6 +2048,7 @@ query GetLogs(
 				source
 				serviceName
 				serviceVersion
+				environment
 			}
 		}
 		pageInfo {

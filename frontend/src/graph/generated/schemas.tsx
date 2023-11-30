@@ -833,6 +833,7 @@ export type LinearTeam = {
 
 export type Log = {
 	__typename?: 'Log'
+	environment?: Maybe<Scalars['String']>
 	level: LogLevel
 	logAttributes: Scalars['Map']
 	message: Scalars['String']
@@ -2584,6 +2585,7 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorObjectKey {
+	Environment = 'environment',
 	Event = 'event',
 	LogCursor = 'log_cursor',
 	Payload = 'payload',
@@ -2602,6 +2604,7 @@ export enum ReservedErrorObjectKey {
 
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',

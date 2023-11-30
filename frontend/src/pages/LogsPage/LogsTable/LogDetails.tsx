@@ -87,6 +87,7 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		serviceName,
 		serviceVersion,
+		environment,
 	} = row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
@@ -98,6 +99,7 @@ export const LogDetails: React.FC<Props> = ({
 	} & {
 		[key in ReservedLogKey]: Maybe<string> | undefined
 	} = {
+		environment,
 		level,
 		message,
 		trace_id: traceID,
