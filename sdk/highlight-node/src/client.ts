@@ -363,9 +363,17 @@ export class Highlight {
 export function parseHeaders(
 	headers: Headers | IncomingHttpHeaders,
 ): HighlightContext {
-	if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+	let requestHeaders: IncomingHttpHeaders = {}
+
+	if (headers instanceof Headers) {
+		headers.forEach((value, key) => (requestHeaders[key] = value))
+	} else if (headers) {
+		requestHeaders = headers
+	}
+
+	if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
 		const [secureSessionId, requestId] =
-			`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+			`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 		return { secureSessionId, requestId }
 	}
 	return { secureSessionId: undefined, requestId: undefined }
