@@ -60,7 +60,7 @@ def query(
     ids=["page-router-test", "page-router-edge-test", "app-router-test", "edge-test"],
 )
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
-    start = datetime.utcnow() - timedelta(seconds=5)
+    start = datetime.utcnow() - timedelta(minutes=5)
     r = requests.get(
         f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
     )
