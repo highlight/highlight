@@ -2,7 +2,6 @@ import { H } from './highlight-edge'
 import type { NodeOptions } from '@highlight-run/node'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 import { ExtendedExecutionContext } from './types'
-import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
@@ -18,19 +17,21 @@ export function Highlight(env: HighlightEnv) {
 			event: NextFetchEvent & ExtendedExecutionContext,
 		) {
 			H.initEdge(request, env, event)
-			const headers: IncomingHttpHeaders = {}
-			request.headers.forEach((v, k) => (headers[k] = v))
-
 			try {
-				const response = await H.runWithHeaders(headers, async () => {
-					return await handler(request, event)
-				})
+				const response = await H.runWithHeaders(
+					request.headers,
+					async () => {
+						return await handler(request, event)
+					},
+				)
 
 				H.sendResponse(response)
 
 				return response
 			} catch (error) {
-				const { secureSessionId, requestId } = H.parseHeaders(headers)
+				const { secureSessionId, requestId } = H.parseHeaders(
+					request.headers,
+				)
 				if (error instanceof Error) {
 					H.consumeError(error, secureSessionId, requestId)
 				}

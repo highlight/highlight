@@ -3510,6 +3510,15 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 		return false, err
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if !settings.EnableDataDeletion {
+		return false, e.New("data deletion is disabled for this workspace")
+	}
+
 	email := ""
 	if admin.Email != nil {
 		email = *admin.Email
@@ -5418,18 +5427,31 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var results []model.Session
-	if err := r.DB.WithContext(ctx).Model(&model.Session{}).
+	q := r.DB.WithContext(ctx).Model(&model.Session{}).
 		Where("id in ?", ids).
-		Where("project_id = ?", projectID).
-		Order(pgSortStr).
-		Find(&results).Error; err != nil {
+		Where("project_id = ?", projectID)
+	if !ordered {
+		q = q.Order(pgSortStr)
+	}
+
+	var results []model.Session
+	if err := q.Find(&results).Error; err != nil {
 		return nil, err
+	}
+
+	if ordered {
+		positions := make(map[int64]int)
+		for idx, id := range ids {
+			positions[id] = idx
+		}
+		sort.Slice(results, func(i, j int) bool {
+			return positions[int64(results[i].ID)] < positions[int64(results[j].ID)]
+		})
 	}
 
 	return &model.SessionResults{

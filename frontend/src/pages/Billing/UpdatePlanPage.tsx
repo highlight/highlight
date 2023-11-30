@@ -257,7 +257,8 @@ const ProductCard = ({
 	const quantityFormatted = formatNumber(unitQuantity)
 
 	const unitCostFormatted =
-		'$ ' + toDecimal(dinero({ amount: unitCostCents, currency: USD }))
+		'$ ' +
+		toDecimal(dinero({ amount: Math.round(unitCostCents), currency: USD }))
 
 	const netUsageAmount = Math.max(predictedUsageAmount - includedQuantity, 0)
 
@@ -286,7 +287,8 @@ const ProductCard = ({
 			: predictedCostCents
 
 	const totalCostFormatted =
-		'est. $ ' + toDecimal(dinero({ amount: totalCostCents, currency: USD }))
+		'est. $ ' +
+		toDecimal(dinero({ amount: Math.round(totalCostCents), currency: USD }))
 
 	return (
 		<Box
@@ -681,15 +683,19 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 
 	const predictedTotalFormatted =
 		'est. $ ' +
-		toDecimal(dinero({ amount: predictedTotalCents, currency: USD }))
+		toDecimal(
+			dinero({ amount: Math.round(predictedTotalCents), currency: USD }),
+		)
 
 	const hasExtras =
 		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
 	const enableBillingLimits = data?.billingDetails.plan.enableBillingLimits
 	const baseAmountFormatted =
-		'$' + toDecimal(dinero({ amount: baseAmount, currency: USD }))
+		'$' +
+		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
 	const discountAmountFormatted =
-		'$' + toDecimal(dinero({ amount: discountAmount, currency: USD }))
+		'$' +
+		toDecimal(dinero({ amount: Math.round(discountAmount), currency: USD }))
 
 	return (
 		<Box
