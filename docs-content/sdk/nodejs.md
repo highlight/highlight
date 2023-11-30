@@ -31,6 +31,14 @@ slug: nodejs
           <p>Your project ID as provided by the [setup page](https://app.highlight.io/setup).</p>
         </aside>
         <aside className="parameter">
+          <h5>serviceName <code>string</code> <code>optional</code></h5>
+          <p>The name of your app.</p>
+        </aside>
+        <aside className="parameter">
+          <h5>serviceVersion <code>string</code> <code>optional</code></h5>
+          <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+        </aside>
+        <aside className="parameter">
           <h5>disableErrorSourceContext <code>boolean</code> <code>optional</code></h5>
           <p>Disables source code context lines for error reporting. This may be useful for performance if your source files are particularly large or memory is limited.</p>
         </aside>
@@ -44,10 +52,13 @@ slug: nodejs
   <div className="right">
     <code>
       import { H } from "@highlight-run/node";
-       
-      const highlightOptions = {};
+
       if (!H.isInitialized()) {
-        H.init(highlightOptions);
+        H.init({
+          projectID: "<YOUR_PROJECT_ID>",
+          serviceName: "my-node-app",
+          serviceVersion: "git-sha",
+        });
       }
     </code>
   </div>
@@ -55,16 +66,19 @@ slug: nodejs
 
 <section className="section">
   <div className="left">
-    <h3>H.isInitialized</h3> 
+    <h3>H.isInitialized</h3>
     <p>H.isInitialized() returns true if the Highlight backend SDK has been initialized. This may be handy if your initialization code could be called multiple times, e.g. if it is called conditionally from a request handler when a backend error or metric needs to be recorded.</p>
   </div>
   <div className="right">
     <code>
       import { H } from "@highlight-run/node";
- 
-      const highlightOptions = {};
+
       if (!H.isInitialized()) {
-        H.init(highlightOptions);
+        H.init({
+          projectID: "<YOUR_PROJECT_ID>",
+          serviceName: "my-node-app",
+          serviceVersion: "git-sha",
+        });
       }
     </code>
   </div>
@@ -72,7 +86,7 @@ slug: nodejs
 
 <section className="section">
   <div className="left">
-    <h3>H.consumeError</h3> 
+    <h3>H.consumeError</h3>
     <p>H.consumeError() reports an error and its corresponding stack trace to Highlight. The secureSessionId  and requestId  properties are Highlight ids used to link an error to the session in which the error was thrown. These properties are sent via a header and included in every request to your backend once the Highlight client is initialized. They can be parsed using the H.parseHeaders() helper method.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -96,7 +110,7 @@ slug: nodejs
     <code>
       import * as http from 'http';
       import { H } from "@highlight-run/node";
- 
+
       const onError = (request: http.IncomingMessage, error: Error): void => {
         const parsed = H.parseHeaders(request.headers);
         if (parsed !== undefined) {
@@ -109,7 +123,7 @@ slug: nodejs
 
 <section className="section">
   <div className="left">
-    <h3>H.recordMetric</h3> 
+    <h3>H.recordMetric</h3>
     <p>H.recordMetric() reports a metric to Highlight. Backend metrics can be used just like frontend metrics for creating custom dashboards. </p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -136,7 +150,7 @@ slug: nodejs
   <div className="right">
     <code>
       import { H } from "@highlight-run/node";
- 
+
       const handler = (request) => {
         const parsed = H.parseHeaders(request.headers);
         const start = Date.now();
@@ -150,7 +164,7 @@ slug: nodejs
 
 <section className="section">
   <div className="left">
-    <h3>H.parseHeaders</h3> 
+    <h3>H.parseHeaders</h3>
     <p>H.parseHeaders() is a helper function for extracting the Highlight secureSessionId and requestId from network requests. These fields are sent with network requests as the 'x-highlight-request' header, encoded as a slash-separated string: "{secureSessionId}/{requestId}"</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -162,7 +176,7 @@ slug: nodejs
     <code>
       import * as http from 'http';
       import { H } from "@highlight-run/node";
- 
+
       const onError = (request: http.IncomingMessage, error: Error): void => {
         const parsed = H.parseHeaders(request.headers);
         if (parsed !== undefined) {
