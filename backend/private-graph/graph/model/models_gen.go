@@ -488,6 +488,7 @@ type Log struct {
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
 	ServiceVersion  *string                `json:"serviceVersion"`
+	Environment     *string                `json:"environment"`
 }
 
 type LogAlertInput struct {
@@ -1715,6 +1716,7 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 type ReservedErrorObjectKey string
 
 const (
+	ReservedErrorObjectKeyEnvironment     ReservedErrorObjectKey = "environment"
 	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
 	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
 	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
@@ -1732,6 +1734,7 @@ const (
 )
 
 var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyEnvironment,
 	ReservedErrorObjectKeyEvent,
 	ReservedErrorObjectKeyLogCursor,
 	ReservedErrorObjectKeyPayload,
@@ -1750,7 +1753,7 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 
 func (e ReservedErrorObjectKey) IsValid() bool {
 	switch e {
-	case ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+	case ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
 		return true
 	}
 	return false
@@ -1781,6 +1784,7 @@ type ReservedLogKey string
 
 const (
 	// Keep this in alpha order
+	ReservedLogKeyEnvironment     ReservedLogKey = "environment"
 	ReservedLogKeyLevel           ReservedLogKey = "level"
 	ReservedLogKeyMessage         ReservedLogKey = "message"
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
@@ -1792,6 +1796,7 @@ const (
 )
 
 var AllReservedLogKey = []ReservedLogKey{
+	ReservedLogKeyEnvironment,
 	ReservedLogKeyLevel,
 	ReservedLogKeyMessage,
 	ReservedLogKeySecureSessionID,
@@ -1804,7 +1809,7 @@ var AllReservedLogKey = []ReservedLogKey{
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
+	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false
