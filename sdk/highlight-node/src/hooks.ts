@@ -1,6 +1,8 @@
 // inspired by https://github.com/getsentry/sentry-javascript/issues/5639
 
 // https://stackoverflow.com/a/2805230
+import * as fs from 'fs'
+
 const MAX_RECURSION = 128
 
 export function hookOutput(
@@ -96,6 +98,10 @@ export function hookConsole(
 			} finally {
 				const o: { stack: any } = { stack: {} }
 				Error.captureStackTrace(o)
+				fs.writeFileSync(
+					'/tmp/hook.json',
+					JSON.stringify(data, null, 2),
+				)
 				cb({
 					date,
 					level: highlightLevel,
