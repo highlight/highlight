@@ -158,7 +158,7 @@ func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs
 		return r.Field == errorsTimeRangeField
 	})
 	if !found {
-		end := time.Now()
+		end := time.Now().UTC()
 		start := end.AddDate(0, 0, -30)
 		timeRangeRule = Rule{
 			Field: errorsTimeRangeField,
