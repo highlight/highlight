@@ -122,6 +122,7 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 			StackTrace:      trpcTraceStr,
 			Timestamp:       time.Time{},
 			Payload:         nil,
+			Environment:     "production",
 			Service: &publicModel.ServiceInput{
 				Name:    "my-app",
 				Version: "abc123",
@@ -140,6 +141,7 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 
 		assert.Equal(t, "my-app", result.ServiceName)
 		assert.Equal(t, "abc123", result.ServiceVersion)
+		assert.Equal(t, "production", result.Environment)
 	})
 }
 

@@ -79,6 +79,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
 		URL:             fields.errorUrl,
+		Environment:     fields.environment,
 		Service: &model.ServiceInput{
 			Name:    fields.serviceName,
 			Version: fields.serviceVersion,
@@ -219,6 +220,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithServiceVersion(fields.serviceVersion),
 							clickhouse.WithSeverityText("ERROR"),
 							clickhouse.WithSource(fields.source),
+							clickhouse.WithEnvironment(fields.environment),
 						)
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
@@ -256,6 +258,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithServiceVersion(fields.serviceVersion),
 							clickhouse.WithSeverityText(fields.logSeverity),
 							clickhouse.WithSource(fields.source),
+							clickhouse.WithEnvironment(fields.environment),
 						)
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
@@ -289,7 +292,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						WithStatusMessage(span.Status().Message()).
 						WithTraceAttributes(fields.attrs).
 						WithEvents(fields.events).
-						WithLinks(fields.links)
+						WithLinks(fields.links).
+						WithEnvironment(fields.environment)
 					traceSpans[traceID] = append(traceSpans[traceID], traceRow)
 				}
 			}
@@ -436,6 +440,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithServiceVersion(fields.serviceVersion),
 					clickhouse.WithSeverityText(fields.logSeverity),
 					clickhouse.WithSource(fields.source),
+					clickhouse.WithEnvironment(fields.environment),
 				)
 
 				if fields.projectID != "" {

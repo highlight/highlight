@@ -1998,7 +1998,8 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			WithServiceName(session.ServiceName).
 			WithServiceVersion(ptr.ToString(session.AppVersion)).
 			WithTraceAttributes(attributes).
-			WithEvents([]map[string]any{event}))
+			WithEvents([]map[string]any{event}).
+			WithEnvironment(session.Environment))
 	}
 	for groupName, metricInputs := range metricsByGroup {
 		var mg *model.MetricGroup
@@ -2219,7 +2220,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			TraceID:        v.TraceID,
 			SpanID:         v.SpanID,
 			LogCursor:      v.LogCursor,
-			Environment:    session.Environment,
+			Environment:    v.Environment,
 			Event:          v.Event,
 			Type:           model.ErrorType.BACKEND,
 			URL:            v.URL,
@@ -3054,6 +3055,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 			semconv.HTTPMethodKey.String(method),
 			attribute.String(privateModel.NetworkRequestAttributeInitiatorType.String(), re.InitiatorType),
 			attribute.Float64(privateModel.NetworkRequestAttributeLatency.String(), float64(end.Sub(start).Nanoseconds())),
+			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
 		}
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
