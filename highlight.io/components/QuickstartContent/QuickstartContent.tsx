@@ -58,6 +58,8 @@ import { SelfHostContent } from './self-host/self-host'
 import { GoTracesContent } from './traces/go/go'
 import { GormTracesContent } from './traces/go/gorm'
 import { OTLPTracesContent } from './traces/otlp'
+import { JSManualTracesContent } from './traces/node-js/manual'
+import { JSExpressTracesContent } from './traces/node-js/express'
 
 export type QuickStartOptions = {
 	title: string
@@ -291,6 +293,13 @@ export const quickStartContent = {
 		title: 'Select your language',
 		subtitle:
 			'Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).',
+		'node-js': {
+			title: 'Go',
+			subtitle: 'Install tracing in your Go application.',
+			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			[QuickStartType.JSExpress]: JSExpressTracesContent,
+			[QuickStartType.JSExpress]: JSManualTracesContent,
+		},
 		go: {
 			title: 'Go',
 			subtitle: 'Install tracing in your Go application.',
