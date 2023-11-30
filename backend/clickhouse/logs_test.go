@@ -974,6 +974,11 @@ func TestReadLogsWithServiceVersionFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 2)
 }
 
+func TestNewLogRowWithEnvironment(t *testing.T) {
+	now := time.Now()
+	assert.Equal(t, "production", NewLogRow(now, 1, WithEnvironment("production")).Environment)
+}
+
 func TestReadLogsWithMultipleFilters(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
