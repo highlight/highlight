@@ -14,23 +14,10 @@ type HighlightInitReturnType = ReturnType<typeof H.init>
 let NodeH: HighlightInitReturnType
 
 export function Highlight(options: NodeOptions) {
-	H.init(options)
+	NodeH = H.init(options)
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
 			try {
-				if (!NodeH) {
-					const { secureSessionId, requestId } = parseHeaders(
-						request.headers,
-					)
-					const attributes = {
-						...(options.attributes || {}),
-						['highlight.session_id']: secureSessionId,
-						['highlight.trace_id']: requestId,
-					}
-
-					NodeH = H.init({ ...options, attributes })
-				}
-
 				// Must await originalHandler to catch the error at this level
 				return await H.runWithHeaders(request.headers, async () => {
 					return new Promise((resolve, reject) => {

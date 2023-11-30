@@ -19,19 +19,8 @@ export const Highlight =
 	<T extends HasHeaders, S extends HasStatus>(
 		originalHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
-		H.init(options)
+		NodeH = H.init(options)
 		return async (req, res) => {
-			if (!NodeH) {
-				const { secureSessionId, requestId } = parseHeaders(req.headers)
-				const attributes = {
-					...(options.attributes || {}),
-					['highlight.session_id']: secureSessionId,
-					['highlight.trace_id']: requestId,
-				}
-
-				NodeH = H.init({ ...options, attributes })
-			}
-
 			const { secureSessionId, requestId } = H.parseHeaders(req.headers)
 			const start = new Date()
 			try {

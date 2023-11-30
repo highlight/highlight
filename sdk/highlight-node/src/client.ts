@@ -1,4 +1,4 @@
-import { BufferConfig, Span } from '@opentelemetry/sdk-trace-base'
+import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import type { Attributes, Tracer } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
@@ -23,11 +23,19 @@ const OTLP_HTTP = 'https://otel.highlight.io:4318'
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
+	public static asyncLocalStorage: AsyncLocalStorage<HighlightContext>
 
 	constructor(config: any, options: any) {
 		super(config, options)
 
 		this._listeners = new Map()
+	}
+
+	onEnd(span: ReadableSpan) {
+		const highlightCtx = CustomSpanProcessor.asyncLocalStorage.getStore()
+		span.attributes['highlight.session_id'] = highlightCtx?.secureSessionId
+		span.attributes['highlight.trace_id'] = highlightCtx?.requestId
+		super.onEnd(span)
 	}
 
 	onShutdown(): void {}
@@ -108,6 +116,7 @@ export class Highlight {
 		this._log('using otlp exporter settings', config)
 		const exporter = new OTLPTraceExporter(config)
 
+		CustomSpanProcessor.asyncLocalStorage = this.asyncLocalStorage
 		this.processor = new CustomSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 128,
