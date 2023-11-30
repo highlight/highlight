@@ -28,7 +28,6 @@ type LogRow struct {
 	ServiceVersion  string
 	Body            string
 	LogAttributes   map[string]string
-	Environment     string
 }
 
 func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
@@ -125,12 +124,6 @@ func WithServiceName(serviceName string) LogRowOption {
 func WithServiceVersion(version string) LogRowOption {
 	return func(l *LogRow) {
 		l.ServiceVersion = version
-	}
-}
-
-func WithEnvironment(environment string) LogRowOption {
-	return func(l *LogRow) {
-		l.Environment = environment
 	}
 }
 
