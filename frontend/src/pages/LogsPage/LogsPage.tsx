@@ -102,14 +102,17 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
+		(
+			containerRefElement?: HTMLDivElement | null,
+			disableBackward?: boolean,
+		) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
+				} else if (!disableBackward && scrollTop === 0) {
 					fetchMoreBackward()
 				}
 			}

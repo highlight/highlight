@@ -27,7 +27,6 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { throttle } from 'lodash'
 import React, { Key, useEffect, useRef, useState } from 'react'
 
 import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
@@ -105,7 +104,10 @@ type LogsTableInnerProps = {
 	logEdges: LogEdgeWithError[]
 	query: string
 	selectedCursor: string | undefined
-	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
+	fetchMoreWhenScrolled: (
+		target: HTMLDivElement,
+		disableBackwards?: boolean,
+	) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
 	bodyHeight: string
@@ -279,14 +281,19 @@ const LogsTableInner = ({
 	useEffect(() => {
 		setTimeout(() => {
 			if (!loadingAfter && bodyRef?.current) {
-				fetchMoreWhenScrolled(bodyRef.current)
+				fetchMoreWhenScrolled(bodyRef.current, true)
 			}
 		}, 0)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [loadingAfter])
 
-	const handleThrottleScroll = (e: any) => fetchMoreWhenScrolled(e.target)
-	const throttledScroll = useRef(throttle(handleThrottleScroll, 1000))
+	const handleFetchMoreWhenScrolled = (
+		e: React.UIEvent<HTMLDivElement, UIEvent>,
+	) => {
+		setTimeout(() => {
+			fetchMoreWhenScrolled(e.target as HTMLDivElement)
+		}, 0)
+	}
 
 	return (
 		<Table height="full" noBorder>
@@ -315,7 +322,7 @@ const LogsTableInner = ({
 				ref={bodyRef}
 				overflowY="scroll"
 				style={{ height: bodyHeight }}
-				onScroll={throttledScroll.current}
+				onScroll={handleFetchMoreWhenScrolled}
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {

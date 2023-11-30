@@ -51,14 +51,17 @@ export const TraceLogs: React.FC = () => {
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
+		(
+			containerRefElement?: HTMLDivElement | null,
+			disableBackwards?: boolean,
+		) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
+				} else if (!disableBackwards && scrollTop === 0) {
 					fetchMoreBackward()
 				}
 			}
