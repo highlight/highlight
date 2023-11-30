@@ -70,7 +70,7 @@ export const TracePage: React.FC<Props> = () => {
 				<TraceFlameGraph />
 			</Box>
 
-			<Box pt="20" display="flex" height="full">
+			<Box pt="20">
 				<Tabs<TraceTabs>
 					tab={activeTab}
 					setTab={(tab) => setActiveTab(tab)}
@@ -103,7 +103,7 @@ export const TracePage: React.FC<Props> = () => {
 						},
 						[TraceTabs.Logs]: {
 							page: (
-								<Box p="8" height="full">
+								<Box p="8">
 									<TraceLogs />
 								</Box>
 							),

@@ -94,7 +94,6 @@ export const TraceLogs: React.FC = () => {
 				justifyContent="stretch"
 				display="flex"
 				overflow="hidden"
-				height="full"
 			>
 				<Box
 					borderRadius="6"
@@ -133,7 +132,7 @@ export const TraceLogs: React.FC = () => {
 								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-								bodyHeight="calc(100% - 28px)"
+								bodyHeight="400px"
 							/>
 						)}
 					</Box>
