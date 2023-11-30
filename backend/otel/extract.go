@@ -229,11 +229,6 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		delete(fields.attrs, highlight.MetricEventValue)
 	}
 
-	if val, ok := fields.attrs[highlight.EnvironmentAttribute]; ok {
-		fields.environment = val
-		delete(fields.attrs, highlight.EnvironmentAttribute)
-	}
-
 	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map
 		fields.exceptionType = val.(string)
 		delete(fields.attrs, string(semconv.ExceptionTypeKey))
@@ -257,6 +252,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if val, ok := eventAttributes[highlight.ErrorURLAttribute]; ok { // we know that URL will be in the event attributes map
 		fields.errorUrl = val.(string)
 		delete(fields.attrs, highlight.ErrorURLAttribute)
+	}
+
+	if val, ok := fields.attrs[string(semconv.DeploymentEnvironmentKey)]; ok {
+		fields.environment = val
+		delete(fields.attrs, string(semconv.DeploymentEnvironmentKey))
 	}
 
 	if val, ok := fields.attrs[string(semconv.ServiceNameKey)]; ok {

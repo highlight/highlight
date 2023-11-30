@@ -53,7 +53,7 @@ func WithServiceVersion(serviceVersion string) Option {
 
 func WithEnvironment(environment string) Option {
 	return option(func(conf *config) {
-		attr := attribute.Key("environment").String(environment)
+		attr := semconv.DeploymentEnvironmentKey.String(environment)
 		conf.resourceAttributes = append(conf.resourceAttributes, attr)
 	})
 }
