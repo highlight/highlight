@@ -1,9 +1,32 @@
 {
-	"name": "e2e-logux-client",
-	"packageManager": "yarn@3.5.0",
+	"name": "client",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+		"preview": "vite preview"
+	},
 	"dependencies": {
 		"@logux/client": "^0.20.1",
 		"@logux/core": "^0.8.5",
-		"nanostores": "^0.9.5"
+		"@logux/redux": "^0.8.4",
+		"nanostores": "^0.9.5",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-redux": "^8.1.3",
+		"redux": "^4.2.1"
+	},
+	"devDependencies": {
+		"@types/react": "^18.2.37",
+		"@types/react-dom": "^18.2.15",
+		"@vitejs/plugin-react": "^4.2.0",
+		"eslint": "^8.53.0",
+		"eslint-plugin-react": "^7.33.2",
+		"eslint-plugin-react-hooks": "^4.6.0",
+		"eslint-plugin-react-refresh": "^0.4.4",
+		"vite": "^5.0.0"
 	}
 }

@@ -1,6 +1,3 @@
-import { fileURLToPath } from 'url'
-import { isFirstOlder } from '@logux/core'
-import { dirname } from 'path'
 import { Server } from '@logux/server'
 
 const server = new Server(
@@ -11,32 +8,31 @@ const server = new Server(
 	}),
 )
 
-server.auth(async ({ userId, token }) => {
-	const user = await findUserByToken(token)
-	return !!user && userId === user.id
+server.auth(({}) => {
+	return true
 })
 
-server.channel('user/:id', {
+server.type('INCREMENT', {
 	access(ctx, action, meta) {
-		return ctx.params.id === ctx.userId
-	},
-	async load(ctx, action, meta) {
-		const user = await db.loadUser(ctx.params.id)
-		return { type: 'USER_NAME', name: user.name }
-	},
-})
-
-server.type('CHANGE_NAME', {
-	access(ctx, action, meta) {
-		return action.user === ctx.userId
+		return true
 	},
 	resend(ctx, action, meta) {
-		return { channel: `user/${ctx.userId}` }
+		return { counter: ctx.counter }
 	},
 	async process(ctx, action, meta) {
-		if (isFirstOlder(lastNameChange(action.user), meta)) {
-			await db.changeUserName({ id: action.user, name: action.name })
-		}
+		ctx.counter += 1
+	},
+})
+
+server.type('DECREMENT', {
+	access(ctx, action, meta) {
+		return true
+	},
+	resend(ctx, action, meta) {
+		return { counter: ctx.counter }
+	},
+	async process(ctx, action, meta) {
+		ctx.counter -= 1
 	},
 })
 
