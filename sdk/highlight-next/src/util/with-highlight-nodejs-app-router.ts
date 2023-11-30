@@ -14,6 +14,7 @@ type HighlightInitReturnType = ReturnType<typeof H.init>
 let NodeH: HighlightInitReturnType
 
 export function Highlight(options: NodeOptions) {
+	H.init(options)
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
 			try {

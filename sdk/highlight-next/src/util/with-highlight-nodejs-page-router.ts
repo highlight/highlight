@@ -19,6 +19,7 @@ export const Highlight =
 	<T extends HasHeaders, S extends HasStatus>(
 		originalHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
+		H.init(options)
 		return async (req, res) => {
 			if (!NodeH) {
 				const { secureSessionId, requestId } = parseHeaders(req.headers)
