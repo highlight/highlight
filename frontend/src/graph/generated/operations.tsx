@@ -4776,6 +4776,7 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'startTime'
 					| 'statusCode'
 					| 'statusMessage'
+					| 'environment'
 				>
 			>
 			errors: Array<
@@ -4826,6 +4827,7 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 						| 'traceAttributes'
 						| 'statusCode'
 						| 'statusMessage'
+						| 'environment'
 					>
 				}
 		>

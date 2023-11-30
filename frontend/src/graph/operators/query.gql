@@ -2318,6 +2318,7 @@ query GetTrace($project_id: ID!, $trace_id: String!) {
 			startTime
 			statusCode
 			statusMessage
+			environment
 		}
 		errors {
 			created_at
@@ -2367,6 +2368,7 @@ query GetTraces(
 				traceAttributes
 				statusCode
 				statusMessage
+				environment
 			}
 		}
 		pageInfo {

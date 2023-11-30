@@ -2623,6 +2623,7 @@ export enum ReservedSessionKey {
 
 export enum ReservedTraceKey {
 	Duration = 'duration',
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	Metric = 'metric',
@@ -3125,6 +3126,7 @@ export type TopUsersPayload = {
 export type Trace = {
 	__typename?: 'Trace'
 	duration: Scalars['Int']
+	environment: Scalars['String']
 	events?: Maybe<Array<Maybe<TraceEvent>>>
 	links?: Maybe<Array<Maybe<TraceLink>>>
 	parentSpanID: Scalars['String']

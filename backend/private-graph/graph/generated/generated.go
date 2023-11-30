@@ -1357,6 +1357,7 @@ type ComplexityRoot struct {
 
 	Trace struct {
 		Duration        func(childComplexity int) int
+		Environment     func(childComplexity int) int
 		Events          func(childComplexity int) int
 		Links           func(childComplexity int) int
 		ParentSpanID    func(childComplexity int) int
@@ -9515,6 +9516,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Trace.Duration(childComplexity), true
 
+	case "Trace.environment":
+		if e.complexity.Trace.Environment == nil {
+			break
+		}
+
+		return e.complexity.Trace.Environment(childComplexity), true
+
 	case "Trace.events":
 		if e.complexity.Trace.Events == nil {
 			break
@@ -11151,6 +11159,7 @@ type Trace {
 	statusMessage: String!
 	events: [TraceEvent]
 	links: [TraceLink]
+	environment: String!
 }
 
 type TracePayload {
@@ -66939,6 +66948,50 @@ func (ec *executionContext) fieldContext_Trace_links(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Trace_environment(ctx context.Context, field graphql.CollectedField, obj *model.Trace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Trace_environment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Environment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Trace_environment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Trace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TraceConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.TraceConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TraceConnection_edges(ctx, field)
 	if err != nil {
@@ -67162,6 +67215,8 @@ func (ec *executionContext) fieldContext_TraceEdge_node(ctx context.Context, fie
 				return ec.fieldContext_Trace_events(ctx, field)
 			case "links":
 				return ec.fieldContext_Trace_links(ctx, field)
+			case "environment":
+				return ec.fieldContext_Trace_environment(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Trace", field.Name)
 		},
@@ -67939,6 +67994,8 @@ func (ec *executionContext) fieldContext_TracePayload_trace(ctx context.Context,
 				return ec.fieldContext_Trace_events(ctx, field)
 			case "links":
 				return ec.fieldContext_Trace_links(ctx, field)
+			case "environment":
+				return ec.fieldContext_Trace_environment(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Trace", field.Name)
 		},
@@ -85575,6 +85632,13 @@ func (ec *executionContext) _Trace(ctx context.Context, sel ast.SelectionSet, ob
 
 			out.Values[i] = ec._Trace_links(ctx, field, obj)
 
+		case "environment":
+
+			out.Values[i] = ec._Trace_environment(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

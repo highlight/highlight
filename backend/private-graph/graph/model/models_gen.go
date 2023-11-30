@@ -833,6 +833,7 @@ type Trace struct {
 	StatusMessage   string                 `json:"statusMessage"`
 	Events          []*TraceEvent          `json:"events"`
 	Links           []*TraceLink           `json:"links"`
+	Environment     string                 `json:"environment"`
 }
 
 type TraceConnection struct {

@@ -292,7 +292,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						WithStatusMessage(span.Status().Message()).
 						WithTraceAttributes(fields.attrs).
 						WithEvents(fields.events).
-						WithLinks(fields.links)
+						WithLinks(fields.links).
+						WithEnvironment(fields.environment)
 					traceSpans[traceID] = append(traceSpans[traceID], traceRow)
 				}
 			}

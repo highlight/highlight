@@ -773,6 +773,7 @@ type Trace {
 	startTime: Int!
 	serviceName: String!
 	serviceVersion: String!
+	environment: String!
 	traceAttributes: Map!
 	statusCode: String!
 	statusMessage: String!
@@ -902,6 +903,7 @@ enum ReservedLogKey {
 }
 
 enum ReservedTraceKey {
+	environment
 	level
 	message
 	metric

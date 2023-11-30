@@ -1998,7 +1998,8 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			WithServiceName(session.ServiceName).
 			WithServiceVersion(ptr.ToString(session.AppVersion)).
 			WithTraceAttributes(attributes).
-			WithEvents([]map[string]any{event}))
+			WithEvents([]map[string]any{event}).
+			WithEnvironment(session.Environment))
 	}
 	for groupName, metricInputs := range metricsByGroup {
 		var mg *model.MetricGroup
