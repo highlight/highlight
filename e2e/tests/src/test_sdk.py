@@ -17,7 +17,7 @@ def query(
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
     # retry up for up to N seconds in case the session needs time to populate from datasync queue
-    for _ in range(30):
+    for _ in range(90):
         try:
             r = requests.post(
                 api_url,
@@ -60,7 +60,7 @@ def query(
     ids=["page-router-test", "page-router-edge-test", "app-router-test", "edge-test"],
 )
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
-    start = datetime.utcnow() - timedelta(minutes=5)
+    start = datetime.utcnow() - timedelta(minutes=15)
     r = requests.get(
         f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
     )
@@ -96,7 +96,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
                             "error-field_timestamp",
                             "between_date",
                             f"{start.isoformat(timespec='milliseconds')}Z_"
-                            f"{(start + timedelta(minutes=15)).isoformat(timespec='milliseconds')}Z",
+                            f"{(start + timedelta(minutes=30)).isoformat(timespec='milliseconds')}Z",
                         ],
                     ],
                 },
