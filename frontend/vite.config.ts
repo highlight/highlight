@@ -85,6 +85,7 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			minify: 'esbuild',
+			cssMinify: 'lightningcss',
 			outDir: 'build',
 			sourcemap: true,
 			rollupOptions: {
@@ -107,7 +108,19 @@ export default defineConfig(({ mode }) => {
 			setupFiles: ['./src/setupTests.ts'],
 		},
 		css: {
+			transformer: 'lightningcss',
 			devSourcemap: true,
+			/*lightningcss: {
+				less: {
+					javascriptEnabled: true,
+					modifyVars: {
+						hack: `true; @import "${join(
+							__dirname,
+							'src/style/AntDesign/antd.overrides.less',
+						)}";`,
+					},
+				},
+			},*/
 		},
 	}
 })
