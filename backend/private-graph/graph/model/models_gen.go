@@ -1715,6 +1715,7 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 type ReservedErrorObjectKey string
 
 const (
+	ReservedErrorObjectKeyEnvironment     ReservedErrorObjectKey = "environment"
 	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
 	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
 	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
@@ -1732,6 +1733,7 @@ const (
 )
 
 var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyEnvironment,
 	ReservedErrorObjectKeyEvent,
 	ReservedErrorObjectKeyLogCursor,
 	ReservedErrorObjectKeyPayload,
@@ -1750,7 +1752,7 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 
 func (e ReservedErrorObjectKey) IsValid() bool {
 	switch e {
-	case ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+	case ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
 		return true
 	}
 	return false
