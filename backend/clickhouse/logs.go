@@ -32,6 +32,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeySource:          "Source",
 	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
 	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
+	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 }
 
 var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
@@ -52,6 +53,7 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 		"Source",
 		"ServiceName",
 		"ServiceVersion",
+		"Environment",
 	},
 }
 
