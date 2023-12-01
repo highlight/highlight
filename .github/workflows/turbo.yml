@@ -132,6 +132,10 @@ jobs:
               if: github.ref == 'refs/heads/main'
               run: yarn publish:client
 
+            - name: Publish
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:react-email-templates
+
             - name: Publish changesets
               if: github.ref == 'refs/heads/main'
               id: changesets

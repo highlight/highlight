@@ -68,6 +68,7 @@
 		"publish:all": "run-p --print-label publish:ai publish:client publish:turbo publish:render",
 		"publish:ai": "yarn workspace @highlight-run/ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
+		"publish:react-email-templates": "yarn workspace emails publish",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish && yarn workspace @highlight-run/opentelemetry-sdk-workers npm publish --access public --tolerate-republish",
 		"test:all": "yarn turbo run test --filter=!render --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs --filter=!nextjs",
