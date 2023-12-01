@@ -1,8 +1,8 @@
-import './__generated/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
 import '@highlight-run/ui/styles.css'
 import './index.css'
+import './__generated/antd.css'
 import './style/tailwind.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
