@@ -40,6 +40,7 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
 	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
+	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
 }
 
 var traceColumns = []string{
@@ -59,6 +60,7 @@ var traceColumns = []string{
 	"TraceAttributes",
 	"StatusCode",
 	"StatusMessage",
+	"Environment",
 }
 
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
@@ -99,6 +101,7 @@ type ClickhouseTraceRow struct {
 	TraceAttributes  map[string]string
 	StatusCode       string
 	StatusMessage    string
+	Environment      string
 	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp"`
 	EventsName       clickhouse.ArraySet `ch:"Events.Name"`
 	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes"`
@@ -136,6 +139,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 			TraceAttributes:  traceRow.TraceAttributes,
 			StatusCode:       traceRow.StatusCode,
 			StatusMessage:    traceRow.StatusMessage,
+			Environment:      traceRow.Environment,
 			EventsTimestamp:  traceTimes,
 			EventsName:       traceNames,
 			EventsAttributes: traceAttrs,

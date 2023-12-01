@@ -1882,6 +1882,7 @@ func (e ReservedSessionKey) MarshalGQL(w io.Writer) {
 type ReservedTraceKey string
 
 const (
+	ReservedTraceKeyEnvironment     ReservedTraceKey = "environment"
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
 	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
@@ -1898,6 +1899,7 @@ const (
 )
 
 var AllReservedTraceKey = []ReservedTraceKey{
+	ReservedTraceKeyEnvironment,
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
 	ReservedTraceKeyMetric,
@@ -1915,7 +1917,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false

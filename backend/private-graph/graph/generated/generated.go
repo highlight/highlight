@@ -11275,6 +11275,7 @@ enum ReservedLogKey {
 }
 
 enum ReservedTraceKey {
+	environment
 	level
 	message
 	metric

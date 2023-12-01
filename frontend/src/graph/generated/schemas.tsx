@@ -2623,6 +2623,7 @@ export enum ReservedSessionKey {
 
 export enum ReservedTraceKey {
 	Duration = 'duration',
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	Metric = 'metric',
