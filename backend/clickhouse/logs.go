@@ -123,6 +123,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			Source          string
 			ServiceName     string
 			ServiceVersion  string
+			Environment     string
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
