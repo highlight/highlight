@@ -78,6 +78,7 @@ export const LogDetails: React.FC<Props> = ({
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const {
+		environment,
 		traceID,
 		spanID,
 		secureSessionID,
@@ -87,7 +88,6 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		serviceName,
 		serviceVersion,
-		environment,
 	} = row.original.node
 	const expanded = row.getIsExpanded()
 	const expandable = Object.values(logAttributes).some(
@@ -108,7 +108,6 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		service_name: serviceName,
 		service_version: serviceVersion,
-		environment: null, // TODO: replace this when implementing for logs
 	}
 
 	if (!expanded) {
