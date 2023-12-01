@@ -1,5 +1,14 @@
 # @highlight-run/next
 
+## 7.2.5
+
+### Patch Changes
+
+-   2fce77c13: fix opentelemetry auto instrumentation in next.js, update opentelemetry dependencies
+-   Updated dependencies [bd5021a6c]
+-   Updated dependencies [2fce77c13]
+    -   @highlight-run/node@3.6.5
+
 ## 7.2.4
 
 ### Patch Changes
