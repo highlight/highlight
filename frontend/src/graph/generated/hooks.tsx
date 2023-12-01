@@ -14038,6 +14038,7 @@ export const GetTraceDocument = gql`
 				duration
 				serviceName
 				serviceVersion
+				environment
 				traceAttributes
 				startTime
 				statusCode
@@ -14137,6 +14138,7 @@ export const GetTracesDocument = gql`
 					duration
 					serviceName
 					serviceVersion
+					environment
 					traceAttributes
 					statusCode
 					statusMessage

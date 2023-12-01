@@ -288,6 +288,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
 						WithServiceName(fields.serviceName).
 						WithServiceVersion(fields.serviceVersion).
+						WithEnvironment(fields.environment).
 						WithStatusCode(span.Status().Code().String()).
 						WithStatusMessage(span.Status().Message()).
 						WithTraceAttributes(fields.attrs).
