@@ -572,15 +572,18 @@ func MustUpgradeForClearbit(tier string) bool {
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
 func GetBaseLookupKey(productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
-	if productTier == backend.PlanTypeUsageBased {
-		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeUsageBased)
-	}
-	result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
-	if unlimitedMembers {
-		result += "|UNLIMITED_MEMBERS"
-	}
-	if retentionPeriod != backend.RetentionPeriodThreeMonths {
-		result += "|" + string(retentionPeriod)
+	switch productTier {
+	case backend.PlanTypeUsageBased:
+	case backend.PlanTypeGraduated:
+		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, productTier)
+	default:
+		result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
+		if unlimitedMembers {
+			result += "|UNLIMITED_MEMBERS"
+		}
+		if retentionPeriod != backend.RetentionPeriodThreeMonths {
+			result += "|" + string(retentionPeriod)
+		}
 	}
 	return
 }
@@ -917,7 +920,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	// has more than one invoice line item for each bucket's price.
 	// ie. price of `First 4999` and `Next 19999` are two different line items for the same invoice item.
 	for _, line := range lo.FindUniquesBy(invoice.Lines.Data, func(item *stripe.InvoiceLine) string {
-		return item.InvoiceItem
+		return item.SubscriptionItem
 	}) {
 		productType, _, _, _, _ := GetProductMetadata(line.Price)
 		if productType != nil {
@@ -936,6 +939,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 			invoiceLines[*productType] = line
 		}
 	}
+	log.WithContext(ctx).WithField("invoiceLinesLen", len(invoiceLines)).Infof("STRIPE_INTEGRATION_INFO found invoice lines %d %+v", len(invoiceLines), invoiceLines)
 
 	// Update members overage
 	membersMeter := GetWorkspaceMembersMeter(w.db, workspaceID)
@@ -988,7 +992,6 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 	// Update traces overage
 	tracesMeter, err := GetWorkspaceTracesMeter(ctx, w.db, w.ccClient, &workspace)
-	log.WithContext(ctx).Infof("tracesMeter %d", tracesMeter)
 	if err != nil {
 		return e.Wrap(err, "error getting traces meter")
 	}
@@ -1024,7 +1027,7 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 			params.SetIdempotencyKey(subscription.ID + ":" + newPrice.ID + ":item")
 			subscriptionItem, err := stripeClient.SubscriptionItems.New(params)
 			if err != nil {
-				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add invoice item for usage record item")
+				return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR failed to add invoice item for usage record item; invoiceLine=%+v, priceID=%s, subscriptionID=%s", invoiceLine, newPrice.ID, subscription.ID)
 			}
 			subscriptionItemID = subscriptionItem.ID
 		} else {
