@@ -11,6 +11,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
@@ -164,7 +165,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 
 		log.WithContext(ctx).WithField("alert_id", alert.ID).Info(fmt.Sprintf("Firing alert for %s", alert.Name))
 
-		if err := alert.SendSlackAlert(ctx, DB, &model.SendSlackAlertForLogAlertInput{Body: body, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
+		if err := tempalerts.SendSlackLogAlert(ctx, DB, alert, &tempalerts.SendSlackAlertForLogAlertInput{Body: body, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
 			log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
 		}
 
@@ -183,7 +184,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 			log.WithContext(ctx).Error(err)
 		}
 
-		logsUrl := model.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
+		logsUrl := tempalerts.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
 		frontendURL := os.Getenv("FRONTEND_URI")
 		alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
 
