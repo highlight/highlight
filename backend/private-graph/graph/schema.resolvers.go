@@ -7130,10 +7130,12 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 			Count:    int(count),
 		})
 	}
-	sort.Slice(result.Buckets, func(i, j int) bool {
-		return result.Buckets[i].Count > result.Buckets[j].Count
-	})
-	result.Buckets = result.Buckets[0:lo.Min([]int{30, len(result.Buckets) - 1})]
+	if len(result.Buckets) > 0 {
+		sort.Slice(result.Buckets, func(i, j int) bool {
+			return result.Buckets[i].Count > result.Buckets[j].Count
+		})
+		result.Buckets = result.Buckets[0:lo.Min([]int{30, len(result.Buckets) - 1})]
+	}
 
 	return result, nil
 }
