@@ -1,12 +1,14 @@
 package util
 
 import (
-	"github.com/highlight-run/highlight/backend/model"
 	"os"
 	"strings"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 var (
+	environment   = os.Getenv("ENVIRONMENT")
 	OnPrem        = os.Getenv("ON_PREM")
 	DopplerConfig = os.Getenv("DOPPLER_CONFIG")
 	InDocker      = os.Getenv("IN_DOCKER")
@@ -44,4 +46,14 @@ func IsBackendInDocker() bool {
 
 func IsProduction() bool {
 	return strings.HasPrefix(DopplerConfig, "prod")
+}
+
+func EnvironmentName() string {
+	envName := environment
+
+	if IsOnPrem() {
+		envName = "on-prem"
+	}
+
+	return envName
 }
