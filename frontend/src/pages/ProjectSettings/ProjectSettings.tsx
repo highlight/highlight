@@ -104,7 +104,7 @@ const ProjectSettings = () => {
 				<Heading mt="16" level="h4">
 					Project Settings
 				</Heading>
-				<div className={styles.tabsContainer}>
+				<div>
 					<ProjectSettingsContextProvider
 						value={{
 							allProjectSettings,
@@ -121,6 +121,7 @@ const ProjectSettings = () => {
 							noHeaderPadding
 							noPadding
 							id="settingsTabs"
+							className={styles.tabsContainer}
 							tabs={[
 								{
 									key: 'general',
