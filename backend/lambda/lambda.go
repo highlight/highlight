@@ -165,10 +165,21 @@ func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, proje
 	return req
 }
 
+type TemplateDataWithTemplate struct {
+	Template string
+	Data     interface{}
+}
+
 func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {
 	data.ToEmail = toEmail
 	data.UnsubscribeUrl = unsubscribeUrl
-	b, err := json.Marshal(data)
+
+	templateData := TemplateDataWithTemplate{
+		Template: "session-insights",
+		Data:     data,
+	}
+
+	b, err := json.Marshal(templateData)
 	if err != nil {
 		return "", err
 	}
