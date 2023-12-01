@@ -119,6 +119,10 @@ func SendErrorAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Clie
 	}
 
 	emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, "error-alert", templateData)
+	if err != nil {
+		log.WithContext(ctx).Error(errors.Wrap(err, "error fetching email html"))
+		return
+	}
 
 	subjectLine := fmt.Sprintf("%s: %s", obj.Name, input.Group.Event)
 
@@ -212,6 +216,10 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 	}
 
 	emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, alertType, templateData)
+	if err != nil {
+		log.WithContext(ctx).Error(errors.Wrap(err, "error fetching email html"))
+		return
+	}
 
 	for _, email := range emailsToNotify {
 		if err := Email.SendReactEmailAlert(ctx, mailClient, *email, emailHtml, subjectLine); err != nil {
