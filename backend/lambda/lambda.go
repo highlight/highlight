@@ -202,3 +202,31 @@ func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string,
 	}
 	return string(b), nil
 }
+
+func (s *Client) FetchReactEmailHTML(ctx context.Context, alertType string, data map[string]interface{}) (string, error) {
+	templateData := TemplateDataWithTemplate{
+		Template: alertType,
+		Data:     data,
+	}
+
+	b, err := json.Marshal(templateData)
+	if err != nil {
+		return "", err
+	}
+	req, _ := retryablehttp.NewRequest(http.MethodPost, "https://fha2fg4du8.execute-api.us-east-2.amazonaws.com/default/session-insights-email", bytes.NewBuffer(b))
+	req = req.WithContext(ctx)
+	req.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+	signer := v4.NewSigner()
+	_ = signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(ExecuteAPI), s.Config.Region, time.Now())
+	res, err := s.RetryableHTTPClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	b, err = io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
