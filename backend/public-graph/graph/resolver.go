@@ -1997,6 +1997,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			WithSpanName("highlight-metric").
 			WithServiceName(session.ServiceName).
 			WithServiceVersion(ptr.ToString(session.AppVersion)).
+			WithEnvironment(session.Environment).
 			WithTraceAttributes(attributes).
 			WithEvents([]map[string]any{event}))
 	}
