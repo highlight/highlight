@@ -574,8 +574,9 @@ func MustUpgradeForClearbit(tier string) bool {
 func GetBaseLookupKey(productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
 	switch productTier {
 	case backend.PlanTypeUsageBased:
+		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeUsageBased)
 	case backend.PlanTypeGraduated:
-		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, productTier)
+		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeGraduated)
 	default:
 		result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
 		if unlimitedMembers {
@@ -951,16 +952,11 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		for _, line := range group {
 			productType, _, _, _, _ := GetProductMetadata(line.Price)
 			if productType != nil {
-				// if there is more than one invoice line for the same product type,
-				// clean up the old line item that may exist from a previous price
-				if invoiceLines[*productType] != nil {
-					if invoiceLines[*productType].Price.ID != prices[*productType].ID {
-						log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem.ID, c.ID)
-						if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem.ID, &stripe.InvoiceItemParams{}); err != nil {
-							return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add usage record item")
-						}
-					} else {
-						return e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR multiple invoice lines for the same product %s for customer %s", *productType, c.ID))
+				// if the line is from an old price, delete it
+				if line.Price.ID != prices[*productType].ID {
+					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old -invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem.ID, c.ID)
+					if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem.ID, &stripe.InvoiceItemParams{}); err != nil {
+						return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add usage record item")
 					}
 				}
 				invoiceLines[*productType] = line
