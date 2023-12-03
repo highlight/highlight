@@ -917,6 +917,8 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		Customer:     &c.ID,
 		Subscription: &subscription.ID,
 	}
+	invoiceLinesParams.AddExpand("data.price.product")
+
 	i := w.stripeClient.Invoices.UpcomingLines(invoiceLinesParams)
 	if err = i.Err(); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve invoice lines for customer "+c.ID)
@@ -932,7 +934,10 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	// has more than one invoice line item for each bucket's price.
 	// ie. price of `First 4999` and `Next 19999` are two different line items for the same subscription item.
 	grouped := lo.GroupBy(lineItems, func(item *stripe.InvoiceLineItem) string {
-		return item.SubscriptionItem.ID
+		if item.SubscriptionItem != nil {
+			return item.SubscriptionItem.ID
+		}
+		return ""
 	})
 	for subscriptionItem, group := range grouped {
 		if len(group) == 0 {
