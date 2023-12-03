@@ -76,88 +76,88 @@ export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightD
     this.projectID = instanceSettings.jsonData.projectID;
   }
 
-  // async query(options: DataQueryRequest<HighlightQuery>): Promise<DataQueryResponse> {
-  //   const { range } = options;
-  //   const from = range!.from;
-  //   const to = range!.to;
+  async query(options: DataQueryRequest<HighlightQuery>): Promise<DataQueryResponse> {
+    const { range } = options;
+    const from = range!.from;
+    const to = range!.to;
 
-  //   // Return a constant for each query.
-  //   const data = await Promise.all(
-  //     options.targets.map(async (target) => {
-  //       const response = await getBackendSrv().post<{
-  //         data: {
-  //           traces_metrics: {
-  //             buckets: Bucket[];
-  //             bucket_count: number;
-  //           };
-  //         };
-  //         errors?: Error[];
-  //       }>(
-  //         `${this.url}/highlight/`,
-  //         JSON.stringify({
-  //           operationName: 'GetTracesMetrics',
-  //           variables: {
-  //             project_id: this.projectID,
-  //             metric_types: [target.metric] ?? [],
-  //             group_by: target.groupBy ?? [],
-  //             params: {
-  //               query: target.queryText ?? '',
-  //               date_range: {
-  //                 start_date: from.toISOString(),
-  //                 end_date: to.toISOString(),
-  //               },
-  //             },
-  //             column: target.column,
-  //           },
-  //           query: GET_TRACES_METRICS,
-  //         }),
-  //         {}
-  //       );
-  //       if (response.errors?.length) {
-  //         throw response.errors.map((e) => JSON.stringify(e)).join(', ');
-  //       }
+    // Return a constant for each query.
+    const data = await Promise.all(
+      options.targets.map(async (target) => {
+        const response = await getBackendSrv().post<{
+          data: {
+            traces_metrics: {
+              buckets: Bucket[];
+              bucket_count: number;
+            };
+          };
+          errors?: Error[];
+        }>(
+          `${this.url}/highlight/`,
+          JSON.stringify({
+            operationName: 'GetTracesMetrics',
+            variables: {
+              project_id: this.projectID,
+              metric_types: [target.metric] ?? [],
+              group_by: target.groupBy ?? [],
+              params: {
+                query: target.queryText ?? '',
+                date_range: {
+                  start_date: from.toISOString(),
+                  end_date: to.toISOString(),
+                },
+              },
+              column: target.column,
+            },
+            query: GET_TRACES_METRICS,
+          }),
+          {}
+        );
+        if (response.errors?.length) {
+          throw response.errors.map((e) => JSON.stringify(e)).join(', ');
+        }
 
-  //       const bucketIds = Array.from({ length: response.data.traces_metrics.bucket_count }, (_, index) => index);
+        const bucketIds = Array.from({ length: response.data.traces_metrics.bucket_count }, (_, index) => index);
 
-  //       const fields: any = [
-  //         {
-  //           name: 'Time',
-  //           values: bucketIds.map(
-  //             (bucket_id) =>
-  //               new Date(
-  //                 from.valueOf() +
-  //                   (bucket_id / response.data.traces_metrics.bucket_count) * (to.valueOf() - from.valueOf())
-  //               )
-  //           ),
-  //           type: FieldType.time,
-  //         },
-  //       ];
+        const fields: any = [
+          {
+            name: 'Time',
+            values: bucketIds.map(
+              (bucket_id) =>
+                new Date(
+                  from.valueOf() +
+                    (bucket_id / response.data.traces_metrics.bucket_count) * (to.valueOf() - from.valueOf())
+                )
+            ),
+            type: FieldType.time,
+          },
+        ];
 
-  //       for (const metricType of new Set(response.data.traces_metrics.buckets.map((b) => b.metric_type))) {
-  //         for (const metricGroup of new Set(response.data.traces_metrics.buckets.map((b) => b.group.join('-')))) {
-  //           const values: any[] = Array.from({ length: response.data.traces_metrics.bucket_count }, () => undefined);
+        for (const metricType of new Set(response.data.traces_metrics.buckets.map((b) => b.metric_type))) {
+          for (const metricGroup of new Set(response.data.traces_metrics.buckets.map((b) => b.group.join('-')))) {
+            const values: any[] = Array.from({ length: response.data.traces_metrics.bucket_count }, () => undefined);
 
-  //           response.data.traces_metrics.buckets
-  //             .filter((b) => b.metric_type === metricType && b.group.join('-') === metricGroup)
-  //             .forEach((b) => (values[b.bucket_id] = b.metric_value));
+            response.data.traces_metrics.buckets
+              .filter((b) => b.metric_type === metricType && b.group.join('-') === metricGroup)
+              .forEach((b) => (values[b.bucket_id] = b.metric_value));
 
-  //           fields.push({
-  //             name: [metricType, metricGroup].filter((s) => s).join('.'),
-  //             values: values,
-  //             type: FieldType.number,
-  //           });
-  //         }
-  //       }
+            fields.push({
+              name: [metricType, metricGroup].filter((s) => s).join('.'),
+              values: values,
+              type: FieldType.number,
+            });
+          }
+        }
 
-  //       return new MutableDataFrame({
-  //         refId: target.refId,
-  //         fields,
-  //       });
-  //     })
-  //   );
+        return new MutableDataFrame({
+          refId: target.refId,
+          fields,
+        });
+      })
+    );
 
-  //   return { data };
-  // }
+    return { data };
+  }
 
   // async testDatasource() {
   //   const response = await getBackendSrv().post<{

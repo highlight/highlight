@@ -29,19 +29,5 @@
   "dependencies": {
     "grafanaDependency": ">=10.0.3",
     "plugins": []
-  },
-  "routes": [
-    {
-      "path": "highlight",
-      "url": "https://409dbd07e479.ngrok.app/private",
-      "tokenAuth": {
-        "url": "https://409dbd07e479.ngrok.app/oauth/token",
-        "params": {
-          "grant_type": "client_credentials",
-          "client_id": "{{ .JsonData.clientID }}",
-          "client_secret": "{{ .SecureJsonData.clientSecret }}"
-        }
-      }
-    }
-  ]
+  }
 }

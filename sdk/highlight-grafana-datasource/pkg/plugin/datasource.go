@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/hasura/go-graphql-client"
+	"github.com/samber/lo"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -24,8 +28,30 @@ var (
 )
 
 // NewDatasource creates a new datasource instance.
-func NewDatasource(_ context.Context, settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
-	client := graphql.NewClient("https://409dbd07e479.ngrok.app/private", nil)
+func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
+	opts, err := settings.HTTPClientOptions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("http client options: %w", err)
+	}
+
+	opts.ForwardHTTPHeaders = true
+
+	var dataSourceSettings DataSourceSettings
+	err = json.Unmarshal(settings.JSONData, &dataSourceSettings)
+	if err != nil {
+		return nil, err
+	}
+
+	clientSecret := settings.DecryptedSecureJSONData["clientSecret"]
+
+	config := clientcredentials.Config{
+		ClientID:     dataSourceSettings.ClientId,
+		ClientSecret: clientSecret,
+		TokenURL:     "https://pri.highlight.io/oauth/token",
+	}
+
+	client := graphql.NewClient("https://pri.highlight.io", config.Client(ctx))
+
 	return &Datasource{Client: client}, nil
 }
 
@@ -64,29 +90,148 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 
 type queryModel struct{}
 
-func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
-	var response backend.DataResponse
+type queryInput struct {
+	Table     string
+	Column    string
+	GroupBy   []string
+	Metric    string
+	QueryText string
+}
 
-	// Unmarshal the JSON into our queryModel.
-	var qm queryModel
+type MetricAggregator string
 
-	err := json.Unmarshal(query.JSON, &qm)
+const (
+	MetricAggregatorCount            MetricAggregator = "Count"
+	MetricAggregatorCountDistinctKey MetricAggregator = "CountDistinctKey"
+	MetricAggregatorMin              MetricAggregator = "Min"
+	MetricAggregatorAvg              MetricAggregator = "Avg"
+	MetricAggregatorP50              MetricAggregator = "P50"
+	MetricAggregatorP90              MetricAggregator = "P90"
+	MetricAggregatorP95              MetricAggregator = "P95"
+	MetricAggregatorP99              MetricAggregator = "P99"
+	MetricAggregatorMax              MetricAggregator = "Max"
+	MetricAggregatorSum              MetricAggregator = "Sum"
+)
+
+type TracesMetricColumn string
+
+const (
+	TracesMetricColumnDuration    TracesMetricColumn = "Duration"
+	TracesMetricColumnMetricValue TracesMetricColumn = "MetricValue"
+)
+
+type TracesMetricBucket struct {
+	BucketID    uint64             `json:"bucket_id" graphql:"bucket_id"`
+	Group       []string           `json:"group" graphql:"group"`
+	Column      TracesMetricColumn `json:"column" graphql:"column"`
+	MetricType  MetricAggregator   `json:"metric_type" graphql:"metric_type"`
+	MetricValue float64            `json:"metric_value" graphql:"metric_value"`
+}
+
+type TracesMetrics struct {
+	Buckets      []*TracesMetricBucket `json:"buckets" graphql:"buckets"`
+	BucketCount  uint64                `json:"bucket_count" graphql:"bucket_count"`
+	SampleFactor float64               `json:"sample_factor" graphql:"sample_factor"`
+}
+
+type DateRangeRequiredInput struct {
+	StartDate time.Time `json:"start_date" graphql:"start_date"`
+	EndDate   time.Time `json:"end_date" graphql:"end_date"`
+}
+
+type QueryInput struct {
+	Query     string                  `json:"query" graphql:"query"`
+	DateRange *DateRangeRequiredInput `json:"date_range" graphql:"date_range"`
+}
+
+type DataSourceSettings struct {
+	ClientId  string `json:"clientID"`
+	ProjectId int    `json:"projectID"`
+}
+
+type DataSourceSecureSettings struct {
+	ClientSecret string `json:"clientSecret"`
+}
+
+type ID string
+
+func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
+	from := query.TimeRange.From
+	to := query.TimeRange.To
+
+	var input queryInput
+	err := json.Unmarshal(query.JSON, &input)
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
 	}
 
-	// create data frame response.
-	// For an overview on data frames and how grafana handles them:
-	// https://grafana.com/developers/plugin-tools/introduction/data-frames
+	var dataSourceSettings DataSourceSettings
+	err = json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &dataSourceSettings)
+	if err != nil {
+		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
+	}
+
+	var q struct {
+		TracesMetrics TracesMetrics `graphql:"traces_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by)"`
+	}
+
+	err = d.Client.Query(ctx, &q, map[string]interface{}{
+		"project_id":   ID(strconv.Itoa(dataSourceSettings.ProjectId)),
+		"metric_types": []MetricAggregator{MetricAggregator(input.Metric)},
+		"group_by":     input.GroupBy,
+		"params": QueryInput{
+			Query: input.QueryText,
+			DateRange: &DateRangeRequiredInput{
+				StartDate: from,
+				EndDate:   to,
+			},
+		},
+		"column": TracesMetricColumn(input.Column),
+	})
+	if err != nil {
+		return backend.DataResponse{Error: err}
+	}
+
+	bucketIds := []uint64{}
+	for i := uint64(0); i < q.TracesMetrics.BucketCount; i++ {
+		bucketIds = append(bucketIds, i)
+	}
+
 	frame := data.NewFrame("response")
 
-	// add fields.
-	frame.Fields = append(frame.Fields,
-		data.NewField("time", nil, []time.Time{query.TimeRange.From, query.TimeRange.To}),
-		data.NewField("values", nil, []int64{10, 20}),
-	)
+	timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
+		return from.Add(
+			time.Duration(float64(i) / float64(q.TracesMetrics.BucketCount) * float64(to.Sub(from))))
+	})
 
-	// add the frames to the response.
+	frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
+
+	metricTypes := lo.Uniq(lo.Map(q.TracesMetrics.Buckets, func(bucket *TracesMetricBucket, _ int) MetricAggregator {
+		return bucket.MetricType
+	}))
+
+	metricGroups := lo.Uniq(lo.Map(q.TracesMetrics.Buckets, func(bucket *TracesMetricBucket, _ int) string {
+		return strings.Join(bucket.Group, "-")
+	}))
+
+	for _, metricType := range metricTypes {
+		for _, metricGroup := range metricGroups {
+			values := make([]float64, q.TracesMetrics.BucketCount)
+			// 	const values: any[] = Array.from({ length: response.data.traces_metrics.bucket_count }, () => undefined);
+			for _, bucket := range q.TracesMetrics.Buckets {
+				if bucket.MetricType != metricType || strings.Join(bucket.Group, "-") != metricGroup {
+					continue
+				}
+
+				values[bucket.BucketID] = bucket.MetricValue
+			}
+
+			frame.Fields = append(frame.Fields, data.NewField(string(metricType)+"."+metricGroup, nil, values))
+		}
+	}
+
+	var response backend.DataResponse
+
 	response.Frames = append(response.Frames, frame)
 
 	return response
@@ -99,11 +244,6 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
 	var status = backend.HealthStatusOk
 	var message = "Data source is working"
-
-	// if rand.Int()%2 == 0 {
-	// 	status = backend.HealthStatusError
-	// 	message = "randomized error"
-	// }
 
 	return &backend.CheckHealthResult{
 		Status:  status,
