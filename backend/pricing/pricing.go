@@ -981,7 +981,6 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 	// Update sessions overage
 	sessionsMeter, err := GetWorkspaceSessionsMeter(ctx, w.db, w.ccClient, &workspace)
-	sessionsMeter = 123456
 	if err != nil {
 		return e.Wrap(err, "error getting sessions meter")
 	}
@@ -995,7 +994,6 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 	// Update errors overage
 	errorsMeter, err := GetWorkspaceErrorsMeter(ctx, w.db, w.ccClient, &workspace)
-	errorsMeter = 234567
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}
@@ -1009,7 +1007,6 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 	// Update logs overage
 	logsMeter, err := GetWorkspaceLogsMeter(ctx, w.db, w.ccClient, &workspace)
-	logsMeter = 34567890
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}
@@ -1023,7 +1020,6 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 	// Update traces overage
 	tracesMeter, err := GetWorkspaceTracesMeter(ctx, w.db, w.ccClient, &workspace)
-	tracesMeter = 45678901
 	if err != nil {
 		return e.Wrap(err, "error getting traces meter")
 	}
