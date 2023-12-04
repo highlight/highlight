@@ -4,7 +4,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
 
 export const GormTracesContent: QuickStartContent = {
-	title: 'Auto-Instrumentation with GORM library',
+	title: 'Tracing with GORM',
 	subtitle:
 		'Learn how to set up auto-instrumented tracing for your database calls using the GORM library.',
 	logoUrl: siteUrl('/images/quickstart/go.svg'),
