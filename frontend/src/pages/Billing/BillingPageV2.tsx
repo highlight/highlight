@@ -393,7 +393,21 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
 	const discountAmountFormatted =
 		'$ ' +
-		toDecimal(dinero({ amount: Math.round(discountAmount), currency: USD }))
+		toDecimal(
+			dinero({
+				amount: Math.round(
+					discountAmount
+						? discountAmount
+						: totalCents / (1 - discountPercent / 100) - totalCents,
+				),
+				currency: USD,
+			}),
+		)
+	const discountUntilFormatted = data?.subscription_details.discount?.until
+		? `until ${moment(data.subscription_details.discount.until).format(
+				'MMMM Do, YYYY',
+		  )}`
+		: 'forever'
 
 	return (
 		<Box width="full" display="flex" justifyContent="center">
@@ -578,7 +592,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 									>
 										<Box display="flex" gap="6">
 											<Text>
-												Discount (#
+												Discount (
 												{
 													data.subscription_details
 														.discount.name
@@ -586,11 +600,10 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 												)
 											</Text>
 											<Text color="weak">
-												-{discountPercent}% until{' '}
-												{moment(
-													data.subscription_details
-														.discount.until,
-												).format('MMMM Do, YYYY')}
+												{discountPercent
+													? `${discountPercent}% off `
+													: `${discountAmountFormatted} off `}
+												{discountUntilFormatted}
 											</Text>
 										</Box>
 										<Box
@@ -599,7 +612,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 											gap="4"
 										>
 											<Text color="strong" weight="bold">
-												{discountAmountFormatted}
+												-{discountAmountFormatted}
 											</Text>
 										</Box>
 									</Box>
