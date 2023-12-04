@@ -22,7 +22,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v4
               with:
-                  go-version-file: 'go.mod'
+                  go-version-file: './go.mod'
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.5
               with:
@@ -38,12 +38,11 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v4
               with:
-                  go-version-file: 'go.mod'
+                  go-version-file: './go.mod'
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
               with:
                   args: --config ./.golangci.yaml --timeout 5m
-                  working-directory: sdk/highlight-go
                   version: latest
 
     build:
@@ -55,7 +54,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v4
               with:
-                  go-version-file: 'go.mod'
+                  go-version-file: './go.mod'
             - name: Build binary
               run: cd sdk/highlight-go && go build .
 
@@ -69,6 +68,6 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v4
               with:
-                  go-version-file: 'go.mod'
+                  go-version-file: './go.mod'
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v
