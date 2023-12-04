@@ -82,7 +82,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/slack-go/slack v0.10.3
 	github.com/speps/go-hashids v2.0.0+incompatible
-	github.com/stripe/stripe-go/v72 v72.73.1
+	github.com/stripe/stripe-go/v76 v76.7.0
 	github.com/urfave/cli/v2 v2.8.1
 	github.com/vektah/gqlparser/v2 v2.5.1
 	go.opentelemetry.io/collector/pdata v0.66.0

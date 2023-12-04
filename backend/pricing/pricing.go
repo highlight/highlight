@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/stripe/stripe-go/v76"
 	"os"
 	"time"
 
@@ -17,8 +18,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/client"
+	"github.com/stripe/stripe-go/v76/client"
 	"gorm.io/gorm"
 )
 
@@ -572,15 +572,19 @@ func MustUpgradeForClearbit(tier string) bool {
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
 func GetBaseLookupKey(productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
-	if productTier == backend.PlanTypeUsageBased {
+	switch productTier {
+	case backend.PlanTypeUsageBased:
 		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeUsageBased)
-	}
-	result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
-	if unlimitedMembers {
-		result += "|UNLIMITED_MEMBERS"
-	}
-	if retentionPeriod != backend.RetentionPeriodThreeMonths {
-		result += "|" + string(retentionPeriod)
+	case backend.PlanTypeGraduated:
+		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeGraduated)
+	default:
+		result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
+		if unlimitedMembers {
+			result += "|UNLIMITED_MEMBERS"
+		}
+		if retentionPeriod != backend.RetentionPeriodThreeMonths {
+			result += "|" + string(retentionPeriod)
+		}
 	}
 	return
 }
@@ -893,13 +897,12 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
 
-	invoiceParams := &stripe.InvoiceParams{
+	invoiceParams := &stripe.InvoiceUpcomingParams{
 		Customer:     &c.ID,
 		Subscription: &subscription.ID,
 	}
-	invoiceParams.AddExpand("lines.data.price.product")
 
-	invoice, err := w.stripeClient.Invoices.GetNext(invoiceParams)
+	_, err = w.stripeClient.Invoices.Upcoming(invoiceParams)
 	// Cancelled subscriptions have no upcoming invoice - we can skip these since we won't
 	// be charging any overage for their next billing period.
 	if err != nil {
@@ -911,31 +914,56 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		}
 	}
 
-	invoiceLines := map[model.PricingProductType]*stripe.InvoiceLine{}
-	// FindUniquesBy to remove will extra line items
+	invoiceLinesParams := &stripe.InvoiceUpcomingLinesParams{
+		Customer:     &c.ID,
+		Subscription: &subscription.ID,
+	}
+	invoiceLinesParams.AddExpand("data.price.product")
+
+	i := w.stripeClient.Invoices.UpcomingLines(invoiceLinesParams)
+	if err = i.Err(); err != nil {
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve invoice lines for customer "+c.ID)
+	}
+	var lineItems []*stripe.InvoiceLineItem
+	for i.Next() {
+		lineItems = append(lineItems, i.InvoiceLineItem())
+	}
+
+	invoiceLines := map[model.PricingProductType]*stripe.InvoiceLineItem{}
+	// GroupBy to remove will extra line items
 	// duplicates are present because graduated pricing (one invoice item)
 	// has more than one invoice line item for each bucket's price.
-	// ie. price of `First 4999` and `Next 19999` are two different line items for the same invoice item.
-	for _, line := range lo.FindUniquesBy(invoice.Lines.Data, func(item *stripe.InvoiceLine) string {
-		return item.InvoiceItem
-	}) {
-		productType, _, _, _, _ := GetProductMetadata(line.Price)
-		if productType != nil {
-			// if there is more than one invoice line for the same product type,
-			// clean up the old line item that may exist from a previous price
-			if invoiceLines[*productType] != nil {
-				if invoiceLines[*productType].Price.ID != prices[*productType].ID {
-					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem, c.ID)
-					if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem, &stripe.InvoiceItemParams{}); err != nil {
+	// ie. price of `First 4999` and `Next 19999` are two different line items for the same subscription item.
+	grouped := lo.GroupBy(lineItems, func(item *stripe.InvoiceLineItem) string {
+		if item.SubscriptionItem != nil {
+			return item.SubscriptionItem.ID
+		}
+		return ""
+	})
+	for subscriptionItem, group := range grouped {
+		if len(group) == 0 {
+			return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR empty group, failed to group invoice lines for %s", subscriptionItem)
+		}
+		// if the subscriptionItem is not set, these are non-graduated line items that we want to delete
+		// if set, we only want to keep the first line item
+		if subscriptionItem != "" {
+			group = []*stripe.InvoiceLineItem{group[0]}
+		}
+		for _, line := range group {
+			productType, _, _, _, _ := GetProductMetadata(line.Price)
+			if productType != nil {
+				// if the line is from an old price, delete it
+				if line.Price.ID != prices[*productType].ID {
+					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old -invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem.ID, c.ID)
+					if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem.ID, &stripe.InvoiceItemParams{}); err != nil {
 						return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add usage record item")
 					}
-				} else {
-					return e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR multiple invoice lines for the same product %s for customer %s", *productType, c.ID))
 				}
+				invoiceLines[*productType] = line
 			}
-			invoiceLines[*productType] = line
 		}
 	}
+	log.WithContext(ctx).WithField("invoiceLinesLen", len(invoiceLines)).Infof("STRIPE_INTEGRATION_INFO found invoice lines %d %+v", len(invoiceLines), invoiceLines)
 
 	// Update members overage
 	membersMeter := GetWorkspaceMembersMeter(w.db, workspaceID)
@@ -988,7 +1016,6 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 	// Update traces overage
 	tracesMeter, err := GetWorkspaceTracesMeter(ctx, w.db, w.ccClient, &workspace)
-	log.WithContext(ctx).Infof("tracesMeter %d", tracesMeter)
 	if err != nil {
 		return e.Wrap(err, "error getting traces meter")
 	}
@@ -1003,7 +1030,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	return nil
 }
 
-func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace, newPrice *stripe.Price, invoiceLine *stripe.InvoiceLine, customer *stripe.Customer, subscription *stripe.Subscription, limit *int64, meter int64) error {
+func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace, newPrice *stripe.Price, invoiceLine *stripe.InvoiceLineItem, customer *stripe.Customer, subscription *stripe.Subscription, limit *int64, meter int64) error {
 	// Calculate overage if the workspace allows it
 	overage := int64(0)
 	if limit != nil &&
@@ -1016,7 +1043,7 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 	if newPrice.Recurring != nil && newPrice.Recurring.UsageType == stripe.PriceRecurringUsageTypeMetered {
 		var subscriptionItemID string
 		// if the subscription item doesn't create for this price, create it
-		if invoiceLine == nil || invoiceLine.SubscriptionItem == "" {
+		if invoiceLine == nil || invoiceLine.SubscriptionItem.ID == "" {
 			params := &stripe.SubscriptionItemParams{
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
@@ -1024,11 +1051,11 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 			params.SetIdempotencyKey(subscription.ID + ":" + newPrice.ID + ":item")
 			subscriptionItem, err := stripeClient.SubscriptionItems.New(params)
 			if err != nil {
-				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add invoice item for usage record item")
+				return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR failed to add invoice item for usage record item; invoiceLine=%+v, priceID=%s, subscriptionID=%s", invoiceLine, newPrice.ID, subscription.ID)
 			}
 			subscriptionItemID = subscriptionItem.ID
 		} else {
-			subscriptionItemID = invoiceLine.SubscriptionItem
+			subscriptionItemID = invoiceLine.SubscriptionItem.ID
 		}
 		// set the usage for this product, replacing existing values
 		params := &stripe.UsageRecordParams{
@@ -1041,7 +1068,7 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 		}
 	} else {
 		if invoiceLine != nil {
-			if _, err := stripeClient.InvoiceItems.Update(invoiceLine.InvoiceItem, &stripe.InvoiceItemParams{
+			if _, err := stripeClient.InvoiceItems.Update(invoiceLine.InvoiceItem.ID, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
 				Quantity: stripe.Int64(overage),
 			}); err != nil {
