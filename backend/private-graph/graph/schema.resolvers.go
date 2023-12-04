@@ -6954,8 +6954,15 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 
 	discount := c.Subscriptions.Data[0].Discount
 	if discount != nil && discount.Coupon != nil {
-		details.DiscountAmount = discount.Coupon.AmountOff
-		details.DiscountPercent = discount.Coupon.PercentOff
+		details.Discount = &modelInputs.SubscriptionDiscount{
+			Name:    discount.Coupon.Name,
+			Percent: discount.Coupon.PercentOff,
+			Amount:  discount.Coupon.AmountOff,
+		}
+		if discount.Coupon.Duration != stripe.CouponDurationForever {
+			t := time.Unix(discount.Start, 0).Add(time.Hour * 24 * 30 * time.Duration(discount.Coupon.DurationInMonths))
+			details.Discount.Until = &t
+		}
 	}
 
 	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID

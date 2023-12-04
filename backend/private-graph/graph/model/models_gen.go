@@ -798,11 +798,17 @@ type SourceMappingError struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount      int64    `json:"baseAmount"`
-	DiscountPercent float64  `json:"discountPercent"`
-	DiscountAmount  int64    `json:"discountAmount"`
-	LastInvoice     *Invoice `json:"lastInvoice"`
-	BillingIssue    bool     `json:"billingIssue"`
+	BaseAmount   int64                 `json:"baseAmount"`
+	Discount     *SubscriptionDiscount `json:"discount"`
+	LastInvoice  *Invoice              `json:"lastInvoice"`
+	BillingIssue bool                  `json:"billingIssue"`
+}
+
+type SubscriptionDiscount struct {
+	Name    string     `json:"name"`
+	Percent float64    `json:"percent"`
+	Amount  int64      `json:"amount"`
+	Until   *time.Time `json:"until"`
 }
 
 type TopUsersPayload struct {

@@ -1004,8 +1004,12 @@ query GetBillingDetails($workspace_id: ID!) {
 	}
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
-		discountAmount
-		discountPercent
+		discount {
+			name
+			amount
+			percent
+			until
+		}
 		lastInvoice {
 			amountDue
 			amountPaid
@@ -1033,8 +1037,12 @@ query GetBillingDetails($workspace_id: ID!) {
 query GetSubscriptionDetails($workspace_id: ID!) {
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
-		discountAmount
-		discountPercent
+		discount {
+			name
+			amount
+			percent
+			until
+		}
 		lastInvoice {
 			amountDue
 			amountPaid

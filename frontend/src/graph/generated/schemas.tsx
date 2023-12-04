@@ -3086,9 +3086,16 @@ export type SubscriptionDetails = {
 	__typename?: 'SubscriptionDetails'
 	baseAmount: Scalars['Int64']
 	billingIssue: Scalars['Boolean']
-	discountAmount: Scalars['Int64']
-	discountPercent: Scalars['Float']
+	discount?: Maybe<SubscriptionDiscount>
 	lastInvoice?: Maybe<Invoice>
+}
+
+export type SubscriptionDiscount = {
+	__typename?: 'SubscriptionDiscount'
+	amount: Scalars['Int64']
+	name: Scalars['String']
+	percent: Scalars['Float']
+	until?: Maybe<Scalars['Timestamp']>
 }
 
 export enum SubscriptionInterval {

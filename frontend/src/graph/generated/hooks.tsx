@@ -8441,8 +8441,12 @@ export const GetBillingDetailsDocument = gql`
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
@@ -8520,8 +8524,12 @@ export const GetSubscriptionDetailsDocument = gql`
 	query GetSubscriptionDetails($workspace_id: ID!) {
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
