@@ -12,22 +12,24 @@ export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 ) => unknown | Promise<unknown>
 type HighlightInitReturnType = ReturnType<typeof H.init>
 
-let NodeH: HighlightInitReturnType
-
 export const Highlight =
 	(options: NodeOptions) =>
 	<T extends HasHeaders, S extends HasStatus>(
 		originalHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
-		NodeH = H.init(options)
+		const NodeH = H.init(options)
+
 		return async (req, res) => {
-			const { secureSessionId, requestId } = H.parseHeaders(req.headers)
+			if (!NodeH) throw new Error('Highlight not initialized')
+
+			const { secureSessionId, requestId } = NodeH.setHeaders(req.headers)
 			const start = new Date()
+
 			try {
 				return await H.runWithHeaders(req.headers, async () => {
 					return new Promise((resolve, reject) => {
 						NodeH?.tracer.startActiveSpan(
-							'highlight-ctx',
+							'with-highlight-nodejs-page-router',
 							async (span) => {
 								try {
 									const result = await originalHandler(

@@ -134,11 +134,8 @@ export const H: HighlightInterface = {
 		}
 		return { secureSessionId: undefined, requestId: undefined }
 	},
-	runWithHeaders<T>(
-		headers: Headers | IncomingHttpHeaders | undefined,
-		cb: () => T,
-	) {
-		this.setHeaders(headers)
+	runWithHeaders<T>(headers: Headers | IncomingHttpHeaders, cb: () => T) {
+		headers && this.setHeaders(headers)
 		return cb()
 	},
 	setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {

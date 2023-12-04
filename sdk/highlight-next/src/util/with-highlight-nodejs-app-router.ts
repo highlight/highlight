@@ -11,43 +11,46 @@ type NextHandler<Body = unknown> = (
 ) => Promise<Response>
 type HighlightInitReturnType = ReturnType<typeof H.init>
 
-let NodeH: HighlightInitReturnType
-
 export function Highlight(options: NodeOptions) {
-	NodeH = H.init(options)
+	const NodeH = H.init(options)
+
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
+			if (!NodeH) throw new Error('Highlight not initialized')
+
+			const { secureSessionId, requestId } = NodeH?.setHeaders(
+				request.headers,
+			)
+
 			try {
-				// Must await originalHandler to catch the error at this level
-				return await H.runWithHeaders(request.headers, async () => {
-					return new Promise((resolve, reject) => {
-						NodeH?.tracer.startActiveSpan(
-							'highlight-ctx',
-							async (span) => {
-								try {
-									const result = await originalHandler(
-										request,
-										context,
-										NodeH,
-									)
-
-									span?.end()
-
-									await NodeH?.flush()
-
-									return resolve(result)
-								} catch (error) {
-									reject(error)
-								}
-							},
-						)
-					})
-				})
-			} catch (error) {
-				const { secureSessionId, requestId } = H.parseHeaders(
+				return await H.runWithHeaders<Promise<Response>>(
 					request.headers,
-				)
+					async () => {
+						return new Promise<Response>((resolve, reject) => {
+							NodeH?.tracer.startActiveSpan(
+								'with-highlight-nodejs-app-router',
+								async (span) => {
+									try {
+										const result = await originalHandler(
+											request,
+											context,
+											NodeH,
+										)
 
+										span?.end()
+
+										await NodeH?.flush()
+
+										return resolve(result)
+									} catch (error) {
+										reject(error)
+									}
+								},
+							)
+						})
+					},
+				)
+			} catch (error) {
 				if (error instanceof Error) {
 					await H.consumeAndFlush(error, secureSessionId, requestId)
 				}

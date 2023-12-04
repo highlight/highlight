@@ -8,7 +8,7 @@ import type { NodeOptions, HighlightContext } from './types.js'
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
 export interface HighlightInterface {
-	init: (options: NodeOptions) => Highlight | undefined
+	init: (options: NodeOptions) => Highlight
 	stop: () => Promise<void>
 	isInitialized: () => boolean
 	// Use parseHeaders to extract the headers from the current context or from the headers.
@@ -16,7 +16,7 @@ export interface HighlightInterface {
 		headers: Headers | IncomingHttpHeaders | undefined,
 	) => HighlightContext
 	// Use setHeaders to define the highlight context for the entire async request
-	setHeaders: (headers: Headers | IncomingHttpHeaders | undefined) => void
+	setHeaders: (headers: Headers | IncomingHttpHeaders) => void
 	// Use runWithHeaders to execute a method with a highlight context
 	runWithHeaders: <T>(
 		headers: Headers | IncomingHttpHeaders | undefined,
@@ -58,16 +58,16 @@ let highlight_obj: Highlight
 export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
 		_debug = !!options.debug
-		if (!!highlight_obj) {
-			return
-		}
-		try {
-			highlight_obj = new Highlight(options)
 
-			return highlight_obj
-		} catch (e) {
-			console.warn('highlight-node init error: ', e)
+		if (!highlight_obj) {
+			try {
+				highlight_obj = new Highlight(options)
+			} catch (e) {
+				console.warn('highlight-node init error: ', e)
+			}
 		}
+
+		return highlight_obj
 	},
 	stop: async () => {
 		if (!highlight_obj) {

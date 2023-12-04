@@ -23,18 +23,30 @@ const OTLP_HTTP = 'https://otel.highlight.io:4318'
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
-	public static asyncLocalStorage: AsyncLocalStorage<HighlightContext>
+	asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
-	constructor(config: any, options: any) {
-		super(config, options)
+	constructor(exporter: any, options: any) {
+		super(exporter, options)
 
 		this._listeners = new Map()
+
+		// @ts-ignore
+		this._exporter = exporter
 	}
 
 	onEnd(span: ReadableSpan) {
-		const highlightCtx = CustomSpanProcessor.asyncLocalStorage.getStore()
-		span.attributes['highlight.session_id'] = highlightCtx?.secureSessionId
-		span.attributes['highlight.trace_id'] = highlightCtx?.requestId
+		const highlightCtx = this.asyncLocalStorage.getStore()
+
+		if (highlightCtx) {
+			// @ts-ignore
+			span.resource = span.resource.merge(
+				new Resource({
+					['highlight.session_id']: highlightCtx.secureSessionId,
+					['highlight.trace_id']: highlightCtx.requestId,
+				}),
+			)
+		}
+
 		super.onEnd(span)
 	}
 
@@ -116,7 +128,6 @@ export class Highlight {
 		this._log('using otlp exporter settings', config)
 		const exporter = new OTLPTraceExporter(config)
 
-		CustomSpanProcessor.asyncLocalStorage = this.asyncLocalStorage
 		this.processor = new CustomSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 128,
@@ -335,12 +346,18 @@ export class Highlight {
 		} else if (headers) {
 			requestHeaders = headers
 		}
+
 		try {
 			const highlightCtx = this.asyncLocalStorage.getStore()
+
 			if (highlightCtx) {
 				return highlightCtx
 			} else if (headers) {
-				return parseHeaders(headers)
+				const highlightCtx = parseHeaders(headers)
+
+				if (highlightCtx.secureSessionId) {
+					return this.setHeaders(headers)
+				}
 			}
 		} catch (e) {
 			this._log('parseHeaders error: ', e)
@@ -361,11 +378,13 @@ export class Highlight {
 		}
 	}
 
-	setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
-		const highlightCtx = this.parseHeaders(headers)
-		if (highlightCtx) {
-			this.asyncLocalStorage.enterWith(highlightCtx)
-		}
+	setHeaders(headers: Headers | IncomingHttpHeaders) {
+		const highlightCtx = parseHeaders(headers)
+
+		this.asyncLocalStorage.enterWith(highlightCtx)
+		this.processor.asyncLocalStorage.enterWith(highlightCtx)
+
+		return highlightCtx
 	}
 }
 

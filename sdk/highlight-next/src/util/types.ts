@@ -34,10 +34,10 @@ export interface HighlightInterface {
 		headers: Headers | IncomingHttpHeaders | undefined,
 	) => HighlightContext
 	runWithHeaders: <T>(
-		headers: Headers | IncomingHttpHeaders | undefined,
+		headers: Headers | IncomingHttpHeaders,
 		cb: () => T,
 	) => T
-	setHeaders: (headers: Headers | IncomingHttpHeaders | undefined) => void
+	setHeaders: (headers: Headers | IncomingHttpHeaders) => void
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
