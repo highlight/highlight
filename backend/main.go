@@ -318,7 +318,7 @@ func main() {
 
 	clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
 
-	oauthSrv, err := oauth.CreateServer(ctx, db)
+	oauthSrv, err := oauth.CreateServer(ctx, db, redisClient)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating oauth client: %v", err)
 	}
