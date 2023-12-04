@@ -660,8 +660,8 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
 	const baseAmount = data?.subscription_details.baseAmount ?? 0
-	const discountPercent = data?.subscription_details.discountPercent ?? 0
-	const discountAmount = data?.subscription_details.discountAmount ?? 0
+	const discountPercent = data?.subscription_details.discount?.percent ?? 0
+	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
 	const productSubtotal =
 		predictedSessionsCost +
@@ -691,8 +691,18 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		'$' +
 		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
 	const discountAmountFormatted =
-		'$' +
-		toDecimal(dinero({ amount: Math.round(discountAmount), currency: USD }))
+		'$ ' +
+		toDecimal(
+			dinero({
+				amount: Math.round(
+					discountAmount
+						? discountAmount
+						: predictedTotalCents / (1 - discountPercent / 100) -
+								predictedTotalCents,
+				),
+				currency: USD,
+			}),
+		)
 
 	return (
 		<Box
@@ -973,10 +983,14 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									justifyContent="space-between"
 								>
 									<Box display="flex" gap="4">
-										<Text color="n12">
-											Total this month
+										<Text color="strong">
+											Total this{' '}
+											{data?.billingDetails.plan
+												.interval === 'Annual'
+												? 'year'
+												: 'month'}
 										</Text>
-										<Text>
+										<Text color="weak">
 											Due{' '}
 											{moment(nextBillingDate).format(
 												'MM/DD/YY',
@@ -1004,8 +1018,12 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 											{hasExtras && (
 												<>
 													{' '}
-													Includes a monthly
-													commitment of{' '}
+													Includes a{' '}
+													{data?.billingDetails.plan
+														.interval === 'Annual'
+														? 'yearly'
+														: 'monthly'}{' '}
+													base charge of{' '}
 													{baseAmountFormatted}
 													{discountPercent
 														? ` with a ${discountPercent}% discount`

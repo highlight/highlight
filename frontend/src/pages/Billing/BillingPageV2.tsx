@@ -216,8 +216,8 @@ const UsageCard = ({
 					)}
 					{isOverage && (
 						<Tooltip trigger={<IconSolidExclamation />}>
-							{productType} have exceeded your monthly billing
-							limit and are not being recorded.
+							{productType} have exceeded your billing limit and
+							are not being recorded.
 						</Tooltip>
 					)}
 				</Box>
@@ -655,8 +655,12 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 												/>
 											}
 										>
-											Includes a monthly base charge of{' '}
-											{baseAmountFormatted}
+											Includes a{' '}
+											{data?.billingDetails.plan
+												.interval === 'Annual'
+												? 'yearly'
+												: 'monthly'}{' '}
+											base charge of {baseAmountFormatted}
 											{discountPercent
 												? ` with a ${discountPercent}% discount`
 												: ''}
@@ -680,12 +684,3 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 }
 
 export default BillingPageV2
-/*
-elixir
-golang
-ruby
-`python
-
-6mo commitment
-
- */
