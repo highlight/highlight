@@ -1,6 +1,8 @@
 module github.com/highlight-run/highlight/backend
 
-go 1.20
+go 1.21
+
+toolchain go1.21.3
 
 replace github.com/emicklei/go-restful => github.com/emicklei/go-restful/v3 v3.8.0
 
@@ -45,8 +47,7 @@ require (
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-oauth2/oauth2/v4 v4.5.1
-	github.com/go-oauth2/redis/v4 v4.1.1
+	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-redsync/redsync/v4 v4.8.1
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -55,10 +56,11 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/snappy v0.0.4
 	github.com/google/go-github/v50 v50.2.0
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-retryablehttp v0.7.4
 	github.com/highlight-run/workerpool v1.3.0
+	github.com/highlight/go-oauth2-redis/v4 v4.1.4
 	github.com/highlight/highlight/sdk/highlight-go v0.9.13
 	github.com/influxdata/go-syslog/v3 v3.0.0
 	github.com/jackc/pgconn v1.10.1
@@ -69,7 +71,7 @@ require (
 	github.com/mssola/user_agent v0.5.3
 	github.com/openlyinc/pointy v1.1.2
 	github.com/pkg/errors v0.9.1
-	github.com/redis/go-redis/v9 v9.0.5
+	github.com/redis/go-redis/v9 v9.3.0
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.4.0
 	github.com/samber/lo v1.38.1
@@ -202,7 +204,7 @@ require (
 	github.com/dghubble/sling v1.1.0 // indirect
 	github.com/gammazero/deque v0.1.0 // indirect
 	github.com/go-chi/httplog v0.2.5
-	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
