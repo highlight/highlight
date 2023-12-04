@@ -12,6 +12,7 @@ const env: HighlightEnv = {
 	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	backendUrl: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL,
 	serviceName: 'my-nextjs-backend',
+	enableFsInstrumentation: true,
 }
 
 export const withPageRouterHighlight = PageRouterHighlight(env)

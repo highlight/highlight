@@ -6,6 +6,7 @@
 		"strict": true,
 		"rootDir": "src",
 		"outDir": "dist",
+		"declaration": true,
 		"types": ["vitest/globals"],
 		"baseUrl": "src",
 		"paths": {

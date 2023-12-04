@@ -685,8 +685,9 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 	membersLookupKey := string(model.PricingProductTypeMembers)
 	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
 	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, rp, productTier)
-	logsLookupKey := GetOverageKey(model.PricingProductTypeLogs, rp, productTier)
-	tracesLookupKey := GetOverageKey(model.PricingProductTypeTraces, rp, productTier)
+	// logs and traces are only available with three month retention
+	logsLookupKey := GetOverageKey(model.PricingProductTypeLogs, backend.RetentionPeriodThreeMonths, productTier)
+	tracesLookupKey := GetOverageKey(model.PricingProductTypeTraces, backend.RetentionPeriodThreeMonths, productTier)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey}
@@ -831,8 +832,16 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	})) != 1 {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - subscription has multiple products")
 	}
-	subscriptionItem := subscription.Items.Data[0]
-	_, productTier, _, interval, _ := GetProductMetadata(subscriptionItem.Price)
+
+	baseProductItem, ok := lo.Find(subscription.Items.Data, func(item *stripe.SubscriptionItem) bool {
+		_, ok := item.Price.Product.Metadata[highlightProductType]
+		return ok
+	})
+	if !ok {
+		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - cannot find base product")
+	}
+
+	_, productTier, _, interval, _ := GetProductMetadata(baseProductItem.Price)
 	if productTier == nil {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
 	}

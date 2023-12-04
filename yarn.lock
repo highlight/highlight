@@ -12519,14 +12519,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
-    "@opentelemetry/api": ^1.6.0
-    "@opentelemetry/auto-instrumentations-node": ^0.39.2
-    "@opentelemetry/core": ^1.17.1
-    "@opentelemetry/exporter-trace-otlp-proto": ^0.44.0
-    "@opentelemetry/resources": ^1.17.1
-    "@opentelemetry/sdk-node": ^0.44.0
-    "@opentelemetry/sdk-trace-base": ^1.17.1
-    "@opentelemetry/semantic-conventions": ^1.17.1
+    "@opentelemetry/api": ^1.7.0
+    "@opentelemetry/auto-instrumentations-node": ^0.40.1
+    "@opentelemetry/core": ^1.18.1
+    "@opentelemetry/exporter-trace-otlp-proto": ^0.45.1
+    "@opentelemetry/resources": ^1.18.1
+    "@opentelemetry/sdk-node": ^0.45.1
+    "@opentelemetry/sdk-trace-base": ^1.18.1
+    "@opentelemetry/semantic-conventions": ^1.18.1
     "@rollup/plugin-commonjs": ^25.0.7
     "@rollup/plugin-json": ^6.0.1
     "@rollup/plugin-node-resolve": ^15.2.3
@@ -23700,6 +23700,17 @@ __metadata:
     pg-protocol: "*"
     pg-types: ^4.0.1
   checksum: 49da89f64cec1bd12a3fbc0c72b17d685c2fee579726a529f62fcab395dbc5696d80455073409947a577164b3c53a90181a331e4a5d9357679f724d4ce37f4b9
+  languageName: node
+  linkType: hard
+
+"@types/pg@npm:^8.10.9":
+  version: 8.10.9
+  resolution: "@types/pg@npm:8.10.9"
+  dependencies:
+    "@types/node": "*"
+    pg-protocol: "*"
+    pg-types: ^4.0.1
+  checksum: c0c750af1f0945fe31c2793931da33bf596476ec8b52babfdb20f61006570c1c6c7f62f2dedd0cb9aefd2cddab238f2ed279337d3b2aa734ddd1ee8958e2355e
   languageName: node
   linkType: hard
 
@@ -46413,6 +46424,7 @@ __metadata:
     "@trpc/react-query": ^10.38.5
     "@trpc/server": ^10.38.5
     "@types/node": 20.8.2
+    "@types/pg": ^8.10.9
     "@types/react": 18.2.25
     "@types/react-dom": 18.2.10
     babylonjs: ^6.23.0
@@ -46422,6 +46434,7 @@ __metadata:
     ky: ^1.0.1
     next: 13.5.4
     next-build-id: ^3.0.0
+    pg: ^8.11.3
     react: 18.2.0
     react-dom: 18.2.0
     typescript: 5.2.2
