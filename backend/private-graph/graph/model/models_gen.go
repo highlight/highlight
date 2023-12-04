@@ -1230,16 +1230,18 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 type KeyType string
 
 const (
-	KeyTypeString KeyType = "String"
+	KeyTypeString  KeyType = "String"
+	KeyTypeNumeric KeyType = "Numeric"
 )
 
 var AllKeyType = []KeyType{
 	KeyTypeString,
+	KeyTypeNumeric,
 }
 
 func (e KeyType) IsValid() bool {
 	switch e {
-	case KeyTypeString:
+	case KeyTypeString, KeyTypeNumeric:
 		return true
 	}
 	return false

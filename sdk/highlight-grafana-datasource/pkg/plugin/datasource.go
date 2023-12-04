@@ -47,10 +47,10 @@ func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSetti
 	config := clientcredentials.Config{
 		ClientID:     dataSourceSettings.ClientId,
 		ClientSecret: clientSecret,
-		TokenURL:     "https://pri.highlight.io/oauth/token",
+		TokenURL:     "https://1b2278611b17.ngrok.app/oauth/token",
 	}
 
-	client := graphql.NewClient("https://pri.highlight.io", config.Client(ctx))
+	client := graphql.NewClient("https://1b2278611b17.ngrok.app/private", config.Client(ctx))
 
 	return &Datasource{Client: client}, nil
 }
@@ -199,12 +199,12 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 	frame := data.NewFrame("response")
 
-	timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
-		return from.Add(
-			time.Duration(float64(i) / float64(q.TracesMetrics.BucketCount) * float64(to.Sub(from))))
-	})
+	// timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
+	// 	return from.Add(
+	// 		time.Duration(float64(i) / float64(q.TracesMetrics.BucketCount) * float64(to.Sub(from))))
+	// })
 
-	frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
+	// frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
 
 	metricTypes := lo.Uniq(lo.Map(q.TracesMetrics.Buckets, func(bucket *TracesMetricBucket, _ int) MetricAggregator {
 		return bucket.MetricType
