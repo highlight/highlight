@@ -253,8 +253,10 @@ export const Search: React.FC<{
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 
+	// TODO: code smell, user is not able to use "message" as a search key
+	// because we are reserving it for the body implicitly
 	const showValues =
-		activeTerm.key !== BODY_KEY ||
+		activeTerm.key !== BODY_KEY &&
 		!!keys?.find((k) => k.name === activeTerm.key)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showTermSelect = !!activeTerm.value.length
