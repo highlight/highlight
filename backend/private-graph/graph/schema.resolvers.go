@@ -1289,7 +1289,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		Customer: workspace.StripeCustomerID,
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price: &newBasePrice.ID,
+				Price:    &newBasePrice.ID,
+				Quantity: stripe.Int64(1),
 			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
