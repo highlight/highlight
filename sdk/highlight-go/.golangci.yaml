@@ -9,16 +9,13 @@ output:
 
 linters:
     enable:
-        - deadcode
         - errcheck
         - gosimple
         - govet
         - ineffassign
         - staticcheck
-        - structcheck
         - typecheck
         - unused
-        - varcheck
 
 # all available settings of specific linters
 linters-settings:
