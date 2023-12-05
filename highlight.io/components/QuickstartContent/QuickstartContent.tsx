@@ -60,9 +60,12 @@ import { GormTracesContent } from './traces/go/gorm'
 import { OTLPTracesContent } from './traces/otlp'
 import { JSManualTracesContent } from './traces/node-js/manual'
 import { JSExpressTracesContent } from './traces/node-js/express'
+import { OTLPLoggingContent } from './logging/otlp'
+import { OTLPErrorMonitoringContent } from './backend/otlp'
 
 export type QuickStartOptions = {
 	title: string
+	metaTitle?: string
 	subtitle: string
 	logoUrl: string
 } & {
@@ -71,6 +74,7 @@ export type QuickStartOptions = {
 
 export type QuickStartContent = {
 	title: string
+	metaTitle?: string
 	subtitle: string
 	logoUrl?: string
 	entries: Array<QuickStartStep>
@@ -221,6 +225,10 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/java.svg'),
 			[QuickStartType.JavaOther]: JavaOtherContent,
 		},
+		otlp: {
+			title: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
+		},
 	},
 	'backend-logging': {
 		title: 'Select your language',
@@ -287,6 +295,10 @@ export const quickStartContent = {
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
+		},
+		otlp: {
+			title: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPLoggingContent,
 		},
 	},
 	traces: {
