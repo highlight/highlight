@@ -23,8 +23,9 @@ export const GormTracesContent: QuickStartContent = {
 	"go.opentelemetry.io/otel/attribute"
 )
 
-if err := htrace.SetupGORMTracing(db, attribute.String(highlight.ProjectIDAttribute, <YOUR_PROJECT_ID>)); err != nil {
-  // log or handle error
+DB, err = gorm.Open(<DB_SETTINGS>)
+if err := htrace.SetupGORMTracing(DB, attribute.String(highlight.ProjectIDAttribute, <YOUR_PROJECT_ID>)); err != nil {
+  highlight.RecordError(ctx, err)
 }`,
 					language: 'go',
 				},
@@ -36,8 +37,7 @@ if err := htrace.SetupGORMTracing(db, attribute.String(highlight.ProjectIDAttrib
 				'When making any database calls with GORM, attach a WithContext hook to provide more data about the trace.',
 			code: [
 				{
-					text: `DB, err = gorm.Open([DB_SETTINGS])
-DB.WithContext(ctx).Find(&user)
+					text: `DB.WithContext(ctx).Find(&user)
 `,
 					language: 'go',
 				},
