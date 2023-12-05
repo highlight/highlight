@@ -5,7 +5,7 @@ import * as styles from './styles.css'
 import { Button } from '../../components/Button/Button'
 import { Text } from '../../components/Text/Text'
 
-interface Page {
+export interface Page {
 	page: React.ReactNode
 	icon?: React.ReactElement
 	badge?: React.ReactNode

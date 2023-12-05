@@ -1,4 +1,4 @@
-import { HighlightOptions } from 'highlight.run'
+import type { HighlightOptions } from 'highlight.run'
 
 export interface NodeOptions extends HighlightOptions {
 	/**

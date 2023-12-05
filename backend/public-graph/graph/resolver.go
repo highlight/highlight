@@ -2462,6 +2462,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	querySessionSpan.Finish()
 	sessionID := sessionObj.ID
 
+	if sessionID%1000 == 0 {
+		log.WithContext(ctx).WithField("session_id", sessionID).Info("processing payload")
+	}
+
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
 		if sessionObj.ResumedAfterProcessedTime == nil {

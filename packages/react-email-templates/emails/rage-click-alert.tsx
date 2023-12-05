@@ -14,11 +14,11 @@ import {
 } from '../components/alerts'
 
 export interface RageClickAlertEmailProps {
+	alertLink?: string
 	alertName?: string
 	projectName?: string
 	userIdentifier?: string
 	sessionLink?: string
-	alertLink?: string
 }
 
 export const RageClickAlertEmail = ({

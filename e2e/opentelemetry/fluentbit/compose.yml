@@ -1,0 +1,21 @@
+services:
+    fluentbit-collector:
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        container_name: fluentbit-collector
+        image: fluent/fluent-bit
+        volumes:
+            - ./fluent.conf:/fluent.conf
+        command:
+            - -c
+            - /fluent.conf
+        environment:
+            HIGHLIGHT_PROJECT_ID: 490
+    fluentbit-dummy:
+        container_name: fluentbit-dummy
+        image: fluent/fluent-bit
+        command:
+            - -i
+            - dummy
+            - -o
+            - forward://fluentbit-collector:24224

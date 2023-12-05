@@ -9,11 +9,10 @@ type NextHandler<Body = unknown> = (
 ) => Promise<Response>
 
 export function Highlight(options: NodeOptions) {
+	H.init(options)
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
 			try {
-				H.init(options)
-
 				// Must await originalHandler to catch the error at this level
 				return await H.runWithHeaders(request.headers, async () => {
 					return await originalHandler(request, context)
