@@ -56,6 +56,7 @@ import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { GoTracesContent } from './traces/go/go'
+import { GormTracesContent } from './traces/go/gorm'
 import { OTLPTracesContent } from './traces/otlp'
 
 export type QuickStartOptions = {
@@ -112,6 +113,7 @@ export enum QuickStartType {
 	GoEcho = 'echo',
 	GoMux = 'mux',
 	GoGin = 'gin',
+	GoGorm = 'gorm',
 	GoLogrus = 'logrus',
 	GoOther = 'other',
 	JSApollo = 'apollo',
@@ -294,6 +296,7 @@ export const quickStartContent = {
 			subtitle: 'Install tracing in your Go application.',
 			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoOther]: GoTracesContent,
+			[QuickStartType.GoGorm]: GormTracesContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry Protocol (OTLP)',
