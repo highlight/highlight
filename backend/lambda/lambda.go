@@ -165,18 +165,13 @@ func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, proje
 	return req
 }
 
-type TemplateDataWithTemplate struct {
-	Template string
-	Data     interface{}
-}
-
 func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {
 	data.ToEmail = toEmail
 	data.UnsubscribeUrl = unsubscribeUrl
 
-	templateData := TemplateDataWithTemplate{
-		Template: "session-insights",
-		Data:     data,
+	templateData := map[string]interface{}{
+		"template": "session-insights",
+		"data":     data,
 	}
 
 	b, err := json.Marshal(templateData)
@@ -204,9 +199,9 @@ func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string,
 }
 
 func (s *Client) FetchReactEmailHTML(ctx context.Context, alertType string, data map[string]interface{}) (string, error) {
-	templateData := TemplateDataWithTemplate{
-		Template: alertType,
-		Data:     data,
+	templateData := map[string]interface{}{
+		"template": alertType,
+		"data":     data,
 	}
 
 	b, err := json.Marshal(templateData)
