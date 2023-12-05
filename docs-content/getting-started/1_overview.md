@@ -105,7 +105,7 @@ Highlight.io also supports tracing from your backend and mapping these to corres
     <DocsCard title="JS / TS" href="./tracing/1_node-js/1_overview.md">
         {"Get started with logging in Javascript"}
     </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/3_logging.md">
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
