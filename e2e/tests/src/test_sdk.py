@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime, timedelta
 from typing import Optional, Callable
@@ -11,30 +12,35 @@ def query(
     oauth_api: tuple[str, str],
     operation_name: str,
     query: str,
-    variables: dict[str, any],
-    fn: Optional[Callable[[dict[str, any]], None]] = None,
+    variables: Optional[dict[str, any]] = None,
+    variables_fn: Optional[Callable[[datetime], dict[str, any]]] = None,
+    validator: Optional[Callable[[dict[str, any]], None]] = None,
 ):
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
     # retry up for up to N seconds in case the session needs time to populate from datasync queue
     for _ in range(30):
         try:
+            if variables_fn:
+                variables = variables_fn(datetime.utcnow())
+            json = {
+                "operationName": operation_name,
+                "variables": variables,
+                "query": query,
+            }
             r = requests.post(
                 api_url,
                 verify=False,
-                json={
-                    "operationName": operation_name,
-                    "variables": variables,
-                    "query": query,
-                },
+                json=json,
                 headers={"Authorization": f"Bearer {oauth_token}"},
-                timeout=30
+                timeout=30,
             )
+            logging.info(f"POST {r.url} {json} {r.status_code} {r.text}")
             assert r.status_code == 200
             j = r.json()
             assert len(j.get("errors") or []) == 0
-            if fn:
-                fn(j["data"])
+            if validator:
+                validator(j["data"])
             return j["data"]
         except Exception as e:
             exc = e
@@ -65,6 +71,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     r = requests.get(
         f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
     )
+    logging.info(f"GET {r.url} {r.status_code} {r.text}")
     if success == "true":
         assert r.ok
     else:
@@ -73,7 +80,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     # check that the error came thru to highlight
     if success == "false":
 
-        def validate(data: dict[str, any]):
+        def validator(data: dict[str, any]):
             assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
             # check that we actually received the edge runtime error
             events = set(
@@ -88,7 +95,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
             oauth_api,
             "GetErrorGroupsClickhouse",
             GET_ERROR_GROUPS_CLICKHOUSE,
-            {
+            variables_fn=lambda ts: {
                 "query": {
                     "isAnd": True,
                     "rules": [
@@ -97,7 +104,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
                             "error-field_timestamp",
                             "between_date",
                             f"{start.isoformat(timespec='milliseconds')}Z_"
-                            f"{(start + timedelta(minutes=1)).isoformat(timespec='milliseconds')}Z",
+                            f"{ts.isoformat(timespec='milliseconds')}Z",
                         ],
                     ],
                 },
@@ -106,7 +113,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
                 "project_id": "1",
                 "sort_desc": False,
             },
-            validate,
+            validator=validator,
         )
 
 
@@ -115,7 +122,7 @@ def test_get_sessions_clickhouse(oauth_api):
         oauth_api,
         "GetSessionsClickhouse",
         GET_SESSIONS_CLICKHOUSE,
-        {
+        variables={
             "query": {
                 "isAnd": True,
                 "rules": [],
