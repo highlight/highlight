@@ -23,6 +23,7 @@ type BackendErrorObjectInput struct {
 	Timestamp       time.Time     `json:"timestamp"`
 	Payload         *string       `json:"payload"`
 	Service         *ServiceInput `json:"service"`
+	Environment     string        `json:"environment"`
 }
 
 type ErrorObjectInput struct {

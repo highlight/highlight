@@ -383,6 +383,7 @@ input BackendErrorObjectInput {
 	timestamp: Timestamp!
 	payload: String
 	service: ServiceInput!
+	environment: String!
 }
 
 input MetricTag {
@@ -3637,7 +3638,7 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload", "service"}
+	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload", "service", "environment"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3745,6 +3746,14 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service"))
 			it.Service, err = ec.unmarshalNServiceInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐServiceInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "environment":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environment"))
+			it.Environment, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

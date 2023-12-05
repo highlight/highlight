@@ -2219,7 +2219,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			TraceID:        v.TraceID,
 			SpanID:         v.SpanID,
 			LogCursor:      v.LogCursor,
-			Environment:    session.Environment,
+			Environment:    v.Environment,
 			Event:          v.Event,
 			Type:           model.ErrorType.BACKEND,
 			URL:            v.URL,

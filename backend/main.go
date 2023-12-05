@@ -217,6 +217,7 @@ func main() {
 	highlight.Start(
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+		highlight.WithEnvironment(util.EnvironmentName()),
 	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
