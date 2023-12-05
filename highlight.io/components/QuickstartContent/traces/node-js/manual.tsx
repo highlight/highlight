@@ -2,40 +2,47 @@ import { siteUrl } from '../../../../utils/urls'
 import { goGetSnippet, initializeGoSdk } from '../../backend/go/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
+import { previousInstallSnippet } from '../../logging/shared-snippets'
+import {
+	initializeNodeSDK,
+	jsGetSnippet,
+} from '../../backend/js/shared-snippets'
 
 export const JSManualTracesContent: QuickStartContent = {
-	title: 'Tracing from an Express.js App',
+	title: 'Tracing from an Node.js App',
 	subtitle:
-		'Learn how to set up highlight.io tracing for your Go application.',
-	logoUrl: siteUrl('/images/quickstart/go.svg'),
+		'Learn how to set up highlight.io tracing for your Node.js application.',
+	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 	entries: [
-		goGetSnippet,
-		initializeGoSdk,
+		previousInstallSnippet('js'),
+		jsGetSnippet(['node']),
+		initializeNodeSDK('node'),
 		{
-			title: 'Wrap your code using the Go SDK.',
+			title: 'Wrap your code using the Node.js SDK.',
 			content:
-				'By wrapping your code with `StartTrace` and `EndTrace`, the Highlight Go SDK will record a span. You can create more child spans using the child context or add custom attributes to each span.',
+				'By wrapping your code with `startSpan` and `endSpan`, the `@highlight-run/node` SDK will record a span. You can create more child spans or add custom attributes to each span.',
 			code: [
 				{
-					text: `import (
-	"github.com/highlight/highlight/sdk/highlight-go"
-	"go.opentelemetry.io/otel/attribute"
-)
-
-func functionToTrace(ctx context.Context, input int) {
-	s, childContext := highlight.StartTrace(ctx, "functionToTrace", attribute.Int("custom_property", input))
+					text: `
+const functionToTrace = (input int) => {
+	const span := H.startSpan("functionToTrace", {custom_property: input}))
 	// ...
-	anotherFunction(childContext)
+	anotherFunction()
 	// ...
-	highlight.EndTrace(s)
+	span.end()
 }
 
-func anotherFunction(ctx context.Context) {
-	s, _ := highlight.StartTrace(ctx, "anotherFunction")
+const anotherFunction = () => {
+	const span = H.startSpan("anotherFunction")
 	// ...
-	highlight.EndTrace(s)
+	span.end()
+}
+
+module.exports = function() {
+    console.log('hey there!');
+    functionToTrace()
 }`,
-					language: 'go',
+					language: 'js',
 				},
 			],
 		},

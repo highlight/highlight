@@ -59,7 +59,6 @@ import { GoTracesContent } from './traces/go/go'
 import { GormTracesContent } from './traces/go/gorm'
 import { OTLPTracesContent } from './traces/otlp'
 import { JSManualTracesContent } from './traces/node-js/manual'
-import { JSExpressTracesContent } from './traces/node-js/express'
 import { OTLPLoggingContent } from './logging/otlp'
 import { OTLPErrorMonitoringContent } from './backend/otlp'
 
@@ -128,6 +127,7 @@ export enum QuickStartType {
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
+	JSManual = 'manual',
 	JSNestjs = 'nestjs',
 	JSWinston = 'winston',
 	JSPino = 'pino',
@@ -226,7 +226,8 @@ export const quickStartContent = {
 			[QuickStartType.JavaOther]: JavaOtherContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry Protocol (OTLP)',
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
 		},
 	},
@@ -297,20 +298,20 @@ export const quickStartContent = {
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry Protocol (OTLP)',
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPLoggingContent,
 		},
 	},
 	traces: {
 		title: 'Select your language',
 		subtitle:
-			'Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).',
+			'Tracing is supported with the Highlight SDKs or via the OpenTelemetry protocol (OTLP).',
 		'node-js': {
-			title: 'Go',
-			subtitle: 'Install tracing in your Go application.',
-			logoUrl: siteUrl('/images/quickstart/go.svg'),
-			[QuickStartType.JSExpress]: JSExpressTracesContent,
-			[QuickStartType.JSExpress]: JSManualTracesContent,
+			title: 'Node.js',
+			subtitle: 'Manually trace your Node.js application.',
+			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			[QuickStartType.JSManual]: JSManualTracesContent,
 		},
 		go: {
 			title: 'Go',
@@ -320,7 +321,8 @@ export const quickStartContent = {
 			[QuickStartType.GoGorm]: GormTracesContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry Protocol (OTLP)',
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
 		},
 	},
