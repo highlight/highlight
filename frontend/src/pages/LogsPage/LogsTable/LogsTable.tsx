@@ -104,16 +104,20 @@ type LogsTableInnerProps = {
 	logEdges: LogEdgeWithError[]
 	query: string
 	selectedCursor: string | undefined
-	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
+	fetchMoreWhenScrolled: (
+		target: HTMLDivElement,
+		disableBackwards?: boolean,
+	) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
+	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
 }
 
 const LOADING_AFTER_HEIGHT = 28
 
-const GRID_COLUMNS = ['200px', '75px', '1fr']
+const GRID_COLUMNS = ['175px', '75px', '1fr']
 
 const LogsTableInner = ({
 	logEdges,
@@ -121,6 +125,7 @@ const LogsTableInner = ({
 	query,
 	selectedCursor,
 	moreLogs,
+	bodyHeight,
 	clearMoreLogs,
 	handleAdditionalLogsDateChange,
 	fetchMoreWhenScrolled,
@@ -273,6 +278,23 @@ const LogsTableInner = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	useEffect(() => {
+		setTimeout(() => {
+			if (!loadingAfter && bodyRef?.current) {
+				fetchMoreWhenScrolled(bodyRef.current, true)
+			}
+		}, 0)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [loadingAfter])
+
+	const handleFetchMoreWhenScrolled = (
+		e: React.UIEvent<HTMLDivElement, UIEvent>,
+	) => {
+		setTimeout(() => {
+			fetchMoreWhenScrolled(e.target as HTMLDivElement)
+		}, 0)
+	}
+
 	return (
 		<Table height="full" noBorder>
 			<Table.Head>
@@ -298,16 +320,9 @@ const LogsTableInner = ({
 			</Table.Head>
 			<Table.Body
 				ref={bodyRef}
-				overflowY="scroll"
-				style={{
-					// Subtract heights of elements above, including loading more loads when relevant
-					height: moreLogs
-						? `calc(100vh - 256px)`
-						: `calc(100vh - 228px)`,
-				}}
-				onScroll={(e) =>
-					fetchMoreWhenScrolled(e.target as HTMLDivElement)
-				}
+				overflowY="auto"
+				style={{ height: bodyHeight }}
+				onScroll={handleFetchMoreWhenScrolled}
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {

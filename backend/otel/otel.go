@@ -79,6 +79,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
 		URL:             fields.errorUrl,
+		Environment:     fields.environment,
 		Service: &model.ServiceInput{
 			Name:    fields.serviceName,
 			Version: fields.serviceVersion,

@@ -1,7 +1,9 @@
 export type { HighlightEnv } from './util/types'
-import type { HighlightEnv } from './util/types'
-export { H } from '@highlight-run/cloudflare' // Imports from server.edge.ts for the edge runtime
+
 import * as withHighlightEdge from './util/with-highlight-edge'
+
+import type { HighlightEnv } from './util/types'
+export { H } from './util/highlight-edge'
 
 export function registerHighlight() {}
 

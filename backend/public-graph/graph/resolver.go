@@ -2222,7 +2222,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			TraceID:        v.TraceID,
 			SpanID:         v.SpanID,
 			LogCursor:      v.LogCursor,
-			Environment:    session.Environment,
+			Environment:    v.Environment,
 			Event:          v.Event,
 			Type:           model.ErrorType.BACKEND,
 			URL:            v.URL,
@@ -2464,6 +2464,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 	sessionID := sessionObj.ID
+
+	if sessionID%1000 == 0 {
+		log.WithContext(ctx).WithField("session_id", sessionID).Info("processing payload")
+	}
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {

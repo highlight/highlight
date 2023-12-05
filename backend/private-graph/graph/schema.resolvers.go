@@ -55,7 +55,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	stripe "github.com/stripe/stripe-go/v76"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"golang.org/x/sync/errgroup"
@@ -1262,7 +1262,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
-			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
+			ProrationBehavior: stripe.String(string(stripe.SubscriptionSchedulePhaseProrationBehaviorCreateProrations)),
 			Items: []*stripe.SubscriptionItemsParams{
 				{
 					ID:   &subscriptionItem.ID,
@@ -1287,9 +1287,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 			"card",
 		}),
 		Customer: workspace.StripeCustomerID,
-		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
-				{Plan: &newBasePrice.ID},
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				Price: &newBasePrice.ID,
 			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
@@ -3983,7 +3983,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	}
 
 	subListParams := stripe.SubscriptionListParams{
-		Status: string(stripe.SubscriptionStatusActive),
+		Status: stripe.String(string(stripe.SubscriptionStatusActive)),
 	}
 	subListParams.AddExpand("data.customer")
 	subListParams.Filters.AddFilter("limit", "", "100")

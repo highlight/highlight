@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/model"
 	"os"
+
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/util"
 
 	log "github.com/sirupsen/logrus"
 
@@ -19,6 +21,7 @@ func main() {
 	highlight.Start(
 		highlight.WithServiceName("lambda-functions--sessionExport"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+		highlight.WithEnvironment(util.EnvironmentName()),
 	)
 	defer highlight.Stop()
 	hlog.Init()

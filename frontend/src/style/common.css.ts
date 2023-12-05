@@ -24,10 +24,10 @@ const scrollbarCommonStyles = {
 export const styledHorizontalScrollbar = style({
 	selectors: {
 		...scrollbarCommonStyles,
-		':hover&::-webkit-scrollbar': {
+		':hover&::-webkit-scrollbar:horizontal': {
 			borderTop: borders.dividerWeak,
 		},
-		'&::-webkit-scrollbar-thumb': {
+		'&::-webkit-scrollbar-thumb:horizontal': {
 			...scrollbarThumbCoreStyles,
 			borderTopWidth: 2,
 		},
@@ -37,10 +37,10 @@ export const styledHorizontalScrollbar = style({
 export const styledVerticalScrollbar = style({
 	selectors: {
 		...scrollbarCommonStyles,
-		':hover&::-webkit-scrollbar': {
+		':hover&::-webkit-scrollbar:vertical': {
 			borderLeft: borders.dividerWeak,
 		},
-		'&::-webkit-scrollbar-thumb': {
+		'&::-webkit-scrollbar-thumb:vertical': {
 			...scrollbarThumbCoreStyles,
 			borderLeftWidth: 2,
 		},

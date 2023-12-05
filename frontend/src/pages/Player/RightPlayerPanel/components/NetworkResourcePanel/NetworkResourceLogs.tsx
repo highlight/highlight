@@ -34,6 +34,8 @@ import { useParams } from '@/util/react-router/useParams'
 // logs for.
 const TIME_BUFFER = 200000
 
+const SEARCH_AND_HEADER_HEIGHT = 60
+
 export const NetworkResourceLogs: React.FC<{
 	resource: NetworkResource
 	sessionStartTime: number
@@ -69,14 +71,17 @@ export const NetworkResourceLogs: React.FC<{
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
+		(
+			containerRefElement?: HTMLDivElement | null,
+			disableBackwards?: boolean,
+		) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
+				} else if (!disableBackwards && scrollTop === 0) {
 					fetchMoreBackward()
 				}
 			}
@@ -107,7 +112,7 @@ export const NetworkResourceLogs: React.FC<{
 				justifyContent="stretch"
 				display="flex"
 				overflow="hidden"
-				maxHeight="full"
+				height="full"
 			>
 				<Box
 					borderRadius="6"
@@ -146,6 +151,7 @@ export const NetworkResourceLogs: React.FC<{
 								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+								bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}
 							/>
 						)}
 					</Box>

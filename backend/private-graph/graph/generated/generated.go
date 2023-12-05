@@ -11281,6 +11281,7 @@ enum ReservedTraceKey {
 }
 
 enum ReservedErrorObjectKey {
+	environment
 	event
 	log_cursor
 	payload

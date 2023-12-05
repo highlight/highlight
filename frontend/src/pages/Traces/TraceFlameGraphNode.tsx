@@ -166,7 +166,6 @@ export const TraceFlameGraphNode = memo<Props>(
 									textOverflow: 'ellipsis',
 									overflow: 'hidden',
 									fontSize: '12px',
-									fontFamily: 'sans-serif',
 									marginLeft: '4px',
 									marginRight: '4px',
 									lineHeight: '1.5',

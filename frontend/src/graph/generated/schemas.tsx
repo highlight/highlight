@@ -2584,6 +2584,7 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorObjectKey {
+	Environment = 'environment',
 	Event = 'event',
 	LogCursor = 'log_cursor',
 	Payload = 'payload',
