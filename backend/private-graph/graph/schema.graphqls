@@ -2017,6 +2017,7 @@ type Query {
 	logs_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -2058,6 +2059,7 @@ type Query {
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!

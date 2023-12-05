@@ -2247,6 +2247,7 @@ export type QueryLogs_Key_ValuesArgs = {
 export type QueryLogs_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryLogs_Total_CountArgs = {
@@ -2472,6 +2473,7 @@ export type QueryTraces_Key_ValuesArgs = {
 export type QueryTraces_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTraces_MetricsArgs = {

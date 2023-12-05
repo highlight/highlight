@@ -1,11 +1,4 @@
-import {
-	GetLogsKeysQuery,
-	GetLogsKeysQueryVariables,
-	GetLogsKeyValuesQueryVariables,
-	GetTracesKeysQuery,
-	GetTracesKeysQueryVariables,
-	GetTracesKeyValuesQueryVariables,
-} from '@graph/operations'
+import { GetLogsKeysQuery, GetTracesKeysQuery } from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -25,6 +18,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
+import { debounce } from 'lodash'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
@@ -51,6 +45,12 @@ import {
 	SearchParam,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
+import {
+	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
+	useGetTracesKeysQuery,
+	useGetTracesKeyValuesLazyQuery,
+} from '@/graph/generated/hooks'
 
 import * as styles from './SearchForm.css'
 
@@ -65,17 +65,11 @@ export const PermalinkStartDateParam = withDefault(
 )
 export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
 
-type FetchKeys = ({}: {
-	variables: GetLogsKeysQueryVariables | GetTracesKeysQueryVariables
-}) => { data?: { keys: Keys }; loading: boolean }
-type FetchValues = () => [
-	({}: {
-		variables:
-			| GetLogsKeyValuesQueryVariables
-			| GetTracesKeyValuesQueryVariables
-	}) => void,
-	{ data?: { key_values: string[] }; loading: boolean },
-]
+type FetchKeys = typeof useGetLogsKeysQuery | typeof useGetTracesKeysQuery
+type FetchValues =
+	| typeof useGetLogsKeyValuesLazyQuery
+	| typeof useGetTracesKeyValuesLazyQuery
+
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
 
 const MAX_ITEMS = 10
@@ -121,7 +115,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
 
-	const { data: keysData, loading: keysLoading } = fetchKeys({
+	const {
+		data: keysData,
+		loading: keysLoading,
+		refetch: keysRefetch,
+	} = fetchKeys({
 		variables: {
 			project_id: projectId,
 			date_range: {
@@ -130,6 +128,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			},
 		},
 	})
+
+	const debouncedKeysRefetch = debounce(keysRefetch, 500)
 
 	const [dateRange, setDateRange] = useState<Date[]>([startDate, endDate])
 
@@ -160,6 +160,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					fetchValuesLazyQuery={fetchValuesLazyQuery}
 					setQuery={setQuery}
 					onFormSubmit={onFormSubmit}
+					refetchKeys={debouncedKeysRefetch}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
 					{actions && actions({ query, startDate, endDate })}
@@ -224,6 +225,7 @@ export const Search: React.FC<{
 	fetchValuesLazyQuery: FetchValues
 	setQuery: (value: string) => void
 	onFormSubmit: (query: string) => void
+	refetchKeys: (variable: any) => void
 }> = ({
 	initialQuery,
 	startDate,
@@ -237,6 +239,7 @@ export const Search: React.FC<{
 	fetchValuesLazyQuery,
 	setQuery,
 	onFormSubmit,
+	refetchKeys,
 }) => {
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
@@ -277,9 +280,19 @@ export const Search: React.FC<{
 		onFormSubmit(query)
 	}
 
+	// TODO: refetch (maybe lazy) with query
+	// figure out why so many queries are being made
 	useEffect(() => {
+		console.log('FETCHING', activeTerm)
 		if (!showValues) {
-			return
+			return refetchKeys({
+				project_id: project_id!,
+				date_range: {
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				query: activeTerm.value,
+			})
 		}
 
 		getKeyValues({
@@ -294,11 +307,13 @@ export const Search: React.FC<{
 		})
 	}, [
 		activeTerm.key,
+		activeTerm.value,
 		endDate,
 		getKeyValues,
 		project_id,
 		showValues,
 		startDate,
+		refetchKeys,
 	])
 
 	useEffect(() => {
