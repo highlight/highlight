@@ -11,7 +11,7 @@ import {
 	SimpleSearchSelect,
 } from '@components/Select/SearchSelect/SearchSelect'
 import {
-	useGetMetricTagsQuery,
+	useGetMetricTagsLazyQuery,
 	useGetMetricTagValuesLazyQuery,
 	useGetSuggestedMetricsLazyQuery,
 } from '@graph/hooks'
@@ -69,7 +69,6 @@ export const EditMetricModal = ({
 	shown?: boolean
 	canChangeType?: boolean
 }) => {
-	const { project_id } = useParams<{ project_id: string }>()
 	const [minValue, setMinValue] = useState<boolean>(
 		metricConfig.min_value !== null,
 	)
@@ -100,15 +99,6 @@ export const EditMetricModal = ({
 		metricConfig.filters || [],
 	)
 	const [groups, setGroups] = useState<string[]>(metricConfig.groups || [])
-
-	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
-		variables: {
-			project_id: project_id!,
-			metric_name: metricName,
-		},
-		fetchPolicy: 'cache-first',
-		skip: !project_id,
-	})
 
 	useEffect(() => {
 		if (!metricConfig.component_type && !metricConfig.chart_type) {
@@ -314,7 +304,7 @@ export const EditMetricModal = ({
 						</>
 					) : null}
 
-					{chartType && !tagsLoading && tags?.metric_tags.length ? (
+					{chartType && (
 						<section className={styles.section}>
 							<h3>Filter by</h3>
 							<TagFilters
@@ -323,7 +313,7 @@ export const EditMetricModal = ({
 								currentTags={filters}
 							/>
 						</section>
-					) : null}
+					)}
 
 					{chartType === DashboardChartType.TimelineBar ? (
 						<section className={styles.section}>
@@ -392,23 +382,47 @@ export const TagGroups = ({
 	currentGroups: string[]
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { data } = useGetMetricTagsQuery({
-		variables: {
-			project_id: project_id!,
-			metric_name: metricName,
-		},
-		skip: !project_id,
-	})
+	const [options, setOptions] = useState<SearchOption[]>([])
+	const [query, setQuery] = useState<string>('')
+	const debouncedQuery = useDebouncedValue(query) || ''
+	const [getMetricTags, { data }] = useGetMetricTagsLazyQuery()
+
+	const getValueOptions = (input: string) => {
+		setQuery(input)
+	}
+
+	useEffect(() => {
+		getMetricTags({
+			variables: {
+				project_id: project_id!,
+				metric_name: metricName,
+				query: debouncedQuery,
+			},
+			fetchPolicy: 'cache-first',
+		})
+	}, [getMetricTags, metricName, project_id, debouncedQuery])
+
+	useEffect(() => {
+		setOptions(
+			data?.metric_tags.map((s) => ({
+				label: s,
+				value: s,
+			})) || [],
+		)
+	}, [data?.metric_tags])
+
 	const currentGroup = currentGroups[0]
+
 	return (
 		<>
 			<div className={styles.groupsRow} key={`tag-group-${currentGroup}`}>
-				<SimpleSearchSelect
-					options={data?.metric_tags || []}
+				<SearchSelect
+					options={options}
 					value={currentGroup}
 					onSelect={(v) => {
 						onSelectGroups([v])
 					}}
+					loadOptions={getValueOptions}
 				/>
 				<Button
 					trackingId="EditMetricRemoveTagGroup"
@@ -505,14 +519,37 @@ export const TagFilterSelector = ({
 	usedTags?: string[]
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { data } = useGetMetricTagsQuery({
-		variables: {
-			project_id: project_id!,
-			metric_name: metricName,
-		},
-		fetchPolicy: 'cache-first',
-		skip: !project_id,
-	})
+	const [options, setOptions] = useState<SearchOption[]>([])
+	const [query, setQuery] = useState<string>('')
+	const debouncedQuery = useDebouncedValue(query) || ''
+	const [getMetricTags, { data }] = useGetMetricTagsLazyQuery()
+
+	const getValueOptions = (input: string) => {
+		setQuery(input)
+	}
+
+	useEffect(() => {
+		getMetricTags({
+			variables: {
+				project_id: project_id!,
+				metric_name: metricName,
+				query: debouncedQuery,
+			},
+			fetchPolicy: 'cache-first',
+		})
+	}, [getMetricTags, metricName, project_id, debouncedQuery])
+
+	useEffect(() => {
+		setOptions(
+			data?.metric_tags
+				.filter((t) => (usedTags ? !usedTags.includes(t) : true))
+				.map((s) => ({
+					label: s,
+					value: s,
+				})) || [],
+		)
+	}, [data?.metric_tags, usedTags])
+
 	const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
 		variables: {
 			project_id: project_id!,
@@ -530,13 +567,8 @@ export const TagFilterSelector = ({
 
 	return (
 		<>
-			<SimpleSearchSelect
-				options={
-					data?.metric_tags.filter((t) =>
-						usedTags ? !usedTags.includes(t) : true,
-					) || []
-				}
-				autoFocus={tagIdx >= (usedTags?.length || 0)}
+			<SearchSelect
+				options={options}
 				value={currentTag?.tag}
 				onSelect={(v) => {
 					onSelectTag(
@@ -548,6 +580,7 @@ export const TagFilterSelector = ({
 						tagIdx,
 					)
 				}}
+				loadOptions={getValueOptions}
 			/>
 			<StandardDropdown
 				gray
