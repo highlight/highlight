@@ -12355,8 +12355,16 @@ export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
 	Types.GetSuggestedMetricsQueryVariables
 >
 export const GetMetricTagsDocument = gql`
-	query GetMetricTags($project_id: ID!, $metric_name: String!) {
-		metric_tags(project_id: $project_id, metric_name: $metric_name)
+	query GetMetricTags(
+		$project_id: ID!
+		$metric_name: String!
+		$query: String
+	) {
+		metric_tags(
+			project_id: $project_id
+			metric_name: $metric_name
+			query: $query
+		)
 	}
 `
 
@@ -12374,6 +12382,7 @@ export const GetMetricTagsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
+ *      query: // value for 'query'
  *   },
  * });
  */

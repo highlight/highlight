@@ -7065,12 +7065,12 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 }
 
 // MetricTags is the resolver for the metric_tags field.
-func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error) {
+func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
-	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), nil)
+	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), query)
 	if err != nil {
 		return nil, err
 	}
