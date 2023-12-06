@@ -88,16 +88,17 @@ const UNIT_QUANTITY = {
 
 export const getCostCents = (
 	productType: ProductType,
-	rate: number | undefined,
+	rateCents: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	quantity: number,
 	includedQuantity: number,
 ): number => {
-	if (!rate) {
-		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	if (!rateCents) {
+		rateCents =
+			BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
 	}
 	return Math.floor(
-		rate *
+		rateCents *
 			RETENTION_MULTIPLIER[retentionPeriod] *
 			Math.max(quantity - includedQuantity, 0),
 	)
@@ -105,7 +106,7 @@ export const getCostCents = (
 
 export const getQuantity = (
 	productType: ProductType,
-	rate: number | undefined,
+	rateCents: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	totalCents: number | undefined,
 	includedQuantity: number,
@@ -114,12 +115,12 @@ export const getQuantity = (
 		return undefined
 	}
 
-	if (!rate) {
-		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	if (!rateCents) {
+		rateCents =
+			BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
 	}
 	return Math.floor(
-		((totalCents / 100) * UNIT_QUANTITY[productType]) /
-			(rate * RETENTION_MULTIPLIER[retentionPeriod]) +
+		totalCents / (rateCents * RETENTION_MULTIPLIER[retentionPeriod]) +
 			includedQuantity,
 	)
 }
@@ -660,6 +661,12 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		tracesUsage,
 		includedTraces,
 	)
+	if (formState.values.tracesLimitCents !== undefined) {
+		predictedTracesCost = Math.min(
+			predictedTracesCost,
+			formState.values.tracesLimitCents,
+		)
+	}
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
 	const baseAmount = data?.subscription_details.baseAmount ?? 0
