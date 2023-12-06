@@ -7,7 +7,7 @@ updatedAt: 2023-10-16T00:00:00.000Z
 ---
 
 Using the native OpenTelemetry SDKs? We've got you covered.
-The highlight.io SDKs are powered by [OpenTelemetry](https://opentelemetry.io/) under the hood and report data to our deployed OpenTelemetry [collector](https://otel.highlight.io). You can always use our [in-house SDKS](../6_backend-tracing/1_overview.md), but if you prefer to report raw OTEL data instead, continue reading!
+The highlight.io SDKs are powered by [OpenTelemetry](https://opentelemetry.io/) under the hood and report data to our deployed OpenTelemetry [collector](https://otel.highlight.io). You can always use our [in-house SDKS](../6_backend-tracing/1_go/1_overview.md), but if you prefer to report raw OTEL data instead, continue reading!
 
 
 ## Quick Start
