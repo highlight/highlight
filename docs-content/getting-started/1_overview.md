@@ -60,6 +60,9 @@ Highlight.io also supports reporting errors from your backend and mapping these 
     <DocsCard title="Java" href="./4_backend-sdk/java/1_overview.md">
         {"Get started with error monitoring in Java"}
     </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/2_error-monitoring.md">
+        {"Get started with OpenTelemetry"}
+    </DocsCard>
 </DocsCardGroup>
 
 ## For your Backend: Logging
@@ -83,6 +86,27 @@ Highlight.io also supports logging from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="Java" href="./backend-logging/05_java/1_overview.md">
         {"Get started with logging in Java"}
+    </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/3_logging.md">
+        {"Get started with OpenTelemetry"}
+    </DocsCard>
+</DocsCardGroup>
+
+## For your Backend: Tracing
+
+Highlight.io also supports tracing from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state, as well as allowing you to dig deeper into performance problems. Supported frameworks / languages below:
+
+### Application Tracing
+
+<DocsCardGroup>
+    <DocsCard title="Go" href="./tracing/2_go.md">
+        {"Get started with tracing in Go"}
+    </DocsCard>
+    <DocsCard title="JS / TS" href="./tracing/1_node-js/1_overview.md">
+        {"Get started with tracing in Javascript"}
+    </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
+        {"Get started with tracing in OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
 
