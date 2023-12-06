@@ -471,7 +471,24 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 }
 
 func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
+	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	defaultTraceKeys := []*modelInputs.QueryKey{}
+	defaultTraceKeys = append(defaultTraceKeys, &modelInputs.QueryKey{
+		Name: "trace_id",
+		Type: modelInputs.KeyTypeString,
+	})
+	defaultTraceKeys = append(defaultTraceKeys, &modelInputs.QueryKey{
+		Name: "span_id",
+		Type: modelInputs.KeyTypeString,
+	})
+
+	traceKeys = append(traceKeys, defaultTraceKeys...)
+
+	return traceKeys, nil
 }
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
