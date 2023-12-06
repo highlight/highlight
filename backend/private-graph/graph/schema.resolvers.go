@@ -7928,6 +7928,8 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 				log.WithContext(ctx).Error(e.Wrap(err, "error fetching session for subscription"))
 				return
 			}
+			// Use context.Background() here as the original ctx seems to
+			// be cancelled after 30 seconds, which cancels the redis query.
 			events, err, nextCursor := r.getEvents(context.Background(), session, cursor)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error fetching events incrementally"))
