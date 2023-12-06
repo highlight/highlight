@@ -2,7 +2,7 @@ import { sMonotype, typographyStyles } from '@highlight-run/ui/components'
 import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { themeVars } from '@highlight-run/ui/theme'
 import { vars } from '@highlight-run/ui/vars'
-import { style } from '@vanilla-extract/css'
+import { globalStyle, style } from '@vanilla-extract/css'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -26,7 +26,6 @@ export const combobox = style([
 		fontWeight: '500',
 		pointerEvents: 'auto',
 		width: '100%',
-		WebkitTextFillColor: 'transparent',
 		selectors: {
 			'&:focus': {
 				outline: 0,
@@ -41,6 +40,10 @@ export const combobox = style([
 	},
 ])
 
+export const comboboxNotEmpty = style({
+	WebkitTextFillColor: 'transparent',
+})
+
 export const comboboxTagsContainer = style([
 	typographyStyles.family.monospace,
 	sMonotype,
@@ -51,7 +54,6 @@ export const comboboxTagsContainer = style([
 		fontWeight: '500',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
-		pointerEvents: 'none',
 		position: 'absolute',
 	},
 ])
@@ -61,6 +63,11 @@ export const comboboxTag = style({
 	fontFeatureSettings: 'normal', // disable tabular numbers
 	position: 'relative',
 	textOverflow: 'ellipsis',
+	selectors: {
+		'&::selection': {
+			backgroundColor: vars.theme.interactive.fill.secondary.hover,
+		},
+	},
 })
 
 export const comboboxTagBackground = style({
@@ -76,6 +83,8 @@ export const comboboxTagBackground = style({
 	width: 'calc(100% + 4px)',
 })
 
+export const comboboxTagActive = style({})
+
 export const comboboxTagClose = style({
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
@@ -85,11 +94,14 @@ export const comboboxTagClose = style({
 	right: -8,
 	top: 1,
 	zIndex: 1,
-	selectors: {
-		'&:hover': {
-			opacity: 1,
-		},
-	},
+})
+
+globalStyle(`${comboboxTagActive} ${comboboxTagBackground}`, {
+	backgroundColor: `color-mix(in srgb, ${vars.theme.static.surface.elevated} 50%, transparent)`,
+})
+
+globalStyle(`${comboboxTag}:hover ${comboboxTagClose}`, {
+	opacity: 1,
 })
 
 export const comboboxPopover = style({
@@ -102,6 +114,7 @@ export const comboboxPopover = style({
 	flexGrow: 1,
 	maxWidth: 600,
 	maxHeight: 'min(var(--popover-available-height,300px),300px)',
+	paddingBottom: 33,
 	zIndex: 10,
 })
 

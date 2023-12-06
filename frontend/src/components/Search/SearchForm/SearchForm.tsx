@@ -25,6 +25,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
+import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
@@ -248,12 +249,10 @@ export const Search: React.FC<{
 	})
 	const [getKeyValues, { data, loading: valuesLoading }] =
 		fetchValuesLazyQuery()
+	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
 	const queryAsStringParts = queryAsStringParams(query)
-	console.log(`::: query: "${query}"`)
-	console.log(`::: queryAsStringParts: [${queryAsStringParts}]`)
-	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 
@@ -277,6 +276,10 @@ export const Search: React.FC<{
 
 	const submitQuery = (query: string) => {
 		onFormSubmit(query)
+	}
+
+	const handleSetCursorIndex = () => {
+		setCursorIndex(inputRef.current?.selectionStart || 0)
 	}
 
 	useEffect(() => {
@@ -373,6 +376,8 @@ export const Search: React.FC<{
 		submitQuery(newQuery)
 	}
 
+	let currentIndex = 0
+
 	return (
 		<Box
 			alignItems="stretch"
@@ -399,8 +404,32 @@ export const Search: React.FC<{
 						left: hideIcon ? 6 : 2,
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
+					onClick={(e) => {
+						// Hack to keep the tags interactive so you can do things like show
+						// removal button on hover while still allowing the user to drop a
+						// cursor into the input at the correct position.
+						const padding = hideIcon ? 0 : 40
+						const charWidth = 7.8 // determined by trial and error
+						const offsetLeft =
+							e.currentTarget.getBoundingClientRect().left
+						const localX = e.clientX - offsetLeft - padding
+						const chars = Math.max(
+							Math.round(localX / charWidth),
+							0,
+						)
+
+						inputRef.current?.focus()
+						inputRef.current?.setSelectionRange(chars, chars)
+						handleSetCursorIndex()
+					}}
 				>
 					{queryAsStringParts.map((term, index) => {
+						const nextIndex = currentIndex + term.length
+						const active =
+							cursorIndex >= currentIndex &&
+							cursorIndex <= nextIndex
+						currentIndex = nextIndex
+
 						if (term.trim().length === 0) {
 							{
 								/*
@@ -427,7 +456,7 @@ export const Search: React.FC<{
 								key={index}
 								term={term}
 								index={index}
-								active={activeTerm.value === term}
+								active={active}
 								onRemoveItem={handleRemoveItem}
 							/>
 						)
@@ -440,7 +469,9 @@ export const Search: React.FC<{
 					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search...'}
-					className={styles.combobox}
+					className={clsx(styles.combobox, {
+						[styles.comboboxNotEmpty]: query.length > 0,
+					})}
 					value={query}
 					onChange={(e) => {
 						// Need to set this bit of React state to force a re-render of the
@@ -459,6 +490,8 @@ export const Search: React.FC<{
 							comboboxStore.setOpen(false)
 						}
 					}}
+					onKeyUp={handleSetCursorIndex}
+					onMouseUp={handleSetCursorIndex}
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
@@ -490,7 +523,7 @@ export const Search: React.FC<{
 					gutter={10}
 					sameWidth
 				>
-					<Box pt="4">
+					<Box pt="3">
 						<Combobox.GroupLabel store={comboboxStore}>
 							{activeTerm.value && (
 								<Combobox.Item
@@ -500,21 +533,23 @@ export const Search: React.FC<{
 									}
 									store={comboboxStore}
 								>
-									<Stack direction="row" gap="8">
-										<Text lines="1">
-											{activeTerm.value}:
-										</Text>{' '}
-										<Text color="weak">
-											{activeTerm.key ?? 'Body'}
-										</Text>
+									<Stack direction="row" gap="4">
+										{activeTerm.key === BODY_KEY ? (
+											<>
+												<Text lines="1" color="weak">
+													Show all results for
+												</Text>{' '}
+												<Text>
+													&lsquo;{activeTerm.value}
+													&rsquo;
+												</Text>
+											</>
+										) : (
+											<Text>{activeTerm.value}</Text>
+										)}
 									</Stack>
 								</Combobox.Item>
 							)}
-							<Box px="10" py="6">
-								<Text size="xSmall" color="weak">
-									Filters
-								</Text>
-							</Box>
 						</Combobox.GroupLabel>
 					</Box>
 					<Combobox.Group
@@ -558,6 +593,12 @@ export const Search: React.FC<{
 						justifyContent="space-between"
 						display="flex"
 						flexDirection="row"
+						position="absolute"
+						style={{
+							bottom: 0,
+							left: 0,
+							right: 0,
+						}}
 					>
 						<Box display="flex" flexDirection="row" gap="20">
 							<Box
@@ -617,22 +658,23 @@ export const Search: React.FC<{
 }
 
 const TermTag: React.FC<{
+	active: boolean
 	index: number
 	term: string
-	active: boolean
 	onRemoveItem: (index: number) => void
-}> = ({ index, term, onRemoveItem }) => {
+}> = ({ active, index, term, onRemoveItem }) => {
 	const parts = tokenAsParts(term)
 
 	return (
 		<>
 			<Box
-				cssClass={styles.comboboxTag}
+				cssClass={clsx(styles.comboboxTag, {
+					[styles.comboboxTagActive]: active,
+				})}
 				py="6"
 				position="relative"
 				whiteSpace="nowrap"
 			>
-				<Box cssClass={styles.comboboxTagBackground} />
 				<IconSolidXCircle
 					className={styles.comboboxTagClose}
 					size={13}
@@ -643,14 +685,23 @@ const TermTag: React.FC<{
 
 					if (SEPARATORS.includes(part)) {
 						return (
-							<Box key={key} style={{ color: '#E93D82' }}>
+							<Box
+								key={key}
+								style={{ color: '#E93D82', zIndex: 1 }}
+							>
 								{part}
 							</Box>
 						)
 					} else {
-						return <Box key={key}>{part}</Box>
+						return (
+							<Box key={key} style={{ zIndex: 1 }}>
+								{part}
+							</Box>
+						)
 					}
 				})}
+
+				<Box cssClass={styles.comboboxTagBackground} />
 			</Box>
 			&nbsp;
 		</>
