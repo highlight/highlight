@@ -17,20 +17,25 @@ export const combobox = style([
 		p: '6',
 	}),
 	typographyStyles.family.monospace,
+	sMonotype,
 	{
-		...sMonotype,
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		display: 'flex',
+		fontWeight: '500',
 		pointerEvents: 'auto',
 		width: '100%',
+		WebkitTextFillColor: 'transparent',
 		selectors: {
 			'&:focus': {
 				outline: 0,
 			},
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
+			},
+			'&::selection': {
+				backgroundColor: vars.theme.interactive.fill.secondary.hover,
 			},
 		},
 	},
@@ -43,6 +48,7 @@ export const comboboxTagsContainer = style([
 		alignItems: 'center',
 		display: 'flex',
 		flexWrap: 'nowrap',
+		fontWeight: '500',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
 		pointerEvents: 'none',
@@ -51,7 +57,6 @@ export const comboboxTagsContainer = style([
 ])
 
 export const comboboxTag = style({
-	color: 'transparent',
 	display: 'inline-flex',
 	fontFeatureSettings: 'normal', // disable tabular numbers
 	position: 'relative',
@@ -59,7 +64,7 @@ export const comboboxTag = style({
 })
 
 export const comboboxTagBackground = style({
-	backgroundColor: `rgba(0, 0, 0, 0.1)`,
+	border: vars.border.secondary,
 	borderRadius: vars.borderRadius[4],
 	height: 20,
 	letterSpacing: 'normal',

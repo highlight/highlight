@@ -5862,8 +5862,10 @@ body {
   border: 0;
   caret-color: var(--_1pyqka9b);
   display: flex;
+  font-weight: 500;
   pointer-events: auto;
   width: 100%;
+  -webkit-text-fill-color: transparent;
 }
 ._10xh0c22::before {
   content: "";
@@ -5881,6 +5883,9 @@ body {
 ._10xh0c22::placeholder {
   color: var(--_1pyqka9x);
 }
+._10xh0c22::selection {
+  background-color: var(--_1pyqka9t);
+}
 ._10xh0c23 {
   font-family:
     IBM Plex Mono,
@@ -5894,6 +5899,7 @@ body {
   align-items: center;
   display: flex;
   flex-wrap: nowrap;
+  font-weight: 500;
   max-width: calc(100% - 26px);
   overflow: hidden;
   pointer-events: none;
@@ -5910,14 +5916,13 @@ body {
   display: table;
 }
 ._10xh0c24 {
-  color: transparent;
   display: inline-flex;
   font-feature-settings: normal;
   position: relative;
   text-overflow: ellipsis;
 }
 ._10xh0c25 {
-  background-color: rgba(0, 0, 0, 0.1);
+  border: var(--_1pyqka91o) solid 1px;
   border-radius: 4px;
   height: 20px;
   letter-spacing: normal;
