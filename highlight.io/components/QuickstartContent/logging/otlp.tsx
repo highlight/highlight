@@ -3,12 +3,12 @@ import { verifyLogs } from './shared-snippets'
 
 export const OTLPLoggingContent: QuickStartContent = {
 	title: 'Logging via the OpenTelemetry Protocol (OTLP)',
-	subtitle: `Learn how to export traces to highlight.io via one of the OpenTelemetry SDKs.`,
+	subtitle: `Learn how to export logs to highlight.io via one of the OpenTelemetry SDKs.`,
 	entries: [
 		{
-			title: 'Export your traces to the highlight.io collector.',
+			title: 'Export your logs to the highlight.io collector.',
 			content:
-				'We host an OpenTelemetry collector endpoint at https://otel.highlight.io:4318/v1/traces. Configure your OpenTelemetry SDK to send traces via OTLP HTTPS to this endpoint. Your Highlight Project ID should be included as an attribute with the `highlight.project_id` key. This configuration will depend on which SDK you use in your app.',
+				'We host an OpenTelemetry collector endpoint at https://otel.highlight.io:4318/v1/traces. Configure your OpenTelemetry SDK to send logs via OTLP HTTPS to this endpoint. Your Highlight Project ID should be included as an attribute with the `highlight.project_id` key. This configuration will depend on which SDK you use in your app.',
 			code: [
 				{
 					text: `import { NodeSDK } from '@opentelemetry/sdk-node'

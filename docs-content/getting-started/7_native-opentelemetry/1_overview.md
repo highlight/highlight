@@ -7,16 +7,19 @@ updatedAt: 2023-10-16T00:00:00.000Z
 ---
 
 Using the native OpenTelemetry SDKs? We've got you covered.
+The highlight.io SDKs are powered by [OpenTelemetry](https://opentelemetry.io/) under the hood and report data to our deployed OpenTelemetry [collector](https://otel.highlight.io). You can always use our [in-house SDKS](../6_tracing/1_overview.md), but if you prefer to report raw OTEL data instead, continue reading!
 
+
+## Quick Start
 
 <DocsCardGroup>
-    <DocsCard title="Error Monitoring"  href="./2_error-monitoring.md">
+    <DocsCard title="Error Monitoring in OTEL"  href="./2_error-monitoring.md">
         {"Get started with errors."}
     </DocsCard>
-    <DocsCard title="Backend Logging"  href="./3_logging.md">
+    <DocsCard title="Backend Logging in OTEL"  href="./3_logging.md">
         {"Get started with logs."}
     </DocsCard>
-    <DocsCard title="Tracing"  href="./4_tracing.md">
+    <DocsCard title="Tracing in OTEL"  href="./4_tracing.md">
         {"Get started with traces."}
     </DocsCard>
 </DocsCardGroup>
@@ -26,7 +29,7 @@ The highlight.io SDKs are powered by [OpenTelemetry](https://opentelemetry.io/) 
 
 ## Data Attributes
 
-Data we send over the OpenTelemetry specification is as a [Trace](https://opentelemetry.io/docs/reference/specification/trace/) or a [Log](https://opentelemetry.io/docs/specs/otel/logs/) with attributes set per the [semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/).
+Data we send via the OpenTelemetry specification is as a [Trace](https://opentelemetry.io/docs/reference/specification/trace/) or a [Log](https://opentelemetry.io/docs/specs/otel/logs/) with attributes set per the [semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/).
 When we create a Trace, we set three additional SpanAttributes to carry the Highlight context:
 
 - `highlight.project_id` - Highlight Project ID
@@ -39,7 +42,7 @@ Additional optional attributes are set by highlight to provide additional contex
 - `highlight.type` - `http.request` for frontend network requests reported by highlight, `highlight.internal` for highlight-internal traces, otherwise unset.
 - `highlight.key` - The unique object key for this trace, for grouping by distinct objects in highlight.
 
-We send one of the following [Events](https://opentelemetry.io/docs/specs/otel/trace/api/#add-events) on a trace:
+We also send one of the following [Events](https://opentelemetry.io/docs/specs/otel/trace/api/#add-events) on a trace:
 
 - `log` - The trace is processed as a log event.
   - `log.severity` - an [OpenTelemetry log level](https://opentelemetry.io/docs/specs/otel/logs/data-model-appendix/#appendix-b-severitynumber-example-mappings).
