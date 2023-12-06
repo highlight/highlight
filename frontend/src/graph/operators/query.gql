@@ -2089,8 +2089,16 @@ query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	}
 }
 
-query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+query GetLogsKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: logs_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}
@@ -2402,8 +2410,16 @@ query GetTracesMetrics(
 	}
 }
 
-query GetTracesKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+query GetTracesKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: traces_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}

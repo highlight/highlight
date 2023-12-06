@@ -365,8 +365,8 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate)))
 
-	if query != nil {
-		sb.Where(fmt.Sprintf("Key LIKE %s", sb.Var(query)))
+	if query != nil && *query != "" {
+		sb.Where(fmt.Sprintf("Key LIKE %s", sb.Var("%"+*query+"%")))
 	}
 
 	sb.GroupBy("1").

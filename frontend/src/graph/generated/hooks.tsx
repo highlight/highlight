@@ -13115,8 +13115,16 @@ export type GetLogsHistogramQueryResult = Apollo.QueryResult<
 	Types.GetLogsHistogramQueryVariables
 >
 export const GetLogsKeysDocument = gql`
-	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-		keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+	query GetLogsKeys(
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+		$query: String
+	) {
+		keys: logs_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -13137,6 +13145,7 @@ export const GetLogsKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -14285,8 +14294,13 @@ export const GetTracesKeysDocument = gql`
 	query GetTracesKeys(
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
+		$query: String
 	) {
-		keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+		keys: traces_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -14307,6 +14321,7 @@ export const GetTracesKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */

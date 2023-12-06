@@ -22,7 +22,7 @@ import {
 	parseSearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
-	useGetTracesKeysQuery,
+	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 	useGetTracesLazyQuery,
 	useGetTracesMetricsQuery,
@@ -220,7 +220,7 @@ export const TracesPage: React.FC = () => {
 						hideCreateAlert
 						onFormSubmit={setQuery}
 						onDatesChange={handleDatesChange}
-						fetchKeys={useGetTracesKeysQuery}
+						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
 					<Box

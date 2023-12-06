@@ -24,7 +24,7 @@ import {
 } from '@/components/Search/SearchForm/SearchForm'
 import {
 	useGetLogsHistogramQuery,
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -171,7 +171,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						presets={defaultPresets}
 						minDate={defaultPresets[5].startDate}
 						timeMode={timeMode}
-						fetchKeys={useGetLogsKeysQuery}
+						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<LogsCount
