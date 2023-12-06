@@ -22,7 +22,6 @@ export type Scalars = {
 }
 
 export type BackendErrorObjectInput = {
-	environment?: InputMaybe<Scalars['String']>
 	event: Scalars['String']
 	log_cursor?: InputMaybe<Scalars['String']>
 	payload?: InputMaybe<Scalars['String']>

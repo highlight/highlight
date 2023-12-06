@@ -16,18 +16,8 @@ mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
 	muteSessionCommentThread(id: $id, has_muted: $has_muted)
 }
 
-mutation CreateOrUpdateStripeSubscription(
-	$workspace_id: ID!
-	$plan_type: PlanType!
-	$interval: SubscriptionInterval!
-	$retention_period: RetentionPeriod!
-) {
-	createOrUpdateStripeSubscription(
-		workspace_id: $workspace_id
-		plan_type: $plan_type
-		interval: $interval
-		retention_period: $retention_period
-	)
+mutation CreateOrUpdateStripeSubscription($workspace_id: ID!) {
+	createOrUpdateStripeSubscription(workspace_id: $workspace_id)
 }
 
 mutation SaveBillingPlan(

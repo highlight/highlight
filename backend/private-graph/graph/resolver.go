@@ -3250,6 +3250,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		return time.Now().AddDate(-1, 0, 0)
 	case modelInputs.RetentionPeriodTwoYears:
 		return time.Now().AddDate(-2, 0, 0)
+	case modelInputs.RetentionPeriodThreeYears:
+		return time.Now().AddDate(-3, 0, 0)
 	}
 	return time.Now()
 }

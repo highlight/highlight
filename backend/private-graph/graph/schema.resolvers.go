@@ -1190,7 +1190,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 // CreateOrUpdateStripeSubscription is the resolver for the createOrUpdateStripeSubscription field.
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType, interval modelInputs.SubscriptionInterval, retentionPeriod modelInputs.RetentionPeriod) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
@@ -1232,12 +1232,11 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
 	pricingInterval := model.PricingSubscriptionIntervalMonthly
-	if planType != modelInputs.PlanTypeFree && interval == modelInputs.SubscriptionIntervalAnnual {
-		pricingInterval = model.PricingSubscriptionIntervalAnnual
-	}
+
+	defaultRetention := modelInputs.RetentionPeriodThreeMonths
 
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, planType, pricingInterval, true, &retentionPeriod)
+	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}

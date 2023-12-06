@@ -63,6 +63,7 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 	[RetentionPeriod.SixMonths]: '6 months',
 	[RetentionPeriod.TwelveMonths]: '12 months',
 	[RetentionPeriod.TwoYears]: '2 years',
+	[RetentionPeriod.ThreeYears]: '3 years',
 }
 
 export const getMeterAmounts = (
