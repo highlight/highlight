@@ -405,40 +405,6 @@ export const Search: React.FC<{
 						left: hideIcon ? 6 : 2,
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
-					onMouseDown={(e) => {
-						setMouseclickX(e.clientX)
-					}}
-					onMouseUp={(e) => {
-						// Hack to keep the tags interactive so you can do things like show
-						// removal button on hover while still allowing the user to drop a
-						// cursor into the input at the correct position.
-						const padding = hideIcon ? 0 : 40
-						const charWidth = 7.8 // determined by trial and error
-						const offsetLeft =
-							e.currentTarget.getBoundingClientRect().left
-						const initialLocalX =
-							Math.min(mouseClickX, e.clientX) -
-							offsetLeft -
-							padding
-						const firstCharIndex = Math.max(
-							Math.round(initialLocalX / charWidth),
-							0,
-						)
-						const lastCharIndex = window
-							.getSelection()
-							?.toString()
-							.replaceAll('\n', '').length
-
-						inputRef.current?.focus()
-						inputRef.current?.setSelectionRange(
-							firstCharIndex,
-							lastCharIndex
-								? firstCharIndex + lastCharIndex
-								: firstCharIndex,
-						)
-						handleSetCursorIndex()
-						setMouseclickX(0)
-					}}
 				>
 					{queryAsStringParts.map((term, index) => {
 						const nextIndex = currentIndex + term.length
@@ -500,6 +466,7 @@ export const Search: React.FC<{
 						submitQuery(query)
 						inputRef.current?.blur()
 					}}
+					onSelect={(e) => {}}
 					onKeyDown={(e) => {
 						if (e.key === 'Enter' && query === '') {
 							e.preventDefault()

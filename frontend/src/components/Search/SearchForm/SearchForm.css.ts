@@ -33,6 +33,9 @@ export const combobox = style([
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
 			},
+			'&::selection': {
+				backgroundColor: vars.theme.interactive.fill.secondary.hover,
+			},
 		},
 	},
 ])
@@ -51,6 +54,7 @@ export const comboboxTagsContainer = style([
 		fontWeight: '500',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
+		pointerEvents: 'none',
 		position: 'absolute',
 	},
 ])

@@ -5882,6 +5882,9 @@ body {
 ._10xh0c22::placeholder {
   color: var(--_1pyqka9x);
 }
+._10xh0c22::selection {
+  background-color: var(--_1pyqka9t);
+}
 ._10xh0c23 {
   -webkit-text-fill-color: transparent;
 }
@@ -5901,6 +5904,7 @@ body {
   font-weight: 500;
   max-width: calc(100% - 26px);
   overflow: hidden;
+  pointer-events: none;
   position: absolute;
 }
 ._10xh0c24::before {
