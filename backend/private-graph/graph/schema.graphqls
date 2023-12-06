@@ -566,6 +566,7 @@ type Workspace {
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
+	traces_max_cents: Int
 }
 
 type Segment {
@@ -2188,6 +2189,8 @@ type Mutation {
 		errorsRetention: RetentionPeriod!
 		logsLimitCents: Int
 		logsRetention: RetentionPeriod!
+		tracesLimitCents: Int
+		tracesRetention: RetentionPeriod!
 	): Boolean
 	createSessionComment(
 		project_id: ID!

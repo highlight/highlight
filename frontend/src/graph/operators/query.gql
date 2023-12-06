@@ -1032,6 +1032,7 @@ query GetBillingDetails($workspace_id: ID!) {
 		sessions_max_cents
 		errors_max_cents
 		logs_max_cents
+		traces_max_cents
 	}
 }
 

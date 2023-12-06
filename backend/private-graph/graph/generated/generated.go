@@ -793,7 +793,7 @@ type ComplexityRoot struct {
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		RequestAccess                    func(childComplexity int, projectID int) int
-		SaveBillingPlan                  func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod) int
+		SaveBillingPlan                  func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration             func(childComplexity int, projectID int) int
@@ -1505,6 +1505,7 @@ type ComplexityRoot struct {
 		SessionsMaxCents            func(childComplexity int) int
 		SlackChannels               func(childComplexity int) int
 		SlackWebhookChannel         func(childComplexity int) int
+		TracesMaxCents              func(childComplexity int) int
 		TrialEndDate                func(childComplexity int) int
 		TrialExtensionEnabled       func(childComplexity int) int
 		UnlimitedMembers            func(childComplexity int) int
@@ -1619,7 +1620,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
-	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod) (*bool, error)
+	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
@@ -5613,7 +5614,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SaveBillingPlan(childComplexity, args["workspace_id"].(int), args["sessionsLimitCents"].(*int), args["sessionsRetention"].(model.RetentionPeriod), args["errorsLimitCents"].(*int), args["errorsRetention"].(model.RetentionPeriod), args["logsLimitCents"].(*int), args["logsRetention"].(model.RetentionPeriod)), true
+		return e.complexity.Mutation.SaveBillingPlan(childComplexity, args["workspace_id"].(int), args["sessionsLimitCents"].(*int), args["sessionsRetention"].(model.RetentionPeriod), args["errorsLimitCents"].(*int), args["errorsRetention"].(model.RetentionPeriod), args["logsLimitCents"].(*int), args["logsRetention"].(model.RetentionPeriod), args["tracesLimitCents"].(*int), args["tracesRetention"].(model.RetentionPeriod)), true
 
 	case "Mutation.sendAdminWorkspaceInvite":
 		if e.complexity.Mutation.SendAdminWorkspaceInvite == nil {
@@ -10157,6 +10158,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.SlackWebhookChannel(childComplexity), true
 
+	case "Workspace.traces_max_cents":
+		if e.complexity.Workspace.TracesMaxCents == nil {
+			break
+		}
+
+		return e.complexity.Workspace.TracesMaxCents(childComplexity), true
+
 	case "Workspace.trial_end_date":
 		if e.complexity.Workspace.TrialEndDate == nil {
 			break
@@ -10958,6 +10966,7 @@ type Workspace {
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
+	traces_max_cents: Int
 }
 
 type Segment {
@@ -12580,6 +12589,8 @@ type Mutation {
 		errorsRetention: RetentionPeriod!
 		logsLimitCents: Int
 		logsRetention: RetentionPeriod!
+		tracesLimitCents: Int
+		tracesRetention: RetentionPeriod!
 	): Boolean
 	createSessionComment(
 		project_id: ID!
@@ -14997,6 +15008,24 @@ func (ec *executionContext) field_Mutation_saveBillingPlan_args(ctx context.Cont
 		}
 	}
 	args["logsRetention"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["tracesLimitCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tracesLimitCents"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tracesLimitCents"] = arg7
+	var arg8 model.RetentionPeriod
+	if tmp, ok := rawArgs["tracesRetention"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tracesRetention"))
+		arg8, err = ec.unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tracesRetention"] = arg8
 	return args, nil
 }
 
@@ -39064,6 +39093,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -39323,6 +39354,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -40780,7 +40813,7 @@ func (ec *executionContext) _Mutation_saveBillingPlan(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SaveBillingPlan(rctx, fc.Args["workspace_id"].(int), fc.Args["sessionsLimitCents"].(*int), fc.Args["sessionsRetention"].(model.RetentionPeriod), fc.Args["errorsLimitCents"].(*int), fc.Args["errorsRetention"].(model.RetentionPeriod), fc.Args["logsLimitCents"].(*int), fc.Args["logsRetention"].(model.RetentionPeriod))
+		return ec.resolvers.Mutation().SaveBillingPlan(rctx, fc.Args["workspace_id"].(int), fc.Args["sessionsLimitCents"].(*int), fc.Args["sessionsRetention"].(model.RetentionPeriod), fc.Args["errorsLimitCents"].(*int), fc.Args["errorsRetention"].(model.RetentionPeriod), fc.Args["logsLimitCents"].(*int), fc.Args["logsRetention"].(model.RetentionPeriod), fc.Args["tracesLimitCents"].(*int), fc.Args["tracesRetention"].(model.RetentionPeriod))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43509,6 +43542,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -50280,6 +50315,8 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -50407,6 +50444,8 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -52756,6 +52795,8 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -53122,6 +53163,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -70435,6 +70478,47 @@ func (ec *executionContext) fieldContext_Workspace_logs_max_cents(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Workspace_traces_max_cents(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesMaxCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_traces_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _WorkspaceAdminRole_admin(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceAdminRole) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 	if err != nil {
@@ -86545,6 +86629,10 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 		case "logs_max_cents":
 
 			out.Values[i] = ec._Workspace_logs_max_cents(ctx, field, obj)
+
+		case "traces_max_cents":
+
+			out.Values[i] = ec._Workspace_traces_max_cents(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

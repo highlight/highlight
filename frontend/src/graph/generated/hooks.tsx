@@ -400,6 +400,8 @@ export const SaveBillingPlanDocument = gql`
 		$errorsRetention: RetentionPeriod!
 		$logsLimitCents: Int
 		$logsRetention: RetentionPeriod!
+		$tracesLimitCents: Int
+		$tracesRetention: RetentionPeriod!
 	) {
 		saveBillingPlan(
 			workspace_id: $workspace_id
@@ -409,6 +411,8 @@ export const SaveBillingPlanDocument = gql`
 			errorsRetention: $errorsRetention
 			logsLimitCents: $logsLimitCents
 			logsRetention: $logsRetention
+			tracesLimitCents: $tracesLimitCents
+			tracesRetention: $tracesRetention
 		)
 	}
 `
@@ -437,6 +441,8 @@ export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
  *      errorsRetention: // value for 'errorsRetention'
  *      logsLimitCents: // value for 'logsLimitCents'
  *      logsRetention: // value for 'logsRetention'
+ *      tracesLimitCents: // value for 'tracesLimitCents'
+ *      tracesRetention: // value for 'tracesRetention'
  *   },
  * });
  */
@@ -8469,6 +8475,7 @@ export const GetBillingDetailsDocument = gql`
 			sessions_max_cents
 			errors_max_cents
 			logs_max_cents
+			traces_max_cents
 		}
 	}
 `

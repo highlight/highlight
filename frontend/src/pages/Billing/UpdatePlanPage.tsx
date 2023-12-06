@@ -172,6 +172,7 @@ interface UpdatePlanForm {
 	logsRetention: RetentionPeriod
 	logsLimitCents: number | undefined
 	tracesRetention: RetentionPeriod
+	tracesLimitCents: number | undefined
 }
 
 type LimitButtonProps = {
@@ -483,6 +484,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			logsRetention: RetentionPeriod.ThirtyDays,
 			logsLimitCents: undefined,
 			tracesRetention: RetentionPeriod.ThirtyDays,
+			tracesLimitCents: undefined,
 		},
 	})
 	const formState = formStore.useState()
@@ -510,6 +512,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 				logsRetention: RetentionPeriod.ThirtyDays,
 				logsLimitCents: data.workspace?.logs_max_cents ?? undefined,
 				tracesRetention: RetentionPeriod.ThirtyDays,
+				tracesLimitCents: data.workspace?.traces_max_cents ?? undefined,
 			})
 		},
 	})
@@ -750,6 +753,10 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										formState.values.logsLimitCents,
 									logsRetention:
 										formState.values.logsRetention,
+									tracesLimitCents:
+										formState.values.tracesLimitCents,
+									tracesRetention:
+										formState.values.tracesRetention,
 								},
 							})
 								.then(() => {
@@ -964,8 +971,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										rp,
 									)
 								}
-								limitCents={formState.values.logsLimitCents}
-								setLimitCents={undefined}
+								limitCents={formState.values.tracesLimitCents}
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.tracesLimitCents,
+													l,
+												)
+										: undefined
+								}
 								usageAmount={tracesUsage}
 								predictedUsageAmount={predictedTracesUsage}
 								includedQuantity={includedTraces}
