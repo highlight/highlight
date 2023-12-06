@@ -250,6 +250,7 @@ export const Search: React.FC<{
 	const [getKeyValues, { data, loading: valuesLoading }] =
 		fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
+	const [mouseClickX, setMouseclickX] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
 	const queryAsStringParts = queryAsStringParams(query)
@@ -404,7 +405,10 @@ export const Search: React.FC<{
 						left: hideIcon ? 6 : 2,
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
-					onClick={(e) => {
+					onMouseDown={(e) => {
+						setMouseclickX(e.clientX)
+					}}
+					onMouseUp={(e) => {
 						// Hack to keep the tags interactive so you can do things like show
 						// removal button on hover while still allowing the user to drop a
 						// cursor into the input at the correct position.
@@ -412,15 +416,28 @@ export const Search: React.FC<{
 						const charWidth = 7.8 // determined by trial and error
 						const offsetLeft =
 							e.currentTarget.getBoundingClientRect().left
-						const localX = e.clientX - offsetLeft - padding
-						const chars = Math.max(
-							Math.round(localX / charWidth),
+						const initialLocalX =
+							Math.min(mouseClickX, e.clientX) -
+							offsetLeft -
+							padding
+						const firstCharIndex = Math.max(
+							Math.round(initialLocalX / charWidth),
 							0,
 						)
+						const lastCharIndex = window
+							.getSelection()
+							?.toString()
+							.replaceAll('\n', '').length
 
 						inputRef.current?.focus()
-						inputRef.current?.setSelectionRange(chars, chars)
+						inputRef.current?.setSelectionRange(
+							firstCharIndex,
+							lastCharIndex
+								? firstCharIndex + lastCharIndex
+								: firstCharIndex,
+						)
 						handleSetCursorIndex()
+						setMouseclickX(0)
 					}}
 				>
 					{queryAsStringParts.map((term, index) => {

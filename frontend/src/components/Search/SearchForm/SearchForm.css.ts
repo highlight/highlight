@@ -33,9 +33,6 @@ export const combobox = style([
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
 			},
-			'&::selection': {
-				backgroundColor: vars.theme.interactive.fill.secondary.hover,
-			},
 		},
 	},
 ])
@@ -63,11 +60,6 @@ export const comboboxTag = style({
 	fontFeatureSettings: 'normal', // disable tabular numbers
 	position: 'relative',
 	textOverflow: 'ellipsis',
-	selectors: {
-		'&::selection': {
-			backgroundColor: vars.theme.interactive.fill.secondary.hover,
-		},
-	},
 })
 
 export const comboboxTagBackground = style({
@@ -96,9 +88,12 @@ export const comboboxTagClose = style({
 	zIndex: 1,
 })
 
-globalStyle(`${comboboxTagActive} ${comboboxTagBackground}`, {
-	backgroundColor: `color-mix(in srgb, ${vars.theme.static.surface.elevated} 50%, transparent)`,
-})
+globalStyle(
+	`${comboboxTagActive} ${comboboxTagBackground}, ${comboboxTag}:hover ${comboboxTagBackground}`,
+	{
+		backgroundColor: `color-mix(in srgb, ${vars.theme.static.surface.elevated} 50%, transparent)`,
+	},
+)
 
 globalStyle(`${comboboxTag}:hover ${comboboxTagClose}`, {
 	opacity: 1,
