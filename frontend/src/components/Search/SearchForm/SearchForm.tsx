@@ -250,7 +250,6 @@ export const Search: React.FC<{
 	const [getKeyValues, { data, loading: valuesLoading }] =
 		fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
-	const [mouseClickX, setMouseclickX] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
 	const queryAsStringParts = queryAsStringParams(query)
@@ -466,7 +465,6 @@ export const Search: React.FC<{
 						submitQuery(query)
 						inputRef.current?.blur()
 					}}
-					onSelect={(e) => {}}
 					onKeyDown={(e) => {
 						if (e.key === 'Enter' && query === '') {
 							e.preventDefault()
