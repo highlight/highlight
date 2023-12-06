@@ -7909,7 +7909,6 @@ GROUP BY
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
-		ctx := context.Background()
 		defer close(ch)
 		log.WithContext(ctx).Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
 			sessionSecureID,
@@ -7929,7 +7928,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 				log.WithContext(ctx).Error(e.Wrap(err, "error fetching session for subscription"))
 				return
 			}
-			events, err, nextCursor := r.getEvents(ctx, session, cursor)
+			events, err, nextCursor := r.getEvents(context.Background(), session, cursor)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error fetching events incrementally"))
 				return
