@@ -13,7 +13,7 @@ import {
 import {
 	useGetMetricTagsQuery,
 	useGetMetricTagValuesLazyQuery,
-	useGetSuggestedMetricsQuery,
+	useGetSuggestedMetricsLazyQuery,
 } from '@graph/hooks'
 import {
 	DashboardChartType,
@@ -29,8 +29,9 @@ import TrashIcon from '@icons/TrashIcon'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import { useParams } from '@util/react-router/useParams'
 import { Form } from 'antd'
-import _ from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 
 import styles from './EditMetricModal.module.css'
 
@@ -594,47 +595,38 @@ export const MetricSelector = ({
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const [options, setOptions] = useState<SearchOption[]>([])
-	const { data } = useGetSuggestedMetricsQuery({
-		variables: {
-			project_id: project_id!,
-			prefix: '',
-		},
-		skip: !project_id,
-	})
+	const [query, setQuery] = useState<string>('')
+	const debouncedQuery = useDebouncedValue(query) || ''
+	const [getSuggestedMetrics, { data }] = useGetSuggestedMetricsLazyQuery()
 
 	const getValueOptions = (input: string) => {
-		setOptions(
-			data?.suggested_metrics
-				.filter(
-					(m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1,
-				)
-				.map((s) => ({
-					label: s,
-					value: s,
-				})) || [],
-		)
+		setQuery(input)
 	}
 
-	const loadOptions = useMemo(
-		() => _.debounce(getValueOptions, 300),
-		// Ignore this so we have a consistent reference so debounce works.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[data?.suggested_metrics],
-	)
-
-	// initial load of options
 	useEffect(() => {
-		if (!options.length && data?.suggested_metrics) {
-			loadOptions('')
-		}
-	}, [loadOptions, options, data?.suggested_metrics])
+		getSuggestedMetrics({
+			variables: {
+				project_id: project_id!,
+				prefix: debouncedQuery,
+			},
+		})
+	}, [getSuggestedMetrics, project_id, debouncedQuery])
+
+	useEffect(() => {
+		setOptions(
+			data?.suggested_metrics.map((s) => ({
+				label: s,
+				value: s,
+			})) || [],
+		)
+	}, [data?.suggested_metrics])
 
 	return (
 		<SearchSelect
 			value={currentMetric}
 			onSelect={onSelectMetric}
 			options={options}
-			loadOptions={loadOptions}
+			loadOptions={getValueOptions}
 		/>
 	)
 }
