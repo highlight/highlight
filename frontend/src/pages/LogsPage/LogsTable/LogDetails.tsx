@@ -108,7 +108,6 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		service_name: serviceName,
 		service_version: serviceVersion,
-		environment: null, // TODO: replace this when implementing for logs
 	}
 
 	if (!expanded) {
