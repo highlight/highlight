@@ -8455,6 +8455,7 @@ export const GetBillingDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
 		}
 		workspace(id: $workspace_id) {
 			id

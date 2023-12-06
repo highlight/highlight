@@ -1018,6 +1018,7 @@ query GetBillingDetails($workspace_id: ID!) {
 			url
 			status
 		}
+		billingIssue
 	}
 	workspace(id: $workspace_id) {
 		id

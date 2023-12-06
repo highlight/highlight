@@ -2867,7 +2867,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount'
+		'baseAmount' | 'billingIssue'
 	> & {
 			discount?: Types.Maybe<
 				{ __typename?: 'SubscriptionDiscount' } & Pick<

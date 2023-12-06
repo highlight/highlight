@@ -253,8 +253,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		},
 	})
 
-	// TODO(vkorolik)
-	const billingIssues = true
+	const billingIssue = data?.subscription_details.billingIssue ?? false
 
 	const [openCustomerPortalUrl, { loading: loadingCustomerPortal }] =
 		useGetCustomerPortalUrlLazyQuery({
@@ -426,7 +425,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							</a>
 						</Text>
 					</Box>
-					{billingIssues ? (
+					{billingIssue ? (
 						<Callout title="Update payment details" icon={false}>
 							<Box
 								display="flex"
@@ -514,7 +513,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
-						billingIssues={billingIssues}
+						billingIssues={billingIssue}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -530,7 +529,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
-						billingIssues={billingIssues}
+						billingIssues={billingIssue}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -546,7 +545,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
-						billingIssues={billingIssues}
+						billingIssues={billingIssue}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -562,7 +561,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
-						billingIssues={billingIssues}
+						billingIssues={billingIssue}
 					/>
 				</Box>
 				<Stack

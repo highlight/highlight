@@ -6960,7 +6960,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Amount:  discount.Coupon.AmountOff,
 		}
 		if discount.Coupon.Duration != stripe.CouponDurationForever {
-			t := time.Unix(discount.Start, 0).Add(time.Hour * 24 * 30 * time.Duration(discount.Coupon.DurationInMonths))
+			t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
 			details.Discount.Until = &t
 		}
 	}
