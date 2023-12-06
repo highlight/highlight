@@ -21,7 +21,7 @@ export type ExtendedExecutionContext = ExecutionContext & {
 }
 
 export interface HighlightInterface {
-	init: (options: NodeOptions) => Highlight | undefined
+	init: (options: NodeOptions) => Highlight
 	initEdge: (
 		request: Request,
 		env: HighlightEnv,
@@ -30,14 +30,11 @@ export interface HighlightInterface {
 	) => WorkersSDK
 	isInitialized: () => boolean
 	metrics: (metrics: Metric[]) => void
-	parseHeaders: (
-		headers: Headers | IncomingHttpHeaders | undefined,
-	) => HighlightContext
+	parseHeaders: (headers: Headers | IncomingHttpHeaders) => HighlightContext
 	runWithHeaders: <T>(
 		headers: Headers | IncomingHttpHeaders,
 		cb: () => T,
-	) => T
-	setHeaders: (headers: Headers | IncomingHttpHeaders) => void
+	) => Promise<T>
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,

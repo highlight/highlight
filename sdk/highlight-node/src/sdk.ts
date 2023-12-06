@@ -11,17 +11,16 @@ export interface HighlightInterface {
 	init: (options: NodeOptions) => Highlight
 	stop: () => Promise<void>
 	isInitialized: () => boolean
+
 	// Use parseHeaders to extract the headers from the current context or from the headers.
-	parseHeaders: (
-		headers: Headers | IncomingHttpHeaders | undefined,
-	) => HighlightContext
-	// Use setHeaders to define the highlight context for the entire async request
-	setHeaders: (headers: Headers | IncomingHttpHeaders) => void
+	parseHeaders: (headers: Headers | IncomingHttpHeaders) => HighlightContext
+
 	// Use runWithHeaders to execute a method with a highlight context
 	runWithHeaders: <T>(
-		headers: Headers | IncomingHttpHeaders | undefined,
+		headers: Headers | IncomingHttpHeaders,
 		cb: () => T,
-	) => T
+	) => Promise<T>
+
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
@@ -152,15 +151,15 @@ export const H: HighlightInterface = {
 	parseHeaders: (headers): HighlightContext => {
 		return highlight_obj.parseHeaders(headers)
 	},
+
 	runWithHeaders: (headers, cb) => {
 		return highlight_obj.runWithHeaders(headers, cb)
 	},
-	setHeaders: (headers) => {
-		return highlight_obj.setHeaders(headers)
-	},
+
 	consumeAndFlush: async function (...args) {
 		try {
 			this.consumeError(...args)
+
 			await this.flush()
 		} catch (e) {
 			console.warn('highlight-node consumeAndFlush error: ', e)

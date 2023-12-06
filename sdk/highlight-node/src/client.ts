@@ -1,6 +1,6 @@
 import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import type { Attributes, Tracer } from '@opentelemetry/api'
+import type { Attributes, Tracer, Span as OtelSpan } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
@@ -9,7 +9,6 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { IncomingHttpHeaders } from 'http'
-import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
 
@@ -19,11 +18,18 @@ import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
+const FIVE_MINUTES = 1000 * 60 * 5
+
+type TraceMapValue = {
+	attributes: { 'highlight.session_id': string; 'highlight.trace_id': string }
+
+	destroy: () => void
+}
 
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
-	asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
+	private traceAttributesMap = new Map<string, TraceMapValue>()
 
 	constructor(exporter: any, options: any) {
 		super(exporter, options)
@@ -34,19 +40,40 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 		this._exporter = exporter
 	}
 
-	onEnd(span: ReadableSpan) {
-		const highlightCtx = this.asyncLocalStorage.getStore()
+	getTraceMetadata(span: ReadableSpan) {
+		return this.traceAttributesMap.get(span.spanContext().traceId)
+	}
 
-		if (highlightCtx) {
+	setTraceMetadata(span: OtelSpan, attributes: TraceMapValue['attributes']) {
+		const { traceId } = span.spanContext()
+
+		if (!this.traceAttributesMap.get(traceId)) {
+			const timer = setTimeout(() => destroy(), FIVE_MINUTES)
+			const destroy = () => {
+				this.traceAttributesMap.delete(traceId)
+
+				clearTimeout(timer)
+			}
+
+			return this.traceAttributesMap.set(traceId, { attributes, destroy })
+		}
+	}
+
+	onEnd(span: ReadableSpan) {
+		const traceMetadata = this.getTraceMetadata(span)
+
+		if (traceMetadata) {
 			// @ts-ignore
 			span.resource = span.resource.merge(
-				new Resource({
-					['highlight.session_id']: highlightCtx.secureSessionId,
-					['highlight.trace_id']: highlightCtx.requestId,
-				}),
+				new Resource(traceMetadata.attributes),
 			)
 		}
 
+		if (!span.parentSpanId && traceMetadata) {
+			traceMetadata.destroy()
+		}
+
+		// @ts-ignore
 		super.onEnd(span)
 	}
 
@@ -80,7 +107,6 @@ export class Highlight {
 	otel: NodeSDK
 	tracer: Tracer
 	private processor: CustomSpanProcessor
-	private asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -337,67 +363,54 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	parseHeaders(
-		headers: Headers | IncomingHttpHeaders | undefined,
-	): HighlightContext {
-		let requestHeaders: IncomingHttpHeaders = {}
-		if (headers instanceof Headers) {
-			headers.forEach((value, key) => (requestHeaders[key] = value))
-		} else if (headers) {
-			requestHeaders = headers
-		}
-
-		try {
-			const highlightCtx = this.asyncLocalStorage.getStore()
-
-			if (highlightCtx) {
-				return highlightCtx
-			} else if (headers) {
-				const highlightCtx = parseHeaders(headers)
-
-				if (highlightCtx.secureSessionId) {
-					return this.setHeaders(headers)
-				}
-			}
-		} catch (e) {
-			this._log('parseHeaders error: ', e)
-		}
-
-		return { secureSessionId: undefined, requestId: undefined }
+	parseHeaders(headers: Headers | IncomingHttpHeaders): HighlightContext {
+		return parseHeaders(headers)
 	}
 
-	runWithHeaders<T>(
-		headers: Headers | IncomingHttpHeaders | undefined,
+	async runWithHeaders<T>(
+		headers: Headers | IncomingHttpHeaders,
 		cb: () => T,
 	) {
-		const highlightCtx = this.parseHeaders(headers)
-		if (highlightCtx) {
-			return this.asyncLocalStorage.run(highlightCtx, cb)
-		} else {
-			return cb()
-		}
-	}
+		return new Promise<T>((resolve, reject) => {
+			this.tracer.startActiveSpan(
+				'highlight-run-with-headers',
+				async (span) => {
+					const { secureSessionId, requestId } =
+						this.parseHeaders(headers)
 
-	setHeaders(headers: Headers | IncomingHttpHeaders) {
-		const highlightCtx = parseHeaders(headers)
+					if (secureSessionId && requestId) {
+						this.processor.setTraceMetadata(span, {
+							'highlight.session_id': secureSessionId,
+							'highlight.trace_id': requestId,
+						})
+					}
 
-		this.asyncLocalStorage.enterWith(highlightCtx)
-		this.processor.asyncLocalStorage.enterWith(highlightCtx)
+					try {
+						resolve(await cb())
+					} catch (error) {
+						if (error instanceof Error) {
+							await this.consumeCustomError(
+								error,
+								secureSessionId,
+								requestId,
+							)
+						}
 
-		return highlightCtx
+						reject(error)
+					} finally {
+						span.end()
+
+						await this.flush()
+					}
+				},
+			)
+		})
 	}
 }
-
-export function parseHeaders(
+function parseHeaders(
 	headers: Headers | IncomingHttpHeaders,
 ): HighlightContext {
-	let requestHeaders: IncomingHttpHeaders = {}
-
-	if (headers instanceof Headers) {
-		headers.forEach((value, key) => (requestHeaders[key] = value))
-	} else if (headers) {
-		requestHeaders = headers
-	}
+	const requestHeaders = extractIncomingHttpHeaders(headers)
 
 	if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
 		const [secureSessionId, requestId] =
@@ -405,4 +418,21 @@ export function parseHeaders(
 		return { secureSessionId, requestId }
 	}
 	return { secureSessionId: undefined, requestId: undefined }
+}
+
+function extractIncomingHttpHeaders(
+	headers?: Headers | IncomingHttpHeaders,
+): IncomingHttpHeaders {
+	if (headers) {
+		let requestHeaders: IncomingHttpHeaders = {}
+		if (headers instanceof Headers) {
+			headers.forEach((value, key) => (requestHeaders[key] = value))
+		} else if (headers) {
+			requestHeaders = headers
+		}
+
+		return requestHeaders
+	} else {
+		return { secureSessionId: undefined, requestId: undefined }
+	}
 }

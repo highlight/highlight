@@ -1,7 +1,6 @@
 import type { NextRequest } from 'next/server'
 
-import { H, parseHeaders, NodeOptions } from '@highlight-run/node'
-import { IncomingHttpHeaders } from 'http'
+import { H, NodeOptions } from '@highlight-run/node'
 
 type NextContext = { params: Record<string, string> }
 type NextHandler<Body = unknown> = (
@@ -18,46 +17,30 @@ export function Highlight(options: NodeOptions) {
 		async (request: NextRequest, context: NextContext) => {
 			if (!NodeH) throw new Error('Highlight not initialized')
 
-			const { secureSessionId, requestId } = NodeH?.setHeaders(
-				request.headers,
-			)
+			const start = new Date()
 
 			try {
-				return await H.runWithHeaders<Promise<Response>>(
+				return H.runWithHeaders<Promise<Response>>(
 					request.headers,
-					async () => {
-						return new Promise<Response>((resolve, reject) => {
-							NodeH?.tracer.startActiveSpan(
-								'with-highlight-nodejs-app-router',
-								async (span) => {
-									try {
-										const result = await originalHandler(
-											request,
-											context,
-											NodeH,
-										)
-
-										span?.end()
-
-										await NodeH?.flush()
-
-										return resolve(result)
-									} catch (error) {
-										reject(error)
-									}
-								},
-							)
-						})
-					},
+					async () => originalHandler(request, context, NodeH),
 				)
 			} catch (error) {
-				if (error instanceof Error) {
-					await H.consumeAndFlush(error, secureSessionId, requestId)
-				}
-
 				await H.stop()
 
 				throw error
+			} finally {
+				// convert ms to ns
+				const delta = (new Date().getTime() - start.getTime()) * 1000000
+				const { secureSessionId, requestId } = NodeH.parseHeaders(
+					request.headers,
+				)
+
+				if (secureSessionId && requestId) {
+					H.recordMetric(secureSessionId, 'latency', delta, requestId)
+
+					await H.flush()
+					await H.stop()
+				}
 			}
 		}
 }

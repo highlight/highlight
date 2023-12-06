@@ -1,4 +1,4 @@
-import { NodeOptions, parseHeaders } from '@highlight-run/node'
+import { NodeOptions } from '@highlight-run/node'
 import { H } from './highlight-node'
 
 import { IncomingHttpHeaders } from 'http'
@@ -22,56 +22,39 @@ export const Highlight =
 		return async (req, res) => {
 			if (!NodeH) throw new Error('Highlight not initialized')
 
-			const { secureSessionId, requestId } = NodeH.setHeaders(req.headers)
 			const start = new Date()
 
-			try {
-				return await H.runWithHeaders(req.headers, async () => {
-					return new Promise((resolve, reject) => {
-						NodeH?.tracer.startActiveSpan(
-							'with-highlight-nodejs-page-router',
-							async (span) => {
-								try {
-									const result = await originalHandler(
-										req,
-										res,
-										NodeH,
-									)
+			async function recordLatency() {
+				// convert ms to ns
+				const delta = (new Date().getTime() - start.getTime()) * 1000000
+				const { secureSessionId, requestId } = NodeH.parseHeaders(
+					req.headers,
+				)
 
-									span?.end()
+				if (secureSessionId && requestId) {
+					H.recordMetric(secureSessionId, 'latency', delta, requestId)
 
-									await NodeH?.flush()
-
-									return resolve(result)
-								} catch (error) {
-									reject(error)
-								}
-							},
-						)
-					})
-				})
-			} catch (e) {
-				if (e instanceof Error) {
-					H.consumeAndFlush(e, secureSessionId, requestId)
+					await H.flush()
 				}
-				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
-				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
-				// the transaction was error-free
+			}
+
+			try {
+				const result = await H.runWithHeaders(req.headers, async () =>
+					originalHandler(req, res, NodeH),
+				)
+
+				await recordLatency()
+				await H.stop()
+
+				return result
+			} catch (e) {
 				res.statusCode = 500
 				res.statusMessage = 'Internal Server Error'
 
-				// We rethrow here so that nextjs can do with the error whatever it would normally do. (Sometimes "whatever it
-				// would normally do" is to allow the error to bubble up to the global handlers - another reason we need to mark
-				// the error as already having been captured.)
+				await recordLatency()
 				await H.stop()
+
 				throw e
-			} finally {
-				// convert ms to ns
-				const delta = (new Date().getTime() - start.getTime()) * 1000000
-				if (secureSessionId && requestId) {
-					H.recordMetric(secureSessionId, 'latency', delta, requestId)
-					await H.flush()
-				}
 			}
 		}
 	}
