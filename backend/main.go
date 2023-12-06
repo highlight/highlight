@@ -59,7 +59,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v72/client"
+	"github.com/stripe/stripe-go/v76/client"
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 	"gorm.io/gorm"
 
@@ -319,7 +319,7 @@ func main() {
 
 	clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
 
-	oauthSrv, err := oauth.CreateServer(ctx, db)
+	oauthSrv, err := oauth.CreateServer(ctx, db, redisClient)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating oauth client: %v", err)
 	}

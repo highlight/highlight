@@ -56,6 +56,9 @@ type Props = {
 	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
 }
 
+const HEADERS_AND_CHARTS_HEIGHT = 228
+const LOAD_MORE_HEIGHT = 28
+
 const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -99,14 +102,17 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
+		(
+			containerRefElement?: HTMLDivElement | null,
+			disableBackward?: boolean,
+		) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
+				} else if (!disableBackward && scrollTop === 0) {
 					fetchMoreBackward()
 				}
 			}
@@ -129,6 +135,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 			},
 			skip: !projectId,
 		})
+
+	let otherElementsHeight = HEADERS_AND_CHARTS_HEIGHT
+	if (moreLogs) {
+		otherElementsHeight += LOAD_MORE_HEIGHT
+	}
 
 	return (
 		<>
@@ -198,6 +209,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 								handleAdditionalLogsDateChange
 							}
 							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 						/>
 					</Box>
 				</Box>

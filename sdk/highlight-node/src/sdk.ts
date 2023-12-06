@@ -1,5 +1,5 @@
 import { IncomingHttpHeaders } from 'http'
-import { Highlight } from '.'
+import { Highlight } from './client'
 import log from './log'
 import { ResourceAttributes } from '@opentelemetry/resources'
 import type { Attributes } from '@opentelemetry/api'
@@ -58,6 +58,9 @@ let highlight_obj: Highlight
 export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
 		_debug = !!options.debug
+		if (!!highlight_obj) {
+			return
+		}
 		try {
 			highlight_obj = new Highlight(options)
 		} catch (e) {

@@ -2,7 +2,7 @@
 title: Getting Started with Highlight
 slug: getting-started
 createdAt: 2021-09-13T22:07:04.000Z
-updatedAt: 2022-04-01T19:52:59.000Z
+updatedAt: 2022-12-04T00:00:00.000Z
 ---
 
 Highlight.io allows you to get full-stack visibility into issues across your whole stack, all the way from a user's button click to an error in your backend infrastructure. Read more about how to get started below.
@@ -42,6 +42,8 @@ Installing highlight.io in javascript will automatically instrument frontend err
 
 Highlight.io also supports reporting errors from your backend and mapping these to corresponding sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
 
+### Application Error Monitoring
+
 <DocsCardGroup>
     <DocsCard title="Python" href="./backend-sdk/python/overview">
         {"Get started with error monitoring in Python"}
@@ -57,6 +59,9 @@ Highlight.io also supports reporting errors from your backend and mapping these 
     </DocsCard>
     <DocsCard title="Java" href="./4_backend-sdk/java/1_overview.md">
         {"Get started with error monitoring in Java"}
+    </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/2_error-monitoring.md">
+        {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
 
@@ -82,6 +87,27 @@ Highlight.io also supports logging from your backend and mapping these to corres
     <DocsCard title="Java" href="./backend-logging/05_java/1_overview.md">
         {"Get started with logging in Java"}
     </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/3_logging.md">
+        {"Get started with OpenTelemetry"}
+    </DocsCard>
+</DocsCardGroup>
+
+## For your Backend: Tracing
+
+Highlight.io also supports tracing from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state, as well as allowing you to dig deeper into performance problems. Supported frameworks / languages below:
+
+### Application Tracing
+
+<DocsCardGroup>
+    <DocsCard title="Go" href="./tracing/2_go.md">
+        {"Get started with tracing in Go"}
+    </DocsCard>
+    <DocsCard title="JS / TS" href="./tracing/1_node-js/1_overview.md">
+        {"Get started with tracing in Javascript"}
+    </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
+        {"Get started with tracing in OpenTelemetry"}
+    </DocsCard>
 </DocsCardGroup>
 
 ### Hosting Platform Logging
@@ -103,6 +129,22 @@ Highlight.io also supports logging from your backend and mapping these to corres
         {"Stream any log file"}
     </DocsCard>
 </DocsCardGroup>
+
+## For your Backend: Tracing
+
+Tracing enables you to analyze performance and pinpoint where errors are happening in your application. Each trace corresponds to a request to your backend and is made up of one or more child spans. Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).
+
+### Application Tracing
+
+<DocsCardGroup>
+    <DocsCard title="Go" href="./backend-tracing/1_go/1_overview.md">
+        {"Get started in your Go app"}
+    </DocsCard>
+    <DocsCard title="OTLP"  href="./backend-tracing/2_other.md">
+        {"Get started with OTLP"}
+    </DocsCard>
+</DocsCardGroup>
+
 
 ### Something missing?
 

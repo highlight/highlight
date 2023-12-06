@@ -1,5 +1,12 @@
 # @highlight-run/node
 
+## 3.6.5
+
+### Patch Changes
+
+-   bd5021a6c: remove @highlight-run/node dependency on highlight.run for types
+-   2fce77c13: fix opentelemetry auto instrumentation in next.js, update opentelemetry dependencies
+
 ## 3.6.4
 
 ### Patch Changes

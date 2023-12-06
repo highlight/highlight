@@ -31,7 +31,25 @@ export const DemoModal = () => {
 		if (!(await formStore.validate())) {
 			return
 		}
-		if (email.indexOf('@gmail.') !== -1) {
+		const badEmailStrings = [
+			'gmail',
+			'yahoo',
+			'hotmail',
+			'work',
+			'mysite',
+			'outlook',
+			'thanks.com',
+			'icloud',
+			'live',
+			'aol',
+			'protonmail',
+			'zoho',
+		]
+		if (
+			badEmailStrings.some((badEmailString) =>
+				email.includes(badEmailString),
+			)
+		) {
 			setError('Please use your work email')
 			return
 		}

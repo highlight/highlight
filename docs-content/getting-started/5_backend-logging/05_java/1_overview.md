@@ -14,4 +14,7 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
     <DocsCard title="Other Java Frameworks" href="./other.md">
         {"Integrate logging in other Java Frameworks."}
     </DocsCard>
+    <DocsCard title="Go OpenTelemetry" href="../../7_native-opentelemetry/3_logging.md">
+        {"Integrate logging with Native OpenTelemetry."}
+    </DocsCard>
 </DocsCardGroup>
