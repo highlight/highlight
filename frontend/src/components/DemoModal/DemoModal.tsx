@@ -30,7 +30,6 @@ export const DemoModal = () => {
 		if (!(await formStore.validate())) {
 			return
 		}
-		// if email is gmail, yahoo, hotmail, work.com, mysite.com
 		const badEmailStrings = [
 			'gmail',
 			'yahoo',
@@ -44,7 +43,6 @@ export const DemoModal = () => {
 			'protonmail',
 			'zoho',
 		]
-		// if email is in badEmailStrings
 		if (
 			badEmailStrings.some((badEmailString) =>
 				email.includes(badEmailString),
