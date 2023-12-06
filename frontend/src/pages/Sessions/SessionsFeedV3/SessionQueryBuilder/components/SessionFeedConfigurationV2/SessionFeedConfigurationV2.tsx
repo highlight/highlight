@@ -8,6 +8,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import {
 	formatCount,
 	formatDatetime,
@@ -22,6 +23,7 @@ import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV3/Sess
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
+import { generateSessionsReportCSV } from '@util/session/report'
 import React, { useRef, useState } from 'react'
 
 import { ClickhouseQuery } from '@/graph/generated/schemas'
@@ -29,12 +31,11 @@ import { ClickhouseQuery } from '@/graph/generated/schemas'
 import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
 
 export const DropdownMenu = function ({
-	sessionCount,
 	sessionQuery,
 }: {
-	sessionCount: number
 	sessionQuery: ClickhouseQuery
 }) {
+	const { sessionResults } = useReplayerContext()
 	const { checkPolicyAccess } = useAuthorization()
 	const canDelete = checkPolicyAccess({
 		policyName: POLICY_NAMES.DeleteSessions,
@@ -50,6 +51,9 @@ export const DropdownMenu = function ({
 	const showDeleteButton =
 		canDelete &&
 		workspaceSettingsData?.workspaceSettings?.enable_data_deletion !== false
+	const showReportButton =
+		workspaceSettingsData?.workspaceSettings?.enable_session_export !==
+		false
 
 	const {
 		autoPlaySessions,
@@ -249,6 +253,37 @@ export const DropdownMenu = function ({
 						</Menu>
 					</Box>
 				</Menu.Item>
+				{showReportButton ? (
+					<>
+						<Menu.Divider />
+						<Box
+							display="flex"
+							alignItems="center"
+							justifyContent="space-between"
+							px="8"
+							width="full"
+						>
+							<Text
+								size="small"
+								weight="medium"
+								color="secondaryContentText"
+							>
+								CSV Sessions Report
+							</Text>
+							<Button
+								onClick={async () => {
+									await generateSessionsReportCSV(
+										sessionQuery,
+										sessionResults.sessions,
+									)
+								}}
+								trackingId="Session CSV Report Download"
+							>
+								Download
+							</Button>
+						</Box>
+					</>
+				) : null}
 				{showDeleteButton ? (
 					<>
 						<Menu.Divider />
@@ -265,15 +300,15 @@ export const DropdownMenu = function ({
 								onClick={() => setShowModal(true)}
 								trackingId="sessionFeedDeleteSessions"
 							>
-								Delete {sessionCount} Session
-								{sessionCount !== 1 ? 's' : ''}?
+								Delete {sessionResults.totalCount} Session
+								{sessionResults.totalCount !== 1 ? 's' : ''}?
 							</Button>
 						</Box>
 						<DeleteSessionsModal
 							visible={showModal}
 							setVisible={setShowModal}
 							query={sessionQuery}
-							sessionCount={sessionCount}
+							sessionCount={sessionResults.totalCount}
 						/>
 					</>
 				) : null}

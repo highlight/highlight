@@ -1694,10 +1694,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
 					{!isOnErrorsPage && (
-						<DropdownMenu
-							sessionCount={searchResultsCount || 0}
-							sessionQuery={JSON.parse(searchQuery)}
-						/>
+						<DropdownMenu sessionQuery={JSON.parse(searchQuery)} />
 					)}
 
 					<ButtonIcon
