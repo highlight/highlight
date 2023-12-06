@@ -37,7 +37,7 @@ export const DemoModal = () => {
 			'work',
 			'mysite',
 			'outlook',
-			'thanks.com'
+			'thanks.com',
 			'icloud',
 			'live',
 			'aol',
