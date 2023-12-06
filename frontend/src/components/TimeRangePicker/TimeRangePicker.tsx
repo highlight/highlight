@@ -1,4 +1,4 @@
-import { PreviousDateRangePicker } from '@highlight-run/ui'
+import { PreviousDateRangePicker } from '@highlight-run/ui/components'
 import useDataTimeRange, {
 	defaultDataTimeRange,
 	FORMAT,

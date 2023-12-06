@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/stripe/stripe-go/v76"
 	"os"
 	"time"
 
@@ -17,8 +18,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/client"
+	"github.com/stripe/stripe-go/v76/client"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +28,255 @@ const (
 	highlightProductUnlimitedMembers string = "highlightProductUnlimitedMembers"
 	highlightRetentionPeriod         string = "highlightRetentionPeriod"
 )
+
+type GraduatedPriceItem struct {
+	Rate  float64
+	Count int64
+}
+
+type ProductPricing struct {
+	Included int64
+	Items    []GraduatedPriceItem
+}
+
+var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPricing{
+	backend.PlanTypeGraduated: {
+		model.PricingProductTypeSessions: {
+			Included: 500,
+			Items: []GraduatedPriceItem{{
+				Rate:  20. / 1_000,
+				Count: 15_000,
+			}, {
+				Rate:  15. / 1_000,
+				Count: 50_000,
+			}, {
+				Rate:  12. / 1_000,
+				Count: 150_000,
+			}, {
+				Rate:  6.5 / 1_000,
+				Count: 500_000,
+			}, {
+				Rate:  3.5 / 1_000,
+				Count: 1_000_000,
+			}, {
+				Rate: 2.5 / 1_000,
+			}},
+		},
+		model.PricingProductTypeErrors: {
+			Included: 1_000,
+			Items: []GraduatedPriceItem{{
+				Rate:  2. / 1_000,
+				Count: 50_000,
+			}, {
+				Rate:  0.5 / 1_000,
+				Count: 100_000,
+			}, {
+				Rate:  0.25 / 1_000,
+				Count: 200_000,
+			}, {
+				Rate:  0.2 / 1_000,
+				Count: 500_000,
+			}, {
+				Rate:  0.1 / 1_000,
+				Count: 5_000_000,
+			}, {
+				Rate: 0.05 / 1_000,
+			}},
+		},
+		model.PricingProductTypeLogs: {
+			Included: 1_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate:  2.5 / 1_000_000,
+				Count: 1_000_000,
+			}, {
+				Rate:  2. / 1_000_000,
+				Count: 10_000_000,
+			}, {
+				Rate:  1.5 / 1_000_000,
+				Count: 100_000_000,
+			}, {
+				Rate:  1. / 1_000_000,
+				Count: 1_000_000_000,
+			}, {
+				Rate: 0.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeTraces: {
+			Included: 25_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate:  2.5 / 1_000_000,
+				Count: 1_000_000,
+			}, {
+				Rate:  2. / 1_000_000,
+				Count: 10_000_000,
+			}, {
+				Rate:  1.5 / 1_000_000,
+				Count: 100_000_000,
+			}, {
+				Rate:  1. / 1_000_000,
+				Count: 1_000_000_000,
+			}, {
+				Rate: 0.5 / 1_000_000,
+			}},
+		},
+	},
+	backend.PlanTypeUsageBased: {
+		model.PricingProductTypeSessions: {
+			Included: 500,
+			Items: []GraduatedPriceItem{{
+				Rate: 20. / 1_000,
+			}},
+		},
+		model.PricingProductTypeErrors: {
+			Included: 1_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 2. / 1_000,
+			}},
+		},
+		model.PricingProductTypeLogs: {
+			Included: 1_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeTraces: {
+			Included: 1_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+	},
+	backend.PlanTypeLite: {
+		model.PricingProductTypeSessions: {
+			Included: 2_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 5. / 1_000,
+			}},
+		},
+		model.PricingProductTypeErrors: {
+			Included: 4_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 0.2 / 1_000,
+			}},
+		},
+		model.PricingProductTypeLogs: {
+			Included: 4_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeTraces: {
+			Included: 4_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+	},
+	backend.PlanTypeBasic: {
+		model.PricingProductTypeSessions: {
+			Included: 10_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 5. / 1_000,
+			}},
+		},
+		model.PricingProductTypeErrors: {
+			Included: 20_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 0.2 / 1_000,
+			}},
+		},
+		model.PricingProductTypeLogs: {
+			Included: 20_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeTraces: {
+			Included: 20_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+	},
+	backend.PlanTypeStartup: {
+		model.PricingProductTypeSessions: {
+			Included: 80_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 5. / 1_000,
+			}},
+		},
+		model.PricingProductTypeErrors: {
+			Included: 160_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 0.2 / 1_000,
+			}},
+		},
+		model.PricingProductTypeLogs: {
+			Included: 160_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeTraces: {
+			Included: 160_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+	},
+	backend.PlanTypeEnterprise: {
+		model.PricingProductTypeSessions: {
+			Included: 300_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 5. / 1_000,
+			}},
+		},
+		model.PricingProductTypeErrors: {
+			Included: 600_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 0.2 / 1_000,
+			}},
+		},
+		model.PricingProductTypeLogs: {
+			Included: 600_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeTraces: {
+			Included: 600_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+	},
+	backend.PlanTypeFree: {
+		model.PricingProductTypeSessions: {
+			Included: 500,
+			Items: []GraduatedPriceItem{{
+				Rate: 5. / 1_000,
+			}},
+		},
+		model.PricingProductTypeErrors: {
+			Included: 1_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 0.2 / 1_000,
+			}},
+		},
+		model.PricingProductTypeLogs: {
+			Included: 1_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeTraces: {
+			Included: 25_000_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000_000,
+			}},
+		},
+	},
+}
 
 func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.WithContext(context.TODO()).Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
@@ -219,48 +468,51 @@ func GetWorkspaceTracesMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 }
 
 func GetLimitAmount(limitCostCents *int, productType model.PricingProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
-	included := int64(IncludedAmount(planType, productType))
+	included := IncludedAmount(planType, productType)
 	if planType == backend.PlanTypeFree {
 		return pointy.Int64(included)
 	}
 	if limitCostCents == nil {
 		return nil
 	}
-	basePrice := ProductToBasePriceCents(productType, planType)
+
 	retentionMultiplier := RetentionMultiplier(retentionPeriod)
-
-	return pointy.Int64(int64(
-		float64(*limitCostCents)/basePrice/retentionMultiplier) + included)
-}
-
-func ProductToBasePriceCents(productType model.PricingProductType, planType backend.PlanType) float64 {
-	if planType == backend.PlanTypeUsageBased {
-		switch productType {
-		case model.PricingProductTypeSessions:
-			return 2
-		case model.PricingProductTypeErrors:
-			return .02
-		case model.PricingProductTypeLogs:
-			return .00015
-		case model.PricingProductTypeTraces:
-			return .00015
-		default:
-			return 0
+	count := IncludedAmount(planType, productType)
+	var cost float64
+	for _, item := range ProductPrices[planType][productType].Items {
+		quota := int64((float64(*limitCostCents)/100. - cost) / item.Rate / retentionMultiplier)
+		if item.Count > 0 && quota > item.Count {
+			quota = item.Count
 		}
-	} else {
-		switch productType {
-		case model.PricingProductTypeSessions:
-			return .5
-		case model.PricingProductTypeErrors:
-			return .02
-		case model.PricingProductTypeLogs:
-			return .00015
-		case model.PricingProductTypeTraces:
-			return .00015
-		default:
-			return 0
+		cost += float64(quota) * item.Rate
+		count += quota
+		if item.Count == 0 || (item.Count > 0 && quota < item.Count) {
+			break
 		}
 	}
+
+	return pointy.Int64(count)
+}
+
+func ProductToBasePriceCents(productType model.PricingProductType, planType backend.PlanType, meter int64) float64 {
+	included := IncludedAmount(planType, productType)
+	remainder := meter - included
+	if remainder <= 0 {
+		return 0
+	}
+	var price float64
+	for _, item := range ProductPrices[planType][productType].Items {
+		if remainder <= 0 {
+			break
+		}
+		itemUsage := remainder
+		if item.Count > 0 && itemUsage > item.Count {
+			itemUsage = item.Count
+		}
+		price += float64(itemUsage) * item.Rate
+		remainder -= itemUsage
+	}
+	return price / float64(meter) * 100.
 }
 
 func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
@@ -280,111 +532,28 @@ func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
 	}
 }
 
-func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
+func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int64 {
 	if unlimitedMembers {
 		return nil
 	}
 	switch planType {
-	case backend.PlanTypeFree:
-		return pointy.Int(2)
 	case backend.PlanTypeBasic:
-		return pointy.Int(2)
+		return pointy.Int64(2)
 	case backend.PlanTypeStartup:
-		return pointy.Int(8)
+		return pointy.Int64(8)
 	case backend.PlanTypeEnterprise:
-		return pointy.Int(15)
+		return pointy.Int64(15)
 	default:
-		return pointy.Int(2)
+		return pointy.Int64(2)
 	}
 }
 
-func IncludedAmount(planType backend.PlanType, productType model.PricingProductType) int {
-	switch productType {
-	case model.PricingProductTypeSessions:
-		return TypeToSessionsLimit(planType)
-	case model.PricingProductTypeErrors:
-		return TypeToErrorsLimit(planType)
-	case model.PricingProductTypeLogs:
-		return TypeToLogsLimit(planType)
-	case model.PricingProductTypeTraces:
-		return TypeToTracesLimit(planType)
-	default:
-		return 0
-	}
-}
-
-func TypeToSessionsLimit(planType backend.PlanType) int {
-	switch planType {
-	case backend.PlanTypeFree:
-		return 500
-	case backend.PlanTypeLite:
-		return 2000
-	case backend.PlanTypeBasic:
-		return 10000
-	case backend.PlanTypeStartup:
-		return 80000
-	case backend.PlanTypeEnterprise:
-		return 300000
-	default:
-		return 500
-	}
-}
-
-func TypeToErrorsLimit(planType backend.PlanType) int {
-	switch planType {
-	case backend.PlanTypeFree:
-		return 1000
-	case backend.PlanTypeLite:
-		return 4000
-	case backend.PlanTypeBasic:
-		return 20000
-	case backend.PlanTypeStartup:
-		return 160000
-	case backend.PlanTypeEnterprise:
-		return 600000
-	default:
-		return 1000
-	}
-}
-
-func TypeToLogsLimit(planType backend.PlanType) int {
-	switch planType {
-	case backend.PlanTypeFree:
-		return 1000000
-	case backend.PlanTypeLite:
-		return 4000000
-	case backend.PlanTypeBasic:
-		return 20000000
-	case backend.PlanTypeStartup:
-		return 160000000
-	case backend.PlanTypeEnterprise:
-		return 600000000
-	default:
-		return 1000000
-	}
-}
-
-func TypeToTracesLimit(planType backend.PlanType) int {
-	switch planType {
-	case backend.PlanTypeFree:
-		return 1000000
-	case backend.PlanTypeLite:
-		return 4000000
-	case backend.PlanTypeBasic:
-		return 20000000
-	case backend.PlanTypeStartup:
-		return 160000000
-	case backend.PlanTypeEnterprise:
-		return 600000000
-	default:
-		return 1000000
-	}
+func IncludedAmount(planType backend.PlanType, productType model.PricingProductType) int64 {
+	return ProductPrices[planType][productType].Included
 }
 
 func FromPriceID(priceID string) backend.PlanType {
 	switch priceID {
-	case os.Getenv("FREE_PLAN_PRICE_ID"):
-		return backend.PlanTypeFree
 	case os.Getenv("BASIC_PLAN_PRICE_ID"):
 		return backend.PlanTypeBasic
 	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
@@ -403,15 +572,19 @@ func MustUpgradeForClearbit(tier string) bool {
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
 func GetBaseLookupKey(productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
-	if productTier == backend.PlanTypeUsageBased {
+	switch productTier {
+	case backend.PlanTypeUsageBased:
 		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeUsageBased)
-	}
-	result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
-	if unlimitedMembers {
-		result += "|UNLIMITED_MEMBERS"
-	}
-	if retentionPeriod != backend.RetentionPeriodThreeMonths {
-		result += "|" + string(retentionPeriod)
+	case backend.PlanTypeGraduated:
+		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeGraduated)
+	default:
+		result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
+		if unlimitedMembers {
+			result += "|UNLIMITED_MEMBERS"
+		}
+		if retentionPeriod != backend.RetentionPeriodThreeMonths {
+			result += "|" + string(retentionPeriod)
+		}
 	}
 	return
 }
@@ -421,8 +594,11 @@ func GetOverageKey(productType model.PricingProductType, retentionPeriod backend
 	if retentionPeriod != backend.RetentionPeriodThreeMonths {
 		result += "|" + string(retentionPeriod)
 	}
-	if productType == model.PricingProductTypeSessions && planType == backend.PlanTypeUsageBased {
-		result += "|UsageBased"
+
+	if planType == backend.PlanTypeGraduated {
+		result += "|" + backend.PlanTypeGraduated.String()
+	} else if planType == backend.PlanTypeUsageBased && productType == model.PricingProductTypeSessions {
+		result += "|" + backend.PlanTypeUsageBased.String()
 	}
 	return result
 }
@@ -510,11 +686,12 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 	}
 	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
 	membersLookupKey := string(model.PricingProductTypeMembers)
+	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
 	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, rp, productTier)
-	logsLookupKey := string(model.PricingProductTypeLogs)
-	tracesLookupKey := string(model.PricingProductTypeTraces)
+	// logs and traces are only available with three month retention
+	logsLookupKey := GetOverageKey(model.PricingProductTypeLogs, backend.RetentionPeriodThreeMonths, productTier)
+	tracesLookupKey := GetOverageKey(model.PricingProductTypeTraces, backend.RetentionPeriodThreeMonths, productTier)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey}
@@ -659,8 +836,16 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	})) != 1 {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - subscription has multiple products")
 	}
-	subscriptionItem := subscription.Items.Data[0]
-	_, productTier, _, interval, _ := GetProductMetadata(subscriptionItem.Price)
+
+	baseProductItem, ok := lo.Find(subscription.Items.Data, func(item *stripe.SubscriptionItem) bool {
+		_, ok := item.Price.Product.Metadata[highlightProductType]
+		return ok
+	})
+	if !ok {
+		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - cannot find base product")
+	}
+
+	_, productTier, _, interval, _ := GetProductMetadata(baseProductItem.Price)
 	if productTier == nil {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
 	}
@@ -712,13 +897,12 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
 
-	invoiceParams := &stripe.InvoiceParams{
+	invoiceParams := &stripe.InvoiceUpcomingParams{
 		Customer:     &c.ID,
 		Subscription: &subscription.ID,
 	}
-	invoiceParams.AddExpand("lines.data.price.product")
 
-	invoice, err := w.stripeClient.Invoices.GetNext(invoiceParams)
+	_, err = w.stripeClient.Invoices.Upcoming(invoiceParams)
 	// Cancelled subscriptions have no upcoming invoice - we can skip these since we won't
 	// be charging any overage for their next billing period.
 	if err != nil {
@@ -730,37 +914,62 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		}
 	}
 
-	invoiceLines := map[model.PricingProductType]*stripe.InvoiceLine{}
-	// FindUniquesBy to remove will extra line items
+	invoiceLinesParams := &stripe.InvoiceUpcomingLinesParams{
+		Customer:     &c.ID,
+		Subscription: &subscription.ID,
+	}
+	invoiceLinesParams.AddExpand("data.price.product")
+
+	i := w.stripeClient.Invoices.UpcomingLines(invoiceLinesParams)
+	if err = i.Err(); err != nil {
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve invoice lines for customer "+c.ID)
+	}
+	var lineItems []*stripe.InvoiceLineItem
+	for i.Next() {
+		lineItems = append(lineItems, i.InvoiceLineItem())
+	}
+
+	invoiceLines := map[model.PricingProductType]*stripe.InvoiceLineItem{}
+	// GroupBy to remove will extra line items
 	// duplicates are present because graduated pricing (one invoice item)
 	// has more than one invoice line item for each bucket's price.
-	// ie. price of `First 4999` and `Next 19999` are two different line items for the same invoice item.
-	for _, line := range lo.FindUniquesBy(invoice.Lines.Data, func(item *stripe.InvoiceLine) string {
-		return item.InvoiceItem
-	}) {
-		productType, _, _, _, _ := GetProductMetadata(line.Price)
-		if productType != nil {
-			// if there is more than one invoice line for the same product type,
-			// clean up the old line item that may exist from a previous price
-			if invoiceLines[*productType] != nil {
-				if invoiceLines[*productType].Price.ID != prices[*productType].ID {
-					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem, c.ID)
-					if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem, &stripe.InvoiceItemParams{}); err != nil {
+	// ie. price of `First 4999` and `Next 19999` are two different line items for the same subscription item.
+	grouped := lo.GroupBy(lineItems, func(item *stripe.InvoiceLineItem) string {
+		if item.SubscriptionItem != nil {
+			return item.SubscriptionItem.ID
+		}
+		return ""
+	})
+	for subscriptionItem, group := range grouped {
+		if len(group) == 0 {
+			return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR empty group, failed to group invoice lines for %s", subscriptionItem)
+		}
+		// if the subscriptionItem is not set, these are non-graduated line items that we want to delete
+		// if set, we only want to keep the first line item
+		if subscriptionItem != "" {
+			group = []*stripe.InvoiceLineItem{group[0]}
+		}
+		for _, line := range group {
+			productType, _, _, _, _ := GetProductMetadata(line.Price)
+			if productType != nil {
+				// if the line is from an old price, delete it
+				if line.Price.ID != prices[*productType].ID {
+					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old -invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem.ID, c.ID)
+					if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem.ID, &stripe.InvoiceItemParams{}); err != nil {
 						return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add usage record item")
 					}
-				} else {
-					return e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR multiple invoice lines for the same product %s for customer %s", *productType, c.ID))
 				}
+				invoiceLines[*productType] = line
 			}
-			invoiceLines[*productType] = line
 		}
 	}
+	log.WithContext(ctx).WithField("invoiceLinesLen", len(invoiceLines)).Infof("STRIPE_INTEGRATION_INFO found invoice lines %d %+v", len(invoiceLines), invoiceLines)
 
 	// Update members overage
 	membersMeter := GetWorkspaceMembersMeter(w.db, workspaceID)
 	membersLimit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier), workspace.UnlimitedMembers)
 	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
-		membersLimit = workspace.MonthlyMembersLimit
+		membersLimit = pointy.Int64(int64(*workspace.MonthlyMembersLimit))
 	}
 	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeMembers], invoiceLines[model.PricingProductTypeMembers], c, subscription, membersLimit, membersMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
@@ -771,9 +980,9 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	if err != nil {
 		return e.Wrap(err, "error getting sessions meter")
 	}
-	sessionsLimit := TypeToSessionsLimit(backend.PlanType(workspace.PlanTier))
+	sessionsLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeSessions)
 	if workspace.MonthlySessionLimit != nil {
-		sessionsLimit = *workspace.MonthlySessionLimit
+		sessionsLimit = int64(*workspace.MonthlySessionLimit)
 	}
 	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeSessions], invoiceLines[model.PricingProductTypeSessions], c, subscription, &sessionsLimit, sessionsMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
@@ -784,9 +993,9 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}
-	errorsLimit := TypeToErrorsLimit(backend.PlanType(workspace.PlanTier))
+	errorsLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeErrors)
 	if workspace.MonthlyErrorsLimit != nil {
-		errorsLimit = *workspace.MonthlyErrorsLimit
+		errorsLimit = int64(*workspace.MonthlyErrorsLimit)
 	}
 	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeErrors], invoiceLines[model.PricingProductTypeErrors], c, subscription, &errorsLimit, errorsMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
@@ -797,9 +1006,9 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}
-	logsLimit := TypeToLogsLimit(backend.PlanType(workspace.PlanTier))
+	logsLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeLogs)
 	if workspace.MonthlyLogsLimit != nil {
-		logsLimit = *workspace.MonthlyLogsLimit
+		logsLimit = int64(*workspace.MonthlyLogsLimit)
 	}
 	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeLogs], invoiceLines[model.PricingProductTypeLogs], c, subscription, &logsLimit, logsMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
@@ -807,13 +1016,12 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 	// Update traces overage
 	tracesMeter, err := GetWorkspaceTracesMeter(ctx, w.db, w.ccClient, &workspace)
-	log.WithContext(ctx).Infof("tracesMeter %d", tracesMeter)
 	if err != nil {
 		return e.Wrap(err, "error getting traces meter")
 	}
-	tracesLimit := TypeToLogsLimit(backend.PlanType(workspace.PlanTier))
+	tracesLimit := IncludedAmount(backend.PlanType(workspace.PlanTier), model.PricingProductTypeTraces)
 	if workspace.MonthlyTracesLimit != nil {
-		tracesLimit = *workspace.MonthlyTracesLimit
+		tracesLimit = int64(*workspace.MonthlyTracesLimit)
 	}
 	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeTraces], invoiceLines[model.PricingProductTypeTraces], c, subscription, &tracesLimit, tracesMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
@@ -822,20 +1030,20 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	return nil
 }
 
-func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace, newPrice *stripe.Price, invoiceLine *stripe.InvoiceLine, customer *stripe.Customer, subscription *stripe.Subscription, limit *int, meter int64) error {
+func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace, newPrice *stripe.Price, invoiceLine *stripe.InvoiceLineItem, customer *stripe.Customer, subscription *stripe.Subscription, limit *int64, meter int64) error {
 	// Calculate overage if the workspace allows it
 	overage := int64(0)
 	if limit != nil &&
 		backend.PlanType(workspace.PlanTier) != backend.PlanTypeFree &&
-		workspace.AllowMeterOverage && meter > int64(*limit) {
-		overage = meter - int64(*limit)
+		workspace.AllowMeterOverage && meter > *limit {
+		overage = meter - *limit
 	}
 
 	// if the price is a metered recurring subscription, use subscription items and usage records
 	if newPrice.Recurring != nil && newPrice.Recurring.UsageType == stripe.PriceRecurringUsageTypeMetered {
 		var subscriptionItemID string
 		// if the subscription item doesn't create for this price, create it
-		if invoiceLine == nil || invoiceLine.SubscriptionItem == "" {
+		if invoiceLine == nil || invoiceLine.SubscriptionItem.ID == "" {
 			params := &stripe.SubscriptionItemParams{
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
@@ -843,11 +1051,11 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 			params.SetIdempotencyKey(subscription.ID + ":" + newPrice.ID + ":item")
 			subscriptionItem, err := stripeClient.SubscriptionItems.New(params)
 			if err != nil {
-				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add invoice item for usage record item")
+				return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR failed to add invoice item for usage record item; invoiceLine=%+v, priceID=%s, subscriptionID=%s", invoiceLine, newPrice.ID, subscription.ID)
 			}
 			subscriptionItemID = subscriptionItem.ID
 		} else {
-			subscriptionItemID = invoiceLine.SubscriptionItem
+			subscriptionItemID = invoiceLine.SubscriptionItem.ID
 		}
 		// set the usage for this product, replacing existing values
 		params := &stripe.UsageRecordParams{
@@ -860,7 +1068,7 @@ func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace
 		}
 	} else {
 		if invoiceLine != nil {
-			if _, err := stripeClient.InvoiceItems.Update(invoiceLine.InvoiceItem, &stripe.InvoiceItemParams{
+			if _, err := stripeClient.InvoiceItems.Update(invoiceLine.InvoiceItem.ID, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
 				Quantity: stripe.Int64(overage),
 			}); err != nil {

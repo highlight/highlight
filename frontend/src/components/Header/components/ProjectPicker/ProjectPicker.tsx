@@ -8,8 +8,8 @@ import {
 	IconSolidPlusSm,
 	Menu,
 	Text,
-} from '@highlight-run/ui'
-import { vars } from '@highlight-run/ui/src/css/vars'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { SIGN_UP_ROUTE } from '@pages/Auth/AuthRouter'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'

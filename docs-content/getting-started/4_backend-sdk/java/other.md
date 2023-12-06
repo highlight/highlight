@@ -1,6 +1,6 @@
 ---
-title: Java App
-heading: Using highlight.io with Other Java Frameworks
+toc: Java App
+title: Using highlight.io with Java Frameworks
 slug: other
 quickstart: true
 ---

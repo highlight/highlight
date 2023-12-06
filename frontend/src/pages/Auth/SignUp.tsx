@@ -13,7 +13,7 @@ import {
 	Stack,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'

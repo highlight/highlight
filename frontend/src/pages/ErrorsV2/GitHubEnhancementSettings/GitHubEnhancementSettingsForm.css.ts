@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui/src/css/vars'
+import { vars } from '@highlight-run/ui/vars'
 import { keyframes, style } from '@vanilla-extract/css'
 
 export const repoSelect = style({

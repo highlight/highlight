@@ -1,5 +1,5 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import { Text } from '@highlight-run/ui'
+import { Text } from '@highlight-run/ui/components'
 
 import { BODY_KEY, SearchParam } from '@/components/Search/SearchForm/utils'
 

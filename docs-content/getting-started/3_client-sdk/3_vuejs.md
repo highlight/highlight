@@ -1,7 +1,7 @@
 ---
-title: Vue.js
+toc: Vue.js
 slug: vuejs
-headline: Using highlight.io in Vue.js
+title: Using highlight.io in Vue.js
 quickstart: true
 ---
 

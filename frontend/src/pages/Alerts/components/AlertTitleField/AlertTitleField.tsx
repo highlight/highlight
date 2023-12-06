@@ -1,4 +1,4 @@
-import { Form, FormState, useForm } from '@highlight-run/ui'
+import { Form, FormState, useForm } from '@highlight-run/ui/components'
 
 import { AlertForm } from '@/pages/Alerts/utils/AlertsUtils'
 

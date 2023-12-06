@@ -5,7 +5,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 
 export const PreviousNextGroup = function ({
 	onPrev,

@@ -1,5 +1,5 @@
-import { vars } from '@highlight-run/ui'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { themeVars } from '@highlight-run/ui/theme'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const menuItem = style({

@@ -1,5 +1,35 @@
 # @highlight-run/next
 
+## 7.2.5
+
+### Patch Changes
+
+-   2fce77c13: fix opentelemetry auto instrumentation in next.js, update opentelemetry dependencies
+-   Updated dependencies [bd5021a6c]
+-   Updated dependencies [2fce77c13]
+    -   @highlight-run/node@3.6.5
+
+## 7.2.4
+
+### Patch Changes
+
+-   7c35f7d78: ensure header parsing is compatible with IncomingHTTPHeaders and Headers types
+-   Updated dependencies [84110aca1]
+-   Updated dependencies [c1773fa66]
+-   Updated dependencies [7c35f7d78]
+    -   highlight.run@8.3.0
+    -   @highlight-run/node@3.6.4
+
+## 7.2.3
+
+### Patch Changes
+
+-   f966390c1: ensure compatibility for JS SDKs in ES and CJS environments
+-   Updated dependencies [f966390c1]
+-   Updated dependencies [66b94f3f7]
+    -   @highlight-run/node@3.6.3
+    -   highlight.run@8.2.3
+
 ## 7.2.2
 
 ### Patch Changes

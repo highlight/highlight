@@ -14,7 +14,7 @@ import {
 	Stack,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import {
 	IconCollapsed,
@@ -106,6 +106,7 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		service_name: serviceName,
 		service_version: serviceVersion,
+		environment: null, // TODO: replace this when implementing for logs
 	}
 
 	if (!expanded) {

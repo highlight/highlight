@@ -17,3 +17,9 @@ export const frontendInstallSnippet: QuickStartStep = {
 		},
 	],
 }
+
+export const verifyErrors: QuickStartStep = {
+	title: 'Verify your errors are being recorded.',
+	content:
+		'Verify that the backend error handling works by triggering the code that reports the error to highlight and visiting the [highlight errors portal](http://app.highlight.io/errors).',
+}

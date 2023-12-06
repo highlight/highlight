@@ -20,7 +20,7 @@ import {
 	Text,
 	Tooltip,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { loadStripe } from '@stripe/stripe-js'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
@@ -50,9 +50,7 @@ import * as style from './UpdatePlanPage.css'
 
 type ProductType = 'Sessions' | 'Errors' | 'Logs' | 'Traces'
 
-const RETENTION_OPTIONS: {
-	readonly [k in ProductType]: readonly RetentionPeriod[]
-} = {
+const RETENTION_OPTIONS = {
 	Sessions: [
 		RetentionPeriod.ThreeMonths,
 		RetentionPeriod.SixMonths,
@@ -67,81 +65,64 @@ const RETENTION_OPTIONS: {
 	],
 	Logs: [RetentionPeriod.ThirtyDays],
 	Traces: [RetentionPeriod.ThirtyDays],
-}
+} as const
 
-const RETENTION_MULTIPLIER: { readonly [k in RetentionPeriod]: number } = {
+const RETENTION_MULTIPLIER = {
 	[RetentionPeriod.ThirtyDays]: 1,
 	[RetentionPeriod.ThreeMonths]: 1,
 	[RetentionPeriod.SixMonths]: 1.5,
 	[RetentionPeriod.TwelveMonths]: 2,
 	[RetentionPeriod.TwoYears]: 2.5,
-}
+} as const
 
-const BASE_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
+const BASE_UNIT_COST_CENTS = {
 	Sessions: 2000,
 	Errors: 20,
 	Logs: 150,
 	Traces: 150,
-}
+} as const
 
-const COMMITTED_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
-	Sessions: 500,
-	Errors: 20,
-	Logs: 150,
-	Traces: 150,
-}
-
-const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
+const UNIT_QUANTITY = {
 	Sessions: 1_000,
 	Errors: 1_000,
 	Logs: 1_000_000,
 	Traces: 1_000_000,
-}
-
-const EXISTING_PLANS: PlanType[] = [
-	PlanType.Basic,
-	PlanType.Enterprise,
-	PlanType.Lite,
-	PlanType.Startup,
-]
+} as const
 
 export const getCostCents = (
 	productType: ProductType,
+	rate: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	quantity: number,
 	includedQuantity: number,
-	planType: PlanType,
 ): number => {
-	const unitCost = EXISTING_PLANS.includes(planType)
-		? COMMITTED_UNIT_COST_CENTS
-		: BASE_UNIT_COST_CENTS
-	const a = Math.floor(
-		(unitCost[productType] *
+	if (!rate) {
+		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	}
+	return Math.floor(
+		rate *
 			RETENTION_MULTIPLIER[retentionPeriod] *
-			Math.max(quantity - includedQuantity, 0)) /
-			UNIT_QUANTITY[productType],
+			Math.max(quantity - includedQuantity, 0),
 	)
-	return a
 }
 
 export const getQuantity = (
 	productType: ProductType,
+	rate: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	totalCents: number | undefined,
 	includedQuantity: number,
-	planType: PlanType,
 ): number | undefined => {
 	if (totalCents === undefined) {
 		return undefined
 	}
 
-	const unitCost = EXISTING_PLANS.includes(planType)
-		? COMMITTED_UNIT_COST_CENTS
-		: BASE_UNIT_COST_CENTS
-
+	if (!rate) {
+		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	}
 	return Math.floor(
-		(totalCents * UNIT_QUANTITY[productType]) /
-			(unitCost[productType] * RETENTION_MULTIPLIER[retentionPeriod]) +
+		((totalCents / 100) * UNIT_QUANTITY[productType]) /
+			(rate * RETENTION_MULTIPLIER[retentionPeriod]) +
 			includedQuantity,
 	)
 }
@@ -175,6 +156,7 @@ const stripePromiseOrNull = getStripePromiseOrNull()
 type ProductCardProps = {
 	productIcon: React.ReactElement<IconProps>
 	productType: ProductType
+	rate: number | undefined
 	retentionPeriod: RetentionPeriod
 	planType: PlanType
 	setRetentionPeriod: (rp: RetentionPeriod) => void
@@ -257,6 +239,7 @@ const LimitButton = ({
 const ProductCard = ({
 	productIcon,
 	productType,
+	rate,
 	retentionPeriod,
 	setRetentionPeriod,
 	limitCents,
@@ -264,37 +247,35 @@ const ProductCard = ({
 	includedQuantity,
 	usageAmount,
 	predictedUsageAmount,
-	planType,
 }: ProductCardProps) => {
-	const unitCost = EXISTING_PLANS.includes(planType)
-		? COMMITTED_UNIT_COST_CENTS
-		: BASE_UNIT_COST_CENTS
-
+	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	const unitCostCents =
-		unitCost[productType] * RETENTION_MULTIPLIER[retentionPeriod]
+		(rate ? Math.round(rate * UNIT_QUANTITY[productType]) : unitCost) *
+		RETENTION_MULTIPLIER[retentionPeriod]
 
 	const unitQuantity = UNIT_QUANTITY[productType]
 	const quantityFormatted = formatNumber(unitQuantity)
 
 	const unitCostFormatted =
-		'$ ' + toDecimal(dinero({ amount: unitCostCents, currency: USD }))
+		'$ ' +
+		toDecimal(dinero({ amount: Math.round(unitCostCents), currency: USD }))
 
 	const netUsageAmount = Math.max(predictedUsageAmount - includedQuantity, 0)
 
 	const predictedCostCents = getCostCents(
 		productType,
+		rate,
 		retentionPeriod,
 		predictedUsageAmount,
 		includedQuantity,
-		planType,
 	)
 
 	const currentCostCents = getCostCents(
 		productType,
+		rate,
 		retentionPeriod,
 		usageAmount,
 		includedQuantity,
-		planType,
 	)
 
 	const totalCostCents =
@@ -306,7 +287,8 @@ const ProductCard = ({
 			: predictedCostCents
 
 	const totalCostFormatted =
-		'est. $ ' + toDecimal(dinero({ amount: totalCostCents, currency: USD }))
+		'est. $ ' +
+		toDecimal(dinero({ amount: Math.round(totalCostCents), currency: USD }))
 
 	return (
 		<Box
@@ -576,20 +558,20 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			daysUntilNextBillingDate *
 				(data?.billingDetails.sessionsDailyAverage ?? 0),
 	)
-	const includedSessions = data?.billingDetails.plan.quota ?? 0
+	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	let predictedSessionsCost = getCostCents(
 		'Sessions',
+		data?.billingDetails.plan.sessionsRate,
 		formState.values.sessionsRetention,
 		predictedSessionsUsage,
 		includedSessions,
-		planType,
 	)
 	const actualSessionsCost = getCostCents(
 		'Sessions',
+		data?.billingDetails.plan.sessionsRate,
 		formState.values.sessionsRetention,
 		sessionsUsage,
 		includedSessions,
-		planType,
 	)
 	if (formState.values.sessionsLimitCents !== undefined) {
 		predictedSessionsCost = Math.min(
@@ -608,17 +590,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	let predictedErrorsCost = getCostCents(
 		'Errors',
+		data?.billingDetails.plan.errorsRate,
 		formState.values.errorsRetention,
 		predictedErrorsUsage,
 		includedErrors,
-		planType,
 	)
 	const actualErrorsCost = getCostCents(
 		'Errors',
+		data?.billingDetails.plan.errorsRate,
 		formState.values.errorsRetention,
 		errorsUsage,
 		includedErrors,
-		planType,
 	)
 	if (formState.values.errorsLimitCents !== undefined) {
 		predictedErrorsCost = Math.min(
@@ -637,17 +619,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	let predictedLogsCost = getCostCents(
 		'Logs',
+		data?.billingDetails.plan.logsRate,
 		formState.values.logsRetention,
 		predictedLogsUsage,
 		includedLogs,
-		planType,
 	)
 	const actualLogsCost = getCostCents(
 		'Logs',
+		data?.billingDetails.plan.logsRate,
 		formState.values.logsRetention,
 		logsUsage,
 		includedLogs,
-		planType,
 	)
 	if (formState.values.logsLimitCents !== undefined) {
 		predictedLogsCost = Math.min(
@@ -666,17 +648,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
 	let predictedTracesCost = getCostCents(
 		'Traces',
+		data?.billingDetails.plan.tracesRate,
 		formState.values.tracesRetention,
 		predictedTracesUsage,
 		includedTraces,
-		planType,
 	)
 	const actualTracesCost = getCostCents(
 		'Traces',
+		data?.billingDetails.plan.tracesRate,
 		formState.values.logsRetention,
 		tracesUsage,
 		includedTraces,
-		planType,
 	)
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
@@ -701,14 +683,19 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 
 	const predictedTotalFormatted =
 		'est. $ ' +
-		toDecimal(dinero({ amount: predictedTotalCents, currency: USD }))
+		toDecimal(
+			dinero({ amount: Math.round(predictedTotalCents), currency: USD }),
+		)
 
 	const hasExtras =
 		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
+	const enableBillingLimits = data?.billingDetails.plan.enableBillingLimits
 	const baseAmountFormatted =
-		'$' + toDecimal(dinero({ amount: baseAmount, currency: USD }))
+		'$' +
+		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
 	const discountAmountFormatted =
-		'$' + toDecimal(dinero({ amount: discountAmount, currency: USD }))
+		'$' +
+		toDecimal(dinero({ amount: Math.round(discountAmount), currency: USD }))
 
 	return (
 		<Box
@@ -763,7 +750,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										createOrUpdateStripeSubscription({
 											variables: {
 												workspace_id: workspace_id!,
-												plan_type: PlanType.UsageBased,
+												plan_type: PlanType.Graduated,
 												interval:
 													SubscriptionInterval.Monthly,
 												retention_period:
@@ -877,6 +864,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidPlayCircle />}
 								productType="Sessions"
+								rate={data?.billingDetails.plan.sessionsRate}
 								retentionPeriod={
 									formState.values.sessionsRetention
 								}
@@ -887,11 +875,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									)
 								}
 								limitCents={formState.values.sessionsLimitCents}
-								setLimitCents={(l) =>
-									formStore.setValue(
-										formStore.names.sessionsLimitCents,
-										l,
-									)
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.sessionsLimitCents,
+													l,
+												)
+										: undefined
 								}
 								usageAmount={sessionsUsage}
 								predictedUsageAmount={predictedSessionsUsage}
@@ -902,6 +894,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidLightningBolt />}
 								productType="Errors"
+								rate={data?.billingDetails.plan.errorsRate}
 								retentionPeriod={
 									formState.values.errorsRetention
 								}
@@ -912,11 +905,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									)
 								}
 								limitCents={formState.values.errorsLimitCents}
-								setLimitCents={(l) =>
-									formStore.setValue(
-										formStore.names.errorsLimitCents,
-										l,
-									)
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.errorsLimitCents,
+													l,
+												)
+										: undefined
 								}
 								usageAmount={errorsUsage}
 								predictedUsageAmount={predictedErrorsUsage}
@@ -927,6 +924,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidLogs />}
 								productType="Logs"
+								rate={data?.billingDetails.plan.logsRate}
 								retentionPeriod={formState.values.logsRetention}
 								setRetentionPeriod={(rp) =>
 									formStore.setValue(
@@ -935,11 +933,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									)
 								}
 								limitCents={formState.values.logsLimitCents}
-								setLimitCents={(l) =>
-									formStore.setValue(
-										formStore.names.logsLimitCents,
-										l,
-									)
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.logsLimitCents,
+													l,
+												)
+										: undefined
 								}
 								usageAmount={logsUsage}
 								predictedUsageAmount={predictedLogsUsage}
@@ -950,6 +952,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<ProductCard
 								productIcon={<IconSolidSparkles />}
 								productType="Traces"
+								rate={data?.billingDetails.plan.tracesRate}
 								retentionPeriod={
 									formState.values.tracesRetention
 								}

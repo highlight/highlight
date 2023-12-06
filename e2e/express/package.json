@@ -9,7 +9,7 @@
 	},
 	"keywords": [],
 	"author": "",
-	"license": "ISC",
+	"license": "Apache-2.0",
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
 		"express": "^4.18.2"

@@ -14,9 +14,9 @@ import {
 	IconSolidExternalLink,
 	IconSolidPlusSm,
 	IconSolidTrash,
-	vars,
-} from '@highlight-run/ui'
-import { Box, Menu, Text } from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { Box, Menu, Text } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'

@@ -3,7 +3,13 @@ import CommentReplyForm, {
 	SessionCommentReplyAction,
 } from '@components/Comment/CommentReplyForm/CommentReplyForm'
 import ReplyList from '@components/Comment/ReplyList/ReplyList'
-import { Box, IconSolidReply, Stack, Tag, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidReply,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui/components'
 import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
 import React from 'react'
 

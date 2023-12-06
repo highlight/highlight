@@ -1,4 +1,4 @@
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 
 import { Avatar } from '@/components/Avatar/Avatar'
 

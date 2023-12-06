@@ -33,22 +33,29 @@ const subtitleText = {
 	color: '#9d97aa',
 }
 
-export const AlertContainer: React.FC<React.PropsWithChildren> = ({
+interface AlertContainerProps extends React.PropsWithChildren<{}> {
+	hideBorder?: boolean
+}
+
+export const AlertContainer: React.FC<AlertContainerProps> = ({
 	children,
+	hideBorder,
 }) => {
 	return (
-		<Section align="center" style={alertContainer}>
+		<Section align="center" style={alertContainer(hideBorder)}>
 			{children}
 		</Section>
 	)
 }
 
-const alertContainer = {
-	border: '1px solid #30294e',
-	borderRadius: '6px',
-	fontSize: '14px',
-	margin: '36px 0',
-	padding: '12px',
+const alertContainer = (hideBorder?: boolean) => {
+	return {
+		border: hideBorder ? 'none' : '1px solid #30294e',
+		borderRadius: '6px',
+		fontSize: '14px',
+		margin: '36px 0',
+		padding: '12px',
+	}
 }
 
 export const Break: React.FC = () => {

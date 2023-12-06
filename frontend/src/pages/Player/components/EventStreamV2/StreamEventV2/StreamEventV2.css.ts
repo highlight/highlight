@@ -1,5 +1,5 @@
-import { vars } from '@highlight-run/ui'
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
+import { buttonStyles } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
 export const variants = recipe({
@@ -26,7 +26,7 @@ export const variants = recipe({
 			true: {
 				backgroundColor:
 					vars.theme.interactive.overlay.secondary.pressed,
-				boxShadow: shadows.grey,
+				boxShadow: buttonStyles.shadows.grey,
 			},
 		},
 	},

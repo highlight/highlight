@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
@@ -20,6 +21,7 @@ func main() {
 	highlight.Start(
 		highlight.WithServiceName("lambda-functions--deleteSessions-sendEmail"),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+		highlight.WithEnvironment(util.EnvironmentName()),
 	)
 	hlog.Init()
 	lambda.StartWithOptions(

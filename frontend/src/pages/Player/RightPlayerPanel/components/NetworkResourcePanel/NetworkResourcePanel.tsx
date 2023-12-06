@@ -7,11 +7,11 @@ import {
 	Heading,
 	IconSolidArrowCircleRight,
 	IconSolidX,
-	sprinkles,
 	Tabs,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
@@ -146,7 +146,7 @@ function NetworkResourceDetails({
 }) {
 	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
-	const { selectedSpan, traceId, traceName } = useTrace()
+	const { selectedSpan, traceName } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
@@ -336,7 +336,7 @@ function NetworkResourceDetails({
 					</Tag>
 				</Box>
 
-				{traceId && <TraceFlameGraph />}
+				{traceName && <TraceFlameGraph />}
 			</Box>
 
 			<Tabs<NetworkRequestTabs>

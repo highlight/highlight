@@ -1,5 +1,5 @@
 ---
-heading: Error Monitoring in Python
+toc: Overview
 title: Error Monitoring in Python
 slug: python
 createdAt: 2021-09-13T22:07:04.000Z
@@ -29,5 +29,8 @@ updatedAt: 2022-04-01T19:52:59.000Z
     </DocsCard>
     <DocsCard title="Other" href="../python/other">
         {"Get started without a framework"}
+    </DocsCard>
+    <DocsCard title="Python OpenTelemetry" href="../../7_native-opentelemetry/2_error-monitoring.md">
+        {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>

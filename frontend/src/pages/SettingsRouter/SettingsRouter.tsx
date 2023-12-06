@@ -1,5 +1,5 @@
 import { ProductType } from '@graph/schemas'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { ProjectProductFilters } from '@pages/ProjectSettings/ProjectFilters/ProjectFilters'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'

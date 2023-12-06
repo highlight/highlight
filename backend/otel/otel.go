@@ -79,6 +79,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
 		URL:             fields.errorUrl,
+		Environment:     fields.environment,
 		Service: &model.ServiceInput{
 			Name:    fields.serviceName,
 			Version: fields.serviceVersion,
@@ -162,16 +163,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				span := spans.At(k)
 				events := span.Events()
 
-				// skip a subset of spans (ie. fs spans
+				// skip a subset of spans (ie. fs spans) from logs / errors / metrics. ingest them as normal traces
 				skipped := false
 				for _, prefix := range IgnoredSpanNamePrefixes {
 					if strings.HasPrefix(span.Name(), prefix) {
 						skipped = true
 						break
 					}
-				}
-				if skipped {
-					continue
 				}
 
 				fields, err := extractFields(ctx, extractFieldsParams{
@@ -187,6 +185,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 				shouldWriteTrace := true
 				for l := 0; l < events.Len(); l++ {
+					if skipped {
+						break
+					}
 					event := events.At(l)
 					fields, err := extractFields(ctx, extractFieldsParams{
 						resource: &resource,

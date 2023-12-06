@@ -1,4 +1,9 @@
-import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidExternalLink,
+	Text,
+} from '@highlight-run/ui/components'
 import { stringify } from 'query-string'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -28,6 +33,8 @@ import { useParams } from '@/util/react-router/useParams'
 // The amount of time before and after the request started/ended we want to show
 // logs for.
 const TIME_BUFFER = 200000
+
+const SEARCH_AND_HEADER_HEIGHT = 60
 
 export const NetworkResourceLogs: React.FC<{
 	resource: NetworkResource
@@ -64,14 +71,17 @@ export const NetworkResourceLogs: React.FC<{
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
+		(
+			containerRefElement?: HTMLDivElement | null,
+			disableBackwards?: boolean,
+		) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
+				} else if (!disableBackwards && scrollTop === 0) {
 					fetchMoreBackward()
 				}
 			}
@@ -102,7 +112,7 @@ export const NetworkResourceLogs: React.FC<{
 				justifyContent="stretch"
 				display="flex"
 				overflow="hidden"
-				maxHeight="full"
+				height="full"
 			>
 				<Box
 					borderRadius="6"
@@ -141,6 +151,7 @@ export const NetworkResourceLogs: React.FC<{
 								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+								bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}
 							/>
 						)}
 					</Box>

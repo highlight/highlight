@@ -1,4 +1,4 @@
-import { IconSolidLogs, Tag } from '@highlight-run/ui'
+import { IconSolidLogs, Tag } from '@highlight-run/ui/components'
 import moment from 'moment'
 import { createSearchParams } from 'react-router-dom'
 

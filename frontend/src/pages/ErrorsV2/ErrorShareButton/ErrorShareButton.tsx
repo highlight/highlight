@@ -5,6 +5,7 @@ import {
 	useUpdateErrorGroupIsPublicMutation,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, namedOperations } from '@graph/operations'
+import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
 	IconSolidGlobeAlt,
@@ -13,8 +14,7 @@ import {
 	Menu,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { copyToClipboard } from '@util/string'
 

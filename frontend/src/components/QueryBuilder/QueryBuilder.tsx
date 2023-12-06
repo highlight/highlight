@@ -14,6 +14,7 @@ import {
 	namedOperations,
 } from '@graph/operations'
 import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
+import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
 	ButtonIcon,
@@ -58,8 +59,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { formatNumber } from '@util/numbers'
@@ -73,6 +73,7 @@ import { useLocation } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
+import { searchesAreEqual } from '@/components/QueryBuilder/utils'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -440,6 +441,7 @@ const MultiselectPopout = ({
 
 	let multiValue: string[] = []
 	switch (type) {
+		case 'creatable':
 		case 'multiselect':
 			multiValue = value?.options.map((o) => o.value) ?? []
 			return (
@@ -451,33 +453,6 @@ const MultiselectPopout = ({
 						key: o.value,
 						render: getOption(o, lastQuery),
 					}))}
-					onChange={(val: string[]) => {
-						onChange({
-							kind: 'multi',
-							options: val.map((i) => ({
-								label: i,
-								value: i,
-							})),
-						})
-					}}
-					onChangeQuery={(val: string) => {
-						setQuery(val)
-					}}
-					cssClass={cssClass}
-					queryPlaceholder="Filter..."
-					defaultOpen={invalid}
-					disabled={disabled}
-					loadingRender={loadingBox}
-				/>
-			)
-		case 'creatable':
-			multiValue = value?.options.map((o) => o.value) ?? []
-			return (
-				<ComboboxSelect
-					label="value"
-					value={multiValue}
-					valueRender={label}
-					options={[]}
 					onChange={(val: string[]) => {
 						onChange({
 							kind: 'multi',
@@ -842,6 +817,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	has_comments: 'Has Comments',
 	service_name: 'Service',
 	service_version: 'Service Version',
+	sample: 'Sample',
 }
 
 const getOperator = (
@@ -865,7 +841,7 @@ const isSingle = (val: MultiselectOption | undefined) =>
 
 interface FieldOptions {
 	operators?: Operator[]
-	type?: string
+	type?: 'text' | 'long' | 'boolean' | 'sample'
 }
 
 interface HasOptions {
@@ -999,6 +975,8 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidLightningBolt />
 		case 'custom_has_rage_clicks':
 			return <IconSolidCursorClick />
+		case 'custom_sample':
+			return <IconSolidPencil />
 		case 'session_landing_page':
 			return <IconSolidDocumentAdd />
 		case 'custom_active_length':
@@ -1461,6 +1439,17 @@ function QueryBuilder(props: QueryBuilderProps) {
 						label: v,
 						value: v,
 					}))
+				} else if (getCustomFieldOptions(field)?.type === 'sample') {
+					options = [
+						{
+							label: 'New Random Seed',
+							value: [...Array(16)]
+								.map(() =>
+									Math.floor(Math.random() * 16).toString(16),
+								)
+								.join(''),
+						},
+					]
 				}
 
 				if (options.length > 0) {
@@ -1535,21 +1524,21 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// Not sure if this is desired behavior in the long term, but
 	// this matches the current prod behavior.
 	useEffect(() => {
-		if (setDefault !== false) {
-			return () => {
+		return () => {
+			if (selectedSegment && !readonly && setDefault !== false) {
 				removeSelectedSegment()
 			}
 		}
-	}, [removeSelectedSegment, setDefault])
+	}, [removeSelectedSegment, setDefault, selectedSegment, readonly])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const mode = (() => {
 		if (selectedSegment !== undefined) {
-			if (searchQuery !== existingQuery) {
-				return QueryBuilderMode.SEGMENT_UPDATE
-			} else {
+			if (searchesAreEqual(searchQuery, existingQuery, timeRangeField)) {
 				return QueryBuilderMode.SEGMENT
+			} else {
+				return QueryBuilderMode.SEGMENT_UPDATE
 			}
 		}
 		return QueryBuilderMode.CUSTOM
@@ -1802,6 +1791,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		<>
 			<CreateAnySegmentModal
 				showModal={segmentModalState !== SegmentModalState.HIDDEN}
+				timeRangeField={timeRangeField}
 				onHideModal={() => {
 					setSegmentModalState(SegmentModalState.HIDDEN)
 				}}

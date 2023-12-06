@@ -31,8 +31,8 @@ import {
 	IconSolidXCircle,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
-import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePicker/PreviousDateRangePicker'
+} from '@highlight-run/ui/components'
+import { PreviousDateRangePicker } from '@highlight-run/ui/components'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'

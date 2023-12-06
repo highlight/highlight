@@ -22,6 +22,7 @@ router = APIRouter()
 
 
 @app.get("/")
+@app.post("/")
 async def root(request: Request):
     logging.info(
         "hello, world", {"customer": request.headers.get("customer") or "unknown"}

@@ -55,7 +55,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
+	stripe "github.com/stripe/stripe-go/v76"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"golang.org/x/sync/errgroup"
@@ -1262,7 +1262,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
-			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
+			ProrationBehavior: stripe.String(string(stripe.SubscriptionSchedulePhaseProrationBehaviorCreateProrations)),
 			Items: []*stripe.SubscriptionItemsParams{
 				{
 					ID:   &subscriptionItem.ID,
@@ -1287,9 +1287,10 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 			"card",
 		}),
 		Customer: workspace.StripeCustomerID,
-		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
-				{Plan: &newBasePrice.ID},
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				Price:    &newBasePrice.ID,
+				Quantity: stripe.Int64(1),
 			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
@@ -1329,8 +1330,17 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	columns := []interface{}{"errors_retention_period", "retention_period"}
+	if settings.EnableBillingLimits {
+		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents")
+	}
 	if err := r.DB.WithContext(ctx).Model(&workspace).
-		Select("sessions_max_cents", "retention_period", "errors_max_cents", "errors_retention_period", "logs_max_cents").
+		Select(columns[0], columns[1:]...).
 		Updates(&model.Workspace{
 			SessionsMaxCents:      sessionsLimitCents,
 			RetentionPeriod:       &sessionsRetention,
@@ -3501,6 +3511,15 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 		return false, err
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	if !settings.EnableDataDeletion {
+		return false, e.New("data deletion is disabled for this workspace")
+	}
+
 	email := ""
 	if admin.Email != nil {
 		email = *admin.Email
@@ -3965,7 +3984,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 	}
 
 	subListParams := stripe.SubscriptionListParams{
-		Status: string(stripe.SubscriptionStatusActive),
+		Status: stripe.String(string(stripe.SubscriptionStatusActive)),
 	}
 	subListParams.AddExpand("data.customer")
 	subListParams.Filters.AddFilter("limit", "", "100")
@@ -4034,11 +4053,16 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 
 		planTier := modelInputs.PlanType(account.PlanTier)
 		if account.SessionLimit == 0 {
-			account.SessionLimit = pricing.TypeToSessionsLimit(planTier)
+			account.SessionLimit = int(pricing.IncludedAmount(planTier, model.PricingProductTypeSessions))
 		}
 
 		if account.MemberLimit != nil && *account.MemberLimit == 0 {
-			account.MemberLimit = pricing.TypeToMemberLimit(planTier, account.UnlimitedMembers)
+			limit := pricing.TypeToMemberLimit(planTier, account.UnlimitedMembers)
+			if limit == nil {
+				account.MemberLimit = nil
+			} else {
+				account.MemberLimit = pointy.Int(int(*limit))
+			}
 		}
 	}
 
@@ -5404,18 +5428,31 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
+	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var results []model.Session
-	if err := r.DB.WithContext(ctx).Model(&model.Session{}).
+	q := r.DB.WithContext(ctx).Model(&model.Session{}).
 		Where("id in ?", ids).
-		Where("project_id = ?", projectID).
-		Order(pgSortStr).
-		Find(&results).Error; err != nil {
+		Where("project_id = ?", projectID)
+	if !ordered {
+		q = q.Order(pgSortStr)
+	}
+
+	var results []model.Session
+	if err := q.Find(&results).Error; err != nil {
 		return nil, err
+	}
+
+	if ordered {
+		positions := make(map[int64]int)
+		for idx, id := range ids {
+			positions[id] = idx
+		}
+		sort.Slice(results, func(i, j int) bool {
+			return positions[int64(results[i].ID)] < positions[int64(results[j].ID)]
+		})
 	}
 
 	return &model.SessionResults{
@@ -5512,6 +5549,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, err
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
 	planType := modelInputs.PlanType(workspace.PlanTier)
 
 	interval := modelInputs.SubscriptionIntervalMonthly
@@ -5594,33 +5636,33 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	sessionsIncluded := pricing.TypeToSessionsLimit(planType)
+	sessionsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeSessions)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
-		sessionsIncluded = *workspace.MonthlySessionLimit
+		sessionsIncluded = int64(*workspace.MonthlySessionLimit)
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
 	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
-		membersLimit = workspace.MonthlyMembersLimit
+		membersLimit = pointy.Int64(int64(*workspace.MonthlyMembersLimit))
 	}
 
-	errorsIncluded := pricing.TypeToErrorsLimit(planType)
+	errorsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeErrors)
 	// use monthly session limit if it exists
 	if workspace.MonthlyErrorsLimit != nil {
-		errorsIncluded = *workspace.MonthlyErrorsLimit
+		errorsIncluded = int64(*workspace.MonthlyErrorsLimit)
 	}
 
-	logsIncluded := pricing.TypeToLogsLimit(planType)
+	logsIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeLogs)
 	// use monthly session limit if it exists
 	if workspace.MonthlyLogsLimit != nil {
-		logsIncluded = *workspace.MonthlyLogsLimit
+		logsIncluded = int64(*workspace.MonthlyLogsLimit)
 	}
 
-	tracesIncluded := pricing.TypeToTracesLimit(planType)
+	tracesIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeTraces)
 	// use monthly traces limit if it exists
 	if workspace.MonthlyTracesLimit != nil {
-		tracesIncluded = *workspace.MonthlyLogsLimit
+		tracesIncluded = int64(*workspace.MonthlyLogsLimit)
 	}
 
 	retentionPeriod := modelInputs.RetentionPeriodSixMonths
@@ -5629,22 +5671,32 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	var sessionsLimit, errorsLimit, logsLimit, tracesLimit *int64
+	var sessionsRate, errorsRate, logsRate, tracesRate float64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
 		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
 		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
 		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
 		tracesLimit = pricing.GetLimitAmount(nil, model.PricingProductTypeTraces, planType, retentionPeriod)
+		sessionsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeSessions, planType, sessionsMeter)
+		errorsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeErrors, planType, errorsMeter)
+		logsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeLogs, planType, logsMeter)
+		tracesRate = pricing.ProductToBasePriceCents(model.PricingProductTypeTraces, planType, tracesMeter)
 	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:         modelInputs.PlanType(planType.String()),
-			Quota:        sessionsIncluded,
-			Interval:     interval,
-			MembersLimit: membersLimit,
-			ErrorsLimit:  errorsIncluded,
-			LogsLimit:    logsIncluded,
-			TracesLimit:  tracesIncluded,
+			Type:                modelInputs.PlanType(planType.String()),
+			Interval:            interval,
+			MembersLimit:        membersLimit,
+			SessionsLimit:       sessionsIncluded,
+			ErrorsLimit:         errorsIncluded,
+			LogsLimit:           logsIncluded,
+			TracesLimit:         tracesIncluded,
+			SessionsRate:        sessionsRate,
+			ErrorsRate:          errorsRate,
+			LogsRate:            logsRate,
+			TracesRate:          tracesRate,
+			EnableBillingLimits: settings.EnableBillingLimits,
 		},
 		Meter:                sessionsMeter,
 		MembersMeter:         membersMeter,
@@ -7079,10 +7131,12 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 			Count:    int(count),
 		})
 	}
-	sort.Slice(result.Buckets, func(i, j int) bool {
-		return result.Buckets[i].Count > result.Buckets[j].Count
-	})
-	result.Buckets = result.Buckets[0:lo.Min([]int{30, len(result.Buckets) - 1})]
+	if len(result.Buckets) > 0 {
+		sort.Slice(result.Buckets, func(i, j int) bool {
+			return result.Buckets[i].Count > result.Buckets[j].Count
+		})
+		result.Buckets = result.Buckets[0:lo.Min([]int{30, len(result.Buckets) - 1})]
+	}
 
 	return result, nil
 }

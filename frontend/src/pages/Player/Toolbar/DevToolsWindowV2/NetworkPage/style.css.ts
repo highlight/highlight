@@ -1,5 +1,5 @@
-import { vars } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { colors } from '@highlight-run/ui/colors'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 

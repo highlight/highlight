@@ -1,5 +1,5 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import { Box, IconSolidExclamation } from '@highlight-run/ui'
+import { Box, IconSolidExclamation } from '@highlight-run/ui/components'
 import { useEffect, useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'

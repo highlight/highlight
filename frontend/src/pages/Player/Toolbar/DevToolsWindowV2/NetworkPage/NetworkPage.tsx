@@ -6,7 +6,7 @@ import {
 	IconSolidExclamation,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { getResponseStatusCode } from '@pages/Player/helpers'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'

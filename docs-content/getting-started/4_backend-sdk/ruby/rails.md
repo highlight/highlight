@@ -1,6 +1,6 @@
 ---
-title: Rails
-heading: Using highlight.io with Ruby on Rails
+toc: Rails
+title: Using highlight.io with Ruby on Rails
 slug: rails
 quickstart: true
 ---

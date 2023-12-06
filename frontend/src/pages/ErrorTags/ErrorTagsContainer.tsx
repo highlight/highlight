@@ -1,5 +1,5 @@
 import { LinkButton } from '@components/LinkButton'
-import { Box, IconSolidArrowSmLeft } from '@highlight-run/ui'
+import { Box, IconSolidArrowSmLeft } from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { Outlet } from 'react-router-dom'
 

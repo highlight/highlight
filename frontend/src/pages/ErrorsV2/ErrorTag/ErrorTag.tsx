@@ -8,7 +8,7 @@ import {
 	IconSolidLocationMarker,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import React from 'react'
 

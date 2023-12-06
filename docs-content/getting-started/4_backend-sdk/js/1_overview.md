@@ -1,7 +1,7 @@
 ---
-heading: Error Monitoring in Javascript / Typescript
+toc: Overview
 title: Error Monitoring in Javascript / Typescript
-slug: go
+slug: js
 createdAt: 2021-09-13T22:07:04.000Z
 updatedAt: 2022-04-01T19:52:59.000Z
 ---
@@ -29,5 +29,8 @@ updatedAt: 2022-04-01T19:52:59.000Z
     </DocsCard>
     <DocsCard title="tRPC" href="../js/trpc">
         {"Get started with tRPC"}
+    </DocsCard>
+    <DocsCard title="Node.js OpenTelemetry" href="../../7_native-opentelemetry/2_error-monitoring.md">
+        {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>

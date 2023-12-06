@@ -1,7 +1,7 @@
 ---
-title: Overview
-headline: Logging in Python
-slug: logging-in-python
+toc: Overview
+title: Hosting Providers Overview
+slug: overview
 ---
 
 Highlight.io supports logging in most cloud providers. For common hosting solutions, we've written guides or integrations that simplify the setup.
