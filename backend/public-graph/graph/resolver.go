@@ -256,9 +256,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	}
 
 	if propType == PropertyType.USER {
-		return r.SendSessionUserPropertiesAlert(ctx, workspace, session)
+		return r.SendSessionUserPropertiesAlert(ctx, workspace, project, session)
 	} else if propType == PropertyType.TRACK {
-		return r.SendSessionTrackPropertiesAlert(ctx, workspace, session, properties)
+		return r.SendSessionTrackPropertiesAlert(ctx, workspace, project, session, properties)
 	}
 	return nil
 }
@@ -1393,6 +1393,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 
 		tempalerts.SendAlertFeedback(ctx, r.DB, r.MailClient, errorAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         &project,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  identifier,
@@ -2920,22 +2921,22 @@ func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, ses
 
 	g := errgroup.Group{}
 	g.Go(func() error {
-		return r.SendSessionInitAlert(ctx, workspace, projectID, session.ID)
+		return r.SendSessionInitAlert(ctx, workspace, project, session.ID)
 	})
 	if session.FirstTime != nil && *session.FirstTime {
 		g.Go(func() error {
-			return r.SendSessionIdentifiedAlert(ctx, workspace, session)
+			return r.SendSessionIdentifiedAlert(ctx, workspace, project, session)
 		})
 	}
 	return g.Wait()
 }
 
-func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Workspace, projectID, sessionID int) error {
+func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, sessionID int) error {
 	// Sending session init alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, Disabled: &model.F}}).
 		Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
+		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", project.ID))
 		return err
 	}
 
@@ -3019,6 +3020,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 
 		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: sessionObj.SecureID,
 			SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 			UserIdentifier:  sessionObj.Identifier,
@@ -3079,7 +3081,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 	return nil
 }
 
-func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session, properties map[string]string) error {
+func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session, properties map[string]string) error {
 	alertWorkerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		util.ResourceName("go.sessions.AppendProperties.alertWorker"), util.Tag("sessionID", session.ID))
 	defer alertWorkerSpan.Finish()
@@ -3171,6 +3173,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 
 		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,
@@ -3191,7 +3194,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 	return nil
 }
 
-func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session) error {
 	// Sending New User Alert
 	var sessionAlerts []*model.SessionAlert
 	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
@@ -3250,6 +3253,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 
 		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: refetchedSession.SecureID,
 			SessionExcluded: refetchedSession.Excluded && *refetchedSession.Processed,
 			UserIdentifier:  refetchedSession.Identifier,
@@ -3268,7 +3272,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 	return nil
 }
 
-func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session) error {
 	alertSpan, ctx := util.StartSpanFromContext(ctx, "SendSessionUserPropertiesAlert")
 	defer alertSpan.Finish()
 	// Sending User Properties Alert
@@ -3339,6 +3343,7 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 
 		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,
