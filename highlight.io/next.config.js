@@ -1,6 +1,8 @@
-const { withAxiom } = require('next-axiom')
 const { withHighlightConfig } = require('@highlight-run/next/config')
 const getStaticPages = require('./scripts/get-static-pages')
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+	enabled: process.env.ANALYZE === 'true',
+})
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -82,4 +84,4 @@ const nextConfig = {
 	},
 }
 
-module.exports = withHighlightConfig(withAxiom(nextConfig))
+module.exports = withHighlightConfig(withBundleAnalyzer(nextConfig))

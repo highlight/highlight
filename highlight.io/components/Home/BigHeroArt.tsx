@@ -10,8 +10,8 @@ export const BigHeroArt = () => {
 				<div className={classNames(styles.hero)}>
 					<video playsInline autoPlay muted loop id="big-hero-video">
 						<source
-							src="/images/big-hero.mp4"
-							type="video/mp4"
+							src="/images/big-hero.webm"
+							type="video/webm"
 						></source>
 					</video>
 				</div>

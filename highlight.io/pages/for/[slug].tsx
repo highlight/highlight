@@ -32,8 +32,8 @@ import Footer from '../../components/common/Footer/Footer'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 import { REVIEWS } from '../../components/Home/Reviews'
 import InfoRow from '../../components/Products/InfoRow'
-import HeroBugLeft from '../../public/images/hero-bug-left.gif'
-import HeroBugRight from '../../public/images/hero-bug-right.gif'
+import HeroBugLeft from '../../public/images/hero-bug-left.gif.webp'
+import HeroBugRight from '../../public/images/hero-bug-right.gif.webp'
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	return {

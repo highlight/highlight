@@ -6,6 +6,8 @@ import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import styles from '../components/Home/Home.module.scss'
 
+import HeroBugLeft from '../public/images/hero-bug-left.gif.webp'
+import HeroBugRight from '../public/images/hero-bug-right.gif.webp'
 import LandingInfoRowSecurity from '../public/images/landingInfoRowSecurity.png'
 
 import { Collapse } from 'antd'
@@ -16,12 +18,15 @@ import { FooterCallToAction } from '../components/common/CallToAction/FooterCall
 import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import { Typography } from '../components/common/Typography/Typography'
+import { BigHeroArt } from '../components/Home/BigHeroArt'
 import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
+import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarousel'
 import LandingInfoRow from '../components/Home/LandingInfoRow'
 import { Review } from '../components/Home/Reviews'
 import InfoRow from '../components/Products/InfoRow'
+import { AnimateBugLeft, AnimateBugRight } from '../components/Animate'
 
 const IMAGE_SHOW_OFFSET = 450
 
@@ -149,26 +154,26 @@ const Home: NextPage = () => {
 			<Navbar />
 			<main>
 				<Section className={styles.heroVideoWrapper}>
-					{/* <AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}> */}
-					{/* 	<div className={styles.heroBug}> */}
-					{/* 		<Image */}
-					{/* 			src={HeroBugLeft} */}
-					{/* 			alt="bug left" */}
-					{/* 			onLoadingComplete={() => setLeftBugLoaded(true)} */}
-					{/* 		/> */}
-					{/* 	</div> */}
-					{/* </AnimateBugLeft> */}
-					{/* <AnimateBugRight loaded={leftBugLoaded && rightBugLoaded}> */}
-					{/* 	<div className={styles.heroBug}> */}
-					{/* 		<Image */}
-					{/* 			src={HeroBugRight} */}
-					{/* 			alt="bug right" */}
-					{/* 			onLoadingComplete={() => */}
-					{/* 				setRightBugLoaded(true) */}
-					{/* 			} */}
-					{/* 		/> */}
-					{/* 	</div> */}
-					{/* </AnimateBugRight> */}
+					<AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}>
+						<div className={styles.heroBug}>
+							<Image
+								src={HeroBugLeft}
+								alt="bug left"
+								onLoadingComplete={() => setLeftBugLoaded(true)}
+							/>
+						</div>
+					</AnimateBugLeft>
+					<AnimateBugRight loaded={leftBugLoaded && rightBugLoaded}>
+						<div className={styles.heroBug}>
+							<Image
+								src={HeroBugRight}
+								alt="bug right"
+								onLoadingComplete={() =>
+									setRightBugLoaded(true)
+								}
+							/>
+						</div>
+					</AnimateBugRight>
 					<div className={styles.anchorFeature}>
 						<h2
 							className={classNames(
@@ -214,7 +219,7 @@ const Home: NextPage = () => {
 						<div className="relative flex flex-col items-center mt-8 mb-28">
 							<CalendlyPopover />
 						</div>
-						{/* <FeatureCarousel /> */}
+						<FeatureCarousel />
 					</div>
 				</Section>
 				<Section>
@@ -265,7 +270,7 @@ const Home: NextPage = () => {
 						imgSrc={LandingInfoRowSecurity}
 					/>
 				</div>
-				{/* <BigHeroArt /> */}
+				<BigHeroArt />
 				<OSSCallToAction />
 				<Section>
 					<CompaniesReel />

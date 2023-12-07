@@ -11,7 +11,7 @@ Our mission is to support developers (like you) to ship with confidence. We do t
 
 ## Cohesion
 
-![](/images/Cohesion720.gif)
+![](/images/Cohesion720.gif.webp)
 
 Our product philosophy at highlight.io is centered around the concept of "cohesion", or the idea that we're focused on building a tightly coupled suite of tools that helps developers ship software with confidence.
 
