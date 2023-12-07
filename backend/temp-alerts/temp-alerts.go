@@ -118,7 +118,7 @@ func SendErrorAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Clie
 		"sessionLink":     sessionURL,
 	}
 
-	emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, "error-alert", templateData)
+	emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, lambda.ReactEmailTemplateErrorAlert, templateData)
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "error fetching email html"))
 		return
@@ -160,7 +160,7 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 	alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, obj.ProjectID, obj.ID)
 
-	alertType := ""
+	var alertType lambda.ReactEmailTemplate
 	subjectLine := ""
 	identifier := input.UserIdentifier
 	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
@@ -183,16 +183,16 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 
 	switch *obj.Type {
 	case model.AlertType.NEW_SESSION:
-		alertType = "new-session-alert"
+		alertType = lambda.ReactEmailTemplateNewSessionAlert
 		subjectLine = fmt.Sprintf("%s just started a new session", identifier)
 	case model.AlertType.NEW_USER:
-		alertType = "new-user-alert"
+		alertType = lambda.ReactEmailTemplateNewUserAlert
 		subjectLine = fmt.Sprintf("%s just started their first session", identifier)
 	case model.AlertType.RAGE_CLICK:
-		alertType = "rage-click-alert"
+		alertType = lambda.ReactEmailTemplateRageClickAlert
 		subjectLine = fmt.Sprintf("%s has been rage clicking in a session.", identifier)
 	case model.AlertType.TRACK_PROPERTIES:
-		alertType = "track-event-properties-alert"
+		alertType = lambda.ReactEmailTemplateTrackEventAlert
 		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
 
 		propertyArray := []PropertyPair{}
@@ -202,7 +202,7 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 
 		templateData["eventProperties"] = propertyArray
 	case model.AlertType.USER_PROPERTIES:
-		alertType = "track-user-properties-alert"
+		alertType = lambda.ReactEmailTemplateTrackUserAlert
 		subjectLine = fmt.Sprintf("%s triggered some track events.", identifier)
 
 		propertyArray := []PropertyPair{}

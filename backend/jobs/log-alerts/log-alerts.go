@@ -200,7 +200,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 		}
 
 		subjectLine := alert.Name
-		emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, "log-alert", templateData)
+		emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, lambda.ReactEmailTemplateLogAlert, templateData)
 		if err != nil {
 			return errors.Wrap(err, "error fetching email html")
 		}

@@ -165,12 +165,25 @@ func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, proje
 	return req
 }
 
+type ReactEmailTemplate string
+
+const (
+	ReactEmailTemplateErrorAlert      ReactEmailTemplate = "error-alert"
+	ReactEmailTemplateLogAlert        ReactEmailTemplate = "log-alert"
+	ReactEmailTemplateNewSessionAlert ReactEmailTemplate = "new-session-alert"
+	ReactEmailTemplateNewUserAlert    ReactEmailTemplate = "new-user-alert"
+	ReactEmailTemplateRageClickAlert  ReactEmailTemplate = "rage-click-alert"
+	ReactEmailTemplateSessionInsights ReactEmailTemplate = "session-insights"
+	ReactEmailTemplateTrackEventAlert ReactEmailTemplate = "track-event-properties-alert"
+	ReactEmailTemplateTrackUserAlert  ReactEmailTemplate = "track-user-properties-alert"
+)
+
 func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {
 	data.ToEmail = toEmail
 	data.UnsubscribeUrl = unsubscribeUrl
 
 	templateData := map[string]interface{}{
-		"template": "session-insights",
+		"template": ReactEmailTemplateSessionInsights,
 		"data":     data,
 	}
 
@@ -198,7 +211,7 @@ func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string,
 	return string(b), nil
 }
 
-func (s *Client) FetchReactEmailHTML(ctx context.Context, alertType string, data map[string]interface{}) (string, error) {
+func (s *Client) FetchReactEmailHTML(ctx context.Context, alertType ReactEmailTemplate, data map[string]interface{}) (string, error) {
 	templateData := map[string]interface{}{
 		"template": alertType,
 		"data":     data,
