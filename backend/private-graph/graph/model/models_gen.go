@@ -1783,6 +1783,7 @@ type ReservedLogKey string
 
 const (
 	// Keep this in alpha order
+	ReservedLogKeyEnvironment     ReservedLogKey = "environment"
 	ReservedLogKeyLevel           ReservedLogKey = "level"
 	ReservedLogKeyMessage         ReservedLogKey = "message"
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
@@ -1794,6 +1795,7 @@ const (
 )
 
 var AllReservedLogKey = []ReservedLogKey{
+	ReservedLogKeyEnvironment,
 	ReservedLogKeyLevel,
 	ReservedLogKeyMessage,
 	ReservedLogKeySecureSessionID,
@@ -1806,7 +1808,7 @@ var AllReservedLogKey = []ReservedLogKey{
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
+	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false
@@ -1879,6 +1881,7 @@ func (e ReservedSessionKey) MarshalGQL(w io.Writer) {
 type ReservedTraceKey string
 
 const (
+	ReservedTraceKeyEnvironment     ReservedTraceKey = "environment"
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
 	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
@@ -1895,6 +1898,7 @@ const (
 )
 
 var AllReservedTraceKey = []ReservedTraceKey{
+	ReservedTraceKeyEnvironment,
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
 	ReservedTraceKeyMetric,
@@ -1912,7 +1916,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false

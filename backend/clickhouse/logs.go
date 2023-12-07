@@ -32,6 +32,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeySource:          "Source",
 	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
 	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
+	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 }
 
 var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
@@ -52,6 +53,7 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 		"Source",
 		"ServiceName",
 		"ServiceVersion",
+		"Environment",
 	},
 }
 
@@ -121,6 +123,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			Source          string
 			ServiceName     string
 			ServiceVersion  string
+			Environment     string
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err

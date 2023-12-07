@@ -3,12 +3,15 @@ package log_alerts
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/lambda"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
@@ -27,7 +30,7 @@ import (
 const maxWorkers = 40
 const alertEvalFreq = 15 * time.Second
 
-func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) {
+func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
 	log.WithContext(ctx).Info("Starting to watch log alerts")
 
 	alertsByFrequency := &map[int64][]*model.LogAlert{}
@@ -72,7 +75,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clien
 					alertWorkerpool.SubmitRecover(
 						func() {
 							ctx := context.Background()
-							err := processLogAlert(ctx, DB, MailClient, alert, rh, redis, ccClient)
+							err := processLogAlert(ctx, DB, MailClient, alert, rh, redis, ccClient, lambdaClient)
 							if err != nil {
 								log.WithContext(ctx).Error(err)
 							}
@@ -95,7 +98,7 @@ func getLogAlerts(ctx context.Context, DB *gorm.DB) []*model.LogAlert {
 	return alerts
 }
 
-func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client) error {
+func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.LogAlert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
 	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(alert.Frequency) * time.Second)
 
@@ -162,7 +165,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 
 		log.WithContext(ctx).WithField("alert_id", alert.ID).Info(fmt.Sprintf("Firing alert for %s", alert.Name))
 
-		if err := alert.SendSlackAlert(ctx, DB, &model.SendSlackAlertForLogAlertInput{Body: body, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
+		if err := tempalerts.SendSlackLogAlert(ctx, DB, alert, &tempalerts.SendSlackAlertForLogAlertInput{Body: body, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
 			log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
 		}
 
@@ -181,26 +184,29 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 			log.WithContext(ctx).Error(err)
 		}
 
-		alertUrl := model.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
+		logsUrl := tempalerts.GetLogAlertURL(alert.ProjectID, alert.Query, start, end)
+		frontendURL := os.Getenv("FRONTEND_URI")
+		alertUrl := fmt.Sprintf("%s/%d/alerts/logs/%d", frontendURL, alert.ProjectID, alert.ID)
+
+		templateData := map[string]interface{}{
+			"alertLink":      alertUrl,
+			"alertName":      alert.Name,
+			"belowThreshold": alert.BelowThreshold,
+			"count":          count,
+			"logsLink":       logsUrl,
+			"projectName":    project.Name,
+			"query":          alert.Query,
+			"threshold":      alert.CountThreshold,
+		}
+
+		subjectLine := alert.Name
+		emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, lambda.ReactEmailTemplateLogAlert, templateData)
+		if err != nil {
+			return errors.Wrap(err, "error fetching email html")
+		}
 
 		for _, email := range emailsToNotify {
-			queryStr := ""
-			if alert.Query != "" {
-				queryStr = fmt.Sprintf(`for query <b>%s</b> `, alert.Query)
-			}
-			message := fmt.Sprintf(
-				"<b>%s</b> fired! Log count %sis currently %s the threshold.<br>"+
-					"<em>Count</em>: %d | <em>Threshold</em>: %d"+
-					"<br><br>"+
-					"<a href=\"%s\">View Logs</a>",
-				alert.Name,
-				queryStr,
-				aboveStr,
-				count,
-				alert.CountThreshold,
-				alertUrl,
-			)
-			if err := Email.SendAlertEmail(ctx, MailClient, *email, message, "Log Alert", alert.Name); err != nil {
+			if err := Email.SendReactEmailAlert(ctx, MailClient, *email, emailHtml, subjectLine); err != nil {
 				log.WithContext(ctx).Error(err)
 			}
 		}

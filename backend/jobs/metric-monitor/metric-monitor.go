@@ -3,10 +3,12 @@ package metric_monitor
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/clickhouse"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -134,7 +136,7 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 
 			log.WithContext(ctx).Info(message)
 
-			if err := metricMonitor.SendSlackAlert(ctx, &model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
+			if err := tempalerts.SendSlackMetricMonitorAlert(ctx, metricMonitor, &tempalerts.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
 			}
 
