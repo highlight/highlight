@@ -1,1 +1,5 @@
-var e="_5ouxf40";export{e as pulseKeyframes};
+// ../packages/ui/src/css/keyframes.css.ts
+var pulseKeyframes = "_5ouxf40";
+export {
+  pulseKeyframes
+};

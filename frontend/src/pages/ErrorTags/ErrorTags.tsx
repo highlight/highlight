@@ -8,7 +8,7 @@ import {
 	Table,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'

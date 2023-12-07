@@ -145,6 +145,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	enable_data_deletion: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
@@ -1212,9 +1213,6 @@ export type MutationCreateMetricMonitorArgs = {
 }
 
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
-	interval: SubscriptionInterval
-	plan_type: PlanType
-	retention_period: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -1701,12 +1699,17 @@ export type PageInfo = {
 
 export type Plan = {
 	__typename?: 'Plan'
-	errorsLimit: Scalars['Int']
+	enableBillingLimits: Scalars['Boolean']
+	errorsLimit: Scalars['Int64']
+	errorsRate: Scalars['Float']
 	interval: SubscriptionInterval
-	logsLimit: Scalars['Int']
-	membersLimit?: Maybe<Scalars['Int']>
-	quota: Scalars['Int']
-	tracesLimit: Scalars['Int']
+	logsLimit: Scalars['Int64']
+	logsRate: Scalars['Float']
+	membersLimit?: Maybe<Scalars['Int64']>
+	sessionsLimit: Scalars['Int64']
+	sessionsRate: Scalars['Float']
+	tracesLimit: Scalars['Int64']
+	tracesRate: Scalars['Float']
 	type: PlanType
 }
 
@@ -1714,6 +1717,7 @@ export enum PlanType {
 	Basic = 'Basic',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
+	Graduated = 'Graduated',
 	Lite = 'Lite',
 	Startup = 'Startup',
 	UsageBased = 'UsageBased',
@@ -2577,6 +2581,7 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorObjectKey {
+	Environment = 'environment',
 	Event = 'event',
 	LogCursor = 'log_cursor',
 	Payload = 'payload',
@@ -2595,6 +2600,7 @@ export enum ReservedErrorObjectKey {
 
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',
@@ -2613,6 +2619,7 @@ export enum ReservedSessionKey {
 
 export enum ReservedTraceKey {
 	Duration = 'duration',
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	Metric = 'metric',
@@ -2631,6 +2638,7 @@ export enum RetentionPeriod {
 	SixMonths = 'SixMonths',
 	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
+	ThreeYears = 'ThreeYears',
 	TwelveMonths = 'TwelveMonths',
 	TwoYears = 'TwoYears',
 }

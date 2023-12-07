@@ -5,7 +5,7 @@ import {
 	IconSolidCheveronLeft,
 	IconSolidCheveronRight,
 	IconSolidDotsHorizontal,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { clamp, range } from '@util/numbers'
 import React, { useMemo } from 'react'
 

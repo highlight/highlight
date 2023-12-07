@@ -1,4 +1,5 @@
 ---
+toc: Rails
 title: Rails
 slug: rails
 createdAt: 2022-03-28T20:31:15.000Z

@@ -15,7 +15,7 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'

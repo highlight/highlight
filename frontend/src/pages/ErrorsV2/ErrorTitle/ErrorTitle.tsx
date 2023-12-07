@@ -1,6 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { GetErrorGroupQuery } from '@graph/operations'
-import { Box, Heading } from '@highlight-run/ui'
+import { Box, Heading } from '@highlight-run/ui/components'
 import ErrorTag from '@pages/ErrorsV2/ErrorTag/ErrorTag'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'

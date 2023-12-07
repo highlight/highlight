@@ -11,7 +11,7 @@ import {
 	Table,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
 import React from 'react'

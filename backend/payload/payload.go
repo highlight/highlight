@@ -20,7 +20,7 @@ type CompressedWriter struct {
 	hasUnclosedArray bool
 }
 
-const BROTLI_COMPRESSION_LEVEL = 9
+const BROTLI_COMPRESSION_LEVEL = 5
 
 // Initializes a new writer with the configured compression level
 func NewCompressedWriter(brFile *os.File) *CompressedWriter {

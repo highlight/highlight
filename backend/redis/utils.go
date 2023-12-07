@@ -22,6 +22,7 @@ import (
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
+const CacheKeySessionsToProcess = "sessions-to-process"
 
 type Client struct {
 	Client  redis.Cmdable
@@ -146,18 +147,21 @@ func NewClient() *Client {
 	}
 }
 
-func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove []interface{}) error {
-	cmd := r.Client.ZRem(ctx, EventsKey(sessionId), valuesToRemove...)
+func (r *Client) RemoveValues(ctx context.Context, sessionId int, payloadType model.RawPayloadType, valuesToRemove []interface{}) error {
+	cmd := r.Client.ZRem(ctx, GetKey(sessionId, payloadType), valuesToRemove...)
 	if cmd.Err() != nil {
 		return errors.Wrap(cmd.Err(), "error removing values from Redis")
 	}
 	return nil
 }
 
-func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId int) ([]redis.Z, error) {
-	maxScore := "(" + strconv.FormatInt(int64(nextPayloadId), 10)
+func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId *int, payloadType model.RawPayloadType) ([]redis.Z, error) {
+	maxScore := "+inf"
+	if nextPayloadId != nil {
+		maxScore = "(" + strconv.FormatInt(int64(*nextPayloadId), 10)
+	}
 
-	vals, err := r.Client.ZRangeByScoreWithScores(ctx, EventsKey(sessionId), &redis.ZRangeBy{
+	vals, err := r.Client.ZRangeByScoreWithScores(ctx, GetKey(sessionId, payloadType), &redis.ZRangeBy{
 		Min: "-inf",
 		Max: maxScore,
 	}).Result()
@@ -222,7 +226,7 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 
 func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]model.EventsObject, error, *model.EventsCursor) {
 	// Session is live if the cursor is not the default
-	isLive := cursor != model.EventsCursor{}
+	isLive := cursor.EventObjectIndex != nil
 
 	eventObjectIndex := "-inf"
 	if cursor.EventObjectIndex != nil {
@@ -299,26 +303,22 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 		allEvents = append(allEvents, subEvents["events"]...)
 	}
 
-	if cursor.EventIndex != 0 && cursor.EventIndex < len(allEvents) {
+	if cursor.EventIndex != 0 && cursor.EventIndex <= len(allEvents) {
 		allEvents = allEvents[cursor.EventIndex:]
 	}
 
 	return allEvents, nil, newCursor
 }
 
-func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interface{}, error) {
+func (r *Client) GetResources(ctx context.Context, s *model.Session, resources map[int]string) ([]interface{}, error) {
 	allResources := make([]interface{}, 0)
-
-	redisData, err := r.Client.ZRangeByScoreWithScores(ctx, NetworkResourcesKey(s.ID), &redis.ZRangeBy{
-		Min: "-inf",
-		Max: "+inf",
-	}).Result()
+	results, err := r.GetSessionData(ctx, s.ID, model.PayloadTypeResources, resources)
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving network resources from Redis")
+		return nil, err
 	}
 
-	for _, z := range redisData {
-		asBytes := []byte(z.Member.(string))
+	for _, result := range results {
+		asBytes := []byte(result)
 
 		// Messages may be encoded with `snappy`.
 		// Try decoding them, but if decoding fails, use the original message.
@@ -345,7 +345,92 @@ func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interfac
 	return allResources, nil
 }
 
-func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) error {
+// Adds a session to be processed `delaySeconds` in the future
+func (r *Client) AddSessionToProcess(ctx context.Context, sessionId int, delaySeconds int) error {
+	score := float64(time.Now().Unix() + int64(delaySeconds))
+
+	cmd := r.Client.ZAdd(ctx, CacheKeySessionsToProcess, redis.Z{
+		Score:  score,
+		Member: sessionId,
+	})
+	if err := cmd.Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Removes a session after processing (successfully or with errors)
+// Only removes the session if its processing time is from a 'lock',
+// in case more events were added after it started processing.
+func (r *Client) RemoveSessionToProcess(ctx context.Context, sessionId int) error {
+	var script = redis.NewScript(`
+		local key = KEYS[1]
+		local sessionId = ARGV[1]
+		
+		local score = tonumber(redis.call("ZSCORE", key, sessionId))
+		if score ~= nil and score ~= math.floor(score) then
+			return redis.call("ZREM", key, sessionId)
+		end
+		
+		return 0
+	`)
+
+	keys := []string{CacheKeySessionsToProcess}
+	values := []interface{}{sessionId}
+	cmd := script.Run(ctx, r.Client, keys, values...)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return err
+	}
+
+	return nil
+}
+
+// Retrieves up to `limit` sessions to process. Sets the processing time
+// for each to `lockPeriod` minutes after the current time, so they
+// can be retried in case processing fails.
+func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit int) ([]int64, error) {
+	now := time.Now().Unix()
+	// Use a non-integer score, then check the score again when removing processed sessions
+	// in case a session had new events added to it while it was being processed.
+	timeAfterLock := float64(now+int64(60*lockPeriod)) + .5
+	var script = redis.NewScript(`
+		local key = KEYS[1]
+		local now = ARGV[1]
+		local timeAfterLock = ARGV[2]
+		local limit = ARGV[3]
+		local range = redis.call("ZRANGEBYSCORE", key, 0, now, "LIMIT", 0, limit)
+
+		local input = {}
+		local count = 0
+		for k, item in pairs(range) do 
+			table.insert(input, timeAfterLock)
+			table.insert(input, item)
+			count = count + 1
+		end
+
+		if count == 0 then
+			return {}
+		end
+
+		redis.call("ZADD", key, unpack(input))
+
+		return range
+	`)
+
+	keys := []string{CacheKeySessionsToProcess}
+	values := []interface{}{time.Now().Unix(), timeAfterLock, limit}
+	cmd := script.Run(ctx, r.Client, keys, values...)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return nil, err
+	}
+
+	return cmd.Int64Slice()
+}
+
+func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) (int, error) {
 	encoded := string(snappy.Encode(nil, payload))
 
 	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
@@ -354,14 +439,14 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 		local score = ARGV[1]
 		local value = ARGV[2]
 
-		local count = redis.call("EXISTS", key)
+		local count = redis.call("ZCARD", key)
 		redis.call("ZADD", key, score, value)
 
 		if count == 0 then
 			redis.call("EXPIRE", key, 30000)
 		end
 
-		return
+		return count + 1
 	`)
 
 	keys := []string{GetKey(sessionID, payloadType)}
@@ -369,9 +454,9 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 	cmd := zAddAndExpire.Run(ctx, r.Client, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return errors.Wrap(err, "error adding events payload in Redis")
+		return 0, errors.Wrap(err, "error adding events payload in Redis")
 	}
-	return nil
+	return cmd.Int()
 }
 
 func (r *Client) getString(ctx context.Context, key string) (string, error) {

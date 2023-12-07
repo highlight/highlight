@@ -1,5 +1,5 @@
 import { Button } from '@components/Button'
-import { Callout, Stack, Text } from '@highlight-run/ui'
+import { Callout, Stack, Text } from '@highlight-run/ui/components'
 
 export enum SearchResultsKind {
 	Errors = 'errors',

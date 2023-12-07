@@ -11,7 +11,7 @@ import {
 	Stack,
 	Table,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
@@ -27,7 +27,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Key, useEffect, useRef, useState } from 'react'
 
 import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
 import { LogEdge } from '@/graph/generated/schemas'
@@ -104,16 +104,20 @@ type LogsTableInnerProps = {
 	logEdges: LogEdgeWithError[]
 	query: string
 	selectedCursor: string | undefined
-	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
+	fetchMoreWhenScrolled: (
+		target: HTMLDivElement,
+		disableBackwards?: boolean,
+	) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
+	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
 }
 
 const LOADING_AFTER_HEIGHT = 28
 
-const GRID_COLUMNS = ['200px', '75px', '1fr']
+const GRID_COLUMNS = ['175px', '75px', '1fr']
 
 const LogsTableInner = ({
 	logEdges,
@@ -121,6 +125,7 @@ const LogsTableInner = ({
 	query,
 	selectedCursor,
 	moreLogs,
+	bodyHeight,
 	clearMoreLogs,
 	handleAdditionalLogsDateChange,
 	fetchMoreWhenScrolled,
@@ -228,16 +233,15 @@ const LogsTableInner = ({
 		getRowCanExpand: (row) => row.original.node.logAttributes,
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
-		debugTable: true,
 	})
 
 	const { rows } = table.getRowModel()
 
 	const rowVirtualizer = useVirtualizer({
 		count: rows.length,
-		estimateSize: () => 26,
+		estimateSize: () => 29,
 		getScrollElement: () => bodyRef.current,
-		overscan: 10,
+		overscan: 50,
 	})
 
 	const totalSize = rowVirtualizer.getTotalSize()
@@ -274,6 +278,23 @@ const LogsTableInner = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	useEffect(() => {
+		setTimeout(() => {
+			if (!loadingAfter && bodyRef?.current) {
+				fetchMoreWhenScrolled(bodyRef.current, true)
+			}
+		}, 0)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [loadingAfter])
+
+	const handleFetchMoreWhenScrolled = (
+		e: React.UIEvent<HTMLDivElement, UIEvent>,
+	) => {
+		setTimeout(() => {
+			fetchMoreWhenScrolled(e.target as HTMLDivElement)
+		}, 0)
+	}
+
 	return (
 		<Table height="full" noBorder>
 			<Table.Head>
@@ -299,43 +320,22 @@ const LogsTableInner = ({
 			</Table.Head>
 			<Table.Body
 				ref={bodyRef}
-				overflowY="scroll"
-				style={{
-					// Subtract heights of elements above, including loading more loads when relevant
-					height: moreLogs
-						? `calc(100vh - 256px)`
-						: `calc(100vh - 228px)`,
-				}}
-				onScroll={(e) =>
-					fetchMoreWhenScrolled(e.target as HTMLDivElement)
-				}
+				overflowY="auto"
+				style={{ height: bodyHeight }}
+				onScroll={handleFetchMoreWhenScrolled}
 			>
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {
 					const row = rows[virtualRow.index]
 
 					return (
-						<Table.Row
+						<LogsTableRow
 							key={virtualRow.key}
-							gridColumns={GRID_COLUMNS}
-							onClick={row.getToggleExpandedHandler()}
-							forwardRef={rowVirtualizer.measureElement}
-							selected={row.getIsExpanded()}
-						>
-							{row.getVisibleCells().map((cell) => {
-								return (
-									<Table.Cell
-										key={cell.id}
-										alignItems="flex-start"
-									>
-										{flexRender(
-											cell.column.columnDef.cell,
-											cell.getContext(),
-										)}
-									</Table.Cell>
-								)
-							})}
-						</Table.Row>
+							row={row}
+							rowVirtualizer={rowVirtualizer}
+							expanded={row.getIsExpanded()}
+							virtualRowKey={virtualRow.key}
+						/>
 					)
 				})}
 				{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
@@ -360,4 +360,45 @@ export const IconExpanded: React.FC = () => (
 
 export const IconCollapsed: React.FC = () => (
 	<IconSolidCheveronRight color="#6F6E77" size="12" />
+)
+
+type LogsTableRowProps = {
+	row: any
+	rowVirtualizer: any
+	expanded: boolean
+	virtualRowKey: Key
+}
+
+const LogsTableRow = React.memo<LogsTableRowProps>(
+	({ row, rowVirtualizer, expanded, virtualRowKey }) => {
+		return (
+			<Table.Row
+				data-index={virtualRowKey}
+				gridColumns={GRID_COLUMNS}
+				onClick={row.getToggleExpandedHandler()}
+				forwardRef={rowVirtualizer.measureElement}
+				selected={expanded}
+			>
+				{row.getVisibleCells().map((cell: any) => {
+					return (
+						<Table.Cell
+							key={cell.column.id}
+							alignItems="flex-start"
+						>
+							{flexRender(
+								cell.column.columnDef.cell,
+								cell.getContext(),
+							)}
+						</Table.Cell>
+					)
+				})}
+			</Table.Row>
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.expanded === nextProps.expanded &&
+			prevProps.virtualRowKey === nextProps.virtualRowKey
+		)
+	},
 )

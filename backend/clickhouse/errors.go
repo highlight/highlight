@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"strings"
 	"time"
+
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
@@ -573,6 +574,7 @@ var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
 		modelInputs.ReservedErrorObjectKeyPayload:         "Payload",
 		modelInputs.ReservedErrorObjectKeyServiceName:     "Service.Name",
 		modelInputs.ReservedErrorObjectKeyServiceVersion:  "Service.Version",
+		modelInputs.ReservedErrorObjectKeyEnvironment:     "Environment",
 	},
 	bodyColumn:   "Event",
 	reservedKeys: modelInputs.AllReservedErrorObjectKey,

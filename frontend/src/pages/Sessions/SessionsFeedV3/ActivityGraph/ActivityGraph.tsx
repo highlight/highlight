@@ -1,5 +1,5 @@
-import { colors } from '@highlight-run/ui/src/css/colors'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { colors } from '@highlight-run/ui/colors'
+import { themeVars } from '@highlight-run/ui/theme'
 import React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { Area, ComposedChart } from 'recharts'

@@ -76,7 +76,12 @@ type DocData = {
 	slug: string
 	toc: TocEntry
 	docOptions: DocPath[]
-	metadata?: { title: string; slug: string; heading: string }
+	metadata?: {
+		title: string
+		metaTitle?: string
+		slug: string
+		heading: string
+	}
 	isSdkDoc?: boolean
 	docIndex: number
 	redirect?: string
@@ -364,7 +369,10 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			}
 			if (d.array_path.indexOf(a) == d.array_path.length - 1) {
 				foundEntry.docPathId = docid
-				foundEntry.tocHeading = docPaths[docid].metadata.title || 'test'
+				foundEntry.tocHeading =
+					docPaths[docid].metadata.toc ||
+					docPaths[docid].metadata.title ||
+					'missing metadata.toc'
 			}
 			currentEntry = foundEntry
 		}
@@ -847,7 +855,9 @@ export default function DocPage({
 		<>
 			<Meta
 				title={
-					metadata?.title?.length
+					metadata?.metaTitle?.length
+						? metadata?.metaTitle
+						: metadata?.title?.length
 						? metadata?.title === 'Welcome to Highlight'
 							? 'Documentation'
 							: metadata?.title

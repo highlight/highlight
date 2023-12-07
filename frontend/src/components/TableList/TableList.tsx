@@ -1,7 +1,7 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import LoadingBox from '@components/LoadingBox'
 import TextViewer from '@components/TextViewer'
-import { Box, Tag, Text } from '@highlight-run/ui'
+import { Box, Tag, Text } from '@highlight-run/ui/components'
 import { Props as TruncateProps } from '@highlight-run/ui/src/components/private/Truncate/Truncate'
 import { copyToClipboard } from '@util/string'
 import React, { isValidElement, ReactElement } from 'react'

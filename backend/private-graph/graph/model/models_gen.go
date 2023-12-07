@@ -591,13 +591,18 @@ type PageInfo struct {
 }
 
 type Plan struct {
-	Type         PlanType             `json:"type"`
-	Interval     SubscriptionInterval `json:"interval"`
-	Quota        int                  `json:"quota"`
-	MembersLimit *int                 `json:"membersLimit"`
-	ErrorsLimit  int                  `json:"errorsLimit"`
-	LogsLimit    int                  `json:"logsLimit"`
-	TracesLimit  int                  `json:"tracesLimit"`
+	Type                PlanType             `json:"type"`
+	Interval            SubscriptionInterval `json:"interval"`
+	MembersLimit        *int64               `json:"membersLimit"`
+	EnableBillingLimits bool                 `json:"enableBillingLimits"`
+	SessionsLimit       int64                `json:"sessionsLimit"`
+	ErrorsLimit         int64                `json:"errorsLimit"`
+	LogsLimit           int64                `json:"logsLimit"`
+	TracesLimit         int64                `json:"tracesLimit"`
+	SessionsRate        float64              `json:"sessionsRate"`
+	ErrorsRate          float64              `json:"errorsRate"`
+	LogsRate            float64              `json:"logsRate"`
+	TracesRate          float64              `json:"tracesRate"`
 }
 
 type QueryInput struct {
@@ -1620,6 +1625,7 @@ const (
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
 	PlanTypeUsageBased PlanType = "UsageBased"
+	PlanTypeGraduated  PlanType = "Graduated"
 )
 
 var AllPlanType = []PlanType{
@@ -1629,11 +1635,12 @@ var AllPlanType = []PlanType{
 	PlanTypeStartup,
 	PlanTypeEnterprise,
 	PlanTypeUsageBased,
+	PlanTypeGraduated,
 }
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased, PlanTypeGraduated:
 		return true
 	}
 	return false
@@ -1708,6 +1715,7 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 type ReservedErrorObjectKey string
 
 const (
+	ReservedErrorObjectKeyEnvironment     ReservedErrorObjectKey = "environment"
 	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
 	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
 	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
@@ -1725,6 +1733,7 @@ const (
 )
 
 var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyEnvironment,
 	ReservedErrorObjectKeyEvent,
 	ReservedErrorObjectKeyLogCursor,
 	ReservedErrorObjectKeyPayload,
@@ -1743,7 +1752,7 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 
 func (e ReservedErrorObjectKey) IsValid() bool {
 	switch e {
-	case ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+	case ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
 		return true
 	}
 	return false
@@ -1774,6 +1783,7 @@ type ReservedLogKey string
 
 const (
 	// Keep this in alpha order
+	ReservedLogKeyEnvironment     ReservedLogKey = "environment"
 	ReservedLogKeyLevel           ReservedLogKey = "level"
 	ReservedLogKeyMessage         ReservedLogKey = "message"
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
@@ -1785,6 +1795,7 @@ const (
 )
 
 var AllReservedLogKey = []ReservedLogKey{
+	ReservedLogKeyEnvironment,
 	ReservedLogKeyLevel,
 	ReservedLogKeyMessage,
 	ReservedLogKeySecureSessionID,
@@ -1797,7 +1808,7 @@ var AllReservedLogKey = []ReservedLogKey{
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
+	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false
@@ -1870,6 +1881,7 @@ func (e ReservedSessionKey) MarshalGQL(w io.Writer) {
 type ReservedTraceKey string
 
 const (
+	ReservedTraceKeyEnvironment     ReservedTraceKey = "environment"
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
 	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
@@ -1886,6 +1898,7 @@ const (
 )
 
 var AllReservedTraceKey = []ReservedTraceKey{
+	ReservedTraceKeyEnvironment,
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
 	ReservedTraceKeyMetric,
@@ -1903,7 +1916,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false
@@ -1938,6 +1951,7 @@ const (
 	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
 	RetentionPeriodTwelveMonths RetentionPeriod = "TwelveMonths"
 	RetentionPeriodTwoYears     RetentionPeriod = "TwoYears"
+	RetentionPeriodThreeYears   RetentionPeriod = "ThreeYears"
 )
 
 var AllRetentionPeriod = []RetentionPeriod{
@@ -1946,11 +1960,12 @@ var AllRetentionPeriod = []RetentionPeriod{
 	RetentionPeriodSixMonths,
 	RetentionPeriodTwelveMonths,
 	RetentionPeriodTwoYears,
+	RetentionPeriodThreeYears,
 }
 
 func (e RetentionPeriod) IsValid() bool {
 	switch e {
-	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
+	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
 		return true
 	}
 	return false

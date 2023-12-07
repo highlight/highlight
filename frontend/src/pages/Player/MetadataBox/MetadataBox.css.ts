@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui/src'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const avatar = style({

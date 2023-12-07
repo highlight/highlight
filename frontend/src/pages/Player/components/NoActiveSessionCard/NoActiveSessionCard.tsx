@@ -1,4 +1,4 @@
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import React, { useEffect } from 'react'
 

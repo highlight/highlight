@@ -1,4 +1,4 @@
-import { IconProps } from '@highlight-run/ui'
+import { IconProps } from '@highlight-run/ui/components'
 import {
 	CLICKUP_INTEGRATION,
 	GITHUB_INTEGRATION,

@@ -3,7 +3,12 @@ import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorGroupFrequenciesParamsInput } from '@graph/schemas'
-import { Box, Heading, IconSolidTrendingUp, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Heading,
+	IconSolidTrendingUp,
+	Text,
+} from '@highlight-run/ui/components'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import { ErrorDistributions } from '@pages/ErrorsV2/ErrorMetrics/ErrorDistributions'
 import moment from 'moment'

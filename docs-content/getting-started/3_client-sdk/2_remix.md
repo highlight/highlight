@@ -1,7 +1,7 @@
 ---
-title: Remix
+toc: Remix
 slug: remix
-heading: Using highlight.io with Remix
+title: Using highlight.io with Remix
 quickstart: true
 ---
 

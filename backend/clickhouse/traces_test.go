@@ -2,9 +2,10 @@ package clickhouse
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -39,4 +40,9 @@ func Test_TraceMatchesQuery(t *testing.T) {
 	filters = queryparser.Parse("os.type:linux resource_name:worker.* service_name:all")
 	matches = TraceMatchesQuery(&trace, &filters)
 	assert.True(t, matches)
+}
+
+func TestNewTraceRowWithEnvironment(t *testing.T) {
+	now := time.Now()
+	assert.Equal(t, "production", NewTraceRow(now, 1).WithEnvironment("production").Environment)
 }

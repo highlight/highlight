@@ -1,5 +1,5 @@
-import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { colors } from '@highlight-run/ui/colors'
+import { buttonStyles } from '@highlight-run/ui/components'
 import { style } from '@vanilla-extract/css'
 
 export const sessionLevelBarV2 = style({
@@ -55,7 +55,7 @@ export const rightPanelButtonShown = style({
 	selectors: {
 		'&:focus:enabled, &:active:enabled': {
 			background: colors.n5,
-			boxShadow: shadows.grey,
+			boxShadow: buttonStyles.shadows.grey,
 		},
 	},
 })

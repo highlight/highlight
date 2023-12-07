@@ -1,6 +1,6 @@
 import { last30Days } from '@components/CommandBar/constants'
 import { nextAttribute, useAttributeSearch } from '@components/CommandBar/utils'
-import { FormState, useFormStore } from '@highlight-run/ui'
+import { FormState, useFormStore } from '@highlight-run/ui/components'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
 import { validateEmail } from '@util/string'

@@ -2,7 +2,7 @@ import '../../App.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
 import { DemoModal } from '@components/DemoModal/DemoModal'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
@@ -29,7 +29,6 @@ import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import log from '@util/log'
-import { loadIntercom } from '@util/window'
 import { omit } from 'lodash'
 import { useEffect, useState } from 'react'
 import {
@@ -222,7 +221,6 @@ export const AppRouter = () => {
 			// static property for the user ID rather than something that could change
 			// over time, like an email address.
 			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
-			loadIntercom({ admin })
 		}
 	}, [admin])
 

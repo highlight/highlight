@@ -1,5 +1,39 @@
 # @highlight-run/node
 
+## 3.6.5
+
+### Patch Changes
+
+-   bd5021a6c: remove @highlight-run/node dependency on highlight.run for types
+-   2fce77c13: fix opentelemetry auto instrumentation in next.js, update opentelemetry dependencies
+
+## 3.6.4
+
+### Patch Changes
+
+-   7c35f7d78: ensure header parsing is compatible with IncomingHTTPHeaders and Headers types
+-   Updated dependencies [84110aca1]
+-   Updated dependencies [c1773fa66]
+    -   highlight.run@8.3.0
+
+## 3.6.3
+
+### Patch Changes
+
+-   f966390c1: ensure compatibility for JS SDKs in ES and CJS environments
+-   66b94f3f7: change serialization for node to avoid reporting objects as the message
+-   Updated dependencies [f966390c1]
+    -   highlight.run@8.2.3
+
+## 3.6.2
+
+### Patch Changes
+
+-   e3590078e: fix @highlight-run/node crashing due to encoding not being polyfilled
+-   8e91dbe55: allow arbitrarily waiting for flush to wait for logs to be sent to highlight
+-   Updated dependencies [b6172b0da]
+    -   highlight.run@8.2.2
+
 ## 3.6.1
 
 ### Patch Changes

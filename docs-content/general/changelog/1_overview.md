@@ -1,6 +1,6 @@
 ---
-heading: Changelog Overview
-title: Overview
+toc: Overview
+title: Changelog Overview
 slug: getting-started
 ---
 

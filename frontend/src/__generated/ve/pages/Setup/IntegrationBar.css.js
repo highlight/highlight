@@ -1,1 +1,9 @@
-var a="bva4e62",e="bva4e63",r="bva4e61";export{a as badgeFirst,e as badgeLast,r as loading};
+// src/pages/Setup/IntegrationBar.css.ts
+var badgeFirst = "bva4e62";
+var badgeLast = "bva4e63";
+var loading = "bva4e61";
+export {
+  badgeFirst,
+  badgeLast,
+  loading
+};

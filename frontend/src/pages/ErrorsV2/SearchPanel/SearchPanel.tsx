@@ -16,7 +16,7 @@ import {
 	GetErrorGroupsClickhouseQueryVariables,
 } from '@graph/operations'
 import { ClickhouseQuery, ErrorGroup, Maybe, ProductType } from '@graph/schemas'
-import { Box, getNow } from '@highlight-run/ui'
+import { Box, getNow } from '@highlight-run/ui/components'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'

@@ -1,5 +1,5 @@
 import { Button } from '@components/Button'
-import { Box, IconSolidBell } from '@highlight-run/ui'
+import { Box, IconSolidBell } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'

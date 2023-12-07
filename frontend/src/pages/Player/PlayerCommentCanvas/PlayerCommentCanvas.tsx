@@ -2,7 +2,7 @@ import {
 	useGetSessionCommentsQuery,
 	useMuteSessionCommentThreadMutation,
 } from '@graph/hooks'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import PlayerSessionComment from '@pages/Player/PlayerCommentCanvas/PlayerSessionComment/PlayerSessionComment'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'

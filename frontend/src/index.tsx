@@ -1,6 +1,7 @@
-import 'antd/dist/antd.css'
+import './__generated/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
+import '@highlight-run/ui/styles.css'
 import './index.css'
 import './style/tailwind.css'
 
@@ -29,7 +30,6 @@ import { auth } from '@util/auth'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { loadIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -160,7 +160,6 @@ H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
-	loadIntercom()
 }
 
 showHiringMessage()

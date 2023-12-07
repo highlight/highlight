@@ -1,6 +1,6 @@
 ---
-heading: Logging Features
-title: Overview
+toc: Overview
+title: Logging Features
 slug: overview
 ---
 

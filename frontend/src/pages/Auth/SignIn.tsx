@@ -12,7 +12,7 @@ import {
 	Stack,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'

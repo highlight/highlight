@@ -100,12 +100,10 @@ export function hookConsole(
 					date,
 					level: highlightLevel,
 					message: data
-						.map((o) =>
-							typeof o === 'object' ? safeStringify(o) : o,
-						)
+						.filter((d) => typeof d !== 'object')
+						.map((o) => `${o}`)
 						.join(' '),
 					attributes: data
-						.slice(1)
 						.filter((d) => typeof d === 'object')
 						.reduce((a, b) => ({ ...a, ...b }), {}),
 					stack: o.stack,
