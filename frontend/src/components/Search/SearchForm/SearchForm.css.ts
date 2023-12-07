@@ -34,7 +34,7 @@ export const combobox = style([
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
 			},
 			'&::selection': {
-				backgroundColor: vars.theme.interactive.fill.secondary.hover,
+				backgroundColor: vars.theme.interactive.fill.secondary.pressed,
 			},
 		},
 	},

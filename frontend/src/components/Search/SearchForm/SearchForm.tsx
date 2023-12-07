@@ -412,10 +412,6 @@ export const Search: React.FC<{
 							cursorIndex <= nextIndex
 						currentIndex = nextIndex
 
-						if (term.trim().length === 0) {
-							return <span key={`${term}-${index}`}>{term}</span>
-						}
-
 						return (
 							<TermTag
 								key={index}
@@ -628,6 +624,10 @@ const TermTag: React.FC<{
 	term: string
 	onRemoveItem: (index: number) => void
 }> = ({ active, index, term, onRemoveItem }) => {
+	if (term.trim().length === 0) {
+		return <span>{term}</span>
+	}
+
 	const parts = tokenAsParts(term)
 
 	return (
