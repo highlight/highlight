@@ -61,6 +61,11 @@ var traceColumns = []string{
 	"StatusMessage",
 }
 
+var defaultTraceKeys = []*modelInputs.QueryKey{
+	{Name: "trace_id", Type: modelInputs.KeyTypeString},
+	{Name: "span_id", Type: modelInputs.KeyTypeString},
+}
+
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
@@ -476,18 +481,7 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 		return nil, err
 	}
 
-	defaultTraceKeys := []*modelInputs.QueryKey{}
-	defaultTraceKeys = append(defaultTraceKeys, &modelInputs.QueryKey{
-		Name: "trace_id",
-		Type: modelInputs.KeyTypeString,
-	})
-	defaultTraceKeys = append(defaultTraceKeys, &modelInputs.QueryKey{
-		Name: "span_id",
-		Type: modelInputs.KeyTypeString,
-	})
-
 	traceKeys = append(traceKeys, defaultTraceKeys...)
-
 	return traceKeys, nil
 }
 
