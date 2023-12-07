@@ -1776,7 +1776,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [
 		dateRange,
 		isOnErrorsPage,
-		searchResultsCount,
 		searchQuery,
 		updateRule,
 		timeRangeRule,
