@@ -34,7 +34,6 @@ import (
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
-	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
@@ -960,7 +959,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			count64 := int64(count)
-			slackAlertPayload := tempalerts.SendSlackAlertInput{
+			slackAlertPayload := model.SendSlackAlertInput{
 				Workspace:       workspace,
 				SessionSecureID: s.SecureID,
 				SessionExcluded: s.Excluded && *s.Processed,
@@ -977,7 +976,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err := w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
 			}
-			tempalerts.SendSessionAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.LambdaClient, sessionAlert, &slackAlertPayload)
+			sessionAlert.SendAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
 
 			if err = alerts.SendRageClicksAlert(alerts.RageClicksAlertEvent{
 				Session:         s,
@@ -1143,7 +1142,7 @@ func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
-	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {

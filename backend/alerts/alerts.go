@@ -9,7 +9,6 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/routing"
-	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
@@ -540,7 +539,7 @@ func SendLogAlert(event LogAlertEvent) error {
 		EndDate:        event.EndDate,
 		Threshold:      event.LogAlert.CountThreshold,
 		BelowThreshold: event.LogAlert.BelowThreshold,
-		AlertURL:       tempalerts.GetLogAlertURL(event.LogAlert.ProjectID, event.LogAlert.Query, event.StartDate, event.EndDate),
+		AlertURL:       model.GetLogAlertURL(event.LogAlert.ProjectID, event.LogAlert.Query, event.StartDate, event.EndDate),
 	}
 
 	for _, wh := range event.LogAlert.WebhookDestinations {
