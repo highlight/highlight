@@ -47,7 +47,8 @@ export const DropdownMenu = function ({
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
-	const { generateSessionsReportCSV } = useGenerateSessionsReportCSV()
+	const { generateSessionsReportCSV, loading: reportLoading } =
+		useGenerateSessionsReportCSV()
 
 	const showDeleteButton =
 		canDelete &&
@@ -272,6 +273,9 @@ export const DropdownMenu = function ({
 								CSV Sessions Report
 							</Text>
 							<Button
+								kind="secondary"
+								size="small"
+								loading={reportLoading}
 								onClick={async () => {
 									await generateSessionsReportCSV(
 										sessionQuery,

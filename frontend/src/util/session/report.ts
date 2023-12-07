@@ -65,8 +65,9 @@ const exportFile = async (name: string, encodedUri: string) => {
 
 export const useGenerateSessionsReportCSV = () => {
 	const { projectId } = useProjectId()
-	const [getReport] = useGetSessionsReportLazyQuery()
+	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
 	return {
+		loading,
 		generateSessionsReportCSV: async (
 			query: ClickhouseQuery,
 			sessions: Session[],
