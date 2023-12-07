@@ -343,18 +343,8 @@ export type MuteSessionCommentThreadMutationOptions =
 		Types.MuteSessionCommentThreadMutationVariables
 	>
 export const CreateOrUpdateStripeSubscriptionDocument = gql`
-	mutation CreateOrUpdateStripeSubscription(
-		$workspace_id: ID!
-		$plan_type: PlanType!
-		$interval: SubscriptionInterval!
-		$retention_period: RetentionPeriod!
-	) {
-		createOrUpdateStripeSubscription(
-			workspace_id: $workspace_id
-			plan_type: $plan_type
-			interval: $interval
-			retention_period: $retention_period
-		)
+	mutation CreateOrUpdateStripeSubscription($workspace_id: ID!) {
+		createOrUpdateStripeSubscription(workspace_id: $workspace_id)
 	}
 `
 export type CreateOrUpdateStripeSubscriptionMutationFn =
@@ -377,9 +367,6 @@ export type CreateOrUpdateStripeSubscriptionMutationFn =
  * const [createOrUpdateStripeSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateStripeSubscriptionMutation({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
- *      plan_type: // value for 'plan_type'
- *      interval: // value for 'interval'
- *      retention_period: // value for 'retention_period'
  *   },
  * });
  */

@@ -278,6 +278,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 	},
 }
 
+var StandardTest = []backend.RetentionPeriod{
+	backend.RetentionPeriodSixMonths,
+	backend.RetentionPeriodTwelveMonths,
+	backend.RetentionPeriodTwoYears,
+}
+
 func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.WithContext(context.TODO()).Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
@@ -527,6 +533,8 @@ func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
 		return 2
 	case backend.RetentionPeriodTwoYears:
 		return 2.5
+	case backend.RetentionPeriodThreeYears:
+		return 3
 	default:
 		return 1
 	}
@@ -678,17 +686,21 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod *backend.RetentionPeriod) (map[model.PricingProductType]*stripe.Price, error) {
+func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, sessionsRetention *backend.RetentionPeriod, errorsRetention *backend.RetentionPeriod) (map[model.PricingProductType]*stripe.Price, error) {
 	// Default to the `RetentionPeriodThreeMonths` prices for customers grandfathered into 6 month retention
-	rp := backend.RetentionPeriodThreeMonths
-	if retentionPeriod != nil {
-		rp = *retentionPeriod
+	sessionsRetentionPeriod := backend.RetentionPeriodThreeMonths
+	if sessionsRetention != nil {
+		sessionsRetentionPeriod = *sessionsRetention
 	}
-	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, rp)
+	errorsRetentionPeriod := backend.RetentionPeriodThreeMonths
+	if errorsRetention != nil {
+		errorsRetentionPeriod = *errorsRetention
+	}
+	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, sessionsRetentionPeriod)
 
 	membersLookupKey := string(model.PricingProductTypeMembers)
-	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
-	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, rp, productTier)
+	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, sessionsRetentionPeriod, productTier)
+	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, errorsRetentionPeriod, productTier)
 	// logs and traces are only available with three month retention
 	logsLookupKey := GetOverageKey(model.PricingProductTypeLogs, backend.RetentionPeriodThreeMonths, productTier)
 	tracesLookupKey := GetOverageKey(model.PricingProductTypeTraces, backend.RetentionPeriodThreeMonths, productTier)
@@ -892,7 +904,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		}
 	}
 
-	prices, err := GetStripePrices(w.stripeClient, &workspace, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod)
+	prices, err := GetStripePrices(w.stripeClient, &workspace, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod, workspace.ErrorsRetentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}

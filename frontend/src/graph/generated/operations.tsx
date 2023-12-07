@@ -36,9 +36,6 @@ export type MuteSessionCommentThreadMutation = {
 
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
-	plan_type: Types.PlanType
-	interval: Types.SubscriptionInterval
-	retention_period: Types.RetentionPeriod
 }>
 
 export type CreateOrUpdateStripeSubscriptionMutation = {

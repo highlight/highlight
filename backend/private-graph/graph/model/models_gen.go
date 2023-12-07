@@ -1951,6 +1951,7 @@ const (
 	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
 	RetentionPeriodTwelveMonths RetentionPeriod = "TwelveMonths"
 	RetentionPeriodTwoYears     RetentionPeriod = "TwoYears"
+	RetentionPeriodThreeYears   RetentionPeriod = "ThreeYears"
 )
 
 var AllRetentionPeriod = []RetentionPeriod{
@@ -1959,11 +1960,12 @@ var AllRetentionPeriod = []RetentionPeriod{
 	RetentionPeriodSixMonths,
 	RetentionPeriodTwelveMonths,
 	RetentionPeriodTwoYears,
+	RetentionPeriodThreeYears,
 }
 
 func (e RetentionPeriod) IsValid() bool {
 	switch e {
-	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
+	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
 		return true
 	}
 	return false

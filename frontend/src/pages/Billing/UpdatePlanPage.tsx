@@ -34,11 +34,7 @@ import {
 	useSaveBillingPlanMutation,
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
-import {
-	PlanType,
-	RetentionPeriod,
-	SubscriptionInterval,
-} from '@/graph/generated/schemas'
+import { PlanType, RetentionPeriod } from '@/graph/generated/schemas'
 import {
 	RETENTION_PERIOD_LABELS,
 	tryCastDate,
@@ -73,6 +69,7 @@ const RETENTION_MULTIPLIER = {
 	[RetentionPeriod.SixMonths]: 1.5,
 	[RetentionPeriod.TwelveMonths]: 2,
 	[RetentionPeriod.TwoYears]: 2.5,
+	[RetentionPeriod.ThreeYears]: 3,
 } as const
 
 const BASE_UNIT_COST_CENTS = {
@@ -750,11 +747,6 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										createOrUpdateStripeSubscription({
 											variables: {
 												workspace_id: workspace_id!,
-												plan_type: PlanType.Graduated,
-												interval:
-													SubscriptionInterval.Monthly,
-												retention_period:
-													RetentionPeriod.ThreeMonths,
 											},
 										})
 									} else {
