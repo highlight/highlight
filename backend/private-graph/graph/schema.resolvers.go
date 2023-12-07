@@ -5528,18 +5528,18 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 
 	var results []*modelInputs.SessionsReportRow
 	if err := r.DB.Raw(`
-select coalesce(email, ip, client_id, identifier)                      as key,
-       max(user_properties::text)                                      as user_properties,
-       count(*)                                                        as num_sessions,
-       count(distinct date_trunc('day', created_at))                   as num_days_visited,
-       count(distinct date_trunc('month', created_at))                 as num_months_visited,
-       avg(active_length) / 1000 / 60                                  as avg_active_length_mins,
-       max(active_length) / 1000 / 60                                  as max_active_length_mins,
-       sum(active_length) / 1000 / 60                                  as total_active_length_mins,
-       avg(length) / 1000 / 60                                         as avg_length_mins,
-       max(length) / 1000 / 60                                         as max_length_mins,
-       sum(length) / 1000 / 60                                         as total_length_mins,
-       max(case when state is not null then state || ', ' || city end) as location
+select coalesce(email, ip, client_id, identifier)                              as key,
+       max(user_properties::text) filter ( where user_properties is not null ) as user_properties,
+       count(*)                                                                as num_sessions,
+       count(distinct date_trunc('day', created_at))                           as num_days_visited,
+       count(distinct date_trunc('month', created_at))                         as num_months_visited,
+       avg(active_length) / 1000 / 60                                          as avg_active_length_mins,
+       max(active_length) / 1000 / 60                                          as max_active_length_mins,
+       sum(active_length) / 1000 / 60                                          as total_active_length_mins,
+       avg(length) / 1000 / 60                                                 as avg_length_mins,
+       max(length) / 1000 / 60                                                 as max_length_mins,
+       sum(length) / 1000 / 60                                                 as total_length_mins,
+       max(case when state is not null then state || '|' || city end)          as location
 from sessions
 where id in (?)
 group by 1

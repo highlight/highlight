@@ -12,22 +12,14 @@ const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => [
 ]
 
 const getReportRows = (sessionsReportRows: SessionsReportRow[]) => {
-	let userProperties: string[] = []
-	try {
-		userProperties = Object.keys(
-			JSON.parse(sessionsReportRows[0].user_properties ?? ''),
-		)
-	} catch (e) {}
 	return [
-		['key', 'num_sessions', ...userProperties],
+		Object.keys(sessionsReportRows[0]).filter(
+			(key) => key !== '__typename',
+		),
 		...sessionsReportRows.map((report: SessionsReportRow) => {
-			let rowUserProperties: any[] = []
-			try {
-				rowUserProperties = Object.values(
-					JSON.parse(report.user_properties ?? ''),
-				)
-			} catch (e) {}
-			return [report.key, report.num_sessions, ...rowUserProperties]
+			return Object.values(report).filter(
+				(value) => value !== 'SessionsReportRow',
+			)
 		}),
 	]
 }
@@ -114,7 +106,11 @@ export const useGenerateSessionsReportCSV = () => {
 
 			const rows = [
 				...getQueryRows(query, sessions),
+				// leave a blank row between the sub reports
+				[],
 				...getReportRows(sessionsReport),
+				// leave a blank row between the sub reports
+				[],
 				...getSessionRows(sessions),
 			]
 
