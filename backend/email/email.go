@@ -49,6 +49,26 @@ const (
 	BillingTracesUsage100Percent  EmailType = "BillingTracesUsage100Percent"
 )
 
+func SendReactEmailAlert(ctx context.Context, MailClient *sendgrid.Client, email string, html string, subjectLine string) error {
+	to := &mail.Email{Address: email}
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+
+	m := mail.NewV3MailInit(from, subjectLine, to, mail.NewContent("text/html", html))
+
+	if resp, sendGridErr := MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		log.WithContext(ctx).Info("🔥", resp, sendGridErr)
+		estr := "error sending sendgrid email for alert -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		log.WithContext(ctx).Error("🔥", estr)
+		return e.New(estr)
+	}
+	log.WithContext(ctx).Info("Sending react email")
+	return nil
+}
+
 func SendAlertEmail(ctx context.Context, MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
 	to := &mail.Email{Address: email}
 
