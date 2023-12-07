@@ -66,6 +66,7 @@ export const comboboxTag = style({
 	fontFeatureSettings: 'normal', // disable tabular numbers
 	position: 'relative',
 	textOverflow: 'ellipsis',
+	whiteSpace: 'pre',
 })
 
 export const comboboxTagBackground = style({
