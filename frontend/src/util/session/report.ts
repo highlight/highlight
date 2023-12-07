@@ -1,6 +1,10 @@
-import { useGetSessionsReportLazyQuery } from '@graph/hooks'
+import {
+	useGetSessionsClickhouseLazyQuery,
+	useGetSessionsReportLazyQuery,
+} from '@graph/hooks'
 import { ClickhouseQuery, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 
 const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => [
 	['filters', 'num_results'],
@@ -64,27 +68,53 @@ const exportFile = async (name: string, encodedUri: string) => {
 }
 
 export const useGenerateSessionsReportCSV = () => {
+	const { searchQuery } = useSearchContext()
 	const { projectId } = useProjectId()
 	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
+	const [getSessionsClickhouse, { loading: sessionsLoading }] =
+		useGetSessionsClickhouseLazyQuery()
 	return {
-		loading,
-		generateSessionsReportCSV: async (
-			query: ClickhouseQuery,
-			sessions: Session[],
-		) => {
-			const { data, error } = await getReport({
-				variables: {
-					project_id: projectId,
-					query,
-				},
-			})
-			if (!data?.sessions_report) {
-				throw new Error(`No sessions report data: ${error?.message}`)
-			}
+		loading: loading || sessionsLoading,
+		generateSessionsReportCSV: async () => {
+			const query = JSON.parse(searchQuery) as ClickhouseQuery
+			const [sessions, sessionsReport] = await Promise.all([
+				(async () => {
+					const { data, error } = await getSessionsClickhouse({
+						variables: {
+							query,
+							count: 1_000_000_000,
+							page: 1,
+							project_id: projectId,
+							sort_desc: true,
+						},
+					})
+					if (!data?.sessions_clickhouse) {
+						throw new Error(`No sessions data: ${error?.message}`)
+					}
+					return data.sessions_clickhouse.sessions.map((s) => ({
+						...s,
+						payload_updated_at: new Date().toISOString(),
+					}))
+				})(),
+				(async () => {
+					const { data, error } = await getReport({
+						variables: {
+							query,
+							project_id: projectId,
+						},
+					})
+					if (!data?.sessions_report) {
+						throw new Error(
+							`No sessions report data: ${error?.message}`,
+						)
+					}
+					return data.sessions_report
+				})(),
+			])
 
 			const rows = [
 				...getQueryRows(query, sessions),
-				...getReportRows(data.sessions_report),
+				...getReportRows(sessionsReport),
 				...getSessionRows(sessions),
 			]
 

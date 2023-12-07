@@ -276,12 +276,7 @@ export const DropdownMenu = function ({
 								kind="secondary"
 								size="small"
 								loading={reportLoading}
-								onClick={async () => {
-									await generateSessionsReportCSV(
-										sessionQuery,
-										sessionResults.sessions,
-									)
-								}}
+								onClick={generateSessionsReportCSV}
 								trackingId="Session CSV Report Download"
 							>
 								Download
