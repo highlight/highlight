@@ -18,8 +18,8 @@ def query(
 ):
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
-    # retry up for up to N seconds in case the session needs time to populate from datasync queue
-    for _ in range(30):
+    # retry up for up to N seconds in case the data needs time to populate
+    for _ in range(15):
         try:
             if variables_fn:
                 variables = variables_fn(datetime.utcnow())
@@ -40,7 +40,11 @@ def query(
             j = r.json()
             assert len(j.get("errors") or []) == 0
             if validator:
-                validator(j["data"])
+                try:
+                    validator(j["data"])
+                except Exception as e:
+                    logging.error(f"validator failed: {e}")
+                    raise
             return j["data"]
         except Exception as e:
             exc = e
@@ -68,14 +72,17 @@ def query(
 )
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
-    r = requests.get(
-        f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
-    )
-    logging.info(f"GET {r.url} {r.status_code} {r.text}")
-    if success == "true":
-        assert r.ok
-    else:
-        assert not r.ok
+    # TODO(vkorolik) figure out why our backend always holds on to the last error rather than writing it
+    # for now, send 10 requests to ensure errors are written to highlight
+    for _ in range(10):
+        r = requests.get(
+            f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
+        )
+        logging.info(f"GET {r.url} {r.status_code} {r.text}")
+        if success == "true":
+            assert r.ok
+        else:
+            assert not r.ok
 
     # check that the error came thru to highlight
     if success == "false":
