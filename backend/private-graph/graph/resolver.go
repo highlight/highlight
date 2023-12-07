@@ -3034,7 +3034,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
-	isLive := cursor != model.EventsCursor{}
+	isLive := cursor.EventObjectIndex != nil
 	s3Events := map[int]string{}
 	if !isLive {
 		var err error

@@ -226,7 +226,7 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 
 func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]model.EventsObject, error, *model.EventsCursor) {
 	// Session is live if the cursor is not the default
-	isLive := cursor != model.EventsCursor{}
+	isLive := cursor.EventObjectIndex != nil
 
 	eventObjectIndex := "-inf"
 	if cursor.EventObjectIndex != nil {
@@ -303,7 +303,7 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 		allEvents = append(allEvents, subEvents["events"]...)
 	}
 
-	if cursor.EventIndex != 0 && cursor.EventIndex < len(allEvents) {
+	if cursor.EventIndex != 0 && cursor.EventIndex <= len(allEvents) {
 		allEvents = allEvents[cursor.EventIndex:]
 	}
 
