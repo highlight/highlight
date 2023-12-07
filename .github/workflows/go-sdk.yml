@@ -21,6 +21,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.5
               with:
@@ -37,6 +38,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
               with:
@@ -54,6 +56,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Build binary
               run: cd sdk/highlight-go && go build .
 
@@ -68,5 +71,6 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v
