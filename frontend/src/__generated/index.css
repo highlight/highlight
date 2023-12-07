@@ -5862,6 +5862,7 @@ body {
   border: 0;
   caret-color: var(--_1pyqka9b);
   display: flex;
+  font-weight: 500;
   pointer-events: auto;
   width: 100%;
 }
@@ -5881,7 +5882,13 @@ body {
 ._10xh0c22::placeholder {
   color: var(--_1pyqka9x);
 }
+._10xh0c22::selection {
+  background-color: var(--_1pyqka9u);
+}
 ._10xh0c23 {
+  -webkit-text-fill-color: transparent;
+}
+._10xh0c24 {
   font-family:
     IBM Plex Mono,
     Menlo,
@@ -5894,30 +5901,32 @@ body {
   align-items: center;
   display: flex;
   flex-wrap: nowrap;
+  font-weight: 500;
   max-width: calc(100% - 26px);
   overflow: hidden;
+  padding-right: 4px;
   pointer-events: none;
   position: absolute;
+  white-space: pre;
 }
-._10xh0c23::before {
+._10xh0c24::before {
   content: "";
   margin-bottom: -0.4462em;
   display: table;
 }
-._10xh0c23::after {
+._10xh0c24::after {
   content: "";
   margin-top: -0.3942em;
   display: table;
 }
-._10xh0c24 {
-  color: transparent;
+._10xh0c25 {
   display: inline-flex;
   font-feature-settings: normal;
   position: relative;
   text-overflow: ellipsis;
 }
-._10xh0c25 {
-  background-color: rgba(0, 0, 0, 0.1);
+._10xh0c26 {
+  border: var(--_1pyqka91o) solid 1px;
   border-radius: 4px;
   height: 20px;
   letter-spacing: normal;
@@ -5928,7 +5937,7 @@ body {
   right: -2px;
   width: calc(100% + 4px);
 }
-._10xh0c26 {
+._10xh0c28 {
   color: var(--_1pyqka9b);
   cursor: pointer;
   position: absolute;
@@ -5938,10 +5947,14 @@ body {
   top: 1px;
   z-index: 1;
 }
-._10xh0c26:hover {
+._10xh0c27 ._10xh0c26,
+._10xh0c25:hover ._10xh0c26 {
+  background-color: color-mix(in srgb, var(--_1pyqka93) 50%, transparent);
+}
+._10xh0c25:hover ._10xh0c28 {
   opacity: 1;
 }
-._10xh0c27 {
+._10xh0c29 {
   background: var(--_1pyqka91);
   border: var(--_1pyqka9k) solid 1px;
   border-radius: 8px;
@@ -5951,19 +5964,20 @@ body {
   flex-grow: 1;
   max-width: 600px;
   max-height: min(var(--popover-available-height,300px), 300px);
+  padding-bottom: 33px;
   z-index: 10;
 }
-._10xh0c28 {
+._10xh0c2a {
   cursor: pointer;
   padding: 12px 10px;
 }
-._10xh0c28:hover {
+._10xh0c2a:hover {
   background-color: var(--_1pyqka9t);
 }
-._10xh0c28[data-active-item] {
+._10xh0c2a[data-active-item] {
   background-color: var(--_1pyqka9u);
 }
-._10xh0c2a + ._10xh0c2a {
+._10xh0c2c + ._10xh0c2c {
   border-top: var(--_1pyqka91o) solid 1px;
 }
 ._1tecd1u0 {

@@ -25,6 +25,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
+import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import React, { useEffect, useRef, useState } from 'react'
@@ -49,7 +50,9 @@ import {
 	queryAsStringParams,
 	quoteQueryValue,
 	SearchParam,
+	SEPARATORS,
 	stringifySearchQuery,
+	tokenAsParts,
 } from '@/components/Search/SearchForm/utils'
 
 import * as styles from './SearchForm.css'
@@ -246,10 +249,10 @@ export const Search: React.FC<{
 	})
 	const [getKeyValues, { data, loading: valuesLoading }] =
 		fetchValuesLazyQuery()
+	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
 	const queryAsStringParts = queryAsStringParams(query)
-	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 
@@ -273,6 +276,10 @@ export const Search: React.FC<{
 
 	const submitQuery = (query: string) => {
 		onFormSubmit(query)
+	}
+
+	const handleSetCursorIndex = () => {
+		setCursorIndex(inputRef.current?.selectionStart || 0)
 	}
 
 	useEffect(() => {
@@ -355,7 +362,6 @@ export const Search: React.FC<{
 
 		if (isValueSelect) {
 			submitQuery(newQuery)
-			comboboxStore.setOpen(false)
 		}
 
 		comboboxStore.setActiveId(null)
@@ -369,6 +375,8 @@ export const Search: React.FC<{
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
+
+	let currentIndex = 0
 
 	return (
 		<Box
@@ -398,15 +406,18 @@ export const Search: React.FC<{
 					}}
 				>
 					{queryAsStringParts.map((term, index) => {
-						if (!term.length) {
-							return null
-						}
+						const nextIndex = currentIndex + term.length
+						const active =
+							cursorIndex >= currentIndex &&
+							cursorIndex <= nextIndex
+						currentIndex = nextIndex
 
 						return (
 							<TermTag
 								key={index}
 								term={term}
 								index={index}
+								active={active}
 								onRemoveItem={handleRemoveItem}
 							/>
 						)
@@ -419,7 +430,9 @@ export const Search: React.FC<{
 					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search...'}
-					className={styles.combobox}
+					className={clsx(styles.combobox, {
+						[styles.comboboxNotEmpty]: query.length > 0,
+					})}
 					value={query}
 					onChange={(e) => {
 						// Need to set this bit of React state to force a re-render of the
@@ -438,6 +451,8 @@ export const Search: React.FC<{
 							comboboxStore.setOpen(false)
 						}
 					}}
+					onKeyUp={handleSetCursorIndex}
+					onMouseUp={handleSetCursorIndex}
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
@@ -469,7 +484,7 @@ export const Search: React.FC<{
 					gutter={10}
 					sameWidth
 				>
-					<Box pt="4">
+					<Box pt="3">
 						<Combobox.GroupLabel store={comboboxStore}>
 							{activeTerm.value && (
 								<Combobox.Item
@@ -479,21 +494,23 @@ export const Search: React.FC<{
 									}
 									store={comboboxStore}
 								>
-									<Stack direction="row" gap="8">
-										<Text lines="1">
-											{activeTerm.value}:
-										</Text>{' '}
-										<Text color="weak">
-											{activeTerm.key ?? 'Body'}
-										</Text>
+									<Stack direction="row" gap="4">
+										{activeTerm.key === BODY_KEY ? (
+											<>
+												<Text lines="1" color="weak">
+													Show all results for
+												</Text>{' '}
+												<Text>
+													&lsquo;{activeTerm.value}
+													&rsquo;
+												</Text>
+											</>
+										) : (
+											<Text>{activeTerm.value}</Text>
+										)}
 									</Stack>
 								</Combobox.Item>
 							)}
-							<Box px="10" py="6">
-								<Text size="xSmall" color="weak">
-									Filters
-								</Text>
-							</Box>
 						</Combobox.GroupLabel>
 					</Box>
 					<Combobox.Group
@@ -537,6 +554,12 @@ export const Search: React.FC<{
 						justifyContent="space-between"
 						display="flex"
 						flexDirection="row"
+						position="absolute"
+						style={{
+							bottom: 0,
+							left: 0,
+							right: 0,
+						}}
 					>
 						<Box display="flex" flexDirection="row" gap="20">
 							<Box
@@ -596,30 +619,55 @@ export const Search: React.FC<{
 }
 
 const TermTag: React.FC<{
+	active: boolean
 	index: number
 	term: string
 	onRemoveItem: (index: number) => void
-}> = ({ index, term, onRemoveItem }) => {
+}> = ({ active, index, term, onRemoveItem }) => {
+	if (term.trim().length === 0) {
+		return <span>{term}</span>
+	}
+
+	const parts = tokenAsParts(term)
+
 	return (
 		<>
 			<Box
-				cssClass={styles.comboboxTag}
+				cssClass={clsx(styles.comboboxTag, {
+					[styles.comboboxTagActive]: active,
+				})}
 				py="6"
 				position="relative"
 				whiteSpace="nowrap"
 			>
-				<Box
-					cssClass={styles.comboboxTagBackground}
-					shadow="innerSecondary"
-				/>
 				<IconSolidXCircle
 					className={styles.comboboxTagClose}
 					size={13}
 					onClick={() => onRemoveItem(index)}
 				/>
-				<Box>{term}</Box>
+				{parts.map((part, index) => {
+					const key = `${part}-${index}`
+
+					if (SEPARATORS.includes(part)) {
+						return (
+							<Box
+								key={key}
+								style={{ color: '#E93D82', zIndex: 1 }}
+							>
+								{part}
+							</Box>
+						)
+					} else {
+						return (
+							<Box key={key} style={{ zIndex: 1 }}>
+								{part}
+							</Box>
+						)
+					}
+				})}
+
+				<Box cssClass={styles.comboboxTagBackground} />
 			</Box>
-			&nbsp;
 		</>
 	)
 }

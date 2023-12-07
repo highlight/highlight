@@ -2,7 +2,7 @@ import { sMonotype, typographyStyles } from '@highlight-run/ui/components'
 import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { themeVars } from '@highlight-run/ui/theme'
 import { vars } from '@highlight-run/ui/vars'
-import { style } from '@vanilla-extract/css'
+import { globalStyle, style } from '@vanilla-extract/css'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -17,12 +17,13 @@ export const combobox = style([
 		p: '6',
 	}),
 	typographyStyles.family.monospace,
+	sMonotype,
 	{
-		...sMonotype,
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		display: 'flex',
+		fontWeight: '500',
 		pointerEvents: 'auto',
 		width: '100%',
 		selectors: {
@@ -32,9 +33,16 @@ export const combobox = style([
 			'&::placeholder': {
 				color: vars.theme.interactive.fill.secondary.content.onDisabled,
 			},
+			'&::selection': {
+				backgroundColor: vars.theme.interactive.fill.secondary.pressed,
+			},
 		},
 	},
 ])
+
+export const comboboxNotEmpty = style({
+	WebkitTextFillColor: 'transparent',
+})
 
 export const comboboxTagsContainer = style([
 	typographyStyles.family.monospace,
@@ -43,15 +51,17 @@ export const comboboxTagsContainer = style([
 		alignItems: 'center',
 		display: 'flex',
 		flexWrap: 'nowrap',
+		fontWeight: '500',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
+		paddingRight: 4,
 		pointerEvents: 'none',
 		position: 'absolute',
+		whiteSpace: 'pre',
 	},
 ])
 
 export const comboboxTag = style({
-	color: 'transparent',
 	display: 'inline-flex',
 	fontFeatureSettings: 'normal', // disable tabular numbers
 	position: 'relative',
@@ -59,7 +69,7 @@ export const comboboxTag = style({
 })
 
 export const comboboxTagBackground = style({
-	backgroundColor: `rgba(0, 0, 0, 0.1)`,
+	border: vars.border.secondary,
 	borderRadius: vars.borderRadius[4],
 	height: 20,
 	letterSpacing: 'normal',
@@ -71,6 +81,8 @@ export const comboboxTagBackground = style({
 	width: 'calc(100% + 4px)',
 })
 
+export const comboboxTagActive = style({})
+
 export const comboboxTagClose = style({
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
@@ -80,11 +92,17 @@ export const comboboxTagClose = style({
 	right: -8,
 	top: 1,
 	zIndex: 1,
-	selectors: {
-		'&:hover': {
-			opacity: 1,
-		},
+})
+
+globalStyle(
+	`${comboboxTagActive} ${comboboxTagBackground}, ${comboboxTag}:hover ${comboboxTagBackground}`,
+	{
+		backgroundColor: `color-mix(in srgb, ${vars.theme.static.surface.elevated} 50%, transparent)`,
 	},
+)
+
+globalStyle(`${comboboxTag}:hover ${comboboxTagClose}`, {
+	opacity: 1,
 })
 
 export const comboboxPopover = style({
@@ -97,6 +115,7 @@ export const comboboxPopover = style({
 	flexGrow: 1,
 	maxWidth: 600,
 	maxHeight: 'min(var(--popover-available-height,300px),300px)',
+	paddingBottom: 33,
 	zIndex: 10,
 })
 
