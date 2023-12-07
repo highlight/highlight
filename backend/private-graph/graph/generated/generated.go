@@ -12377,7 +12377,10 @@ type Query {
 		query: ClickhouseQuery!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	sessions_report(project_id: ID!, query: ClickhouseQuery!): [SessionsReportRow!]!
+	sessions_report(
+		project_id: ID!
+		query: ClickhouseQuery!
+	): [SessionsReportRow!]!
 	field_types_clickhouse(
 		project_id: ID!
 		start_date: Timestamp!
