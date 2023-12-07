@@ -11,13 +11,16 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
 ```
 
 <DocsCardGroup>
-    <DocsCard title="Go: Fiber" href="./fiber.md">
+    <DocsCard title="Go Fiber" href="./fiber.md">
         {"Integrate logging in Go / Fiber."}
     </DocsCard>
-    <DocsCard title="Go: Logrus" href="./logrus.md">
+    <DocsCard title="Go Logrus" href="./logrus.md">
         {"Integrate logging in Go / Logrus."}
     </DocsCard>
-    <DocsCard title="Go: Other" href="./other.md">
+    <DocsCard title="Go Other" href="./other.md">
         {"Integrate logging in any other Go-based app."}
+    </DocsCard>
+    <DocsCard title="Go OpenTelemetry" href="../../7_native-opentelemetry/3_logging.md">
+        {"Integrate logging with Native OpenTelemetry."}
     </DocsCard>
 </DocsCardGroup>
