@@ -21,6 +21,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Migrate database
@@ -40,6 +41,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -127,6 +129,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -178,6 +181,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -241,6 +245,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -292,6 +297,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
