@@ -413,24 +413,7 @@ export const Search: React.FC<{
 						currentIndex = nextIndex
 
 						if (term.trim().length === 0) {
-							{
-								/*
-							TODO: Figure out why we need to manipulate whitespace. There is an
-							extra &nbsp; being rendered outside the span tag below for each
-							filter after the first
-							*/
-							}
-							const spaces = Array.from(
-								Array(term.length - (index === 0 ? 0 : 1)),
-							)
-
-							return (
-								<span key={`${term}-${index}`}>
-									{spaces.map((_) => (
-										<>&nbsp;</>
-									))}
-								</span>
-							)
+							return <span key={`${term}-${index}`}>{term}</span>
 						}
 
 						return (
@@ -685,7 +668,6 @@ const TermTag: React.FC<{
 
 				<Box cssClass={styles.comboboxTagBackground} />
 			</Box>
-			&nbsp;
 		</>
 	)
 }

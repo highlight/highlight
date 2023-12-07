@@ -54,8 +54,10 @@ export const comboboxTagsContainer = style([
 		fontWeight: '500',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
+		paddingRight: 4,
 		pointerEvents: 'none',
 		position: 'absolute',
+		whiteSpace: 'pre',
 	},
 ])
 
@@ -64,7 +66,6 @@ export const comboboxTag = style({
 	fontFeatureSettings: 'normal', // disable tabular numbers
 	position: 'relative',
 	textOverflow: 'ellipsis',
-	whiteSpace: 'pre',
 })
 
 export const comboboxTagBackground = style({

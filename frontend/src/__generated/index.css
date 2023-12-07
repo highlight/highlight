@@ -5904,8 +5904,10 @@ body {
   font-weight: 500;
   max-width: calc(100% - 26px);
   overflow: hidden;
+  padding-right: 4px;
   pointer-events: none;
   position: absolute;
+  white-space: pre;
 }
 ._10xh0c24::before {
   content: "";
@@ -5922,7 +5924,6 @@ body {
   font-feature-settings: normal;
   position: relative;
   text-overflow: ellipsis;
-  white-space: pre;
 }
 ._10xh0c26 {
   border: var(--_1pyqka91o) solid 1px;
