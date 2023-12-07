@@ -284,9 +284,12 @@ type Workspace struct {
 	MonthlyTracesLimit          *int
 	RetentionPeriod             *modelInputs.RetentionPeriod
 	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
+	LogsRetentionPeriod         *modelInputs.RetentionPeriod
+	TracesRetentionPeriod       *modelInputs.RetentionPeriod
 	SessionsMaxCents            *int
 	ErrorsMaxCents              *int
 	LogsMaxCents                *int
+	TracesMaxCents              *int
 	StripeSessionOveragePriceID *string
 	StripeErrorOveragePriceID   *string
 	StripeLogOveragePriceID     *string

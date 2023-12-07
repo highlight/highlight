@@ -964,14 +964,15 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		for _, line := range group {
 			productType, _, _, _, _ := GetProductMetadata(line.Price)
 			if productType != nil {
-				// if the line is from an old price, delete it
+				// if the line is from an old price, delete it so we create a new invoiceitem later
 				if line.Price.ID != prices[*productType].ID {
-					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old -invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem.ID, c.ID)
-					if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem.ID, &stripe.InvoiceItemParams{}); err != nil {
-						return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add usage record item")
+					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN mismatched invoice line %s existing %s expected %s for customer %s", line.InvoiceItem.ID, line.Price.ID, prices[*productType].ID, c.ID)
+					if _, err := w.stripeClient.InvoiceItems.Del(line.InvoiceItem.ID, &stripe.InvoiceItemParams{}); err != nil {
+						return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR failed to delete invoice item %s", line.InvoiceItem.ID)
 					}
+				} else {
+					invoiceLines[*productType] = line
 				}
-				invoiceLines[*productType] = line
 			}
 		}
 	}

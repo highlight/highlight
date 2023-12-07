@@ -400,6 +400,8 @@ export const SaveBillingPlanDocument = gql`
 		$errorsRetention: RetentionPeriod!
 		$logsLimitCents: Int
 		$logsRetention: RetentionPeriod!
+		$tracesLimitCents: Int
+		$tracesRetention: RetentionPeriod!
 	) {
 		saveBillingPlan(
 			workspace_id: $workspace_id
@@ -409,6 +411,8 @@ export const SaveBillingPlanDocument = gql`
 			errorsRetention: $errorsRetention
 			logsLimitCents: $logsLimitCents
 			logsRetention: $logsRetention
+			tracesLimitCents: $tracesLimitCents
+			tracesRetention: $tracesRetention
 		)
 	}
 `
@@ -437,6 +441,8 @@ export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
  *      errorsRetention: // value for 'errorsRetention'
  *      logsLimitCents: // value for 'logsLimitCents'
  *      logsRetention: // value for 'logsRetention'
+ *      tracesLimitCents: // value for 'tracesLimitCents'
+ *      tracesRetention: // value for 'tracesRetention'
  *   },
  * });
  */
@@ -8441,8 +8447,12 @@ export const GetBillingDetailsDocument = gql`
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
@@ -8451,6 +8461,7 @@ export const GetBillingDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -8464,6 +8475,7 @@ export const GetBillingDetailsDocument = gql`
 			sessions_max_cents
 			errors_max_cents
 			logs_max_cents
+			traces_max_cents
 		}
 	}
 `
@@ -8520,8 +8532,12 @@ export const GetSubscriptionDetailsDocument = gql`
 	query GetSubscriptionDetails($workspace_id: ID!) {
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid

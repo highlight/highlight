@@ -1645,7 +1645,10 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 		func(w *model.Workspace) *int { return w.LogsMaxCents },
 		pricing.GetWorkspaceLogsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
-			return privateModel.RetentionPeriodThirtyDays
+			if w.LogsRetentionPeriod == nil {
+				return privateModel.RetentionPeriodThirtyDays
+			}
+			return *w.LogsRetentionPeriod
 		},
 		func(w *model.Workspace) int64 {
 			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeLogs)
@@ -1656,10 +1659,13 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 		},
 	},
 	model.PricingProductTypeTraces: {
-		func(w *model.Workspace) *int { return nil },
+		func(w *model.Workspace) *int { return w.TracesMaxCents },
 		pricing.GetWorkspaceTracesMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
-			return privateModel.RetentionPeriodThirtyDays
+			if w.TracesRetentionPeriod == nil {
+				return privateModel.RetentionPeriodThirtyDays
+			}
+			return *w.TracesRetentionPeriod
 		},
 		func(w *model.Workspace) int64 {
 			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeTraces)
@@ -1705,19 +1711,25 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return true, 0
 	}
 
+	// check this before checking the EnableBillingLimits flag in case we manually disable a product for a company
 	if *maxCostCents == 0 {
 		return false, 1
+	}
+
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+	if err == nil && !settings.EnableBillingLimits {
+		return true, 0
 	}
 
 	// offset by the default included amount since ProductToBasePriceCents will offset too,
 	// but we want to use the local offset of includedQuantity which respects overrides
 	overage := meter + pricing.IncludedAmount(stripePlan, productType) - includedQuantity
-	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan, overage)
-	cost := float64(overage) *
-		basePrice *
+	basePriceCents := pricing.ProductToBasePriceCents(productType, stripePlan, overage)
+	costCents := float64(overage) *
+		basePriceCents *
 		pricing.RetentionMultiplier(cfg.retentionPeriod(workspace))
 
-	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
+	return costCents <= float64(*maxCostCents), costCents / float64(*maxCostCents)
 }
 
 type AlertCountsGroupedByRecent struct {

@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"reflect"
 	"strconv"
@@ -561,48 +562,61 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 func Test_WithinQuota_CommittedPricing(t *testing.T) {
 	ctx := context.TODO()
 
-	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
-		resolver.DB.Create(&model.Project{
-			Model: model.Model{
-				ID: 1,
-			},
-			WorkspaceID: 1,
-		})
-		resolver.DB.Create(&model.Project{
-			Model: model.Model{
-				ID: 2,
-			},
-			WorkspaceID: 2,
-		})
+	for _, limitsEnabled := range []bool{false, true} {
+		util.RunTestWithDBWipeWithName(t, resolver.DB, fmt.Sprintf(`limits-%t`, limitsEnabled), func(t *testing.T) {
+			// clear workspace settings cache
+			_ = resolver.Redis.FlushDB(ctx)
 
-		jan1 := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
-		feb1 := jan1.AddDate(0, 1, 0)
-		workspaceBasic := model.Workspace{
-			Model: model.Model{
-				ID: 1,
-			},
-			PlanTier:           privateModel.PlanTypeBasic.String(),
-			SessionsMaxCents:   pointy.Int(500),
-			BillingPeriodStart: &jan1,
-			BillingPeriodEnd:   &feb1,
-		}
-		resolver.DB.Create(&workspaceBasic)
+			resolver.DB.Create(&model.Project{
+				Model: model.Model{
+					ID: 1,
+				},
+				WorkspaceID: 1,
+			})
+			resolver.DB.Create(&model.Project{
+				Model: model.Model{
+					ID: 2,
+				},
+				WorkspaceID: 2,
+			})
 
-		workspaceUsageBased := model.Workspace{
-			Model: model.Model{
-				ID: 2,
-			},
-			PlanTier:           privateModel.PlanTypeUsageBased.String(),
-			SessionsMaxCents:   pointy.Int(500),
-			BillingPeriodStart: &jan1,
-			BillingPeriodEnd:   &feb1,
-		}
-		resolver.DB.Create(&workspaceUsageBased)
+			jan1 := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
+			feb1 := jan1.AddDate(0, 1, 0)
+			workspaceBasic := model.Workspace{
+				Model: model.Model{
+					ID: 1,
+				},
+				PlanTier:           privateModel.PlanTypeBasic.String(),
+				SessionsMaxCents:   pointy.Int(500),
+				BillingPeriodStart: &jan1,
+				BillingPeriodEnd:   &feb1,
+			}
+			resolver.DB.Create(&workspaceBasic)
 
-		// workspace 1: basic (10k included), 1k overage, $5 = 1k sessions until limit. within limit.
-		// workspace 2: usage based (500 included), 500 overage, $5 = 250 sessions until limit. not within limit.
-		resolver.DB.Exec(`drop materialized view daily_session_counts_view`)
-		resolver.DB.Exec(`
+			workspaceUsageBased := model.Workspace{
+				Model: model.Model{
+					ID: 2,
+				},
+				PlanTier:           privateModel.PlanTypeUsageBased.String(),
+				SessionsMaxCents:   pointy.Int(500),
+				BillingPeriodStart: &jan1,
+				BillingPeriodEnd:   &feb1,
+			}
+			resolver.DB.Create(&workspaceUsageBased)
+
+			resolver.DB.Create(&model.AllWorkspaceSettings{
+				WorkspaceID:         workspaceBasic.ID,
+				EnableBillingLimits: limitsEnabled,
+			})
+			resolver.DB.Create(&model.AllWorkspaceSettings{
+				WorkspaceID:         workspaceUsageBased.ID,
+				EnableBillingLimits: limitsEnabled,
+			})
+
+			// workspace 1: basic (10k included), 1k overage, $5 = 1k sessions until limit. within limit.
+			// workspace 2: usage based (500 included), 500 overage, $5 = 250 sessions until limit. not within limit.
+			resolver.DB.Exec(`drop materialized view daily_session_counts_view`)
+			resolver.DB.Exec(`
 			select * into daily_session_counts_view 
 			from (
 				select 1 as project_id, '2023-01-01'::date as date, 11000 as count
@@ -611,12 +625,17 @@ func Test_WithinQuota_CommittedPricing(t *testing.T) {
 				union all select 2, '2023-01-02'::date, 0) a
 		`)
 
-		basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceBasic, time.Now())
-		assert.True(t, basicWithinBillingQuota)
+			basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceBasic, time.Now())
+			assert.True(t, basicWithinBillingQuota)
 
-		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceUsageBased, time.Now())
-		assert.False(t, usageBasedWithinBillingQuota)
-	})
+			usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceUsageBased, time.Now())
+			if limitsEnabled {
+				assert.False(t, usageBasedWithinBillingQuota)
+			} else {
+				assert.True(t, usageBasedWithinBillingQuota)
+			}
+		})
+	}
 }
 
 func TestInitializeSessionImpl(t *testing.T) {
