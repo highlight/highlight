@@ -90,17 +90,6 @@ export default defineConfig(({ mode }) => {
 		css: {
 			transformer: 'lightningcss',
 			devSourcemap: true,
-			/*lightningcss: {
-				less: {
-					javascriptEnabled: true,
-					modifyVars: {
-						hack: `true; @import "${join(
-							__dirname,
-							'src/style/AntDesign/antd.overrides.less',
-						)}";`,
-					},
-				},
-			},*/
 		},
 	}
 })
