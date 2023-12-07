@@ -36,6 +36,8 @@ type SendSlackAlertInput struct {
 	Workspace *model.Workspace
 	// SessionSecureID is a required parameter
 	SessionSecureID string
+	// Project is a required parameter
+	Project *model.Project
 	// SessionExluded is a required parameter to tell if the session is playable
 	SessionExcluded bool
 	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
@@ -52,8 +54,6 @@ type SendSlackAlertInput struct {
 	ErrorsCount *int64
 	// FirstErrorAlert is a required parameter for Error alerts
 	FirstErrorAlert bool
-	// Project is a required parameter for Error alerts
-	Project *model.Project
 	// MatchedFields is a required parameter for Track Properties and User Properties alerts
 	MatchedFields []*model.Field
 	// RelatedFields is an optional parameter for Track Properties and User Properties alerts

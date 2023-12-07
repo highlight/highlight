@@ -962,6 +962,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			count64 := int64(count)
 			slackAlertPayload := tempalerts.SendSlackAlertInput{
 				Workspace:       workspace,
+				Project:         project,
 				SessionSecureID: s.SecureID,
 				SessionExcluded: s.Excluded && *s.Processed,
 				UserIdentifier:  s.Identifier,
