@@ -65,21 +65,21 @@ const exportFile = async (name: string, encodedUri: string) => {
 
 export const useGenerateSessionsReportCSV = () => {
 	const { projectId } = useProjectId()
-	const [getReport] = useGetSessionsReportLazyQuery({
-		variables: {
-			project_id: projectId,
-		},
-	})
+	const [getReport] = useGetSessionsReportLazyQuery()
 	return {
 		generateSessionsReportCSV: async (
 			query: ClickhouseQuery,
 			sessions: Session[],
 		) => {
-			const { data } = await getReport({
+			const { data, error } = await getReport({
 				variables: {
+					project_id: projectId,
 					query,
 				},
 			})
+			if (!data?.sessions_report) {
+				throw new Error(`No sessions report data: ${error?.message}`)
+			}
 
 			const rows = [
 				...getQueryRows(query, sessions),
