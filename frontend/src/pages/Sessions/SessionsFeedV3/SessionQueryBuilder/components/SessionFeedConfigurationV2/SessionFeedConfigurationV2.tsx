@@ -23,7 +23,7 @@ import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV3/Sess
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
-import { generateSessionsReportCSV } from '@util/session/report'
+import { useGenerateSessionsReportCSV } from '@util/session/report'
 import React, { useRef, useState } from 'react'
 
 import { ClickhouseQuery } from '@/graph/generated/schemas'
@@ -47,6 +47,7 @@ export const DropdownMenu = function ({
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
+	const { generateSessionsReportCSV } = useGenerateSessionsReportCSV()
 
 	const showDeleteButton =
 		canDelete &&
