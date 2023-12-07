@@ -51,6 +51,7 @@ enum TeamSize {
 enum HeardAbout {
 	youtube = 'YouTube',
 	linkedin = 'LinkedIn',
+	hackernews = 'Hacker News',
 	twitter = 'Twitter / X',
 	google = 'Google',
 	other = 'Other',
