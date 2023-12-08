@@ -220,6 +220,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithServiceVersion(fields.serviceVersion),
 							clickhouse.WithSeverityText("ERROR"),
 							clickhouse.WithSource(fields.source),
+							clickhouse.WithEnvironment(fields.environment),
 						)
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
@@ -257,6 +258,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithServiceVersion(fields.serviceVersion),
 							clickhouse.WithSeverityText(fields.logSeverity),
 							clickhouse.WithSource(fields.source),
+							clickhouse.WithEnvironment(fields.environment),
 						)
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
@@ -437,6 +439,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithServiceVersion(fields.serviceVersion),
 					clickhouse.WithSeverityText(fields.logSeverity),
 					clickhouse.WithSource(fields.source),
+					clickhouse.WithEnvironment(fields.environment),
 				)
 
 				if fields.projectID != "" {

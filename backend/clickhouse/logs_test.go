@@ -974,9 +974,47 @@ func TestReadLogsWithServiceVersionFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 2)
 }
 
-func TestNewLogRowWithEnvironment(t *testing.T) {
+func TestReadLogsWithEnvironmentFilter(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
 	now := time.Now()
-	assert.Equal(t, "production", NewLogRow(now, 1, WithEnvironment("production")).Environment)
+	rows := []*LogRow{
+		NewLogRow(now, 1),
+		NewLogRow(now, 1, WithEnvironment("production")),
+		NewLogRow(now, 1, WithEnvironment("development")),
+		NewLogRow(now, 1,
+			WithLogAttributes(map[string]string{
+				"environment": "production",
+			}),
+		),
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "environment:production",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "production", *payload.Edges[0].Node.Environment)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "environment:*dev*",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "development", *payload.Edges[0].Node.Environment)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "environment:production environment:development",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
 }
 
 func TestReadLogsWithMultipleFilters(t *testing.T) {

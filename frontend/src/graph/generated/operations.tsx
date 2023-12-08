@@ -4419,6 +4419,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'source'
 						| 'serviceName'
 						| 'serviceVersion'
+						| 'environment'
 					>
 				}
 		>

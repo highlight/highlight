@@ -142,6 +142,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 				Source:          &result.Source,
 				ServiceName:     &result.ServiceName,
 				ServiceVersion:  &result.ServiceVersion,
+				Environment:     &result.Environment,
 			},
 		}, nil
 	}

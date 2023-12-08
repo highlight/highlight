@@ -488,6 +488,7 @@ type Log struct {
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
 	ServiceVersion  *string                `json:"serviceVersion"`
+	Environment     *string                `json:"environment"`
 }
 
 type LogAlertInput struct {

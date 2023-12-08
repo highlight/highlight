@@ -175,6 +175,7 @@ const LogsTableInner = ({
 					queryTerms,
 					{
 						...log.logAttributes,
+						environment: log.environment,
 						level: log.level,
 						message: log.message,
 						secure_session_id: log.secureSessionID,

@@ -833,6 +833,7 @@ export type LinearTeam = {
 
 export type Log = {
 	__typename?: 'Log'
+	environment?: Maybe<Scalars['String']>
 	level: LogLevel
 	logAttributes: Scalars['Map']
 	message: Scalars['String']

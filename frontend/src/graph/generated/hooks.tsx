@@ -12882,6 +12882,7 @@ export const GetLogsDocument = gql`
 					source
 					serviceName
 					serviceVersion
+					environment
 				}
 			}
 			pageInfo {
