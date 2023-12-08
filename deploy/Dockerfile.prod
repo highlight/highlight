@@ -5,6 +5,7 @@ WORKDIR /build
 COPY ./backend ./backend
 COPY ./e2e/go ./e2e/go
 COPY ./sdk/highlight-go ./sdk/highlight-go
+COPY ./sdk/highlight-grafana-datasource ./sdk/highlight-grafana-datasource
 COPY go.work go.work.sum .
 RUN go work sync
 WORKDIR /build/backend
