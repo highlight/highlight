@@ -26,14 +26,16 @@ export const JSExpressContent: QuickStartContent = {
 // or like this with commonjs
 // const { H, Highlight } = require('@highlight-run/node')
 
-const app = express()
-
 const highlightConfig = {
 	projectID: '<YOUR_PROJECT_ID>',
 	serviceName: 'my-express-app',
 	serviceVersion: 'git-sha'
 }
 H.init(highlightConfig)
+
+// import express after initializing highlight to automatically instrument express
+import express from 'express'
+const app = express()
 
 // This should be before any controllers (route definitions)
 app.use(Handlers.middleware(highlightConfig))

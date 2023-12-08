@@ -8,7 +8,8 @@ import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
-import { IncomingHttpHeaders } from 'http'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import type { IncomingHttpHeaders } from 'http'
 import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
@@ -19,6 +20,19 @@ import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
+
+const instrumentations = getNodeAutoInstrumentations({
+	'@opentelemetry/instrumentation-pino': {
+		logHook: (span, record, level) => {
+			// @ts-ignore
+			const attrs = span.attributes
+			for (const [key, value] of Object.entries(attrs)) {
+				record[key] = value
+			}
+		},
+	},
+})
+registerInstrumentations({ instrumentations })
 
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
@@ -134,13 +148,7 @@ export class Highlight {
 			resource: new Resource(attributes),
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [
-				getNodeAutoInstrumentations({
-					'@opentelemetry/instrumentation-fs': {
-						enabled: options.enableFsInstrumentation ?? false,
-					},
-				}),
-			],
+			instrumentations,
 		})
 		this.otel.start()
 
