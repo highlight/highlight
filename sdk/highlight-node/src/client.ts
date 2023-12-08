@@ -24,6 +24,9 @@ const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-pino': {
 		logHook: (span, record, level) => {
+			const context = Highlight.parseHeaders(undefined)
+			record['highlight.session_id'] = context.secureSessionId
+			record['highlight.trace_id'] = context.requestId
 			// @ts-ignore
 			const attrs = span.attributes
 			for (const [key, value] of Object.entries(attrs)) {
@@ -74,7 +77,7 @@ export class Highlight {
 	otel: NodeSDK
 	private tracer: Tracer
 	private processor: CustomSpanProcessor
-	private asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
+	private static asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -87,7 +90,7 @@ export class Highlight {
 
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
-				const { secureSessionId, requestId } = this.parseHeaders(
+				const { secureSessionId, requestId } = Highlight.parseHeaders(
 					// look for the context in asyncLocalStorage only
 					{},
 				)
@@ -325,7 +328,7 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	parseHeaders(
+	static parseHeaders(
 		headers: Headers | IncomingHttpHeaders | undefined,
 	): HighlightContext {
 		let requestHeaders: IncomingHttpHeaders = {}
@@ -345,27 +348,27 @@ export class Highlight {
 				return { secureSessionId, requestId }
 			}
 		} catch (e) {
-			this._log('parseHeaders error: ', e)
+			log('parseHeaders error: ', e)
 		}
 		return { secureSessionId: undefined, requestId: undefined }
 	}
 
-	runWithHeaders<T>(
+	static runWithHeaders<T>(
 		headers: Headers | IncomingHttpHeaders | undefined,
 		cb: () => T,
 	) {
-		const highlightCtx = this.parseHeaders(headers)
+		const highlightCtx = Highlight.parseHeaders(headers)
 		if (highlightCtx) {
-			return this.asyncLocalStorage.run(highlightCtx, cb)
+			return Highlight.asyncLocalStorage.run(highlightCtx, cb)
 		} else {
 			return cb()
 		}
 	}
 
-	setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
-		const highlightCtx = this.parseHeaders(headers)
+	static setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
+		const highlightCtx = Highlight.parseHeaders(headers)
 		if (highlightCtx) {
-			this.asyncLocalStorage.enterWith(highlightCtx)
+			Highlight.asyncLocalStorage.enterWith(highlightCtx)
 		}
 	}
 }
