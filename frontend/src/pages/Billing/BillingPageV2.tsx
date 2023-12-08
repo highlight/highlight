@@ -366,6 +366,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				0,
 		  )
 		: 0
+	const discountCents = productSubtotal + baseAmount - totalCents
 
 	const totalFormatted =
 		'$ ' +
@@ -385,8 +386,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const tracesLimit = isPaying ? undefined : 0
 
-	const hasExtras =
-		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
+	const hasExtras = baseAmount !== 0 || discountCents !== 0
 	const baseAmountFormatted =
 		'$ ' +
 		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
@@ -394,11 +394,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		'$ ' +
 		toDecimal(
 			dinero({
-				amount: Math.round(
-					discountAmount
-						? discountAmount
-						: totalCents / (1 - discountPercent / 100) - totalCents,
-				),
+				amount: Math.round(discountCents),
 				currency: USD,
 			}),
 		)
