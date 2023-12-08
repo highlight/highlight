@@ -5,10 +5,10 @@ import { useGetBaseSearchContext } from '@context/SearchState'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 	useGetProjectSettingsQuery,
-	useGetTracesKeysQuery,
+	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 	useGetTracesMetricsQuery,
 	useGetWorkspaceSettingsQuery,
@@ -463,10 +463,10 @@ export const ProjectProductFilters: React.FC<{
 									presets={defaultPresets}
 									minDate={defaultPresets[5].startDate}
 									timeMode="fixed-range"
-									fetchKeys={
+									fetchKeysLazyQuery={
 										product === ProductType.Logs
-											? useGetLogsKeysQuery
-											: useGetTracesKeysQuery
+											? useGetLogsKeysLazyQuery
+											: useGetTracesKeysLazyQuery
 									}
 									fetchValuesLazyQuery={
 										product === ProductType.Logs

@@ -85,8 +85,9 @@ const PricingPage: NextPage = () => {
 					</h2>
 					<Typography type="copy1" onDark className="max-w-4xl">
 						After reaching the free tier limits, we charge an
-						additional usage-based fee for each product. For custom
-						plans,{' '}
+						additional usage-based fee for each product. The $50
+						base fee unlocks discounted volume pricing
+						automatically. For custom plans,{' '}
 						<a href="mailto:sales@highlight.io">reach out to us</a>.
 					</Typography>
 				</div>
@@ -406,16 +407,13 @@ const priceTiers: Record<TierName, PricingTier> = {
 		label: 'Pay as you go',
 		features: [
 			{
-				feature: `${prices.Sessions.free.toLocaleString()}+ monthly sessions`,
+				feature: `Base tier of $50`,
 			},
 			{
-				feature: `${prices.Errors.free.toLocaleString()}+ monthly errors`,
+				feature: `Cheaper with higher volume`,
 			},
 			{
-				feature: `${prices.Logs.free.toLocaleString()}+ monthly logs`,
-			},
-			{
-				feature: `${prices.Traces.free.toLocaleString()}+ monthly traces`,
+				feature: `Filters for data ingest`,
 			},
 			{
 				feature: 'Unlimited seats',

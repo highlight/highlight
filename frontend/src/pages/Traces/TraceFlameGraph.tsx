@@ -1,7 +1,16 @@
-import { Box, Text } from '@highlight-run/ui/components'
-import clsx from 'clsx'
-import { throttle } from 'lodash'
 import {
+	Box,
+	ButtonIcon,
+	IconSolidMinus,
+	IconSolidPlus,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
+import clsx from 'clsx'
+import { debounce, throttle } from 'lodash'
+import {
+	BaseSyntheticEvent,
+	DragEventHandler,
 	Fragment,
 	useCallback,
 	useEffect,
@@ -22,7 +31,14 @@ import {
 
 import * as styles from './TraceFlameGraph.css'
 
-const MAX_TICKS = 6
+// Empty image to replace drag image
+const dragImg = new Image()
+dragImg.src =
+	'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
+const MAX_VISIBLE_TICKS = 6
+const MAX_TICKS = 20
+const MAX_ZOOM = 1000
 export const ticksHeight = 24
 export const outsidePadding = 4
 export const lineHeight = 18
@@ -35,9 +51,11 @@ const timeUnits = [
 ]
 
 export const TraceFlameGraph: React.FC = () => {
+	const zoomBar = useRef<HTMLDivElement>(null)
 	const { hoveredSpan, loading, totalDuration, traces } = useTrace()
 	const svgContainerRef = useRef<HTMLDivElement>(null)
 	const [zoom, setZoom] = useState(1)
+	const [x, setX] = useState(0)
 	const [width, setWidth] = useState<number | undefined>(undefined)
 	const [tooltipCoordinates, setTooltipCoordinates] = useState({
 		x: 0,
@@ -55,26 +73,35 @@ export const TraceFlameGraph: React.FC = () => {
 	const ticks = useMemo(() => {
 		if (!totalDuration || !width) return []
 
-		const length = Math.round(MAX_TICKS * zoom)
+		const length = Math.round(MAX_VISIBLE_TICKS * zoom)
 		const timeUnit =
 			timeUnits.find(
 				({ divider }) => totalDuration / length / divider > 1,
 			) ?? timeUnits[timeUnits.length - 2]
 
-		return Array.from({ length }).map((_, index) => {
+		const scrollPercent =
+			x / Math.max(svgContainerRef.current!.scrollWidth, 1)
+		const ticksVisibleAtX = Math.round(length * scrollPercent)
+		const minIndex = Math.max(ticksVisibleAtX - MAX_TICKS / 2, 0)
+		const maxIndex = Math.min(ticksVisibleAtX + MAX_TICKS / 2, length - 1)
+
+		const ticks = []
+		for (let index = minIndex; index <= maxIndex; index++) {
 			const percent = index / (length - 1)
 			const tickDuration = totalDuration * percent
 			const displayDuration =
 				Math.round((tickDuration / timeUnit!.divider) * 10) / 10
 			const time = `${displayDuration}${timeUnit!.unit}` ?? '0ms'
 
-			return {
+			ticks.push({
 				time,
 				percent,
 				x: width * percent * zoom,
-			}
-		})
-	}, [totalDuration, zoom, width])
+			})
+		}
+
+		return ticks
+	}, [totalDuration, zoom, width, x])
 
 	const setTooltipCoordinatesImpl = useCallback((e: React.MouseEvent) => {
 		const elementBounds = e.currentTarget.getBoundingClientRect()
@@ -84,22 +111,64 @@ export const TraceFlameGraph: React.FC = () => {
 		setTooltipCoordinates({ x, y })
 	}, [])
 
-	const handleZoom = useCallback((dz: number) => {
-		setZoom((prevZoom) => {
-			const newZoom = Math.max(1, prevZoom + dz)
-			const newScrollPosition =
-				(svgContainerRef.current?.scrollLeft ?? 0) *
-				(newZoom / prevZoom)
+	const updateZoom = useCallback(
+		(newZoom: number, scrollPosition?: number) => {
+			setZoom((prevZoom) => {
+				const newScrollPosition =
+					scrollPosition ??
+					(svgContainerRef.current?.scrollLeft ?? 0) *
+						(newZoom / prevZoom)
 
-			setTimeout(() => {
-				svgContainerRef.current?.scrollTo(newScrollPosition, 0)
-			}, 0)
+				setTimeout(() => {
+					svgContainerRef.current?.scrollTo(newScrollPosition, 0)
+					setX(newScrollPosition)
+				}, 0)
 
-			return newZoom
-		})
-	}, [])
+				return newZoom
+			})
+		},
+		[],
+	)
 
-	const throttledZoom = useRef(throttle((dz: number) => handleZoom(dz), 50))
+	const handleZoom = useCallback(
+		(dz: number) => {
+			const change = dz * (zoom / 4)
+			const newZoom = Math.min(
+				Math.max(zoom + change / MAX_ZOOM, 1),
+				MAX_ZOOM,
+			)
+
+			updateZoom(newZoom)
+		},
+		[updateZoom, zoom],
+	)
+	const throttledZoom = useRef(throttle(handleZoom, 50))
+
+	const handleScroll = useCallback(
+		(currentTarget: BaseSyntheticEvent['currentTarget']) => {
+			const scrollLeft = currentTarget?.scrollLeft
+			if (scrollLeft !== undefined) {
+				setX(currentTarget.scrollLeft)
+			}
+		},
+		[],
+	)
+
+	const handleDrag: DragEventHandler<HTMLElement> = useCallback(
+		(e) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			const { clientX } = e
+			if (!clientX) return
+
+			const { left, width } = zoomBar.current!.getBoundingClientRect()
+			const percent = Math.max(0, Math.min(1, (clientX - left) / width))
+			updateZoom(Math.max(percent * MAX_ZOOM, 1))
+		},
+		[updateZoom],
+	)
+	const throttledDragHandler = useRef(throttle(handleDrag, 50))
 
 	useHTMLElementEvent(
 		svgContainerRef.current,
@@ -125,6 +194,67 @@ export const TraceFlameGraph: React.FC = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [loading])
+
+	const [dragging, setDragging] = useState(false)
+	const [initialDragX, setInitialDragX] = useState(0)
+	const [currentDragX, setCurrentDragX] = useState(0)
+
+	const handleMouseDown = useCallback(
+		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			const { clientX } = e
+			const { left } = svgContainerRef.current!.getBoundingClientRect()
+			const svgX = clientX - left + x
+
+			setDragging(true)
+			setInitialDragX(svgX)
+			setCurrentDragX(svgX)
+		},
+		[x],
+	)
+
+	const handleMouseMove = useCallback(
+		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			if (!dragging) return
+
+			const { clientX } = e
+			const { left } = svgContainerRef.current!.getBoundingClientRect()
+
+			setCurrentDragX(clientX - left + x)
+		},
+		[dragging, x],
+	)
+
+	const handleMouseUp = useCallback(
+		(e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			setDragging(false)
+			setCurrentDragX(0)
+			setInitialDragX(0)
+
+			const { left } = svgContainerRef.current!.getBoundingClientRect()
+			const svgX = e.clientX - left + x
+			const deltaX = Math.abs(svgX - initialDragX)
+
+			if (deltaX <= 1) return
+
+			const newZoom = Math.max(
+				Math.min(((width! * zoom) / (deltaX * zoom)) * zoom, MAX_ZOOM),
+				1,
+			)
+			const newScrollPosition =
+				(Math.min(initialDragX, currentDragX) / zoom) * newZoom
+			updateZoom(newZoom, newScrollPosition)
+		},
+		[currentDragX, initialDragX, updateZoom, width, x, zoom],
+	)
 
 	if (loading) {
 		return (
@@ -154,6 +284,9 @@ export const TraceFlameGraph: React.FC = () => {
 					styledHorizontalScrollbar,
 					styles.flameGraph,
 				)}
+				onScroll={({ currentTarget }) => {
+					debounce(handleScroll, 50)(currentTarget)
+				}}
 			>
 				{width && (
 					<svg
@@ -161,6 +294,9 @@ export const TraceFlameGraph: React.FC = () => {
 						height={height + 20}
 						width={width * zoom}
 						style={{ display: 'block' }}
+						onMouseDown={handleMouseDown}
+						onMouseMove={handleMouseMove}
+						onMouseUp={handleMouseUp}
 					>
 						<line
 							stroke="#e4e2e4"
@@ -180,7 +316,10 @@ export const TraceFlameGraph: React.FC = () => {
 								: tick.x
 
 							return (
-								<g key={`${tick.time}-${index}`}>
+								<g
+									key={`${tick.time}-${index}`}
+									pointerEvents="none"
+								>
 									<line
 										x1={x}
 										y1={ticksHeight - 8}
@@ -228,6 +367,20 @@ export const TraceFlameGraph: React.FC = () => {
 								</Fragment>
 							)
 						})}
+
+						{dragging && (
+							<rect
+								fill="rgba(255, 255, 255, 0.5)"
+								x={
+									currentDragX < initialDragX
+										? currentDragX
+										: initialDragX
+								}
+								y={ticksHeight}
+								height={height}
+								width={Math.abs(currentDragX - initialDragX)}
+							/>
+						)}
 					</svg>
 				)}
 
@@ -262,6 +415,61 @@ export const TraceFlameGraph: React.FC = () => {
 						</Text>
 					</Box>
 				)}
+			</Box>
+
+			<Box p="2" borderTop="dividerWeak">
+				<Stack gap="2" direction="row" align="center">
+					<ButtonIcon
+						onClick={() => handleZoom(-1000)}
+						kind="secondary"
+						emphasis="low"
+						size="xSmall"
+						icon={<IconSolidMinus />}
+					/>
+					<Box
+						ref={zoomBar}
+						backgroundColor="surfaceNeutral"
+						borderRadius="8"
+						cursor="pointer"
+						position="relative"
+						userSelect="none"
+						onClick={throttledDragHandler.current}
+						style={{
+							height: 8,
+							width: 80,
+						}}
+					>
+						<Box
+							backgroundColor="white"
+							border="dividerStrong"
+							borderRadius="8"
+							borderWidth="medium"
+							cursor="pointer"
+							position="absolute"
+							draggable
+							onDragStart={(e) => {
+								e.dataTransfer.setDragImage(dragImg, 0, 0)
+							}}
+							onDrag={throttledDragHandler.current}
+							style={{
+								height: 10,
+								width: 10,
+								top: -1,
+								left: `${
+									(zoom / MAX_ZOOM) * 100 -
+									(zoom / MAX_ZOOM) * 10
+								}%`,
+							}}
+						/>
+					</Box>
+					<ButtonIcon
+						onClick={() => handleZoom(1000)}
+						kind="secondary"
+						emphasis="low"
+						size="xSmall"
+						icon={<IconSolidPlus />}
+					/>
+				</Stack>
 			</Box>
 		</Box>
 	)

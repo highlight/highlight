@@ -799,11 +799,17 @@ type SourceMappingError struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount      int64    `json:"baseAmount"`
-	DiscountPercent float64  `json:"discountPercent"`
-	DiscountAmount  int64    `json:"discountAmount"`
-	LastInvoice     *Invoice `json:"lastInvoice"`
-	BillingIssue    bool     `json:"billingIssue"`
+	BaseAmount   int64                 `json:"baseAmount"`
+	Discount     *SubscriptionDiscount `json:"discount"`
+	LastInvoice  *Invoice              `json:"lastInvoice"`
+	BillingIssue bool                  `json:"billingIssue"`
+}
+
+type SubscriptionDiscount struct {
+	Name    string     `json:"name"`
+	Percent float64    `json:"percent"`
+	Amount  int64      `json:"amount"`
+	Until   *time.Time `json:"until"`
 }
 
 type TopUsersPayload struct {
@@ -1953,6 +1959,7 @@ const (
 	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
 	RetentionPeriodTwelveMonths RetentionPeriod = "TwelveMonths"
 	RetentionPeriodTwoYears     RetentionPeriod = "TwoYears"
+	RetentionPeriodThreeYears   RetentionPeriod = "ThreeYears"
 )
 
 var AllRetentionPeriod = []RetentionPeriod{
@@ -1961,11 +1968,12 @@ var AllRetentionPeriod = []RetentionPeriod{
 	RetentionPeriodSixMonths,
 	RetentionPeriodTwelveMonths,
 	RetentionPeriodTwoYears,
+	RetentionPeriodThreeYears,
 }
 
 func (e RetentionPeriod) IsValid() bool {
 	switch e {
-	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
+	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
 		return true
 	}
 	return false

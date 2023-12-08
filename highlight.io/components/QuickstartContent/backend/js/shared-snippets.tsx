@@ -44,7 +44,10 @@ export const initializeNodeSDK: (slug: string) => QuickStartStep = (slug) => ({
 		{
 			text: `import { H } from '@highlight-run/${slug}'
 
-H.init({projectID: '<YOUR_PROJECT_ID>'})`,
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: '<YOUR_SERVICE_NAME>'
+})`,
 			language: 'js',
 		},
 	],

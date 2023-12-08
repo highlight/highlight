@@ -15,7 +15,8 @@
 		"lint": "eslint ./src",
 		"lint:ts": "tsc --noEmit",
 		"test": "TZ=UTC vitest --run",
-		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts"
+		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts",
+		"typegen": "tsc --emitDeclarationOnly"
 	},
 	"exports": {
 		"./components": {

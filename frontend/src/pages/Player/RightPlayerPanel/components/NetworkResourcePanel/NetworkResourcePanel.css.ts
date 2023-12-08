@@ -15,6 +15,6 @@ export const tabsContainer = sprinkles({
 
 export const pageContainer = sprinkles({
 	height: 'full',
-	overflowY: 'scroll',
+	overflowY: 'auto',
 	position: 'relative',
 })

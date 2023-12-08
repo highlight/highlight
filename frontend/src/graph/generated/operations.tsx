@@ -36,9 +36,6 @@ export type MuteSessionCommentThreadMutation = {
 
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
-	plan_type: Types.PlanType
-	interval: Types.SubscriptionInterval
-	retention_period: Types.RetentionPeriod
 }>
 
 export type CreateOrUpdateStripeSubscriptionMutation = {
@@ -53,6 +50,8 @@ export type SaveBillingPlanMutationVariables = Types.Exact<{
 	errorsRetention: Types.RetentionPeriod
 	logsLimitCents?: Types.Maybe<Types.Scalars['Int']>
 	logsRetention: Types.RetentionPeriod
+	tracesLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	tracesRetention: Types.RetentionPeriod
 }>
 
 export type SaveBillingPlanMutation = { __typename?: 'Mutation' } & Pick<
@@ -2870,8 +2869,14 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'discountAmount' | 'discountPercent'
+		'baseAmount' | 'billingIssue'
 	> & {
+			discount?: Types.Maybe<
+				{ __typename?: 'SubscriptionDiscount' } & Pick<
+					Types.SubscriptionDiscount,
+					'name' | 'amount' | 'percent' | 'until'
+				>
+			>
 			lastInvoice?: Types.Maybe<
 				{ __typename?: 'Invoice' } & Pick<
 					Types.Invoice,
@@ -2898,6 +2903,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'sessions_max_cents'
 			| 'errors_max_cents'
 			| 'logs_max_cents'
+			| 'traces_max_cents'
 		>
 	>
 }
@@ -2909,8 +2915,14 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'discountAmount' | 'discountPercent' | 'billingIssue'
+		'baseAmount' | 'billingIssue'
 	> & {
+			discount?: Types.Maybe<
+				{ __typename?: 'SubscriptionDiscount' } & Pick<
+					Types.SubscriptionDiscount,
+					'name' | 'amount' | 'percent' | 'until'
+				>
+			>
 			lastInvoice?: Types.Maybe<
 				{ __typename?: 'Invoice' } & Pick<
 					Types.Invoice,
@@ -4278,6 +4290,7 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
 export type GetMetricTagsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetMetricTagsQuery = { __typename?: 'Query' } & Pick<
@@ -4472,6 +4485,7 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
@@ -4863,6 +4877,7 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 export type GetTracesKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesKeysQuery = { __typename?: 'Query' } & {

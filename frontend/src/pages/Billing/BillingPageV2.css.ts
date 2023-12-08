@@ -30,6 +30,10 @@ export const usageTitle = style({
 	height: 20,
 })
 
-export const totalBox = style({
-	height: 20,
+export const totalBox = style({})
+
+export const issueText = style({
+	maxWidth: 340,
+	paddingTop: 5.5,
+	paddingBottom: 5.5,
 })

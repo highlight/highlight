@@ -1004,8 +1004,12 @@ query GetBillingDetails($workspace_id: ID!) {
 	}
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
-		discountAmount
-		discountPercent
+		discount {
+			name
+			amount
+			percent
+			until
+		}
 		lastInvoice {
 			amountDue
 			amountPaid
@@ -1014,6 +1018,7 @@ query GetBillingDetails($workspace_id: ID!) {
 			url
 			status
 		}
+		billingIssue
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -1027,14 +1032,19 @@ query GetBillingDetails($workspace_id: ID!) {
 		sessions_max_cents
 		errors_max_cents
 		logs_max_cents
+		traces_max_cents
 	}
 }
 
 query GetSubscriptionDetails($workspace_id: ID!) {
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
-		discountAmount
-		discountPercent
+		discount {
+			name
+			amount
+			percent
+			until
+		}
 		lastInvoice {
 			amountDue
 			amountPaid
@@ -1943,8 +1953,12 @@ query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
 	suggested_metrics(project_id: $project_id, prefix: $prefix)
 }
 
-query GetMetricTags($project_id: ID!, $metric_name: String!) {
-	metric_tags(project_id: $project_id, metric_name: $metric_name)
+query GetMetricTags($project_id: ID!, $metric_name: String!, $query: String) {
+	metric_tags(
+		project_id: $project_id
+		metric_name: $metric_name
+		query: $query
+	)
 }
 
 query GetMetricTagValues(
@@ -2090,8 +2104,16 @@ query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	}
 }
 
-query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+query GetLogsKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: logs_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}
@@ -2405,8 +2427,16 @@ query GetTracesMetrics(
 	}
 }
 
-query GetTracesKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+query GetTracesKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: traces_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}
