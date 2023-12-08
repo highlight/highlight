@@ -18,6 +18,7 @@ linters:
         - govet
         - ineffassign
         - staticcheck
+        - typecheck
         - unused
         - depguard
         - exhaustruct
