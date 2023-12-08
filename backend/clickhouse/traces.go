@@ -18,6 +18,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/samber/lo"
@@ -455,8 +456,8 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	}
 
 	for idx, group := range groupBy {
-		if lo.Contains(traceColumns, group) {
-			colStrs = append(colStrs, group)
+		if col, found := traceKeysToColumns[model.ReservedTraceKey(group)]; found {
+			colStrs = append(colStrs, col)
 		} else {
 			colStrs = append(colStrs, fmt.Sprintf("toString(TraceAttributes['%s'])", group))
 		}

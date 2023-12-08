@@ -1,7 +1,7 @@
-import React, { ChangeEvent, useEffect } from 'react';
-import { AsyncMultiSelect, AsyncSelect, Field, Input, Select } from '@grafana/ui';
+import React, { ChangeEvent } from 'react';
+import { AsyncMultiSelect, AsyncSelect, Field, Input, Segment, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { DataSource } from '../datasource';
+import { DataSource, bucketByOptions, columnOptions, metricOptions, tableOptions } from '../datasource';
 import { HighlightDataSourceOptions, HighlightQuery } from '../types';
 
 type Props = QueryEditorProps<DataSource, HighlightQuery, HighlightDataSourceOptions>;
@@ -23,7 +23,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
   };
 
   const onGroupByChange = (option: SelectableValue) => {
-    onChange({ ...query, groupBy: option.map((o: any) => o.value) });
+    onChange({ ...query, groupBy: option.map((o: any) => o.label) });
   };
 
   const onMetricChange = (option: SelectableValue<string>) => {
@@ -50,38 +50,6 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     onChange({ ...query, limit: Number(event.target.value) });
   };
 
-  const tableOptions = [{ value: 'traces', label: 'traces' }];
-
-  const columnOptions = [{ value: 'duration', label: 'duration' }];
-
-  const bucketByOptions = [
-    { value: 'Timestamp', label: 'Timestamp' },
-    { value: 'None', label: 'None' },
-  ];
-
-  useEffect(() => {
-    onChange({
-      ...query,
-      table: table ?? tableOptions[0].value,
-      column: column ?? columnOptions[0].value,
-      bucketBy: bucketBy ?? bucketByOptions[0].value,
-      groupBy: groupBy ?? [],
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const metricOptions = [
-    { value: 'Count', label: 'Count' },
-    { value: 'Min', label: 'Min' },
-    { value: 'Avg', label: 'Avg' },
-    { value: 'P50', label: 'P50' },
-    { value: 'P90', label: 'P90' },
-    { value: 'P95', label: 'P95' },
-    { value: 'P99', label: 'P99' },
-    { value: 'Max', label: 'Max' },
-    { value: 'Sum', label: 'Sum' },
-  ];
-
   const loadColumnOptions = async (query: string) => {
     let keys: TraceKey[] = await datasource.getResource('traces-keys');
     return columnOptions
@@ -105,10 +73,11 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
         <Input value={queryText} onChange={onQueryTextChange} />
       </Field>
       <Field label="Aggregator">
-        <Select value={metric} onChange={onMetricChange} options={metricOptions} />
+        {/* <Select value={metric} onChange={onMetricChange} options={metricOptions} /> */}
+        <Segment value={queryText} onChange={onMetricChange} options={metricOptions} />
       </Field>
       {metric !== undefined && metric !== 'Count' && (
-        <Field label="Column">
+        <Field label="Metric">
           <AsyncSelect
             defaultOptions
             value={{ name: column, label: column }}
