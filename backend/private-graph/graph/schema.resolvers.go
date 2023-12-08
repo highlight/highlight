@@ -5521,9 +5521,12 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 		return nil, err
 	}
 
-	ids, _, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000_000, query, "ID", nil, retentionDate)
+	ids, total, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000, query, "ID", nil, retentionDate)
 	if err != nil {
 		return nil, err
+	}
+	if total >= 1_000_000 {
+		return nil, e.New("too many sessions to generate report, adjust the query to return fewer sessions")
 	}
 
 	var results []*modelInputs.SessionsReportRow

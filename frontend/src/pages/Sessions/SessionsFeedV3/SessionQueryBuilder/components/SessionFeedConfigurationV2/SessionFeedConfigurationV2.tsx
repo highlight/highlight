@@ -52,10 +52,9 @@ export const DropdownMenu = function ({
 
 	const showDeleteButton =
 		canDelete &&
-		workspaceSettingsData?.workspaceSettings?.enable_data_deletion !== false
+		workspaceSettingsData?.workspaceSettings?.enable_data_deletion === true
 	const showReportButton =
-		workspaceSettingsData?.workspaceSettings?.enable_session_export !==
-		false
+		workspaceSettingsData?.workspaceSettings?.enable_session_export === true
 
 	const {
 		autoPlaySessions,
