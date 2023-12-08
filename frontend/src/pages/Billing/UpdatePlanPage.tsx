@@ -687,6 +687,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		),
 		0,
 	)
+	const discountCents = productSubtotal + baseAmount - predictedTotalCents
 
 	const predictedTotalFormatted =
 		'est. $ ' +
@@ -694,8 +695,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			dinero({ amount: Math.round(predictedTotalCents), currency: USD }),
 		)
 
-	const hasExtras =
-		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
+	const hasExtras = baseAmount !== 0 || discountCents !== 0
 	const enableBillingLimits = data?.billingDetails.plan.enableBillingLimits
 	const baseAmountFormatted =
 		'$' +
@@ -704,12 +704,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		'$ ' +
 		toDecimal(
 			dinero({
-				amount: Math.round(
-					discountAmount
-						? discountAmount
-						: predictedTotalCents / (1 - discountPercent / 100) -
-								predictedTotalCents,
-				),
+				amount: Math.round(discountCents),
 				currency: USD,
 			}),
 		)
