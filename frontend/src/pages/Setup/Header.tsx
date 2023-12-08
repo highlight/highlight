@@ -6,7 +6,7 @@ import {
 	Stack,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { upperFirst } from 'lodash'
 import React from 'react'
 import { useMatch, useNavigate } from 'react-router-dom'

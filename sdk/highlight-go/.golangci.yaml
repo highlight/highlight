@@ -8,17 +8,17 @@ output:
     sort-results: true
 
 linters:
+    # enable all linters
     enable:
-        - deadcode
         - errcheck
         - gosimple
         - govet
         - ineffassign
         - staticcheck
-        - structcheck
         - typecheck
         - unused
-        - varcheck
+        - depguard
+        - exhaustruct
 
 # all available settings of specific linters
 linters-settings:

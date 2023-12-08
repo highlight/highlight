@@ -1,6 +1,6 @@
-import { borders } from '@highlight-run/ui/src/css/borders'
-import { colors } from '@highlight-run/ui/src/css/colors'
-import { themeVars } from '@highlight-run/ui/src/css/theme.css'
+import { borders } from '@highlight-run/ui/borders'
+import { colors } from '@highlight-run/ui/colors'
+import { themeVars } from '@highlight-run/ui/theme'
 import { style } from '@vanilla-extract/css'
 
 export const SESSION_CARD_PX = 12

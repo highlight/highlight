@@ -53,6 +53,7 @@ input BackendErrorObjectInput {
 	timestamp: Timestamp!
 	payload: String
 	service: ServiceInput!
+	environment: String!
 }
 
 input MetricTag {

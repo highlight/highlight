@@ -2,7 +2,7 @@ name: 'Golang SDK code checks'
 
 on:
     push:
-        branches: ['main', 'changeset-release/main']
+        branches: ['main']
     pull_request:
         types: [opened, reopened, synchronize, assigned, review_requested]
         paths:
@@ -15,7 +15,13 @@ jobs:
         name: format go files
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.5
               with:
@@ -26,21 +32,31 @@ jobs:
         name: lint go files
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
               with:
                   args: --config ./.golangci.yaml --timeout 5m
                   working-directory: sdk/highlight-go
-                  # version: latest
-                  # Pinning the version until https://github.com/golangci/golangci-lint/issues/3862 is solved
-                  version: v1.52.2
+                  version: latest
 
     build:
         name: build binary
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Build binary
               run: cd sdk/highlight-go && go build .
 
@@ -49,11 +65,12 @@ jobs:
         needs: [build]
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v4
               with:
-                  fetch-depth: 2
-            - uses: actions/setup-go@v4
-              with:
-                  go-version-file: 'backend/go.mod'
+                  go-version-file: './sdk/highlight-go/go.mod'
+                  cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v

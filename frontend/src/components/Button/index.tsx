@@ -3,7 +3,7 @@ import {
 	Button as UIButton,
 	ButtonProps as UIButtonProps,
 	IconSolidLoading,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import * as rudderanalytics from 'rudder-sdk-js'
 

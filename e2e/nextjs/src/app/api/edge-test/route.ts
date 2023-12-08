@@ -1,10 +1,10 @@
 // src/app/api/edge-test/route.ts
 import { H } from '@highlight-run/next/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
-import { withEdgeHighlight } from '@/app/_utils/edge-highlight.config'
-
 import { NextResponse } from 'next/server'
+import { withEdgeHighlight } from '@/app/_utils/edge-highlight.config'
 import { z } from 'zod'
+import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
 
 export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url)
@@ -30,6 +30,21 @@ export const POST = withEdgeHighlight(async function POST(
 	return NextResponse.json({
 		body: { headers },
 	})
+})
+
+export const PUT = withEdgeHighlight(async function GET(request: NextRequest) {
+	try {
+		throw new Error('yo')
+	} catch (error: any) {
+		console.log(error)
+		const parsedHeaders = H.parseHeaders(request.headers)
+		H.consumeError(
+			error,
+			parsedHeaders.secureSessionId,
+			parsedHeaders.requestId,
+		)
+		return NextResponse.json({ hello: 'world' })
+	}
 })
 
 export const runtime = 'edge'

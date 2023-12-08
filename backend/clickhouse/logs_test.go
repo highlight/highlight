@@ -974,6 +974,11 @@ func TestReadLogsWithServiceVersionFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 2)
 }
 
+func TestNewLogRowWithEnvironment(t *testing.T) {
+	now := time.Now()
+	assert.Equal(t, "production", NewLogRow(now, 1, WithEnvironment("production")).Environment)
+}
+
 func TestReadLogsWithMultipleFilters(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -1043,15 +1048,12 @@ func TestLogsKeys(t *testing.T) {
 		),
 	}
 
+	searchKey := "s"
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
-	keys, err := client.LogsKeys(ctx, 1, now, now)
+	keys, err := client.LogsKeys(ctx, 1, now, now, &searchKey)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.QueryKey{
-		{
-			Name: "level",
-			Type: modelInputs.KeyTypeString,
-		},
 		{
 			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
 			Type: modelInputs.KeyTypeString,

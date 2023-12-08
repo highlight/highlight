@@ -36,7 +36,7 @@ import {
 	Stack,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'

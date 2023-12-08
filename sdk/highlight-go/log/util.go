@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -85,7 +84,8 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 	for _, row := range logRows {
 		span, _ := highlight.StartTraceWithoutResourceAttributes(
 			ctx, "highlight-ctx",
-			attribute.String(highlight.SourceAttribute, modelInputs.LogSourceFrontend.String()),
+			// modelInputs.LogSourceFrontend
+			attribute.String(highlight.SourceAttribute, "frontend"),
 			attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 			attribute.String(highlight.SessionIDAttribute, sessionSecureID),
 		)

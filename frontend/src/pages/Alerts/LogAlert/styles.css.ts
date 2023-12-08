@@ -1,5 +1,5 @@
-import { vars } from '@highlight-run/ui'
-import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
+import { vars } from '@highlight-run/ui/vars'
 import { globalStyle, style } from '@vanilla-extract/css'
 
 export const header = style({

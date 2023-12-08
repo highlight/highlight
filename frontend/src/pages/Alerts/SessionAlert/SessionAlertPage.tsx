@@ -27,7 +27,7 @@ import {
 	useForm,
 	useFormStore,
 	useMenu,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import {
 	DEFAULT_FREQUENCY,
 	FREQUENCIES,

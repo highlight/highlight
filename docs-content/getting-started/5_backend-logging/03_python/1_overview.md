@@ -1,6 +1,6 @@
 ---
-title: Overview
-headline: Logging in Python
+toc: Overview
+title: Logging in Python
 slug: logging-in-python
 ---
 
@@ -17,5 +17,8 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
     </DocsCard>
     <DocsCard title="logging" href="./other.md">
         {"Integrate with Python native logging."}
+    </DocsCard>
+    <DocsCard title="Python OpenTelemetry" href="../../7_native-opentelemetry/3_logging.md">
+        {"Integrate logging with Native OpenTelemetry."}
     </DocsCard>
 </DocsCardGroup>

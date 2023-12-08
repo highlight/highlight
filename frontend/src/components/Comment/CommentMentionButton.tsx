@@ -1,4 +1,4 @@
-import { ButtonIcon, IconSolidAtSymbol } from '@highlight-run/ui'
+import { ButtonIcon, IconSolidAtSymbol } from '@highlight-run/ui/components'
 
 type Props = {
 	commentText: string

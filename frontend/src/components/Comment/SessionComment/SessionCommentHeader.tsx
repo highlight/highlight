@@ -10,8 +10,8 @@ import {
 	Menu,
 	Stack,
 	Text,
-} from '@highlight-run/ui'
-import { vars } from '@highlight-run/ui/src/css/vars'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {

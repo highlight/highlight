@@ -1,4 +1,4 @@
-import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { style } from '@vanilla-extract/css'
 
 const DIALOG_Z_INDEX = 99999

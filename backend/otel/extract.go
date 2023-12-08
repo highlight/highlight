@@ -29,6 +29,7 @@ type extractedFields struct {
 	sessionID      string
 	requestID      string
 	logBody        string
+	environment    string
 	source         modelInputs.LogSource
 	serviceName    string
 	serviceVersion string
@@ -251,6 +252,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if val, ok := eventAttributes[highlight.ErrorURLAttribute]; ok { // we know that URL will be in the event attributes map
 		fields.errorUrl = val.(string)
 		delete(fields.attrs, highlight.ErrorURLAttribute)
+	}
+
+	if val, ok := fields.attrs[string(semconv.DeploymentEnvironmentKey)]; ok {
+		fields.environment = val
+		delete(fields.attrs, string(semconv.DeploymentEnvironmentKey))
 	}
 
 	if val, ok := fields.attrs[string(semconv.ServiceNameKey)]; ok {

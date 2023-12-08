@@ -32,6 +32,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeySource:          "Source",
 	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
 	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
+	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 }
 
 var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
@@ -52,6 +53,7 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 		"Source",
 		"ServiceName",
 		"ServiceVersion",
+		"Environment",
 	},
 }
 
@@ -121,6 +123,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			Source          string
 			ServiceName     string
 			ServiceVersion  string
+			Environment     string
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
@@ -423,8 +426,8 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate)
+func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate, query)
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {

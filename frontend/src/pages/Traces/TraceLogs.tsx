@@ -1,4 +1,9 @@
-import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidExternalLink,
+	Text,
+} from '@highlight-run/ui/components'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import React, { useEffect, useState } from 'react'
@@ -14,7 +19,7 @@ import {
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -46,14 +51,17 @@ export const TraceLogs: React.FC = () => {
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
+		(
+			containerRefElement?: HTMLDivElement | null,
+			disableBackwards?: boolean,
+		) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
+				} else if (!disableBackwards && scrollTop === 0) {
 					fetchMoreBackward()
 				}
 			}
@@ -86,7 +94,6 @@ export const TraceLogs: React.FC = () => {
 				justifyContent="stretch"
 				display="flex"
 				overflow="hidden"
-				maxHeight="full"
 			>
 				<Box
 					borderRadius="6"
@@ -109,7 +116,7 @@ export const TraceLogs: React.FC = () => {
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
-						fetchKeys={useGetLogsKeysQuery}
+						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<Box height="full" pt="4" px="12" pb="12">
@@ -125,6 +132,7 @@ export const TraceLogs: React.FC = () => {
 								query={query}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+								bodyHeight="400px"
 							/>
 						)}
 					</Box>

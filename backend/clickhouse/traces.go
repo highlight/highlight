@@ -40,6 +40,7 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
 	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
+	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
 }
 
 var traceColumns = []string{
@@ -59,6 +60,12 @@ var traceColumns = []string{
 	"TraceAttributes",
 	"StatusCode",
 	"StatusMessage",
+	"Environment",
+}
+
+var defaultTraceKeys = []*modelInputs.QueryKey{
+	{Name: "trace_id", Type: modelInputs.KeyTypeString},
+	{Name: "span_id", Type: modelInputs.KeyTypeString},
 }
 
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
@@ -99,6 +106,7 @@ type ClickhouseTraceRow struct {
 	TraceAttributes  map[string]string
 	StatusCode       string
 	StatusMessage    string
+	Environment      string
 	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp"`
 	EventsName       clickhouse.ArraySet `ch:"Events.Name"`
 	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes"`
@@ -136,6 +144,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 			TraceAttributes:  traceRow.TraceAttributes,
 			StatusCode:       traceRow.StatusCode,
 			StatusMessage:    traceRow.StatusMessage,
+			Environment:      traceRow.Environment,
 			EventsTimestamp:  traceTimes,
 			EventsName:       traceNames,
 			EventsAttributes: traceAttrs,
@@ -314,7 +323,8 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
-	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
+	// always sample - use a comparison here to trick the compiler into not complaining about unused branches
+	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 0
 
 	metricColName := "Duration"
 	switch column {
@@ -473,16 +483,22 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	return metrics, err
 }
 
-func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
+func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate, query)
+	if err != nil {
+		return nil, err
+	}
+
+	traceKeys = append(traceKeys, defaultTraceKeys...)
+	return traceKeys, nil
 }
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
 }
 
-func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate)
+func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {

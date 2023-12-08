@@ -317,15 +317,23 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	parseHeaders(headers: IncomingHttpHeaders): HighlightContext {
+	parseHeaders(
+		headers: Headers | IncomingHttpHeaders | undefined,
+	): HighlightContext {
+		let requestHeaders: IncomingHttpHeaders = {}
+		if (headers instanceof Headers) {
+			headers.forEach((value, key) => (requestHeaders[key] = value))
+		} else if (headers) {
+			requestHeaders = headers
+		}
 		try {
 			const highlightCtx = this.asyncLocalStorage.getStore()
 			if (highlightCtx) {
 				return highlightCtx
 			}
-			if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+			if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
 				const [secureSessionId, requestId] =
-					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+					`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
 				return { secureSessionId, requestId }
 			}
 		} catch (e) {
@@ -334,7 +342,10 @@ export class Highlight {
 		return { secureSessionId: undefined, requestId: undefined }
 	}
 
-	runWithHeaders<T>(headers: IncomingHttpHeaders, cb: () => T) {
+	runWithHeaders<T>(
+		headers: Headers | IncomingHttpHeaders | undefined,
+		cb: () => T,
+	) {
 		const highlightCtx = this.parseHeaders(headers)
 		if (highlightCtx) {
 			return this.asyncLocalStorage.run(highlightCtx, cb)
@@ -343,7 +354,7 @@ export class Highlight {
 		}
 	}
 
-	setHeaders(headers: IncomingHttpHeaders) {
+	setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
 		const highlightCtx = this.parseHeaders(headers)
 		if (highlightCtx) {
 			this.asyncLocalStorage.enterWith(highlightCtx)

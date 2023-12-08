@@ -54,9 +54,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/client"
-	"github.com/stripe/stripe-go/v72/webhook"
+	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v76/client"
+	"github.com/stripe/stripe-go/v76/webhook"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/workerpool"
@@ -3034,7 +3034,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
-	isLive := cursor != model.EventsCursor{}
+	isLive := cursor.EventObjectIndex != nil
 	s3Events := map[int]string{}
 	if !isLive {
 		var err error
@@ -3250,6 +3250,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		return time.Now().AddDate(-1, 0, 0)
 	case modelInputs.RetentionPeriodTwoYears:
 		return time.Now().AddDate(-2, 0, 0)
+	case modelInputs.RetentionPeriodThreeYears:
+		return time.Now().AddDate(-3, 0, 0)
 	}
 	return time.Now()
 }

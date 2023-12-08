@@ -6,7 +6,7 @@ import {
 	Stack,
 	Table,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 
 import {
 	useCreateErrorTagMutation,

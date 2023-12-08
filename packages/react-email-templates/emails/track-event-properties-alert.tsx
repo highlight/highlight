@@ -21,18 +21,15 @@ type EventProperty = {
 export interface TrackEventPropertiesAlertEmailProps {
 	alertLink?: string
 	alertName?: string
+	eventProperties?: EventProperty[]
 	projectName?: string
 	sessionLink?: string
 	userIdentifier?: string
-	eventProperties?: EventProperty[]
 }
 
 export const TrackEventPropertiesAlertEmail = ({
 	alertLink = 'https://localhost:3000/1/alerts/sessions/1',
 	alertName = 'Track User Alert',
-	projectName = 'Highlight Production (app.highlight.io)',
-	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
-	userIdentifier = '1',
 	eventProperties = [
 		{
 			key: 'Event',
@@ -43,6 +40,9 @@ export const TrackEventPropertiesAlertEmail = ({
 			value: '/sessions',
 		},
 	],
+	projectName = 'Highlight Production (app.highlight.io)',
+	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
+	userIdentifier = '1',
 }: TrackEventPropertiesAlertEmailProps) => (
 	<EmailHtml previewText={`${alertName} alert fired`}>
 		<HighlightLogo />

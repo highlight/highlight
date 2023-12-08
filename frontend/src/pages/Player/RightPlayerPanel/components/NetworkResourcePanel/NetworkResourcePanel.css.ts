@@ -1,4 +1,4 @@
-import { sprinkles } from '@highlight-run/ui'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { style } from '@vanilla-extract/css'
 
 // Custom tab styles we had to override to get scrolling behavior to work. These
@@ -15,6 +15,6 @@ export const tabsContainer = sprinkles({
 
 export const pageContainer = sprinkles({
 	height: 'full',
-	overflowY: 'scroll',
+	overflowY: 'auto',
 	position: 'relative',
 })

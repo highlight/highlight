@@ -10,7 +10,7 @@ import {
 	IconSolidVideoCamera,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import {
 	RightPanelView,

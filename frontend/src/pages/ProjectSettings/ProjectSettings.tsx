@@ -1,5 +1,5 @@
 import Tabs from '@components/Tabs/Tabs'
-import { Box, Heading, Stack, Text } from '@highlight-run/ui'
+import { Box, Heading, Stack, Text } from '@highlight-run/ui/components'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'

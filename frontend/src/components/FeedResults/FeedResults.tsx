@@ -1,5 +1,9 @@
 import { Button } from '@components/Button'
-import { Box, IconOutlineArrowNarrowUp, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconOutlineArrowNarrowUp,
+	Text,
+} from '@highlight-run/ui/components'
 import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 

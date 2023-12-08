@@ -145,6 +145,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	enable_data_deletion: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
@@ -1212,9 +1213,6 @@ export type MutationCreateMetricMonitorArgs = {
 }
 
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
-	interval: SubscriptionInterval
-	plan_type: PlanType
-	retention_period: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -1467,6 +1465,8 @@ export type MutationSaveBillingPlanArgs = {
 	logsRetention: RetentionPeriod
 	sessionsLimitCents?: InputMaybe<Scalars['Int']>
 	sessionsRetention: RetentionPeriod
+	tracesLimitCents?: InputMaybe<Scalars['Int']>
+	tracesRetention: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -1701,12 +1701,17 @@ export type PageInfo = {
 
 export type Plan = {
 	__typename?: 'Plan'
-	errorsLimit: Scalars['Int']
+	enableBillingLimits: Scalars['Boolean']
+	errorsLimit: Scalars['Int64']
+	errorsRate: Scalars['Float']
 	interval: SubscriptionInterval
-	logsLimit: Scalars['Int']
-	membersLimit?: Maybe<Scalars['Int']>
-	quota: Scalars['Int']
-	tracesLimit: Scalars['Int']
+	logsLimit: Scalars['Int64']
+	logsRate: Scalars['Float']
+	membersLimit?: Maybe<Scalars['Int64']>
+	sessionsLimit: Scalars['Int64']
+	sessionsRate: Scalars['Float']
+	tracesLimit: Scalars['Int64']
+	tracesRate: Scalars['Float']
 	type: PlanType
 }
 
@@ -1714,6 +1719,7 @@ export enum PlanType {
 	Basic = 'Basic',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
+	Graduated = 'Graduated',
 	Lite = 'Lite',
 	Startup = 'Startup',
 	UsageBased = 'UsageBased',
@@ -2240,6 +2246,7 @@ export type QueryLogs_Key_ValuesArgs = {
 export type QueryLogs_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryLogs_Total_CountArgs = {
@@ -2265,6 +2272,7 @@ export type QueryMetric_Tag_ValuesArgs = {
 export type QueryMetric_TagsArgs = {
 	metric_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryMetrics_TimelineArgs = {
@@ -2465,6 +2473,7 @@ export type QueryTraces_Key_ValuesArgs = {
 export type QueryTraces_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTraces_MetricsArgs = {
@@ -2577,6 +2586,7 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorObjectKey {
+	Environment = 'environment',
 	Event = 'event',
 	LogCursor = 'log_cursor',
 	Payload = 'payload',
@@ -2595,6 +2605,7 @@ export enum ReservedErrorObjectKey {
 
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',
@@ -2613,6 +2624,7 @@ export enum ReservedSessionKey {
 
 export enum ReservedTraceKey {
 	Duration = 'duration',
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	Metric = 'metric',
@@ -2631,6 +2643,7 @@ export enum RetentionPeriod {
 	SixMonths = 'SixMonths',
 	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
+	ThreeYears = 'ThreeYears',
 	TwelveMonths = 'TwelveMonths',
 	TwoYears = 'TwoYears',
 }
@@ -3078,9 +3091,16 @@ export type SubscriptionDetails = {
 	__typename?: 'SubscriptionDetails'
 	baseAmount: Scalars['Int64']
 	billingIssue: Scalars['Boolean']
-	discountAmount: Scalars['Int64']
-	discountPercent: Scalars['Float']
+	discount?: Maybe<SubscriptionDiscount>
 	lastInvoice?: Maybe<Invoice>
+}
+
+export type SubscriptionDiscount = {
+	__typename?: 'SubscriptionDiscount'
+	amount: Scalars['Int64']
+	name: Scalars['String']
+	percent: Scalars['Float']
+	until?: Maybe<Scalars['Timestamp']>
 }
 
 export enum SubscriptionInterval {
@@ -3304,6 +3324,7 @@ export type Workspace = {
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
+	traces_max_cents?: Maybe<Scalars['Int']>
 	trial_end_date?: Maybe<Scalars['Timestamp']>
 	trial_extension_enabled: Scalars['Boolean']
 	unlimited_members: Scalars['Boolean']

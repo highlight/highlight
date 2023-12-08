@@ -353,7 +353,7 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	return out
 }
 
-func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
+func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeysMaxRows,
 	}))
@@ -363,10 +363,15 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
-		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
-		GroupBy("1").
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate)))
+
+	if query != nil && *query != "" {
+		sb.Where(fmt.Sprintf("Key LIKE %s", sb.Var("%"+*query+"%")))
+	}
+
+	sb.GroupBy("1").
 		OrderBy("2 DESC, 1").
-		Limit(500)
+		Limit(10)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 

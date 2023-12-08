@@ -15,11 +15,8 @@ export const Highlight =
 	<T extends HasHeaders, S extends HasStatus>(
 		origHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
+		H.init(options)
 		return async (req, res) => {
-			if (!H.isInitialized()) {
-				H.init(options)
-			}
-
 			const { secureSessionId, requestId } = H.parseHeaders(req.headers)
 			const start = new Date()
 			try {

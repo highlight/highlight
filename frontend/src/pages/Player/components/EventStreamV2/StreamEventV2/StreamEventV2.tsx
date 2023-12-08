@@ -1,6 +1,11 @@
 import { EventType } from '@highlight-run/rrweb'
-import { Badge, Box, IconSolidArrowCircleRight, Text } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { colors } from '@highlight-run/ui/colors'
+import {
+	Badge,
+	Box,
+	IconSolidArrowCircleRight,
+	Text,
+} from '@highlight-run/ui/components'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
