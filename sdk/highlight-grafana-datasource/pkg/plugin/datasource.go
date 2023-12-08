@@ -199,12 +199,12 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 	frame := data.NewFrame("response")
 
-	// timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
-	// 	return from.Add(
-	// 		time.Duration(float64(i) / float64(q.TracesMetrics.BucketCount) * float64(to.Sub(from))))
-	// })
+	timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
+		return from.Add(
+			time.Duration(float64(i) / float64(q.TracesMetrics.BucketCount) * float64(to.Sub(from))))
+	})
 
-	// frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
+	frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
 
 	metricTypes := lo.Uniq(lo.Map(q.TracesMetrics.Buckets, func(bucket *TracesMetricBucket, _ int) MetricAggregator {
 		return bucket.MetricType
@@ -217,7 +217,6 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	for _, metricType := range metricTypes {
 		for _, metricGroup := range metricGroups {
 			values := make([]float64, q.TracesMetrics.BucketCount)
-			// 	const values: any[] = Array.from({ length: response.data.traces_metrics.bucket_count }, () => undefined);
 			for _, bucket := range q.TracesMetrics.Buckets {
 				if bucket.MetricType != metricType || strings.Join(bucket.Group, "-") != metricGroup {
 					continue
