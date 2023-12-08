@@ -10,9 +10,9 @@ type TimeUnit uint8
 
 const (
 	Seconds      TimeUnit = 0
-	MilliSeconds          = 3
-	MicroSeconds          = 6
-	NanoSeconds           = 9
+	MilliSeconds TimeUnit = 3
+	MicroSeconds TimeUnit = 6
+	NanoSeconds  TimeUnit = 9
 )
 
 var pattern = regexp.MustCompile(`\?`)
