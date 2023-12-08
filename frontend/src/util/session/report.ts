@@ -1,3 +1,4 @@
+import { Operator } from '@components/QueryBuilder/QueryBuilder'
 import {
 	useGetSessionsClickhouseLazyQuery,
 	useGetSessionsReportLazyQuery,
@@ -10,6 +11,7 @@ import {
 } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import moment from 'moment/moment'
 
 const processRows = <
 	T extends { __typename?: string; user_properties?: Maybe<string> },
@@ -37,7 +39,7 @@ const processRows = <
 		})
 	}
 	rows.push([
-		...Object.keys(keys).filter((k) => ignoreKeys.has(k as keyof T)),
+		...Object.keys(keys).filter((k) => !ignoreKeys.has(k as keyof T)),
 	])
 
 	for (const session of inputs) {
@@ -55,22 +57,37 @@ const processRows = <
 	return rows
 }
 
-const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => [
-	[
-		'Number of Sessions',
-		'',
-		'',
-		...query.rules.map((_, index) => `Filter ${index + 1}`),
-	],
-	[
-		sessions.length,
-		'',
-		'Filter',
-		...query.rules.map((rule) => rule[0].split('_', 2)[1]),
-	],
-	['', '', 'Operator', ...query.rules.map((rule) => rule[1])],
-	['', '', 'Value', ...query.rules.map((rule) => rule[2])],
-]
+const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => {
+	const timeRule = query.rules.find(
+		(rule) => (rule[1] as Operator) === 'between_date',
+	)!
+	const rules = query.rules.filter(
+		(rule: any) => (rule[1] as Operator) !== 'between_date',
+	)
+	const [start, end] = timeRule[2].split('_')
+	const startFormatted = moment(start).format()
+	const endFormatted = moment(end).format()
+	return [
+		[
+			'Number of Sessions',
+			'Time From',
+			'Time To',
+			'',
+			'',
+			...rules.map((_, index) => `Filter ${index + 1}`),
+		],
+		[
+			sessions.length,
+			startFormatted,
+			endFormatted,
+			'',
+			'Filter',
+			...rules.map((rule) => rule[0].split('_', 2)[1]),
+		],
+		['', '', '', '', 'Operator', ...rules.map((rule) => rule[1])],
+		['', '', '', '', 'Value', ...rules.map((rule) => rule[2])],
+	]
+}
 
 const getReportRows = (sessionsReportRows: SessionsReportRow[]) => {
 	return processRows(sessionsReportRows)
@@ -153,7 +170,7 @@ export const useGenerateSessionsReportCSV = () => {
 			rows.forEach((rowArray) => {
 				const row = rowArray
 					.map((col) =>
-						col ? col.toString().replaceAll(',', '|') : '',
+						col ? col.toString().replaceAll(/[,;\t]/gi, '|') : '',
 					)
 					.join(',')
 				csvContent += row + '\r\n'
