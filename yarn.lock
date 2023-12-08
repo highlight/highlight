@@ -25520,6 +25520,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/speed-insights@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@vercel/speed-insights@npm:1.0.0"
+  checksum: 6a089f8d4c97136dd90aeef160867da2d93757d057f4f3806e6ec9e8100047fa464e9a175e88bd612ab523b60d9cc2edb308c575cabcecc19a68686facd2f785
+  languageName: node
+  linkType: hard
+
 "@vercel/static-build@npm:2.0.8":
   version: 2.0.8
   resolution: "@vercel/static-build@npm:2.0.8"
@@ -38258,6 +38265,7 @@ __metadata:
     "@types/react-syntax-highlighter": ^15.5.6
     "@types/remove-markdown": ^0.3.1
     "@vercel/og": ^0.5.20
+    "@vercel/speed-insights": ^1.0.0
     antd: ^4.24.7
     autoprefixer: ^10.4.14
     classnames: ^2.3.1
@@ -38279,7 +38287,6 @@ __metadata:
     markdown-to-jsx: ^7.1.8
     match-sorter: ^6.3.1
     next: ^13.5.4
-    next-axiom: ^0.16.0
     next-mdx-remote: ^4.3.0
     nextjs-cors: latest
     npm-run-all: ^4.1.5
@@ -46448,17 +46455,6 @@ __metadata:
   version: 2.0.2
   resolution: "netmask@npm:2.0.2"
   checksum: c65cb8d3f7ea5669edddb3217e4c96910a60d0d9a4b52d9847ff6b28b2d0277cd8464eee0ef85133cdee32605c57940cacdd04a9a019079b091b6bba4cb0ec22
-  languageName: node
-  linkType: hard
-
-"next-axiom@npm:^0.16.0":
-  version: 0.16.0
-  resolution: "next-axiom@npm:0.16.0"
-  dependencies:
-    whatwg-fetch: ^3.6.2
-  peerDependencies:
-    next: ^12.1.4 || ^13
-  checksum: 1b5aa48bf1529560e0f72b9b2e9055da582bba1f5dc149713dbd4d488428944700077170b86ad04f308a49fd923cddb195e7cbe1b218461addf08757c3b36663
   languageName: node
   linkType: hard
 
@@ -61375,13 +61371,6 @@ __metadata:
   version: 3.5.0
   resolution: "whatwg-fetch@npm:3.5.0"
   checksum: 8a915e7ec4ef55d1cfae1d39bd2547893ea2b13b3e8a3a93d355af109f26748c6dc43700a15fe70532f4218eb7076819c0d9f94c16ef4252e94ca85c7863763b
-  languageName: node
-  linkType: hard
-
-"whatwg-fetch@npm:^3.6.2":
-  version: 3.6.2
-  resolution: "whatwg-fetch@npm:3.6.2"
-  checksum: ee976b7249e7791edb0d0a62cd806b29006ad7ec3a3d89145921ad8c00a3a67e4be8f3fb3ec6bc7b58498724fd568d11aeeeea1f7827e7e1e5eae6c8a275afed
   languageName: node
   linkType: hard
 
