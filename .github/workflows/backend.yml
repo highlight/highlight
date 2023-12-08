@@ -17,6 +17,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
 
     code-quality-check:
         needs: code-setup
@@ -28,6 +29,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Format
               run: if [ "$(gofmt -l -d ./backend | wc -l)" -gt 0 ]; then gofmt -l -d ./backend && exit 1; fi
             - name: Check for GORM Debug
@@ -55,6 +57,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: copy backend
               run: |
                   mkdir tmp
@@ -81,6 +84,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Build binary
               run: cd backend/ && go build .
 
@@ -128,6 +132,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
             - name: Run fuzz tests

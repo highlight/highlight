@@ -3034,7 +3034,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
-	isLive := cursor != model.EventsCursor{}
+	isLive := cursor.EventObjectIndex != nil
 	s3Events := map[int]string{}
 	if !isLive {
 		var err error
@@ -3250,6 +3250,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 		return time.Now().AddDate(-1, 0, 0)
 	case modelInputs.RetentionPeriodTwoYears:
 		return time.Now().AddDate(-2, 0, 0)
+	case modelInputs.RetentionPeriodThreeYears:
+		return time.Now().AddDate(-3, 0, 0)
 	}
 	return time.Now()
 }

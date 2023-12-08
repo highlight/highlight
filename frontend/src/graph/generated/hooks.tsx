@@ -343,18 +343,8 @@ export type MuteSessionCommentThreadMutationOptions =
 		Types.MuteSessionCommentThreadMutationVariables
 	>
 export const CreateOrUpdateStripeSubscriptionDocument = gql`
-	mutation CreateOrUpdateStripeSubscription(
-		$workspace_id: ID!
-		$plan_type: PlanType!
-		$interval: SubscriptionInterval!
-		$retention_period: RetentionPeriod!
-	) {
-		createOrUpdateStripeSubscription(
-			workspace_id: $workspace_id
-			plan_type: $plan_type
-			interval: $interval
-			retention_period: $retention_period
-		)
+	mutation CreateOrUpdateStripeSubscription($workspace_id: ID!) {
+		createOrUpdateStripeSubscription(workspace_id: $workspace_id)
 	}
 `
 export type CreateOrUpdateStripeSubscriptionMutationFn =
@@ -377,9 +367,6 @@ export type CreateOrUpdateStripeSubscriptionMutationFn =
  * const [createOrUpdateStripeSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateStripeSubscriptionMutation({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
- *      plan_type: // value for 'plan_type'
- *      interval: // value for 'interval'
- *      retention_period: // value for 'retention_period'
  *   },
  * });
  */
@@ -413,6 +400,8 @@ export const SaveBillingPlanDocument = gql`
 		$errorsRetention: RetentionPeriod!
 		$logsLimitCents: Int
 		$logsRetention: RetentionPeriod!
+		$tracesLimitCents: Int
+		$tracesRetention: RetentionPeriod!
 	) {
 		saveBillingPlan(
 			workspace_id: $workspace_id
@@ -422,6 +411,8 @@ export const SaveBillingPlanDocument = gql`
 			errorsRetention: $errorsRetention
 			logsLimitCents: $logsLimitCents
 			logsRetention: $logsRetention
+			tracesLimitCents: $tracesLimitCents
+			tracesRetention: $tracesRetention
 		)
 	}
 `
@@ -450,6 +441,8 @@ export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
  *      errorsRetention: // value for 'errorsRetention'
  *      logsLimitCents: // value for 'logsLimitCents'
  *      logsRetention: // value for 'logsRetention'
+ *      tracesLimitCents: // value for 'tracesLimitCents'
+ *      tracesRetention: // value for 'tracesRetention'
  *   },
  * });
  */
@@ -8454,8 +8447,12 @@ export const GetBillingDetailsDocument = gql`
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
@@ -8464,6 +8461,7 @@ export const GetBillingDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -8477,6 +8475,7 @@ export const GetBillingDetailsDocument = gql`
 			sessions_max_cents
 			errors_max_cents
 			logs_max_cents
+			traces_max_cents
 		}
 	}
 `
@@ -8533,8 +8532,12 @@ export const GetSubscriptionDetailsDocument = gql`
 	query GetSubscriptionDetails($workspace_id: ID!) {
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid

@@ -30,4 +30,7 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="tRPC" href="../js/trpc">
         {"Get started with tRPC"}
     </DocsCard>
+    <DocsCard title="Node.js OpenTelemetry" href="../../7_native-opentelemetry/2_error-monitoring.md">
+        {"Get started with OpenTelemetry"}
+    </DocsCard>
 </DocsCardGroup>

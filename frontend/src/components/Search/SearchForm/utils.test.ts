@@ -5,6 +5,7 @@ import {
 	queryAsStringParams,
 	quoteQueryValue,
 	stringifySearchQuery,
+	tokenAsParts,
 	validateSearchQuery,
 } from './utils'
 
@@ -222,27 +223,80 @@ describe('quoteQueryValue', () => {
 
 describe('queryAsStringParams', () => {
 	it('parses a simple query correctly', () => {
-		const query = 'body-a source:backend body-b source:frontend body-c '
+		const query = 'body-a   source:backend body-b  source:frontend body-c '
+
 		expect(queryAsStringParams(query)).toEqual([
 			'body-a',
+			'   ',
 			'source:backend',
+			' ',
 			'body-b',
+			'  ',
 			'source:frontend',
+			' ',
 			'body-c',
+			' ',
 		])
 	})
 
-	// TODO: Get this test working someday, unless we decide to build a
-	// non-text-based query builder.
-	it.skip('handles extra whitespace appropriately', () => {
-		const query = 'body-a source:backend    body-b source:frontend body-c '
+	it('parses a complex query correctly', () => {
+		const query =
+			' body-a   source:(backend OR frontend) body-b  name:"Chris Schmitz" body-c '
+
 		expect(queryAsStringParams(query)).toEqual([
+			' ',
 			'body-a',
-			'source:backend',
 			'   ',
+			'source:(backend OR frontend)',
+			' ',
 			'body-b',
-			'source:frontend',
+			'  ',
+			'name:"Chris Schmitz"',
+			' ',
 			'body-c',
+			' ',
 		])
+	})
+
+	// TODO: Figure out why this isn't working. Edge case on quotes with body
+	// queries.
+	it.skip('handles leading and trailing spaces with quotes', () => {
+		const query = '  service_name:foo " '
+
+		expect(queryAsStringParams(query)).toEqual([
+			'  ',
+			'service_name:foo',
+			'" ',
+		])
+	})
+
+	// TODO: Figure out why this isn't working. Edge case on quotes with body
+	// queries.
+	it('handles leading and trailing spaces with quotes', () => {
+		const query = 'service_name:"Chris Schmitz" "another filter" "'
+
+		expect(queryAsStringParams(query)).toEqual([
+			'service_name:"Chris Schmitz"',
+			' ',
+			'"another filter"',
+			' ',
+			'"',
+		])
+	})
+})
+
+describe('tokenAsParts', () => {
+	it('parses a token and breaks it into the correct parts', () => {
+		expect(tokenAsParts('service_name:(foo OR bar)')).toEqual([
+			'service_name',
+			':',
+			'(',
+			'foo ',
+			'OR',
+			' bar',
+			')',
+		])
+
+		expect(tokenAsParts('name!=chris')).toEqual(['name', '!=', 'chris'])
 	})
 })

@@ -58,9 +58,13 @@ import { SelfHostContent } from './self-host/self-host'
 import { GoTracesContent } from './traces/go/go'
 import { GormTracesContent } from './traces/go/gorm'
 import { OTLPTracesContent } from './traces/otlp'
+import { JSManualTracesContent } from './traces/node-js/manual'
+import { OTLPLoggingContent } from './logging/otlp'
+import { OTLPErrorMonitoringContent } from './backend/otlp'
 
 export type QuickStartOptions = {
 	title: string
+	metaTitle?: string
 	subtitle: string
 	logoUrl: string
 } & {
@@ -69,6 +73,7 @@ export type QuickStartOptions = {
 
 export type QuickStartContent = {
 	title: string
+	metaTitle?: string
 	subtitle: string
 	logoUrl?: string
 	entries: Array<QuickStartStep>
@@ -122,6 +127,7 @@ export enum QuickStartType {
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
+	JSManual = 'manual',
 	JSNestjs = 'nestjs',
 	JSWinston = 'winston',
 	JSPino = 'pino',
@@ -219,6 +225,11 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/java.svg'),
 			[QuickStartType.JavaOther]: JavaOtherContent,
 		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
+		},
 	},
 	'backend-logging': {
 		title: 'Select your language',
@@ -286,11 +297,22 @@ export const quickStartContent = {
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
 		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPLoggingContent,
+		},
 	},
 	traces: {
 		title: 'Select your language',
 		subtitle:
-			'Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).',
+			'Tracing is supported with the Highlight SDKs or via the OpenTelemetry protocol (OTLP).',
+		'node-js': {
+			title: 'Node.js',
+			subtitle: 'Manually trace your Node.js application.',
+			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			[QuickStartType.JSManual]: JSManualTracesContent,
+		},
 		go: {
 			title: 'Go',
 			subtitle: 'Install tracing in your Go application.',
@@ -299,7 +321,8 @@ export const quickStartContent = {
 			[QuickStartType.GoGorm]: GormTracesContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry Protocol (OTLP)',
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
 		},
 	},

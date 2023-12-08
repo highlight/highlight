@@ -26,6 +26,7 @@ type TraceRow struct {
 	Links           []*Link
 	ProjectId       uint32
 	SecureSessionId string
+	Environment     string
 }
 
 type Event struct {
@@ -98,6 +99,11 @@ func (t *TraceRow) WithServiceName(serviceName string) *TraceRow {
 
 func (t *TraceRow) WithServiceVersion(serviceVersion string) *TraceRow {
 	t.ServiceVersion = serviceVersion
+	return t
+}
+
+func (t *TraceRow) WithEnvironment(environment string) *TraceRow {
+	t.Environment = environment
 	return t
 }
 
