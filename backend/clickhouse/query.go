@@ -359,7 +359,8 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("Key, sum(Count)").
+	//
+	sb.Select("Key, sum(Count), min(Type)").
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
@@ -386,14 +387,15 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		var (
 			key   string
 			count uint64
+			typ   string
 		)
-		if err := rows.Scan(&key, &count); err != nil {
+		if err := rows.Scan(&key, &count, &typ); err != nil {
 			return nil, err
 		}
 
 		keys = append(keys, &modelInputs.QueryKey{
 			Name: key,
-			Type: modelInputs.KeyTypeString, // For now, assume everything is a string
+			Type: modelInputs.KeyType(typ),
 		})
 	}
 
