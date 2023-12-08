@@ -14,8 +14,8 @@
 	"author": "",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@highlight-run/apollo": "workspace:^",
-		"@highlight-run/node": "workspace:^",
+		"@highlight-run/apollo": "workspace:*",
+		"@highlight-run/node": "workspace:*",
 		"dotenv": "^16.3.1",
 		"express": "^4.18.2",
 		"graphql": "^16.8.1",

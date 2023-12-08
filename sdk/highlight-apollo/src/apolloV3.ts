@@ -19,7 +19,7 @@ export const ApolloServerV3HighlightPlugin = function <T extends BaseContext>(
 			}
 
 			const headers: IncomingHttpHeaders = {}
-			for (const [v, k] of req.request.http?.headers ?? []) {
+			for (const [k, v] of req.request.http?.headers ?? []) {
 				headers[k] = v
 			}
 

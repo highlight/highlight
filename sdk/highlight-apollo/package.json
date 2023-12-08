@@ -14,7 +14,8 @@
 	},
 	"scripts": {
 		"typegen": "tsup src/index.ts --dts-only",
-		"build": "tsup src/index.ts --format cjs,esm --dts"
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"test": "vitest"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -25,7 +26,9 @@
 		"apollo-server-plugin-base": "^3"
 	},
 	"devDependencies": {
+		"apollo-server": "^3.13.0",
 		"tsup": "^6.6.3",
-		"typescript": "^5.0.4"
+		"typescript": "^5.0.4",
+		"vitest": "^0.32.0"
 	}
 }

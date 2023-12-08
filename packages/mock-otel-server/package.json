@@ -1,0 +1,16 @@
+{
+	"name": "mock-otel-server",
+	"main": "src/index.ts",
+	"type": "module",
+	"packageManager": "yarn@3.5.0",
+	"dependencies": {
+		"express": "^4.18.2"
+	},
+	"scripts": {
+		"start": "tsx src/index.ts --start"
+	},
+	"devDependencies": {
+		"@opentelemetry/otlp-proto-exporter-base": "^0.45.1",
+		"tsx": "^4.6.2"
+	}
+}
