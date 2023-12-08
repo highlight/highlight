@@ -5664,7 +5664,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	tracesIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeTraces)
 	// use monthly traces limit if it exists
 	if workspace.MonthlyTracesLimit != nil {
-		tracesIncluded = int64(*workspace.MonthlyLogsLimit)
+		tracesIncluded = int64(*workspace.MonthlyTracesLimit)
 	}
 
 	sessionsRetentionPeriod := modelInputs.RetentionPeriodSixMonths
