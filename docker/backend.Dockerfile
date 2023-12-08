@@ -7,6 +7,7 @@ COPY ../go.work .
 COPY ../go.work.sum .
 COPY ../backend ./backend
 COPY ../sdk/highlight-go ./sdk/highlight-go
+COPY ../sdk/highlight-grafana-datasource ./sdk/highlight-grafana-datasource
 COPY ../e2e/go ./e2e/go
 RUN go work sync
 
