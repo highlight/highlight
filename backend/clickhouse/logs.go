@@ -426,8 +426,8 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate)
+func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate, query)
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {

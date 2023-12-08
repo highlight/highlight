@@ -479,8 +479,8 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	return metrics, err
 }
 
-func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
+func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate, query)
 	if err != nil {
 		return nil, err
 	}
@@ -493,8 +493,8 @@ func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyNam
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
 }
 
-func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate)
+func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {

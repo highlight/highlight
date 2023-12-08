@@ -4290,6 +4290,7 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
 export type GetMetricTagsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetMetricTagsQuery = { __typename?: 'Query' } & Pick<
@@ -4483,6 +4484,7 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
@@ -4872,6 +4874,7 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 export type GetTracesKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesKeysQuery = { __typename?: 'Query' } & {

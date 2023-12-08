@@ -12358,8 +12358,16 @@ export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
 	Types.GetSuggestedMetricsQueryVariables
 >
 export const GetMetricTagsDocument = gql`
-	query GetMetricTags($project_id: ID!, $metric_name: String!) {
-		metric_tags(project_id: $project_id, metric_name: $metric_name)
+	query GetMetricTags(
+		$project_id: ID!
+		$metric_name: String!
+		$query: String
+	) {
+		metric_tags(
+			project_id: $project_id
+			metric_name: $metric_name
+			query: $query
+		)
 	}
 `
 
@@ -12377,6 +12385,7 @@ export const GetMetricTagsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -13118,8 +13127,16 @@ export type GetLogsHistogramQueryResult = Apollo.QueryResult<
 	Types.GetLogsHistogramQueryVariables
 >
 export const GetLogsKeysDocument = gql`
-	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-		keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+	query GetLogsKeys(
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+		$query: String
+	) {
+		keys: logs_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -13140,6 +13157,7 @@ export const GetLogsKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -14288,8 +14306,13 @@ export const GetTracesKeysDocument = gql`
 	query GetTracesKeys(
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
+		$query: String
 	) {
-		keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+		keys: traces_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -14310,6 +14333,7 @@ export const GetTracesKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */

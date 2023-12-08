@@ -1,11 +1,4 @@
-import {
-	GetLogsKeysQuery,
-	GetLogsKeysQueryVariables,
-	GetLogsKeyValuesQueryVariables,
-	GetTracesKeysQuery,
-	GetTracesKeysQueryVariables,
-	GetTracesKeyValuesQueryVariables,
-} from '@graph/operations'
+import { GetLogsKeysQuery, GetTracesKeysQuery } from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -23,6 +16,7 @@ import {
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
+import { useDebouncedValue } from '@hooks/useDebouncedValue'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -54,6 +48,12 @@ import {
 	stringifySearchQuery,
 	tokenAsParts,
 } from '@/components/Search/SearchForm/utils'
+import {
+	useGetLogsKeysLazyQuery,
+	useGetLogsKeyValuesLazyQuery,
+	useGetTracesKeysLazyQuery,
+	useGetTracesKeyValuesLazyQuery,
+} from '@/graph/generated/hooks'
 
 import * as styles from './SearchForm.css'
 
@@ -68,17 +68,13 @@ export const PermalinkStartDateParam = withDefault(
 )
 export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
 
-type FetchKeys = ({}: {
-	variables: GetLogsKeysQueryVariables | GetTracesKeysQueryVariables
-}) => { data?: { keys: Keys }; loading: boolean }
-type FetchValues = () => [
-	({}: {
-		variables:
-			| GetLogsKeyValuesQueryVariables
-			| GetTracesKeyValuesQueryVariables
-	}) => void,
-	{ data?: { key_values: string[] }; loading: boolean },
-]
+type FetchKeys =
+	| typeof useGetLogsKeysLazyQuery
+	| typeof useGetTracesKeysLazyQuery
+type FetchValues =
+	| typeof useGetLogsKeyValuesLazyQuery
+	| typeof useGetTracesKeyValuesLazyQuery
+
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
 
 const MAX_ITEMS = 10
@@ -92,7 +88,7 @@ export type SearchFormProps = {
 	presets: Preset[]
 	minDate: Date
 	timeMode: TIME_MODE
-	fetchKeys: FetchKeys
+	fetchKeysLazyQuery: FetchKeys
 	fetchValuesLazyQuery: FetchValues
 	disableSearch?: boolean
 	actions?: React.FC<{
@@ -108,7 +104,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
 	startDate,
 	endDate,
-	fetchKeys,
+	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	onDatesChange,
 	onFormSubmit,
@@ -123,16 +119,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
-
-	const { data: keysData, loading: keysLoading } = fetchKeys({
-		variables: {
-			project_id: projectId,
-			date_range: {
-				start_date: moment(startDate).format(TIME_FORMAT),
-				end_date: moment(endDate).format(TIME_FORMAT),
-			},
-		},
-	})
 
 	const [dateRange, setDateRange] = useState<Date[]>([startDate, endDate])
 
@@ -156,11 +142,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					initialQuery={initialQuery}
 					startDate={startDate}
 					endDate={endDate}
-					keys={keysData?.keys}
-					keysLoading={keysLoading}
 					disableSearch={disableSearch}
 					query={query}
 					fetchValuesLazyQuery={fetchValuesLazyQuery}
+					fetchKeysLazyQuery={fetchKeysLazyQuery}
 					setQuery={setQuery}
 					onFormSubmit={onFormSubmit}
 				/>
@@ -218,12 +203,11 @@ export const Search: React.FC<{
 	initialQuery: string
 	startDate: Date
 	endDate: Date
-	keys?: Keys
 	hideIcon?: boolean
-	keysLoading: boolean
 	disableSearch?: boolean
 	placeholder?: string
 	query: string
+	fetchKeysLazyQuery: FetchKeys
 	fetchValuesLazyQuery: FetchValues
 	setQuery: (value: string) => void
 	onFormSubmit: (query: string) => void
@@ -232,11 +216,10 @@ export const Search: React.FC<{
 	startDate,
 	endDate,
 	hideIcon,
-	keys,
-	keysLoading,
 	disableSearch,
 	placeholder,
 	query,
+	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	setQuery,
 	onFormSubmit,
@@ -247,6 +230,8 @@ export const Search: React.FC<{
 	const comboboxStore = useComboboxStore({
 		defaultValue: query ?? '',
 	})
+	const [getKeys, { data: keysData, loading: keysLoading }] =
+		fetchKeysLazyQuery()
 	const [getKeyValues, { data, loading: valuesLoading }] =
 		fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
@@ -255,10 +240,13 @@ export const Search: React.FC<{
 	const queryAsStringParts = queryAsStringParams(query)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
+	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
 
+	// TODO: code smell, user is not able to use "message" as a search key
+	// because we are reserving it for the body implicitly
 	const showValues =
-		activeTerm.key !== BODY_KEY ||
-		!!keys?.find((k) => k.name === activeTerm.key)
+		activeTerm.key !== BODY_KEY &&
+		!!keysData?.keys?.find((k) => k.name === activeTerm.key)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showTermSelect = !!activeTerm.value.length
 
@@ -266,7 +254,7 @@ export const Search: React.FC<{
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, values)
-		: getVisibleKeys(query, queryTerms, activeTerm, keys)
+		: getVisibleKeys(query, queryTerms, activeTerm, keysData?.keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
@@ -281,6 +269,23 @@ export const Search: React.FC<{
 	const handleSetCursorIndex = () => {
 		setCursorIndex(inputRef.current?.selectionStart || 0)
 	}
+
+	useEffect(() => {
+		if (showValues) {
+			return
+		}
+
+		getKeys({
+			variables: {
+				project_id: project_id!,
+				date_range: {
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				query: debouncedKeyValue,
+			},
+		})
+	}, [debouncedKeyValue, showValues, startDate, endDate, project_id, getKeys])
 
 	useEffect(() => {
 		if (!showValues) {

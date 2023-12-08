@@ -955,12 +955,12 @@ type ComplexityRoot struct {
 		LogsHistogram                func(childComplexity int, projectID int, params model.QueryInput) int
 		LogsIntegration              func(childComplexity int, projectID int) int
 		LogsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput) int
+		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string) int
 		LogsTotalCount               func(childComplexity int, projectID int, params model.QueryInput) int
 		MatchErrorTag                func(childComplexity int, query string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues              func(childComplexity int, projectID int, metricName string, tagName string) int
-		MetricTags                   func(childComplexity int, projectID int, metricName string) int
+		MetricTags                   func(childComplexity int, projectID int, metricName string, query *string) int
 		MetricsTimeline              func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		NetworkHistogram             func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
 		NewSessionAlerts             func(childComplexity int, projectID int) int
@@ -1005,7 +1005,7 @@ type ComplexityRoot struct {
 		Traces                       func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
 		TracesIntegration            func(childComplexity int, projectID int) int
 		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput) int
+		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string) int
 		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
@@ -1789,7 +1789,7 @@ type QueryResolver interface {
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
 	SuggestedMetrics(ctx context.Context, projectID int, prefix string) ([]string, error)
-	MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error)
+	MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error)
 	MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error)
 	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	NetworkHistogram(ctx context.Context, projectID int, params model.NetworkHistogramParamsInput) (*model.CategoryHistogramPayload, error)
@@ -1804,7 +1804,7 @@ type QueryResolver interface {
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.LogsHistogram, error)
-	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
+	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string) ([]*model.QueryKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
@@ -1819,7 +1819,7 @@ type QueryResolver interface {
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) (*model.TracesMetrics, error)
-	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.QueryKey, error)
+	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
 type SegmentResolver interface {
@@ -7101,7 +7101,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput)), true
+		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string)), true
 
 	case "Query.logs_total_count":
 		if e.complexity.Query.LogsTotalCount == nil {
@@ -7161,7 +7161,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.MetricTags(childComplexity, args["project_id"].(int), args["metric_name"].(string)), true
+		return e.complexity.Query.MetricTags(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["query"].(*string)), true
 
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
@@ -7686,7 +7686,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput)), true
+		return e.complexity.Query.TracesKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string)), true
 
 	case "Query.traces_metrics":
 		if e.complexity.Query.TracesMetrics == nil {
@@ -12391,7 +12391,11 @@ type Query {
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
-	metric_tags(project_id: ID!, metric_name: String!): [String!]!
+	metric_tags(
+		project_id: ID!
+		metric_name: String!
+		query: String
+	): [String!]!
 	metric_tag_values(
 		project_id: ID!
 		metric_name: String!
@@ -12427,6 +12431,7 @@ type Query {
 	logs_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -12468,6 +12473,7 @@ type Query {
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
@@ -17657,6 +17663,15 @@ func (ec *executionContext) field_Query_logs_keys_args(ctx context.Context, rawA
 		}
 	}
 	args["date_range"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -17777,6 +17792,15 @@ func (ec *executionContext) field_Query_metric_tags_args(ctx context.Context, ra
 		}
 	}
 	args["metric_name"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -18695,6 +18719,15 @@ func (ec *executionContext) field_Query_traces_keys_args(ctx context.Context, ra
 		}
 	}
 	args["date_range"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -53852,7 +53885,7 @@ func (ec *executionContext) _Query_metric_tags(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricTags(rctx, fc.Args["project_id"].(int), fc.Args["metric_name"].(string))
+		return ec.resolvers.Query().MetricTags(rctx, fc.Args["project_id"].(int), fc.Args["metric_name"].(string), fc.Args["query"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -54744,7 +54777,7 @@ func (ec *executionContext) _Query_logs_keys(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput))
+		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -55677,7 +55710,7 @@ func (ec *executionContext) _Query_traces_keys(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput))
+		return ec.resolvers.Query().TracesKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -1048,15 +1048,12 @@ func TestLogsKeys(t *testing.T) {
 		),
 	}
 
+	searchKey := "s"
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
-	keys, err := client.LogsKeys(ctx, 1, now, now)
+	keys, err := client.LogsKeys(ctx, 1, now, now, &searchKey)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.QueryKey{
-		{
-			Name: "level",
-			Type: modelInputs.KeyTypeString,
-		},
 		{
 			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
 			Type: modelInputs.KeyTypeString,

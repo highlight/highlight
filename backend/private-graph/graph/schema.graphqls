@@ -1991,7 +1991,11 @@ type Query {
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
-	metric_tags(project_id: ID!, metric_name: String!): [String!]!
+	metric_tags(
+		project_id: ID!
+		metric_name: String!
+		query: String
+	): [String!]!
 	metric_tag_values(
 		project_id: ID!
 		metric_name: String!
@@ -2027,6 +2031,7 @@ type Query {
 	logs_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -2068,6 +2073,7 @@ type Query {
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
