@@ -2,77 +2,82 @@ import {
 	useGetSessionsClickhouseLazyQuery,
 	useGetSessionsReportLazyQuery,
 } from '@graph/hooks'
-import { ClickhouseQuery, Session, SessionsReportRow } from '@graph/schemas'
+import {
+	ClickhouseQuery,
+	Maybe,
+	Session,
+	SessionsReportRow,
+} from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 
-const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => [
-	[
-		'Number of Sessions',
-		'',
-		...query.rules.map((_, index) => `Filter #${index + 1}`),
-	],
-	[
-		sessions.length,
-		'Filter',
-		...query.rules.map((rule) => rule[0].split('_', 1)[1]),
-	],
-	['', 'Operator', ...query.rules.map((rule) => rule[1])],
-	['', 'Value', ...query.rules.map((rule) => rule[2])],
-]
-
-const getReportRows = (sessionsReportRows: SessionsReportRow[]) => {
-	// assume that all report rows have the same keys
-	const keys = Object.keys(sessionsReportRows[0])
-		.filter((key) => key !== '__typename')
-		.map((key) => `${key[0].toUpperCase()}${key.slice(1)}`)
-	return [
-		keys,
-		...sessionsReportRows.map((report: SessionsReportRow) => {
-			return keys.map((key) => report[key as keyof SessionsReportRow])
-		}),
-	]
-}
-
-const getSessionRows = (sessions: Session[]) => {
-	const rows: any[] = []
-	if (!sessions.length) {
+const processRows = <
+	T extends { __typename?: string; user_properties?: Maybe<string> },
+>(
+	inputs: T[],
+	ignoreKeys: Set<keyof T> = new Set<keyof T>([]),
+) => {
+	const rows: any[][] = []
+	if (!inputs.length) {
 		return rows
 	}
-	const sessionKeys = {} as {
-		[key in keyof Session]: number
+	const keys = {} as {
+		[key in keyof T]: number
 	}
-	for (const session of sessions) {
-		let data = session
+	for (let input of inputs) {
 		try {
-			data = { ...data, ...JSON.parse(session.user_properties ?? '') }
+			input = { ...input, ...JSON.parse(input.user_properties ?? '') }
 		} catch (e) {}
-		delete data.user_properties
-		delete data.__typename
-		Object.keys(data).forEach((key, idx) => {
-			if (!sessionKeys.hasOwnProperty(key)) {
-				sessionKeys[key as keyof Session] = idx
+		delete input.user_properties
+		delete input.__typename
+		Object.keys(input).forEach((key, idx) => {
+			if (!keys.hasOwnProperty(key)) {
+				keys[key as keyof T] = idx
 			}
 		})
 	}
 	rows.push([
-		...Object.keys(sessionKeys).map(
-			(key) => `${key[0].toUpperCase()}${key.slice(1)}`,
-		),
+		...Object.keys(keys).filter((k) => ignoreKeys.has(k as keyof T)),
 	])
 
-	for (const session of sessions) {
+	for (const session of inputs) {
 		let data = session
 		try {
 			data = { ...data, ...JSON.parse(session.user_properties ?? '') }
 		} catch (e) {}
 		rows.push(
-			Object.entries(sessionKeys)
+			Object.entries(keys)
+				.filter(([k]) => !ignoreKeys.has(k as keyof T))
 				.sort(([, idx1], [_, idx2]) => idx1 - idx2)
-				.map(([k]) => data[k as keyof Session]),
+				.map(([k]) => data[k as keyof T]),
 		)
 	}
 	return rows
+}
+
+const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => [
+	[
+		'Number of Sessions',
+		'',
+		'',
+		...query.rules.map((_, index) => `Filter ${index + 1}`),
+	],
+	[
+		sessions.length,
+		'',
+		'Filter',
+		...query.rules.map((rule) => rule[0].split('_', 2)[1]),
+	],
+	['', '', 'Operator', ...query.rules.map((rule) => rule[1])],
+	['', '', 'Value', ...query.rules.map((rule) => rule[2])],
+]
+
+const getReportRows = (sessionsReportRows: SessionsReportRow[]) => {
+	return processRows(sessionsReportRows)
+}
+
+const getSessionRows = (sessions: Session[]) => {
+	return processRows(sessions, new Set<keyof Session>(['id', 'event_counts']))
 }
 
 const exportFile = async (name: string, encodedUri: string) => {

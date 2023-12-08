@@ -105,7 +105,7 @@ type SessionsReportRow {
 	max_length_mins: Float!
 	total_length_mins: Float!
 	location: String!
-	user_properties: Any
+	user_properties: String
 }
 
 type TimelineIndicatorEvent {

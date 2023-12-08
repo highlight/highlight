@@ -10583,7 +10583,7 @@ type SessionsReportRow {
 	max_length_mins: Float!
 	total_length_mins: Float!
 	location: String!
-	user_properties: Any
+	user_properties: String
 }
 
 type TimelineIndicatorEvent {
@@ -65293,9 +65293,9 @@ func (ec *executionContext) _SessionsReportRow_user_properties(ctx context.Conte
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(interface{})
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOAny2interface(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SessionsReportRow_user_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -65305,7 +65305,7 @@ func (ec *executionContext) fieldContext_SessionsReportRow_user_properties(ctx c
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Any does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
