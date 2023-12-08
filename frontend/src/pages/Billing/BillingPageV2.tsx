@@ -397,6 +397,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				amount: Math.round(
 					discountAmount
 						? discountAmount
+						: discountPercent >= 100
+						? totalCents
 						: totalCents / (1 - discountPercent / 100) - totalCents,
 				),
 				currency: USD,
