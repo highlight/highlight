@@ -11365,6 +11365,7 @@ enum LogSource {
 
 enum KeyType {
 	String
+	Numeric
 }
 
 type LogsHistogramBucketCount {

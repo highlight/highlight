@@ -54,4 +54,5 @@ temp
 .rollup.cache
 
 scripts/invoices.csv
+**/grafana.db
 

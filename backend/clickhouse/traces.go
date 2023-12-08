@@ -348,7 +348,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 				fnStr += fmt.Sprintf(", toFloat64(count(distinct TraceAttributes['%s']))", highlight.TraceKeyAttribute)
 			}
 		case modelInputs.MetricAggregatorMin:
-			fnStr += fmt.Sprintf(", min(%s)", metricColName)
+			fnStr += fmt.Sprintf(", toFloat64(min(%s))", metricColName)
 		case modelInputs.MetricAggregatorAvg:
 			fnStr += fmt.Sprintf(", avg(%s)", metricColName)
 		case modelInputs.MetricAggregatorP50:
@@ -360,9 +360,13 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		case modelInputs.MetricAggregatorP99:
 			fnStr += fmt.Sprintf(", quantile(.99)(%s)", metricColName)
 		case modelInputs.MetricAggregatorMax:
-			fnStr += fmt.Sprintf(", max(%s)", metricColName)
+			fnStr += fmt.Sprintf(", toFloat64(max(%s))", metricColName)
 		case modelInputs.MetricAggregatorSum:
-			fnStr += fmt.Sprintf(", sum(%s) * any(_sample_factor)", metricColName)
+			if useSampling {
+				fnStr += ", sum(%s) * any(_sample_factor)"
+			} else {
+				fnStr += ", sum(%s)"
+			}
 		}
 	}
 
