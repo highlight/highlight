@@ -1757,7 +1757,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						})
 					}}
 				/>
-				<Box marginLeft="auto" display="flex" gap="4">
+				<Box marginLeft="auto" display="flex" gap="0">
 					{!isOnErrorsPage && (
 						<DropdownMenu sessionQuery={JSON.parse(searchQuery)} />
 					)}

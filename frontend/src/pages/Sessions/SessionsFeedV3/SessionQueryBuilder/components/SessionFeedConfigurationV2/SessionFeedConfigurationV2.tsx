@@ -1,12 +1,17 @@
-import { Button } from '@components/Button'
 import Switch from '@components/Switch/Switch'
 import { useGetWorkspaceSettingsQuery } from '@graph/hooks'
 import {
 	Box,
-	IconSolidDotsHorizontal,
+	IconSolidAdjustments,
+	IconSolidClipboardList,
+	IconSolidDocumentDownload,
+	IconSolidFastForward,
+	IconSolidSortDescending,
+	IconSolidTrash,
 	Menu,
 	Text,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import {
@@ -24,11 +29,61 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useGenerateSessionsReportCSV } from '@util/session/report'
+import { message } from 'antd'
 import React, { useRef, useState } from 'react'
 
 import { ClickhouseQuery } from '@/graph/generated/schemas'
 
 import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
+import * as styles from './SessionFeedConfigurationV2.css'
+
+const Section: React.FC<React.PropsWithChildren<{ clickable?: true }>> = ({
+	children,
+	clickable,
+}) => (
+	<Box
+		py="4"
+		display="flex"
+		flexDirection="column"
+		borderBottom="divider"
+		cursor={clickable ? 'pointer' : 'default'}
+		userSelect="none"
+	>
+		{children}
+	</Box>
+)
+
+const SectionRow: React.FC<React.PropsWithChildren> = ({ children }) => (
+	<Box
+		display="flex"
+		alignItems="center"
+		justifyContent="space-between"
+		py="6"
+		px="8"
+		width="full"
+	>
+		{children}
+	</Box>
+)
+
+const IconGroup: React.FC<{ icon: React.ReactNode; text: string }> = ({
+	icon,
+	text,
+}) => (
+	<>
+		<Box
+			display="flex"
+			alignItems="center"
+			gap="4"
+			style={{ flexGrow: '1' }}
+		>
+			{icon}
+			<Text size="small" weight="medium" color="secondaryContentText">
+				{text}
+			</Text>
+		</Box>
+	</>
+)
 
 export const DropdownMenu = function ({
 	sessionQuery,
@@ -74,242 +129,245 @@ export const DropdownMenu = function ({
 				kind="secondary"
 				size="small"
 				emphasis="low"
-				iconRight={<IconSolidDotsHorizontal />}
+				iconRight={<IconSolidAdjustments size={14} />}
 				ref={buttonRef}
 			/>
-			<Menu.List ref={menuRef} style={{ minWidth: 324 }}>
-				<Menu.Item
-					key="autoplay"
-					onClick={() => {
-						setAutoPlaySessions(!autoPlaySessions)
-						if (autoPlaySessions) setAutoPlayVideo(autoPlaySessions)
-					}}
-				>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						style={{ height: 28 }}
-						width="full"
+			<Menu.List
+				ref={menuRef}
+				style={{ minWidth: 264 }}
+				cssClass={styles.menuContents}
+			>
+				<Section>
+					<Menu.Item
+						key="autoplay"
+						className={styles.menuItem}
+						onClick={(e) => {
+							e.preventDefault()
+							setAutoPlaySessions(!autoPlaySessions)
+							if (autoPlaySessions)
+								setAutoPlayVideo(autoPlaySessions)
+						}}
 					>
-						<Text
-							size="small"
-							weight="medium"
-							color="secondaryContentText"
-						>
-							Autoplay Sessions
-						</Text>
-						<Switch
-							trackingId="SessionFeedAutoplaySessionsToggle"
-							checked={autoPlaySessions}
-						/>
-					</Box>
-				</Menu.Item>
-				<Menu.Item
-					key="details"
-					onClick={() =>
-						setShowDetailedSessionView(!showDetailedSessionView)
-					}
-				>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						style={{ height: 28 }}
-						width="full"
-					>
-						<Text
-							size="small"
-							weight="medium"
-							color="secondaryContentText"
-						>
-							Details
-						</Text>
-						<Switch
-							trackingId="SessionFeedShowDetailedSessionsToggle"
-							checked={showDetailedSessionView}
-						/>
-					</Box>
-				</Menu.Item>
-				<Menu.Item key="createdAtSortOrder">
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						gap="16"
-						width="full"
-					>
-						<Text
-							size="small"
-							weight="medium"
-							color="secondaryContentText"
-						>
-							Order
-						</Text>
-						<Menu>
-							<Menu.Button kind="secondary" emphasis="medium">
-								{getSortOrderDisplayName(
-									sessionFeedConfiguration.sortOrder,
-								)}
-							</Menu.Button>
+						<SectionRow>
+							<IconGroup
+								icon={
+									<IconSolidFastForward
+										width={16}
+										color={
+											vars.theme.interactive.fill
+												.secondary.content.text
+										}
+									/>
+								}
+								text="Autoplay Sessions"
+							/>
+							<Switch
+								trackingId="SessionFeedAutoplaySessionsToggle"
+								checked={autoPlaySessions}
+							/>
+						</SectionRow>
+					</Menu.Item>
+				</Section>
+				<Section>
+					<Menu.Item key="order" className={styles.menuItem}>
+						<SectionRow>
+							<IconGroup
+								icon={
+									<IconSolidSortDescending
+										width={16}
+										color={
+											vars.theme.interactive.fill
+												.secondary.content.text
+										}
+									/>
+								}
+								text="Sort by"
+							/>
+							<Menu>
+								<Menu.Button
+									kind="secondary"
+									size="small"
+									emphasis="low"
+									cssClass={styles.menuButton}
+								>
+									{getSortOrderDisplayName(
+										sessionFeedConfiguration.sortOrder,
+									)}
+								</Menu.Button>
 
-							<Menu.List>
-								{sortOrders.map((sortOrder) => (
-									<Menu.Item
-										key={sortOrder}
-										onClick={() => {
-											sessionFeedConfiguration.setSortOrder(
-												sortOrder,
-											)
-										}}
-									>
-										{getSortOrderDisplayName(sortOrder)}
-									</Menu.Item>
-								))}
-							</Menu.List>
-						</Menu>
-					</Box>
-				</Menu.Item>
-				<Menu.Item key="datetimeFormat">
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						gap="16"
-						width="full"
-					>
-						<Text
-							size="small"
-							weight="medium"
-							color="secondaryContentText"
-						>
-							Datetime Format
-						</Text>
-						<Menu>
-							<Menu.Button kind="secondary" emphasis="medium">
-								{formatDatetime(
-									new Date().toISOString(),
-									sessionFeedConfiguration.datetimeFormat,
-								)}
-							</Menu.Button>
+								<Menu.List cssClass={styles.menuContents}>
+									{sortOrders.map((sortOrder) => (
+										<Menu.Item
+											key={sortOrder}
+											onClick={() => {
+												sessionFeedConfiguration.setSortOrder(
+													sortOrder,
+												)
+											}}
+										>
+											{getSortOrderDisplayName(sortOrder)}
+										</Menu.Item>
+									))}
+								</Menu.List>
+							</Menu>
+						</SectionRow>
+					</Menu.Item>
+					<Menu.Item key="date" className={styles.menuItem}>
+						<SectionRow>
+							<IconGroup
+								icon={
+									<IconSolidClipboardList
+										width={16}
+										color={
+											vars.theme.interactive.fill
+												.secondary.content.text
+										}
+									/>
+								}
+								text="Date format"
+							/>
+							<Menu>
+								<Menu.Button
+									kind="secondary"
+									size="small"
+									emphasis="low"
+									cssClass={styles.menuButton}
+								>
+									{formatDatetime(
+										new Date().toISOString(),
+										sessionFeedConfiguration.datetimeFormat,
+									)}
+								</Menu.Button>
 
-							<Menu.List>
-								{dateTimeFormats.map((dt) => (
-									<Menu.Item
-										key={dt}
-										onClick={() => {
-											sessionFeedConfiguration.setDatetimeFormat(
+								<Menu.List cssClass={styles.menuContents}>
+									{dateTimeFormats.map((dt) => (
+										<Menu.Item
+											key={dt}
+											onClick={() => {
+												sessionFeedConfiguration.setDatetimeFormat(
+													dt,
+												)
+											}}
+										>
+											{formatDatetime(
+												new Date().toISOString(),
 												dt,
-											)
-										}}
-									>
-										{formatDatetime(
-											new Date().toISOString(),
-											dt,
-										)}
-									</Menu.Item>
-								))}
-							</Menu.List>
-						</Menu>
-					</Box>
-				</Menu.Item>
-				<Menu.Item key="countFormat">
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						gap="16"
-						width="full"
-					>
-						<Text
-							size="small"
-							weight="medium"
-							color="secondaryContentText"
-						>
-							Count Format
-						</Text>
+											)}
+										</Menu.Item>
+									))}
+								</Menu.List>
+							</Menu>
+						</SectionRow>
+					</Menu.Item>
+					<Menu.Item key="count" className={styles.menuItem}>
+						<SectionRow>
+							<IconGroup
+								icon={
+									<IconSolidClipboardList
+										width={16}
+										color={
+											vars.theme.interactive.fill
+												.secondary.content.text
+										}
+									/>
+								}
+								text="Count format"
+							/>
+							<Menu>
+								<Menu.Button
+									kind="secondary"
+									size="small"
+									emphasis="low"
+									cssClass={styles.menuButton}
+								>
+									{formatCount(
+										12321,
+										sessionFeedConfiguration.countFormat,
+									)}
+								</Menu.Button>
 
-						<Menu>
-							<Menu.Button kind="secondary" emphasis="medium">
-								{formatCount(
-									12321,
-									sessionFeedConfiguration.countFormat,
-								)}
-							</Menu.Button>
-
-							<Menu.List>
-								{countFormats.map((format) => (
-									<Menu.Item
-										key={format}
-										onClick={() => {
-											sessionFeedConfiguration.setCountFormat(
-												format,
-											)
-										}}
-									>
-										{formatCount(12321, format)}
-									</Menu.Item>
-								))}
-							</Menu.List>
-						</Menu>
-					</Box>
-				</Menu.Item>
+								<Menu.List cssClass={styles.menuContents}>
+									{countFormats.map((format) => (
+										<Menu.Item
+											key={format}
+											onClick={() => {
+												sessionFeedConfiguration.setCountFormat(
+													format,
+												)
+											}}
+										>
+											{formatCount(12321, format)}
+										</Menu.Item>
+									))}
+								</Menu.List>
+							</Menu>
+						</SectionRow>
+					</Menu.Item>
+				</Section>
 				{showReportButton ? (
-					<>
-						<Menu.Divider />
-						<Box
-							display="flex"
-							alignItems="center"
-							justifyContent="space-between"
-							px="8"
-							width="full"
+					<Section clickable>
+						<Menu.Item
+							key="download"
+							className={styles.menuItem}
+							onClick={async () => {
+								message.info(
+									'CSV report download will begin shortly...',
+								)
+								await generateSessionsReportCSV()
+							}}
 						>
-							<Text
-								size="small"
-								weight="medium"
-								color="secondaryContentText"
-							>
-								CSV Sessions Report
-							</Text>
-							<Button
-								kind="secondary"
-								size="small"
-								loading={reportLoading}
-								onClick={generateSessionsReportCSV}
-								trackingId="Session CSV Report Download"
-							>
-								Download
-							</Button>
-						</Box>
-					</>
+							<SectionRow>
+								<IconGroup
+									icon={
+										<IconSolidDocumentDownload
+											width={16}
+											color={
+												vars.theme.interactive.fill
+													.secondary.content.text
+											}
+										/>
+									}
+									text="Download CSV session report"
+								/>
+							</SectionRow>
+						</Menu.Item>
+					</Section>
 				) : null}
 				{showDeleteButton ? (
-					<>
-						<Menu.Divider />
-						<Box
-							display="flex"
-							alignItems="center"
-							justifyContent="flex-end"
-							px="8"
-							width="full"
+					<Section clickable>
+						<Menu.Item
+							key="delete"
+							className={styles.menuItem}
+							onClick={() => setShowModal(true)}
 						>
-							<Button
-								kind="danger"
-								disabled={!canDelete}
-								onClick={() => setShowModal(true)}
-								trackingId="sessionFeedDeleteSessions"
-							>
-								Delete {sessionResults.totalCount} Session
-								{sessionResults.totalCount !== 1 ? 's' : ''}?
-							</Button>
-						</Box>
+							<SectionRow>
+								<IconGroup
+									icon={
+										<IconSolidTrash
+											width={16}
+											color={
+												vars.theme.interactive.fill
+													.secondary.content.text
+											}
+										/>
+									}
+									text={`Delete ${
+										sessionResults.totalCount
+									} Session${
+										sessionResults.totalCount !== 1
+											? 's'
+											: ''
+									}?`}
+								/>
+							</SectionRow>
+						</Menu.Item>
 						<DeleteSessionsModal
 							visible={showModal}
 							setVisible={setShowModal}
 							query={sessionQuery}
 							sessionCount={sessionResults.totalCount}
 						/>
-					</>
+					</Section>
 				) : null}
 			</Menu.List>
 		</Menu>
