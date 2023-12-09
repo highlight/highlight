@@ -135,7 +135,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'sample',
 		options: {
 			type: 'sample',
-			operators: ['matches'],
+			operators: ['is_editable'],
 		},
 	},
 ]

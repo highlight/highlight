@@ -1867,6 +1867,7 @@ export type Query = {
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
 	sessions_histogram_clickhouse: SessionsHistogram
+	sessions_report: Array<SessionsReportRow>
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
@@ -2412,6 +2413,11 @@ export type QuerySessions_ClickhouseArgs = {
 
 export type QuerySessions_Histogram_ClickhouseArgs = {
 	histogram_options: DateHistogramOptions
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
+}
+
+export type QuerySessions_ReportArgs = {
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
 }
@@ -3020,6 +3026,22 @@ export type SessionsHistogram = {
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>
+}
+
+export type SessionsReportRow = {
+	__typename?: 'SessionsReportRow'
+	avg_active_length_mins: Scalars['Float']
+	avg_length_mins: Scalars['Float']
+	key: Scalars['String']
+	location: Scalars['String']
+	max_active_length_mins: Scalars['Float']
+	max_length_mins: Scalars['Float']
+	num_days_visited: Scalars['Int']
+	num_months_visited: Scalars['Int']
+	num_sessions: Scalars['Int']
+	total_active_length_mins: Scalars['Float']
+	total_length_mins: Scalars['Float']
+	user_properties?: Maybe<Scalars['Any']>
 }
 
 export type SlackSyncResponse = {

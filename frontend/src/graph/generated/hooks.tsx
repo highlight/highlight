@@ -7256,6 +7256,74 @@ export type GetSessionsHistogramClickhouseQueryResult = Apollo.QueryResult<
 	Types.GetSessionsHistogramClickhouseQuery,
 	Types.GetSessionsHistogramClickhouseQueryVariables
 >
+export const GetSessionsReportDocument = gql`
+	query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
+		sessions_report(project_id: $project_id, query: $query) {
+			key
+			user_properties
+			num_sessions
+			num_days_visited
+			num_months_visited
+			avg_active_length_mins
+			max_active_length_mins
+			total_active_length_mins
+			avg_length_mins
+			max_length_mins
+			total_length_mins
+			location
+		}
+	}
+`
+
+/**
+ * __useGetSessionsReportQuery__
+ *
+ * To run a query within a React component, call `useGetSessionsReportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionsReportQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetSessionsReportQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>(GetSessionsReportDocument, baseOptions)
+}
+export function useGetSessionsReportLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>(GetSessionsReportDocument, baseOptions)
+}
+export type GetSessionsReportQueryHookResult = ReturnType<
+	typeof useGetSessionsReportQuery
+>
+export type GetSessionsReportLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsReportLazyQuery
+>
+export type GetSessionsReportQueryResult = Apollo.QueryResult<
+	Types.GetSessionsReportQuery,
+	Types.GetSessionsReportQueryVariables
+>
 export const GetErrorGroupsClickhouseDocument = gql`
 	query GetErrorGroupsClickhouse(
 		$project_id: ID!

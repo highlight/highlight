@@ -2345,6 +2345,31 @@ export type GetSessionsHistogramClickhouseQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetSessionsReportQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.ClickhouseQuery
+}>
+
+export type GetSessionsReportQuery = { __typename?: 'Query' } & {
+	sessions_report: Array<
+		{ __typename?: 'SessionsReportRow' } & Pick<
+			Types.SessionsReportRow,
+			| 'key'
+			| 'user_properties'
+			| 'num_sessions'
+			| 'num_days_visited'
+			| 'num_months_visited'
+			| 'avg_active_length_mins'
+			| 'max_active_length_mins'
+			| 'total_active_length_mins'
+			| 'avg_length_mins'
+			| 'max_length_mins'
+			| 'total_length_mins'
+			| 'location'
+		>
+	>
+}
+
 export type GetErrorGroupsClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
@@ -4925,6 +4950,7 @@ export const namedOperations = {
 		GetSessionsClickhouse: 'GetSessionsClickhouse' as const,
 		GetSessionsHistogramClickhouse:
 			'GetSessionsHistogramClickhouse' as const,
+		GetSessionsReport: 'GetSessionsReport' as const,
 		GetErrorGroupsClickhouse: 'GetErrorGroupsClickhouse' as const,
 		GetErrorsHistogramClickhouse: 'GetErrorsHistogramClickhouse' as const,
 		GetProjects: 'GetProjects' as const,

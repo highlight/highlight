@@ -613,6 +613,7 @@ const getSerializedQuery = (
 		const NEGATION_MAP: { [K in Operator]: Operator } = {
 			is: 'is_not',
 			is_not: 'is',
+			is_editable: 'is_not',
 			contains: 'not_contains',
 			not_contains: 'contains',
 			exists: 'not_exists',

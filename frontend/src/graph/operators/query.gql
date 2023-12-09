@@ -659,6 +659,23 @@ query GetSessionsHistogramClickhouse(
 	}
 }
 
+query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
+	sessions_report(project_id: $project_id, query: $query) {
+		key
+		user_properties
+		num_sessions
+		num_days_visited
+		num_months_visited
+		avg_active_length_mins
+		max_active_length_mins
+		total_active_length_mins
+		avg_length_mins
+		max_length_mins
+		total_length_mins
+		location
+	}
+}
+
 query GetErrorGroupsClickhouse(
 	$project_id: ID!
 	$count: Int!

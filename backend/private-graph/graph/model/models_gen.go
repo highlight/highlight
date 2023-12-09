@@ -772,6 +772,21 @@ type SessionQuery struct {
 	ProjectID int `json:"project_id"`
 }
 
+type SessionsReportRow struct {
+	Key                   string  `json:"key"`
+	NumSessions           int     `json:"num_sessions"`
+	NumDaysVisited        int     `json:"num_days_visited"`
+	NumMonthsVisited      int     `json:"num_months_visited"`
+	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
+	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
+	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
+	AvgLengthMins         float64 `json:"avg_length_mins"`
+	MaxLengthMins         float64 `json:"max_length_mins"`
+	TotalLengthMins       float64 `json:"total_length_mins"`
+	Location              string  `json:"location"`
+	UserProperties        *string `json:"user_properties"`
+}
+
 type SlackSyncResponse struct {
 	Success               bool `json:"success"`
 	NewChannelsAddedCount int  `json:"newChannelsAddedCount"`

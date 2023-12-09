@@ -5502,6 +5502,60 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 	}, nil
 }
 
+// SessionsReport is the resolver for the sessions_report field.
+func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery) ([]*modelInputs.SessionsReportRow, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	ids, total, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000, query, "ID", nil, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+	if total >= 1_000_000 {
+		return nil, e.New("too many sessions to generate report, adjust the query to return fewer sessions")
+	}
+
+	var results []*modelInputs.SessionsReportRow
+	if err := r.DB.Raw(`
+select coalesce(email, ip, client_id, identifier)                              as key,
+       max(user_properties::text) filter ( where user_properties is not null ) as user_properties,
+       count(*)                                                                as num_sessions,
+       count(distinct date_trunc('day', created_at))                           as num_days_visited,
+       count(distinct date_trunc('month', created_at))                         as num_months_visited,
+       avg(active_length) / 1000 / 60                                          as avg_active_length_mins,
+       max(active_length) / 1000 / 60                                          as max_active_length_mins,
+       sum(active_length) / 1000 / 60                                          as total_active_length_mins,
+       avg(length) / 1000 / 60                                                 as avg_length_mins,
+       max(length) / 1000 / 60                                                 as max_length_mins,
+       sum(length) / 1000 / 60                                                 as total_length_mins,
+       max(case when state is not null then state || '|' || city end)          as location
+from sessions
+where id in (?)
+group by 1
+order by num_sessions desc;
+`, ids).Scan(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
 func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
