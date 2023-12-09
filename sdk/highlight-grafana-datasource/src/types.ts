@@ -19,6 +19,8 @@ export interface HighlightQuery extends DataQuery {
 export interface HighlightDataSourceOptions extends DataSourceJsonData {
   projectID?: number;
   clientID?: string;
+  backendURL?: string;
+  tokenURL?: string;
 }
 
 /**

@@ -48,10 +48,10 @@ func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSetti
 	config := clientcredentials.Config{
 		ClientID:     dataSourceSettings.ClientId,
 		ClientSecret: clientSecret,
-		TokenURL:     "https://01ad008be5c8.ngrok.app/oauth/token",
+		TokenURL:     dataSourceSettings.TokenURL,
 	}
 
-	client := graphql.NewClient("https://01ad008be5c8.ngrok.app/private", config.Client(ctx))
+	client := graphql.NewClient(dataSourceSettings.BackendURL, config.Client(ctx))
 
 	return &Datasource{Client: client}, nil
 }
@@ -197,8 +197,10 @@ type QueryInput struct {
 }
 
 type DataSourceSettings struct {
-	ClientId  string `json:"clientID"`
-	ProjectId int    `json:"projectID"`
+	ClientId   string `json:"clientID"`
+	ProjectId  int    `json:"projectID"`
+	TokenURL   string `json:"tokenURL"`
+	BackendURL string `json:"backendURL"`
 }
 
 type DataSourceSecureSettings struct {

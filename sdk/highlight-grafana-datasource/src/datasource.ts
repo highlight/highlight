@@ -2,7 +2,6 @@ import { CoreApp, DataSourceInstanceSettings } from '@grafana/data';
 
 import { HighlightDataSourceOptions, HighlightQuery } from './types';
 import { DataSourceWithBackend } from '@grafana/runtime';
-import { count } from 'console';
 
 export const tableOptions = [{ value: 'traces', label: 'traces' }];
 
