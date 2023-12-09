@@ -359,7 +359,6 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
-	//
 	sb.Select("Key, sum(Count), min(Type)").
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
