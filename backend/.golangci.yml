@@ -37,6 +37,5 @@ linters-settings:
             main:
                 list-mode: lax
                 deny:
-                    - pkg: "log"
+                    - pkg: 'log'
                       desc: 'logging is allowed only by github.com/sirupsen/logrus'
-
