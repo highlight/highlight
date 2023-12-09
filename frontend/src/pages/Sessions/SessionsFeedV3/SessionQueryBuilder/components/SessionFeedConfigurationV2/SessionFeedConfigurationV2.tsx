@@ -104,8 +104,7 @@ export const DropdownMenu = function ({
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
-	const { generateSessionsReportCSV, loading: reportLoading } =
-		useGenerateSessionsReportCSV()
+	const { generateSessionsReportCSV } = useGenerateSessionsReportCSV()
 
 	const showDeleteButton =
 		canDelete &&
@@ -113,13 +112,8 @@ export const DropdownMenu = function ({
 	const showReportButton =
 		workspaceSettingsData?.workspaceSettings?.enable_session_export === true
 
-	const {
-		autoPlaySessions,
-		setAutoPlaySessions,
-		setAutoPlayVideo,
-		showDetailedSessionView,
-		setShowDetailedSessionView,
-	} = usePlayerConfiguration()
+	const { autoPlaySessions, setAutoPlaySessions, setAutoPlayVideo } =
+		usePlayerConfiguration()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 
 	const menuRef = useRef<HTMLDivElement>(null)
