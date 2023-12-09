@@ -2,7 +2,9 @@ import Switch from '@components/Switch/Switch'
 import { useGetWorkspaceSettingsQuery } from '@graph/hooks'
 import {
 	Box,
+	getNow,
 	IconSolidAdjustments,
+	IconSolidCheck,
 	IconSolidClipboardList,
 	IconSolidDocumentDownload,
 	IconSolidFastForward,
@@ -152,7 +154,7 @@ export const DropdownMenu = function ({
 							<IconGroup
 								icon={
 									<IconSolidFastForward
-										width={16}
+										size={16}
 										color={
 											vars.theme.interactive.fill
 												.secondary.content.text
@@ -174,7 +176,7 @@ export const DropdownMenu = function ({
 							<IconGroup
 								icon={
 									<IconSolidSortDescending
-										width={16}
+										size={16}
 										color={
 											vars.theme.interactive.fill
 												.secondary.content.text
@@ -199,13 +201,42 @@ export const DropdownMenu = function ({
 									{sortOrders.map((sortOrder) => (
 										<Menu.Item
 											key={sortOrder}
-											onClick={() => {
+											onClick={(e) => {
+												e.preventDefault()
 												sessionFeedConfiguration.setSortOrder(
 													sortOrder,
 												)
 											}}
 										>
-											{getSortOrderDisplayName(sortOrder)}
+											<SectionRow>
+												<IconGroup
+													icon={
+														sortOrder ===
+														sessionFeedConfiguration.sortOrder ? (
+															<IconSolidCheck
+																size={16}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.primary
+																		.enabled
+																}
+															/>
+														) : (
+															<Box
+																style={{
+																	width: 16,
+																	height: 16,
+																}}
+															/>
+														)
+													}
+													text={getSortOrderDisplayName(
+														sortOrder,
+													)}
+												/>
+											</SectionRow>
 										</Menu.Item>
 									))}
 								</Menu.List>
@@ -217,7 +248,7 @@ export const DropdownMenu = function ({
 							<IconGroup
 								icon={
 									<IconSolidClipboardList
-										width={16}
+										size={16}
 										color={
 											vars.theme.interactive.fill
 												.secondary.content.text
@@ -234,7 +265,7 @@ export const DropdownMenu = function ({
 									cssClass={styles.menuButton}
 								>
 									{formatDatetime(
-										new Date().toISOString(),
+										getNow().toISOString(),
 										sessionFeedConfiguration.datetimeFormat,
 									)}
 								</Menu.Button>
@@ -243,16 +274,43 @@ export const DropdownMenu = function ({
 									{dateTimeFormats.map((dt) => (
 										<Menu.Item
 											key={dt}
-											onClick={() => {
+											onClick={(e) => {
+												e.preventDefault()
 												sessionFeedConfiguration.setDatetimeFormat(
 													dt,
 												)
 											}}
 										>
-											{formatDatetime(
-												new Date().toISOString(),
-												dt,
-											)}
+											<SectionRow>
+												<IconGroup
+													icon={
+														dt ===
+														sessionFeedConfiguration.datetimeFormat ? (
+															<IconSolidCheck
+																size={16}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.primary
+																		.enabled
+																}
+															/>
+														) : (
+															<Box
+																style={{
+																	width: 16,
+																	height: 16,
+																}}
+															/>
+														)
+													}
+													text={formatDatetime(
+														getNow().toISOString(),
+														dt,
+													)}
+												/>
+											</SectionRow>
 										</Menu.Item>
 									))}
 								</Menu.List>
@@ -264,7 +322,7 @@ export const DropdownMenu = function ({
 							<IconGroup
 								icon={
 									<IconSolidClipboardList
-										width={16}
+										size={16}
 										color={
 											vars.theme.interactive.fill
 												.secondary.content.text
@@ -290,13 +348,43 @@ export const DropdownMenu = function ({
 									{countFormats.map((format) => (
 										<Menu.Item
 											key={format}
-											onClick={() => {
+											onClick={(e) => {
+												e.preventDefault()
 												sessionFeedConfiguration.setCountFormat(
 													format,
 												)
 											}}
 										>
-											{formatCount(12321, format)}
+											<SectionRow>
+												<IconGroup
+													icon={
+														format ===
+														sessionFeedConfiguration.countFormat ? (
+															<IconSolidCheck
+																size={16}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.primary
+																		.enabled
+																}
+															/>
+														) : (
+															<Box
+																style={{
+																	width: 16,
+																	height: 16,
+																}}
+															/>
+														)
+													}
+													text={formatCount(
+														12321,
+														format,
+													).toString()}
+												/>
+											</SectionRow>
 										</Menu.Item>
 									))}
 								</Menu.List>
@@ -320,7 +408,7 @@ export const DropdownMenu = function ({
 								<IconGroup
 									icon={
 										<IconSolidDocumentDownload
-											width={16}
+											size={16}
 											color={
 												vars.theme.interactive.fill
 													.secondary.content.text
@@ -344,7 +432,7 @@ export const DropdownMenu = function ({
 								<IconGroup
 									icon={
 										<IconSolidTrash
-											width={16}
+											size={16}
 											color={
 												vars.theme.interactive.fill
 													.secondary.content.text
