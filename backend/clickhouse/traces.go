@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -434,12 +433,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	}
 
 	colStrs := []string{}
-	gbc := []string{}
-
-	// tmp := modelInputs.MetricAggregatorMax
-	// limitAggregator = &tmp
-	// limitColumn = pointy.String("Duration")
-	// limit = pointy.Int(40)
+	groupByIndexes := []string{}
 
 	limitFn := ""
 	if limitAggregator != nil {
@@ -461,7 +455,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		} else {
 			colStrs = append(colStrs, fmt.Sprintf("toString(TraceAttributes['%s'])", group))
 		}
-		gbc = append(gbc, strconv.Itoa(idx+1))
+		groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
 	}
 
 	limitCount := 100
@@ -477,7 +471,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 			Where(innerSb.Equal("ProjectId", projectID)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
 			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
-			GroupBy(gbc...).
+			GroupBy(groupByIndexes...).
 			OrderBy(fmt.Sprintf("%s DESC", limitFn)).
 			Limit(limitCount)
 
@@ -495,8 +489,6 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	fromSb.Limit(10000)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
-	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	log.WithContext(ctx).Info(str)
 
 	metrics := &modelInputs.TracesMetrics{
 		Buckets: []*modelInputs.TracesMetricBucket{},

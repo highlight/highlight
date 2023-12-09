@@ -7635,7 +7635,7 @@ func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params
 		return nil, err
 	}
 
-	bucketByDeref := string(modelInputs.TracesMetricBucketByNone)
+	bucketByDeref := string(modelInputs.TracesMetricBucketByTimestamp)
 	if bucketBy != nil {
 		bucketByDeref = *bucketBy
 	}
