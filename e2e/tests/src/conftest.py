@@ -17,7 +17,9 @@ def run(bin_dir: str, args: list[str], cwd: Optional[str] = None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        cwd=os.path.realpath(os.path.join(os.curdir, os.pardir, os.pardir, cwd or "")),
+        cwd=os.path.realpath(
+            os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, cwd or "")
+        ),
     )
 
 

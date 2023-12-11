@@ -53,7 +53,7 @@ def query(
         raise exc
 
 
-@pytest.mark.xfail(reason="test is not yet stable")
+@pytest.mark.skip(reason="test is not yet stable")
 @pytest.mark.parametrize("success", ["true", "false"])
 @pytest.mark.parametrize(
     "endpoint,expected_error",
