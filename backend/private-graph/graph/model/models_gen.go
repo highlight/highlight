@@ -849,6 +849,7 @@ type Trace struct {
 	StartTime       int                    `json:"startTime"`
 	ServiceName     string                 `json:"serviceName"`
 	ServiceVersion  string                 `json:"serviceVersion"`
+	Environment     string                 `json:"environment"`
 	TraceAttributes map[string]interface{} `json:"traceAttributes"`
 	StatusCode      string                 `json:"statusCode"`
 	StatusMessage   string                 `json:"statusMessage"`

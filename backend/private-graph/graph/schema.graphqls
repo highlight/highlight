@@ -796,6 +796,7 @@ type Trace {
 	startTime: Int!
 	serviceName: String!
 	serviceVersion: String!
+	environment: String!
 	traceAttributes: Map!
 	statusCode: String!
 	statusMessage: String!

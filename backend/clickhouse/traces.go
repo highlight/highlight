@@ -228,6 +228,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 				Duration:        int(result.Duration),
 				ServiceName:     result.ServiceName,
 				ServiceVersion:  result.ServiceVersion,
+				Environment:     result.Environment,
 				TraceAttributes: expandJSON(result.TraceAttributes),
 				StatusCode:      result.StatusCode,
 				StatusMessage:   result.StatusMessage,
@@ -260,7 +261,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	var args []interface{}
 
 	sb.From(TracesByIdTable).
-		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, TraceAttributes, StatusCode, StatusMessage").
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID))
 
@@ -299,6 +300,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 			Duration:        int(result.Duration),
 			ServiceName:     result.ServiceName,
 			ServiceVersion:  result.ServiceVersion,
+			Environment:     result.Environment,
 			TraceAttributes: expandJSON(result.TraceAttributes),
 			StatusCode:      result.StatusCode,
 			StatusMessage:   result.StatusMessage,

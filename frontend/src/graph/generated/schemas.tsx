@@ -3158,6 +3158,7 @@ export type TopUsersPayload = {
 export type Trace = {
 	__typename?: 'Trace'
 	duration: Scalars['Int']
+	environment: Scalars['String']
 	events?: Maybe<Array<Maybe<TraceEvent>>>
 	links?: Maybe<Array<Maybe<TraceLink>>>
 	parentSpanID: Scalars['String']

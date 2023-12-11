@@ -2353,6 +2353,7 @@ query GetTrace($project_id: ID!, $trace_id: String!) {
 			duration
 			serviceName
 			serviceVersion
+			environment
 			traceAttributes
 			startTime
 			statusCode
@@ -2403,6 +2404,7 @@ query GetTraces(
 				duration
 				serviceName
 				serviceVersion
+				environment
 				traceAttributes
 				statusCode
 				statusMessage
