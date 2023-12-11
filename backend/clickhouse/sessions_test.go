@@ -246,6 +246,7 @@ func Test_QuerySessionIds(t *testing.T) {
 			Query: modelInputs.ClickhouseQuery{
 				IsAnd: true,
 				Rules: [][]string{
+					{"session_environment", "is", "production"},
 					{"custom_sample", "matches", "FFFFFFFFFFFFFFFF"},
 				},
 			},
