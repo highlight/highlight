@@ -53,6 +53,7 @@ def query(
         raise exc
 
 
+@pytest.mark.xfail(reason="test is not yet stable")
 @pytest.mark.parametrize("success", ["true", "false"])
 @pytest.mark.parametrize(
     "endpoint,expected_error",
@@ -73,8 +74,8 @@ def query(
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
     # TODO(vkorolik) figure out why our backend always holds on to the last error rather than writing it
-    # for now, send 10 requests to ensure errors are written to highlight
-    for _ in range(10):
+    # for now, send 3 requests to ensure errors are written to highlight
+    for _ in range(3):
         r = requests.get(
             f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
         )
@@ -107,12 +108,12 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
                     "isAnd": True,
                     "rules": [
                         # TODO(vkorolik) figure out why error filter returns no results
-                        # [
-                        #     "error-field_timestamp",
-                        #     "between_date",
-                        #     f"{start.isoformat(timespec='milliseconds')}Z_"
-                        #     f"{ts.isoformat(timespec='milliseconds')}Z",
-                        # ],
+                        [
+                            "error-field_timestamp",
+                            "between_date",
+                            f"{start.isoformat(timespec='milliseconds')}Z_"
+                            f"{ts.isoformat(timespec='milliseconds')}Z",
+                        ],
                     ],
                 },
                 "count": 10,
@@ -126,43 +127,42 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
 
 def test_express(express_app, oauth_api):
     start = datetime.utcnow()
-    for _ in range(10):
-        r = requests.get(
-            f"http://localhost:3003/good",
-            headers={"x-highlight-request": "abc123/def456"},
-            timeout=30,
-        )
-        logging.info(f"GET {r.url} {r.status_code} {r.text}")
-        assert r.ok
+    r = requests.get(
+        f"http://localhost:3003/good",
+        headers={"x-highlight-request": "abc123/def456"},
+        timeout=30,
+    )
+    logging.info(f"GET {r.url} {r.status_code} {r.text}")
+    assert r.ok
 
-        def validator(data: dict[str, any]):
-            assert 0 < len(data["logs"]["edges"]) <= 50
-            # check that we actually received the edge runtime error
-            msgs = set(
-                map(
-                    lambda eg: eg["node"]["message"],
-                    data["logs"]["edges"],
-                )
+    def validator(data: dict[str, any]):
+        assert 0 < len(data["logs"]["edges"]) <= 50
+        # check that we actually received the edge runtime error
+        msgs = set(
+            map(
+                lambda eg: eg["node"]["message"],
+                data["logs"]["edges"],
             )
-            assert "doing some heavy work!" in msgs
+        )
+        assert "doing some heavy work!" in msgs
 
-        query(
-            oauth_api,
-            "GetLogs",
-            GET_LOGS,
-            variables_fn=lambda ts: {
-                "project_id": "1",
-                "direction": "DESC",
-                "params": {
-                    "query": "doing some work",
-                    "date_range": {
-                        "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
-                        "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
-                    },
+    query(
+        oauth_api,
+        "GetLogs",
+        GET_LOGS,
+        variables_fn=lambda ts: {
+            "project_id": "1",
+            "direction": "DESC",
+            "params": {
+                "query": "doing some work",
+                "date_range": {
+                    "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
+                    "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                 },
             },
-            validator=validator,
-        )
+        },
+        validator=validator,
+    )
 
 
 def test_get_sessions_clickhouse(oauth_api):

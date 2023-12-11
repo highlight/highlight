@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 import subprocess
 import time
 from typing import Optional, Callable
@@ -9,27 +10,27 @@ import requests
 from semver import VersionInfo
 
 
-def run(bin_dir: str, args: list[str]):
+def run(bin_dir: str, args: list[str], cwd: Optional[str] = None):
     return subprocess.Popen(
         args,
         env=os.environ | {"PATH": f'{os.environ["PATH"]}:{bin_dir}'},
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        cwd=os.path.realpath(os.path.join(os.curdir, os.pardir, os.pardir)),
+        cwd=os.path.realpath(os.path.join(os.curdir, os.pardir, os.pardir, cwd or "")),
     )
 
 
-def yarn_exec(
+def run_and_poll(
     node_bin: str,
-    workspace: str,
-    script: str,
+    args: list[str],
     request: Optional[Callable[[], requests.Response]],
     pre: Optional[Callable[[], None]] = None,
+    cwd: Optional[str] = None,
 ):
-    proc = run(node_bin, ["yarn", "workspace", workspace, script])
     if pre:
         pre()
+    proc = run(node_bin, args, cwd=cwd)
     try:
         for _ in range(15):
             try:
@@ -43,6 +44,7 @@ def yarn_exec(
             raise Exception("app not ready")
         yield proc
     finally:
+        proc.send_signal(signal.SIGINT)
         proc.terminate()
         stdout, stderr = proc.communicate()
         logging.info("app output")
@@ -91,14 +93,16 @@ def node_js_bin():
     return os.path.realpath(os.path.join(base, f"v{latest}", "bin"))
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def next_dev(node_js_bin):
-    yield from yarn_exec(
-        node_js_bin, "nextjs", "dev", lambda: requests.get("http://localhost:3005/")
+    yield from run_and_poll(
+        node_js_bin,
+        ["yarn", "workspace", "nextjs", "dev"],
+        lambda: requests.get("http://localhost:3005/"),
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def next_prod(node_js_bin):
     def build():
         proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "build"])
@@ -109,31 +113,30 @@ def next_prod(node_js_bin):
         for line in stderr.splitlines():
             logging.info(line)
 
-    yield from yarn_exec(
+    yield from run_and_poll(
         node_js_bin,
-        "nextjs",
-        "dev",
+        ["yarn", "workspace", "nextjs", "dev"],
         lambda: requests.get("http://localhost:3005/"),
         pre=build,
     )
 
 
-@pytest.fixture(scope="session", params=["next_dev", "next_prod"])
+@pytest.fixture(params=["next_dev", "next_prod"])
 def next_app(request):
     yield request.getfixturevalue(request.param)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def express_js(node_js_bin):
-    yield from yarn_exec(
+    yield from run_and_poll(
         node_js_bin,
-        "e2e-express",
-        "dev",
+        ["node", "./src/index.mjs"],
         lambda: requests.get("http://localhost:3003/"),
+        cwd="express",
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def express_ts(node_js_bin):
     def build():
         proc = run(node_js_bin, ["yarn", "workspace", "e2e-express-ts", "build"])
@@ -144,15 +147,15 @@ def express_ts(node_js_bin):
         for line in stderr.splitlines():
             logging.info(line)
 
-    yield from yarn_exec(
+    yield from run_and_poll(
         node_js_bin,
-        "e2e-express-ts",
-        "start",
+        ["node", "./dist/index.js"],
         lambda: requests.get("http://localhost:3003/"),
         pre=build,
+        cwd="express-ts",
     )
 
 
-@pytest.fixture(scope="session", params=["express_js", "express_ts"])
+@pytest.fixture(params=["express_js", "express_ts"])
 def express_app(request):
     yield request.getfixturevalue(request.param)
