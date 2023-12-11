@@ -103,23 +103,26 @@ func parseFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb
 		Where(sbInner.Equal("Name", name)).
 		Where(sbInner.Between("SessionCreatedAt", start, end))
 
-	conditions := []string{}
-	for _, v := range rule.Val {
-		switch rule.Op {
-		case Is:
-			conditions = append(conditions, fmt.Sprintf("Value ILIKE %s", sbInner.Var(v)))
-		case Contains:
-			conditions = append(conditions, fmt.Sprintf("Value ILIKE %s", sbInner.Var("%"+v+"%")))
-		case Matches:
-			conditions = append(conditions, fmt.Sprintf("Value REGEXP %s", sbInner.Var(v)))
-		case Exists:
-			conditions = append(conditions, sbInner.IsNotNull("Value"))
-		default:
-			return "", fmt.Errorf("unsupported operator %s", rule.Op)
+	if rule.Op == Exists {
+		sbInner.Where(sbInner.IsNotNull("Value"))
+	} else {
+		conditions := []string{}
+		for _, v := range rule.Val {
+			switch rule.Op {
+			case Is:
+				conditions = append(conditions, fmt.Sprintf("Value ILIKE %s", sbInner.Var(v)))
+			case Contains:
+				conditions = append(conditions, fmt.Sprintf("Value ILIKE %s", sbInner.Var("%"+v+"%")))
+			case Matches:
+				conditions = append(conditions, fmt.Sprintf("Value REGEXP %s", sbInner.Var(v)))
+			default:
+				return "", fmt.Errorf("unsupported operator %s", rule.Op)
+			}
 		}
+
+		sbInner.Where(sbInner.Or(conditions...))
 	}
 
-	sbInner.Where(sbInner.Or(conditions...))
 	return sb.In("ID", sbInner), nil
 }
 
@@ -176,6 +179,10 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 		return "", fmt.Errorf("unknown column %s", name)
 	}
 
+	if rule.Op == Exists {
+		return sb.IsNotNull(mappedName), nil
+	}
+
 	conditions := []string{}
 	for _, v := range rule.Val {
 		switch rule.Op {
@@ -214,8 +221,6 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 			}
 		case Contains:
 			conditions = append(conditions, fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var("%"+v+"%")))
-		case Exists:
-			conditions = append(conditions, sb.IsNotNull(mappedName))
 		case Between:
 			before, after, found := strings.Cut(v, "_")
 			if !found {
