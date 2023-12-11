@@ -7,6 +7,7 @@ import entryPoints from './entryPoints.mjs'
 
 export default defineConfig({
 	build: {
+		emptyOutDir: false,
 		lib: {
 			entry: entryPoints,
 			name: '@highlight-run/ui',
