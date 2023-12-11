@@ -194,25 +194,23 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	var g errgroup.Group
 
 	if len(chSessions) > 0 {
-		sessionsSql, sessionsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseSession)).
-			InsertInto(SessionsTable, chSessions...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
-		sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 32, map[int]bool{7: true, 8: true}, MicroSeconds)
-
 		g.Go(func() error {
+			sessionsSql, sessionsArgs := sqlbuilder.
+				NewStruct(new(ClickhouseSession)).
+				InsertInto(SessionsTable, chSessions...).
+				BuildWithFlavor(sqlbuilder.ClickHouse)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 32, map[int]bool{7: true, 8: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
 
 	if len(chFields) > 0 {
-		fieldsSql, fieldsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseField)).
-			InsertInto(FieldsTable, chFields...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
-		fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, 6, map[int]bool{3: true}, MicroSeconds)
-
 		g.Go(func() error {
+			fieldsSql, fieldsArgs := sqlbuilder.
+				NewStruct(new(ClickhouseField)).
+				InsertInto(FieldsTable, chFields...).
+				BuildWithFlavor(sqlbuilder.ClickHouse)
+			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, 6, map[int]bool{3: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
 		})
 	}

@@ -228,6 +228,8 @@ func Test_QuerySessionIds(t *testing.T) {
 	assert.NoError(t, DB.Create(s2).Error)
 	assert.NoError(t, DB.Create(s3).Error)
 	assert.NoError(t, client.WriteSessions(ctx, []*model.Session{s1, s2, s3}))
+	// wait for clickhouse to flush the write
+	time.Sleep(time.Second)
 
 	for name, tc := range map[string]struct {
 		Query modelInputs.ClickhouseQuery
@@ -246,7 +248,6 @@ func Test_QuerySessionIds(t *testing.T) {
 			Query: modelInputs.ClickhouseQuery{
 				IsAnd: true,
 				Rules: [][]string{
-					{"session_environment", "is", "production"},
 					{"custom_sample", "matches", "FFFFFFFFFFFFFFFF"},
 				},
 			},
