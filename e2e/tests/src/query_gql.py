@@ -69,3 +69,37 @@ query GetErrorGroupsClickhouse(
 	}
 }
 """
+
+GET_LOGS = """
+query GetLogs($project_id: ID!, $params: QueryInput!, $after: String, $before: String, $at: String, $direction: SortDirection!) {
+  logs(
+    project_id: $project_id
+    params: $params
+    after: $after
+    before: $before
+    at: $at
+    direction: $direction
+  ) {
+    edges {
+      cursor
+      node {
+        timestamp
+        level
+        message
+        logAttributes
+        traceID
+        spanID
+        secureSessionID
+        source
+        serviceName
+        serviceVersion
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}"""

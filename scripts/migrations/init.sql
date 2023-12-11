@@ -25,8 +25,16 @@ VALUES (1, now(), now(), null, 'Hobby Highlighter', 'Hobby',
         'https://avatars.githubusercontent.com/u/1351531?s=40&v=4', 'Hobby Highlighter', null, '', 'eng',
         'ENGINEERING');
 
+INSERT INTO admins (id, created_at, updated_at, deleted_at, name, first_name, last_name, hubspot_contact_id, email, about_you_details_filled, phone, number_of_sessions_viewed, number_of_error_groups_viewed, number_of_logs_viewed, email_verified, photo_url, uid, slack_im_channel_id, referral, user_defined_role, user_defined_team_size, user_defined_persona, heard_about, phone_home_contact_allowed) VALUES (1, '2023-12-08 20:59:28.019967 +00:00', '2023-12-08 20:59:28.019967 +00:00', null, 'Hobby Highlighter', 'Hobby', 'Highlighter', null, 'demo@example.com', true, '+14081234567', null, null, null, true, 'https://avatars.githubusercontent.com/u/1351531?s=40&v=4', 'Hobby Highlighter', null, '', 'eng', null, 'ENGINEERING', null, null);
+INSERT INTO admins (id, created_at, updated_at, deleted_at, name, first_name, last_name, hubspot_contact_id, email, about_you_details_filled, phone, number_of_sessions_viewed, number_of_error_groups_viewed, number_of_logs_viewed, email_verified, photo_url, uid, slack_im_channel_id, referral, user_defined_role, user_defined_team_size, user_defined_persona, heard_about, phone_home_contact_allowed) VALUES (2, '2023-12-08 20:59:47.788060 +00:00', '2023-12-08 20:59:47.788060 +00:00', null, 'Hobby Highlighter', null, null, null, 'demo@example.com', true, '+14081234567', null, null, null, true, 'https://picsum.photos/200', '<nil>', null, null, null, null, null, null, null);
+INSERT INTO admins (id, created_at, updated_at, deleted_at, name, first_name, last_name, hubspot_contact_id, email, about_you_details_filled, phone, number_of_sessions_viewed, number_of_error_groups_viewed, number_of_logs_viewed, email_verified, photo_url, uid, slack_im_channel_id, referral, user_defined_role, user_defined_team_size, user_defined_persona, heard_about, phone_home_contact_allowed) VALUES (3, '2023-12-08 21:06:03.546024 +00:00', '2023-12-08 21:06:03.546024 +00:00', null, 'Hobby Highlighter', null, null, null, 'demo@example.com', true, '+14081234567', null, null, null, true, 'https://picsum.photos/200', '12345abcdef09876a1b2c3d4e5f', null, null, null, null, null, null, null);
+
 INSERT INTO workspace_admins (admin_id, workspace_id, created_at, updated_at, deleted_at, role)
 VALUES (1, 1, NOW(), NOW(), null, 'ADMIN');
+INSERT INTO workspace_admins (admin_id, workspace_id, created_at, updated_at, deleted_at, role)
+VALUES (2, 1, NOW(), NOW(), null, 'ADMIN');
+INSERT INTO workspace_admins (admin_id, workspace_id, created_at, updated_at, deleted_at, role)
+VALUES (3, 1, NOW(), NOW(), null, 'ADMIN');
 
 INSERT INTO all_workspace_settings (id, created_at, updated_at, deleted_at, workspace_id, ai_application, ai_insights,
                                     error_embeddings_write, error_embeddings_group, error_embeddings_threshold,

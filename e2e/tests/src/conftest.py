@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess
 import time
+from typing import Optional, Callable
 
 import pytest
 import requests
@@ -17,6 +18,34 @@ def run(bin_dir: str, args: list[str]):
         text=True,
         cwd=os.path.realpath(os.path.join(os.curdir, os.pardir, os.pardir)),
     )
+
+
+def yarn_exec(node_bin: str, workspace: str, script: str,
+              request: Optional[Callable[[], requests.Response]],
+              pre: Optional[Callable[[], None]] = None):
+    proc = run(node_bin, ["yarn", "workspace", workspace, script])
+    if pre:
+        pre()
+    try:
+        for _ in range(15):
+            try:
+                r = request()
+                if r.ok:
+                    break
+            except requests.RequestException:
+                pass
+            time.sleep(1)
+        else:
+            raise Exception("app not ready")
+        yield proc
+    finally:
+        proc.terminate()
+        stdout, stderr = proc.communicate()
+        logging.info("app output")
+        for line in stdout.splitlines():
+            logging.info(line)
+        for line in stderr.splitlines():
+            logging.info(line)
 
 
 @pytest.fixture(scope="session")
@@ -60,62 +89,49 @@ def node_js_bin():
 
 @pytest.fixture(scope="session")
 def next_dev(node_js_bin):
-    proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "dev"])
-    try:
-        for _ in range(15):
-            try:
-                r = requests.get("http://localhost:3005/")
-                if r.ok:
-                    break
-            except requests.RequestException:
-                pass
-            time.sleep(1)
-        else:
-            raise Exception("next app not ready")
-        yield proc
-    finally:
-        proc.terminate()
-        stdout, stderr = proc.communicate()
-        logging.info("next app output")
-        for line in stdout.splitlines():
-            logging.info(line)
-        for line in stderr.splitlines():
-            logging.info(line)
+    yield from yarn_exec(node_js_bin, "nextjs", "dev", lambda: requests.get("http://localhost:3005/"))
 
 
 @pytest.fixture(scope="session")
 def next_prod(node_js_bin):
-    proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "build"])
-    stdout, stderr = proc.communicate()
-    logging.info("next build output")
-    for line in stdout.splitlines():
-        logging.info(line)
-    for line in stderr.splitlines():
-        logging.info(line)
-
-    proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "start"])
-    try:
-        for _ in range(15):
-            try:
-                r = requests.get("http://localhost:3005/")
-                if r.ok:
-                    break
-            except requests.RequestException:
-                pass
-            time.sleep(1)
-        else:
-            raise Exception("next app not ready")
-        yield proc
-    finally:
-        proc.terminate()
+    def build():
+        proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "build"])
         stdout, stderr = proc.communicate()
-        logging.info("next app output")
+        logging.info("next build output")
         for line in stdout.splitlines():
             logging.info(line)
         for line in stderr.splitlines():
             logging.info(line)
 
+    yield from yarn_exec(node_js_bin, "nextjs", "dev", lambda: requests.get("http://localhost:3005/"),
+                         pre=build)
+
 
 @pytest.fixture(scope="session", params=["next_dev", "next_prod"])
 def next_app(request):
+    yield request.getfixturevalue(request.param)
+
+
+@pytest.fixture(scope="session")
+def express_js(node_js_bin):
+    yield from yarn_exec(node_js_bin, "express", "dev", lambda: requests.get("http://localhost:3003/"))
+
+
+@pytest.fixture(scope="session")
+def express_ts(node_js_bin):
+    def build():
+        proc = run(node_js_bin, ["yarn", "workspace", "express-ts", "build"])
+        stdout, stderr = proc.communicate()
+        logging.info("express-ts build output")
+        for line in stdout.splitlines():
+            logging.info(line)
+        for line in stderr.splitlines():
+            logging.info(line)
+
+    yield from yarn_exec(node_js_bin, "express-ts", "start", lambda: requests.get("http://localhost:3005/"),
+                         pre=build)
+
+
+@pytest.fixture(scope="session", params=["express_js", "express_ts"])
+def express_app(request):
     yield request.getfixturevalue(request.param)

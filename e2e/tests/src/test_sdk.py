@@ -5,16 +5,16 @@ from typing import Optional, Callable
 
 import pytest
 import requests
-from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_SESSIONS_CLICKHOUSE
+from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_SESSIONS_CLICKHOUSE, GET_LOGS
 
 
 def query(
-    oauth_api: tuple[str, str],
-    operation_name: str,
-    query: str,
-    variables: Optional[dict[str, any]] = None,
-    variables_fn: Optional[Callable[[datetime], dict[str, any]]] = None,
-    validator: Optional[Callable[[dict[str, any]], None]] = None,
+        oauth_api: tuple[str, str],
+        operation_name: str,
+        query: str,
+        variables: Optional[dict[str, any]] = None,
+        variables_fn: Optional[Callable[[datetime], dict[str, any]]] = None,
+        validator: Optional[Callable[[dict[str, any]], None]] = None,
 ):
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
@@ -58,19 +58,19 @@ def query(
     "endpoint,expected_error",
     [
         (
-            "/api/page-router-test",
-            "Error: /pages/api/page-router-test.ts (Page Router)",
+                "/api/page-router-test",
+                "Error: /pages/api/page-router-test.ts (Page Router)",
         ),
         (
-            "/api/page-router-edge-test",
-            "Error: /api/page-router-edge-test (Edge Runtime)",
+                "/api/page-router-edge-test",
+                "Error: /api/page-router-edge-test (Edge Runtime)",
         ),
         ("/api/app-router-test", "Error: /api/app-router-test (App Router)"),
         ("/api/edge-test", "Error: /api/edge-test (Edge Runtime)"),
     ],
     ids=["page-router-test", "page-router-edge-test", "app-router-test", "edge-test"],
 )
-def test_next_js(next_dev, oauth_api, endpoint, expected_error, success):
+def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
     # TODO(vkorolik) figure out why our backend always holds on to the last error rather than writing it
     # for now, send 10 requests to ensure errors are written to highlight
@@ -86,7 +86,6 @@ def test_next_js(next_dev, oauth_api, endpoint, expected_error, success):
 
     # check that the error came thru to highlight
     if success == "false":
-
         def validator(data: dict[str, any]):
             assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
             # check that we actually received the edge runtime error
@@ -119,6 +118,45 @@ def test_next_js(next_dev, oauth_api, endpoint, expected_error, success):
                 "page": 1,
                 "project_id": "1",
                 "sort_desc": False,
+            },
+            validator=validator,
+        )
+
+
+def text_express(express_app, oauth_api):
+    start = datetime.now()
+    for _ in range(10):
+        r = requests.get(
+            f"http://localhost:3003/good", headers={'x-highlight-request': 'abc123/def456'}, timeout=30
+        )
+        logging.info(f"GET {r.url} {r.status_code} {r.text}")
+        assert r.ok
+
+        def validator(data: dict[str, any]):
+            assert 0 < len(data["logs"]["edges"]) <= 50
+            # check that we actually received the edge runtime error
+            msgs = set(
+                map(
+                    lambda eg: eg["node"]["message"],
+                    data["logs"]["edges"],
+                )
+            )
+            assert "doing some heavy work!" in msgs
+
+        query(
+            oauth_api,
+            "GetLogs",
+            GET_LOGS,
+            variables_fn=lambda ts: {
+                "project_id": "1",
+                "direction": "DESC",
+                "params": {
+                    "query": "doing some work",
+                    "date_range": {
+                        "start_date": f'{start.isoformat(timespec="microseconds")}000',
+                        "end_date": f'{ts.isoformat(timespec="microseconds")}000'
+                    }
+                }
             },
             validator=validator,
         )
