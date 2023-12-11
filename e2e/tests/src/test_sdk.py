@@ -70,7 +70,7 @@ def query(
     ],
     ids=["page-router-test", "page-router-edge-test", "app-router-test", "edge-test"],
 )
-def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
+def test_next_js(next_dev, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
     # TODO(vkorolik) figure out why our backend always holds on to the last error rather than writing it
     # for now, send 10 requests to ensure errors are written to highlight
