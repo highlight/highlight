@@ -62,6 +62,7 @@ class H(object):
         log_level=logging.DEBUG,
         service_name: str = "",
         service_version: str = "",
+        environment: str = "",
     ):
         """
         Setup Highlight backend instrumentation.
@@ -77,6 +78,7 @@ class H(object):
         :param otlp_endpoint: set to a custom otlp destination
         :param service_name: a string to name this app
         :param service_version: a string to set this app's version (typically a Git deploy sha).
+        :param environment: a string to set this app's environment (e.g. 'production', 'development').
         :return: a configured H instance
         """
         H._instance = self
@@ -90,6 +92,7 @@ class H(object):
         resource = _build_resource(
             service_name=service_name,
             service_version=service_version,
+            environment=environment,
         )
         self._trace_provider = TracerProvider(resource=resource)
         self._trace_provider.add_span_processor(
@@ -363,6 +366,7 @@ class H(object):
 def _build_resource(
     service_name: str,
     service_version: str,
+    environment: str,
 ) -> Resource:
     attrs = {}
 
@@ -370,5 +374,7 @@ def _build_resource(
         attrs[ResourceAttributes.SERVICE_NAME] = service_name
     if service_version:
         attrs[ResourceAttributes.SERVICE_VERSION] = service_version
+    if environment:
+        attrs[ResourceAttributes.DEPLOYMENT_ENVIRONMENT] = environment
 
     return Resource.create(attrs)

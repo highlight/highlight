@@ -9,12 +9,13 @@ from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
 H = highlight_io.H(
-    "1",
+    "3",
     integrations=[FlaskIntegration()],
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-flask-app",
     service_version="1.0.0",
+    environment="e2e-test",
 )
 
 
