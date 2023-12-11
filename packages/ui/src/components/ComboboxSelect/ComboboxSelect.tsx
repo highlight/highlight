@@ -192,7 +192,7 @@ export const ComboboxSelect_test = () => {
 		{ key: 'blue', render: 'Blue' },
 		{ key: 'green', render: 'Green' },
 	]
-	const label = 'Select a color'
+	const label = 'Select a color!'
 	return (
 		<ComboboxSelect
 			label={label}
