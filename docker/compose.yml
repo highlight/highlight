@@ -80,6 +80,7 @@ services:
             - 8123:8123
             - 9000:9000
         volumes:
+            - ./backup_disk.xml:/etc/clickhouse-server/config.d/backup_disk.xml
             - clickhouse-data:/var/lib/clickhouse
             - clickhouse-logs:/var/log/clickhouse-server
 

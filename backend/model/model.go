@@ -1356,17 +1356,17 @@ type SystemConfiguration struct {
 	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}'"`
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
-	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
-	LogsQueueSize     int            `gorm:"type:bigint;default:10000"`
-	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
+	LogsFlushSize     int            `gorm:"type:bigint;default:1000"`
+	LogsQueueSize     int            `gorm:"type:bigint;default:100"`
+	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:1000000000"`
 	DataSyncWorkers   int            `gorm:"default:1"`
-	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
-	DataSyncQueueSize int            `gorm:"type:bigint;default:10000"`
-	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
+	DataSyncFlushSize int            `gorm:"type:bigint;default:1000"`
+	DataSyncQueueSize int            `gorm:"type:bigint;default:100"`
+	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:1000000000"`
 	TraceWorkers      int            `gorm:"default:1"`
-	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
-	TraceQueueSize    int            `gorm:"type:bigint;default:10000"`
-	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
+	TraceFlushSize    int            `gorm:"type:bigint;default:1000"`
+	TraceQueueSize    int            `gorm:"type:bigint;default:100"`
+	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:1000000000"`
 }
 
 type RetryableType string

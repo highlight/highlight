@@ -135,6 +135,8 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			if traceRow != nil {
 				traceRows = append(traceRows, traceRow)
 			}
+		default:
+			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.Type)
 		}
 	}
 	k.messages = []*kafkaqueue.Message{}
