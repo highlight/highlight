@@ -125,7 +125,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
         )
 
 
-def test_express(express_app, oauth_api):
+def test_express_log(express_app, oauth_api):
     start = datetime.utcnow()
     r = requests.get(
         f"http://localhost:3003/good",
@@ -168,6 +168,52 @@ def test_express(express_app, oauth_api):
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                 },
             },
+        },
+        validator=validator,
+    )
+
+
+def test_express_error(express_app, oauth_api):
+    start = datetime.utcnow() - timedelta(minutes=1)
+    r = requests.get(
+        f"http://localhost:3003/",
+        headers={"x-highlight-request": "abc123/def456"},
+        timeout=30,
+    )
+    logging.info(f"GET {r.url} {r.status_code} {r.text}")
+    assert r.ok
+
+    def validator(data: dict[str, any]):
+        assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
+        # check that we actually received the edge runtime error
+        events = set(
+            map(
+                lambda eg: eg["event"][0],
+                data["error_groups_clickhouse"]["error_groups"],
+            )
+        )
+        assert "this is a test error" in events
+
+    query(
+        oauth_api,
+        "GetErrorGroupsClickhouse",
+        GET_ERROR_GROUPS_CLICKHOUSE,
+        variables_fn=lambda ts: {
+            "query": {
+                "isAnd": True,
+                "rules": [
+                    [
+                        "error-field_timestamp",
+                        "between_date",
+                        f"{start.isoformat(timespec='milliseconds')}Z_"
+                        f"{ts.isoformat(timespec='milliseconds')}Z",
+                    ],
+                ],
+            },
+            "count": 10,
+            "page": 1,
+            "project_id": "1",
+            "sort_desc": False,
         },
         validator=validator,
     )
