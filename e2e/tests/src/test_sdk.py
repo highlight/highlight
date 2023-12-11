@@ -144,7 +144,15 @@ def test_express(express_app, oauth_api):
                 data["logs"]["edges"],
             )
         )
-        assert "doing some heavy work!" in msgs
+        exp = "doing some heavy work!"
+        assert exp in msgs
+        for item in filter(
+            lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
+        ):
+            assert item["node"]["level"] == "warn"
+            assert item["node"]["secureSessionID"] == "abc123"
+            assert item["node"]["serviceName"] == "e2e-express"
+            assert item["node"]["serviceVersion"] == "git-sha"
 
     query(
         oauth_api,
