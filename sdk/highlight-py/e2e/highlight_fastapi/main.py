@@ -14,7 +14,6 @@ H = highlight_io.H(
     service_name="my-fastapi-app",
     service_version="1.0.0",
     environment="e2e-test",
-    
 )
 
 app = FastAPI()
