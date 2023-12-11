@@ -216,13 +216,12 @@ ComboboxSelect_test.run = async ({ step }) => {
 	await step('open dialog', async ({ screen, user }) => {
 		const combobox = await screen.findByRole('combobox')
 		await user.click(combobox)
-		await screen.findByRole('dialog')
-		// const dialog = await screen.findByRole('dialog')
-		// return {
-		// 	screenshotOptions: {
-		// 		element: dialog,
-		// 	},
-		// }
+		const dialog = await screen.findByRole('dialog')
+		return {
+			screenshotOptions: {
+				element: dialog,
+			},
+		}
 	})
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -230,6 +229,11 @@ ComboboxSelect_test.run = async ({ step }) => {
 	await step('enter filter text', async ({ screen, user }) => {
 		const filterInput = await screen.findByPlaceholderText('Filter...')
 		await user.type(filterInput, 're')
+		return {
+			screenshotOptions: {
+				element: filterInput,
+			},
+		}
 	})
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
