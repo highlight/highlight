@@ -213,26 +213,16 @@ export const ComboboxSelect_test = () => {
 ComboboxSelect_test.run = async ({ step }) => {
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
-	const { combobox } = await step('find combobox', async ({ screen }) => {
-		const combobox = await screen.findByRole('combobox')
-		return {
-			combobox,
-			screenshotOptions: {
-				element: combobox,
-			},
-		}
-	})
-
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
 	await step('open dialog', async ({ screen, user }) => {
+		const combobox = await screen.findByRole('combobox')
 		await user.click(combobox)
-		const dialog = await screen.findByRole('dialog')
-		return {
-			screenshotOptions: {
-				element: dialog,
-			},
-		}
+		await screen.findByRole('dialog')
+		// const dialog = await screen.findByRole('dialog')
+		// return {
+		// 	screenshotOptions: {
+		// 		element: dialog,
+		// 	},
+		// }
 	})
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
