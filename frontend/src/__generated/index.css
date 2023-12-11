@@ -5937,6 +5937,7 @@ body {
   font-feature-settings: normal;
   position: relative;
   text-overflow: ellipsis;
+  white-space: pre;
 }
 ._10xh0c26 {
   border: var(--_1pyqka91o) solid 1px;
