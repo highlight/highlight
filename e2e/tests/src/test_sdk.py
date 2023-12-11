@@ -125,7 +125,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
 
 
 def test_express(express_app, oauth_api):
-    start = datetime.now()
+    start = datetime.utcnow()
     for _ in range(10):
         r = requests.get(
             f"http://localhost:3003/good",
@@ -156,8 +156,8 @@ def test_express(express_app, oauth_api):
                 "params": {
                     "query": "doing some work",
                     "date_range": {
-                        "start_date": f'{start.isoformat(timespec="microseconds")}000',
-                        "end_date": f'{ts.isoformat(timespec="microseconds")}000',
+                        "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
+                        "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                     },
                 },
             },

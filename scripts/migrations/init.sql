@@ -55,3 +55,5 @@ INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operat
 VALUES (now(), 'abc123', 'admin');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'error_groups_clickhouse');
+INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
+VALUES (now(), 'abc123', 'logs');

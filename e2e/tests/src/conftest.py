@@ -126,14 +126,17 @@ def next_app(request):
 @pytest.fixture(scope="session")
 def express_js(node_js_bin):
     yield from yarn_exec(
-        node_js_bin, "express", "dev", lambda: requests.get("http://localhost:3003/")
+        node_js_bin,
+        "e2e-express",
+        "dev",
+        lambda: requests.get("http://localhost:3003/"),
     )
 
 
 @pytest.fixture(scope="session")
 def express_ts(node_js_bin):
     def build():
-        proc = run(node_js_bin, ["yarn", "workspace", "express-ts", "build"])
+        proc = run(node_js_bin, ["yarn", "workspace", "e2e-express-ts", "build"])
         stdout, stderr = proc.communicate()
         logging.info("express-ts build output")
         for line in stdout.splitlines():
@@ -143,9 +146,9 @@ def express_ts(node_js_bin):
 
     yield from yarn_exec(
         node_js_bin,
-        "express-ts",
+        "e2e-express-ts",
         "start",
-        lambda: requests.get("http://localhost:3005/"),
+        lambda: requests.get("http://localhost:3003/"),
         pre=build,
     )
 
