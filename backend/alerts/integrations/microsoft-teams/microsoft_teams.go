@@ -5,15 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	nUrl "net/url"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/infracloudio/msbotbuilder-go/core"
+	"github.com/infracloudio/msbotbuilder-go/core/activity"
+	"github.com/infracloudio/msbotbuilder-go/schema"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
+	"gorm.io/gorm"
 )
 
 var (
@@ -37,6 +43,178 @@ type MicrosoftTeamsTokenResponse struct {
 	TokenType    string `json:"token_type"`
 }
 
+type BotHandler struct {
+	core.Adapter
+	DB *gorm.DB
+}
+
+var botMessagesHandler = activity.HandlerFuncs{
+	OnMessageFunc: func(turn *activity.TurnContext) (schema.Activity, error) {
+		return turn.SendActivity(activity.MsgOptionText("Echo: " + turn.Activity.Text))
+	},
+	OnConversationUpdateFunc: func(turn *activity.TurnContext) (schema.Activity, error) {
+		// this is called whenever our bot or a new member is added/removed from the team.
+		// use this to "uninstall/remove bot/teams integration integration"
+		// use this to send a welcome message to
+
+		if len(turn.Activity.MembersRemoved) > 0 {
+			// identify if our bot is part of the id
+			for _, memberRemoved := range turn.Activity.MembersRemoved {
+				// our bot is the recipient of this message - so we are being removed from the conversation
+				if memberRemoved.ID == turn.Activity.Recipient.ID {
+					// uninstall stuff - delete integration
+					// delete conversation reference json
+					// remove channels data
+					return turn.SendActivity(activity.MsgOptionText("Hightlight bot uninstalled successfully" + turn.Activity.Text))
+				}
+			}
+		} else if len(turn.Activity.MembersAdded) > 0 {
+			// identify if our bot is part of the id
+			for _, memberRemoved := range turn.Activity.MembersRemoved {
+				// our bot is the recipient of this message - so we are being removed from the conversation
+				if memberRemoved.ID == turn.Activity.Recipient.ID {
+					// find workspace with relevant tenantID
+					// save conversation reference
+					// fetch channels and save them as well.
+					return turn.SendActivity(activity.MsgOptionText("Hello. Your highlight notifications bot has been installed successfully. You can now set a teams channel as receipient for your alerts. Your highlight microsoft teams integration will be removed on highlight whenever you uninstall the bot."))
+				}
+			}
+		}
+
+		return turn.Activity, nil // TODO: I intended to send nothing back here but ...
+	},
+}
+
+func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	ctx := context.Background()
+	act, err := ht.Adapter.ParseRequest(ctx, req)
+
+	if err != nil {
+		fmt.Println("Failed to parse request.", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// conversationRef = activity.GetCoversationReference(act)
+
+	// ignore other messages messages
+	processActivity := false
+
+	if act.Type == schema.ConversationUpdate {
+
+		if len(act.MembersRemoved) > 0 {
+			// identify if our bot is part of the id
+			for _, memberRemoved := range act.MembersRemoved {
+				// our bot is the recipient of this message - so we are being removed from the conversation
+				if memberRemoved.ID == act.Recipient.ID {
+					query := &model.Workspace{
+						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
+					}
+					if err := ht.DB.Transaction(func(tx *gorm.DB) error {
+						// remove slack integration from workspace
+						// TODO: centralize msbot uninstallation method and call it here
+						if err := tx.Where(query).Select("microsoft_teams_tenant_id, microsoft_teams_conversation_ref").Updates(&model.Workspace{MicrosoftTeamsTenantId: nil, MicrosoftTeamsConversationRef: nil}).Error; err != nil {
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							log.Println("error removing microsoft_teams bot from workspace")
+						}
+
+						// no errors updating DB
+						return nil
+					}); err != nil {
+						http.Error(w, err.Error(), http.StatusBadRequest)
+					}
+					break
+				}
+			}
+		}
+
+		if len(act.MembersAdded) > 0 {
+			// identify if our bot is part of the id
+			for _, membersAddded := range act.MembersAdded {
+				// our bot is the recipient of this message - so we are being removed from the conversation
+				if membersAddded.ID == act.Recipient.ID {
+					query := &model.Workspace{
+						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
+					}
+
+					// var workspace model.Workspace
+					conversationReference := activity.GetCoversationReference(act)
+
+					conversation := conversationReference.Conversation
+					conversationReferenceData := map[string]interface{}{}
+
+					// TODO: can we do better than this?
+					conversationReferenceData["id"] = conversation.ID
+					conversationReferenceData["conversation_type"] = conversation.ConversationType
+					conversationReferenceData["is_group"] = conversation.IsGroup
+					conversationReferenceData["name"] = conversation.Name
+					conversationReferenceData["aad_object_id"] = conversation.AadObjectID
+					conversationReferenceData["tenant_id"] = conversation.TenantID
+
+					if err := ht.DB.Where(&query).Select("microsoft_teams_conversation_ref").Updates(&model.Workspace{MicrosoftTeamsConversationRef: conversationReferenceData}); err != nil {
+						fmt.Println("installation unsuccessful")
+						break
+					}
+
+					processActivity = true
+					break
+				}
+			}
+		}
+
+		if processActivity {
+			err = ht.Adapter.ProcessActivity(ctx, act, botMessagesHandler)
+			if err != nil {
+				fmt.Println("Failed to process request", err)
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+
+	}
+}
+
+func BotHandlerFunc(db *gorm.DB) (*BotHandler, error) {
+	var (
+		ok          bool
+		botPassword string
+		botID       string
+	)
+	if botPassword, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_PASSWORD"); !ok || botPassword == "" {
+		return nil, errors.New("MICROSOFT_TEAMS_BOT_PASSWORD not set")
+	}
+
+	if botID, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_ID"); !ok || botID == "" {
+		return nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
+	}
+
+	setting := core.AdapterSetting{
+		AppID:       botID,
+		AppPassword: botPassword,
+	}
+
+	adapter, err := core.NewBotAdapter(setting)
+	if err != nil {
+		log.Println("Error creating adapter: ", err)
+		return nil, err
+	}
+
+	botHandler := &BotHandler{adapter, db}
+	return botHandler, nil
+}
+
+// RegisterMicrosoftTeamsBotHandler registers a POST url at endpoint/microsoft-teams/bot
+func RegisterMicrosoftTeamsBotHandler(r *chi.Mux, endpoint string, db *gorm.DB) {
+	botHandler, err := BotHandlerFunc(db)
+	if err != nil {
+		log.Println("Microsoft teams bot handler could not be set because of", err)
+		return
+	} else {
+		r.Post(fmt.Sprintf("%s/%s", endpoint, "microsoft-teams/bot"), http.HandlerFunc(botHandler.ServeHTTP))
+	}
+
+}
+
 func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 	var (
 		ok           bool
@@ -44,11 +222,11 @@ func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 		clientSecret string
 		frontendUri  string
 	)
-	if clientID, ok = os.LookupEnv("MICROSOFT_TEAMS_CLIENT_ID"); !ok || clientID == "" {
-		return nil, nil, errors.New("MICROSOFT_TEAMS_CLIENT_ID not set")
+	if clientID, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_ID"); !ok || clientID == "" {
+		return nil, nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
 	}
-	if clientSecret, ok = os.LookupEnv("MICROSOFT_TEAMS_CLIENT_SECRET"); !ok || clientSecret == "" {
-		return nil, nil, errors.New("MICROSOFT_TEAMS_CLIENT_SECRET not set")
+	if clientSecret, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_PASSWORD"); !ok || clientSecret == "" {
+		return nil, nil, errors.New("MICROSOFT_TEAMS_BOT_PASSWORD not set")
 	}
 	if frontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || frontendUri == "" {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")

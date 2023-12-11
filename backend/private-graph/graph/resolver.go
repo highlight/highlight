@@ -2125,7 +2125,7 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace)
 	// TODO: UPDATE THIS WHEN WE ADD CHANNELS AND STUFF
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		// remove slack integration from workspace
-		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id").Updates(&model.Workspace{MicrosoftTeamsTenantId: nil}).Error; err != nil {
+		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id, microsoft_teams_conversation_ref").Updates(&model.Workspace{MicrosoftTeamsTenantId: nil, MicrosoftTeamsConversationRef: nil}).Error; err != nil {
 			return e.Wrap(err, "error removing microsoft_teams tenant from workspace")
 		}
 

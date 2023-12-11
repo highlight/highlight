@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/embeddings"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
@@ -418,6 +419,9 @@ func main() {
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
+
+		microsoft_teams.RegisterMicrosoftTeamsBotHandler(r, privateEndpoint, db)
+
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(highlightChi.Middleware)
 			r.Use(private.PrivateMiddleware)
