@@ -81,7 +81,7 @@
 		"dev:reflame": "node scripts/reflame.mjs --watch",
 		"dev:tsm": "tsm src -w --logLevel=error",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
-		"generate:antlr4": "antlr4 -Dlanguage=TypeScript ./src/components/Search/Parser/SearchGrammar.g4 && prettier --write ./src/components/Search/Parser/*.ts && eslint ./src/components/Search/Parser --quiet --fix",
+		"generate:antlr4": "antlr4 -Dlanguage=TypeScript ./src/components/Search/Parser/SearchGrammar.g4 && prettier --write ./src/components/Search/Parser/*.ts",
 		"reflame": "yarn dev:reflame",
 		"reflame-build": "node scripts/reflame.mjs",
 		"lint": "eslint ./src",
