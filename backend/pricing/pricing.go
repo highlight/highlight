@@ -1071,7 +1071,7 @@ func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace
 	}
 
 	if invoice != nil && invoice.Status == stripe.InvoiceStatusUncollectible {
-		log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe uncollectible invoice detected %s", invoice.ID)
+		log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe uncollectible invoice detected", invoice.ID)
 		return PaymentIssueTypeInvoiceUncollectible, nil
 	}
 
