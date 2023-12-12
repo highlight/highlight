@@ -50,6 +50,10 @@ slug: python
       <h5>service_version<code>string</code> <code>optional</code></h5>
       <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
     </aside>
+    <aside className="parameter">
+      <h5>tracing_origins<code>[string]</code> <code>optional</code></h5>
+      <p>Specifies where any external services live. If specified, Highlight will attach the X-Highlight-Request header to outgoing requests of the autoinstrumented Python libraries (e.g. requests) whose destination URLs match a substring or regexp from this list, so that service errors can be linked back to the session. If true is specified, all requests to the current domain will be matched. Example tracingOrigins: ['localhost', '^/', 'backend.myapp.com']</p>
+    </aside>
   </div>
   <div className="right">
     In Flask, you'll add Highlight in your main app.py entrypoint.
