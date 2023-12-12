@@ -237,8 +237,8 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
-	const parsedQuery = parseSearch(query)
-	const queryAsStringParts = parsedQuery.map((part) => part.value)
+	const { queryParts } = parseSearch(query)
+	const queryAsStringParts = queryParts.map((part) => part.value)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)

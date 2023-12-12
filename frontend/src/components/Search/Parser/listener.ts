@@ -1,12 +1,16 @@
-import { ErrorNode } from 'antlr4'
+import {
+	ErrorListener,
+	ErrorNode,
+	RecognitionException,
+	Recognizer,
+	Token,
+} from 'antlr4'
 
 import SearchGrammarListener from '@/components/Search/Parser/SearchGrammarListener'
 import {
 	Bin_opContext,
-	Col_exprContext,
 	Search_exprContext,
 	Search_keyContext,
-	Search_queryContext,
 	SpacesContext,
 } from '@/components/Search/Parser/SearchGrammarParser'
 
@@ -36,25 +40,13 @@ export class SearchListener extends SearchGrammarListener {
 		this.filters = filters
 	}
 
-	enterSearch_query = (ctx: Search_queryContext) => {
-		console.log('::: enterSearch_query', ctx.getText())
-	}
-
-	exitSearch_query = (ctx: Search_queryContext) => {
-		console.log('::: exitSearch_query', ctx.getText())
-	}
-
 	enterSearch_expr = (ctx: Search_exprContext) => {
-		console.log('::: enterSearch_expr', ctx.getText())
-
 		if (!this.hasChildExpressions(ctx)) {
-			// TODO: Figure out why the stop value is off by 1 :thinking:
 			const stop = (ctx.stop ? ctx.stop.stop : ctx.start.stop) + 1
-			const value = this.queryString.substring(ctx.start.start, stop)
 
 			this.currentFilter = {
 				type: 'filter',
-				value,
+				value: ctx.getText(),
 				key: 'default',
 				operator: '=',
 				start: ctx.start.start,
@@ -64,8 +56,6 @@ export class SearchListener extends SearchGrammarListener {
 	}
 
 	exitSearch_expr = (ctx: Search_exprContext) => {
-		console.log('::: exitSearch_expr', ctx.getText())
-
 		if (!this.hasChildExpressions(ctx)) {
 			this.filters.push(this.currentFilter)
 			this.currentFilter = {} as Filter
@@ -79,30 +69,12 @@ export class SearchListener extends SearchGrammarListener {
 		)
 	}
 
-	enterCol_expr = (ctx: Col_exprContext) => {
-		console.log('::: enterCol_expr', ctx.getText())
-	}
-
-	exitCol_expr = (ctx: Col_exprContext) => {
-		console.log('::: exitCol_expr', ctx.getText())
-	}
-
 	enterSearch_key = (ctx: Search_keyContext) => {
-		console.log('::: enterSearch_key', ctx.getText())
 		this.currentFilter.key = ctx.getText()
 	}
 
-	exitSearch_key = (ctx: Search_keyContext) => {
-		console.log('::: exitSearch_key', ctx.getText())
-	}
-
 	enterBin_op = (ctx: Bin_opContext) => {
-		console.log('::: enterBin_op', ctx.getText())
 		this.currentFilter.operator = ctx.getText()
-	}
-
-	exitBin_op = (ctx: Bin_opContext) => {
-		console.log('::: exitBin_op', ctx.getText())
 	}
 
 	enterSpaces = (ctx: SpacesContext) => {
@@ -117,16 +89,42 @@ export class SearchListener extends SearchGrammarListener {
 		}
 	}
 
-	exitSpaces = (ctx: SpacesContext) => {
-		console.log('::: exitSpaces', `"${ctx.getText()}"`)
-	}
-
 	visitErrorNode(node: ErrorNode): void {
-		// console.log('::: visitErrorNode', node)
+		// const errors = (node.parentCtx as any).parser?._listeners[0].errors
+		// const errorsForNode = errors.filter(
+		// 	(error: SearchError) => error.offendingSymbol === node,
+		// )
+
 		this.currentFilter.error = {
 			message: node.symbol.text,
 			start: node.symbol.column,
 			stop: node.symbol.column + node.symbol.text.length,
 		}
+	}
+}
+
+export type SearchError = {
+	offendingSymbol: Token
+	line: number
+	column: number
+	msg: string
+	e: RecognitionException | undefined
+}
+
+export class SearchErrorListener extends ErrorListener<Token> {
+	public errors: SearchError[] = []
+
+	syntaxError(
+		recognizer: Recognizer<Token>,
+		offendingSymbol: Token,
+		line: number,
+		column: number,
+		msg: string,
+		e: RecognitionException | undefined,
+	) {
+		const error = { offendingSymbol, line, column, msg, e }
+		// const ctx = (recognizer as any)._ctx as Search_queryContext
+
+		this.errors.push(error)
 	}
 }
