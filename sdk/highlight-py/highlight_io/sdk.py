@@ -64,6 +64,7 @@ class H(object):
         log_level=logging.DEBUG,
         service_name: str = "",
         service_version: str = "",
+        trace_origins: typing.List[str] = None,
     ):
         """
         Setup Highlight backend instrumentation.
@@ -86,6 +87,7 @@ class H(object):
         self._integrations = integrations or []
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
         self._log_handler = LogHandler(self, level=log_level)
+        self._trace_origins = trace_origins or []
         if instrument_logging:
             self._instrument_logging()
 
@@ -372,6 +374,19 @@ class H(object):
         :return: a tuple of (session_id, request_id)
         """
         return self._context_map.get(trace_id, ("", ""))
+    
+    def trace_origin_url(self, url: str) -> bool:
+        """
+        Check if the url is in the list of origins to trace.
+
+        :param url: the url to check
+        :return: bool
+        """
+        for origin in self._trace_origins:
+            if origin in url:
+                return True
+        
+        return False
 
 
 def _build_resource(

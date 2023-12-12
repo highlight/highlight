@@ -16,11 +16,10 @@ class RequestsIntegration(Integration):
 
 def request_hook(span, request):
     instance = highlight_io.H.get_instance()
-
-    # TODO(spenny): Determine when to set this
     session_id, request_id = instance.get_highlight_context(span.context.trace_id)
 
-    request.headers[instance.REQUEST_HEADER] = "{session_id}/{request_id}"
+    if instance.trace_origin_url(request.url):
+        request.headers[instance.REQUEST_HEADER] = "{session_id}/{request_id}"
 
     span.set_attributes({"highlight.project_id": instance._project_id})
     span.set_attributes({"highlight.trace_id": request_id})

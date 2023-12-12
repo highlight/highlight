@@ -17,6 +17,7 @@ H = highlight_io.H(
     otlp_endpoint="http://localhost:4318",
     service_name="my-flask-app",
     service_version="1.0.0",
+    trace_origins=["localhost", "highlight.io"],
 )
 
 
