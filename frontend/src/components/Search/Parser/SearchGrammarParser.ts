@@ -7,18 +7,22 @@ import {
 	DecisionState,
 	DFA,
 	FailedPredicateException,
+	RecognitionException,
 	NoViableAltException,
+	BailErrorStrategy,
 	Parser,
 	ParserATNSimulator,
-	ParserRuleContext,
-	PredictionContextCache,
-	RecognitionException,
 	RuleContext,
+	ParserRuleContext,
+	PredictionMode,
+	PredictionContextCache,
 	TerminalNode,
+	RuleNode,
 	Token,
 	TokenStream,
+	Interval,
+	IntervalSet,
 } from 'antlr4'
-
 import SearchGrammarListener from './SearchGrammarListener.js'
 // for running tests with parameters, TODO: discuss strategy for typed parameters in CI
 // eslint-disable-next-line no-unused-vars
@@ -138,7 +142,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public search_query(): Search_queryContext {
-		const localctx: Search_queryContext = new Search_queryContext(
+		let localctx: Search_queryContext = new Search_queryContext(
 			this,
 			this._ctx,
 			this.state,
@@ -195,15 +199,15 @@ export default class SearchGrammarParser extends Parser {
 			_p = 0
 		}
 
-		const _parentctx: ParserRuleContext = this._ctx
-		const _parentState: number = this.state
+		let _parentctx: ParserRuleContext = this._ctx
+		let _parentState: number = this.state
 		let localctx: Col_exprContext = new Col_exprContext(
 			this,
 			this._ctx,
 			_parentState,
 		)
 		let _prevctx: Col_exprContext = localctx
-		const _startState = 2
+		let _startState: number = 2
 		this.enterRecursionRule(
 			localctx,
 			2,
@@ -360,15 +364,15 @@ export default class SearchGrammarParser extends Parser {
 			_p = 0
 		}
 
-		const _parentctx: ParserRuleContext = this._ctx
-		const _parentState: number = this.state
+		let _parentctx: ParserRuleContext = this._ctx
+		let _parentState: number = this.state
 		let localctx: Search_exprContext = new Search_exprContext(
 			this,
 			this._ctx,
 			_parentState,
 		)
 		let _prevctx: Search_exprContext = localctx
-		const _startState = 4
+		let _startState: number = 4
 		this.enterRecursionRule(
 			localctx,
 			4,
@@ -558,7 +562,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public search_key(): Search_keyContext {
-		const localctx: Search_keyContext = new Search_keyContext(
+		let localctx: Search_keyContext = new Search_keyContext(
 			this,
 			this._ctx,
 			this.state,
@@ -585,7 +589,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public bin_op(): Bin_opContext {
-		const localctx: Bin_opContext = new Bin_opContext(
+		let localctx: Bin_opContext = new Bin_opContext(
 			this,
 			this._ctx,
 			this.state,
@@ -619,7 +623,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public spaces(): SpacesContext {
-		const localctx: SpacesContext = new SpacesContext(
+		let localctx: SpacesContext = new SpacesContext(
 			this,
 			this._ctx,
 			this.state,
