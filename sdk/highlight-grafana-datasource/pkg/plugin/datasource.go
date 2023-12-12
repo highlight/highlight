@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/hasura/go-graphql-client"
+	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -106,24 +107,18 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 	switch req.Path {
 	case "traces-keys":
 		var q struct {
-			TracesKeys []QueryKey `graphql:"traces_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
+			TracesKeys []QueryKey `graphql:"trace_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
 		}
 
 		var dataSourceSettings DataSourceSettings
 		err := json.Unmarshal(req.PluginContext.DataSourceInstanceSettings.JSONData, &dataSourceSettings)
 		if err != nil {
-			return sender.Send(&backend.CallResourceResponse{
-				Status: http.StatusInternalServerError,
-				Body:   []byte(err.Error()),
-			})
+			return err
 		}
 
 		u, err := url.Parse(req.URL)
 		if err != nil {
-			return sender.Send(&backend.CallResourceResponse{
-				Status: http.StatusInternalServerError,
-				Body:   []byte(err.Error()),
-			})
+			return err
 		}
 
 		queryParams := u.Query()
@@ -141,18 +136,12 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 			"type":  &keyType,
 		})
 		if err != nil {
-			return sender.Send(&backend.CallResourceResponse{
-				Status: http.StatusInternalServerError,
-				Body:   []byte(err.Error()),
-			})
+			return err
 		}
 
 		body, err := json.Marshal(q.TracesKeys)
 		if err != nil {
-			return sender.Send(&backend.CallResourceResponse{
-				Status: http.StatusInternalServerError,
-				Body:   []byte(err.Error()),
-			})
+			return err
 		}
 
 		return sender.Send(&backend.CallResourceResponse{
@@ -232,6 +221,10 @@ type DataSourceSecureSettings struct {
 
 type ID string
 
+type Admin struct {
+	Id ID
+}
+
 func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	from := query.TimeRange.From
 	to := query.TimeRange.To
@@ -305,13 +298,13 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 	for _, metricType := range metricTypes {
 		for _, metricGroup := range metricGroups {
-			values := make([]float64, q.TracesMetrics.BucketCount)
+			values := make([]*float64, q.TracesMetrics.BucketCount)
 			for _, bucket := range q.TracesMetrics.Buckets {
 				if bucket.MetricType != metricType || strings.Join(bucket.Group, "-") != metricGroup {
 					continue
 				}
 
-				values[bucket.BucketID] = bucket.MetricValue
+				values[bucket.BucketID] = pointy.Float64(bucket.MetricValue)
 			}
 
 			frame.Fields = append(frame.Fields, data.NewField(string(metricType)+"."+metricGroup, nil, values))
@@ -330,11 +323,17 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 // datasource configuration page which allows users to verify that
 // a datasource is working as expected.
 func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	var status = backend.HealthStatusOk
-	var message = "Data source is working"
+	var q struct {
+		Admin Admin `graphql:"admin"`
+	}
+
+	err := d.Client.Query(ctx, &q, map[string]interface{}{})
+	if err != nil {
+		return nil, err
+	}
 
 	return &backend.CheckHealthResult{
-		Status:  status,
-		Message: message,
+		Status:  backend.HealthStatusOk,
+		Message: "Data source is working",
 	}, nil
 }
