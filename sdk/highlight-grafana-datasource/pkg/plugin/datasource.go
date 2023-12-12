@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -94,11 +95,18 @@ type QueryKey struct {
 	Type string
 }
 
+type KeyType string
+
+const (
+	KeyTypeString  KeyType = "String"
+	KeyTypeNumeric KeyType = "Numeric"
+)
+
 func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
 	switch req.Path {
 	case "traces-keys":
 		var q struct {
-			TracesKeys []QueryKey `graphql:"traces_keys(project_id: $project_id, date_range: $date_range)"`
+			TracesKeys []QueryKey `graphql:"traces_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
 		}
 
 		var dataSourceSettings DataSourceSettings
@@ -110,12 +118,27 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 			})
 		}
 
+		u, err := url.Parse(req.URL)
+		if err != nil {
+			return sender.Send(&backend.CallResourceResponse{
+				Status: http.StatusInternalServerError,
+				Body:   []byte(err.Error()),
+			})
+		}
+
+		queryParams := u.Query()
+
+		query := queryParams.Get("query")
+		keyType := KeyType(queryParams.Get("type"))
+
 		err = d.Client.Query(ctx, &q, map[string]interface{}{
 			"project_id": ID(strconv.Itoa(dataSourceSettings.ProjectId)),
 			"date_range": DateRangeRequiredInput{
 				StartDate: time.Now().AddDate(0, -1, 0),
 				EndDate:   time.Now(),
 			},
+			"query": &query,
+			"type":  &keyType,
 		})
 		if err != nil {
 			return sender.Send(&backend.CallResourceResponse{

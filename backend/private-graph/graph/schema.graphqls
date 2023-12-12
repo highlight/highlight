@@ -2059,6 +2059,7 @@ type Query {
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -2105,6 +2106,7 @@ type Query {
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
