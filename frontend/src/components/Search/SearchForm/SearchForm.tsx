@@ -238,6 +238,7 @@ export const Search: React.FC<{
 
 	const queryTerms = parseSearchQuery(query)
 	const { queryParts } = parseSearch(query)
+	console.log('::: queryParts', queryParts)
 	const queryAsStringParts = queryParts.map((part) => part.value)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]

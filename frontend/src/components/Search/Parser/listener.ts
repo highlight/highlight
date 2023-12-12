@@ -11,6 +11,7 @@ import {
 	Bin_opContext,
 	Search_exprContext,
 	Search_keyContext,
+	Search_queryContext,
 	SpacesContext,
 } from '@/components/Search/Parser/SearchGrammarParser'
 
@@ -22,9 +23,10 @@ export type Filter = {
 	key?: string
 	operator?: string
 	error?: {
-		message: string
-		start: number
-		stop: number
+		line: number
+		column: number
+		msg: string
+		e: RecognitionException | undefined
 	}
 	start: number
 	stop: number
@@ -33,18 +35,49 @@ export type Filter = {
 export class SearchListener extends SearchGrammarListener {
 	private currentFilter = {} as Filter
 
-	constructor(public queryString: string, public filters: any[]) {
+	constructor(public queryString: string, public filters: Filter[]) {
 		super()
 
 		this.queryString = queryString
 		this.filters = filters
 	}
 
+	exitSearch_query = (_: Search_queryContext) => {
+		const lastFilter = this.filters[this.filters.length - 1]
+
+		// If the query ends with spaces (could be more than ont), add them as the
+		// last filter and trim them off the existing last filter.
+		// TODO: See if we can fix this in the grammar rather than here. See #7323
+		// for more details.
+		if (
+			lastFilter &&
+			lastFilter.type === 'filter' &&
+			lastFilter.value.endsWith(' ')
+		) {
+			const match = lastFilter.value.match(/(\s*)$/)
+			const trailingSpaces = match ? match[0] : ''
+
+			if (lastFilter) {
+				lastFilter.value = lastFilter.value.trimEnd()
+				lastFilter.stop = lastFilter.stop - trailingSpaces.length
+			}
+
+			this.filters.push({
+				type: 'spaces',
+				value: trailingSpaces,
+				start: lastFilter.stop,
+				stop: lastFilter.stop,
+			})
+		}
+	}
+
 	enterSearch_expr = (ctx: Search_exprContext) => {
 		if (!this.hasChildExpressions(ctx)) {
 			const start = ctx.start.start
+
 			// TODO: Figure out why we need to adjust the stop index by 1.
 			const stop = (ctx.stop ? ctx.stop.stop : ctx.start.stop) + 1
+
 			// Use start/stop to capture text becayse getText includes error text.
 			const value = ctx.getText().slice(0, stop - start)
 
@@ -86,20 +119,24 @@ export class SearchListener extends SearchGrammarListener {
 
 		// Don't add strings inside col_expr.
 		if (parentContextType !== 'Col_exprContext') {
-			this.filters.push({
-				type: 'spaces',
-				value: ctx.getText(),
-			})
+			const text = ctx.getText()
+
+			if (text.length > 0) {
+				this.filters.push({
+					type: 'spaces',
+					value: text,
+					start: ctx.start.start,
+					stop: ctx.start.start + text.length,
+				})
+			}
 		}
 	}
 
 	visitErrorNode(node: ErrorNode): void {
 		const error = (node as any).error as SearchError
 
-		this.currentFilter.error = {
-			message: error?.msg ?? node.symbol.text,
-			start: node.symbol.column,
-			stop: node.symbol.column + node.symbol.text.length,
+		if (error) {
+			this.currentFilter.error = error
 		}
 	}
 }
