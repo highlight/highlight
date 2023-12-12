@@ -54,6 +54,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			config,
 			innerSelect,
 			nil,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -70,6 +71,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			config,
 			innerSelect,
 			nil,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -84,6 +86,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		afterSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			nil,
 			projectID,
 			params,
@@ -107,6 +110,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		fromSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			nil,
 			projectID,
 			params,
@@ -156,14 +160,20 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	return getConnection(edges, pagination), nil
 }
 
-func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
+func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selectArgs []any,
 	groupBy []string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
 	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns), config.defaultFilters)
 	sb := sqlbuilder.NewSelectBuilder()
-	cols := []string{selectStr}
+
+	// selectStr can contain %s format tokens as placeholders for argument placeholders
+	// use `sb.Var` to add those arguments to the sql builder and get the proper placeholder
+	cols := []string{fmt.Sprintf(selectStr, lo.Map(selectArgs, func(arg any, _ int) any {
+		return sb.Var(arg)
+	})...)}
+
 	for _, group := range groupBy {
-		if lo.Contains(config.selectColumns, group) {
-			cols = append(cols, group)
+		if col, found := config.keysToColumns[T(group)]; found {
+			cols = append(cols, col)
 		} else {
 			cols = append(cols, "toString(TraceAttributes["+sb.Var(group)+"])")
 		}
@@ -359,7 +369,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("Key, sum(Count)").
+	sb.Select("Key, sum(Count), min(Type)").
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
@@ -391,14 +401,15 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		var (
 			key   string
 			count uint64
+			typ   string
 		)
-		if err := rows.Scan(&key, &count); err != nil {
+		if err := rows.Scan(&key, &count, &typ); err != nil {
 			return nil, err
 		}
 
 		keys = append(keys, &modelInputs.QueryKey{
 			Name: key,
-			Type: modelInputs.KeyTypeString, // For now, assume everything is a string
+			Type: modelInputs.KeyType(typ),
 		})
 	}
 

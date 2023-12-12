@@ -94,6 +94,14 @@ export const MetadataBox = React.memo(() => {
 				keyDisplayValue: 'Location',
 				valueDisplayValue: geoData,
 			},
+			...(session?.ip?.length
+				? [
+						{
+							keyDisplayValue: 'IP',
+							valueDisplayValue: session?.ip,
+						},
+				  ]
+				: []),
 			{
 				keyDisplayValue: 'Browser',
 				valueDisplayValue:

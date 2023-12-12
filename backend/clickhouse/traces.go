@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/samber/lo"
@@ -318,9 +320,51 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	return traces, rows.Err()
 }
 
-func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column modelInputs.TracesMetricColumn, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int) (*modelInputs.TracesMetrics, error) {
+func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSampling bool) string {
+	switch aggregator {
+	case modelInputs.MetricAggregatorCount:
+		if useSampling {
+			return "round(count() * any(_sample_factor))"
+		} else {
+			return "toFloat64(count())"
+		}
+	case modelInputs.MetricAggregatorCountDistinctKey:
+		if useSampling {
+			return fmt.Sprintf("round(count(distinct TraceAttributes['%s']) * any(_sample_factor))", highlight.TraceKeyAttribute)
+		} else {
+			return fmt.Sprintf("toFloat64(count(distinct TraceAttributes['%s']))", highlight.TraceKeyAttribute)
+		}
+	case modelInputs.MetricAggregatorMin:
+		return fmt.Sprintf("toFloat64(min(%s))", column)
+	case modelInputs.MetricAggregatorAvg:
+		return fmt.Sprintf("avg(%s)", column)
+	case modelInputs.MetricAggregatorP50:
+		return fmt.Sprintf("quantile(.5)(%s)", column)
+	case modelInputs.MetricAggregatorP90:
+		return fmt.Sprintf("quantile(.9)(%s)", column)
+	case modelInputs.MetricAggregatorP95:
+		return fmt.Sprintf("quantile(.95)(%s)", column)
+	case modelInputs.MetricAggregatorP99:
+		return fmt.Sprintf("quantile(.99)(%s)", column)
+	case modelInputs.MetricAggregatorMax:
+		return fmt.Sprintf("toFloat64(max(%s))", column)
+	case modelInputs.MetricAggregatorSum:
+		if useSampling {
+			return fmt.Sprintf("sum(%s) * any(_sample_factor)", column)
+		} else {
+			return fmt.Sprintf("sum(%s)", column)
+		}
+	}
+	return ""
+}
+
+func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.TracesMetrics, error) {
 	if len(metricTypes) == 0 {
 		return nil, e.New("no metric types provided")
+	}
+
+	if bucketBy == modelInputs.TracesMetricBucketByNone.String() {
+		nBuckets = 1
 	}
 
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
@@ -328,53 +372,34 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	// always sample - use a comparison here to trick the compiler into not complaining about unused branches
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 0
 
-	metricColName := "Duration"
-	switch column {
-	case modelInputs.TracesMetricColumnMetricValue:
-		metricColName = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
-	}
+	selectArgs := []interface{}{}
 
-	fnStr := ""
-	for _, metricType := range metricTypes {
-		switch metricType {
-		case modelInputs.MetricAggregatorCount:
-			if useSampling {
-				fnStr += ", round(count() * any(_sample_factor))"
-			} else {
-				fnStr += ", toFloat64(count())"
-			}
-		case modelInputs.MetricAggregatorCountDistinctKey:
-			if useSampling {
-				fnStr += fmt.Sprintf(", round(count(distinct TraceAttributes['%s']) * any(_sample_factor))", highlight.TraceKeyAttribute)
-			} else {
-				fnStr += fmt.Sprintf(", toFloat64(count(distinct TraceAttributes['%s']))", highlight.TraceKeyAttribute)
-			}
-		case modelInputs.MetricAggregatorMin:
-			fnStr += fmt.Sprintf(", toFloat64(min(%s))", metricColName)
-		case modelInputs.MetricAggregatorAvg:
-			fnStr += fmt.Sprintf(", avg(%s)", metricColName)
-		case modelInputs.MetricAggregatorP50:
-			fnStr += fmt.Sprintf(", quantile(.5)(%s)", metricColName)
-		case modelInputs.MetricAggregatorP90:
-			fnStr += fmt.Sprintf(", quantile(.9)(%s)", metricColName)
-		case modelInputs.MetricAggregatorP95:
-			fnStr += fmt.Sprintf(", quantile(.95)(%s)", metricColName)
-		case modelInputs.MetricAggregatorP99:
-			fnStr += fmt.Sprintf(", quantile(.99)(%s)", metricColName)
-		case modelInputs.MetricAggregatorMax:
-			fnStr += fmt.Sprintf(", toFloat64(max(%s))", metricColName)
-		case modelInputs.MetricAggregatorSum:
-			if useSampling {
-				fnStr += ", sum(%s) * any(_sample_factor)"
-			} else {
-				fnStr += ", sum(%s)"
+	var metricColName string
+	if col, found := traceKeysToColumns[modelInputs.ReservedTraceKey(strings.ToLower(column))]; found {
+		metricColName = col
+	} else {
+		metricColName = "toFloat64OrNull(TraceAttributes[%s])"
+		for _, mt := range metricTypes {
+			if mt != model.MetricAggregatorCount {
+				selectArgs = append(selectArgs, column)
 			}
 		}
 	}
 
+	switch column {
+	case string(modelInputs.TracesMetricColumnMetricValue):
+		metricColName = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
+	}
+
+	fnStr := strings.Join(lo.Map(metricTypes, func(agg modelInputs.MetricAggregator, _ int) string {
+		return ", " + getFnStr(agg, metricColName, useSampling)
+	}), "")
+
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
+	var config tableConfig[modelInputs.ReservedTraceKey]
 	if useSampling {
+		config = tracesSamplingTableConfig
 		fromSb, err = makeSelectBuilder(
 			tracesSamplingTableConfig,
 			fmt.Sprintf(
@@ -385,6 +410,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 				startTimestamp,
 				fnStr,
 			),
+			selectArgs,
 			groupBy,
 			projectID,
 			params,
@@ -393,6 +419,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 			OrderForwardNatural,
 		)
 	} else {
+		config = tracesTableConfig
 		fromSb, err = makeSelectBuilder(
 			tracesTableConfig,
 			fmt.Sprintf(
@@ -403,6 +430,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 				startTimestamp,
 				fnStr,
 			),
+			selectArgs,
 			groupBy,
 			projectID,
 			params,
@@ -413,6 +441,52 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	limitCount := 100
+	if limit != nil && *limit < 100 {
+		limitCount = *limit
+	}
+
+	if limitAggregator != nil && len(groupBy) > 0 {
+		innerSb := sqlbuilder.NewSelectBuilder()
+
+		colStrs := []string{}
+		groupByIndexes := []string{}
+
+		for idx, group := range groupBy {
+			if col, found := traceKeysToColumns[model.ReservedTraceKey(group)]; found {
+				colStrs = append(colStrs, col)
+			} else {
+				colStrs = append(colStrs, fmt.Sprintf("toString(TraceAttributes[%s])", innerSb.Var(group)))
+			}
+			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
+		}
+
+		innerSb.
+			Select(strings.Join(colStrs, ", ")).
+			From(config.tableName).
+			Where(innerSb.Equal("ProjectId", projectID)).
+			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
+			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
+			GroupBy(groupByIndexes...)
+
+		limitFn := ""
+		col := ""
+		if limitColumn != nil {
+			col = *limitColumn
+		}
+		if topCol, found := traceKeysToColumns[modelInputs.ReservedTraceKey(col)]; found {
+			col = topCol
+		} else {
+			col = fmt.Sprintf("toFloat64OrNull(TraceAttributes[%s])", innerSb.Var(col))
+		}
+		limitFn = getFnStr(*limitAggregator, col, useSampling)
+
+		innerSb.OrderBy(fmt.Sprintf("%s DESC", limitFn)).
+			Limit(limitCount)
+
+		fromSb.Where(fromSb.In(fmt.Sprintf("(%s)", strings.Join(colStrs, ", ")), innerSb))
 	}
 
 	base := 3 + len(metricTypes)

@@ -14,4 +14,4 @@ services:
     volumes:
       - ./dist:/var/lib/grafana/plugins/highlight-grafana-datasource
       - ./provisioning:/etc/grafana/provisioning
-      - ./grafana.db:/var/lib/grafana/grafana.db
+      - ./grafana/data:/var/lib/grafana

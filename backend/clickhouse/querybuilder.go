@@ -101,7 +101,7 @@ func parseFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb
 		Where(sbInner.Equal("ProjectID", projectId)).
 		Where(sbInner.Equal("Type", typ)).
 		Where(sbInner.Equal("Name", name)).
-		Where(sbInner.Between("SessionCreatedAt", start, end))
+		Where(sbInner.Between("SessionCreatedAt", start.UTC(), end.UTC()))
 
 	if rule.Op == Exists {
 		sbInner.Where(sbInner.IsNotNull("Value"))
@@ -349,7 +349,7 @@ func parseErrorRules(tableName string, selectColumns string, isAnd bool, rules [
 		Where(sb.Equal("ProjectID", projectId))
 
 	if tableName == ErrorObjectsTable {
-		sb.Where(sb.Between("Timestamp", start, end))
+		sb.Where(sb.Between("Timestamp", start.UTC(), end.UTC()))
 	}
 
 	if len(outerRules) > 0 {
@@ -372,7 +372,7 @@ func parseErrorRules(tableName string, selectColumns string, isAnd bool, rules [
 			Where(sbInner.Equal("ProjectID", projectId))
 
 		if innerTableName == ErrorObjectsTable {
-			sbInner.Where(sbInner.Between("Timestamp", start, end))
+			sbInner.Where(sbInner.Between("Timestamp", start.UTC(), end.UTC()))
 		}
 
 		conditions := []string{}

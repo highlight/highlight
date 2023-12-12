@@ -787,7 +787,8 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if settings != nil && settings.ErrorEmbeddingsGroup {
 		eCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 		defer cancel()
-		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
+		var emb []*model.ErrorObjectEmbeddings
+		emb, err = r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
@@ -2256,7 +2257,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
 
 		if err != nil {
-			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
 		} else if mappedStackTrace != nil {
 			errorToInsert.MappedStackTrace = mappedStackTrace
 		}
@@ -2270,7 +2271,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			} else if e.Is(err, ErrUserFilteredError) {
 				log.WithContext(ctx).Info(e.Wrap(err, "Error updating error group"))
 			} else {
-				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+				log.WithContext(ctx).WithError(err).Error(e.Wrap(err, "Error updating error group"))
 			}
 			continue
 		}

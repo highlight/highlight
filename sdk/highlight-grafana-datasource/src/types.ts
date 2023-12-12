@@ -1,4 +1,5 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/data';
+import { DataSourceJsonData } from '@grafana/data';
+import { DataQuery } from '@grafana/schema';
 
 export interface HighlightQuery extends DataQuery {
   table?: string;
@@ -6,6 +7,10 @@ export interface HighlightQuery extends DataQuery {
   column?: string;
   groupBy?: string[];
   queryText?: string;
+  bucketBy?: string;
+  limitAggregator?: string;
+  limitColumn?: string;
+  limit?: number;
 }
 
 /**
@@ -14,6 +19,8 @@ export interface HighlightQuery extends DataQuery {
 export interface HighlightDataSourceOptions extends DataSourceJsonData {
   projectID?: number;
   clientID?: string;
+  backendURL?: string;
+  tokenURL?: string;
 }
 
 /**

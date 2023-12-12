@@ -14298,9 +14298,13 @@ export const GetTracesMetricsDocument = gql`
 	query GetTracesMetrics(
 		$project_id: ID!
 		$params: QueryInput!
-		$column: TracesMetricColumn!
+		$column: String!
 		$metric_types: [MetricAggregator!]!
 		$group_by: [String!]!
+		$bucket_by: String
+		$limit: Int
+		$limit_aggregator: MetricAggregator
+		$limit_column: String
 	) {
 		traces_metrics(
 			project_id: $project_id
@@ -14308,6 +14312,10 @@ export const GetTracesMetricsDocument = gql`
 			column: $column
 			metric_types: $metric_types
 			group_by: $group_by
+			bucket_by: $bucket_by
+			limit: $limit
+			limit_aggregator: $limit_aggregator
+			limit_column: $limit_column
 		) {
 			buckets {
 				bucket_id
@@ -14338,6 +14346,10 @@ export const GetTracesMetricsDocument = gql`
  *      column: // value for 'column'
  *      metric_types: // value for 'metric_types'
  *      group_by: // value for 'group_by'
+ *      bucket_by: // value for 'bucket_by'
+ *      limit: // value for 'limit'
+ *      limit_aggregator: // value for 'limit_aggregator'
+ *      limit_column: // value for 'limit_column'
  *   },
  * });
  */

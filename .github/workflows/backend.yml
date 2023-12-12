@@ -41,11 +41,9 @@ jobs:
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
               with:
-                  args: --config ./.golangci.yml --timeout 5m
+                  args: -v --config ./.golangci.yml
                   working-directory: backend
-                  # version: latest
-                  # Pinning the version until https://github.com/golangci/golangci-lint/issues/3862 is solved
-                  version: v1.52.2
+                  version: latest
 
     make-check:
         needs: [code-setup]
