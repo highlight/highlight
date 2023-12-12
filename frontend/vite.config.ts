@@ -64,7 +64,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		build: {
-			minify: 'esbuild',
+			minify: 'terser',
 			outDir: 'build',
 			sourcemap: true,
 			rollupOptions: {

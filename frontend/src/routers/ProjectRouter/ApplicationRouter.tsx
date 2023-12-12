@@ -5,6 +5,7 @@ import { CanvasPage } from '@pages/Buttons/CanvasV2'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
+import { Grafana } from '@pages/Grafana/Grafana'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import PlayerPage from '@pages/Player/PlayerPage'
@@ -57,6 +58,7 @@ const ApplicationRouter: React.FC = () => {
 						/>
 					</Route>
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />
+					<Route path="grafana/*" element={<Grafana />} />
 					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
 					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />

@@ -33,6 +33,7 @@
 		"lodash": "^4.17.21",
 		"lottie-react": "^2.1.0",
 		"moment": "2.29.4",
+		"qiankun": "^2.10.15",
 		"query-string": "6.14.1",
 		"randomcolor": "^0.6.2",
 		"rc-slider": "^10.1.1",

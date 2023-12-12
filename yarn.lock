@@ -6673,7 +6673,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.6, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.6.2":
+"@babel/runtime@npm:^7.10.5, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.6, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.6.2":
   version: 7.23.2
   resolution: "@babel/runtime@npm:7.23.2"
   dependencies:
@@ -12365,6 +12365,7 @@ __metadata:
     postcss-nesting: ^11.2.2
     postinstall-postinstall: ^2.1.0
     prettier: ^2.7.1
+    qiankun: ^2.10.15
     query-string: 6.14.1
     randomcolor: ^0.6.2
     rc-slider: ^10.1.1
@@ -39037,6 +39038,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"import-html-entry@npm:^1.15.1":
+  version: 1.15.2
+  resolution: "import-html-entry@npm:1.15.2"
+  dependencies:
+    "@babel/runtime": ^7.7.2
+  checksum: 5872780d6f16f126ab6fbeb62c4184e14dd225fdb463eefa65d416a20cc22143624cbe5485868cb6117bfbf7842dfaeec062eaac0542b9dd8a9594bee85c7ab3
+  languageName: node
+  linkType: hard
+
 "import-in-the-middle@npm:1.4.2":
   version: 1.4.2
   resolution: "import-in-the-middle@npm:1.4.2"
@@ -50267,6 +50277,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qiankun@npm:^2.10.15":
+  version: 2.10.15
+  resolution: "qiankun@npm:2.10.15"
+  dependencies:
+    "@babel/runtime": ^7.10.5
+    import-html-entry: ^1.15.1
+    lodash: ^4.17.11
+    single-spa: ^5.9.2
+  checksum: b42627c956b52572117c340992849913216a3309c4b6b1d3c3ad2733f1017fd07c23df6cafaf864216f7b768965601e71d421df5f24698252faf126198a8dbea
+  languageName: node
+  linkType: hard
+
 "qs@npm:6.10.3":
   version: 6.10.3
   resolution: "qs@npm:6.10.3"
@@ -55600,6 +55622,13 @@ __metadata:
   dependencies:
     semver: ~7.0.0
   checksum: 1012e9b6c504e559a948078177b3eedbb9d7e4d15878e2bda56314d08db609ca5da485be4ac9f838759faae8057935ee0246fcdf63f1233c86bd9fecb2a5544b
+  languageName: node
+  linkType: hard
+
+"single-spa@npm:^5.9.2":
+  version: 5.9.5
+  resolution: "single-spa@npm:5.9.5"
+  checksum: 1ad1b5595dee49085c2d39e69b2bb3706ad58635a1f3616a5ba90793ec1dfe66c770ba33bcaf6dc2a87182eaac84b3da9b631b531a5696083052f884d0e07c1b
   languageName: node
   linkType: hard
 
