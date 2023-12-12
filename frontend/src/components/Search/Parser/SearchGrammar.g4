@@ -8,7 +8,6 @@ search_query
 col_expr
   : LPAREN col_expr RPAREN
   | col_expr spaces AND spaces col_expr
-  | col_expr spaces col_expr
   | col_expr spaces OR spaces col_expr
   | NOT col_expr
   | STRING
@@ -23,6 +22,7 @@ search_expr
   | search_expr spaces OR spaces search_expr
   | NOT spaces search_expr
   | search_key bin_op col_expr
+  | col_expr
   ;
 
 search_key
@@ -36,6 +36,7 @@ bin_op
   | GTE
   | LT
   | LTE
+  | COLON
   ;
 
 spaces
@@ -58,6 +59,7 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 LCURLY : '{' ;
 RCURLY : '}' ;
+COLON : ':' ;
 ID : [a-zA-Z_0-9\-]+ ;
 STRING : '"'.*?'"' ;
 WS : [ \t\n\r\f]+ ;

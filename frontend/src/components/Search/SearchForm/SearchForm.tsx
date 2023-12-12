@@ -237,7 +237,9 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
-	const queryAsStringParts = parseSearch(query).map((part) => part.value)
+	const parsedQuery = parseSearch(query)
+	const queryAsStringParts = parsedQuery.map((part) => part.value)
+	console.log('::: queryAsStringParts', queryAsStringParts, parsedQuery)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
@@ -411,6 +413,7 @@ export const Search: React.FC<{
 					}}
 				>
 					{queryAsStringParts.map((term, index) => {
+						console.log('::: term', term)
 						const nextIndex = currentIndex + term.length
 						const active =
 							cursorIndex >= currentIndex &&
