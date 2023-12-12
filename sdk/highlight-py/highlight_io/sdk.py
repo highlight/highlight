@@ -21,7 +21,7 @@ from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
-
+from highlight_io.utils.lru_cache import LRUCache
 
 class LogHandler(logging.Handler):
     def __init__(self, highlight: "H", level=logging.NOTSET):
@@ -44,6 +44,7 @@ class H(object):
     OTLP_HTTP = "https://otel.highlight.io:4318"
     _instance: "H" = None
     _logging_instrumented = False
+    _context_map = LRUCache(1000)
 
     @classmethod
     def get_instance(cls) -> "H":
@@ -165,6 +166,9 @@ class H(object):
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})
+
+            self._context_map.put(span.context.trace_id, (session_id, request_id))
+
             try:
                 yield span
             except Exception as e:
@@ -358,6 +362,16 @@ class H(object):
 
         logging.setLogRecordFactory(factory)
         H._logging_instrumented = True
+    
+    def get_highlight_context(self, trace_id: str) -> typing.Tuple[str, str]:
+        """
+        Get the highlight context associated with a trace id.
+
+        :param trace_id: the trace id to lookup
+        :return: a tuple of (session_id, request_id)
+        """
+        return self._context_map.get(trace_id, ("", ""))
+
 
 
 def _build_resource(
