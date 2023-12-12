@@ -54,6 +54,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			config,
 			innerSelect,
 			nil,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -70,6 +71,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			config,
 			innerSelect,
 			nil,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -84,6 +86,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		afterSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			nil,
 			projectID,
 			params,
@@ -107,6 +110,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		fromSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			nil,
 			projectID,
 			params,
@@ -156,11 +160,17 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	return getConnection(edges, pagination), nil
 }
 
-func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
+func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selectArgs []any,
 	groupBy []string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
 	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns), config.defaultFilters)
 	sb := sqlbuilder.NewSelectBuilder()
-	cols := []string{selectStr}
+
+	// selectStr can contain %s format tokens as placeholders for argument placeholders
+	// use `sb.Var` to add those arguments to the sql builder and get the proper placeholder
+	cols := []string{fmt.Sprintf(selectStr, lo.Map(selectArgs, func(arg any, _ int) any {
+		return sb.Var(arg)
+	})...)}
+
 	for _, group := range groupBy {
 		if col, found := config.keysToColumns[T(group)]; found {
 			cols = append(cols, col)

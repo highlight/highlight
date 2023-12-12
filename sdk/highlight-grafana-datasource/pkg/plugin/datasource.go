@@ -51,7 +51,7 @@ func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSetti
 		TokenURL:     dataSourceSettings.TokenURL,
 	}
 
-	client := graphql.NewClient(dataSourceSettings.BackendURL, config.Client(ctx))
+	client := graphql.NewClient(dataSourceSettings.BackendURL, config.Client(context.Background()))
 
 	return &Datasource{Client: client}, nil
 }

@@ -370,11 +370,18 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	// always sample - use a comparison here to trick the compiler into not complaining about unused branches
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 0
 
+	selectArgs := []interface{}{}
+
 	var metricColName string
-	if col, found := traceKeysToColumns[modelInputs.ReservedTraceKey(column)]; found {
+	if col, found := traceKeysToColumns[modelInputs.ReservedTraceKey(strings.ToLower(column))]; found {
 		metricColName = col
 	} else {
-		metricColName = fmt.Sprintf("toFloat64OrNull(TraceAttributes['%s'])", column)
+		metricColName = "toFloat64OrNull(TraceAttributes[%s])"
+		for _, mt := range metricTypes {
+			if mt != model.MetricAggregatorCount {
+				selectArgs = append(selectArgs, column)
+			}
+		}
 	}
 
 	switch column {
@@ -401,6 +408,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 				startTimestamp,
 				fnStr,
 			),
+			selectArgs,
 			groupBy,
 			projectID,
 			params,
@@ -420,6 +428,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 				startTimestamp,
 				fnStr,
 			),
+			selectArgs,
 			groupBy,
 			projectID,
 			params,
@@ -432,11 +441,35 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		return nil, err
 	}
 
-	colStrs := []string{}
-	groupByIndexes := []string{}
+	limitCount := 100
+	if limit != nil && *limit < 100 {
+		limitCount = *limit
+	}
 
-	limitFn := ""
-	if limitAggregator != nil {
+	if limitAggregator != nil && len(groupBy) > 0 {
+		innerSb := sqlbuilder.NewSelectBuilder()
+
+		colStrs := []string{}
+		groupByIndexes := []string{}
+
+		for idx, group := range groupBy {
+			if col, found := traceKeysToColumns[model.ReservedTraceKey(group)]; found {
+				colStrs = append(colStrs, col)
+			} else {
+				colStrs = append(colStrs, fmt.Sprintf("toString(TraceAttributes[%s])", innerSb.Var(group)))
+			}
+			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
+		}
+
+		innerSb.
+			Select(strings.Join(colStrs, ", ")).
+			From(config.tableName).
+			Where(innerSb.Equal("ProjectId", projectID)).
+			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
+			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
+			GroupBy(groupByIndexes...)
+
+		limitFn := ""
 		col := ""
 		if limitColumn != nil {
 			col = *limitColumn
@@ -444,35 +477,11 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		if topCol, found := traceKeysToColumns[modelInputs.ReservedTraceKey(col)]; found {
 			col = topCol
 		} else {
-			col = fmt.Sprintf("toFloat64OrNull(TraceAttributes['%s'])", col)
+			col = fmt.Sprintf("toFloat64OrNull(TraceAttributes[%s])", innerSb.Var(col))
 		}
 		limitFn = getFnStr(*limitAggregator, col, useSampling)
-	}
 
-	for idx, group := range groupBy {
-		if col, found := traceKeysToColumns[model.ReservedTraceKey(group)]; found {
-			colStrs = append(colStrs, col)
-		} else {
-			colStrs = append(colStrs, fmt.Sprintf("toString(TraceAttributes['%s'])", group))
-		}
-		groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
-	}
-
-	limitCount := 100
-	if limit != nil && *limit < 100 {
-		limitCount = *limit
-	}
-
-	if limitFn != "" && len(groupBy) > 0 {
-		innerSb := sqlbuilder.NewSelectBuilder()
-		innerSb.
-			Select(strings.Join(colStrs, ", ")).
-			From(config.tableName).
-			Where(innerSb.Equal("ProjectId", projectID)).
-			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
-			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
-			GroupBy(groupByIndexes...).
-			OrderBy(fmt.Sprintf("%s DESC", limitFn)).
+		innerSb.OrderBy(fmt.Sprintf("%s DESC", limitFn)).
 			Limit(limitCount)
 
 		fromSb.Where(fromSb.In(fmt.Sprintf("(%s)", strings.Join(colStrs, ", ")), innerSb))
