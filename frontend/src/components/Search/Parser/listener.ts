@@ -42,14 +42,18 @@ export class SearchListener extends SearchGrammarListener {
 
 	enterSearch_expr = (ctx: Search_exprContext) => {
 		if (!this.hasChildExpressions(ctx)) {
+			const start = ctx.start.start
+			// TODO: Figure out why we need to adjust the stop index by 1.
 			const stop = (ctx.stop ? ctx.stop.stop : ctx.start.stop) + 1
+			// Use start/stop to capture text becayse getText includes error text.
+			const value = ctx.getText().slice(0, stop - start)
 
 			this.currentFilter = {
 				type: 'filter',
-				value: ctx.getText(),
+				value,
 				key: 'default',
 				operator: '=',
-				start: ctx.start.start,
+				start,
 				stop,
 			}
 		}
@@ -90,13 +94,10 @@ export class SearchListener extends SearchGrammarListener {
 	}
 
 	visitErrorNode(node: ErrorNode): void {
-		// const errors = (node.parentCtx as any).parser?._listeners[0].errors
-		// const errorsForNode = errors.filter(
-		// 	(error: SearchError) => error.offendingSymbol === node,
-		// )
+		const error = (node as any).error as SearchError
 
 		this.currentFilter.error = {
-			message: node.symbol.text,
+			message: error?.msg ?? node.symbol.text,
 			start: node.symbol.column,
 			stop: node.symbol.column + node.symbol.text.length,
 		}
@@ -104,7 +105,6 @@ export class SearchListener extends SearchGrammarListener {
 }
 
 export type SearchError = {
-	offendingSymbol: Token
 	line: number
 	column: number
 	msg: string
@@ -115,16 +115,15 @@ export class SearchErrorListener extends ErrorListener<Token> {
 	public errors: SearchError[] = []
 
 	syntaxError(
-		recognizer: Recognizer<Token>,
+		_: Recognizer<Token>,
 		offendingSymbol: Token,
 		line: number,
 		column: number,
 		msg: string,
 		e: RecognitionException | undefined,
 	) {
-		const error = { offendingSymbol, line, column, msg, e }
-		// const ctx = (recognizer as any)._ctx as Search_queryContext
-
-		this.errors.push(error)
+		// Assign error propreties to the offendingSymbol so we can access them in
+		// the listener.
+		;(offendingSymbol as any).error = { line, column, msg, e }
 	}
 }
