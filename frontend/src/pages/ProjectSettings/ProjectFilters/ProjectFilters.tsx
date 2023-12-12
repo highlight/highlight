@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { Operator } from '@components/QueryBuilder/QueryBuilder'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import { useGetBaseSearchContext } from '@context/SearchState'
@@ -220,7 +221,7 @@ export const ProjectProductFilters: React.FC<{
 		await message.warn(
 			'Setting up ingest sampling is only available on enterprise plans.',
 		)
-		showSupportMessage(
+		await showSupportMessage(
 			'Hi! I would like to use the ingest sampling feature.',
 		)
 	}, [currentWorkspace?.id, product])
@@ -270,7 +271,7 @@ export const ProjectProductFilters: React.FC<{
 			minuteRateLimit: c?.minute_rate_limit ?? null,
 		})
 
-		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
+		// TODO(vkorolik) exclusion query logic is not robust to frontend types
 		if (
 			product === ProductType.Sessions ||
 			product === ProductType.Errors
@@ -279,9 +280,15 @@ export const ProjectProductFilters: React.FC<{
 			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
 				const [key, value] = pair.split(':')
 				if (key && value) {
+					let op: Operator = 'is'
+					let v = value
+					if (value.startsWith('-')) {
+						op = 'is_not'
+						v = value.slice(1)
+					}
 					params[
 						`${product.toLowerCase().slice(0, -1)}_${key}`
-					] = `is:${value}`
+					] = `${op}:${v}`
 				}
 			}
 			;(product === ProductType.Sessions
@@ -297,19 +304,19 @@ export const ProjectProductFilters: React.FC<{
 	])
 
 	React.useEffect(() => {
-		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
+		// TODO(vkorolik) exclusion query logic is not robust to frontend types
 		const rules = []
 		if (
 			product === ProductType.Sessions ||
 			product === ProductType.Errors
 		) {
-			for (const [key, _, v] of JSON.parse(
+			for (const [key, op, v] of JSON.parse(
 				product === ProductType.Sessions
 					? searchQuery
 					: product === ProductType.Errors
 					? errorSearchQuery
 					: JSON.stringify({ rules: [] }),
-			).rules) {
+			).rules as [key: string, op: Operator, value: string][]) {
 				const [type, k] = key.split(/_(.*)/s)
 				if (product === ProductType.Sessions && type !== 'session')
 					continue
@@ -318,9 +325,9 @@ export const ProjectProductFilters: React.FC<{
 				if (product === ProductType.Errors && k === 'timestamp')
 					continue
 				if (v.indexOf(' ') !== -1) {
-					rules.push(`${k}:"${v}"`)
+					rules.push(`${k}:${op === 'is_not' ? '-' : ''}"${v}"`)
 				} else {
-					rules.push(`${k}:${v}`)
+					rules.push(`${k}:${op === 'is_not' ? '-' : ''}${v}`)
 				}
 			}
 		}
@@ -481,6 +488,7 @@ export const ProjectProductFilters: React.FC<{
 									<SessionQueryBuilder
 										minimal
 										readonly={view}
+										operators={['is', 'is_not']}
 										setDefault={false}
 									/>
 								</SearchContextProvider>

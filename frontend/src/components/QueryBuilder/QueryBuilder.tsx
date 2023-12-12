@@ -1162,6 +1162,7 @@ export interface QueryBuilderProps {
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesClickhouseQuery
 	errorTagData?: GetErrorTagsQuery
+	operators?: Operator[]
 	readonly?: boolean
 	minimal?: boolean
 	setDefault?: boolean
@@ -1203,6 +1204,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fieldData,
 		errorTagData,
 		readonly,
+		operators,
 		minimal,
 		setDefault,
 		useEditAnySegmentMutation,
@@ -1210,6 +1212,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		CreateAnySegmentModal,
 		DeleteAnySegmentModal,
 	} = props
+	const ops = operators ?? OPERATORS
 
 	const {
 		searchQuery,
@@ -1320,7 +1323,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const getDefaultOperator = (field: SelectOption | undefined) =>
-		((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0]
+		((field && getCustomFieldOptions(field)?.operators) ?? ops)[0]
 
 	const { data: appVersionData } = useGetAppVersionsQuery({
 		variables: { project_id: projectId! },
@@ -1448,7 +1451,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		val: MultiselectOption | undefined,
 	) => {
 		return async (input: string) => {
-			return (options?.operators ?? OPERATORS)
+			return (options?.operators ?? ops)
 				.map((op) => getOperator(op, val))
 				.filter((op) => op !== undefined)
 				.filter((op) =>
