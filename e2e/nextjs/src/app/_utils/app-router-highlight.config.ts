@@ -6,6 +6,7 @@ const env: HighlightEnv = {
 	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID || '2',
 	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	serviceName: 'vercel-app-router',
+	environment: 'e2e-test',
 	enableFsInstrumentation: true,
 }
 
