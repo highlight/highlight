@@ -65,7 +65,7 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			minify: 'esbuild',
-			cssMinify: 'lightningcss',
+			cssMinify: 'esbuild',
 			outDir: 'build',
 			sourcemap: true,
 			rollupOptions: {
