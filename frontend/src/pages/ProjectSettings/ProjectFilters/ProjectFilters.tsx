@@ -159,6 +159,7 @@ export const ProjectProductFilters: React.FC<{
 	const [editProjectSettingsMutation, { loading: saveLoading }] =
 		useEditProjectSettingsMutation({
 			refetchQueries: [namedOperations.Query.GetProjectSettings],
+			awaitRefetchQueries: true,
 		})
 
 	const sessionSearchContext = useGetBaseSearchContext(
@@ -196,6 +197,7 @@ export const ProjectProductFilters: React.FC<{
 		},
 	})
 
+	const query = formStore.useValue('exclusionQuery') ?? ''
 	const canEditIngestion =
 		billingDetails?.billingDetailsForProject?.plan.type !== PlanType.Free
 	const canEditSampling =
@@ -226,6 +228,7 @@ export const ProjectProductFilters: React.FC<{
 		)
 	}, [currentWorkspace?.id, product])
 
+	// loads data from the backend into the form state and the query builder context
 	const resetConfig = React.useCallback(() => {
 		const c = {
 			exclusion_query:
@@ -303,13 +306,14 @@ export const ProjectProductFilters: React.FC<{
 		setSearchQuery,
 	])
 
+	// updates the form state from the query builder context (for sessions / errors)
 	React.useEffect(() => {
 		// TODO(vkorolik) exclusion query logic is not robust to frontend types
-		const rules = []
 		if (
 			product === ProductType.Sessions ||
 			product === ProductType.Errors
 		) {
+			const rules = []
 			for (const [key, op, v] of JSON.parse(
 				product === ProductType.Sessions
 					? searchQuery
@@ -330,8 +334,8 @@ export const ProjectProductFilters: React.FC<{
 					rules.push(`${k}:${op === 'is_not' ? '-' : ''}${v}`)
 				}
 			}
+			formStore.setValue('exclusionQuery', rules.join(' '))
 		}
-		formStore.setValue('exclusionQuery', rules.join(' '))
 	}, [errorSearchQuery, formStore, product, searchQuery])
 
 	React.useEffect(resetConfig, [resetConfig])
@@ -344,7 +348,7 @@ export const ProjectProductFilters: React.FC<{
 	const onSave = async () => {
 		const sampling = {
 			[`${product.toLowerCase().slice(0, -1)}_exclusion_query`]:
-				formStore.getValue('exclusionQuery') || undefined,
+				formStore.getValue('exclusionQuery'),
 			[`${product.toLowerCase().slice(0, -1)}_sampling_rate`]:
 				formStore.getValue('samplingPercent') / 100,
 			[`${product.toLowerCase().slice(0, -1)}_minute_rate_limit`]:
@@ -356,7 +360,6 @@ export const ProjectProductFilters: React.FC<{
 				sampling,
 			},
 		})
-		await new Promise((r) => setTimeout(r, 1000))
 		navigate(`/${projectId}/settings/filters`)
 	}
 
@@ -451,10 +454,7 @@ export const ProjectProductFilters: React.FC<{
 							{product === ProductType.Logs ||
 							product === ProductType.Traces ? (
 								<SearchForm
-									initialQuery={
-										formStore.getValue('exclusionQuery') ??
-										''
-									}
+									initialQuery={query}
 									onFormSubmit={(value: string) => {
 										formStore.setValue(
 											'exclusionQuery',
