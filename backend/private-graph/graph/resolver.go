@@ -1413,7 +1413,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.NewWorker(r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 

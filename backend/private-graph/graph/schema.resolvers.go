@@ -7053,11 +7053,11 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
-		settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+		issue, err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.MailClient).GetBillingIssue(ctx, workspace, c, invoice)
 		if err != nil {
 			return nil, err
 		}
-		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
+		details.BillingIssue = issue != ""
 	}
 
 	return details, nil

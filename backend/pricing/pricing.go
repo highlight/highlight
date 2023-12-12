@@ -775,9 +775,11 @@ type Worker struct {
 	mailClient   *sendgrid.Client
 }
 
-func NewWorker(db *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client) *Worker {
+func NewWorker(db *gorm.DB, redis *redis.Client, store *store.Store, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client) *Worker {
 	return &Worker{
 		db:           db,
+		redis:        redis,
+		store:        store,
 		ccClient:     ccClient,
 		stripeClient: stripeClient,
 		mailClient:   mailClient,
@@ -980,7 +982,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	}
 	log.WithContext(ctx).WithField("invoiceLinesLen", len(invoiceLines)).Infof("STRIPE_INTEGRATION_INFO found invoice lines %d %+v", len(invoiceLines), invoiceLines)
 
-	billingIssue, err := w.getBillingIssue(ctx, &workspace, c, invoice)
+	billingIssue, err := w.GetBillingIssue(ctx, &workspace, c, invoice)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).WithField("customer", c.ID).Error("STRIPE_INTEGRATION_ERROR failed to get billing issue status")
 	} else if billingIssue != "" {
@@ -1059,7 +1061,7 @@ const PaymentIssueTypeInvoiceOpenAttempted PaymentIssueType = "invoice_open_atte
 const PaymentIssueTypeNoPaymentMethod PaymentIssueType = "no_payment_method"
 const PaymentIssueTypeCardCheckFail PaymentIssueType = "payment_method_check_failed"
 
-func (w *Worker) getBillingIssue(ctx context.Context, workspace *model.Workspace, customer *stripe.Customer, invoice *stripe.Invoice) (PaymentIssueType, error) {
+func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace, customer *stripe.Customer, invoice *stripe.Invoice) (PaymentIssueType, error) {
 	settings, err := w.store.GetAllWorkspaceSettings(ctx, workspace.ID)
 	if err != nil {
 		return "", err

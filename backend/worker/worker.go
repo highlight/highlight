@@ -1129,7 +1129,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.NewWorker(w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient).ReportAllUsage(ctx)
+	pricing.NewWorker(w.Resolver.DB, w.Resolver.Redis, w.Resolver.Store, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient).ReportAllUsage(ctx)
 }
 
 func (w *Worker) MigrateDB(ctx context.Context) {
