@@ -1,6 +1,6 @@
 import { parseSearch } from '@/components/Search/Parser/utils'
 
-describe('Parser', () => {
+describe('parseSearch', () => {
 	it('should parse a string correctly', () => {
 		const queryString =
 			'  span_name="Chris Schmitz" source=(backend OR frontend)  service_name!=private-graph'
