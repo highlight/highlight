@@ -1,13 +1,18 @@
-import React, { ChangeEvent, useEffect } from 'react';
-import { Field, Input, Select } from '@grafana/ui';
+import React, { ChangeEvent } from 'react';
+import { AsyncMultiSelect, AsyncSelect, InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { DataSource } from '../datasource';
+import { DataSource, bucketByOptions, columnOptions, metricOptions, tableOptions } from '../datasource';
 import { HighlightDataSourceOptions, HighlightQuery } from '../types';
 
 type Props = QueryEditorProps<DataSource, HighlightQuery, HighlightDataSourceOptions>;
 
-export function QueryEditor({ query, onChange, onRunQuery }: Props) {
-  const { queryText, table, groupBy, metric, column } = query;
+interface TraceKey {
+  Name: string;
+  Type: 'String' | 'Numeric';
+}
+
+export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  const { queryText, table, groupBy, metric, column, bucketBy, limitAggregator, limitColumn, limit } = query;
 
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, queryText: event.target.value });
@@ -18,7 +23,7 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
   };
 
   const onGroupByChange = (option: SelectableValue) => {
-    onChange({ ...query, groupBy: option.map((o: any) => o.value) });
+    onChange({ ...query, groupBy: option.map((o: any) => o.label) });
   };
 
   const onMetricChange = (option: SelectableValue<string>) => {
@@ -29,53 +34,99 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
     onChange({ ...query, column: option.value });
   };
 
-  const tableOptions = [{ value: 'traces', label: 'traces' }];
+  const onBucketByChange = (option: SelectableValue<string>) => {
+    onChange({ ...query, bucketBy: option.value });
+  };
 
-  const selectOptions = [{ value: 'Duration', label: 'Duration' }];
+  const onLimitAggregatorChange = (option: SelectableValue<string>) => {
+    onChange({ ...query, limitAggregator: option.value });
+  };
 
-  useEffect(() => {
-    onChange({ ...query, table: table ?? tableOptions[0].value, column: column ?? selectOptions[0].value });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const onLimitColumnChange = (option: SelectableValue<string>) => {
+    onChange({ ...query, limitColumn: option.value });
+  };
 
-  const metricOptions = [
-    { value: 'Count', label: 'Count' },
-    { value: 'Min', label: 'Min' },
-    { value: 'Avg', label: 'Avg' },
-    { value: 'P50', label: 'P50' },
-    { value: 'P90', label: 'P90' },
-    { value: 'P95', label: 'P95' },
-    { value: 'P99', label: 'P99' },
-    { value: 'Max', label: 'Max' },
-    { value: 'Sum', label: 'Sum' },
-  ];
+  const onLimitChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange({ ...query, limit: Number(event.target.value) });
+  };
 
-  const groupByOptions = [
-    { value: 'SpanName', label: 'span_name' },
-    { value: 'ServiceName', label: 'service_name' },
-    { value: 'ServiceVersion', label: 'service_version' },
-    { value: 'http.status_code', label: 'http.status_code' },
-  ];
+  const loadColumnOptions = async (query: string) => {
+    let keys: TraceKey[] = await datasource.getResource('traces-keys');
+    return columnOptions
+      .concat(keys.filter((k) => k.Type === 'Numeric').map((k) => ({ value: k.Name, label: k.Name })))
+      .filter((k) => k.label.toLowerCase().includes(query.toLowerCase()));
+  };
+
+  const loadGroupByOptions = async (query: string) => {
+    let keys: TraceKey[] = await datasource.getResource('traces-keys');
+    return keys
+      .map((k) => ({ value: k.Name, label: k.Name }))
+      .filter((k) => k.label.toLowerCase().includes(query.toLowerCase()));
+  };
 
   return (
-    <div className="gf-form">
-      <Field label="Table">
-        <Select value={table} onChange={onTableChange} options={tableOptions} />
-      </Field>
-      <Field label="Metric">
-        <Select value={metric} onChange={onMetricChange} options={metricOptions} />
-      </Field>
-      {metric !== undefined && metric !== 'Count' && (
-        <Field label="Column">
-          <Select value={column} onChange={onColumnChange} options={selectOptions} />
-        </Field>
-      )}
-      <Field label="Group By">
-        <Select value={groupBy} onChange={onGroupByChange} options={groupByOptions} isMulti />
-      </Field>
-      <Field label="Query">
-        <Input value={queryText} onChange={onQueryTextChange} />
-      </Field>
+    <div>
+      <InlineFieldRow>
+        <InlineField label="Resource" labelWidth={10}>
+          <Select value={table} onChange={onTableChange} options={tableOptions} />
+        </InlineField>
+      </InlineFieldRow>
+      <InlineFieldRow>
+        <InlineField label="Function" labelWidth={10}>
+          <Select value={metric} onChange={onMetricChange} options={metricOptions} />
+        </InlineField>
+        {metric !== undefined && metric !== 'Count' && (
+          <InlineField>
+            <AsyncSelect
+              defaultOptions
+              value={{ name: column, label: column }}
+              onChange={onColumnChange}
+              loadOptions={loadColumnOptions}
+            />
+          </InlineField>
+        )}
+      </InlineFieldRow>
+      <InlineFieldRow>
+        <InlineField label="Filter" labelWidth={10}>
+          <Input value={queryText} onChange={onQueryTextChange} placeholder="Enter a Highlight query..." width={60} />
+        </InlineField>
+      </InlineFieldRow>
+      <InlineFieldRow>
+        <InlineField label="Group by" labelWidth={10}>
+          <AsyncMultiSelect
+            defaultOptions
+            value={groupBy?.map((g) => ({ name: g, label: g }))}
+            onChange={onGroupByChange}
+            loadOptions={loadGroupByOptions}
+            isMulti
+          />
+        </InlineField>
+        {groupBy !== undefined && groupBy.length > 0 && (
+          <>
+            <InlineField label="Limit">
+              <Input type="number" value={limit} onChange={onLimitChange} width={8} />
+            </InlineField>
+            <InlineField label="By">
+              <Select value={limitAggregator} onChange={onLimitAggregatorChange} options={metricOptions} />
+            </InlineField>
+            {limitAggregator !== undefined && limitAggregator !== 'Count' && (
+              <InlineField>
+                <AsyncSelect
+                  defaultOptions
+                  value={{ name: limitColumn, label: limitColumn }}
+                  onChange={onLimitColumnChange}
+                  loadOptions={loadColumnOptions}
+                />
+              </InlineField>
+            )}
+          </>
+        )}
+      </InlineFieldRow>
+      <InlineFieldRow>
+        <InlineField label="Bucket by" labelWidth={10}>
+          <Select value={bucketBy} onChange={onBucketByChange} options={bucketByOptions} />
+        </InlineField>
+      </InlineFieldRow>
     </div>
   );
 }

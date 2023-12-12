@@ -4880,9 +4880,13 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	column: Types.TracesMetricColumn
+	column: Types.Scalars['String']
 	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
+	bucket_by?: Types.Maybe<Types.Scalars['String']>
+	limit?: Types.Maybe<Types.Scalars['Int']>
+	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
+	limit_column?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
