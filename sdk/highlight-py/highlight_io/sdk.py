@@ -375,7 +375,7 @@ class H(object):
         :return: a tuple of (session_id, request_id)
         """
         return self._context_map.get(trace_id, ("", ""))
-    
+
     def trace_origin_url(self, url: str) -> bool:
         """
         Check if the url is in the list of origins to trace.
@@ -389,7 +389,7 @@ class H(object):
         for origin in self._tracing_origins:
             if re.search(origin, url):
                 return True
-        
+
         return False
 
 
