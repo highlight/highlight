@@ -2,7 +2,7 @@ require_relative './test_helper'
 
 class HighlightTest < Minitest::Test
   def test_logger
-    Highlight::H.new('qe9y4yg1') do |c|
+    Highlight::H.new('qe9y4yg1', environment: 'ci-test') do |c|
       c.service_name = 'my-app'
       c.service_version = '1.0.0'
     end
@@ -28,7 +28,7 @@ class HighlightTest < Minitest::Test
 
     begin
       OpenTelemetry::Trace::Tracer.stub :new, mock do
-        Highlight::H.new('qe9y4yg1')
+        Highlight::H.new('qe9y4yg1', environment: 'ci-test')
         Highlight::H.instance.trace(1, nil, { 'some.attribute' => 12 }) do
           logger = Highlight::Logger.new($stdout)
           logger.info('ruby test trace!')
