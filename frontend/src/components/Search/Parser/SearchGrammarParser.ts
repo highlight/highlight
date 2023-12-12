@@ -7,25 +7,19 @@ import {
 	DecisionState,
 	DFA,
 	FailedPredicateException,
-	RecognitionException,
 	NoViableAltException,
-	BailErrorStrategy,
 	Parser,
 	ParserATNSimulator,
-	RuleContext,
 	ParserRuleContext,
-	PredictionMode,
 	PredictionContextCache,
+	RecognitionException,
+	RuleContext,
 	TerminalNode,
-	RuleNode,
 	Token,
 	TokenStream,
-	Interval,
-	IntervalSet,
 } from 'antlr4'
-import SearchGrammarListener from './SearchGrammarListener.js'
-import SearchGrammarVisitor from './SearchGrammarVisitor.js'
 
+import SearchGrammarListener from './SearchGrammarListener.js'
 // for running tests with parameters, TODO: discuss strategy for typed parameters in CI
 // eslint-disable-next-line no-unused-vars
 type int = number
@@ -144,7 +138,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public search_query(): Search_queryContext {
-		let localctx: Search_queryContext = new Search_queryContext(
+		const localctx: Search_queryContext = new Search_queryContext(
 			this,
 			this._ctx,
 			this.state,
@@ -201,15 +195,15 @@ export default class SearchGrammarParser extends Parser {
 			_p = 0
 		}
 
-		let _parentctx: ParserRuleContext = this._ctx
-		let _parentState: number = this.state
+		const _parentctx: ParserRuleContext = this._ctx
+		const _parentState: number = this.state
 		let localctx: Col_exprContext = new Col_exprContext(
 			this,
 			this._ctx,
 			_parentState,
 		)
 		let _prevctx: Col_exprContext = localctx
-		let _startState: number = 2
+		const _startState = 2
 		this.enterRecursionRule(
 			localctx,
 			2,
@@ -366,15 +360,15 @@ export default class SearchGrammarParser extends Parser {
 			_p = 0
 		}
 
-		let _parentctx: ParserRuleContext = this._ctx
-		let _parentState: number = this.state
+		const _parentctx: ParserRuleContext = this._ctx
+		const _parentState: number = this.state
 		let localctx: Search_exprContext = new Search_exprContext(
 			this,
 			this._ctx,
 			_parentState,
 		)
 		let _prevctx: Search_exprContext = localctx
-		let _startState: number = 4
+		const _startState = 4
 		this.enterRecursionRule(
 			localctx,
 			4,
@@ -564,7 +558,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public search_key(): Search_keyContext {
-		let localctx: Search_keyContext = new Search_keyContext(
+		const localctx: Search_keyContext = new Search_keyContext(
 			this,
 			this._ctx,
 			this.state,
@@ -591,7 +585,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public bin_op(): Bin_opContext {
-		let localctx: Bin_opContext = new Bin_opContext(
+		const localctx: Bin_opContext = new Bin_opContext(
 			this,
 			this._ctx,
 			this.state,
@@ -625,7 +619,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public spaces(): SpacesContext {
-		let localctx: SpacesContext = new SpacesContext(
+		const localctx: SpacesContext = new SpacesContext(
 			this,
 			this._ctx,
 			this.state,
@@ -804,14 +798,6 @@ export class Search_queryContext extends ParserRuleContext {
 			listener.exitSearch_query(this)
 		}
 	}
-	// @Override
-	public accept<Result>(visitor: SearchGrammarVisitor<Result>): Result {
-		if (visitor.visitSearch_query) {
-			return visitor.visitSearch_query(this)
-		} else {
-			return visitor.visitChildren(this)
-		}
-	}
 }
 
 export class Col_exprContext extends ParserRuleContext {
@@ -867,14 +853,6 @@ export class Col_exprContext extends ParserRuleContext {
 	public exitRule(listener: SearchGrammarListener): void {
 		if (listener.exitCol_expr) {
 			listener.exitCol_expr(this)
-		}
-	}
-	// @Override
-	public accept<Result>(visitor: SearchGrammarVisitor<Result>): Result {
-		if (visitor.visitCol_expr) {
-			return visitor.visitCol_expr(this)
-		} else {
-			return visitor.visitChildren(this)
 		}
 	}
 }
@@ -945,14 +923,6 @@ export class Search_exprContext extends ParserRuleContext {
 			listener.exitSearch_expr(this)
 		}
 	}
-	// @Override
-	public accept<Result>(visitor: SearchGrammarVisitor<Result>): Result {
-		if (visitor.visitSearch_expr) {
-			return visitor.visitSearch_expr(this)
-		} else {
-			return visitor.visitChildren(this)
-		}
-	}
 }
 
 export class Search_keyContext extends ParserRuleContext {
@@ -978,14 +948,6 @@ export class Search_keyContext extends ParserRuleContext {
 	public exitRule(listener: SearchGrammarListener): void {
 		if (listener.exitSearch_key) {
 			listener.exitSearch_key(this)
-		}
-	}
-	// @Override
-	public accept<Result>(visitor: SearchGrammarVisitor<Result>): Result {
-		if (visitor.visitSearch_key) {
-			return visitor.visitSearch_key(this)
-		} else {
-			return visitor.visitChildren(this)
 		}
 	}
 }
@@ -1033,14 +995,6 @@ export class Bin_opContext extends ParserRuleContext {
 			listener.exitBin_op(this)
 		}
 	}
-	// @Override
-	public accept<Result>(visitor: SearchGrammarVisitor<Result>): Result {
-		if (visitor.visitBin_op) {
-			return visitor.visitBin_op(this)
-		} else {
-			return visitor.visitChildren(this)
-		}
-	}
 }
 
 export class SpacesContext extends ParserRuleContext {
@@ -1069,14 +1023,6 @@ export class SpacesContext extends ParserRuleContext {
 	public exitRule(listener: SearchGrammarListener): void {
 		if (listener.exitSpaces) {
 			listener.exitSpaces(this)
-		}
-	}
-	// @Override
-	public accept<Result>(visitor: SearchGrammarVisitor<Result>): Result {
-		if (visitor.visitSpaces) {
-			return visitor.visitSpaces(this)
-		} else {
-			return visitor.visitChildren(this)
 		}
 	}
 }
