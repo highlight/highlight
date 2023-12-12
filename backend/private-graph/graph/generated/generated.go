@@ -1343,10 +1343,11 @@ type ComplexityRoot struct {
 	}
 
 	SubscriptionDetails struct {
-		BaseAmount   func(childComplexity int) int
-		BillingIssue func(childComplexity int) int
-		Discount     func(childComplexity int) int
-		LastInvoice  func(childComplexity int) int
+		BaseAmount           func(childComplexity int) int
+		BillingIngestBlocked func(childComplexity int) int
+		BillingIssue         func(childComplexity int) int
+		Discount             func(childComplexity int) int
+		LastInvoice          func(childComplexity int) int
 	}
 
 	SubscriptionDiscount struct {
@@ -9517,6 +9518,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.BaseAmount(childComplexity), true
 
+	case "SubscriptionDetails.billingIngestBlocked":
+		if e.complexity.SubscriptionDetails.BillingIngestBlocked == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDetails.BillingIngestBlocked(childComplexity), true
+
 	case "SubscriptionDetails.billingIssue":
 		if e.complexity.SubscriptionDetails.BillingIssue == nil {
 			break
@@ -10708,6 +10716,7 @@ type SubscriptionDetails {
 	discount: SubscriptionDiscount
 	lastInvoice: Invoice
 	billingIssue: Boolean!
+	billingIngestBlocked: Boolean!
 }
 
 type Plan {
@@ -54090,6 +54099,8 @@ func (ec *executionContext) fieldContext_Query_subscription_details(ctx context.
 				return ec.fieldContext_SubscriptionDetails_lastInvoice(ctx, field)
 			case "billingIssue":
 				return ec.fieldContext_SubscriptionDetails_billingIssue(ctx, field)
+			case "billingIngestBlocked":
+				return ec.fieldContext_SubscriptionDetails_billingIngestBlocked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SubscriptionDetails", field.Name)
 		},
@@ -66479,6 +66490,50 @@ func (ec *executionContext) _SubscriptionDetails_billingIssue(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_SubscriptionDetails_billingIssue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionDetails_billingIngestBlocked(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDetails_billingIngestBlocked(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BillingIngestBlocked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionDetails_billingIngestBlocked(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SubscriptionDetails",
 		Field:      field,
@@ -86528,6 +86583,13 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 		case "billingIssue":
 
 			out.Values[i] = ec._SubscriptionDetails_billingIssue(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "billingIngestBlocked":
+
+			out.Values[i] = ec._SubscriptionDetails_billingIngestBlocked(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

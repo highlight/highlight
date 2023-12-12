@@ -509,7 +509,7 @@ func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, prod
 }
 
 func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType model.PricingProductType, exceeded bool) error {
-	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 5*time.Minute)
+	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 1*time.Minute)
 }
 
 func (r *Client) GetCustomerBillingInvalid(ctx context.Context, stripeCustomerID string) (bool, error) {

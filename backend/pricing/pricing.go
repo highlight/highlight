@@ -87,7 +87,7 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 			}},
 		},
 		model.PricingProductTypeLogs: {
-			Included: 1_000_000,
+			Included: 500_000,
 			Items: []GraduatedPriceItem{{
 				Rate:  2.5 / 1_000_000,
 				Count: 1_000_000,
@@ -985,8 +985,8 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	billingIssue, err := w.GetBillingIssue(ctx, &workspace, c, invoice)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).WithField("customer", c.ID).Error("STRIPE_INTEGRATION_ERROR failed to get billing issue status")
-	} else if billingIssue != "" {
-		w.processBillingIssue(ctx, &workspace, billingIssue)
+	} else {
+		w.ProcessBillingIssue(ctx, &workspace, billingIssue)
 	}
 
 	// Update members overage
@@ -1113,7 +1113,19 @@ func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace
 
 const BillingWarningPeriod = 7 * 24 * time.Hour
 
-func (w *Worker) processBillingIssue(ctx context.Context, workspace *model.Workspace, status PaymentIssueType) {
+func (w *Worker) ProcessBillingIssue(ctx context.Context, workspace *model.Workspace, status PaymentIssueType) {
+	if status == "" {
+		if err := w.redis.SetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID), time.Time{}); err != nil {
+			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to clear customer billing warning status")
+		}
+
+		if err := w.redis.SetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID), false); err != nil {
+			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to clear customer invalid billing status")
+		}
+
+		return
+	}
+
 	warningSent, err := w.redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to get customer invalid billing warning status")

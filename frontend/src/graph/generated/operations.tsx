@@ -2894,7 +2894,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
 			discount?: Types.Maybe<
 				{ __typename?: 'SubscriptionDiscount' } & Pick<
@@ -2940,7 +2940,7 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
 			discount?: Types.Maybe<
 				{ __typename?: 'SubscriptionDiscount' } & Pick<

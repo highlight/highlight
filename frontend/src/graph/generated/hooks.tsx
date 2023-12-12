@@ -8530,6 +8530,7 @@ export const GetBillingDetailsDocument = gql`
 				status
 			}
 			billingIssue
+			billingIngestBlocked
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -8615,6 +8616,7 @@ export const GetSubscriptionDetailsDocument = gql`
 				status
 			}
 			billingIssue
+			billingIngestBlocked
 		}
 	}
 `

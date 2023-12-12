@@ -7053,11 +7053,15 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
-		issue, err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.MailClient).GetBillingIssue(ctx, workspace, c, invoice)
+		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
 		if err != nil {
 			return nil, err
 		}
-		details.BillingIssue = issue != ""
+		details.BillingIssue = !warningSent.IsZero()
+	}
+
+	if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
+		return nil, err
 	}
 
 	return details, nil

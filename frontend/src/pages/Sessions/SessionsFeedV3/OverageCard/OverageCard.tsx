@@ -31,7 +31,11 @@ export const OverageCard = ({ productType }: Props) => {
 	}
 
 	if (data.subscription_details.billingIssue) {
-		return <BillingIssueCard />
+		return (
+			<BillingIssueCard
+				blocked={data.subscription_details.billingIngestBlocked}
+			/>
+		)
 	}
 
 	const meters = getMeterAmounts(data)
@@ -80,20 +84,34 @@ export const OverageCard = ({ productType }: Props) => {
 	)
 }
 
-const BillingIssueCard: React.FC = () => {
+const BillingIssueCard: React.FC<{ blocked?: boolean }> = ({ blocked }) => {
 	const { currentWorkspace } = useApplicationContext()
 	const navigate = useNavigate()
 	return (
 		<Box backgroundColor="n2" mb="4">
 			<Callout
-				title="Billing issues are blocking data ingest!"
+				title={
+					blocked
+						? 'Billing issues are blocking data ingest!'
+						: 'Billing issues may block data ingest.'
+				}
 				icon={false}
 			>
-				<Text color="moderate">
-					We're having trouble charging your payment method. Data is
-					not being recorded until the issue is fixed. Please update
-					your payment method to ensure your subscription is valid.
-				</Text>
+				{blocked ? (
+					<Text color="moderate">
+						We're having trouble charging your payment method. Data
+						is not being recorded until the issue is fixed. Please
+						update your payment method to ensure your subscription
+						is valid.
+					</Text>
+				) : (
+					<Text color="moderate">
+						We're having trouble charging your payment method. If
+						the issue is not resolved, we will stop ingesting your
+						data. Please check that your payment details are
+						correct.
+					</Text>
+				)}
 
 				<Stack direction="row" gap="8">
 					<Button
@@ -103,7 +121,7 @@ const BillingIssueCard: React.FC = () => {
 						}}
 						trackingId="overageUpdateLimit"
 					>
-						Update limit
+						Update payment method
 					</Button>
 				</Stack>
 			</Callout>
