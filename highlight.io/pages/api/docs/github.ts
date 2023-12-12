@@ -1,6 +1,6 @@
 import yaml from 'js-yaml'
 import path from 'path'
-import { logger } from '../../../highlight.config'
+import { logger } from '../../../highlight.logger'
 
 // ignored files from docs
 export const IGNORED_DOCS_PATHS = new Set<string>([

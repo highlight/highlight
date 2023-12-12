@@ -3,7 +3,8 @@ import path from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
 import removeMd from 'remove-markdown'
-import { logger, withPageRouterHighlight } from '../../../../highlight.config'
+import { withPageRouterHighlight } from '../../../../highlight.config'
+import { logger } from '../../../../highlight.logger'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 
