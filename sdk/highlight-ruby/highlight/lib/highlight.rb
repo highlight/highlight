@@ -22,7 +22,7 @@ module Highlight
       @@instance
     end
 
-    def initialize(project_id, environment: "", otlp_endpoint: OTLP_HTTP)
+    def initialize(project_id, environment: '', otlp_endpoint: OTLP_HTTP)
       @@instance = self # rubocop:disable Style/ClassVars
 
       @project_id = project_id
@@ -36,7 +36,7 @@ module Highlight
                              ))
 
         c.resource = OpenTelemetry::SDK::Resources::Resource.create(
-          OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment,
+          OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment
         )
 
         yield c if block_given?
