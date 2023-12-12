@@ -23,6 +23,7 @@ from opentelemetry.trace import INVALID_SPAN
 from highlight_io.integrations import Integration
 from highlight_io.utils.lru_cache import LRUCache
 
+
 class LogHandler(logging.Handler):
     def __init__(self, highlight: "H", level=logging.NOTSET):
         self.highlight = highlight
@@ -362,7 +363,7 @@ class H(object):
 
         logging.setLogRecordFactory(factory)
         H._logging_instrumented = True
-    
+
     def get_highlight_context(self, trace_id: str) -> typing.Tuple[str, str]:
         """
         Get the highlight context associated with a trace id.
@@ -371,7 +372,6 @@ class H(object):
         :return: a tuple of (session_id, request_id)
         """
         return self._context_map.get(trace_id, ("", ""))
-
 
 
 def _build_resource(

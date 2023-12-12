@@ -23,10 +23,11 @@ H = highlight_io.H(
 @app.route("/")
 def hello():
     logging.info(
-        "Making an external request with requests", {"customer": request.headers.get("customer") or "unknown"}
+        "Making an external request with requests",
+        {"customer": request.headers.get("customer") or "unknown"},
     )
-    
-    r = requests.get(url='http://app.highlight.io/health_check')
+
+    r = requests.get(url="http://app.highlight.io/health_check")
     logging.info(f"received {r.status_code} response")
 
     for idx in range(1000):
