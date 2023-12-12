@@ -66,8 +66,8 @@ type ClickhouseSession struct {
 	ViewedByAdmins     clickhouse.ArraySet
 	FieldKeys          clickhouse.ArraySet
 	FieldKeyValues     clickhouse.ArraySet
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	CreatedAt          int64
+	UpdatedAt          int64
 	SecureID           string
 	Identified         bool
 	Identifier         string
@@ -97,7 +97,7 @@ type ClickhouseField struct {
 	ProjectID        int32
 	Type             string
 	Name             string
-	SessionCreatedAt time.Time
+	SessionCreatedAt int64
 	SessionID        int64
 	Value            string
 }
@@ -138,7 +138,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				Name:             field.Name,
 				Value:            field.Value,
 				SessionID:        int64(session.ID),
-				SessionCreatedAt: session.CreatedAt,
+				SessionCreatedAt: session.CreatedAt.UnixMicro(),
 			}
 			chFields = append(chFields, &chf)
 		}
@@ -156,8 +156,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			ViewedByAdmins:     viewedByAdmins,
 			FieldKeys:          fieldKeys,
 			FieldKeyValues:     fieldKeyValues,
-			CreatedAt:          session.CreatedAt,
-			UpdatedAt:          session.UpdatedAt,
+			CreatedAt:          session.CreatedAt.UnixMicro(),
+			UpdatedAt:          session.UpdatedAt.UnixMicro(),
 			SecureID:           session.SecureID,
 			Identified:         session.Identified,
 			Identifier:         session.Identifier,
@@ -194,22 +194,23 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	var g errgroup.Group
 
 	if len(chSessions) > 0 {
-		sessionsSql, sessionsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseSession)).
-			InsertInto(SessionsTable, chSessions...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
 		g.Go(func() error {
+			sessionsSql, sessionsArgs := sqlbuilder.
+				NewStruct(new(ClickhouseSession)).
+				InsertInto(SessionsTable, chSessions...).
+				BuildWithFlavor(sqlbuilder.ClickHouse)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 32, map[int]bool{7: true, 8: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
 
 	if len(chFields) > 0 {
-		fieldsSql, fieldsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseField)).
-			InsertInto(FieldsTable, chFields...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
-
 		g.Go(func() error {
+			fieldsSql, fieldsArgs := sqlbuilder.
+				NewStruct(new(ClickhouseField)).
+				InsertInto(FieldsTable, chFields...).
+				BuildWithFlavor(sqlbuilder.ClickHouse)
+			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, 6, map[int]bool{3: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
 		})
 	}
@@ -236,7 +237,7 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 	})
 	if !found {
 		end := time.Now().UTC()
-		start := end.AddDate(0, 0, -30).UTC()
+		start := end.AddDate(0, 0, -30)
 		timeRangeRule = Rule{
 			Field: timeRangeField,
 			Op:    BetweenDate,

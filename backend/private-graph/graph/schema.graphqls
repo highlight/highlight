@@ -1011,6 +1011,11 @@ enum TracesMetricColumn {
 	MetricValue
 }
 
+enum TracesMetricBucketBy {
+	None
+	Timestamp
+}
+
 type TracesMetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
@@ -2088,9 +2093,13 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: TracesMetricColumn!
+		column: String!
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
+		bucket_by: String
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
 	): TracesMetrics!
 	traces_keys(
 		project_id: ID!

@@ -810,6 +810,7 @@ export type JiraTeam = {
 }
 
 export enum KeyType {
+	Numeric = 'Numeric',
 	String = 'String',
 }
 
@@ -2484,8 +2485,12 @@ export type QueryTraces_KeysArgs = {
 }
 
 export type QueryTraces_MetricsArgs = {
-	column: TracesMetricColumn
+	bucket_by?: InputMaybe<Scalars['String']>
+	column: Scalars['String']
 	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
 	params: QueryInput
 	project_id: Scalars['ID']
@@ -3231,6 +3236,11 @@ export type TracesMetricBucket = {
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value: Scalars['Float']
+}
+
+export enum TracesMetricBucketBy {
+	None = 'None',
+	Timestamp = 'Timestamp',
 }
 
 export enum TracesMetricColumn {
