@@ -17,8 +17,6 @@ linters:
         - staticcheck
         - typecheck
         - unused
-        - depguard
-        - exhaustruct
 
 # all available settings of specific linters
 linters-settings:

@@ -12356,6 +12356,7 @@ __metadata:
     js-cookie: ^3.0.1
     jsonc-parser: ^3.2.0
     less: ^4.1.3
+    lightningcss: ^1.22.1
     lodash: ^4.17.21
     lottie-react: ^2.1.0
     moment: 2.29.4
@@ -43496,6 +43497,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-darwin-arm64@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-darwin-arm64@npm:1.22.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "lightningcss-darwin-x64@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-darwin-x64@npm:1.20.0"
@@ -43503,9 +43511,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-darwin-x64@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-darwin-x64@npm:1.22.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lightningcss-freebsd-x64@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-freebsd-x64@npm:1.22.1"
+  conditions: os=freebsd & cpu=x64
+  languageName: node
+  linkType: hard
+
 "lightningcss-linux-arm-gnueabihf@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-linux-arm-gnueabihf@npm:1.20.0"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-arm-gnueabihf@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-arm-gnueabihf@npm:1.22.1"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -43517,9 +43546,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-linux-arm64-gnu@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-arm64-gnu@npm:1.22.1"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "lightningcss-linux-arm64-musl@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-linux-arm64-musl@npm:1.20.0"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-arm64-musl@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-arm64-musl@npm:1.22.1"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -43531,6 +43574,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-linux-x64-gnu@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-x64-gnu@npm:1.22.1"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "lightningcss-linux-x64-musl@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-linux-x64-musl@npm:1.20.0"
@@ -43538,9 +43588,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-linux-x64-musl@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-x64-musl@npm:1.22.1"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "lightningcss-win32-x64-msvc@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-win32-x64-msvc@npm:1.20.0"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lightningcss-win32-x64-msvc@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-win32-x64-msvc@npm:1.22.1"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -43576,6 +43640,43 @@ __metadata:
     lightningcss-win32-x64-msvc:
       optional: true
   checksum: 633594543fd297f1f7a10d3472d5e55f65b0d8707254d1d975dc37b36208c6ef4c4d9d0f391f7fb1e7b2547f0c7b06bbc0aa31575ebb16917a2d1ff9cc25183e
+  languageName: node
+  linkType: hard
+
+"lightningcss@npm:^1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss@npm:1.22.1"
+  dependencies:
+    detect-libc: ^1.0.3
+    lightningcss-darwin-arm64: 1.22.1
+    lightningcss-darwin-x64: 1.22.1
+    lightningcss-freebsd-x64: 1.22.1
+    lightningcss-linux-arm-gnueabihf: 1.22.1
+    lightningcss-linux-arm64-gnu: 1.22.1
+    lightningcss-linux-arm64-musl: 1.22.1
+    lightningcss-linux-x64-gnu: 1.22.1
+    lightningcss-linux-x64-musl: 1.22.1
+    lightningcss-win32-x64-msvc: 1.22.1
+  dependenciesMeta:
+    lightningcss-darwin-arm64:
+      optional: true
+    lightningcss-darwin-x64:
+      optional: true
+    lightningcss-freebsd-x64:
+      optional: true
+    lightningcss-linux-arm-gnueabihf:
+      optional: true
+    lightningcss-linux-arm64-gnu:
+      optional: true
+    lightningcss-linux-arm64-musl:
+      optional: true
+    lightningcss-linux-x64-gnu:
+      optional: true
+    lightningcss-linux-x64-musl:
+      optional: true
+    lightningcss-win32-x64-msvc:
+      optional: true
+  checksum: 75319e14cae842f92d2d3fbf3c7616ef427298fc3bd010bc644eb67c21af93debc2dff5dcf67b6dcf0eab0ca6c073bc670805bba1977cf3423d0da766e15caf3
   languageName: node
   linkType: hard
 
