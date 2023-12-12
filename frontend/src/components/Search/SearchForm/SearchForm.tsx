@@ -33,6 +33,7 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import { parseSearch } from '@/components/Search/Parser/utils'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -41,7 +42,6 @@ import {
 	BODY_KEY,
 	DEFAULT_OPERATOR,
 	parseSearchQuery,
-	queryAsStringParams,
 	quoteQueryValue,
 	SearchParam,
 	SEPARATORS,
@@ -237,7 +237,7 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
-	const queryAsStringParts = queryAsStringParams(query)
+	const queryAsStringParts = parseSearch(query).map((part) => part.value)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)

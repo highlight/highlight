@@ -1,4 +1,4 @@
-import { parseSearch } from '@/components/Search/Parser/tree'
+import { parseSearch } from '@/components/Search/Parser/utils'
 
 describe('Parser', () => {
 	const queryString =

@@ -810,6 +810,7 @@ export type JiraTeam = {
 }
 
 export enum KeyType {
+	Numeric = 'Numeric',
 	String = 'String',
 }
 
@@ -3041,7 +3042,7 @@ export type SessionsReportRow = {
 	num_sessions: Scalars['Int']
 	total_active_length_mins: Scalars['Float']
 	total_length_mins: Scalars['Float']
-	user_properties?: Maybe<Scalars['Any']>
+	user_properties?: Maybe<Scalars['String']>
 }
 
 export type SlackSyncResponse = {

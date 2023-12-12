@@ -12333,7 +12333,7 @@ __metadata:
     "@vanilla-extract/vite-plugin": ^3.9.0
     "@vitejs/plugin-react-swc": ^3.3.2
     antd: 4.21.7
-    antlr4: ^4.13.1-patch-1
+    antlr4: 4.13.1-patch-1
     antlr4ts-cli: ^0.5.0-alpha.4
     autoprefixer: ^10.4.8
     clsx: ^1.2.1
@@ -26736,10 +26736,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"antlr4@npm:^4.13.1-patch-1":
-  version: 4.13.1
-  resolution: "antlr4@npm:4.13.1"
-  checksum: 76dcb0c8ed2d0b83a16641579668088919f51d1288551604e3cdff46c67955b3eef25892aead9de1eca203b3968536fa952e6931f35ba877780af37971c055f1
+"antlr4@npm:4.13.1-patch-1":
+  version: 4.13.1-patch-1
+  resolution: "antlr4@npm:4.13.1-patch-1"
+  checksum: 7640a44f7ba75d15490838b908aa9e9b3b0d034c6a74ab589bb13a92904358bca7c4d9aff863dcccfc3b11c90492087e9aa8386ace3b84cc2299670e4fd2f39e
   languageName: node
   linkType: hard
 
