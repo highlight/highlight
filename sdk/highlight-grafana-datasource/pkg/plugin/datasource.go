@@ -107,7 +107,7 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 	switch req.Path {
 	case "traces-keys":
 		var q struct {
-			TracesKeys []QueryKey `graphql:"trace_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
+			TracesKeys []QueryKey `graphql:"traces_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
 		}
 
 		var dataSourceSettings DataSourceSettings
