@@ -58,4 +58,5 @@ H = highlight_io.H(
 	instrument_logging=True,
 	service_name="my-app",
 	service_version="git-sha",
+	environment="production",
 )`

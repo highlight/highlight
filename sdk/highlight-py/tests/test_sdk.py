@@ -36,10 +36,16 @@ def mock_otlp(mocker, request, integrations):
 @pytest.mark.parametrize("project_id", [None, "", "a123"])
 @pytest.mark.parametrize("session_id", ["", "a1b2c3d4e5"])
 @pytest.mark.parametrize("request_id", ["", "a123"])
-def test_record_exception(mocker, mock_otlp, project_id, session_id, request_id):
+@pytest.mark.parametrize("environment", ["", "ci-test"])
+def test_record_exception(
+    mocker, mock_otlp, project_id, session_id, request_id, environment
+):
     integrations, instrument_logging = mock_otlp
     h = highlight_io.H(
-        project_id, integrations=integrations, instrument_logging=instrument_logging
+        project_id,
+        integrations=integrations,
+        instrument_logging=instrument_logging,
+        environment=environment,
     )
     spy = mocker.spy(h.tracer, "start_as_current_span")
 
