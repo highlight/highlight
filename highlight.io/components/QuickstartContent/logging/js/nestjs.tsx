@@ -25,7 +25,7 @@ async function bootstrap() {
       projectID: '<YOUR_PROJECT_ID>',
       serviceName: 'my-nestjs-app',
       serviceVersion: 'git-sha',
-			environment: 'production'
+      environment: 'production'
     })
   )
   await app.listen(3000)

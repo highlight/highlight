@@ -47,7 +47,7 @@ export const initializeNodeSDK: (slug: string) => QuickStartStep = (slug) => ({
 H.init({
 	projectID: '<YOUR_PROJECT_ID>',
 	serviceName: '<YOUR_SERVICE_NAME>',
-	environment: <YOUR_ENVIRONMENT>,
+	environment: 'production',
 })`,
 			language: 'js',
 		},
