@@ -343,4 +343,5 @@ curl http://localhost:3000/nodejs-app-router-test?error
 ## Related steps
 
 - [Edge runtime API instrumentation](./6_edge-runtime.md)
+- [Page router instrumentation](./2_page-router.md)
 - [Advanced Configuration](./7_advanced-config.md)

@@ -340,4 +340,5 @@ export function CustomHighlightStart() {
 ## Related steps
 
 - [Edge runtime API instrumentation](./6_edge-runtime.md)
+- [App router instrumentation](./3_app-router.md)
 - [Advanced Configuration](./7_advanced-config.md)

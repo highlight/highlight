@@ -13,7 +13,7 @@ updatedAt: 2022-08-18T22:36:12.000Z
     </DocsCard>
 </DocsCardGroup>
 
-## Tell me more
+## Our product
 
 [highlight.io](https://highlight.io) gives you **fullstack** visibility into your application by pairing session replay, error monitoring, and logging, allowing you to tie frontend issues with backend logs and performance issues.
 
