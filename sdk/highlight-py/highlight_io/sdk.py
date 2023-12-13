@@ -22,7 +22,12 @@ from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
 from highlight_io.utils.lru_cache import LRUCache
+from highlight_io.integrations.requests import RequestsIntegration
 
+
+DEFAULT_INTEGRATIONS = [
+    [RequestsIntegration.INTEGRATION_KEY, RequestsIntegration]
+]
 
 class LogHandler(logging.Handler):
     def __init__(self, highlight: "H", level=logging.NOTSET):
@@ -61,6 +66,7 @@ class H(object):
         self,
         project_id: str,
         integrations: typing.List[Integration] = None,
+        disabled_integrations: typing.List[str] = None,
         otlp_endpoint: str = "",
         instrument_logging: bool = True,
         log_level=logging.DEBUG,
@@ -78,6 +84,7 @@ class H(object):
 
         :param project_id: a string that corresponds to the verbose id of your project from app.highlight.io/setup
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
+        :param disabled_integrations: a list of integrations to disable.
         :param instrument_logging: defaults to True. set False to disable auto-instrumentation of python `logging` methods.
         :param otlp_endpoint: set to a custom otlp destination
         :param service_name: a string to name this app
@@ -88,6 +95,7 @@ class H(object):
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
+        self._disabled_integrations = disabled_integrations or []
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
@@ -130,6 +138,15 @@ class H(object):
 
         for integration in self._integrations:
             integration.enable()
+            try:
+                key = integration.INTEGRATION_KEY
+                self._disabled_integrations.append(key)
+            except AttributeError:
+                pass
+
+        for [key, integration] in DEFAULT_INTEGRATIONS:
+            if key not in self._disabled_integrations:
+                integration().enable()
 
     def flush(self):
         self._trace_provider.force_flush()

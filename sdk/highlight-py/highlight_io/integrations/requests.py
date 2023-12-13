@@ -8,6 +8,8 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 
 class RequestsIntegration(Integration):
+    INTEGRATION_KEY = "requests"
+
     def __init__(self, tracing_origins: t.Optional[t.List[str] | bool] = None):
         self._trace_origins = tracing_origins or False
         super().__init__()
