@@ -53,9 +53,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			defer s.Finish(err)
 
 			s1, _ := util.StartSpanFromContext(sCtx, "worker.kafka.receiveMessage")
-			receiveCtx, receiveCancel := context.WithTimeout(ctx, time.Second)
-			defer receiveCancel()
-			task := k.KafkaQueue.Receive(receiveCtx)
+			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 
 			if task == nil {
@@ -547,7 +545,10 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			defer s.Finish()
 
 			s1, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.receive", k.Name)))
-			receiveCtx, receiveCancel := context.WithTimeout(ctx, time.Second)
+			// wait for up to k.BatchedFlushTimeout to receive a message
+			// before proceeding to flush previously batched messages
+			// and restarting the receive call
+			receiveCtx, receiveCancel := context.WithTimeout(ctx, k.BatchedFlushTimeout)
 			defer receiveCancel()
 			task := k.KafkaQueue.Receive(receiveCtx)
 			s1.Finish()
