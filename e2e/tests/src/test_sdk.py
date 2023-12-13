@@ -53,7 +53,6 @@ def query(
         raise exc
 
 
-@pytest.mark.skip(reason="test is not yet stable")
 @pytest.mark.parametrize("success", ["true", "false"])
 @pytest.mark.parametrize(
     "endpoint,expected_error",
@@ -73,17 +72,14 @@ def query(
 )
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
-    # TODO(vkorolik) figure out why our backend always holds on to the last error rather than writing it
-    # for now, send 3 requests to ensure errors are written to highlight
-    for _ in range(3):
-        r = requests.get(
-            f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
-        )
-        logging.info(f"GET {r.url} {r.status_code} {r.text}")
-        if success == "true":
-            assert r.ok
-        else:
-            assert not r.ok
+    r = requests.get(
+        f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
+    )
+    logging.info(f"GET {r.url} {r.status_code} {r.text}")
+    if success == "true":
+        assert r.ok
+    else:
+        assert not r.ok
 
     # check that the error came thru to highlight
     if success == "false":
@@ -107,7 +103,6 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
                 "query": {
                     "isAnd": True,
                     "rules": [
-                        # TODO(vkorolik) figure out why error filter returns no results
                         [
                             "error-field_timestamp",
                             "between_date",
