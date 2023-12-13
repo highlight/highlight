@@ -3168,6 +3168,17 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 		log.WithContext(ctx).Error(err)
 	}
 
+	config := microsoft_teams.WelcomeMessageData{
+		Workspace:     workspace,
+		Admin:         admin,
+		Project:       project,
+		OperationName: "updated",
+	}
+
+	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &config); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
 	return alert, nil
 }
 
@@ -3199,6 +3210,17 @@ func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs
 		IncludeEditLink:      true,
 		URLSlug:              "alerts/logs",
 	}); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
+	teamsMessageInput := microsoft_teams.WelcomeMessageData{
+		Workspace:     workspace,
+		Admin:         admin,
+		Project:       project,
+		OperationName: "created",
+	}
+
+	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &teamsMessageInput); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 

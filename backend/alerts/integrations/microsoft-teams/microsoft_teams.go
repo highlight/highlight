@@ -1,23 +1,29 @@
 package microsoft_teams
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
-	"log"
 	"net/http"
 	nUrl "net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
+	log "github.com/sirupsen/logrus"
+
 	"github.com/go-chi/chi"
+	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/infracloudio/msbotbuilder-go/core"
 	"github.com/infracloudio/msbotbuilder-go/core/activity"
 	"github.com/infracloudio/msbotbuilder-go/schema"
-	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
@@ -41,9 +47,42 @@ type MicrosoftTeamsTokenResponse struct {
 	TokenType    string `json:"token_type"`
 }
 
+type WelcomeMessageData struct {
+	Workspace     *model.Workspace
+	Admin         *model.Admin
+	Project       *model.Project
+	OperationName string
+}
+
 type BotHandler struct {
 	core.Adapter
 	DB *gorm.DB
+}
+
+type MicrosoftTeamsBot struct {
+	core.Adapter
+}
+
+func makeAttachmentHandler(attachments interface{}) activity.HandlerFuncs {
+	return activity.HandlerFuncs{
+		OnMessageFunc: func(turn *activity.TurnContext) (schema.Activity, error) {
+			attachments := []schema.Attachment{
+				{
+					ContentType: "application/vnd.microsoft.card.adaptive",
+					Content:     attachments,
+				},
+			}
+			return turn.SendActivity(activity.MsgOptionText("Sample attachment"), activity.MsgOptionAttachments(attachments))
+		},
+	}
+}
+
+func makeMessageHandler(message string) activity.HandlerFuncs {
+	return activity.HandlerFuncs{
+		OnMessageFunc: func(turn *activity.TurnContext) (schema.Activity, error) {
+			return turn.SendActivity(activity.MsgOptionText(message))
+		},
+	}
 }
 
 var botMessagesHandler = activity.HandlerFuncs{
@@ -55,7 +94,6 @@ var botMessagesHandler = activity.HandlerFuncs{
 	OnConversationUpdateFunc: func(turn *activity.TurnContext) (schema.Activity, error) {
 		if len(turn.Activity.MembersRemoved) > 0 {
 			for _, memberRemoved := range turn.Activity.MembersRemoved {
-				// our bot is the recipient of this message - so we are being removed from the conversation
 				if memberRemoved.ID == turn.Activity.Recipient.ID {
 					// this is probably redundant since bot will no longer be part of the team but ...
 					return turn.SendActivity(activity.MsgOptionText("Hightlight bot uninstalled successfully"))
@@ -68,7 +106,7 @@ var botMessagesHandler = activity.HandlerFuncs{
 			for _, member := range turn.Activity.MembersAdded {
 				// our bot is the recipient of this message - so we are being added to the conversation
 				if member.ID == turn.Activity.Recipient.ID {
-					return turn.SendActivity(activity.MsgOptionText("Hello. Your highlight notifications bot has been installed successfully. You can now set a teams channel as receipient for your alerts. Your highlight microsoft teams integration will be removed on highlight whenever you uninstall the bot."))
+					return turn.SendActivity(activity.MsgOptionText("👋 your highlight notifications bot has been installed successfully. You can now set a teams channel as receipient for your alerts. Your highlight microsoft teams integration will be removed on highlight whenever you uninstall the bot."))
 				}
 			}
 		}
@@ -113,7 +151,7 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if len(act.MembersAdded) > 0 {
 			// identify if our bot is part of the id
 			for _, memberAddded := range act.MembersAdded {
-				// our bot is the recipient of this message - so we are being removed from the conversation
+				// our bot is the recipient of this message - so we are being added to the conversation - aka installation
 				if memberAddded.ID == act.Recipient.ID {
 					query := &model.Workspace{
 						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
@@ -122,18 +160,18 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					conversationReference := activity.GetCoversationReference(act)
 
 					conversation := conversationReference.Conversation
-					conversationReferenceData := map[string]interface{}{}
-
-					// TODO: can we do better than this?
-					conversationReferenceData["id"] = conversation.ID
-					conversationReferenceData["conversation_type"] = conversation.ConversationType
-					conversationReferenceData["is_group"] = conversation.IsGroup
-					conversationReferenceData["name"] = conversation.Name
-					conversationReferenceData["aad_object_id"] = conversation.AadObjectID
-					conversationReferenceData["tenant_id"] = conversation.TenantID
+					conversationReferenceData := map[string]interface{}{
+						"id":               conversation.ID,
+						"isGroup":          conversation.IsGroup,
+						"conversationType": conversation.ConversationType,
+						"tenantID":         conversation.TenantID,
+						"name":             conversation.Name,
+						"aadObjectId":      conversation.AadObjectID,
+						"role":             "bot",
+					}
 
 					if err := ht.DB.Where(&query).Select("microsoft_teams_conversation_ref").Updates(&model.Workspace{MicrosoftTeamsConversationRef: conversationReferenceData}).Error; err != nil {
-						fmt.Println("installation unsuccessful", err)
+						fmt.Println("microsoft teams bot installation failed", err)
 						break
 					}
 
@@ -159,7 +197,7 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func BotHandlerFunc(db *gorm.DB) (*BotHandler, error) {
+func MakeBotAdapter() (core.Adapter, error) {
 	var (
 		ok          bool
 		botPassword string
@@ -173,14 +211,31 @@ func BotHandlerFunc(db *gorm.DB) (*BotHandler, error) {
 		return nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
 	}
 
-	fmt.Println("FIDY-BOT ID", botID)
-
 	setting := core.AdapterSetting{
 		AppID:       botID,
 		AppPassword: botPassword,
 	}
 
 	adapter, err := core.NewBotAdapter(setting)
+	if err != nil {
+		log.Println("Error creating adapter: ", err)
+		return nil, err
+	}
+
+	return adapter, nil
+}
+
+func NewMicrosoftTeamsBot() (*MicrosoftTeamsBot, error) {
+	adapter, err := MakeBotAdapter()
+	if err != nil {
+		log.Println("Error creating adapter: ", err)
+		return nil, errors.New("error creating microsoft teams bot adapter")
+	}
+	return &MicrosoftTeamsBot{adapter}, nil
+}
+
+func BotHandlerFunc(db *gorm.DB) (*BotHandler, error) {
+	adapter, err := MakeBotAdapter()
 	if err != nil {
 		log.Println("Error creating adapter: ", err)
 		return nil, err
@@ -249,9 +304,9 @@ func doPostRequest[TOut any, TIn any](accessToken string, url string, input TIn)
 	return doRequest[TOut]("POST", accessToken, url, string(b))
 }
 
-func doGetRequest[T any](accessToken string, url string) (T, error) {
-	return doRequest[T]("GET", accessToken, url, "")
-}
+// func doGetRequest[T any](accessToken string, url string) (T, error) {
+// 	return doRequest[T]("GET", accessToken, url, "")
+// }
 
 func doRequest[T any](method string, accessToken string, url string, body string) (T, error) {
 	var unmarshalled T
@@ -337,10 +392,198 @@ func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token
 
 func GetTeamsChannel(tenantId string) ([]*model.MicrosoftTeamsChannel, error) {
 	// TODO: Implement this
-	fmt.Println("fetching teams channel at tenant", tenantId)
 	channels := []*model.MicrosoftTeamsChannel{
-		{ID: "19:e70b1e83561948a5bdbd80e83c209aa9@thread.tacv2", Name: "General"},
-		{ID: "19:8687bd996c76416eb10ff37f5a0a1164@thread.tacv2", Name: "Monthly Reports"},
+		{ID: "19:2dbc75ed0f8846a9a6b448afdf909286@thread.tacv2", Name: "General"},
+		{ID: "19:6b49795502b2466db51b004a0de90b9c@thread.tacv2", Name: "Monthly Reports"},
 	}
 	return channels, nil
+}
+
+type Fact struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+}
+
+func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integrations.LogAlertPayload, workspace *model.Workspace) error {
+	if workspace.MicrosoftTeamsConversationRef == nil {
+		return errors.New("microsoft teams bot installation not complete")
+	}
+
+	var conversation schema.ConversationAccount
+	err := workspace.MicrosoftTeamsConversationRef.Scan(conversation)
+
+	fmt.Println("Worskpace conversation restored")
+
+	if err != nil {
+		return errors.New("invalid microsoft teams conversation reference found")
+	}
+
+	/**
+	What could go wrong
+
+	**/
+	fmt.Println("TEST> About to create conversation reference")
+	conversationRef := schema.ConversationReference{
+		Bot: schema.ChannelAccount{
+			ID:   "28:9817330b-7262-42de-bfa9-055b47b67967",
+			Name: "highlight-notifications",
+		},
+		Conversation: conversation,
+		ChannelID:    "msteams",
+		// Locale:       "en-GB",
+		ServiceURL: "https://smba.trafficmanager.net/amer/",
+	}
+	fmt.Println("TEST> Conversation reference cereated")
+	facts := []*Fact{}
+
+	if payload.Query != "" {
+		facts = append(facts, &Fact{
+			Title: "Query",
+			Value: payload.Query,
+		})
+	}
+
+	facts = append(facts, &Fact{
+		Title: "Count",
+		Value: strconv.Itoa(payload.Count),
+	})
+
+	facts = append(facts, &Fact{
+		Title: "Threshold",
+		Value: strconv.Itoa(payload.Threshold),
+	})
+
+	factset := map[string]interface{}{
+		"type":  "FactSet",
+		"facts": facts,
+	}
+
+	aboveStr := "above"
+	if payload.BelowThreshold {
+		aboveStr = "below"
+	}
+
+	titleTextBlock := map[string]interface{}{
+		"type":   "TextBlock",
+		"size":   "Medium",
+		"weight": "Bolder",
+		"text":   "Highlight Log Alert",
+	}
+
+	description := fmt.Sprintf("*%s* is currently %s the threshold.", payload.Name, aboveStr)
+
+	descriptionTextBlock := map[string]interface{}{
+		"type": "TextBlock",
+		"text": description,
+		"wrap": true,
+	}
+
+	columnSet := map[string]interface{}{
+		"type":  "Column",
+		"width": "stretch",
+		"items": []map[string]interface{}{descriptionTextBlock},
+	}
+
+	decriptionTextBlock := map[string]interface{}{
+		"type":    "ColumnSet",
+		"columns": []map[string]interface{}{columnSet},
+	}
+
+	action := map[string]interface{}{
+		"type":  "Action.OpenUrl",
+		"title": "View Logs",
+		"url":   payload.AlertURL,
+	}
+	actions := []map[string]interface{}{action}
+
+	var body []map[string]interface{}
+
+	body = append(body, titleTextBlock)
+	body = append(body, decriptionTextBlock)
+	body = append(body, factset)
+
+	adaptiveCard := map[string]interface{}{
+		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+		"type":    "AdaptiveCard",
+		"version": "1.6",
+		"body":    body,
+		"actions": actions,
+	}
+
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	err = bot.Adapter.ProactiveMessage(ctx, conversationRef, handler)
+	return err
+}
+
+func MakeTemplateString(source string, data map[string]string) (string, error) {
+	var output bytes.Buffer
+	tmpl, err := template.New("message").Parse(source)
+	if err != nil {
+		return "", err
+	}
+	err = tmpl.Execute(&output, data)
+	return output.String(), err
+}
+
+func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, input *WelcomeMessageData) error {
+	workspace := input.Workspace
+
+	adminName := input.Admin.Name
+
+	if adminName == nil {
+		adminName = input.Admin.Email
+	}
+	description := "Log alerts will now be sent to this channel."
+	frontendURL := os.Getenv("FRONTEND_URI")
+	alertUrl := fmt.Sprintf("%s/%d/%s/%d", frontendURL, input.Project.Model.ID, "alerts/logs", alert.ID)
+	message := fmt.Sprintf("👋 %s has %s the alert \"%s\". %s %s", *adminName, input.OperationName, alert.GetName(), description, alertUrl)
+
+	channels := alert.MicrosoftTeamsChannelsToNotify
+
+	bot, err := NewMicrosoftTeamsBot()
+
+	if err != nil {
+		return errors.New("microsoft teams bot installation not complete")
+	}
+
+	for _, channel := range channels {
+
+		fmt.Println(channel)
+
+		if workspace.MicrosoftTeamsConversationRef == nil {
+			return errors.New("microsoft teams bot installation not complete")
+		}
+
+		conversation := schema.ConversationAccount{
+			IsGroup:          true,
+			ConversationType: "channel",
+			ID:               channel.ID,
+			TenantID:         *workspace.MicrosoftTeamsTenantId,
+		}
+
+		newActivity := schema.Activity{
+			Type:         schema.Message,
+			ChannelID:    "msteams",
+			ServiceURL:   "https://smba.trafficmanager.net/amer/",
+			Conversation: conversation,
+			From: schema.ChannelAccount{
+				// TODO: unhardcode
+				ID: "28:9817330b-7262-42de-bfa9-055b47b67967",
+			},
+		}
+
+		handler := makeMessageHandler(message)
+		ctx := context.Background()
+
+		err = bot.Adapter.ProcessActivity(ctx, newActivity, handler)
+
+		if err != nil {
+			log.WithContext(ctx).Error(err)
+			return err
+		}
+	}
+
+	return nil
 }

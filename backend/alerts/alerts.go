@@ -2,10 +2,12 @@ package alerts
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
 
+	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/routing"
@@ -548,22 +550,38 @@ func SendLogAlert(event LogAlertEvent) error {
 		}
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
-		return nil
-	}
-
-	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-	if err != nil {
-		return err
-	}
-
-	channels := event.LogAlert.DiscordChannelsToNotify
-
-	for _, channel := range channels {
-		err = bot.SendLogAlert(channel.ID, payload)
-
+	if isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 		if err != nil {
 			return err
+		}
+
+		channels := event.LogAlert.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendLogAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if isWorkspaceIntegratedWithMicrosoftTeams(*event.Workspace) {
+		fmt.Println("About to send log alert to teams")
+		bot, err := microsoft_teams.NewMicrosoftTeamsBot()
+		if err != nil {
+			return err
+		}
+
+		channels := event.LogAlert.MicrosoftTeamsChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendLogAlert(channel.ID, payload, event.Workspace)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -572,4 +590,8 @@ func SendLogAlert(event LogAlertEvent) error {
 
 func isWorkspaceIntegratedWithDiscord(workspace model.Workspace) bool {
 	return workspace.DiscordGuildId != nil
+}
+
+func isWorkspaceIntegratedWithMicrosoftTeams(workspace model.Workspace) bool {
+	return workspace.MicrosoftTeamsTenantId != nil && workspace.MicrosoftTeamsConversationRef != nil
 }
