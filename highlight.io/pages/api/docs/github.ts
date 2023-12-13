@@ -1,6 +1,6 @@
 import yaml from 'js-yaml'
 import path from 'path'
-import { logger } from '../../../highlight.logger'
+import { getLogger } from '../../../highlight.logger'
 
 // ignored files from docs
 export const IGNORED_DOCS_PATHS = new Set<string>([
@@ -87,6 +87,7 @@ export const processDocPath = function (
 }
 
 export const getGithubDocsPaths = async (path: string = 'docs-content/') => {
+	const logger = getLogger()
 	logger.info({ path }, 'getGithubDocsPaths')
 	const url = `https://api.github.com/repos/highlight/highlight/contents/${path}`
 	const response = await fetch(url, {
@@ -137,6 +138,7 @@ export const getGithubDoc = async (
 	meta: DocMeta
 	content: string
 } | null> => {
+	const logger = getLogger()
 	logger.info({ slug }, 'getGithubDoc')
 	const response = await fetch(
 		`https://api.github.com/repos/highlight/highlight/contents/docs-content/${slug}.md`,

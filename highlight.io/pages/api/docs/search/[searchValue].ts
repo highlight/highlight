@@ -4,11 +4,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
 import removeMd from 'remove-markdown'
 import { withPageRouterHighlight } from '../../../../highlight.config'
-import { logger } from '../../../../highlight.logger'
+import { getLogger } from '../../../../highlight.logger'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 
 const removeHtmlTags = (content: string) => content.replace(/(<([^>]+)>)/gi, '')
+
 export interface SearchResult {
 	title: string
 	titleMatch?: Array<[number, number]> | undefined
@@ -22,6 +23,7 @@ const handler = withPageRouterHighlight(async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
+	const logger = getLogger()
 	const searchValue = [req.query.searchValue].flat().join('').toLowerCase()
 	logger.info('running api docs search query', { searchValue })
 	const docPaths = await getDocsPaths(fsp, undefined)
