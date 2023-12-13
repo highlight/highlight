@@ -4,7 +4,6 @@ import json
 import logging
 import traceback
 import typing
-import re
 
 from opentelemetry import trace, _logs
 from opentelemetry._logs.severity import std_to_otel
@@ -46,6 +45,8 @@ class H(object):
     OTLP_HTTP = "https://otel.highlight.io:4318"
     _instance: "H" = None
     _logging_instrumented = False
+    # context is a LRU cache to avoid storing too many trace ids in memory
+    # we should not need more than 1000 since Python processes are single-threaded
     _context_map = LRUCache(1000)
 
     @classmethod
@@ -66,7 +67,6 @@ class H(object):
         service_name: str = "",
         service_version: str = "",
         environment: str = "",
-        tracing_origins: bool | typing.List[str] = False,
     ):
         """
         Setup Highlight backend instrumentation.
@@ -90,7 +90,6 @@ class H(object):
         self._integrations = integrations or []
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
         self._log_handler = LogHandler(self, level=log_level)
-        self._tracing_origins = tracing_origins or False
         if instrument_logging:
             self._instrument_logging()
 
@@ -378,22 +377,6 @@ class H(object):
         :return: a tuple of (session_id, request_id)
         """
         return self._context_map.get(trace_id, ("", ""))
-
-    def trace_origin_url(self, url: str) -> bool:
-        """
-        Check if the url is in the list of origins to trace.
-
-        :param url: the url to check
-        :return: bool
-        """
-        if isinstance(self._tracing_origins, bool):
-            return self._tracing_origins
-
-        for origin in self._tracing_origins:
-            if re.search(origin, url):
-                return True
-
-        return False
 
 
 def _build_resource(

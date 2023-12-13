@@ -12,13 +12,12 @@ from highlight_io.integrations.requests import RequestsIntegration
 app = Flask(__name__)
 H = highlight_io.H(
     "1",
-    integrations=[FlaskIntegration(), RequestsIntegration()],
+    integrations=[FlaskIntegration(), RequestsIntegration(tracing_origins=["localhost", "highlight.io"])],
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-flask-app",
     service_version="1.0.0",
     environment="e2e-test",
-    tracing_origins=["localhost", "highlight.io"],
 )
 
 
