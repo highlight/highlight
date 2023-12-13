@@ -51,6 +51,10 @@ slug: python
       <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
     </aside>
     <aside className="parameter">
+      <h5>environment<code>string</code> <code>optional</code></h5>
+      <p>Specifies the environment your application is running in. This helpful to differentiate if your project is running in production or locally.</p>
+    </aside>
+    <aside className="parameter">
       <h5>tracing_origins<code>[string]</code> <code>optional</code></h5>
       <p>Specifies where any external services live. If specified, Highlight will attach the X-Highlight-Request header to outgoing requests of the autoinstrumented Python libraries (e.g. requests) whose destination URLs match a substring or regexp from this list, so that service errors can be linked back to the session. If true is specified, all requests to the current domain will be matched. Example tracingOrigins: ['localhost', '^/', 'backend.myapp.com']</p>
     </aside>
@@ -67,6 +71,7 @@ slug: python
           instrument_logging=True,
           service_name="my-flask-app",
           service_version="git-sha", 
+          environment="production"
         )
     </code>
     In Django, you'll add Highlight to your settings.py file:
@@ -78,7 +83,8 @@ slug: python
           integrations=[DjangoIntegration()],
           instrument_logging=True,
           service_name="my-django-app",
-          service_version="git-sha", 
+          service_version="git-sha",
+          environment="production"
         )
     </code>
     In FastAPI, you'll add Highlight as a middleware:
@@ -89,7 +95,8 @@ slug: python
           "<YOUR_PROJECT_ID>",
           instrument_logging=True,
           service_name="my-fastapi-app",
-          service_version="git-sha", 
+          service_version="git-sha",
+          environment="production"
         )
         app = FastAPI()
         app.add_middleware(FastAPIMiddleware)

@@ -13,6 +13,7 @@ H = highlight_io.H(
     service_name="my-loguru-app",
     service_version="1.0.0",
     otlp_endpoint="http://localhost:4318",
+    environment="e2e-test",
 )
 
 logger.add(
