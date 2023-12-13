@@ -1163,7 +1163,10 @@ export interface QueryBuilderProps {
 	fieldData?: GetFieldTypesClickhouseQuery
 	errorTagData?: GetErrorTagsQuery
 	operators?: Operator[]
+	droppedFieldTypes?: string[]
+
 	readonly?: boolean
+	onlyAnd?: boolean
 	minimal?: boolean
 	setDefault?: boolean
 	useEditAnySegmentMutation:
@@ -1203,7 +1206,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fetchFields,
 		fieldData,
 		errorTagData,
+		droppedFieldTypes,
 		readonly,
+		onlyAnd,
 		operators,
 		minimal,
 		setDefault,
@@ -1422,6 +1427,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		async (input: string) => {
 			return customFields
 				.concat(fieldData?.field_types ?? [])
+				.filter(
+					(ft) =>
+						!droppedFieldTypes ||
+						!droppedFieldTypes.includes(ft.type ?? ''),
+				)
 				.map((ft) => ({
 					label: ft.name,
 					value: ft.type + '_' + ft.name,
@@ -1443,7 +1453,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}
 				})
 		},
-		[customFields, fieldData?.field_types],
+		[customFields, droppedFieldTypes, fieldData?.field_types],
 	)
 
 	const getOperatorOptionsCallback = (
@@ -1921,7 +1931,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										emphasis="low"
 										onClick={toggleIsAndImpl}
 										key={`separator-${index}`}
-										disabled={readonly}
+										disabled={onlyAnd ? true : readonly}
 									>
 										{isAnd ? 'and' : 'or'}
 									</Tag>,

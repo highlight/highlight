@@ -1,5 +1,8 @@
 import { Button } from '@components/Button'
-import { Operator } from '@components/QueryBuilder/QueryBuilder'
+import {
+	BOOLEAN_OPERATORS,
+	Operator,
+} from '@components/QueryBuilder/QueryBuilder'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import { useGetBaseSearchContext } from '@context/SearchState'
@@ -274,7 +277,6 @@ export const ProjectProductFilters: React.FC<{
 			minuteRateLimit: c?.minute_rate_limit ?? null,
 		})
 
-		// TODO(vkorolik) exclusion query logic is not robust to frontend types
 		if (
 			product === ProductType.Sessions ||
 			product === ProductType.Errors
@@ -308,7 +310,6 @@ export const ProjectProductFilters: React.FC<{
 
 	// updates the form state from the query builder context (for sessions / errors)
 	React.useEffect(() => {
-		// TODO(vkorolik) exclusion query logic is not robust to frontend types
 		if (
 			product === ProductType.Sessions ||
 			product === ProductType.Errors
@@ -320,11 +321,9 @@ export const ProjectProductFilters: React.FC<{
 					: product === ProductType.Errors
 					? errorSearchQuery
 					: JSON.stringify({ rules: [] }),
-			).rules as [key: string, op: Operator, value: string][]) {
-				const [type, k] = key.split(/_(.*)/s)
-				if (product === ProductType.Sessions && type !== 'session')
-					continue
-				if (product === ProductType.Errors && type !== 'error-field')
+			).rules as [key: string, op: Operator, v: string][]) {
+				const [_, k] = key.split(/_(.*)/s)
+				if (product === ProductType.Sessions && k === 'created_at')
 					continue
 				if (product === ProductType.Errors && k === 'timestamp')
 					continue
@@ -489,6 +488,14 @@ export const ProjectProductFilters: React.FC<{
 										minimal
 										readonly={view}
 										operators={['is', 'is_not']}
+										customFields={CUSTOM_FIELDS.filter(
+											(f) =>
+												!f.options?.operators ||
+												f.options.operators ===
+													BOOLEAN_OPERATORS,
+										)}
+										droppedFieldTypes={['user', 'track']}
+										onlyAnd
 										setDefault={false}
 									/>
 								</SearchContextProvider>
@@ -503,6 +510,15 @@ export const ProjectProductFilters: React.FC<{
 									<ErrorQueryBuilder
 										minimal
 										readonly={view}
+										operators={['is', 'is_not']}
+										customFields={ERROR_CUSTOM_FIELDS.filter(
+											(f) =>
+												!f.options?.operators ||
+												f.options.operators ===
+													BOOLEAN_OPERATORS,
+										)}
+										droppedFieldTypes={['error']}
+										onlyAnd
 										setDefault={false}
 									/>
 								</ErrorSearchContextProvider>
