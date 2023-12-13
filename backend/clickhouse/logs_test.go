@@ -1088,7 +1088,7 @@ func TestLogsKeys(t *testing.T) {
 
 	searchKey := "s"
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
-	keys, err := client.LogsKeys(ctx, 1, now, now, &searchKey)
+	keys, err := client.LogsKeys(ctx, 1, now, now, &searchKey, nil)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.QueryKey{
