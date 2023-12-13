@@ -460,8 +460,9 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 }
 
 var sessionsTableConfig = tableConfig[string]{
-	tableName:     SessionsTable,
-	keysToColumns: fieldMap,
+	tableName:        SessionsTable,
+	keysToColumns:    fieldMap,
+	attributesColumn: "Fields",
 	reservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
 		return item.String()
 	}),

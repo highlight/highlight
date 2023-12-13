@@ -559,13 +559,27 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 	return bucketTimes, totals, nil
 }
 
-var errorObjectsTableConfig = tableConfig[string]{
-	tableName:     ErrorObjectsTable,
-	keysToColumns: fieldMap,
-	bodyColumn:    "Event",
-	reservedKeys: lo.Map(modelInputs.AllReservedErrorObjectKey, func(item modelInputs.ReservedErrorObjectKey, _ int) string {
-		return item.String()
-	}),
+var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
+	tableName: ErrorObjectsTable,
+	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+		modelInputs.ReservedErrorObjectKeySessionSecureID: "SessionSecureID",
+		modelInputs.ReservedErrorObjectKeyRequestID:       "RequestID",
+		modelInputs.ReservedErrorObjectKeyTraceID:         "TraceID",
+		modelInputs.ReservedErrorObjectKeySpanID:          "SpanID",
+		modelInputs.ReservedErrorObjectKeyLogCursor:       "LogCursor",
+		modelInputs.ReservedErrorObjectKeyEvent:           "Event",
+		modelInputs.ReservedErrorObjectKeyType:            "Type",
+		modelInputs.ReservedErrorObjectKeyURL:             "URL",
+		modelInputs.ReservedErrorObjectKeySource:          "Source",
+		modelInputs.ReservedErrorObjectKeyStackTrace:      "StackTrace",
+		modelInputs.ReservedErrorObjectKeyTimestamp:       "Timestamp",
+		modelInputs.ReservedErrorObjectKeyPayload:         "Payload",
+		modelInputs.ReservedErrorObjectKeyServiceName:     "Service.Name",
+		modelInputs.ReservedErrorObjectKeyServiceVersion:  "Service.Version",
+		modelInputs.ReservedErrorObjectKeyEnvironment:     "Environment",
+	},
+	bodyColumn:   "Event",
+	reservedKeys: modelInputs.AllReservedErrorObjectKey,
 }
 
 func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters *queryparser.Filters) bool {
