@@ -34,6 +34,7 @@ H = highlight_io.H(
 	instrument_logging=True,
 	service_name="my-flask-app",
 	service_version="git-sha",
+	environment="production",
 )`,
 					language: 'python',
 				},
@@ -84,6 +85,7 @@ H = highlight_io.H(
 	instrument_logging=True,
 	service_name="my-flask-app",
 	service_version="git-sha",
+	environment="production",
 )
 
 

@@ -132,4 +132,5 @@ H = highlight_io.H(
     otlp_endpoint="http://localhost:4318",
     service_name="my-django-app",
     service_version="git-sha",
+    environment="e2e-test",
 )
