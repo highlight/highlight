@@ -159,7 +159,7 @@ const Home: NextPage = () => {
 							<Image
 								src={HeroBugLeft}
 								alt="bug left"
-								onLoadingComplete={() => setLeftBugLoaded(true)}
+								onLoad={() => setLeftBugLoaded(true)}
 							/>
 						</div>
 					</AnimateBugLeft>
@@ -168,9 +168,7 @@ const Home: NextPage = () => {
 							<Image
 								src={HeroBugRight}
 								alt="bug right"
-								onLoadingComplete={() =>
-									setRightBugLoaded(true)
-								}
+								onLoad={() => setRightBugLoaded(true)}
 							/>
 						</div>
 					</AnimateBugRight>

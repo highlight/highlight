@@ -29,7 +29,7 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 						src={feature.desktopImage}
 						alt="Feature Spotlight"
 						crossOrigin="anonymous"
-						onLoadingComplete={() => setImageLoaded(true)}
+						onLoad={() => setImageLoaded(true)}
 					/>
 				</AnimateCarouselImage>
 			</div>

@@ -130,7 +130,7 @@ const Products = ({ product }: { product: iProduct }) => {
 								alt="bug left"
 								width={250}
 								height={250}
-								onLoadingComplete={() => setLeftBugLoaded(true)}
+								onLoad={() => setLeftBugLoaded(true)}
 							/>
 						</div>
 					</AnimateBugLeft>
@@ -141,9 +141,7 @@ const Products = ({ product }: { product: iProduct }) => {
 								alt="bug right"
 								width={250}
 								height={250}
-								onLoadingComplete={() =>
-									setRightBugLoaded(true)
-								}
+								onLoad={() => setRightBugLoaded(true)}
 							/>
 						</div>
 					</AnimateBugRight>

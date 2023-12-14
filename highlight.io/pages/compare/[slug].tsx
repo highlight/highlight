@@ -146,7 +146,7 @@ const CompetitorComparisonPage = ({
 								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0 lg:w-[550px] xl:w-[650px]`}
 								src={slantedImage}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroRight>
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
@@ -154,14 +154,14 @@ const CompetitorComparisonPage = ({
 								className={`hidden ultra:flex w-[650px]`}
 								src={straightImage}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroXL>
 						<Image
 							className={`lg:hidden right-0 object-contain bottom-0 md:w-[500px]`}
 							src={straightImage}
 							alt="Feature Spotlight"
-							onLoadingComplete={() => setImageLoaded(true)}
+							onLoad={() => setImageLoaded(true)}
 						/>
 					</div>
 				</div>
