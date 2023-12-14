@@ -12524,6 +12524,7 @@ __metadata:
     "@opentelemetry/auto-instrumentations-node": ^0.40.1
     "@opentelemetry/core": ^1.18.1
     "@opentelemetry/exporter-trace-otlp-proto": ^0.45.1
+    "@opentelemetry/instrumentation": ^0.45.1
     "@opentelemetry/resources": ^1.18.1
     "@opentelemetry/sdk-node": ^0.45.1
     "@opentelemetry/sdk-trace-base": ^1.18.1
@@ -12568,7 +12569,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/pino@workspace:sdk/pino":
+"@highlight-run/pino@workspace:*, @highlight-run/pino@workspace:sdk/pino":
   version: 0.0.0-use.local
   resolution: "@highlight-run/pino@workspace:sdk/pino"
   dependencies:
@@ -16007,6 +16008,21 @@ __metadata:
   peerDependencies:
     "@opentelemetry/api": ^1.3.0
   checksum: d8ff3ca0c84a6acb8110f06df008c7b97da2e82d1dce17b1eab52edc4e1ae9041719bc5fa69fe9628804a684d894f66be3061b27a3377e34264ee2d24fb35c9f
+  languageName: node
+  linkType: hard
+
+"@opentelemetry/instrumentation@npm:^0.45.1":
+  version: 0.45.1
+  resolution: "@opentelemetry/instrumentation@npm:0.45.1"
+  dependencies:
+    "@types/shimmer": ^1.0.2
+    import-in-the-middle: 1.4.2
+    require-in-the-middle: ^7.1.1
+    semver: ^7.5.2
+    shimmer: ^1.2.1
+  peerDependencies:
+    "@opentelemetry/api": ^1.3.0
+  checksum: 4692d93f9bdb82c9e8c9facc45ef1a3affdcaf7e062edd261239e88486bacfa979ecadcdda0581a2275ddd2b04e457385536a2c80aa9d10cab72f6b8c5940cbd
   languageName: node
   linkType: hard
 
@@ -25504,6 +25520,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/speed-insights@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@vercel/speed-insights@npm:1.0.0"
+  checksum: 6a089f8d4c97136dd90aeef160867da2d93757d057f4f3806e6ec9e8100047fa464e9a175e88bd612ab523b60d9cc2edb308c575cabcecc19a68686facd2f785
+  languageName: node
+  linkType: hard
+
 "@vercel/static-build@npm:2.0.8":
   version: 2.0.8
   resolution: "@vercel/static-build@npm:2.0.8"
@@ -29969,7 +29992,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"colorette@npm:^2.0.14, colorette@npm:^2.0.19":
+"colorette@npm:^2.0.14, colorette@npm:^2.0.19, colorette@npm:^2.0.7":
   version: 2.0.20
   resolution: "colorette@npm:2.0.20"
   checksum: 0c016fea2b91b733eb9f4bcdb580018f52c0bc0979443dad930e5037a968237ac53d9beb98e218d2e9235834f8eebce7f8e080422d6194e957454255bde71d3d
@@ -31821,6 +31844,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dateformat@npm:^4.6.3":
+  version: 4.6.3
+  resolution: "dateformat@npm:4.6.3"
+  checksum: c3aa0617c0a5b30595122bc8d1bee6276a9221e4d392087b41cbbdf175d9662ae0e50d0d6dcdf45caeac5153c4b5b0844265f8cd2b2245451e3da19e39e3b65d
+  languageName: node
+  linkType: hard
+
 "dayjs@npm:1.x":
   version: 1.11.3
   resolution: "dayjs@npm:1.11.3"
@@ -32881,7 +32911,10 @@ __metadata:
   resolution: "e2e-express-ts@workspace:e2e/express-ts"
   dependencies:
     "@highlight-run/node": "workspace:*"
+    "@highlight-run/pino": "workspace:*"
     express: ^4.18.2
+    pino: ^8.16.2
+    pino-pretty: ^10.2.3
     typescript: ^5.3.2
   languageName: unknown
   linkType: soft
@@ -35516,6 +35549,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-copy@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "fast-copy@npm:3.0.1"
+  checksum: 5496b5cf47df29eea479deef03b6b7188626a2cbc356b3015649062846729de6f1a9f555f937e772da8feae0a1231fab13096ed32424b2d61e4d065abc9969fe
+  languageName: node
+  linkType: hard
+
 "fast-deep-equal@npm:3.1.3, fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
@@ -35648,7 +35688,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-safe-stringify@npm:2.1.1":
+"fast-safe-stringify@npm:2.1.1, fast-safe-stringify@npm:^2.1.1":
   version: 2.1.1
   resolution: "fast-safe-stringify@npm:2.1.1"
   checksum: a851cbddc451745662f8f00ddb622d6766f9bd97642dabfd9a405fb0d646d69fc0b9a1243cbf67f5f18a39f40f6fa821737651ff1bceeba06c9992ca2dc5bd3d
@@ -38145,6 +38185,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"help-me@npm:^4.0.1":
+  version: 4.2.0
+  resolution: "help-me@npm:4.2.0"
+  dependencies:
+    glob: ^8.0.0
+    readable-stream: ^3.6.0
+  checksum: 6548acba10dd79ebfc93f0d739c4cb2f32f7932c8d87b091992f3a0f844706263415eab81be015aed4ab874154232beb666920d7e280502c6bba29a40cde343e
+  languageName: node
+  linkType: hard
+
 "hex-color-regex@npm:^1.1.0":
   version: 1.1.0
   resolution: "hex-color-regex@npm:1.1.0"
@@ -38197,6 +38247,7 @@ __metadata:
     "@headlessui/react": ^1.7.4
     "@heroicons/react": ^2.0.13
     "@highlight-run/next": "workspace:*"
+    "@highlight-run/pino": "workspace:*"
     "@radix-ui/react-slider": ^1.1.0
     "@supabase/supabase-js": ^2.7.1
     "@svgr/webpack": ^6.5.1
@@ -38214,6 +38265,7 @@ __metadata:
     "@types/react-syntax-highlighter": ^15.5.6
     "@types/remove-markdown": ^0.3.1
     "@vercel/og": ^0.5.20
+    "@vercel/speed-insights": ^1.0.0
     antd: ^4.24.7
     autoprefixer: ^10.4.14
     classnames: ^2.3.1
@@ -38235,7 +38287,6 @@ __metadata:
     markdown-to-jsx: ^7.1.8
     match-sorter: ^6.3.1
     next: ^13.5.4
-    next-axiom: ^0.16.0
     next-mdx-remote: ^4.3.0
     nextjs-cors: latest
     npm-run-all: ^4.1.5
@@ -46407,17 +46458,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-axiom@npm:^0.16.0":
-  version: 0.16.0
-  resolution: "next-axiom@npm:0.16.0"
-  dependencies:
-    whatwg-fetch: ^3.6.2
-  peerDependencies:
-    next: ^12.1.4 || ^13
-  checksum: 1b5aa48bf1529560e0f72b9b2e9055da582bba1f5dc149713dbd4d488428944700077170b86ad04f308a49fd923cddb195e7cbe1b218461addf08757c3b36663
-  languageName: node
-  linkType: hard
-
 "next-build-id@npm:^3.0.0":
   version: 3.0.0
   resolution: "next-build-id@npm:3.0.0"
@@ -48474,6 +48514,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pino-abstract-transport@npm:^1.0.0, pino-abstract-transport@npm:v1.1.0":
+  version: 1.1.0
+  resolution: "pino-abstract-transport@npm:1.1.0"
+  dependencies:
+    readable-stream: ^4.0.0
+    split2: ^4.0.0
+  checksum: cc84caabee5647b5753ae484d5f63a1bca0f6e1791845e2db2b6d830a561c2b5dd1177720f68d78994c8a93aecc69f2729e6ac2bc871a1bf5bb4b0ec17210668
+  languageName: node
+  linkType: hard
+
 "pino-abstract-transport@npm:v0.5.0":
   version: 0.5.0
   resolution: "pino-abstract-transport@npm:0.5.0"
@@ -48509,6 +48559,30 @@ __metadata:
   bin:
     pino-http-send: dist/bin.js
   checksum: 11b78c1c840a6985edec50c119aab091d3a6247cbdfcbc5f05422b837d2e046132182bc4f71f3acbe62ffdb791c566083338daba3b811aec81dcbd14428d4027
+  languageName: node
+  linkType: hard
+
+"pino-pretty@npm:^10.2.3":
+  version: 10.2.3
+  resolution: "pino-pretty@npm:10.2.3"
+  dependencies:
+    colorette: ^2.0.7
+    dateformat: ^4.6.3
+    fast-copy: ^3.0.0
+    fast-safe-stringify: ^2.1.1
+    help-me: ^4.0.1
+    joycon: ^3.1.1
+    minimist: ^1.2.6
+    on-exit-leak-free: ^2.1.0
+    pino-abstract-transport: ^1.0.0
+    pump: ^3.0.0
+    readable-stream: ^4.0.0
+    secure-json-parse: ^2.4.0
+    sonic-boom: ^3.0.0
+    strip-json-comments: ^3.1.1
+  bin:
+    pino-pretty: bin.js
+  checksum: 9182886855515000df2ef381762c69fc29dbdd9014a76839cc3d8a7a94ac96d4ce17423adb9ddd61eae78986bb0ff3a1d9e6e7aa55476c096a3dd4a0c89440e8
   languageName: node
   linkType: hard
 
@@ -48564,6 +48638,27 @@ __metadata:
   bin:
     pino: bin.js
   checksum: 9a54d0757f0256201fad01346be1c18b0a4378704fa383df867189da12151d664d2bd18b1e53df70633fbff6c90fd3175228c0c971eaaa734939709cc1a0005b
+  languageName: node
+  linkType: hard
+
+"pino@npm:^8.16.2":
+  version: 8.16.2
+  resolution: "pino@npm:8.16.2"
+  dependencies:
+    atomic-sleep: ^1.0.0
+    fast-redact: ^3.1.1
+    on-exit-leak-free: ^2.1.0
+    pino-abstract-transport: v1.1.0
+    pino-std-serializers: ^6.0.0
+    process-warning: ^2.0.0
+    quick-format-unescaped: ^4.0.3
+    real-require: ^0.2.0
+    safe-stable-stringify: ^2.3.1
+    sonic-boom: ^3.7.0
+    thread-stream: ^2.0.0
+  bin:
+    pino: bin.js
+  checksum: 78d194112f09f82471ec7e0022bc114ddb833375d60236be40ac55bf8a8ae26b88c8780d54912687c7cd6d0321ba5b1a78ffa89c5e9d5855ef849c3b9273c7ab
   languageName: node
   linkType: hard
 
@@ -55184,6 +55279,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"secure-json-parse@npm:^2.4.0":
+  version: 2.7.0
+  resolution: "secure-json-parse@npm:2.7.0"
+  checksum: d9d7d5a01fc6db6115744ba23cf9e67ecfe8c524d771537c062ee05ad5c11b64c730bc58c7f33f60bd6877f96b86f0ceb9ea29644e4040cb757f6912d4dd6737
+  languageName: node
+  linkType: hard
+
 "selderee@npm:^0.10.0":
   version: 0.10.0
   resolution: "selderee@npm:0.10.0"
@@ -56029,6 +56131,15 @@ __metadata:
   dependencies:
     atomic-sleep: ^1.0.0
   checksum: c7f9c89f931d7f60f8e0741551a729f0d81e6dc407a99420fc847a9a4c25af048a615b1188ab3c4f1fb3708fe4904973ddab6ebcc8ed5b78b50ab81a99045910
+  languageName: node
+  linkType: hard
+
+"sonic-boom@npm:^3.0.0, sonic-boom@npm:^3.7.0":
+  version: 3.7.0
+  resolution: "sonic-boom@npm:3.7.0"
+  dependencies:
+    atomic-sleep: ^1.0.0
+  checksum: 528f0f7f7e09dcdb02ad5985039f66554266cbd8813f9920781607c9248e01f468598c1334eab2cc740c016a63c8b2a20e15c3f618cddb08ea1cfb4a390a796e
   languageName: node
   linkType: hard
 
@@ -61260,13 +61371,6 @@ __metadata:
   version: 3.5.0
   resolution: "whatwg-fetch@npm:3.5.0"
   checksum: 8a915e7ec4ef55d1cfae1d39bd2547893ea2b13b3e8a3a93d355af109f26748c6dc43700a15fe70532f4218eb7076819c0d9f94c16ef4252e94ca85c7863763b
-  languageName: node
-  linkType: hard
-
-"whatwg-fetch@npm:^3.6.2":
-  version: 3.6.2
-  resolution: "whatwg-fetch@npm:3.6.2"
-  checksum: ee976b7249e7791edb0d0a62cd806b29006ad7ec3a3d89145921ad8c00a3a67e4be8f3fb3ec6bc7b58498724fd568d11aeeeea1f7827e7e1e5eae6c8a275afed
   languageName: node
   linkType: hard
 

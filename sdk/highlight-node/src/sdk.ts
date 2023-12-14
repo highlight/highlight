@@ -148,13 +148,13 @@ export const H: HighlightInterface = {
 		}
 	},
 	parseHeaders: (headers): HighlightContext => {
-		return highlight_obj.parseHeaders(headers)
+		return Highlight.parseHeaders(headers)
 	},
 	runWithHeaders: (headers, cb) => {
-		return highlight_obj.runWithHeaders(headers, cb)
+		return Highlight.runWithHeaders(headers, cb)
 	},
 	setHeaders: (headers) => {
-		return highlight_obj.setHeaders(headers)
+		return Highlight.setHeaders(headers)
 	},
 	consumeAndFlush: async function (...args) {
 		try {

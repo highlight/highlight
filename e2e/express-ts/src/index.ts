@@ -1,4 +1,3 @@
-import express from 'express'
 import { H, Handlers } from '@highlight-run/node'
 
 /** @type {import('@highlight-run/node').NodeOptions} */
@@ -11,15 +10,46 @@ const config = {
 }
 H.init(config)
 
+import pino from 'pino'
+import express from 'express'
+
+const logger = pino({
+	transport: {
+		targets: [
+			{
+				target: '@highlight-run/pino',
+				options: {
+					...config,
+					serviceName: 'e2e-express-pino',
+				},
+				level: 'info',
+			},
+			{
+				target: 'pino-pretty',
+				options: {
+					colorize: true,
+				},
+			},
+		],
+	},
+})
+
+logger.info('hello world')
+
+const child = logger.child({ a: 'property' })
+child.info('hello child!')
+
 const app = express()
 const port = 3003
 
 // This should be before any controllers (route definitions)
 app.use(Handlers.middleware(config))
 app.get('/', (req, res) => {
+	logger.info('base route')
 	const err = new Error('this is a test error')
 	const { secureSessionId, requestId } = H.parseHeaders(req.headers)
 	if (secureSessionId && requestId) {
+		logger.info({ secureSessionId, requestId }, 'have a context apparently')
 		console.info('Sending error to highlight', secureSessionId, requestId)
 		H.consumeError(err, secureSessionId, requestId)
 	}
@@ -27,12 +57,12 @@ app.get('/', (req, res) => {
 })
 
 app.get('/good', (req, res) => {
-	console.warn('doing some heavy work!')
+	logger.warn('doing some heavy work!')
 	let result = 0
 	for (let i = 0; i < 1000; i++) {
 		const value = Math.random() * 1000
 		result += value
-		console.info('some work happening', { result, value })
+		logger.warn({ result, value }, 'some work happening')
 	}
 	res.send('yay!')
 })
