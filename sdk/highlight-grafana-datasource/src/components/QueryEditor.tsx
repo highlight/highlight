@@ -73,23 +73,13 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
         </InlineField>
         {metric !== undefined && metric !== 'Count' && (
           <InlineField>
-            {table === 'traces' ? (
-              <AsyncSelect
-                key={'traces'}
-                defaultOptions
-                value={{ name: column, label: column }}
-                onChange={onColumnChange}
-                loadOptions={(q) => loadColumnOptions('traces', q)}
-              />
-            ) : (
-              <AsyncSelect
-                key={'logs'}
-                defaultOptions
-                value={{ name: column, label: column }}
-                onChange={onColumnChange}
-                loadOptions={(q) => loadColumnOptions('logs', q)}
-              />
-            )}
+            <AsyncSelect
+              key={table}
+              defaultOptions
+              value={{ name: column, label: column }}
+              onChange={onColumnChange}
+              loadOptions={(q) => loadColumnOptions(table, q)}
+            />
           </InlineField>
         )}
       </InlineFieldRow>
@@ -100,23 +90,13 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Group by" labelWidth={10}>
-          {table === 'traces' ? (
-            <AsyncMultiSelect
-              key={'traces'}
-              defaultOptions
-              value={groupBy?.map((g) => ({ name: g, label: g }))}
-              onChange={onGroupByChange}
-              loadOptions={(q) => loadGroupByOptions('traces', q)}
-            />
-          ) : (
-            <AsyncMultiSelect
-              key={'logs'}
-              defaultOptions
-              value={groupBy?.map((g) => ({ name: g, label: g }))}
-              onChange={onGroupByChange}
-              loadOptions={(q) => loadGroupByOptions('logs', q)}
-            />
-          )}
+          <AsyncMultiSelect
+            key={table}
+            defaultOptions
+            value={groupBy?.map((g) => ({ name: g, label: g }))}
+            onChange={onGroupByChange}
+            loadOptions={(q) => loadGroupByOptions(table, q)}
+          />
         </InlineField>
         {groupBy !== undefined && groupBy.length > 0 && (
           <>
@@ -128,23 +108,13 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
             </InlineField>
             {limitAggregator !== undefined && limitAggregator !== 'Count' && (
               <InlineField>
-                {table === 'traces' ? (
-                  <AsyncSelect
-                    key={'traces'}
-                    defaultOptions
-                    value={{ name: limitColumn, label: limitColumn }}
-                    onChange={onLimitColumnChange}
-                    loadOptions={(q) => loadGroupByOptions('traces', q)}
-                  />
-                ) : (
-                  <AsyncSelect
-                    key={'logs'}
-                    defaultOptions
-                    value={{ name: limitColumn, label: limitColumn }}
-                    onChange={onLimitColumnChange}
-                    loadOptions={(q) => loadGroupByOptions('logs', q)}
-                  />
-                )}
+                <AsyncSelect
+                  key={table}
+                  defaultOptions
+                  value={{ name: limitColumn, label: limitColumn }}
+                  onChange={onLimitColumnChange}
+                  loadOptions={(q) => loadGroupByOptions(table, q)}
+                />
               </InlineField>
             )}
           </>

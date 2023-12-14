@@ -609,7 +609,6 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
-	// always sample - use a comparison here to trick the compiler into not complaining about unused branches
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= sampleableConfig.samplingThreshold
 
 	selectArgs := []interface{}{}
