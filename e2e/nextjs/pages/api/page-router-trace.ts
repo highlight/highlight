@@ -2,14 +2,14 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { withPageRouterHighlight } from '@/app/_utils/page-router-highlight.config'
+import { H } from '@highlight-run/next/server'
 
 export default withPageRouterHighlight(async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
-	highlight,
 ) {
 	return new Promise<void>((resolve) => {
-		highlight?.tracer.startActiveSpan('page-router-span', async (span) => {
+		H.startSpan('page-router-span', {}, (span) => {
 			console.info('Here: /pages/api/page-router-trace.ts ⌚⌚⌚')
 
 			res.send(

@@ -2,8 +2,13 @@ import { IncomingHttpHeaders } from 'http'
 import { Highlight } from './client'
 import log from './log'
 import { ResourceAttributes } from '@opentelemetry/resources'
-import type { Attributes } from '@opentelemetry/api'
 import type { NodeOptions, HighlightContext } from './types.js'
+import type {
+	Attributes,
+	Tracer,
+	Span as OtelSpan,
+	SpanOptions,
+} from '@opentelemetry/api'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -49,6 +54,11 @@ export interface HighlightInterface {
 		metadata?: Attributes,
 	) => Promise<void>
 	setAttributes: (attributes: ResourceAttributes) => void
+	startSpan: (
+		name: string,
+		options: SpanOptions,
+		cb: (span: OtelSpan) => unknown,
+	) => void
 	_debug: (...data: any[]) => void
 }
 
@@ -167,6 +177,13 @@ export const H: HighlightInterface = {
 	},
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)
+	},
+	startSpan: (
+		name: string,
+		options: SpanOptions,
+		cb: (span: OtelSpan) => unknown,
+	) => {
+		return highlight_obj.startSpan(name, options, cb)
 	},
 
 	_debug: (...data: any[]) => {

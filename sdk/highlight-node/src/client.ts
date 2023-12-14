@@ -1,6 +1,11 @@
 import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import type { Attributes, Tracer, Span as OtelSpan } from '@opentelemetry/api'
+import type {
+	Attributes,
+	Tracer,
+	Span as OtelSpan,
+	SpanOptions,
+} from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
@@ -414,6 +419,14 @@ export class Highlight {
 				},
 			)
 		})
+	}
+
+	startSpan(
+		name: string,
+		options: SpanOptions,
+		cb: (span: OtelSpan) => unknown,
+	) {
+		return this.tracer.startActiveSpan(name, options, cb)
 	}
 }
 function parseHeaders(
