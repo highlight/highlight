@@ -93,7 +93,7 @@ func StartOTLP() (*OTLP, error) {
 	}
 	h := &OTLP{
 		tracerProvider: sdktrace.NewTracerProvider(
-			sdktrace.WithSampler(sdktrace.TraceIDRatioBased(conf.traceSamplingRate)),
+			sdktrace.WithSampler(sdktrace.TraceIDRatioBased(conf.samplingRate)),
 			sdktrace.WithBatcher(
 				exporter,
 				sdktrace.WithBatchTimeout(1000*time.Millisecond),

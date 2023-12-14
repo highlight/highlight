@@ -19,15 +19,15 @@ type config struct {
 	otlpEndpoint       string
 	projectID          string
 	resourceAttributes []attribute.KeyValue
-	traceSamplingRate  float64
+	samplingRate       float64
 }
 
 var (
 	interruptChan chan bool
 	signalChan    chan os.Signal
 	conf          = &config{
-		otlpEndpoint:      OTLPDefaultEndpoint,
-		traceSamplingRate: 1.,
+		otlpEndpoint: OTLPDefaultEndpoint,
+		samplingRate: 1.,
 	}
 )
 
@@ -47,9 +47,9 @@ func WithProjectID(projectID string) Option {
 	})
 }
 
-func WithTraceSamplingRate(samplingRate float64) Option {
+func WithSamplingRate(samplingRate float64) Option {
 	return option(func(conf *config) {
-		conf.traceSamplingRate = samplingRate
+		conf.samplingRate = samplingRate
 	})
 }
 
@@ -208,7 +208,7 @@ func SetDebugMode(l Logger) {
 }
 
 func SetSamplingRate(rate float64) {
-	conf.traceSamplingRate = rate
+	conf.samplingRate = rate
 }
 
 func SetProjectID(id string) {
