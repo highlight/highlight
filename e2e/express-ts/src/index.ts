@@ -46,8 +46,8 @@ app.get('/', (req, res) => {
 	const err = new Error('this is a test error')
 	const { secureSessionId, requestId } = H.parseHeaders(req.headers)
 	if (secureSessionId && requestId) {
-        logger.info({ secureSessionId, requestId }, 'have a context apparently')
-        console.info('Sending error to highlight', secureSessionId, requestId)
+		logger.info({ secureSessionId, requestId }, 'have a context apparently')
+		console.info('Sending error to highlight', secureSessionId, requestId)
 		H.consumeError(err, secureSessionId, requestId)
 	}
 	res.send('Hello World!')
