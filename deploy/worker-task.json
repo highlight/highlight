@@ -5,68 +5,6 @@
 		{
 			"dnsSearchDomains": null,
 			"environmentFiles": null,
-			"logConfiguration": {
-				"logDriver": "awslogs",
-				"secretOptions": null,
-				"options": {
-					"awslogs-group": "/ecs/worker-task",
-					"awslogs-region": "us-east-2",
-					"awslogs-stream-prefix": "ecs"
-				}
-			},
-			"entryPoint": null,
-			"portMappings": [],
-			"command": null,
-			"linuxParameters": null,
-			"cpu": 0,
-			"environment": [
-				{
-					"name": "DD_APM_ENABLED",
-					"value": "true"
-				},
-				{
-					"name": "ECS_FARGATE",
-					"value": "true"
-				}
-			],
-			"resourceRequirements": null,
-			"ulimits": null,
-			"dnsServers": null,
-			"mountPoints": [],
-			"workingDirectory": null,
-			"secrets": [
-				{
-					"valueFrom": "DD_API_KEY",
-					"name": "DD_API_KEY"
-				}
-			],
-			"dockerSecurityOptions": null,
-			"memory": null,
-			"memoryReservation": null,
-			"volumesFrom": [],
-			"stopTimeout": null,
-			"image": "datadog/agent:latest",
-			"startTimeout": null,
-			"firelensConfiguration": null,
-			"dependsOn": null,
-			"disableNetworking": null,
-			"interactive": null,
-			"healthCheck": null,
-			"essential": true,
-			"links": null,
-			"hostname": null,
-			"extraHosts": null,
-			"pseudoTerminal": null,
-			"user": null,
-			"readonlyRootFilesystem": null,
-			"dockerLabels": null,
-			"systemControls": null,
-			"privileged": null,
-			"name": "datadog-agent"
-		},
-		{
-			"dnsSearchDomains": null,
-			"environmentFiles": null,
 			"entryPoint": null,
 			"logConfiguration": {
 				"logDriver": "awslogs",

@@ -372,7 +372,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	// always sample - use a comparison here to trick the compiler into not complaining about unused branches
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 0
 
-	selectArgs := []interface{}{}
+	var selectArgs []interface{}
 
 	var metricColName string
 	if col, found := traceKeysToColumns[modelInputs.ReservedTraceKey(strings.ToLower(column))]; found {
@@ -389,6 +389,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	switch column {
 	case string(modelInputs.TracesMetricColumnMetricValue):
 		metricColName = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
+		selectArgs = []interface{}{}
 	}
 
 	fnStr := strings.Join(lo.Map(metricTypes, func(agg modelInputs.MetricAggregator, _ int) string {
@@ -398,18 +399,19 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
 	var config tableConfig[modelInputs.ReservedTraceKey]
+	selectStr := fmt.Sprintf(
+		"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
+		nBuckets,
+		startTimestamp,
+		endTimestamp,
+		startTimestamp,
+		fnStr,
+	)
 	if useSampling {
 		config = tracesSamplingTableConfig
 		fromSb, err = makeSelectBuilder(
 			tracesSamplingTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-				fnStr,
-			),
+			selectStr,
 			selectArgs,
 			groupBy,
 			projectID,
@@ -422,14 +424,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		config = tracesTableConfig
 		fromSb, err = makeSelectBuilder(
 			tracesTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-				fnStr,
-			),
+			selectStr,
 			selectArgs,
 			groupBy,
 			projectID,
@@ -559,8 +554,8 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 	return metrics, err
 }
 
-func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
-	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate, query)
+func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate, query, typeArg)
 	if err != nil {
 		return nil, err
 	}
@@ -574,7 +569,7 @@ func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyNam
 }
 
 func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query)
+	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query, nil)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {

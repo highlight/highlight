@@ -1088,25 +1088,21 @@ func TestLogsKeys(t *testing.T) {
 
 	searchKey := "s"
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
-	keys, err := client.LogsKeys(ctx, 1, now, now, &searchKey)
+	keys, err := client.LogsKeys(ctx, 1, now, now, &searchKey, nil)
 	assert.NoError(t, err)
 
 	expected := []*modelInputs.QueryKey{
 		{
 			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
-			Type: modelInputs.KeyTypeNumeric,
 		},
 		{
 			Name: "service_name",
-			Type: modelInputs.KeyTypeString,
 		},
 		{
 			Name: "source",
-			Type: modelInputs.KeyTypeString,
 		},
 		{
 			Name: "user_id",
-			Type: modelInputs.KeyTypeNumeric,
 		},
 	}
 	assert.Equal(t, expected, keys)

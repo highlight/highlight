@@ -93,7 +93,7 @@ func StartOTLP() (*OTLP, error) {
 	}
 	h := &OTLP{
 		tracerProvider: sdktrace.NewTracerProvider(
-			sdktrace.WithSampler(sdktrace.AlwaysSample()),
+			sdktrace.WithSampler(sdktrace.TraceIDRatioBased(conf.samplingRate)),
 			sdktrace.WithBatcher(
 				exporter,
 				sdktrace.WithBatchTimeout(1000*time.Millisecond),
@@ -173,7 +173,7 @@ func EndTrace(span trace.Span) {
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	span, _ := StartTrace(ctx, "highlight-ctx", tags...)
+	span, _ := StartTrace(ctx, "highlight-metric", tags...)
 	defer EndTrace(span)
 	span.AddEvent(MetricEvent, trace.WithAttributes(attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value)))
 }
