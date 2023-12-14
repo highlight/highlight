@@ -1,0 +1,23 @@
+name: DocLinkChecker
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+jobs:
+  test_link:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Link check script run
+      run: |
+        cd link-checker
+        npm install
+        npm install axios
+        node main.js
