@@ -8,5 +8,6 @@ export async function register() {
 		projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
 		otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 		serviceName: 'my-nextjs-backend',
+		environment: 'e2e-test',
 	})
 }

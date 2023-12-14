@@ -9,6 +9,7 @@ export const withHighlight = Highlight({
 	backendUrl: 'https://localhost:8082/public',
 	otlpEndpoint: 'http://localhost:4318',
 	serviceName: 'my-nextjs-backend',
+	environment: 'e2e-test',
 })
 
 const highlightTransport = new winston.transports.Http({

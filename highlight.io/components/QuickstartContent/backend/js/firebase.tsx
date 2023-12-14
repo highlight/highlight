@@ -31,7 +31,12 @@ exports.exampleCallable = functions.https.onCall(
       // ... your handler code here
       return { result: 'useful result!' }
     },
-    { projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-firebase-app', serviceVersion: 'git-sha' },
+    {
+			projectID: '<YOUR_PROJECT_ID>',
+			serviceName: 'my-firebase-app',
+			serviceVersion: 'git-sha',
+			environment: 'production'
+		},
   ),
 )
 
@@ -57,7 +62,12 @@ exports.exampleHttp = functions.https.onRequest(
       throw new Error('example error!')
       return { result: 'useful result!' }
     },
-    { projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-firebase-app', serviceVersion: 'git-sha' },
+    {
+			projectID: '<YOUR_PROJECT_ID>',
+			serviceName: 'my-firebase-app',
+			serviceVersion: 'git-sha',
+			environment: 'production'
+		},
   ),
 )`,
 		),

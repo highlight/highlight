@@ -29,7 +29,8 @@ export const JSExpressContent: QuickStartContent = {
 const highlightConfig = {
 	projectID: '<YOUR_PROJECT_ID>',
 	serviceName: 'my-express-app',
-	serviceVersion: 'git-sha'
+	serviceVersion: 'git-sha',
+	environment: 'production'
 }
 H.init(highlightConfig)
 

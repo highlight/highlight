@@ -24,6 +24,7 @@ const nodeOptions: NodeOptions = {
 	// otlpEndpoint: 'http://localhost:4318',
 	serviceName: 'my-remix-backend',
 	serviceVersion: '1.0.0',
+	environment: 'e2e-test',
 }
 
 export function handleError(
