@@ -966,6 +966,25 @@ export enum MetricAggregator {
 	Sum = 'Sum',
 }
 
+export type MetricBucket = {
+	__typename?: 'MetricBucket'
+	bucket_id: Scalars['UInt64']
+	column: MetricColumn
+	group: Array<Scalars['String']>
+	metric_type: MetricAggregator
+	metric_value: Scalars['Float']
+}
+
+export enum MetricBucketBy {
+	None = 'None',
+	Timestamp = 'Timestamp',
+}
+
+export enum MetricColumn {
+	Duration = 'Duration',
+	MetricValue = 'MetricValue',
+}
+
 export type MetricMonitor = {
 	__typename?: 'MetricMonitor'
 	aggregator: MetricAggregator
@@ -1017,6 +1036,13 @@ export enum MetricViewComponentType {
 	ReferrersTable = 'ReferrersTable',
 	SessionCountChart = 'SessionCountChart',
 	TopRoutesTable = 'TopRoutesTable',
+}
+
+export type MetricsBuckets = {
+	__typename?: 'MetricsBuckets'
+	bucket_count: Scalars['UInt64']
+	buckets: Array<MetricBucket>
+	sample_factor: Scalars['Float']
 }
 
 export type Mutation = {
@@ -1831,6 +1857,7 @@ export type Query = {
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<QueryKey>
+	logs_metrics: MetricsBuckets
 	logs_total_count: Scalars['UInt64']
 	match_error_tag?: Maybe<Array<Maybe<MatchedErrorTag>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
@@ -1882,7 +1909,7 @@ export type Query = {
 	tracesIntegration: IntegrationStatus
 	traces_key_values: Array<Scalars['String']>
 	traces_keys: Array<QueryKey>
-	traces_metrics: TracesMetrics
+	traces_metrics: MetricsBuckets
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
@@ -2250,6 +2277,19 @@ export type QueryLogs_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
+}
+
+export type QueryLogs_MetricsArgs = {
+	bucket_by?: InputMaybe<Scalars['String']>
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QueryLogs_Total_CountArgs = {
@@ -2482,6 +2522,7 @@ export type QueryTraces_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
 }
 
 export type QueryTraces_MetricsArgs = {
@@ -3046,7 +3087,7 @@ export type SessionsReportRow = {
 	num_sessions: Scalars['Int']
 	total_active_length_mins: Scalars['Float']
 	total_length_mins: Scalars['Float']
-	user_properties?: Maybe<Scalars['Any']>
+	user_properties?: Maybe<Scalars['String']>
 }
 
 export type SlackSyncResponse = {
@@ -3227,32 +3268,6 @@ export type TracePayload = {
 	__typename?: 'TracePayload'
 	errors: Array<TraceError>
 	trace: Array<Trace>
-}
-
-export type TracesMetricBucket = {
-	__typename?: 'TracesMetricBucket'
-	bucket_id: Scalars['UInt64']
-	column: TracesMetricColumn
-	group: Array<Scalars['String']>
-	metric_type: MetricAggregator
-	metric_value: Scalars['Float']
-}
-
-export enum TracesMetricBucketBy {
-	None = 'None',
-	Timestamp = 'Timestamp',
-}
-
-export enum TracesMetricColumn {
-	Duration = 'Duration',
-	MetricValue = 'MetricValue',
-}
-
-export type TracesMetrics = {
-	__typename?: 'TracesMetrics'
-	bucket_count: Scalars['UInt64']
-	buckets: Array<TracesMetricBucket>
-	sample_factor: Scalars['Float']
 }
 
 export type TrackProperty = {
