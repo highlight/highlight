@@ -45,6 +45,9 @@ type InitializeSessionResponse struct {
 
 type MetricInput struct {
 	SessionSecureID string       `json:"session_secure_id"`
+	SpanID          *string      `json:"span_id"`
+	ParentSpanID    *string      `json:"parent_span_id"`
+	TraceID         *string      `json:"trace_id"`
 	Group           *string      `json:"group"`
 	Name            string       `json:"name"`
 	Value           float64      `json:"value"`

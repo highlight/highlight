@@ -28,7 +28,6 @@ import (
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
-	stats "github.com/highlight-run/highlight/backend/hlog"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
@@ -45,6 +44,7 @@ import (
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -526,7 +526,7 @@ limit 1;`, column, column), map[string]interface{}{
 	return nil, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprints []*model.ErrorFingerprint) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatch(ctx context.Context, event string, projectID int, fingerprints []*model.ErrorFingerprint) (*int, error) {
 	firstCode := ""
 	firstMeta := ""
 	restCode := []string{}
@@ -630,7 +630,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
-	stats.Histogram("GetTopErrorGroupMatch.groupSQL.durationMs", float64(time.Since(start).Milliseconds()), nil, 1)
+	hmetric.Histogram(ctx, "GetTopErrorGroupMatch.groupSQL.durationMs", float64(time.Since(start).Milliseconds()), nil, 1)
 
 	minScore := 10 + len(restMeta) - 1
 	if len(restCode) > len(restMeta) {
@@ -812,7 +812,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if errorGroup == nil {
 		log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to create error group by embedding; using classic match")
 		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-			match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
+			match, err := r.GetTopErrorGroupMatch(ctx, errorObj.Event, errorObj.ProjectID, fingerprints)
 			if err != nil {
 				return nil, e.Wrap(err, "Error getting top error group match")
 			}
@@ -1218,7 +1218,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 		attribute.String(highlight.TraceKeyAttribute, session.SecureID),
 	)
-	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
+	if err := r.PushMetricsImpl(ctx, nil, &session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
 			Timestamp:       time.Now(),
@@ -1542,7 +1542,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	for k, v := range allUserProperties {
 		tags = append(tags, &publicModel.MetricTag{Name: k, Value: v})
 	}
-	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
+	if err := r.PushMetricsImpl(ctx, nil, &session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
 			Timestamp:       time.Now(),
@@ -1942,7 +1942,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 			messages = append(messages, &kafka_queue.Message{
 				Type: kafka_queue.PushMetrics,
 				PushMetrics: &kafka_queue.PushMetricsArgs{
-					SessionSecureID: secureID,
+					SessionSecureID: &secureID,
 					Metrics:         []*publicModel.MetricInput{metric},
 				}})
 		}
@@ -1968,22 +1968,27 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	}})
 }
 
-func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, metrics []*publicModel.MetricInput) error {
+func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string, sessionSecureID *string, metrics []*publicModel.MetricInput) error {
 	span, ctx := util.StartSpanFromContext(ctx, "public-graph.PushMetricsImpl", util.ResourceName("go.push-metrics"))
 	span.SetAttribute("SessionSecureID", sessionSecureID)
 	span.SetAttribute("NumMetrics", len(metrics))
 	defer span.Finish()
 
-	if sessionSecureID == "" {
-		return nil
-	}
+	var projectID int
 	session := &model.Session{}
-	if err := r.DB.WithContext(ctx).Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Take(&session).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
-		return e.New("no session found for push metrics: " + sessionSecureID)
+	if sessionSecureID != nil && *sessionSecureID != "" {
+		r.DB.WithContext(ctx).Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Take(&session)
+		projectID = session.ProjectID
 	}
-	sessionID := session.ID
-	projectID := session.ProjectID
+
+	if session.ID == 0 && projectVerboseID != nil {
+		var err error
+		projectID, err = model.FromVerboseID(*projectVerboseID)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "An unsupported verboseID was used: %s", *projectVerboseID))
+			return nil
+		}
+	}
 
 	var traceRows []*clickhouse.TraceRow
 	metricsByGroup := make(map[string][]*publicModel.MetricInput)
@@ -1997,9 +2002,23 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 
+		var spanID, parentSpanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.ParentSpanID), ptr.ToString(m.TraceID)
+		if spanID == "" {
+			spanID = uuid.New().String()
+		}
+		if traceID == "" {
+			traceID = uuid.New().String()
+		}
+
+		var serviceName, serviceVersion = session.ServiceName, ptr.ToString(session.AppVersion)
 		attributes := map[string]string{}
 		for _, t := range m.Tags {
 			attributes[t.Name] = t.Value
+			if t.Name == string(semconv.ServiceNameKey) {
+				serviceName = t.Value
+			} else if t.Name == string(semconv.ServiceVersionKey) {
+				serviceVersion = t.Value
+			}
 		}
 		if m.Category != nil {
 			attributes["category"] = *m.Category
@@ -2015,10 +2034,12 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}
 		traceRows = append(traceRows, clickhouse.NewTraceRow(m.Timestamp, projectID).
 			WithSecureSessionId(session.SecureID).
-			WithTraceId(uuid.New().String()).
+			WithSpanId(spanID).
+			WithParentSpanId(parentSpanID).
+			WithTraceId(traceID).
 			WithSpanName("highlight-metric").
-			WithServiceName(session.ServiceName).
-			WithServiceVersion(ptr.ToString(session.AppVersion)).
+			WithServiceName(serviceName).
+			WithServiceVersion(serviceVersion).
 			WithEnvironment(session.Environment).
 			WithTraceAttributes(attributes).
 			WithEvents([]map[string]any{event}))
@@ -2029,10 +2050,14 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		firstTime := time.Time{}
 		fields := map[string]interface{}{}
 		tags := map[string]string{
-			"session_id": strconv.Itoa(sessionID),
+			"session_id": strconv.Itoa(session.ID),
 			"group_name": groupName,
 		}
 		if _, ok := lo.Find(metricInputs, func(m *publicModel.MetricInput) bool {
+			// skip all session metric writes if we do not have a session id
+			if session.ID == 0 {
+				return false
+			}
 			category := ""
 			if m.Category != nil {
 				category = *m.Category
@@ -2041,12 +2066,12 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		}); ok {
 			mg = &model.MetricGroup{
 				GroupName: groupName,
-				SessionID: sessionID,
+				SessionID: session.ID,
 				ProjectID: projectID,
 			}
 			tx := r.DB.WithContext(ctx).Where(&model.MetricGroup{
 				GroupName: groupName,
-				SessionID: sessionID,
+				SessionID: session.ID,
 			}).Clauses(clause.Returning{}, clause.OnConflict{
 				OnConstraint: model.METRIC_GROUPS_NAME_SESSION_UNIQ,
 				DoNothing:    true,
@@ -2057,7 +2082,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			if tx.RowsAffected == 0 {
 				if err := r.DB.WithContext(ctx).Where(&model.MetricGroup{
 					GroupName: groupName,
-					SessionID: sessionID,
+					SessionID: session.ID,
 				}).Take(&mg).Error; err != nil {
 					return err
 				}
@@ -2134,7 +2159,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsB
 			attribute.String(highlight.SessionIDAttribute, sessionSecureId),
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 		)
-		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
+		if err := r.PushMetricsImpl(context.Background(), nil, &sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
 				Timestamp:       time.Now(),
@@ -2155,14 +2180,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 	var sessionID *int
 	session := &model.Session{}
-	if sessionSecureID != nil {
-		if r.DB.WithContext(ctx).Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Take(&session); session.ID == 0 {
-			retErr := e.New("ProcessBackendPayloadImpl failed to find session " + *sessionSecureID)
-			querySessionSpan.Finish(retErr)
-			log.WithContext(ctx).Error(retErr)
-			return
+	if sessionSecureID != nil && *sessionSecureID != "" {
+		if r.DB.WithContext(ctx).Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Take(&session); session.ID != 0 {
+			sessionID = &session.ID
 		}
-		sessionID = &session.ID
 	}
 
 	projectID := session.ProjectID

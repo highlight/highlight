@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/andybalholm/brotli"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -269,7 +269,7 @@ func (pm *PayloadManager) ReportPayloadSizes() error {
 		if err != nil {
 			return errors.Wrap(err, "error getting file info")
 		}
-		hlog.Histogram(fmt.Sprintf("worker.processSession.%s", fileInfo.ddTag), float64(eventInfo.Size()), nil, 1) //nolint
+		hmetric.Histogram(context.Background(), fmt.Sprintf("worker.processSession.%s", fileInfo.ddTag), float64(eventInfo.Size()), nil, 1) //nolint
 	}
 	return nil
 }

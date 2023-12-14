@@ -29,7 +29,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -60,7 +59,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v76/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 	"gorm.io/gorm"
 
 	_ "github.com/urfave/cli/v2"
@@ -198,9 +196,6 @@ func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
 
-	// setup highlight
-	highlight.SetProjectID("1jdkoe52")
-
 	// change OTLP endpoint when set in env
 	if otlpEndpoint != "" {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
@@ -214,10 +209,18 @@ func main() {
 		}
 	}
 
+	samplingRate := 1.
+	if runtimeParsed == util.PublicGraph {
+		samplingRate = 1. / 1000
+	}
+	// setup highlight
 	highlight.Start(
+		highlight.WithProjectID("1jdkoe52"),
+		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithMetricSamplingRate(1./100),
+		highlight.WithSamplingRate(samplingRate),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
-		highlight.WithEnvironment(util.EnvironmentName()),
 	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
@@ -243,18 +246,6 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
-	}
-
-	shouldLog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
-	if shouldLog {
-		log.WithContext(ctx).Info("Running dd client setup process...")
-		if err := dd.Start(runtimeParsed); err != nil {
-			log.WithContext(ctx).Fatal(e.Wrap(err, "error starting dd clients with error"))
-		} else {
-			defer dd.Stop()
-		}
-	} else {
-		log.WithContext(ctx).Info("Excluding dd client setup process...")
 	}
 
 	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
@@ -444,23 +435,15 @@ func main() {
 				Cache: lru.New(10000),
 			})
 			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
-			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
-			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))
-			privateServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
+			privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+			privateServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
 			r.Handle("/",
 				privateServer,
 			)
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
-		if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
-			err := profiler.Start(profiler.WithService("public-graph-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
-			if err != nil {
-				log.WithContext(ctx).Fatal(err)
-			}
-			defer profiler.Stop()
-		}
 		publicResolver := &public.Resolver{
 			DB:               db,
 			ProducerQueue:    kafkaProducer,
@@ -487,10 +470,9 @@ func main() {
 				publicgen.Config{
 					Resolvers: publicResolver,
 				}))
-			publicServer.Use(highlight.NewGraphqlTracer(string(util.PublicGraph)))
-			publicServer.Use(util.NewTracer(util.PublicGraph))
-			publicServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PublicGraph)))
-			publicServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
+			publicServer.Use(htrace.NewGraphqlTracer(string(util.PublicGraph)))
+			publicServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PublicGraph)))
+			publicServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
 			r.Handle("/",
 				publicServer,
 			)
@@ -568,17 +550,6 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
-				serviceName := "worker-service"
-				if handlerFlag != nil && *handlerFlag != "" {
-					serviceName = *handlerFlag
-				}
-				err := profiler.Start(profiler.WithService(serviceName), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer profiler.Stop()
-			}
 			if handlerFlag != nil && *handlerFlag != "" {
 				func() {
 					defer util.RecoverAndCrash()

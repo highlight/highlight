@@ -13,9 +13,9 @@ import (
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/golang/snappy"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -109,8 +109,8 @@ func NewClient() *Client {
 			MaxRetries:      5,
 			MinIdleConns:    16,
 			PoolSize:        256,
-			OnConnect: func(context.Context, *redis.Conn) error {
-				hlog.Incr("redis.new-conn", nil, 1)
+			OnConnect: func(ctx context.Context, _ *redis.Conn) error {
+				hmetric.Incr(ctx, "redis.new-conn", nil, 1)
 				return nil
 			},
 		})
@@ -119,21 +119,22 @@ func NewClient() *Client {
 			LocalCache: lfu,
 		})
 		go func() {
+			ctx := context.Background()
 			for {
 				stats := c.PoolStats()
 				if stats == nil {
 					return
 				}
-				hlog.Histogram("redis.hits", float64(stats.Hits), nil, 1)
-				hlog.Histogram("redis.misses", float64(stats.Misses), nil, 1)
-				hlog.Histogram("redis.idle-conns", float64(stats.IdleConns), nil, 1)
-				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
-				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
-				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+				hmetric.Histogram(ctx, "redis.hits", float64(stats.Hits), nil, 1)
+				hmetric.Histogram(ctx, "redis.misses", float64(stats.Misses), nil, 1)
+				hmetric.Histogram(ctx, "redis.idle-conns", float64(stats.IdleConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.stale-conns", float64(stats.StaleConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.total-conns", float64(stats.TotalConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.timeouts", float64(stats.Timeouts), nil, 1)
 
 				if stats := rCache.Stats(); stats != nil {
-					hlog.Histogram("redis.cache.hits", float64(stats.Hits), nil, 1)
-					hlog.Histogram("redis.cache.misses", float64(stats.Misses), nil, 1)
+					hmetric.Histogram(ctx, "redis.cache.hits", float64(stats.Hits), nil, 1)
+					hmetric.Histogram(ctx, "redis.cache.misses", float64(stats.Misses), nil, 1)
 				}
 
 				time.Sleep(time.Second)

@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight/highlight/sdk/highlight-go"
-
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 
@@ -16,11 +14,12 @@ import (
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
-	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,7 +37,7 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.M
 			WithField("duration", time.Since(start).Seconds()).
 			Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
-		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
+		hmetric.Histogram(ctx, "worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
 	}
 	task.Failures += 1
 }
@@ -81,7 +80,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			k.KafkaQueue.Commit(ctx, task.KafkaMessage)
 			s3.Finish()
 
-			hlog.Incr("worker.kafka.processed.total", nil, 1)
+			hmetric.Incr(ctx, "worker.kafka.processed.total", nil, 1)
 		}()
 	}
 }
