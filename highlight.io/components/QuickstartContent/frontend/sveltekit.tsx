@@ -65,7 +65,11 @@ export const SvelteKitContent: QuickStartContent = {
 					language: 'js',
 					text: `/** @type {import('@sveltejs/kit').Config} */
 const config = {
-  paths: { relative: false }
+    kit: {
+        paths: {
+            relative: false
+        }
+    }
 };
 
 export default config;`,

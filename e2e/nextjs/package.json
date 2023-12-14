@@ -6,7 +6,7 @@
 		"dev": "next dev -p 3005",
 		"build": "next build",
 		"deploy": "yarn build && vercel build && vercel deploy --prebuilt",
-		"start": "next start",
+		"start": "next start -p 3005",
 		"lint": "next lint"
 	},
 	"installConfig": {

@@ -93,6 +93,21 @@ type SessionInterval {
 	active: Boolean!
 }
 
+type SessionsReportRow {
+	key: String!
+	num_sessions: Int!
+	num_days_visited: Int!
+	num_months_visited: Int!
+	avg_active_length_mins: Float!
+	max_active_length_mins: Float!
+	total_active_length_mins: Float!
+	avg_length_mins: Float!
+	max_length_mins: Float!
+	total_length_mins: Float!
+	location: String!
+	user_properties: String
+}
+
 type TimelineIndicatorEvent {
 	session_secure_id: String!
 	timestamp: Float!
@@ -152,12 +167,19 @@ type Invoice {
 	status: String
 }
 
+type SubscriptionDiscount {
+	name: String!
+	percent: Float!
+	amount: Int64!
+	until: Timestamp
+}
+
 type SubscriptionDetails {
 	baseAmount: Int64!
-	discountPercent: Float!
-	discountAmount: Int64!
+	discount: SubscriptionDiscount
 	lastInvoice: Invoice
 	billingIssue: Boolean!
+	billingIngestBlocked: Boolean!
 }
 
 type Plan {
@@ -211,6 +233,7 @@ enum RetentionPeriod {
 	SixMonths
 	TwelveMonths
 	TwoYears
+	ThreeYears
 }
 
 enum OpenSearchCalendarInterval {
@@ -559,6 +582,7 @@ type Workspace {
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
+	traces_max_cents: Int
 }
 
 type Segment {
@@ -746,6 +770,7 @@ type Log {
 	source: String
 	serviceName: String
 	serviceVersion: String
+	environment: String
 }
 
 type LogEdge implements Edge {
@@ -772,6 +797,7 @@ type Trace {
 	startTime: Int!
 	serviceName: String!
 	serviceVersion: String!
+	environment: String!
 	traceAttributes: Map!
 	statusCode: String!
 	statusMessage: String!
@@ -889,6 +915,7 @@ enum ReservedLogKey {
 	"""
 	Keep this in alpha order
 	"""
+	environment
 	level
 	message
 	secure_session_id
@@ -900,6 +927,7 @@ enum ReservedLogKey {
 }
 
 enum ReservedTraceKey {
+	environment
 	level
 	message
 	metric
@@ -916,6 +944,7 @@ enum ReservedTraceKey {
 }
 
 enum ReservedErrorObjectKey {
+	environment
 	event
 	log_cursor
 	payload
@@ -945,6 +974,7 @@ enum LogSource {
 
 enum KeyType {
 	String
+	Numeric
 }
 
 type LogsHistogramBucketCount {
@@ -980,6 +1010,11 @@ enum MetricAggregator {
 enum TracesMetricColumn {
 	Duration
 	MetricValue
+}
+
+enum TracesMetricBucketBy {
+	None
+	Timestamp
 }
 
 type TracesMetricBucket {
@@ -1881,6 +1916,10 @@ type Query {
 		query: ClickhouseQuery!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
+	sessions_report(
+		project_id: ID!
+		query: ClickhouseQuery!
+	): [SessionsReportRow!]!
 	field_types_clickhouse(
 		project_id: ID!
 		start_date: Timestamp!
@@ -1980,7 +2019,11 @@ type Query {
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
-	metric_tags(project_id: ID!, metric_name: String!): [String!]!
+	metric_tags(
+		project_id: ID!
+		metric_name: String!
+		query: String
+	): [String!]!
 	metric_tag_values(
 		project_id: ID!
 		metric_name: String!
@@ -2016,6 +2059,8 @@ type Query {
 	logs_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -2050,13 +2095,19 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: TracesMetricColumn!
+		column: String!
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
+		bucket_by: String
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
 	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
@@ -2168,12 +2219,7 @@ type Mutation {
 	deleteErrorSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
-	createOrUpdateStripeSubscription(
-		workspace_id: ID!
-		plan_type: PlanType!
-		interval: SubscriptionInterval!
-		retention_period: RetentionPeriod!
-	): String
+	createOrUpdateStripeSubscription(workspace_id: ID!): String
 	updateBillingDetails(workspace_id: ID!): Boolean
 	saveBillingPlan(
 		workspace_id: ID!
@@ -2183,6 +2229,8 @@ type Mutation {
 		errorsRetention: RetentionPeriod!
 		logsLimitCents: Int
 		logsRetention: RetentionPeriod!
+		tracesLimitCents: Int
+		tracesRetention: RetentionPeriod!
 	): Boolean
 	createSessionComment(
 		project_id: ID!

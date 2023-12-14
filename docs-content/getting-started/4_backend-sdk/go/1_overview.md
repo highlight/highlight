@@ -24,4 +24,7 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Go Mux" href="../go/mux">
         {"Get started with Go Mux"}
     </DocsCard>
+    <DocsCard title="Go OpenTelemetry" href="../../7_native-opentelemetry/2_error-monitoring.md">
+        {"Get started with OpenTelemetry"}
+    </DocsCard>
 </DocsCardGroup>

@@ -30,6 +30,7 @@ import (
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	stats "github.com/highlight-run/highlight/backend/hlog"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -39,6 +40,7 @@ import (
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -73,6 +75,7 @@ type Resolver struct {
 	Clickhouse       *clickhouse.Client
 	RH               *resthooks.Resthook
 	Store            *store.Store
+	LambdaClient     *lambda.Client
 }
 
 type Location struct {
@@ -186,8 +189,8 @@ var ErrUserFilteredError = e.New("User filtered error")
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
 
-var SessionProcessDelaySeconds = 60 // a session will be processed after not receiving events for this time
-var SessionProcessLockMinutes = 30  // a session marked as processing can be reprocessed after this time
+var SessionProcessDelaySeconds = 120 // a session will be processed after not receiving events for this time
+var SessionProcessLockMinutes = 30   // a session marked as processing can be reprocessed after this time
 func init() {
 	if util.IsDevEnv() {
 		SessionProcessDelaySeconds = 8
@@ -253,9 +256,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	}
 
 	if propType == PropertyType.USER {
-		return r.SendSessionUserPropertiesAlert(ctx, workspace, session)
+		return r.SendSessionUserPropertiesAlert(ctx, workspace, project, session)
 	} else if propType == PropertyType.TRACK {
-		return r.SendSessionTrackPropertiesAlert(ctx, workspace, session, properties)
+		return r.SendSessionTrackPropertiesAlert(ctx, workspace, project, session, properties)
 	}
 	return nil
 }
@@ -784,7 +787,8 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if settings != nil && settings.ErrorEmbeddingsGroup {
 		eCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 		defer cancel()
-		emb, err := r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
+		var emb []*model.ErrorObjectEmbeddings
+		emb, err = r.EmbeddingsClient.GetEmbeddings(eCtx, []*model.ErrorObject{errorObj})
 		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
 			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
@@ -1388,8 +1392,9 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 				Error(e.Wrap(err, "error fetching workspace"))
 		}
 
-		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendAlertFeedback(ctx, r.DB, r.MailClient, errorAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         &project,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  identifier,
@@ -1641,7 +1646,10 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 		func(w *model.Workspace) *int { return w.LogsMaxCents },
 		pricing.GetWorkspaceLogsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
-			return privateModel.RetentionPeriodThirtyDays
+			if w.LogsRetentionPeriod == nil {
+				return privateModel.RetentionPeriodThirtyDays
+			}
+			return *w.LogsRetentionPeriod
 		},
 		func(w *model.Workspace) int64 {
 			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeLogs)
@@ -1652,10 +1660,13 @@ var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 		},
 	},
 	model.PricingProductTypeTraces: {
-		func(w *model.Workspace) *int { return nil },
+		func(w *model.Workspace) *int { return w.TracesMaxCents },
 		pricing.GetWorkspaceTracesMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
-			return privateModel.RetentionPeriodThirtyDays
+			if w.TracesRetentionPeriod == nil {
+				return privateModel.RetentionPeriodThirtyDays
+			}
+			return *w.TracesRetentionPeriod
 		},
 		func(w *model.Workspace) int64 {
 			limit := pricing.IncludedAmount(privateModel.PlanType(w.PlanTier), model.PricingProductTypeTraces)
@@ -1687,6 +1698,11 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		maxCostCents = pointy.Int(0)
 	}
 
+	// if the customer's billing is invalid, we want to block them from using the product
+	if invalid, err := r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err == nil && invalid {
+		maxCostCents = pointy.Int(0)
+	}
+
 	if maxCostCents == nil {
 		return true, 0
 	}
@@ -1701,19 +1717,25 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return true, 0
 	}
 
+	// check this before checking the EnableBillingLimits flag in case we manually disable a product for a company
 	if *maxCostCents == 0 {
 		return false, 1
+	}
+
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+	if err == nil && !settings.EnableBillingLimits {
+		return true, 0
 	}
 
 	// offset by the default included amount since ProductToBasePriceCents will offset too,
 	// but we want to use the local offset of includedQuantity which respects overrides
 	overage := meter + pricing.IncludedAmount(stripePlan, productType) - includedQuantity
-	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan, overage)
-	cost := float64(overage) *
-		basePrice *
+	basePriceCents := pricing.ProductToBasePriceCents(productType, stripePlan, overage)
+	costCents := float64(overage) *
+		basePriceCents *
 		pricing.RetentionMultiplier(cfg.retentionPeriod(workspace))
 
-	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
+	return costCents <= float64(*maxCostCents), costCents / float64(*maxCostCents)
 }
 
 type AlertCountsGroupedByRecent struct {
@@ -1885,7 +1907,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				log.WithContext(ctx).Error(err)
 			}
 
-			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			tempalerts.SendErrorAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, errorAlert, &tempalerts.SendSlackAlertInput{
 				Workspace:       workspace,
 				Project:         &project,
 				SessionSecureID: sessionObj.SecureID,
@@ -1997,6 +2019,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			WithSpanName("highlight-metric").
 			WithServiceName(session.ServiceName).
 			WithServiceVersion(ptr.ToString(session.AppVersion)).
+			WithEnvironment(session.Environment).
 			WithTraceAttributes(attributes).
 			WithEvents([]map[string]any{event}))
 	}
@@ -2219,7 +2242,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			TraceID:        v.TraceID,
 			SpanID:         v.SpanID,
 			LogCursor:      v.LogCursor,
-			Environment:    session.Environment,
+			Environment:    v.Environment,
 			Event:          v.Event,
 			Type:           model.ErrorType.BACKEND,
 			URL:            v.URL,
@@ -2239,7 +2262,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
 
 		if err != nil {
-			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
 		} else if mappedStackTrace != nil {
 			errorToInsert.MappedStackTrace = mappedStackTrace
 		}
@@ -2253,7 +2276,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			} else if e.Is(err, ErrUserFilteredError) {
 				log.WithContext(ctx).Info(e.Wrap(err, "Error updating error group"))
 			} else {
-				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
+				log.WithContext(ctx).WithError(err).Error(e.Wrap(err, "Error updating error group"))
 			}
 			continue
 		}
@@ -2917,22 +2940,22 @@ func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, ses
 
 	g := errgroup.Group{}
 	g.Go(func() error {
-		return r.SendSessionInitAlert(ctx, workspace, projectID, session.ID)
+		return r.SendSessionInitAlert(ctx, workspace, project, session.ID)
 	})
 	if session.FirstTime != nil && *session.FirstTime {
 		g.Go(func() error {
-			return r.SendSessionIdentifiedAlert(ctx, workspace, session)
+			return r.SendSessionIdentifiedAlert(ctx, workspace, project, session)
 		})
 	}
 	return g.Wait()
 }
 
-func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Workspace, projectID, sessionID int) error {
+func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, sessionID int) error {
 	// Sending session init alert
 	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).
+	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, Disabled: &model.F}}).
 		Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
+		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", project.ID))
 		return err
 	}
 
@@ -3014,8 +3037,9 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: sessionObj.SecureID,
 			SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 			UserIdentifier:  sessionObj.Identifier,
@@ -3076,7 +3100,7 @@ func (r *Resolver) submitFrontendNetworkMetric(sessionObj *model.Session, resour
 	return nil
 }
 
-func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session, properties map[string]string) error {
+func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session, properties map[string]string) error {
 	alertWorkerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		util.ResourceName("go.sessions.AppendProperties.alertWorker"), util.Tag("sessionID", session.ID))
 	defer alertWorkerSpan.Finish()
@@ -3166,8 +3190,9 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,
@@ -3188,7 +3213,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 	return nil
 }
 
-func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session) error {
 	// Sending New User Alert
 	var sessionAlerts []*model.SessionAlert
 	if err := r.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
@@ -3245,8 +3270,9 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: refetchedSession.SecureID,
 			SessionExcluded: refetchedSession.Excluded && *refetchedSession.Processed,
 			UserIdentifier:  refetchedSession.Identifier,
@@ -3265,7 +3291,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 	return nil
 }
 
-func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, project *model.Project, session *model.Session) error {
 	alertSpan, ctx := util.StartSpanFromContext(ctx, "SendSessionUserPropertiesAlert")
 	defer alertSpan.Finish()
 	// Sending User Properties Alert
@@ -3334,8 +3360,9 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		tempalerts.SendSessionAlerts(ctx, r.DB, r.MailClient, r.LambdaClient, sessionAlert, &tempalerts.SendSlackAlertInput{
 			Workspace:       workspace,
+			Project:         project,
 			SessionSecureID: session.SecureID,
 			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,

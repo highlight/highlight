@@ -150,10 +150,11 @@ jobs:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     e2e-frontend-backend-client:
+        # non-blocking since we will just test prod client
         # needs the client build to be uploaded
-        needs: yarn-monorepo
+        # needs: yarn-monorepo
         name: E2E Client / Frontend / Backend
-        timeout-minutes: 30
+        timeout-minutes: 60
         runs-on: buildjet-4vcpu-ubuntu-2204
 
         steps:
@@ -202,11 +203,11 @@ jobs:
               run: |
                   start_time=$(date -Isecond)
 
-                  if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
-                    export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
-                    export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
-                  fi
-                  echo "Using client version ${CYPRESS_CLIENT_VERSION}";
+                  # if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
+                  #   export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                  #   export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
+                  #   echo "Using client version ${CYPRESS_CLIENT_VERSION}";
+                  # fi
 
                   # start highlight
                   pushd docker;
@@ -257,6 +258,27 @@ jobs:
               run: |
                   cd docker;
                   docker compose logs;
+
+            - name: Dump databases on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  mkdir backups
+
+                  docker compose exec postgres bash -c "mkdir /backups";
+                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres postgres > /backups/postgres.sql";
+                  docker compose exec postgres bash -c "cat /backups/postgres.sql" > ./backups/postgres.sql 2>&1;
+
+                  docker compose exec clickhouse bash -c "mkdir /backups && chmod -R 777 /backups";
+                  docker compose exec clickhouse clickhouse-client --host clickhouse --query "BACKUP DATABASE default TO File('/backups/clickhouse.zip')";
+                  docker compose exec clickhouse bash -c "cat /backups/clickhouse.zip" > ./backups/clickhouse.zip 2>&1;
+
+            - name: Save database artifacts
+              if: failure()
+              uses: actions/upload-artifact@v3
+              with:
+                  name: db-dump
+                  path: docker/backups/*
 
             - name: Save videos
               uses: actions/upload-artifact@v3

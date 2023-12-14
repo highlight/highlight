@@ -343,18 +343,8 @@ export type MuteSessionCommentThreadMutationOptions =
 		Types.MuteSessionCommentThreadMutationVariables
 	>
 export const CreateOrUpdateStripeSubscriptionDocument = gql`
-	mutation CreateOrUpdateStripeSubscription(
-		$workspace_id: ID!
-		$plan_type: PlanType!
-		$interval: SubscriptionInterval!
-		$retention_period: RetentionPeriod!
-	) {
-		createOrUpdateStripeSubscription(
-			workspace_id: $workspace_id
-			plan_type: $plan_type
-			interval: $interval
-			retention_period: $retention_period
-		)
+	mutation CreateOrUpdateStripeSubscription($workspace_id: ID!) {
+		createOrUpdateStripeSubscription(workspace_id: $workspace_id)
 	}
 `
 export type CreateOrUpdateStripeSubscriptionMutationFn =
@@ -377,9 +367,6 @@ export type CreateOrUpdateStripeSubscriptionMutationFn =
  * const [createOrUpdateStripeSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateStripeSubscriptionMutation({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
- *      plan_type: // value for 'plan_type'
- *      interval: // value for 'interval'
- *      retention_period: // value for 'retention_period'
  *   },
  * });
  */
@@ -413,6 +400,8 @@ export const SaveBillingPlanDocument = gql`
 		$errorsRetention: RetentionPeriod!
 		$logsLimitCents: Int
 		$logsRetention: RetentionPeriod!
+		$tracesLimitCents: Int
+		$tracesRetention: RetentionPeriod!
 	) {
 		saveBillingPlan(
 			workspace_id: $workspace_id
@@ -422,6 +411,8 @@ export const SaveBillingPlanDocument = gql`
 			errorsRetention: $errorsRetention
 			logsLimitCents: $logsLimitCents
 			logsRetention: $logsRetention
+			tracesLimitCents: $tracesLimitCents
+			tracesRetention: $tracesRetention
 		)
 	}
 `
@@ -450,6 +441,8 @@ export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
  *      errorsRetention: // value for 'errorsRetention'
  *      logsLimitCents: // value for 'logsLimitCents'
  *      logsRetention: // value for 'logsRetention'
+ *      tracesLimitCents: // value for 'tracesLimitCents'
+ *      tracesRetention: // value for 'tracesRetention'
  *   },
  * });
  */
@@ -7263,6 +7256,74 @@ export type GetSessionsHistogramClickhouseQueryResult = Apollo.QueryResult<
 	Types.GetSessionsHistogramClickhouseQuery,
 	Types.GetSessionsHistogramClickhouseQueryVariables
 >
+export const GetSessionsReportDocument = gql`
+	query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
+		sessions_report(project_id: $project_id, query: $query) {
+			key
+			user_properties
+			num_sessions
+			num_days_visited
+			num_months_visited
+			avg_active_length_mins
+			max_active_length_mins
+			total_active_length_mins
+			avg_length_mins
+			max_length_mins
+			total_length_mins
+			location
+		}
+	}
+`
+
+/**
+ * __useGetSessionsReportQuery__
+ *
+ * To run a query within a React component, call `useGetSessionsReportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionsReportQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetSessionsReportQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>(GetSessionsReportDocument, baseOptions)
+}
+export function useGetSessionsReportLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>(GetSessionsReportDocument, baseOptions)
+}
+export type GetSessionsReportQueryHookResult = ReturnType<
+	typeof useGetSessionsReportQuery
+>
+export type GetSessionsReportLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsReportLazyQuery
+>
+export type GetSessionsReportQueryResult = Apollo.QueryResult<
+	Types.GetSessionsReportQuery,
+	Types.GetSessionsReportQueryVariables
+>
 export const GetErrorGroupsClickhouseDocument = gql`
 	query GetErrorGroupsClickhouse(
 		$project_id: ID!
@@ -8454,8 +8515,12 @@ export const GetBillingDetailsDocument = gql`
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
@@ -8464,6 +8529,8 @@ export const GetBillingDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
+			billingIngestBlocked
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -8477,6 +8544,7 @@ export const GetBillingDetailsDocument = gql`
 			sessions_max_cents
 			errors_max_cents
 			logs_max_cents
+			traces_max_cents
 		}
 	}
 `
@@ -8533,8 +8601,12 @@ export const GetSubscriptionDetailsDocument = gql`
 	query GetSubscriptionDetails($workspace_id: ID!) {
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
@@ -8544,6 +8616,7 @@ export const GetSubscriptionDetailsDocument = gql`
 				status
 			}
 			billingIssue
+			billingIngestBlocked
 		}
 	}
 `
@@ -12355,8 +12428,16 @@ export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
 	Types.GetSuggestedMetricsQueryVariables
 >
 export const GetMetricTagsDocument = gql`
-	query GetMetricTags($project_id: ID!, $metric_name: String!) {
-		metric_tags(project_id: $project_id, metric_name: $metric_name)
+	query GetMetricTags(
+		$project_id: ID!
+		$metric_name: String!
+		$query: String
+	) {
+		metric_tags(
+			project_id: $project_id
+			metric_name: $metric_name
+			query: $query
+		)
 	}
 `
 
@@ -12374,6 +12455,7 @@ export const GetMetricTagsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -12870,6 +12952,7 @@ export const GetLogsDocument = gql`
 					source
 					serviceName
 					serviceVersion
+					environment
 				}
 			}
 			pageInfo {
@@ -13115,8 +13198,16 @@ export type GetLogsHistogramQueryResult = Apollo.QueryResult<
 	Types.GetLogsHistogramQueryVariables
 >
 export const GetLogsKeysDocument = gql`
-	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-		keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+	query GetLogsKeys(
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+		$query: String
+	) {
+		keys: logs_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -13137,6 +13228,7 @@ export const GetLogsKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -14037,6 +14129,7 @@ export const GetTraceDocument = gql`
 				duration
 				serviceName
 				serviceVersion
+				environment
 				traceAttributes
 				startTime
 				statusCode
@@ -14136,6 +14229,7 @@ export const GetTracesDocument = gql`
 					duration
 					serviceName
 					serviceVersion
+					environment
 					traceAttributes
 					statusCode
 					statusMessage
@@ -14206,9 +14300,13 @@ export const GetTracesMetricsDocument = gql`
 	query GetTracesMetrics(
 		$project_id: ID!
 		$params: QueryInput!
-		$column: TracesMetricColumn!
+		$column: String!
 		$metric_types: [MetricAggregator!]!
 		$group_by: [String!]!
+		$bucket_by: String
+		$limit: Int
+		$limit_aggregator: MetricAggregator
+		$limit_column: String
 	) {
 		traces_metrics(
 			project_id: $project_id
@@ -14216,6 +14314,10 @@ export const GetTracesMetricsDocument = gql`
 			column: $column
 			metric_types: $metric_types
 			group_by: $group_by
+			bucket_by: $bucket_by
+			limit: $limit
+			limit_aggregator: $limit_aggregator
+			limit_column: $limit_column
 		) {
 			buckets {
 				bucket_id
@@ -14246,6 +14348,10 @@ export const GetTracesMetricsDocument = gql`
  *      column: // value for 'column'
  *      metric_types: // value for 'metric_types'
  *      group_by: // value for 'group_by'
+ *      bucket_by: // value for 'bucket_by'
+ *      limit: // value for 'limit'
+ *      limit_aggregator: // value for 'limit_aggregator'
+ *      limit_column: // value for 'limit_column'
  *   },
  * });
  */
@@ -14285,8 +14391,13 @@ export const GetTracesKeysDocument = gql`
 	query GetTracesKeys(
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
+		$query: String
 	) {
-		keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+		keys: traces_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -14307,6 +14418,7 @@ export const GetTracesKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */

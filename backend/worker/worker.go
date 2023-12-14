@@ -34,6 +34,7 @@ import (
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
@@ -478,6 +479,7 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		for i := 0; i < cfg.Workers; i++ {
 			if cfg.Topic == kafkaqueue.TopicTypeDefault {
 				go func(workerId int) {
+					ctx := context.Background()
 					k := KafkaWorker{
 						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil),
 						Worker:       w,
@@ -959,8 +961,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			count64 := int64(count)
-			slackAlertPayload := model.SendSlackAlertInput{
+			slackAlertPayload := tempalerts.SendSlackAlertInput{
 				Workspace:       workspace,
+				Project:         project,
 				SessionSecureID: s.SecureID,
 				SessionExcluded: s.Excluded && *s.Processed,
 				UserIdentifier:  s.Identifier,
@@ -976,7 +979,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err := w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
 			}
-			sessionAlert.SendAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
+			tempalerts.SendSessionAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.LambdaClient, sessionAlert, &slackAlertPayload)
 
 			if err = alerts.SendRageClicksAlert(alerts.RageClicksAlertEvent{
 				Session:         s,
@@ -1126,7 +1129,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.NewWorker(w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient).ReportAllUsage(ctx)
+	pricing.NewWorker(w.Resolver.DB, w.Resolver.Redis, w.Resolver.Store, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient).ReportAllUsage(ctx)
 }
 
 func (w *Worker) MigrateDB(ctx context.Context) {
@@ -1142,7 +1145,7 @@ func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
-	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {

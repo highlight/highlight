@@ -165,18 +165,26 @@ func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, proje
 	return req
 }
 
-type TemplateDataWithTemplate struct {
-	Template string
-	Data     interface{}
-}
+type ReactEmailTemplate string
+
+const (
+	ReactEmailTemplateErrorAlert      ReactEmailTemplate = "error-alert"
+	ReactEmailTemplateLogAlert        ReactEmailTemplate = "log-alert"
+	ReactEmailTemplateNewSessionAlert ReactEmailTemplate = "new-session-alert"
+	ReactEmailTemplateNewUserAlert    ReactEmailTemplate = "new-user-alert"
+	ReactEmailTemplateRageClickAlert  ReactEmailTemplate = "rage-click-alert"
+	ReactEmailTemplateSessionInsights ReactEmailTemplate = "session-insights"
+	ReactEmailTemplateTrackEventAlert ReactEmailTemplate = "track-event-properties-alert"
+	ReactEmailTemplateTrackUserAlert  ReactEmailTemplate = "track-user-properties-alert"
+)
 
 func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {
 	data.ToEmail = toEmail
 	data.UnsubscribeUrl = unsubscribeUrl
 
-	templateData := TemplateDataWithTemplate{
-		Template: "session-insights",
-		Data:     data,
+	templateData := map[string]interface{}{
+		"template": ReactEmailTemplateSessionInsights,
+		"data":     data,
 	}
 
 	b, err := json.Marshal(templateData)
@@ -196,6 +204,34 @@ func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string,
 		return "", err
 	}
 
+	b, err = io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func (s *Client) FetchReactEmailHTML(ctx context.Context, alertType ReactEmailTemplate, data map[string]interface{}) (string, error) {
+	templateData := map[string]interface{}{
+		"template": alertType,
+		"data":     data,
+	}
+
+	b, err := json.Marshal(templateData)
+	if err != nil {
+		return "", err
+	}
+	req, _ := retryablehttp.NewRequest(http.MethodPost, "https://fha2fg4du8.execute-api.us-east-2.amazonaws.com/default/session-insights-email", bytes.NewBuffer(b))
+	req = req.WithContext(ctx)
+	req.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+	signer := v4.NewSigner()
+	_ = signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(ExecuteAPI), s.Config.Region, time.Now())
+	res, err := s.RetryableHTTPClient.Do(req)
+	if err != nil {
+		return "", err
+	}
 	b, err = io.ReadAll(res.Body)
 	if err != nil {
 		return "", err

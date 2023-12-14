@@ -25,6 +25,7 @@ export default function RootLayout({
 					enabled: true,
 					recordHeadersAndBody: true,
 				}}
+				consoleMethodsToRecord={['log', 'warn']}
 				// inlineImages={false}
 				enableCanvasRecording={true}
 				samplingStrategy={{

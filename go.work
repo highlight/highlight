@@ -6,4 +6,7 @@ use ./backend
 
 use ./sdk/highlight-go
 
-use ./e2e/go
+use (
+	./e2e/go
+	./sdk/highlight-grafana-datasource
+)

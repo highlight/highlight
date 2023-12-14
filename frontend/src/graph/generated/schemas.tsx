@@ -810,6 +810,7 @@ export type JiraTeam = {
 }
 
 export enum KeyType {
+	Numeric = 'Numeric',
 	String = 'String',
 }
 
@@ -833,6 +834,7 @@ export type LinearTeam = {
 
 export type Log = {
 	__typename?: 'Log'
+	environment?: Maybe<Scalars['String']>
 	level: LogLevel
 	logAttributes: Scalars['Map']
 	message: Scalars['String']
@@ -1213,9 +1215,6 @@ export type MutationCreateMetricMonitorArgs = {
 }
 
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
-	interval: SubscriptionInterval
-	plan_type: PlanType
-	retention_period: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -1468,6 +1467,8 @@ export type MutationSaveBillingPlanArgs = {
 	logsRetention: RetentionPeriod
 	sessionsLimitCents?: InputMaybe<Scalars['Int']>
 	sessionsRetention: RetentionPeriod
+	tracesLimitCents?: InputMaybe<Scalars['Int']>
+	tracesRetention: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -1867,6 +1868,7 @@ export type Query = {
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
 	sessions_histogram_clickhouse: SessionsHistogram
+	sessions_report: Array<SessionsReportRow>
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
@@ -2247,6 +2249,7 @@ export type QueryLogs_Key_ValuesArgs = {
 export type QueryLogs_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryLogs_Total_CountArgs = {
@@ -2272,6 +2275,7 @@ export type QueryMetric_Tag_ValuesArgs = {
 export type QueryMetric_TagsArgs = {
 	metric_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryMetrics_TimelineArgs = {
@@ -2414,6 +2418,11 @@ export type QuerySessions_Histogram_ClickhouseArgs = {
 	query: ClickhouseQuery
 }
 
+export type QuerySessions_ReportArgs = {
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
+}
+
 export type QuerySlack_Channel_SuggestionArgs = {
 	project_id: Scalars['ID']
 }
@@ -2472,11 +2481,16 @@ export type QueryTraces_Key_ValuesArgs = {
 export type QueryTraces_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTraces_MetricsArgs = {
-	column: TracesMetricColumn
+	bucket_by?: InputMaybe<Scalars['String']>
+	column: Scalars['String']
 	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
 	params: QueryInput
 	project_id: Scalars['ID']
@@ -2584,6 +2598,7 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorObjectKey {
+	Environment = 'environment',
 	Event = 'event',
 	LogCursor = 'log_cursor',
 	Payload = 'payload',
@@ -2602,6 +2617,7 @@ export enum ReservedErrorObjectKey {
 
 export enum ReservedLogKey {
 	/** Keep this in alpha order */
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',
@@ -2620,6 +2636,7 @@ export enum ReservedSessionKey {
 
 export enum ReservedTraceKey {
 	Duration = 'duration',
+	Environment = 'environment',
 	Level = 'level',
 	Message = 'message',
 	Metric = 'metric',
@@ -2638,6 +2655,7 @@ export enum RetentionPeriod {
 	SixMonths = 'SixMonths',
 	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
+	ThreeYears = 'ThreeYears',
 	TwelveMonths = 'TwelveMonths',
 	TwoYears = 'TwoYears',
 }
@@ -3015,6 +3033,22 @@ export type SessionsHistogram = {
 	total_sessions: Array<Scalars['Int64']>
 }
 
+export type SessionsReportRow = {
+	__typename?: 'SessionsReportRow'
+	avg_active_length_mins: Scalars['Float']
+	avg_length_mins: Scalars['Float']
+	key: Scalars['String']
+	location: Scalars['String']
+	max_active_length_mins: Scalars['Float']
+	max_length_mins: Scalars['Float']
+	num_days_visited: Scalars['Int']
+	num_months_visited: Scalars['Int']
+	num_sessions: Scalars['Int']
+	total_active_length_mins: Scalars['Float']
+	total_length_mins: Scalars['Float']
+	user_properties?: Maybe<Scalars['String']>
+}
+
 export type SlackSyncResponse = {
 	__typename?: 'SlackSyncResponse'
 	newChannelsAddedCount: Scalars['Int']
@@ -3084,10 +3118,18 @@ export type SubscriptionSession_Payload_AppendedArgs = {
 export type SubscriptionDetails = {
 	__typename?: 'SubscriptionDetails'
 	baseAmount: Scalars['Int64']
+	billingIngestBlocked: Scalars['Boolean']
 	billingIssue: Scalars['Boolean']
-	discountAmount: Scalars['Int64']
-	discountPercent: Scalars['Float']
+	discount?: Maybe<SubscriptionDiscount>
 	lastInvoice?: Maybe<Invoice>
+}
+
+export type SubscriptionDiscount = {
+	__typename?: 'SubscriptionDiscount'
+	amount: Scalars['Int64']
+	name: Scalars['String']
+	percent: Scalars['Float']
+	until?: Maybe<Scalars['Timestamp']>
 }
 
 export enum SubscriptionInterval {
@@ -3122,6 +3164,7 @@ export type TopUsersPayload = {
 export type Trace = {
 	__typename?: 'Trace'
 	duration: Scalars['Int']
+	environment: Scalars['String']
 	events?: Maybe<Array<Maybe<TraceEvent>>>
 	links?: Maybe<Array<Maybe<TraceLink>>>
 	parentSpanID: Scalars['String']
@@ -3194,6 +3237,11 @@ export type TracesMetricBucket = {
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value: Scalars['Float']
+}
+
+export enum TracesMetricBucketBy {
+	None = 'None',
+	Timestamp = 'Timestamp',
 }
 
 export enum TracesMetricColumn {
@@ -3311,6 +3359,7 @@ export type Workspace = {
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
+	traces_max_cents?: Maybe<Scalars['Int']>
 	trial_end_date?: Maybe<Scalars['Timestamp']>
 	trial_extension_enabled: Scalars['Boolean']
 	unlimited_members: Scalars['Boolean']

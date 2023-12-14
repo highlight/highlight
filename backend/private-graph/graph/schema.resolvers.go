@@ -1190,7 +1190,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 // CreateOrUpdateStripeSubscription is the resolver for the createOrUpdateStripeSubscription field.
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType, interval modelInputs.SubscriptionInterval, retentionPeriod modelInputs.RetentionPeriod) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
@@ -1232,12 +1232,11 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
 	pricingInterval := model.PricingSubscriptionIntervalMonthly
-	if planType != modelInputs.PlanTypeFree && interval == modelInputs.SubscriptionIntervalAnnual {
-		pricingInterval = model.PricingSubscriptionIntervalAnnual
-	}
+
+	defaultRetention := modelInputs.RetentionPeriodThreeMonths
 
 	// default to unlimited members pricing
-	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, planType, pricingInterval, true, &retentionPeriod)
+	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -1289,7 +1288,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		Customer: workspace.StripeCustomerID,
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price: &newBasePrice.ID,
+				Price:    &newBasePrice.ID,
+				Quantity: stripe.Int64(1),
 			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
@@ -1323,7 +1323,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 }
 
 // SaveBillingPlan is the resolver for the saveBillingPlan field.
-func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod) (*bool, error) {
+func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod, tracesLimitCents *int, tracesRetention modelInputs.RetentionPeriod) (*bool, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
@@ -1346,6 +1346,9 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 			ErrorsMaxCents:        errorsLimitCents,
 			ErrorsRetentionPeriod: &errorsRetention,
 			LogsMaxCents:          logsLimitCents,
+			LogsRetentionPeriod:   &logsRetention,
+			TracesMaxCents:        tracesLimitCents,
+			TracesRetentionPeriod: &tracesRetention,
 		}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace")
 	}
@@ -5499,6 +5502,60 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 	}, nil
 }
 
+// SessionsReport is the resolver for the sessions_report field.
+func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery) ([]*modelInputs.SessionsReportRow, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	ids, total, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000, query, "ID", nil, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+	if total >= 1_000_000 {
+		return nil, e.New("too many sessions to generate report, adjust the query to return fewer sessions")
+	}
+
+	var results []*modelInputs.SessionsReportRow
+	if err := r.DB.Raw(`
+select coalesce(email, ip, client_id, identifier)                              as key,
+       max(user_properties::text) filter ( where user_properties is not null ) as user_properties,
+       count(*)                                                                as num_sessions,
+       count(distinct date_trunc('day', created_at))                           as num_days_visited,
+       count(distinct date_trunc('month', created_at))                         as num_months_visited,
+       avg(active_length) / 1000 / 60                                          as avg_active_length_mins,
+       max(active_length) / 1000 / 60                                          as max_active_length_mins,
+       sum(active_length) / 1000 / 60                                          as total_active_length_mins,
+       avg(length) / 1000 / 60                                                 as avg_length_mins,
+       max(length) / 1000 / 60                                                 as max_length_mins,
+       sum(length) / 1000 / 60                                                 as total_length_mins,
+       max(case when state is not null then state || '|' || city end)          as location
+from sessions
+where id in (?)
+group by 1
+order by num_sessions desc;
+`, ids).Scan(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
 func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5661,21 +5718,33 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	tracesIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeTraces)
 	// use monthly traces limit if it exists
 	if workspace.MonthlyTracesLimit != nil {
-		tracesIncluded = int64(*workspace.MonthlyLogsLimit)
+		tracesIncluded = int64(*workspace.MonthlyTracesLimit)
 	}
 
-	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	sessionsRetentionPeriod := modelInputs.RetentionPeriodSixMonths
 	if workspace.RetentionPeriod != nil {
-		retentionPeriod = *workspace.RetentionPeriod
+		sessionsRetentionPeriod = *workspace.RetentionPeriod
+	}
+	errorsRetentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if workspace.ErrorsRetentionPeriod != nil {
+		errorsRetentionPeriod = *workspace.ErrorsRetentionPeriod
+	}
+	logsRetentionPeriod := modelInputs.RetentionPeriodThirtyDays
+	if workspace.LogsRetentionPeriod != nil {
+		logsRetentionPeriod = *workspace.LogsRetentionPeriod
+	}
+	tracesRetentionPeriod := modelInputs.RetentionPeriodThirtyDays
+	if workspace.TracesRetentionPeriod != nil {
+		tracesRetentionPeriod = *workspace.TracesRetentionPeriod
 	}
 
 	var sessionsLimit, errorsLimit, logsLimit, tracesLimit *int64
 	var sessionsRate, errorsRate, logsRate, tracesRate float64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
-		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
-		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
-		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
-		tracesLimit = pricing.GetLimitAmount(nil, model.PricingProductTypeTraces, planType, retentionPeriod)
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, sessionsRetentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, errorsRetentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, logsRetentionPeriod)
+		tracesLimit = pricing.GetLimitAmount(workspace.TracesMaxCents, model.PricingProductTypeTraces, planType, tracesRetentionPeriod)
 		sessionsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeSessions, planType, sessionsMeter)
 		errorsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeErrors, planType, errorsMeter)
 		logsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeLogs, planType, logsMeter)
@@ -6954,8 +7023,15 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 
 	discount := c.Subscriptions.Data[0].Discount
 	if discount != nil && discount.Coupon != nil {
-		details.DiscountAmount = discount.Coupon.AmountOff
-		details.DiscountPercent = discount.Coupon.PercentOff
+		details.Discount = &modelInputs.SubscriptionDiscount{
+			Name:    discount.Coupon.Name,
+			Percent: discount.Coupon.PercentOff,
+			Amount:  discount.Coupon.AmountOff,
+		}
+		if discount.Coupon.Duration != stripe.CouponDurationForever {
+			t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
+			details.Discount.Until = &t
+		}
 	}
 
 	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID
@@ -6977,11 +7053,15 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
-		settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
 		if err != nil {
 			return nil, err
 		}
-		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
+		details.BillingIssue = !warningSent.IsZero()
+	}
+
+	if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
+		return nil, err
 	}
 
 	return details, nil
@@ -7052,7 +7132,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		return nil, err
 	}
 
-	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
+	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), &prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -7065,12 +7145,12 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 }
 
 // MetricTags is the resolver for the metric_tags field.
-func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error) {
+func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
-	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
+	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7110,7 +7190,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 			StartDate: time.Now().Add(time.Duration(-params.LookbackDays) * 24 * time.Hour),
 			EndDate:   time.Now(),
 		},
-	}, modelInputs.TracesMetricColumnDuration, []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48)
+	}, string(modelInputs.TracesMetricColumnDuration), []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48, string(modelInputs.TracesMetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7350,13 +7430,13 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 }
 
 // LogsKeyValues is the resolver for the logs_key_values field.
@@ -7607,23 +7687,28 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 }
 
 // TracesMetrics is the resolver for the traces_metrics field.
-func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column modelInputs.TracesMetricColumn, metricTypes []modelInputs.MetricAggregator, groupBy []string) (*modelInputs.TracesMetrics, error) {
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.TracesMetrics, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48)
+	bucketByDeref := string(modelInputs.TracesMetricBucketByTimestamp)
+	if bucketBy != nil {
+		bucketByDeref = *bucketBy
+	}
+
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketByDeref, limit, limitAggregator, limitColumn)
 }
 
 // TracesKeys is the resolver for the traces_keys field.
-func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 }
 
 // TracesKeyValues is the resolver for the traces_key_values field.
@@ -7908,7 +7993,6 @@ GROUP BY
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
-		ctx := context.Background()
 		defer close(ch)
 		log.WithContext(ctx).Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
 			sessionSecureID,
@@ -7928,7 +8012,9 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 				log.WithContext(ctx).Error(e.Wrap(err, "error fetching session for subscription"))
 				return
 			}
-			events, err, nextCursor := r.getEvents(ctx, session, cursor)
+			// Use context.Background() here as the original ctx seems to
+			// be cancelled after 30 seconds, which cancels the redis query.
+			events, err, nextCursor := r.getEvents(context.Background(), session, cursor)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error fetching events incrementally"))
 				return

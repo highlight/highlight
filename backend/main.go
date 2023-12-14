@@ -217,6 +217,7 @@ func main() {
 	highlight.Start(
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+		highlight.WithEnvironment(util.EnvironmentName()),
 	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
@@ -472,6 +473,7 @@ func main() {
 			Redis:            redisClient,
 			RH:               &rh,
 			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:     lambda,
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -562,6 +564,7 @@ func main() {
 			Clickhouse:       clickhouseClient,
 			RH:               &rh,
 			Store:            store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			LambdaClient:     lambda,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

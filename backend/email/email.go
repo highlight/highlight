@@ -13,8 +13,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
-
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var (
@@ -47,7 +45,28 @@ const (
 	BillingLogsUsage100Percent    EmailType = "BillingLogsUsage100Percent"
 	BillingTracesUsage80Percent   EmailType = "BillingTracesUsage80Percent"
 	BillingTracesUsage100Percent  EmailType = "BillingTracesUsage100Percent"
+	BillingInvalidPayment         EmailType = "BillingInvalidPayment"
 )
+
+func SendReactEmailAlert(ctx context.Context, MailClient *sendgrid.Client, email string, html string, subjectLine string) error {
+	to := &mail.Email{Address: email}
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+
+	m := mail.NewV3MailInit(from, subjectLine, to, mail.NewContent("text/html", html))
+
+	if resp, sendGridErr := MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		log.WithContext(ctx).Info("🔥", resp, sendGridErr)
+		estr := "error sending sendgrid email for alert -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		log.WithContext(ctx).Error("🔥", estr)
+		return e.New(estr)
+	}
+	log.WithContext(ctx).Info("Sending react email")
+	return nil
+}
 
 func SendAlertEmail(ctx context.Context, MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
 	to := &mail.Email{Address: email}
@@ -135,6 +154,8 @@ func getBillingNotificationSubject(emailType EmailType) string {
 		return "[Highlight] billing limits - 80% of your traces usage"
 	case BillingTracesUsage100Percent:
 		return "[Highlight] billing limits - 100% of your traces usage"
+	case BillingInvalidPayment:
+		return "[Highlight] invalid billing - issues with your payment method"
 	default:
 		return "Highlight Billing Notification"
 	}
@@ -183,12 +204,19 @@ func getBillingNotificationMessage(workspaceId int, emailType EmailType) string 
 		return getApproachingLimitMessage("traces", workspaceId)
 	case BillingTracesUsage100Percent:
 		return getExceededLimitMessage("traces", workspaceId)
+	case BillingInvalidPayment:
+		return fmt.Sprintf(`
+			We're having issues validating your payment details!<br>
+			The card on file is not valid or 
+			we have failed to charge it for the current invoice.<br>
+			If the issue isn't resolved in 5 days, we will stop ingesting all data :(<br>
+			Please update your payment preferences in Highlight <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	default:
 		return ""
 	}
 }
 
-func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Client, workspaceId int, workspaceName *string, retentionPeriod *modelInputs.RetentionPeriod, emailType EmailType, toEmail string, adminId int) error {
+func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Client, workspaceId int, workspaceName *string, emailType EmailType, toEmail string, adminId int) error {
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()

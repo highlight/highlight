@@ -127,6 +127,7 @@ type PopoutType =
 	| 'select'
 	| 'multiselect'
 	| 'creatable'
+	| 'editable'
 	| 'date_range'
 	| 'time_range'
 	| 'range'
@@ -441,8 +442,67 @@ const MultiselectPopout = ({
 
 	let multiValue: string[] = []
 	switch (type) {
-		case 'creatable':
 		case 'multiselect':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={options?.map((o) => ({
+						key: o.value,
+						render: getOption(o, lastQuery),
+					}))}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender={loadingBox}
+				/>
+			)
+		case 'creatable':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={[]}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					creatableRender={(query) =>
+						getOption({ label: query, value: query }, '')
+					}
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender={loadingBox}
+				/>
+			)
+		case 'editable':
 			multiValue = value?.options.map((o) => o.value) ?? []
 			return (
 				<ComboboxSelect
@@ -566,6 +626,8 @@ const SelectPopout = ({
 
 const getPopoutType = (op: Operator | undefined): PopoutType => {
 	switch (op) {
+		case 'is_editable':
+			return 'editable'
 		case 'contains':
 		case 'not_contains':
 		case 'matches':
@@ -702,6 +764,7 @@ export const hasArguments = (op: Operator): boolean =>
 const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 	is: 'is',
 	is_not: 'is not',
+	is_editable: 'is',
 	contains: 'contains',
 	not_contains: 'does not contain',
 	exists: 'exists',
@@ -719,6 +782,7 @@ const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 const LABEL_MAP_MULTI: { [K in Operator]: string } = {
 	is: 'is any of',
 	is_not: 'is not any of',
+	is_editable: 'is any of',
 	contains: 'contains any of',
 	not_contains: 'does not contain any of',
 	exists: 'exists',
@@ -746,6 +810,7 @@ const TOOLTIP_MESSAGES: { [K in string]: string } = {
 
 export type Operator =
 	| 'is'
+	| 'is_editable'
 	| 'is_not'
 	| 'contains'
 	| 'not_contains'
@@ -1692,12 +1757,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 						})
 					}}
 				/>
-				<Box marginLeft="auto" display="flex" gap="4">
+				<Box marginLeft="auto" display="flex" gap="0">
 					{!isOnErrorsPage && (
-						<DropdownMenu
-							sessionCount={searchResultsCount || 0}
-							sessionQuery={JSON.parse(searchQuery)}
-						/>
+						<DropdownMenu sessionQuery={JSON.parse(searchQuery)} />
 					)}
 
 					<ButtonIcon
@@ -1714,7 +1776,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [
 		dateRange,
 		isOnErrorsPage,
-		searchResultsCount,
 		searchQuery,
 		updateRule,
 		timeRangeRule,

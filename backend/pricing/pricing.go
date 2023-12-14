@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/stripe/stripe-go/v76"
 	"os"
 	"time"
@@ -278,6 +281,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 	},
 }
 
+var StandardTest = []backend.RetentionPeriod{
+	backend.RetentionPeriodSixMonths,
+	backend.RetentionPeriodTwelveMonths,
+	backend.RetentionPeriodTwoYears,
+}
+
 func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.WithContext(context.TODO()).Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
@@ -527,6 +536,8 @@ func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
 		return 2
 	case backend.RetentionPeriodTwoYears:
 		return 2.5
+	case backend.RetentionPeriodThreeYears:
+		return 3
 	default:
 		return 1
 	}
@@ -678,17 +689,21 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod *backend.RetentionPeriod) (map[model.PricingProductType]*stripe.Price, error) {
+func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, sessionsRetention *backend.RetentionPeriod, errorsRetention *backend.RetentionPeriod) (map[model.PricingProductType]*stripe.Price, error) {
 	// Default to the `RetentionPeriodThreeMonths` prices for customers grandfathered into 6 month retention
-	rp := backend.RetentionPeriodThreeMonths
-	if retentionPeriod != nil {
-		rp = *retentionPeriod
+	sessionsRetentionPeriod := backend.RetentionPeriodThreeMonths
+	if sessionsRetention != nil {
+		sessionsRetentionPeriod = *sessionsRetention
 	}
-	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, rp)
+	errorsRetentionPeriod := backend.RetentionPeriodThreeMonths
+	if errorsRetention != nil {
+		errorsRetentionPeriod = *errorsRetention
+	}
+	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, sessionsRetentionPeriod)
 
 	membersLookupKey := string(model.PricingProductTypeMembers)
-	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
-	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, rp, productTier)
+	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, sessionsRetentionPeriod, productTier)
+	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, errorsRetentionPeriod, productTier)
 	// logs and traces are only available with three month retention
 	logsLookupKey := GetOverageKey(model.PricingProductTypeLogs, backend.RetentionPeriodThreeMonths, productTier)
 	tracesLookupKey := GetOverageKey(model.PricingProductTypeTraces, backend.RetentionPeriodThreeMonths, productTier)
@@ -753,14 +768,18 @@ func GetStripePrices(stripeClient *client.API, workspace *model.Workspace, produ
 
 type Worker struct {
 	db           *gorm.DB
+	redis        *redis.Client
+	store        *store.Store
 	ccClient     *clickhouse.Client
 	stripeClient *client.API
 	mailClient   *sendgrid.Client
 }
 
-func NewWorker(db *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client) *Worker {
+func NewWorker(db *gorm.DB, redis *redis.Client, store *store.Store, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client) *Worker {
 	return &Worker{
 		db:           db,
+		redis:        redis,
+		store:        store,
 		ccClient:     ccClient,
 		stripeClient: stripeClient,
 		mailClient:   mailClient,
@@ -892,7 +911,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		}
 	}
 
-	prices, err := GetStripePrices(w.stripeClient, &workspace, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod)
+	prices, err := GetStripePrices(w.stripeClient, &workspace, *productTier, interval, workspace.UnlimitedMembers, workspace.RetentionPeriod, workspace.ErrorsRetentionPeriod)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
@@ -902,7 +921,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		Subscription: &subscription.ID,
 	}
 
-	_, err = w.stripeClient.Invoices.Upcoming(invoiceParams)
+	invoice, err := w.stripeClient.Invoices.Upcoming(invoiceParams)
 	// Cancelled subscriptions have no upcoming invoice - we can skip these since we won't
 	// be charging any overage for their next billing period.
 	if err != nil {
@@ -952,18 +971,23 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		for _, line := range group {
 			productType, _, _, _, _ := GetProductMetadata(line.Price)
 			if productType != nil {
-				// if the line is from an old price, delete it
+				// if the line is from an old price, warn so we can check and manually delete it
 				if line.Price.ID != prices[*productType].ID {
-					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN deleting old -invoice item %s for customer %s", invoiceLines[*productType].InvoiceItem.ID, c.ID)
-					if _, err := w.stripeClient.InvoiceItems.Del(invoiceLines[*productType].InvoiceItem.ID, &stripe.InvoiceItemParams{}); err != nil {
-						return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add usage record item")
-					}
+					log.WithContext(ctx).Warnf("STRIPE_INTEGRATION_WARN mismatched invoice line item %s existing %s expected %s for customer %s", line.ID, line.Price.ID, prices[*productType].ID, c.ID)
+				} else {
+					invoiceLines[*productType] = line
 				}
-				invoiceLines[*productType] = line
 			}
 		}
 	}
 	log.WithContext(ctx).WithField("invoiceLinesLen", len(invoiceLines)).Infof("STRIPE_INTEGRATION_INFO found invoice lines %d %+v", len(invoiceLines), invoiceLines)
+
+	billingIssue, err := w.GetBillingIssue(ctx, &workspace, c, invoice)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).WithField("customer", c.ID).Error("STRIPE_INTEGRATION_ERROR failed to get billing issue status")
+	} else {
+		w.ProcessBillingIssue(ctx, &workspace, billingIssue)
+	}
 
 	// Update members overage
 	membersMeter := GetWorkspaceMembersMeter(w.db, workspaceID)
@@ -1028,6 +1052,111 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	}
 
 	return nil
+}
+
+type PaymentIssueType = string
+
+const PaymentIssueTypeInvoiceUncollectible PaymentIssueType = "invoice_uncollectible"
+const PaymentIssueTypeInvoiceOpenAttempted PaymentIssueType = "invoice_open_attempted"
+const PaymentIssueTypeNoPaymentMethod PaymentIssueType = "no_payment_method"
+const PaymentIssueTypeCardCheckFail PaymentIssueType = "payment_method_check_failed"
+
+func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace, customer *stripe.Customer, invoice *stripe.Invoice) (PaymentIssueType, error) {
+	settings, err := w.store.GetAllWorkspaceSettings(ctx, workspace.ID)
+	if err != nil {
+		return "", err
+	}
+	if !settings.CanShowBillingIssueBanner {
+		return "", err
+	}
+
+	if invoice != nil && invoice.Status == stripe.InvoiceStatusUncollectible {
+		log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe uncollectible invoice detected", invoice.ID)
+		return PaymentIssueTypeInvoiceUncollectible, nil
+	}
+
+	if invoice != nil && invoice.Status == stripe.InvoiceStatusOpen {
+		if invoice.AttemptCount > 0 {
+			log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe invoice found with failed attempts", invoice.ID)
+			return PaymentIssueTypeInvoiceOpenAttempted, nil
+		}
+	}
+
+	// check for valid CC to make sure customer is valid
+	i := w.stripeClient.PaymentMethods.List(&stripe.PaymentMethodListParams{Customer: pointy.String(customer.ID)})
+	if err := i.Err(); err != nil {
+		return "", err
+	}
+
+	if len(i.PaymentMethodList().Data) == 0 {
+		log.WithContext(ctx).WithField("customer", customer.ID).Info("no payment methods found")
+		return PaymentIssueTypeNoPaymentMethod, nil
+	}
+
+	for _, paymentMethod := range i.PaymentMethodList().Data {
+		if paymentMethod.Card != nil && paymentMethod.Card.Checks != nil {
+			if paymentMethod.Card.Checks.CVCCheck == stripe.PaymentMethodCardChecksCVCCheckFail {
+				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe cvc check failed")
+				return PaymentIssueTypeCardCheckFail, nil
+			} else if paymentMethod.Card.Checks.AddressPostalCodeCheck == stripe.PaymentMethodCardChecksAddressPostalCodeCheckFail {
+				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address postal check failed")
+				return PaymentIssueTypeCardCheckFail, nil
+			} else if paymentMethod.Card.Checks.AddressLine1Check == stripe.PaymentMethodCardChecksAddressLine1CheckFail {
+				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address line1 check failed")
+				return PaymentIssueTypeCardCheckFail, nil
+			}
+		}
+	}
+
+	return "", nil
+}
+
+const BillingWarningPeriod = 7 * 24 * time.Hour
+
+func (w *Worker) ProcessBillingIssue(ctx context.Context, workspace *model.Workspace, status PaymentIssueType) {
+	if status == "" {
+		if err := w.redis.SetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID), time.Time{}); err != nil {
+			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to clear customer billing warning status")
+		}
+
+		if err := w.redis.SetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID), false); err != nil {
+			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to clear customer invalid billing status")
+		}
+
+		return
+	}
+
+	warningSent, err := w.redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to get customer invalid billing warning status")
+		return
+	}
+
+	if warningSent.IsZero() {
+		toAddrs, err := workspace.AdminEmailAddresses(w.db)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to get addrs to send customer invalid billing warning notification")
+			return
+		}
+		for _, addr := range toAddrs {
+			err := email.SendBillingNotificationEmail(ctx, w.mailClient, workspace.ID, workspace.Name, email.BillingInvalidPayment, addr.Email, addr.AdminID)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to send customer invalid billing warning notification")
+				return
+			}
+		}
+		warningSent = time.Now()
+	}
+	// keep setting the warning time to save that this customer has had a warning before
+	if err := w.redis.SetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID), warningSent); err != nil {
+		log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to set customer billing warning status")
+	}
+
+	if time.Since(warningSent) > BillingWarningPeriod {
+		if err := w.redis.SetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID), true); err != nil {
+			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to set customer invalid billing status")
+		}
+	}
 }
 
 func AddOrUpdateOverageItem(stripeClient *client.API, workspace *model.Workspace, newPrice *stripe.Price, invoiceLine *stripe.InvoiceLineItem, customer *stripe.Customer, subscription *stripe.Subscription, limit *int64, meter int64) error {

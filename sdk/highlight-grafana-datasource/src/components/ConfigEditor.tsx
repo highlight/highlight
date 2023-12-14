@@ -23,6 +23,22 @@ export function ConfigEditor(props: Props) {
     onOptionsChange({ ...options, jsonData });
   };
 
+  const onBackendURLChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const jsonData = {
+      ...options.jsonData,
+      backendURL: event.target.value,
+    };
+    onOptionsChange({ ...options, jsonData });
+  };
+
+  const onTokenURLChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const jsonData = {
+      ...options.jsonData,
+      tokenURL: event.target.value,
+    };
+    onOptionsChange({ ...options, jsonData });
+  };
+
   // Secure field (only sent to the backend)
   const onClientSecretChange = (event: ChangeEvent<HTMLInputElement>) => {
     onOptionsChange({
@@ -52,7 +68,18 @@ export function ConfigEditor(props: Props) {
 
   return (
     <div className="gf-form-group">
-      <InlineField label="Project ID" labelWidth={12}>
+      <InlineField label="Highlight Backend URL" labelWidth={20}>
+        <Input
+          onChange={onBackendURLChange}
+          value={jsonData.backendURL || ''}
+          placeholder="Highlight Backend URL"
+          width={40}
+        />
+      </InlineField>
+      <InlineField label="OAuth Token URL" labelWidth={20}>
+        <Input onChange={onTokenURLChange} value={jsonData.tokenURL || ''} placeholder="OAuth Token URL" width={40} />
+      </InlineField>
+      <InlineField label="Project ID" labelWidth={20}>
         <Input
           onChange={onProjectIDChange}
           value={jsonData.projectID || ''}
@@ -60,7 +87,7 @@ export function ConfigEditor(props: Props) {
           width={40}
         />
       </InlineField>
-      <InlineField label="Client ID" labelWidth={12}>
+      <InlineField label="Client ID" labelWidth={20}>
         <Input
           onChange={onClientIDChange}
           value={jsonData.clientID || ''}
@@ -68,7 +95,7 @@ export function ConfigEditor(props: Props) {
           width={40}
         />
       </InlineField>
-      <InlineField label="Client Secret" labelWidth={12}>
+      <InlineField label="Client Secret" labelWidth={20}>
         <SecretInput
           isConfigured={(secureJsonFields && secureJsonFields.clientSecret) as boolean}
           value={secureJsonData.clientSecret || ''}

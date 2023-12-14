@@ -51,6 +51,13 @@ func WithServiceVersion(serviceVersion string) Option {
 	})
 }
 
+func WithEnvironment(environment string) Option {
+	return option(func(conf *config) {
+		attr := semconv.DeploymentEnvironmentKey.String(environment)
+		conf.resourceAttributes = append(conf.resourceAttributes, attr)
+	})
+}
+
 // contextKey represents the keys that highlight may store in the users' context
 // we append every contextKey with Highlight to avoid collisions
 type contextKey string

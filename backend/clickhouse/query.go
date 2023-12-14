@@ -54,6 +54,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			config,
 			innerSelect,
 			nil,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -70,6 +71,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			config,
 			innerSelect,
 			nil,
+			nil,
 			projectID,
 			params,
 			Pagination{
@@ -84,6 +86,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		afterSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			nil,
 			projectID,
 			params,
@@ -107,6 +110,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		fromSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
+			nil,
 			nil,
 			projectID,
 			params,
@@ -156,14 +160,20 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	return getConnection(edges, pagination), nil
 }
 
-func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string,
+func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selectArgs []any,
 	groupBy []string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
 	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns), config.defaultFilters)
 	sb := sqlbuilder.NewSelectBuilder()
-	cols := []string{selectStr}
+
+	// selectStr can contain %s format tokens as placeholders for argument placeholders
+	// use `sb.Var` to add those arguments to the sql builder and get the proper placeholder
+	cols := []string{fmt.Sprintf(selectStr, lo.Map(selectArgs, func(arg any, _ int) any {
+		return sb.Var(arg)
+	})...)}
+
 	for _, group := range groupBy {
-		if lo.Contains(config.selectColumns, group) {
-			cols = append(cols, group)
+		if col, found := config.keysToColumns[T(group)]; found {
+			cols = append(cols, col)
 		} else {
 			cols = append(cols, "toString(TraceAttributes["+sb.Var(group)+"])")
 		}
@@ -353,7 +363,7 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	return out
 }
 
-func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
+func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeysMaxRows,
 	}))
@@ -363,10 +373,19 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
-		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
-		GroupBy("1").
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate)))
+
+	if query != nil && *query != "" {
+		sb.Where(fmt.Sprintf("Key LIKE %s", sb.Var("%"+*query+"%")))
+	}
+
+	if typeArg != nil {
+		sb.Where(sb.Equal("Type", typeArg))
+	}
+
+	sb.GroupBy("1").
 		OrderBy("2 DESC, 1").
-		Limit(500)
+		Limit(10)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -393,7 +412,6 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 		keys = append(keys, &modelInputs.QueryKey{
 			Name: key,
-			Type: modelInputs.KeyTypeString, // For now, assume everything is a string
 		})
 	}
 

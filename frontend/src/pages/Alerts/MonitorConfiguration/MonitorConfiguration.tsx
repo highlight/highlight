@@ -5,7 +5,7 @@ import LineChart from '@components/LineChart/LineChart'
 import Select from '@components/Select/Select'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
-import { useGetMetricsTimelineQuery, useGetMetricTagsQuery } from '@graph/hooks'
+import { useGetMetricsTimelineQuery } from '@graph/hooks'
 import {
 	DiscordChannel,
 	MetricAggregator,
@@ -210,15 +210,6 @@ const MonitorConfiguration = ({
 		id: email,
 	}))
 
-	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
-		variables: {
-			project_id: project_id!,
-			metric_name: metricToMonitorName,
-		},
-		fetchPolicy: 'cache-first',
-		skip: !project_id,
-	})
-
 	return (
 		<div>
 			<div className={styles.chartContainer}>
@@ -314,20 +305,18 @@ const MonitorConfiguration = ({
 					/>
 				</section>
 
-				{!tagsLoading && tags?.metric_tags.length ? (
-					<section>
-						<h3>Filters</h3>
-						<p>
-							Filter the metric values based on custom tags. For
-							example, monitor latency for a particular URL.
-						</p>
-						<TagFilters
-							metricName={metricToMonitorName}
-							onSelectTags={(t) => onFiltersChange(t)}
-							currentTags={filters}
-						/>
-					</section>
-				) : null}
+				<section>
+					<h3>Filters</h3>
+					<p>
+						Filter the metric values based on custom tags. For
+						example, monitor latency for a particular URL.
+					</p>
+					<TagFilters
+						metricName={metricToMonitorName}
+						onSelectTags={(t) => onFiltersChange(t)}
+						currentTags={filters}
+					/>
+				</section>
 
 				<section>
 					<h3>Function</h3>
