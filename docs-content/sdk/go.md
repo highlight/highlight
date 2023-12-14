@@ -22,17 +22,26 @@ slug: go
     <p>Starts the background goroutine for transmitting metrics and errors.</p>
     <h6>Options</h6>
     <aside className="parameter">
+      <h5><code>WithProjectID</code></h5>
+      <p>Set the project ID for highlight. Can also be set with a highlight.SetProjectID call.</p>
+      <h5><code>WithSamplingRate</code> <code>optional</code></h5>
+      <p>Set a fractional sampling rate for traces / metrics to ingest.</p>
       <h5><code>WithServiceName</code> <code>optional</code></h5>
       <p>The name of your app.</p>
       <h5><code>WithServiceVersion</code> <code>optional</code></h5>
       <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+      <h5><code>WithEnvironment</code> <code>optional</code></h5>
+      <p>Set an environment name to report.</p>
     </aside>
   </div>
   <div className="right">
     <code>
         highlight.Start(
-          highlight.WithServiceName("my-app"),
-          highlight.WithServiceVersion("git-sha"),
+            highlight.WithProjectID("<YOUR_PROJECT_ID>"),
+            highlight.WithSamplingRate(1.),
+            highlight.WithServiceName("my-app"),
+            highlight.WithServiceVersion("git-sha"),
+            highlight.WithEnvironment(util.EnvironmentName()),
         )
     </code>
   </div>
