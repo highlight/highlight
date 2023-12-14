@@ -4,8 +4,8 @@ import styles from '../../Home/Home.module.scss'
 import productStyles from '../../Products/Products.module.scss'
 
 import Image from 'next/legacy/image'
-import FooterRightImage from '../../../public/images/hero-bug-right.gif'
-import FooterLeftImage from '../../../public/images/safety-security-section.gif'
+import FooterRightImage from '../../../public/images/hero-bug-right.gif.webp'
+import FooterLeftImage from '../../../public/images/safety-security-section.gif.webp'
 import { PrimaryButton } from '../Buttons/PrimaryButton'
 import { Typography } from '../Typography/Typography'
 

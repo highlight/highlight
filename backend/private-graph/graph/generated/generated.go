@@ -793,7 +793,7 @@ type ComplexityRoot struct {
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		RequestAccess                    func(childComplexity int, projectID int) int
-		SaveBillingPlan                  func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod) int
+		SaveBillingPlan                  func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration             func(childComplexity int, projectID int) int
@@ -1326,11 +1326,17 @@ type ComplexityRoot struct {
 	}
 
 	SubscriptionDetails struct {
-		BaseAmount      func(childComplexity int) int
-		BillingIssue    func(childComplexity int) int
-		DiscountAmount  func(childComplexity int) int
-		DiscountPercent func(childComplexity int) int
-		LastInvoice     func(childComplexity int) int
+		BaseAmount   func(childComplexity int) int
+		BillingIssue func(childComplexity int) int
+		Discount     func(childComplexity int) int
+		LastInvoice  func(childComplexity int) int
+	}
+
+	SubscriptionDiscount struct {
+		Amount  func(childComplexity int) int
+		Name    func(childComplexity int) int
+		Percent func(childComplexity int) int
+		Until   func(childComplexity int) int
 	}
 
 	SystemConfiguration struct {
@@ -1499,6 +1505,7 @@ type ComplexityRoot struct {
 		SessionsMaxCents            func(childComplexity int) int
 		SlackChannels               func(childComplexity int) int
 		SlackWebhookChannel         func(childComplexity int) int
+		TracesMaxCents              func(childComplexity int) int
 		TrialEndDate                func(childComplexity int) int
 		TrialExtensionEnabled       func(childComplexity int) int
 		UnlimitedMembers            func(childComplexity int) int
@@ -1613,7 +1620,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
-	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod) (*bool, error)
+	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
@@ -5607,7 +5614,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SaveBillingPlan(childComplexity, args["workspace_id"].(int), args["sessionsLimitCents"].(*int), args["sessionsRetention"].(model.RetentionPeriod), args["errorsLimitCents"].(*int), args["errorsRetention"].(model.RetentionPeriod), args["logsLimitCents"].(*int), args["logsRetention"].(model.RetentionPeriod)), true
+		return e.complexity.Mutation.SaveBillingPlan(childComplexity, args["workspace_id"].(int), args["sessionsLimitCents"].(*int), args["sessionsRetention"].(model.RetentionPeriod), args["errorsLimitCents"].(*int), args["errorsRetention"].(model.RetentionPeriod), args["logsLimitCents"].(*int), args["logsRetention"].(model.RetentionPeriod), args["tracesLimitCents"].(*int), args["tracesRetention"].(model.RetentionPeriod)), true
 
 	case "Mutation.sendAdminWorkspaceInvite":
 		if e.complexity.Mutation.SendAdminWorkspaceInvite == nil {
@@ -9395,19 +9402,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.BillingIssue(childComplexity), true
 
-	case "SubscriptionDetails.discountAmount":
-		if e.complexity.SubscriptionDetails.DiscountAmount == nil {
+	case "SubscriptionDetails.discount":
+		if e.complexity.SubscriptionDetails.Discount == nil {
 			break
 		}
 
-		return e.complexity.SubscriptionDetails.DiscountAmount(childComplexity), true
-
-	case "SubscriptionDetails.discountPercent":
-		if e.complexity.SubscriptionDetails.DiscountPercent == nil {
-			break
-		}
-
-		return e.complexity.SubscriptionDetails.DiscountPercent(childComplexity), true
+		return e.complexity.SubscriptionDetails.Discount(childComplexity), true
 
 	case "SubscriptionDetails.lastInvoice":
 		if e.complexity.SubscriptionDetails.LastInvoice == nil {
@@ -9415,6 +9415,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SubscriptionDetails.LastInvoice(childComplexity), true
+
+	case "SubscriptionDiscount.amount":
+		if e.complexity.SubscriptionDiscount.Amount == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDiscount.Amount(childComplexity), true
+
+	case "SubscriptionDiscount.name":
+		if e.complexity.SubscriptionDiscount.Name == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDiscount.Name(childComplexity), true
+
+	case "SubscriptionDiscount.percent":
+		if e.complexity.SubscriptionDiscount.Percent == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDiscount.Percent(childComplexity), true
+
+	case "SubscriptionDiscount.until":
+		if e.complexity.SubscriptionDiscount.Until == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDiscount.Until(childComplexity), true
 
 	case "SystemConfiguration.maintenance_end":
 		if e.complexity.SystemConfiguration.MaintenanceEnd == nil {
@@ -10130,6 +10158,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.SlackWebhookChannel(childComplexity), true
 
+	case "Workspace.traces_max_cents":
+		if e.complexity.Workspace.TracesMaxCents == nil {
+			break
+		}
+
+		return e.complexity.Workspace.TracesMaxCents(childComplexity), true
+
 	case "Workspace.trial_end_date":
 		if e.complexity.Workspace.TrialEndDate == nil {
 			break
@@ -10517,10 +10552,16 @@ type Invoice {
 	status: String
 }
 
+type SubscriptionDiscount {
+	name: String!
+	percent: Float!
+	amount: Int64!
+	until: Timestamp
+}
+
 type SubscriptionDetails {
 	baseAmount: Int64!
-	discountPercent: Float!
-	discountAmount: Int64!
+	discount: SubscriptionDiscount
 	lastInvoice: Invoice
 	billingIssue: Boolean!
 }
@@ -10925,6 +10966,7 @@ type Workspace {
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
+	traces_max_cents: Int
 }
 
 type Segment {
@@ -12547,6 +12589,8 @@ type Mutation {
 		errorsRetention: RetentionPeriod!
 		logsLimitCents: Int
 		logsRetention: RetentionPeriod!
+		tracesLimitCents: Int
+		tracesRetention: RetentionPeriod!
 	): Boolean
 	createSessionComment(
 		project_id: ID!
@@ -14964,6 +15008,24 @@ func (ec *executionContext) field_Mutation_saveBillingPlan_args(ctx context.Cont
 		}
 	}
 	args["logsRetention"] = arg6
+	var arg7 *int
+	if tmp, ok := rawArgs["tracesLimitCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tracesLimitCents"))
+		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tracesLimitCents"] = arg7
+	var arg8 model.RetentionPeriod
+	if tmp, ok := rawArgs["tracesRetention"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tracesRetention"))
+		arg8, err = ec.unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tracesRetention"] = arg8
 	return args, nil
 }
 
@@ -39031,6 +39093,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -39290,6 +39354,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -40747,7 +40813,7 @@ func (ec *executionContext) _Mutation_saveBillingPlan(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SaveBillingPlan(rctx, fc.Args["workspace_id"].(int), fc.Args["sessionsLimitCents"].(*int), fc.Args["sessionsRetention"].(model.RetentionPeriod), fc.Args["errorsLimitCents"].(*int), fc.Args["errorsRetention"].(model.RetentionPeriod), fc.Args["logsLimitCents"].(*int), fc.Args["logsRetention"].(model.RetentionPeriod))
+		return ec.resolvers.Mutation().SaveBillingPlan(rctx, fc.Args["workspace_id"].(int), fc.Args["sessionsLimitCents"].(*int), fc.Args["sessionsRetention"].(model.RetentionPeriod), fc.Args["errorsLimitCents"].(*int), fc.Args["errorsRetention"].(model.RetentionPeriod), fc.Args["logsLimitCents"].(*int), fc.Args["logsRetention"].(model.RetentionPeriod), fc.Args["tracesLimitCents"].(*int), fc.Args["tracesRetention"].(model.RetentionPeriod))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43476,6 +43542,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -50247,6 +50315,8 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -50374,6 +50444,8 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -52723,6 +52795,8 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -53089,6 +53163,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
 			case "logs_max_cents":
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+			case "traces_max_cents":
+				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -53612,10 +53688,8 @@ func (ec *executionContext) fieldContext_Query_subscription_details(ctx context.
 			switch field.Name {
 			case "baseAmount":
 				return ec.fieldContext_SubscriptionDetails_baseAmount(ctx, field)
-			case "discountPercent":
-				return ec.fieldContext_SubscriptionDetails_discountPercent(ctx, field)
-			case "discountAmount":
-				return ec.fieldContext_SubscriptionDetails_discountAmount(ctx, field)
+			case "discount":
+				return ec.fieldContext_SubscriptionDetails_discount(ctx, field)
 			case "lastInvoice":
 				return ec.fieldContext_SubscriptionDetails_lastInvoice(ctx, field)
 			case "billingIssue":
@@ -65346,8 +65420,8 @@ func (ec *executionContext) fieldContext_SubscriptionDetails_baseAmount(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _SubscriptionDetails_discountPercent(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SubscriptionDetails_discountPercent(ctx, field)
+func (ec *executionContext) _SubscriptionDetails_discount(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDetails_discount(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -65360,75 +65434,38 @@ func (ec *executionContext) _SubscriptionDetails_discountPercent(ctx context.Con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DiscountPercent, nil
+		return obj.Discount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*model.SubscriptionDiscount)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOSubscriptionDiscount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDiscount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SubscriptionDetails_discountPercent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SubscriptionDetails_discount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SubscriptionDetails",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SubscriptionDetails_discountAmount(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SubscriptionDetails_discountAmount(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DiscountAmount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int64)
-	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SubscriptionDetails_discountAmount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SubscriptionDetails",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int64 does not have child fields")
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_SubscriptionDiscount_name(ctx, field)
+			case "percent":
+				return ec.fieldContext_SubscriptionDiscount_percent(ctx, field)
+			case "amount":
+				return ec.fieldContext_SubscriptionDiscount_amount(ctx, field)
+			case "until":
+				return ec.fieldContext_SubscriptionDiscount_until(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SubscriptionDiscount", field.Name)
 		},
 	}
 	return fc, nil
@@ -65528,6 +65565,179 @@ func (ec *executionContext) fieldContext_SubscriptionDetails_billingIssue(ctx co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionDiscount_name(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDiscount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDiscount_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionDiscount_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionDiscount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionDiscount_percent(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDiscount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDiscount_percent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Percent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionDiscount_percent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionDiscount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionDiscount_amount(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDiscount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDiscount_amount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Amount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionDiscount_amount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionDiscount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionDiscount_until(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDiscount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDiscount_until(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Until, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionDiscount_until(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionDiscount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -70256,6 +70466,47 @@ func (ec *executionContext) _Workspace_logs_max_cents(ctx context.Context, field
 }
 
 func (ec *executionContext) fieldContext_Workspace_logs_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_traces_max_cents(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesMaxCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_traces_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Workspace",
 		Field:      field,
@@ -85171,20 +85422,10 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "discountPercent":
+		case "discount":
 
-			out.Values[i] = ec._SubscriptionDetails_discountPercent(ctx, field, obj)
+			out.Values[i] = ec._SubscriptionDetails_discount(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "discountAmount":
-
-			out.Values[i] = ec._SubscriptionDetails_discountAmount(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "lastInvoice":
 
 			out.Values[i] = ec._SubscriptionDetails_lastInvoice(ctx, field, obj)
@@ -85196,6 +85437,52 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var subscriptionDiscountImplementors = []string{"SubscriptionDiscount"}
+
+func (ec *executionContext) _SubscriptionDiscount(ctx context.Context, sel ast.SelectionSet, obj *model.SubscriptionDiscount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionDiscountImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SubscriptionDiscount")
+		case "name":
+
+			out.Values[i] = ec._SubscriptionDiscount_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "percent":
+
+			out.Values[i] = ec._SubscriptionDiscount_percent(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "amount":
+
+			out.Values[i] = ec._SubscriptionDiscount_amount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "until":
+
+			out.Values[i] = ec._SubscriptionDiscount_until(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -86342,6 +86629,10 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 		case "logs_max_cents":
 
 			out.Values[i] = ec._Workspace_logs_max_cents(ctx, field, obj)
+
+		case "traces_max_cents":
+
+			out.Values[i] = ec._Workspace_traces_max_cents(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -93747,6 +94038,13 @@ func (ec *executionContext) marshalOStringArray2githubᚗcomᚋlibᚋpqᚐString
 	}
 	res := model1.MarshalStringArray(v)
 	return res
+}
+
+func (ec *executionContext) marshalOSubscriptionDiscount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDiscount(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionDiscount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SubscriptionDiscount(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

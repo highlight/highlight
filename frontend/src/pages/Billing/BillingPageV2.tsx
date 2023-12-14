@@ -2,6 +2,7 @@ import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
 	Box,
+	Callout,
 	Heading,
 	IconProps,
 	IconSolidArrowSmRight,
@@ -18,6 +19,7 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
@@ -61,6 +63,7 @@ type UsageCardProps = {
 	includedQuantity: number
 	isPaying: boolean
 	enableBillingLimits: boolean | undefined
+	billingIssues: boolean
 }
 
 const UsageCard = ({
@@ -73,6 +76,7 @@ const UsageCard = ({
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
+	billingIssues,
 }: UsageCardProps) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
@@ -193,15 +197,27 @@ const UsageCard = ({
 					gap="4"
 					cssClass={style.progressAmount}
 				>
-					<Text size="xSmall">
-						{formatNumberWithDelimiters(usageAmount)} /{' '}
-						{formatNumberWithDelimiters(usageLimitAmount) ??
-							'Unlimited'}
-					</Text>
+					{billingIssues ? (
+						<>
+							<Text size="xSmall" color="moderate">
+								{formatNumberWithDelimiters(usageAmount)} on
+								hold
+							</Text>
+							<IconSolidExclamation
+								color={vars.theme.static.content.moderate}
+							/>
+						</>
+					) : (
+						<Text size="xSmall" color="moderate">
+							{formatNumberWithDelimiters(usageAmount)} /{' '}
+							{formatNumberWithDelimiters(usageLimitAmount) ??
+								'Unlimited'}
+						</Text>
+					)}
 					{isOverage && (
 						<Tooltip trigger={<IconSolidExclamation />}>
-							{productType} have exceeded your monthly billing
-							limit and are not being recorded.
+							{productType} have exceeded your billing limit and
+							are not being recorded.
 						</Tooltip>
 					)}
 				</Box>
@@ -237,7 +253,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		},
 	})
 
-	const [getCustomerPortalUrl, { loading: loadingCustomerPortal }] =
+	const billingIssue = data?.subscription_details.billingIssue ?? false
+
+	const [openCustomerPortalUrl, { loading: loadingCustomerPortal }] =
 		useGetCustomerPortalUrlLazyQuery({
 			variables: {
 				workspace_id: workspace_id!,
@@ -268,8 +286,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	}
 
 	const baseAmount = data?.subscription_details.baseAmount ?? 0
-	const discountPercent = data?.subscription_details.discountPercent ?? 0
-	const discountAmount = data?.subscription_details.discountAmount ?? 0
+	const discountPercent = data?.subscription_details.discount?.percent ?? 0
+	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 
@@ -370,11 +388,25 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const hasExtras =
 		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
 	const baseAmountFormatted =
-		'$' +
+		'$ ' +
 		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
 	const discountAmountFormatted =
-		'$' +
-		toDecimal(dinero({ amount: Math.round(discountAmount), currency: USD }))
+		'$ ' +
+		toDecimal(
+			dinero({
+				amount: Math.round(
+					discountAmount
+						? discountAmount
+						: totalCents / (1 - discountPercent / 100) - totalCents,
+				),
+				currency: USD,
+			}),
+		)
+	const discountUntilFormatted = data?.subscription_details.discount?.until
+		? `until ${moment(data.subscription_details.discount.until).format(
+				'MMMM Do, YYYY',
+		  )}`
+		: 'forever'
 
 	return (
 		<Box width="full" display="flex" justifyContent="center">
@@ -393,6 +425,36 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							</a>
 						</Text>
 					</Box>
+					{billingIssue ? (
+						<Callout title="Update payment details" icon={false}>
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								gap="24"
+							>
+								<Text
+									color="moderate"
+									weight="medium"
+									size="small"
+									cssClass={style.issueText}
+								>
+									Looks like there is an issue with your
+									billing info. 😔 Please update your payment
+									method here.
+								</Text>
+								<Button
+									size="small"
+									emphasis="high"
+									trackingId="UpdatePaymentDetails"
+									onClick={async () => {
+										await openCustomerPortalUrl()
+									}}
+								>
+									Update payment details
+								</Button>
+							</Box>
+						</Callout>
+					) : null}
 				</Stack>
 				<Box display="flex" justifyContent="space-between" mt="24">
 					<Box display="flex" alignItems="center">
@@ -407,8 +469,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							emphasis="low"
 							kind="secondary"
 							disabled={loadingCustomerPortal}
-							onClick={() => {
-								getCustomerPortalUrl()
+							onClick={async () => {
+								await openCustomerPortalUrl()
 							}}
 							iconLeft={<IconSolidCog color="n11" />}
 						>
@@ -451,6 +513,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
+						billingIssues={billingIssue}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -466,6 +529,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
+						billingIssues={billingIssue}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -481,6 +545,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
+						billingIssues={billingIssue}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -496,13 +561,15 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						enableBillingLimits={
 							data?.billingDetails.plan.enableBillingLimits
 						}
+						billingIssues={billingIssue}
 					/>
 				</Box>
 				<Stack
 					border="secondary"
 					borderRadius="8"
 					alignItems="center"
-					p="12"
+					py="16"
+					px="12"
 					gap="12"
 					mt="16"
 				>
@@ -514,42 +581,100 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						cssClass={style.totalBox}
 						alignItems="center"
 					>
-						<Box display="flex" gap="4">
-							<Text color="n12">Total this month</Text>
-							{isPaying && (
-								<Text>
-									Due{' '}
-									{moment(nextBillingDate).format('MM/DD/YY')}
-								</Text>
-							)}
-						</Box>
-						<Box
-							display="flex"
-							alignItems="center"
-							color="p11"
-							gap="4"
-						>
-							<Text color="p11" weight="bold">
-								{totalFormatted}
-							</Text>
-							{hasExtras && (
-								<Tooltip
-									trigger={
-										<IconSolidInformationCircle size={12} />
-									}
+						<Stack gap="12" width="full">
+							{data?.subscription_details.discount ? (
+								<>
+									<Box
+										display="flex"
+										alignItems="center"
+										justifyContent="space-between"
+									>
+										<Box display="flex" gap="6">
+											<Text>
+												Discount (
+												{
+													data.subscription_details
+														.discount.name
+												}
+												)
+											</Text>
+											<Text color="weak">
+												{discountPercent
+													? `${discountPercent}% off `
+													: `${discountAmountFormatted} off `}
+												{discountUntilFormatted}
+											</Text>
+										</Box>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<Text color="strong" weight="bold">
+												-{discountAmountFormatted}
+											</Text>
+										</Box>
+									</Box>
+									<Box border="divider" />
+								</>
+							) : null}
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="space-between"
+							>
+								<Box display="flex" gap="6">
+									<Text color="strong">
+										Total per{' '}
+										{data?.billingDetails.plan.interval ===
+										'Annual'
+											? 'year'
+											: 'month'}
+									</Text>
+									{isPaying && (
+										<Text color="weak">
+											Due{' '}
+											{moment(nextBillingDate).format(
+												'MM/DD/YY',
+											)}
+										</Text>
+									)}
+								</Box>
+								<Box
+									display="flex"
+									alignItems="center"
+									color="p11"
+									gap="4"
 								>
-									Includes a monthly commitment of{' '}
-									{baseAmountFormatted}
-									{discountPercent
-										? ` with a ${discountPercent}% discount`
-										: ''}
-									{discountAmount
-										? ` with a ${discountAmountFormatted} discount`
-										: ''}
-									.
-								</Tooltip>
-							)}
-						</Box>
+									{hasExtras && (
+										<Tooltip
+											trigger={
+												<IconSolidInformationCircle
+													size={12}
+												/>
+											}
+										>
+											Includes a{' '}
+											{data?.billingDetails.plan
+												.interval === 'Annual'
+												? 'yearly'
+												: 'monthly'}{' '}
+											base charge of {baseAmountFormatted}
+											{discountPercent
+												? ` with a ${discountPercent}% discount`
+												: ''}
+											{discountAmount
+												? ` with a ${discountAmountFormatted} discount`
+												: ''}
+											.
+										</Tooltip>
+									)}
+									<Text color="p11" weight="bold">
+										{totalFormatted}
+									</Text>
+								</Box>
+							</Box>
+						</Stack>
 					</Box>
 				</Stack>
 			</Stack>

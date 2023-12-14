@@ -1323,7 +1323,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 }
 
 // SaveBillingPlan is the resolver for the saveBillingPlan field.
-func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod) (*bool, error) {
+func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod, tracesLimitCents *int, tracesRetention modelInputs.RetentionPeriod) (*bool, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
@@ -1346,6 +1346,9 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 			ErrorsMaxCents:        errorsLimitCents,
 			ErrorsRetentionPeriod: &errorsRetention,
 			LogsMaxCents:          logsLimitCents,
+			LogsRetentionPeriod:   &logsRetention,
+			TracesMaxCents:        tracesLimitCents,
+			TracesRetentionPeriod: &tracesRetention,
 		}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace")
 	}
@@ -5664,18 +5667,30 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		tracesIncluded = int64(*workspace.MonthlyLogsLimit)
 	}
 
-	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	sessionsRetentionPeriod := modelInputs.RetentionPeriodSixMonths
 	if workspace.RetentionPeriod != nil {
-		retentionPeriod = *workspace.RetentionPeriod
+		sessionsRetentionPeriod = *workspace.RetentionPeriod
+	}
+	errorsRetentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if workspace.ErrorsRetentionPeriod != nil {
+		errorsRetentionPeriod = *workspace.ErrorsRetentionPeriod
+	}
+	logsRetentionPeriod := modelInputs.RetentionPeriodThirtyDays
+	if workspace.LogsRetentionPeriod != nil {
+		logsRetentionPeriod = *workspace.LogsRetentionPeriod
+	}
+	tracesRetentionPeriod := modelInputs.RetentionPeriodThirtyDays
+	if workspace.TracesRetentionPeriod != nil {
+		tracesRetentionPeriod = *workspace.TracesRetentionPeriod
 	}
 
 	var sessionsLimit, errorsLimit, logsLimit, tracesLimit *int64
 	var sessionsRate, errorsRate, logsRate, tracesRate float64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
-		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
-		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
-		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
-		tracesLimit = pricing.GetLimitAmount(nil, model.PricingProductTypeTraces, planType, retentionPeriod)
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, sessionsRetentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, errorsRetentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, logsRetentionPeriod)
+		tracesLimit = pricing.GetLimitAmount(workspace.TracesMaxCents, model.PricingProductTypeTraces, planType, tracesRetentionPeriod)
 		sessionsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeSessions, planType, sessionsMeter)
 		errorsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeErrors, planType, errorsMeter)
 		logsRate = pricing.ProductToBasePriceCents(model.PricingProductTypeLogs, planType, logsMeter)
@@ -6954,8 +6969,15 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 
 	discount := c.Subscriptions.Data[0].Discount
 	if discount != nil && discount.Coupon != nil {
-		details.DiscountAmount = discount.Coupon.AmountOff
-		details.DiscountPercent = discount.Coupon.PercentOff
+		details.Discount = &modelInputs.SubscriptionDiscount{
+			Name:    discount.Coupon.Name,
+			Percent: discount.Coupon.PercentOff,
+			Amount:  discount.Coupon.AmountOff,
+		}
+		if discount.Coupon.Duration != stripe.CouponDurationForever {
+			t := time.Unix(discount.Start, 0).AddDate(0, int(discount.Coupon.DurationInMonths), 0)
+			details.Discount.Until = &t
+		}
 	}
 
 	invoiceID := c.Subscriptions.Data[0].LatestInvoice.ID

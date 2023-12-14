@@ -88,16 +88,17 @@ const UNIT_QUANTITY = {
 
 export const getCostCents = (
 	productType: ProductType,
-	rate: number | undefined,
+	rateCents: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	quantity: number,
 	includedQuantity: number,
 ): number => {
-	if (!rate) {
-		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	if (!rateCents) {
+		rateCents =
+			BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
 	}
 	return Math.floor(
-		rate *
+		rateCents *
 			RETENTION_MULTIPLIER[retentionPeriod] *
 			Math.max(quantity - includedQuantity, 0),
 	)
@@ -105,7 +106,7 @@ export const getCostCents = (
 
 export const getQuantity = (
 	productType: ProductType,
-	rate: number | undefined,
+	rateCents: number | undefined,
 	retentionPeriod: RetentionPeriod,
 	totalCents: number | undefined,
 	includedQuantity: number,
@@ -114,12 +115,12 @@ export const getQuantity = (
 		return undefined
 	}
 
-	if (!rate) {
-		rate = BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
+	if (!rateCents) {
+		rateCents =
+			BASE_UNIT_COST_CENTS[productType] / UNIT_QUANTITY[productType]
 	}
 	return Math.floor(
-		((totalCents / 100) * UNIT_QUANTITY[productType]) /
-			(rate * RETENTION_MULTIPLIER[retentionPeriod]) +
+		totalCents / (rateCents * RETENTION_MULTIPLIER[retentionPeriod]) +
 			includedQuantity,
 	)
 }
@@ -172,6 +173,7 @@ interface UpdatePlanForm {
 	logsRetention: RetentionPeriod
 	logsLimitCents: number | undefined
 	tracesRetention: RetentionPeriod
+	tracesLimitCents: number | undefined
 }
 
 type LimitButtonProps = {
@@ -483,6 +485,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			logsRetention: RetentionPeriod.ThirtyDays,
 			logsLimitCents: undefined,
 			tracesRetention: RetentionPeriod.ThirtyDays,
+			tracesLimitCents: undefined,
 		},
 	})
 	const formState = formStore.useState()
@@ -510,6 +513,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 				logsRetention: RetentionPeriod.ThirtyDays,
 				logsLimitCents: data.workspace?.logs_max_cents ?? undefined,
 				tracesRetention: RetentionPeriod.ThirtyDays,
+				tracesLimitCents: data.workspace?.traces_max_cents ?? undefined,
 			})
 		},
 	})
@@ -657,11 +661,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		tracesUsage,
 		includedTraces,
 	)
+	if (formState.values.tracesLimitCents !== undefined) {
+		predictedTracesCost = Math.min(
+			predictedTracesCost,
+			formState.values.tracesLimitCents,
+		)
+	}
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
 	const baseAmount = data?.subscription_details.baseAmount ?? 0
-	const discountPercent = data?.subscription_details.discountPercent ?? 0
-	const discountAmount = data?.subscription_details.discountAmount ?? 0
+	const discountPercent = data?.subscription_details.discount?.percent ?? 0
+	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
 	const productSubtotal =
 		predictedSessionsCost +
@@ -691,8 +701,18 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		'$' +
 		toDecimal(dinero({ amount: Math.round(baseAmount), currency: USD }))
 	const discountAmountFormatted =
-		'$' +
-		toDecimal(dinero({ amount: Math.round(discountAmount), currency: USD }))
+		'$ ' +
+		toDecimal(
+			dinero({
+				amount: Math.round(
+					discountAmount
+						? discountAmount
+						: predictedTotalCents / (1 - discountPercent / 100) -
+								predictedTotalCents,
+				),
+				currency: USD,
+			}),
+		)
 
 	return (
 		<Box
@@ -740,6 +760,10 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										formState.values.logsLimitCents,
 									logsRetention:
 										formState.values.logsRetention,
+									tracesLimitCents:
+										formState.values.tracesLimitCents,
+									tracesRetention:
+										formState.values.tracesRetention,
 								},
 							})
 								.then(() => {
@@ -954,8 +978,17 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										rp,
 									)
 								}
-								limitCents={formState.values.logsLimitCents}
-								setLimitCents={undefined}
+								limitCents={formState.values.tracesLimitCents}
+								setLimitCents={
+									enableBillingLimits
+										? (l) =>
+												formStore.setValue(
+													formStore.names
+														.tracesLimitCents,
+													l,
+												)
+										: undefined
+								}
 								usageAmount={tracesUsage}
 								predictedUsageAmount={predictedTracesUsage}
 								includedQuantity={includedTraces}
@@ -973,10 +1006,14 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									justifyContent="space-between"
 								>
 									<Box display="flex" gap="4">
-										<Text color="n12">
-											Total this month
+										<Text color="strong">
+											Total this{' '}
+											{data?.billingDetails.plan
+												.interval === 'Annual'
+												? 'year'
+												: 'month'}
 										</Text>
-										<Text>
+										<Text color="weak">
 											Due{' '}
 											{moment(nextBillingDate).format(
 												'MM/DD/YY',
@@ -1004,8 +1041,12 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 											{hasExtras && (
 												<>
 													{' '}
-													Includes a monthly
-													commitment of{' '}
+													Includes a{' '}
+													{data?.billingDetails.plan
+														.interval === 'Annual'
+														? 'yearly'
+														: 'monthly'}{' '}
+													base charge of{' '}
 													{baseAmountFormatted}
 													{discountPercent
 														? ` with a ${discountPercent}% discount`

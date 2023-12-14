@@ -28,6 +28,8 @@ mutation SaveBillingPlan(
 	$errorsRetention: RetentionPeriod!
 	$logsLimitCents: Int
 	$logsRetention: RetentionPeriod!
+	$tracesLimitCents: Int
+	$tracesRetention: RetentionPeriod!
 ) {
 	saveBillingPlan(
 		workspace_id: $workspace_id
@@ -37,6 +39,8 @@ mutation SaveBillingPlan(
 		errorsRetention: $errorsRetention
 		logsLimitCents: $logsLimitCents
 		logsRetention: $logsRetention
+		tracesLimitCents: $tracesLimitCents
+		tracesRetention: $tracesRetention
 	)
 }
 

@@ -63,6 +63,11 @@ var traceColumns = []string{
 	"Environment",
 }
 
+var defaultTraceKeys = []*modelInputs.QueryKey{
+	{Name: "trace_id", Type: modelInputs.KeyTypeString},
+	{Name: "span_id", Type: modelInputs.KeyTypeString},
+}
+
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
@@ -475,7 +480,13 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 }
 
 func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
+	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	traceKeys = append(traceKeys, defaultTraceKeys...)
+	return traceKeys, nil
 }
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {

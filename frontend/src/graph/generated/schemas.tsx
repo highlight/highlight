@@ -1465,6 +1465,8 @@ export type MutationSaveBillingPlanArgs = {
 	logsRetention: RetentionPeriod
 	sessionsLimitCents?: InputMaybe<Scalars['Int']>
 	sessionsRetention: RetentionPeriod
+	tracesLimitCents?: InputMaybe<Scalars['Int']>
+	tracesRetention: RetentionPeriod
 	workspace_id: Scalars['ID']
 }
 
@@ -3086,9 +3088,16 @@ export type SubscriptionDetails = {
 	__typename?: 'SubscriptionDetails'
 	baseAmount: Scalars['Int64']
 	billingIssue: Scalars['Boolean']
-	discountAmount: Scalars['Int64']
-	discountPercent: Scalars['Float']
+	discount?: Maybe<SubscriptionDiscount>
 	lastInvoice?: Maybe<Invoice>
+}
+
+export type SubscriptionDiscount = {
+	__typename?: 'SubscriptionDiscount'
+	amount: Scalars['Int64']
+	name: Scalars['String']
+	percent: Scalars['Float']
+	until?: Maybe<Scalars['Timestamp']>
 }
 
 export enum SubscriptionInterval {
@@ -3312,6 +3321,7 @@ export type Workspace = {
 	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
+	traces_max_cents?: Maybe<Scalars['Int']>
 	trial_end_date?: Maybe<Scalars['Timestamp']>
 	trial_extension_enabled: Scalars['Boolean']
 	unlimited_members: Scalars['Boolean']

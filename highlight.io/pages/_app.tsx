@@ -14,7 +14,6 @@ import { Meta } from '../components/common/Head/Meta'
 import MetaImage from '../public/images/meta-image.jpg'
 import { rudderInitialize } from '../scripts/rudder-initialize'
 import { setAttributionData } from '../utils/attribution'
-export { reportWebVitals } from 'next-axiom'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
