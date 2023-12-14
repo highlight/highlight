@@ -2540,6 +2540,7 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 	issueTitle string,
 	issueDescription string,
 	projectId string,
+	issueTypeId string,
 ) error {
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeJira)
 
@@ -2555,7 +2556,7 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 		Description: issueDescription,
 		Summary:     issueTitle,
 		Project:     jira.JiraIssueProjectData{Id: projectId},
-		IssueType:   jira.JiraIssueTypeData{Id: "10001"},
+		IssueType:   jira.JiraIssueTypeData{Id: issueTypeId},
 	}
 
 	jiraCreateIssueData := jira.JiraCreateIssuePayload{
