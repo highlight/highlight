@@ -44,7 +44,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@v3
               with:
-                  node-version: 18
+                  node-version: lts/*
                   cache: 'yarn'
 
             - name: Install js dependencies
@@ -166,7 +166,7 @@ jobs:
             - name: Setup Node.js environment
               uses: buildjet/setup-node@v3
               with:
-                  node-version: 18
+                  node-version: lts/*
                   cache: 'yarn'
 
             - name: Setup Golang environment
