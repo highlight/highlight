@@ -70,6 +70,12 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	}
 }
 
+const OTEL_TO_OPTIONS = {
+	[SemanticResourceAttributes.SERVICE_NAME]: 'serviceName',
+	[SemanticResourceAttributes.SERVICE_VERSION]: 'serviceVersion',
+	[SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: 'environment',
+} as const
+
 export class Highlight {
 	readonly FLUSH_TIMEOUT_MS = 30 * 1000
 	_projectID: string
@@ -135,14 +141,10 @@ export class Highlight {
 		const attributes: Attributes = {}
 		attributes['highlight.project_id'] = this._projectID
 
-		if (options.serviceName) {
-			attributes[SemanticResourceAttributes.SERVICE_NAME] =
-				options.serviceName
-		}
-
-		if (options.serviceVersion) {
-			attributes[SemanticResourceAttributes.SERVICE_VERSION] =
-				options.serviceVersion
+		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
+			if (options[option]) {
+				attributes[otelAttr] = options[option]
+			}
 		}
 
 		this.otel = new NodeSDK({

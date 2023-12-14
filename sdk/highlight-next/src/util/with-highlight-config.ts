@@ -8,6 +8,7 @@ interface HighlightConfigOptionsDefault {
 	configureHighlightProxy: boolean
 	apiKey: string
 	appVersion: string
+	environment: string
 	serviceName: string
 	sourceMapsPath: string
 	sourceMapsBasePath: string
@@ -36,6 +37,11 @@ export interface HighlightConfigOptions {
 	 * App version used when uploading source maps.
 	 */
 	appVersion?: string
+	/**
+	 * Specifies the environment your application is running in.
+	 * This is useful to distinguish whether your session was recorded on localhost or in production.
+	 */
+	environment?: string
 	/**
 	 * Name of your app.
 	 */
@@ -78,6 +84,7 @@ const getDefaultOpts = async (
 		configureHighlightProxy: highlightOpts?.configureHighlightProxy ?? true,
 		apiKey: highlightOpts?.apiKey ?? '',
 		appVersion: highlightOpts?.appVersion ?? version ?? '',
+		environment: highlightOpts?.environment ?? '',
 		serviceName: highlightOpts?.serviceName ?? '',
 		sourceMapsPath: highlightOpts?.sourceMapsPath ?? '.next/',
 		sourceMapsBasePath: highlightOpts?.sourceMapsBasePath ?? '_next/',

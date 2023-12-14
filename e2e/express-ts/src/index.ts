@@ -7,6 +7,7 @@ const config = {
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
 	otlpEndpoint: 'http://localhost:4318',
+	environment: 'e2e-test',
 }
 H.init(config)
 
