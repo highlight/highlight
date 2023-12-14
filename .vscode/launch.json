@@ -5,14 +5,6 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Python File Debug",
-			"type": "python",
-			"request": "launch",
-			"justMyCode": false,
-			"program": "${file}",
-			"console": "integratedTerminal",
-		},
-		{
 			"name": "Attach to Process",
 			"type": "go",
 			"request": "attach",
