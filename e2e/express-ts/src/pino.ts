@@ -8,7 +8,7 @@ export function startPino() {
 				{
 					target: '@highlight-run/pino',
 					options: {
-						projectID: '1',
+						projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID,
 						debug: true,
 						serviceVersion: 'git-sha',
 						otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
