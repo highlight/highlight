@@ -24,8 +24,7 @@ from highlight_io.integrations import Integration
 from highlight_io.utils.lru_cache import LRUCache
 from highlight_io.integrations.requests import RequestsIntegration
 
-
-DEFAULT_INTEGRATIONS = [[RequestsIntegration.INTEGRATION_KEY, RequestsIntegration]]
+DEFAULT_INTEGRATIONS = [RequestsIntegration]
 
 
 class LogHandler(logging.Handler):
@@ -135,16 +134,14 @@ class H(object):
         _logs.set_logger_provider(self._log_provider)
         self.log = self._log_provider.get_logger(__name__)
 
+        skip_disabled_integrations = self._disabled_integrations.copy()
+
         for integration in self._integrations:
             integration.enable()
-            try:
-                key = integration.INTEGRATION_KEY
-                self._disabled_integrations.append(key)
-            except AttributeError:
-                pass
+            skip_disabled_integrations.append(integration.INTEGRATION_KEY)
 
-        for [key, integration] in DEFAULT_INTEGRATIONS:
-            if key not in self._disabled_integrations:
+        for integration in DEFAULT_INTEGRATIONS:
+            if integration.INTEGRATION_KEY not in skip_disabled_integrations:
                 integration().enable()
 
     def flush(self):
