@@ -1093,19 +1093,24 @@ func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace
 		return PaymentIssueTypeNoPaymentMethod, nil
 	}
 
+	var failures, paymentMethods int
 	for _, paymentMethod := range i.PaymentMethodList().Data {
+		paymentMethods += 1
 		if paymentMethod.Card != nil && paymentMethod.Card.Checks != nil {
 			if paymentMethod.Card.Checks.CVCCheck == stripe.PaymentMethodCardChecksCVCCheckFail {
 				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe cvc check failed")
-				return PaymentIssueTypeCardCheckFail, nil
+				failures += 1
 			} else if paymentMethod.Card.Checks.AddressPostalCodeCheck == stripe.PaymentMethodCardChecksAddressPostalCodeCheckFail {
 				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address postal check failed")
-				return PaymentIssueTypeCardCheckFail, nil
+				failures += 1
 			} else if paymentMethod.Card.Checks.AddressLine1Check == stripe.PaymentMethodCardChecksAddressLine1CheckFail {
 				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address line1 check failed")
-				return PaymentIssueTypeCardCheckFail, nil
+				failures += 1
 			}
 		}
+	}
+	if failures >= paymentMethods {
+		return PaymentIssueTypeCardCheckFail, nil
 	}
 
 	return "", nil
@@ -1133,17 +1138,9 @@ func (w *Worker) ProcessBillingIssue(ctx context.Context, workspace *model.Works
 	}
 
 	if warningSent.IsZero() {
-		toAddrs, err := workspace.AdminEmailAddresses(w.db)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to get addrs to send customer invalid billing warning notification")
+		if err = model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingInvalidPayment, workspace); err != nil {
+			log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to send customer invalid billing warning notification")
 			return
-		}
-		for _, addr := range toAddrs {
-			err := email.SendBillingNotificationEmail(ctx, w.mailClient, workspace.ID, workspace.Name, email.BillingInvalidPayment, addr.Email, addr.AdminID)
-			if err != nil {
-				log.WithContext(ctx).WithError(err).Error("STRIPE_INTEGRATION_ERROR failed to send customer invalid billing warning notification")
-				return
-			}
 		}
 		warningSent = time.Now()
 	}
