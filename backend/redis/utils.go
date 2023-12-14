@@ -13,9 +13,9 @@ import (
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/golang/snappy"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -109,8 +109,8 @@ func NewClient() *Client {
 			MaxRetries:      5,
 			MinIdleConns:    16,
 			PoolSize:        256,
-			OnConnect: func(context.Context, *redis.Conn) error {
-				hlog.Incr("redis.new-conn", nil, 1)
+			OnConnect: func(ctx context.Context, _ *redis.Conn) error {
+				hmetric.Incr(ctx, "redis.new-conn", nil, 1)
 				return nil
 			},
 		})
@@ -119,21 +119,22 @@ func NewClient() *Client {
 			LocalCache: lfu,
 		})
 		go func() {
+			ctx := context.Background()
 			for {
 				stats := c.PoolStats()
 				if stats == nil {
 					return
 				}
-				hlog.Histogram("redis.hits", float64(stats.Hits), nil, 1)
-				hlog.Histogram("redis.misses", float64(stats.Misses), nil, 1)
-				hlog.Histogram("redis.idle-conns", float64(stats.IdleConns), nil, 1)
-				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
-				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
-				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+				hmetric.Histogram(ctx, "redis.hits", float64(stats.Hits), nil, 1)
+				hmetric.Histogram(ctx, "redis.misses", float64(stats.Misses), nil, 1)
+				hmetric.Histogram(ctx, "redis.idle-conns", float64(stats.IdleConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.stale-conns", float64(stats.StaleConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.total-conns", float64(stats.TotalConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.timeouts", float64(stats.Timeouts), nil, 1)
 
 				if stats := rCache.Stats(); stats != nil {
-					hlog.Histogram("redis.cache.hits", float64(stats.Hits), nil, 1)
-					hlog.Histogram("redis.cache.misses", float64(stats.Misses), nil, 1)
+					hmetric.Histogram(ctx, "redis.cache.hits", float64(stats.Hits), nil, 1)
+					hmetric.Histogram(ctx, "redis.cache.misses", float64(stats.Misses), nil, 1)
 				}
 
 				time.Sleep(time.Second)
@@ -472,6 +473,15 @@ func (r *Client) getString(ctx context.Context, key string) (string, error) {
 }
 
 func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.Duration) error {
+	return set(ctx, r, key, value, exp)
+}
+
+func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
+	val, err := r.getString(ctx, key)
+	return val == "1" || val == "true", err
+}
+
+func set[T any](ctx context.Context, r *Client, key string, value T, exp time.Duration) error {
 	cmd := r.Client.Set(ctx, key, value, exp)
 	if cmd.Err() != nil {
 		return errors.Wrap(cmd.Err(), "error setting flag from Redis")
@@ -479,28 +489,12 @@ func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.D
 	return nil
 }
 
-func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
-	val, err := r.Client.Get(ctx, key).Result()
-
-	// ignore non-existent keys
-	if err == redis.Nil {
-		return false, nil
-	} else if err != nil {
-		return false, errors.Wrap(err, "error getting flag from Redis")
-	}
-	return val == "1" || val == "true", nil
-}
-
 func (r *Client) getFlagOrNil(ctx context.Context, key string) (*bool, error) {
-	val, err := r.Client.Get(ctx, key).Result()
-
-	// ignore non-existent keys
-	if err == redis.Nil {
+	val, err := r.getString(ctx, key)
+	if err == nil && val == "" {
 		return nil, nil
-	} else if err != nil {
-		return pointy.Bool(false), errors.Wrap(err, "error getting flag from Redis")
 	}
-	return pointy.Bool(val == "1" || val == "true"), nil
+	return pointy.Bool(val == "1" || val == "true"), err
 }
 
 func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
@@ -516,7 +510,27 @@ func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, prod
 }
 
 func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType model.PricingProductType, exceeded bool) error {
-	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 5*time.Minute)
+	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 1*time.Minute)
+}
+
+func (r *Client) GetCustomerBillingInvalid(ctx context.Context, stripeCustomerID string) (bool, error) {
+	return r.getFlag(ctx, fmt.Sprintf("billing-invalid-%s", stripeCustomerID))
+}
+
+func (r *Client) SetCustomerBillingInvalid(ctx context.Context, stripeCustomerID string, value bool) error {
+	return r.setFlag(ctx, fmt.Sprintf("billing-invalid-%s", stripeCustomerID), value, 30*24*time.Hour)
+}
+
+func (r *Client) GetCustomerBillingWarning(ctx context.Context, stripeCustomerID string) (time.Time, error) {
+	result, err := r.getString(ctx, fmt.Sprintf("billing-warning-%s", stripeCustomerID))
+	if err != nil || result == "" {
+		return time.Time{}, err
+	}
+	return time.Parse(time.RFC3339Nano, result)
+}
+
+func (r *Client) SetCustomerBillingWarning(ctx context.Context, stripeCustomerID string, value time.Time) error {
+	return set(ctx, r, fmt.Sprintf("billing-warning-%s", stripeCustomerID), value.Format(time.RFC3339Nano), 30*24*time.Hour)
 }
 
 func (r *Client) GetLastLogTimestamp(ctx context.Context, projectId int) (time.Time, error) {

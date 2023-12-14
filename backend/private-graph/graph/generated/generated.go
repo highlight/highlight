@@ -956,7 +956,7 @@ type ComplexityRoot struct {
 		LogsHistogram                func(childComplexity int, projectID int, params model.QueryInput) int
 		LogsIntegration              func(childComplexity int, projectID int) int
 		LogsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string) int
+		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		LogsTotalCount               func(childComplexity int, projectID int, params model.QueryInput) int
 		MatchErrorTag                func(childComplexity int, query string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
@@ -1007,7 +1007,7 @@ type ComplexityRoot struct {
 		Traces                       func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
 		TracesIntegration            func(childComplexity int, projectID int) int
 		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string) int
+		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
@@ -1343,10 +1343,11 @@ type ComplexityRoot struct {
 	}
 
 	SubscriptionDetails struct {
-		BaseAmount   func(childComplexity int) int
-		BillingIssue func(childComplexity int) int
-		Discount     func(childComplexity int) int
-		LastInvoice  func(childComplexity int) int
+		BaseAmount           func(childComplexity int) int
+		BillingIngestBlocked func(childComplexity int) int
+		BillingIssue         func(childComplexity int) int
+		Discount             func(childComplexity int) int
+		LastInvoice          func(childComplexity int) int
 	}
 
 	SubscriptionDiscount struct {
@@ -1823,7 +1824,7 @@ type QueryResolver interface {
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.LogsHistogram, error)
-	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string) ([]*model.QueryKey, error)
+	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
@@ -1838,7 +1839,7 @@ type QueryResolver interface {
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.TracesMetrics, error)
-	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string) ([]*model.QueryKey, error)
+	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
 type SegmentResolver interface {
@@ -7127,7 +7128,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string)), true
+		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
 
 	case "Query.logs_total_count":
 		if e.complexity.Query.LogsTotalCount == nil {
@@ -7724,7 +7725,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string)), true
+		return e.complexity.Query.TracesKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
 
 	case "Query.traces_metrics":
 		if e.complexity.Query.TracesMetrics == nil {
@@ -9517,6 +9518,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.BaseAmount(childComplexity), true
 
+	case "SubscriptionDetails.billingIngestBlocked":
+		if e.complexity.SubscriptionDetails.BillingIngestBlocked == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDetails.BillingIngestBlocked(childComplexity), true
+
 	case "SubscriptionDetails.billingIssue":
 		if e.complexity.SubscriptionDetails.BillingIssue == nil {
 			break
@@ -10708,6 +10716,7 @@ type SubscriptionDetails {
 	discount: SubscriptionDiscount
 	lastInvoice: Invoice
 	billingIssue: Boolean!
+	billingIngestBlocked: Boolean!
 }
 
 type Plan {
@@ -12588,6 +12597,7 @@ type Query {
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -12634,6 +12644,7 @@ type Query {
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
@@ -17832,6 +17843,15 @@ func (ec *executionContext) field_Query_logs_keys_args(ctx context.Context, rawA
 		}
 	}
 	args["query"] = arg2
+	var arg3 *model.KeyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg3, err = ec.unmarshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg3
 	return args, nil
 }
 
@@ -18912,6 +18932,15 @@ func (ec *executionContext) field_Query_traces_keys_args(ctx context.Context, ra
 		}
 	}
 	args["query"] = arg2
+	var arg3 *model.KeyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg3, err = ec.unmarshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg3
 	return args, nil
 }
 
@@ -54070,6 +54099,8 @@ func (ec *executionContext) fieldContext_Query_subscription_details(ctx context.
 				return ec.fieldContext_SubscriptionDetails_lastInvoice(ctx, field)
 			case "billingIssue":
 				return ec.fieldContext_SubscriptionDetails_billingIssue(ctx, field)
+			case "billingIngestBlocked":
+				return ec.fieldContext_SubscriptionDetails_billingIngestBlocked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SubscriptionDetails", field.Name)
 		},
@@ -55120,7 +55151,7 @@ func (ec *executionContext) _Query_logs_keys(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string))
+		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["type"].(*model.KeyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -56053,7 +56084,7 @@ func (ec *executionContext) _Query_traces_keys(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string))
+		return ec.resolvers.Query().TracesKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["type"].(*model.KeyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -66459,6 +66490,50 @@ func (ec *executionContext) _SubscriptionDetails_billingIssue(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_SubscriptionDetails_billingIssue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionDetails_billingIngestBlocked(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDetails_billingIngestBlocked(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BillingIngestBlocked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionDetails_billingIngestBlocked(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SubscriptionDetails",
 		Field:      field,
@@ -86512,6 +86587,13 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "billingIngestBlocked":
+
+			out.Values[i] = ec._SubscriptionDetails_billingIngestBlocked(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -94289,6 +94371,22 @@ func (ec *executionContext) marshalOJiraProjectIdentifier2ᚖgithubᚗcomᚋhigh
 		return graphql.Null
 	}
 	return ec._JiraProjectIdentifier(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx context.Context, v interface{}) (*model.KeyType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.KeyType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx context.Context, sel ast.SelectionSet, v *model.KeyType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {

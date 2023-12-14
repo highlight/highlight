@@ -51,17 +51,13 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
   };
 
   const loadColumnOptions = async (query: string) => {
-    let keys: TraceKey[] = await datasource.getResource('traces-keys');
-    return columnOptions
-      .concat(keys.filter((k) => k.Type === 'Numeric').map((k) => ({ value: k.Name, label: k.Name })))
-      .filter((k) => k.label.toLowerCase().includes(query.toLowerCase()));
+    let keys: TraceKey[] = await datasource.getResource('traces-keys', { query, type: 'Numeric' });
+    return columnOptions.concat(keys.map((k) => ({ value: k.Name, label: k.Name })));
   };
 
   const loadGroupByOptions = async (query: string) => {
-    let keys: TraceKey[] = await datasource.getResource('traces-keys');
-    return keys
-      .map((k) => ({ value: k.Name, label: k.Name }))
-      .filter((k) => k.label.toLowerCase().includes(query.toLowerCase()));
+    let keys: TraceKey[] = await datasource.getResource('traces-keys', { query, type: 'String' });
+    return keys.map((k) => ({ value: k.Name, label: k.Name }));
   };
 
   return (

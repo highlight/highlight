@@ -1,4 +1,4 @@
-package highlight
+package htrace
 
 // This schema/arch is taken from: https://github.com/99designs/gqlgen/blob/master/graphql/handler/apollotracing/tracer.go
 
@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -49,7 +50,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	fc := graphql.GetFieldContext(ctx)
 	fieldName := fc.Field.Name
 	name := fmt.Sprintf("graphql.field.%s", fieldName)
-	span, ctx := StartTrace(ctx, name)
+	span, ctx := highlight.StartTrace(ctx, name)
 	span.SetAttributes(
 		semconv.ServiceNameKey.String(t.graphName),
 		attribute.String("graphql.field.name", fieldName),
@@ -61,11 +62,11 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		}
 	}
 	res, err := next(ctx)
-	RecordSpanError(
+	highlight.RecordSpanError(
 		span, err,
-		attribute.String(SourceAttribute, "InterceptField"),
+		attribute.String(highlight.SourceAttribute, "InterceptField"),
 	)
-	EndTrace(span)
+	highlight.EndTrace(span)
 
 	return res, err
 }
@@ -89,7 +90,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	}
 	name := fmt.Sprintf("graphql.operation.%s", opName)
 
-	span, ctx := StartTrace(ctx, name)
+	span, ctx := highlight.StartTrace(ctx, name)
 	span.SetAttributes(
 		semconv.ServiceNameKey.String(t.graphName),
 		semconv.GraphqlOperationName(opName),
@@ -98,7 +99,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	resp := next(ctx)
 	// though there is a resp.Errors, we should not record it because it will
 	// be a duplicate of errors on individual fields.
-	EndTrace(span)
+	highlight.EndTrace(span)
 
 	return resp
 }
@@ -110,7 +111,7 @@ func GraphQLRecoverFunc() graphql.RecoverFunc {
 		if e, ok = err.(error); !ok {
 			e = errors.Errorf("panic {error: %+v}", err)
 		}
-		RecordError(ctx, e, attribute.String(SourceAttribute, "GraphQLRecoverFunc"))
+		highlight.RecordError(ctx, e, attribute.String(highlight.SourceAttribute, "GraphQLRecoverFunc"))
 		return e
 	}
 }

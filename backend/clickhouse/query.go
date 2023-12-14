@@ -363,13 +363,13 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	return out
 }
 
-func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeysMaxRows,
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("Key, sum(Count), min(Type)").
+	sb.Select("Key, sum(Count)").
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
@@ -377,6 +377,10 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 	if query != nil && *query != "" {
 		sb.Where(fmt.Sprintf("Key LIKE %s", sb.Var("%"+*query+"%")))
+	}
+
+	if typeArg != nil {
+		sb.Where(sb.Equal("Type", typeArg))
 	}
 
 	sb.GroupBy("1").
@@ -401,15 +405,13 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		var (
 			key   string
 			count uint64
-			typ   string
 		)
-		if err := rows.Scan(&key, &count, &typ); err != nil {
+		if err := rows.Scan(&key, &count); err != nil {
 			return nil, err
 		}
 
 		keys = append(keys, &modelInputs.QueryKey{
 			Name: key,
-			Type: modelInputs.KeyType(typ),
 		})
 	}
 

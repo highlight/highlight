@@ -814,10 +814,11 @@ type SourceMappingError struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount   int64                 `json:"baseAmount"`
-	Discount     *SubscriptionDiscount `json:"discount"`
-	LastInvoice  *Invoice              `json:"lastInvoice"`
-	BillingIssue bool                  `json:"billingIssue"`
+	BaseAmount           int64                 `json:"baseAmount"`
+	Discount             *SubscriptionDiscount `json:"discount"`
+	LastInvoice          *Invoice              `json:"lastInvoice"`
+	BillingIssue         bool                  `json:"billingIssue"`
+	BillingIngestBlocked bool                  `json:"billingIngestBlocked"`
 }
 
 type SubscriptionDiscount struct {

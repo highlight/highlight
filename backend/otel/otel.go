@@ -94,23 +94,34 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string) (*model.MetricInput, error) {
+func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanID, parentSpanID, traceID string) (*model.MetricInput, error) {
 	if fields.metricEventName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
+	tags := lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
+		return &model.MetricTag{
+			Name:  t.Key,
+			Value: t.Value,
+		}
+	})
+	tags = append(tags, &model.MetricTag{
+		Name:  string(semconv.ServiceNameKey),
+		Value: fields.serviceName,
+	}, &model.MetricTag{
+		Name:  string(semconv.ServiceVersionKey),
+		Value: fields.serviceVersion,
+	})
 	return &model.MetricInput{
 		SessionSecureID: fields.sessionID,
+		SpanID:          pointy.String(spanID),
+		ParentSpanID:    pointy.String(parentSpanID),
+		TraceID:         pointy.String(traceID),
 		Group:           pointy.String(fields.requestID),
 		Name:            fields.metricEventName,
 		Value:           fields.metricEventValue,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
-		Tags: lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
-			return &model.MetricTag{
-				Name:  t.Key,
-				Value: t.Value,
-			}
-		}),
+		Tags:            tags,
 	}, nil
 }
 
@@ -145,13 +156,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var projectErrors = make(map[string][]*model.BackendErrorObjectInput)
-	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
-
+	var projectSessionErrors = make(map[string]map[string][]*model.BackendErrorObjectInput)
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
 
 	var traceSpans = make(map[string][]*clickhouse.TraceRow)
-	var traceMetrics = make(map[string][]*model.MetricInput)
+	var projectTraceMetrics = make(map[string]map[string][]*model.MetricInput)
 
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
@@ -226,15 +235,14 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, spanID, logCursor)
+						_, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, spanID, logCursor)
 						if backendError == nil {
 							lg(ctx, fields).Error("otel span error got no session and no project")
 						} else {
-							if isProjectError {
-								projectErrors[fields.projectID] = append(projectErrors[fields.projectID], backendError)
-							} else {
-								traceErrors[fields.sessionID] = append(traceErrors[fields.sessionID], backendError)
+							if _, ok := projectSessionErrors[fields.projectID]; !ok {
+								projectSessionErrors[fields.projectID] = make(map[string][]*model.BackendErrorObjectInput)
 							}
+							projectSessionErrors[fields.projectID][fields.sessionID] = append(projectSessionErrors[fields.projectID][fields.sessionID], backendError)
 						}
 					} else if event.Name() == highlight.LogEvent {
 						shouldWriteTrace = false
@@ -264,13 +272,15 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
 						shouldWriteTrace = false
-						metric, err := getMetric(ctx, fields.timestamp, fields, traceID, spanID)
+						metric, err := getMetric(ctx, fields.timestamp, fields, spanID, span.ParentSpanID().String(), traceID)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
 							continue
 						}
-
-						traceMetrics[fields.sessionID] = append(traceMetrics[fields.sessionID], metric)
+						if _, ok := projectTraceMetrics[fields.projectID]; !ok {
+							projectTraceMetrics[fields.projectID] = make(map[string][]*model.MetricInput)
+						}
+						projectTraceMetrics[fields.projectID][fields.sessionID] = append(projectTraceMetrics[fields.projectID][fields.sessionID], metric)
 					} else {
 						lg(ctx, fields).Warnf("otel received unknown event %s", event.Name())
 					}
@@ -300,65 +310,53 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for sessionID, errors := range traceErrors {
-		var messages []*kafkaqueue.Message
-		for _, errorObject := range errors {
-			if !o.resolver.IsErrorIngested(ctx, 0, errorObject) {
-				continue
+	keyedErrorMessages := make(map[string][]*kafkaqueue.Message)
+	for projectID, sessionErrors := range projectSessionErrors {
+		for sessionID, errors := range sessionErrors {
+			for _, errorObject := range errors {
+				// cannot return error since we already perform this check for all project errors in `extractFields`
+				projectIDInt, _ := model2.FromVerboseID(projectID)
+				if !o.resolver.IsErrorIngested(ctx, projectIDInt, errorObject) {
+					continue
+				}
+				// session-less errors will have sessionID = "", which will
+				// generate a random key for the kafka message
+				keyedErrorMessages[sessionID] = append(keyedErrorMessages[sessionID], &kafkaqueue.Message{
+					Type: kafkaqueue.PushBackendPayload,
+					PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+						ProjectVerboseID: &projectID,
+						Errors:           []*model.BackendErrorObjectInput{errorObject},
+					}})
 			}
-			messages = append(messages, &kafkaqueue.Message{
-				Type: kafkaqueue.PushBackendPayload,
-				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-					SessionSecureID: &sessionID,
-					Errors:          []*model.BackendErrorObjectInput{errorObject},
-				}})
 		}
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
+	}
+	for key, messages := range keyedErrorMessages {
+		err = o.resolver.ProducerQueue.Submit(ctx, key, messages...)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to submit otel session errors to public worker queue")
+			log.WithContext(ctx).WithError(err).Error("failed to submit otel errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 	}
 
-	for projectID, errors := range projectErrors {
-		var messages []*kafkaqueue.Message
-		for _, errorObject := range errors {
-			// cannot return error since we already perform this check for all project errors in `extractFields`
-			projectIDInt, _ := model2.FromVerboseID(projectID)
-			if !o.resolver.IsErrorIngested(ctx, projectIDInt, errorObject) {
-				continue
+	var messages []*kafkaqueue.Message
+	for projectID, traceMetrics := range projectTraceMetrics {
+		for sessionID, metrics := range traceMetrics {
+			for _, metric := range metrics {
+				messages = append(messages, &kafkaqueue.Message{
+					Type: kafkaqueue.PushMetrics,
+					PushMetrics: &kafkaqueue.PushMetricsArgs{
+						ProjectVerboseID: &projectID,
+						SessionSecureID:  &sessionID,
+						Metrics:          []*model.MetricInput{metric},
+					}})
 			}
-			messages = append(messages, &kafkaqueue.Message{
-				Type: kafkaqueue.PushBackendPayload,
-				PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-					ProjectVerboseID: &projectID,
-					Errors:           []*model.BackendErrorObjectInput{errorObject},
-				}})
-		}
-		err = o.resolver.ProducerQueue.Submit(ctx, "", messages...)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to submit otel project errors to public worker queue")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-	}
-
-	for sessionID, metrics := range traceMetrics {
-		var messages []*kafkaqueue.Message
-		for _, metric := range metrics {
-			messages = append(messages, &kafkaqueue.Message{
-				Type: kafkaqueue.PushMetrics,
-				PushMetrics: &kafkaqueue.PushMetricsArgs{
-					SessionSecureID: sessionID,
-					Metrics:         []*model.MetricInput{metric},
-				}})
-		}
-		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
+			err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
 		}
 	}
 
