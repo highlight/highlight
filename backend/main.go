@@ -217,6 +217,7 @@ func main() {
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
 		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithMetricSamplingRate(1./100),
 		highlight.WithSamplingRate(samplingRate),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
