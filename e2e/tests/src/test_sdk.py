@@ -121,6 +121,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
 
 
 def test_express_log(express_app, oauth_api):
+    express_app_type, _ = express_app
     start = datetime.utcnow()
     r = requests.get(
         f"http://localhost:3003/good",
@@ -139,14 +140,18 @@ def test_express_log(express_app, oauth_api):
                 data["logs"]["edges"],
             )
         )
-        exp = "doing some heavy work!"
+        exp = "some work happening"
         assert exp in msgs
         for item in filter(
             lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
         ):
             assert item["node"]["level"] == "warn"
             assert item["node"]["secureSessionID"] == "abc123"
-            assert item["node"]["serviceName"] == "e2e-express"
+            assert (
+                item["node"]["serviceName"] == "e2e-express"
+                if express_app_type == "express_js"
+                else "e2e-express-pino"
+            )
             assert item["node"]["serviceVersion"] == "git-sha"
 
     query(
@@ -157,7 +162,7 @@ def test_express_log(express_app, oauth_api):
             "project_id": "1",
             "direction": "DESC",
             "params": {
-                "query": "doing some work",
+                "query": "work happening",
                 "date_range": {
                     "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',

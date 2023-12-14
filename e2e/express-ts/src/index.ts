@@ -18,7 +18,10 @@ const logger = pino({
 		targets: [
 			{
 				target: '@highlight-run/pino',
-				options: config,
+				options: {
+					...config,
+					serviceName: 'e2e-express-pino',
+				},
 				level: 'info',
 			},
 			{
@@ -54,13 +57,11 @@ app.get('/', (req, res) => {
 })
 
 app.get('/good', (req, res) => {
-	logger.info('good route')
-	console.warn('doing some heavy work!')
+	logger.warn('doing some heavy work!')
 	let result = 0
 	for (let i = 0; i < 1000; i++) {
 		const value = Math.random() * 1000
 		result += value
-		console.info('some work happening', { result, value })
 		logger.warn({ result, value }, 'some work happening')
 	}
 	res.send('yay!')
