@@ -12,14 +12,12 @@ class RequestsIntegration(Integration):
 
     def __init__(self, tracing_origins: t.Optional[t.List[str] | bool] = None):
         self._trace_origins = tracing_origins or False
-        super().__init__()
 
     def enable(self):
         RequestsInstrumentor().instrument(request_hook=self.request_hook)
 
     def disable(self):
         RequestsInstrumentor().uninstrument()
-
 
     def request_hook(self, span, request):
         instance = highlight_io.H.get_instance()

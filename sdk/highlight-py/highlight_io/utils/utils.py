@@ -1,6 +1,7 @@
 import typing as t
 import re
 
+
 def trace_origin_url(tracing_origins: t.List[str] | bool, url: str) -> bool:
     """
     Check if the url matches a pattern in the list of tracing_origins.

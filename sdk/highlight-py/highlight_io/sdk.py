@@ -25,9 +25,8 @@ from highlight_io.utils.lru_cache import LRUCache
 from highlight_io.integrations.requests import RequestsIntegration
 
 
-DEFAULT_INTEGRATIONS = [
-    [RequestsIntegration.INTEGRATION_KEY, RequestsIntegration]
-]
+DEFAULT_INTEGRATIONS = [[RequestsIntegration.INTEGRATION_KEY, RequestsIntegration]]
+
 
 class LogHandler(logging.Handler):
     def __init__(self, highlight: "H", level=logging.NOTSET):
