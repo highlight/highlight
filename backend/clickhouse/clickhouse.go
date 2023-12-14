@@ -3,7 +3,6 @@ package clickhouse
 import (
 	"context"
 	"crypto/tls"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/highlight-run/highlight/backend/projectpath"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
