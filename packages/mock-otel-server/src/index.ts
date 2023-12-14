@@ -69,24 +69,29 @@ export function startMockOtelServer({
 	return () => server.close()
 }
 
-export function getResourceSpans(port = DEFAULT_PORT) {
+export function getResourceSpans(port = DEFAULT_PORT, names: string[] = []) {
 	return new Promise<{
 		details: ReturnType<typeof aggregateAttributes>
 		resourceSpans: IResourceSpans[]
 	}>((resolve, reject) => {
-		let laggedDetailsCount = 0
 		const interval = setInterval(() => {
 			const resourceSpans = getResourceSpansByPort(port)
 			const details = aggregateAttributes(resourceSpans)
+			const hasSessionId = details.some(
+				(detail) => detail.attributes['highlight.session_id'],
+			)
+			const hasName =
+				!names.length ||
+				details
+					.flatMap((detail) => detail.events)
+					.some((event) => names.includes(event.name))
 
-			if (laggedDetailsCount === details.length) {
+			if (hasSessionId && hasName) {
 				clearInterval(interval)
 
 				resolve({ details, resourceSpans })
-			} else {
-				laggedDetailsCount = details.length
 			}
-		}, 1500)
+		}, 250)
 	})
 }
 

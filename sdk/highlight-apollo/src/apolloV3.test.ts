@@ -46,7 +46,7 @@ describe('ApolloServerV3HighlightPlugin', () => {
 		})
 		await response.json()
 
-		const { details } = await getResourceSpans(1, port)
+		const { details } = await getResourceSpans(port)
 
 		const highlightRunWithHeadersSpan = details.find(({ spanNames }) =>
 			spanNames.includes('highlight-run-with-headers'),

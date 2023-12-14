@@ -81,7 +81,7 @@ describe('Next.js server instrumentation', () => {
 				},
 			})
 
-			const { details } = await getResourceSpans(OTEL_PORT)
+			const { details } = await getResourceSpans(OTEL_PORT, ['exception'])
 
 			const hasError = filterEventsByName(details, 'exception')
 			const detailsWithSessionId = filterDetailsBySessionId(
@@ -127,7 +127,7 @@ describe('Next.js server instrumentation', () => {
 				},
 			)
 
-			const { details } = await getResourceSpans(OTEL_PORT)
+			const { details } = await getResourceSpans(OTEL_PORT, ['exception'])
 
 			const hasError = filterEventsByName(details, 'exception')
 			const detailsWithSessionId = filterDetailsBySessionId(
