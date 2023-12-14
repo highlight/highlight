@@ -1094,19 +1094,15 @@ func TestLogsKeys(t *testing.T) {
 	expected := []*modelInputs.QueryKey{
 		{
 			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
-			Type: modelInputs.KeyTypeNumeric,
 		},
 		{
 			Name: "service_name",
-			Type: modelInputs.KeyTypeString,
 		},
 		{
 			Name: "source",
-			Type: modelInputs.KeyTypeString,
 		},
 		{
 			Name: "user_id",
-			Type: modelInputs.KeyTypeNumeric,
 		},
 	}
 	assert.Equal(t, expected, keys)
