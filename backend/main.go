@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"html/template"
 	"io"
 	"math/rand"
@@ -197,10 +196,6 @@ func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
 
-	// setup highlight
-	highlight.SetProjectID("1jdkoe52")
-	hmetric.SetSamplingRate(1. / 100)
-
 	// change OTLP endpoint when set in env
 	if otlpEndpoint != "" {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
@@ -214,7 +209,10 @@ func main() {
 		}
 	}
 
+	// setup highlight
 	highlight.Start(
+		highlight.WithProjectID("1jdkoe52"),
+		highlight.WithSamplingRate(1./100),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 		highlight.WithEnvironment(util.EnvironmentName()),
