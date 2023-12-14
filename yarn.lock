@@ -22874,7 +22874,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dom-webcodecs@npm:0.1.4":
+"@types/dom-webcodecs@npm:0.1.5":
   version: 0.1.5
   resolution: "@types/dom-webcodecs@npm:0.1.5"
   checksum: f962216e92e7567208b77198ce7dd635d7df004a4aa06f882e8871c6bb42cacd03eb72211dcab4ffb4c2417b6ebc8e65ba7961c91df98cba330d72acdcb008c3

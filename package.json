@@ -105,7 +105,7 @@
 		"@opentelemetry/sdk-trace-base": "1.17.1",
 		"@opentelemetry/semantic-conventions": "1.17.1",
 		"@sideway/formula": "3.0.1",
-		"@types/dom-webcodecs": "0.1.4",
+		"@types/dom-webcodecs": "0.1.5",
 		"ansi-regex": "3.0.1",
 		"cross-fetch": "3.1.5",
 		"deep-object-diff": "1.1.9",
