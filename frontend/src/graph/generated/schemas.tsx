@@ -3046,7 +3046,7 @@ export type SessionsReportRow = {
 	num_sessions: Scalars['Int']
 	total_active_length_mins: Scalars['Float']
 	total_length_mins: Scalars['Float']
-	user_properties?: Maybe<Scalars['Any']>
+	user_properties?: Maybe<Scalars['String']>
 }
 
 export type SlackSyncResponse = {
@@ -3118,6 +3118,7 @@ export type SubscriptionSession_Payload_AppendedArgs = {
 export type SubscriptionDetails = {
 	__typename?: 'SubscriptionDetails'
 	baseAmount: Scalars['Int64']
+	billingIngestBlocked: Scalars['Boolean']
 	billingIssue: Scalars['Boolean']
 	discount?: Maybe<SubscriptionDiscount>
 	lastInvoice?: Maybe<Invoice>

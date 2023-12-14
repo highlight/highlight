@@ -1698,6 +1698,11 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		maxCostCents = pointy.Int(0)
 	}
 
+	// if the customer's billing is invalid, we want to block them from using the product
+	if invalid, err := r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err == nil && invalid {
+		maxCostCents = pointy.Int(0)
+	}
+
 	if maxCostCents == nil {
 		return true, 0
 	}

@@ -19,7 +19,7 @@ def query(
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
     # retry up for up to N seconds in case the data needs time to populate
-    for _ in range(15):
+    for _ in range(60):
         try:
             if variables_fn:
                 variables = variables_fn(datetime.utcnow())
