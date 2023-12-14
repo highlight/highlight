@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react-swc'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { defineConfig, loadEnv } from 'vite'
-import vitePluginImp from 'vite-plugin-imp'
 import svgr from 'vite-plugin-svgr'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
@@ -46,26 +45,7 @@ export default defineConfig(({ mode }) => {
 	validateSafeAllowList(env)
 
 	return {
-		plugins: [
-			react(),
-			vanillaExtractPlugin(),
-			tsconfigPaths(),
-			svgr(),
-			vitePluginImp({
-				// Seems to result in this error:
-				// > Rollup failed to resolve import "lodash/default" from "src/pages/Player/PlayerHook/PlayerHook.tsx"
-				// Likely due to some custom resolution algorithm that doesn't support hoisted monorepos?
-				exclude: ['lodash'],
-				libList: [
-					// TODO: enable this later to reduce bundle size
-					// {
-					// 	libName: 'lodash',
-					// 	libDirectory: '',
-					// 	camel2DashComponentName: false,
-					// },
-				],
-			}),
-		],
+		plugins: [react(), vanillaExtractPlugin(), tsconfigPaths(), svgr()],
 		envPrefix: ['VITE_', ...ENVVAR_ALLOWLIST],
 		server: {
 			host: '0.0.0.0',

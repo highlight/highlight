@@ -1,5 +1,5 @@
 import { IncomingHttpHeaders } from 'http'
-import { Highlight } from '.'
+import { Highlight } from './client'
 import log from './log'
 import { ResourceAttributes } from '@opentelemetry/resources'
 import type { Attributes } from '@opentelemetry/api'
