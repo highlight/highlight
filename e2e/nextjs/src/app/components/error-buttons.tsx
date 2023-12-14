@@ -104,7 +104,7 @@ export function ErrorButtons() {
 
 				<Button
 					onClick={() =>
-						fetch('/api/app-router-test?success=true')
+						fetch('/api/app-router-test?success=true&sql=true')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}
@@ -113,7 +113,7 @@ export function ErrorButtons() {
 				</Button>
 				<Button
 					onClick={() =>
-						fetch('/api/app-router-test?success=false')
+						fetch('/api/app-router-test?success=false&sql=false')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}

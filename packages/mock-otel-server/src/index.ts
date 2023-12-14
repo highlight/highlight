@@ -4,6 +4,8 @@ import zlib from 'zlib'
 import {
 	IExportTraceServiceRequest,
 	IResourceSpans,
+	IEvent,
+	ISpan,
 } from '@opentelemetry/otlp-transformer'
 
 import {
@@ -38,25 +40,26 @@ export function startMockOtelServer({
 			const trace = proto.decode(req.body) as IExportTraceServiceRequest
 
 			if (trace.resourceSpans) {
-				let resourceSpans = RESOURCE_SPANS_BY_PORT.get(port) || []
+				const resourceSpans = getResourceSpansByPort(port)
+				const spanNames = trace.resourceSpans.flatMap(
+					(resourceSpan) =>
+						resourceSpan.scopeSpans.flatMap((scopeSpan) =>
+							scopeSpan.spans?.flatMap((span) => span.name),
+						) ?? [],
+				)
 
 				resourceSpans.push(...trace.resourceSpans)
 
-				RESOURCE_SPANS_BY_PORT.set(port, resourceSpans)
-
-				/**
-				 * Esplin 2023/12/8
-				 *
-				 * This is a load-bearing console.info. Removing it will cause tests to fail.
-				 */
-				console.info(
-					`Received ${trace.resourceSpans.length} resource spans to port ${port}`,
-				)
+				setResourceSpansByPort(port, resourceSpans)
 			}
 		} catch (error) {
 			console.error(error)
 		}
 		next()
+	})
+
+	app.post('/v1/traces', (req, res) => {
+		res.status(200).send('OK')
 	})
 
 	const server = app.listen(port, () => {
@@ -66,40 +69,29 @@ export function startMockOtelServer({
 	return () => server.close()
 }
 
-export function getOtlpEndpoint(port = DEFAULT_PORT) {
-	return `http://127.0.0.1:${port}`
-}
-
-export function getResourceSpans(
-	expectedLength: number = 1,
-	port = DEFAULT_PORT,
-) {
+export function getResourceSpans(port = DEFAULT_PORT) {
 	return new Promise<{
 		details: ReturnType<typeof aggregateAttributes>
 		resourceSpans: IResourceSpans[]
 	}>((resolve, reject) => {
+		let laggedDetailsCount = 0
 		const interval = setInterval(() => {
-			const resourceSpans = RESOURCE_SPANS_BY_PORT.get(port) || []
+			const resourceSpans = getResourceSpansByPort(port)
+			const details = aggregateAttributes(resourceSpans)
 
-			if (resourceSpans.length >= expectedLength) {
+			if (laggedDetailsCount === details.length) {
 				clearInterval(interval)
-				resolve({
-					details: aggregateAttributes(resourceSpans),
-					resourceSpans,
-				})
+
+				resolve({ details, resourceSpans })
+			} else {
+				laggedDetailsCount = details.length
 			}
-		}, 100)
-
-		setTimeout(() => {
-			clearInterval(interval)
-
-			reject('getResourceSpans timed out')
-		}, 5000)
+		}, 1500)
 	})
 }
 
 export function clearResourceSpans(port = DEFAULT_PORT) {
-	RESOURCE_SPANS_BY_PORT.delete(port)
+	setResourceSpansByPort(port, [])
 }
 
 function unzipBody(
@@ -128,27 +120,90 @@ function unzipBody(
 function aggregateAttributes(resourceSpans: IResourceSpans[]) {
 	const aggregatedAttributes: {
 		spanNames: string[]
+		events: IEvent[]
 		attributes: Record<string, string>
 	}[] = []
 
 	resourceSpans?.forEach((resourceSpan) => {
-		const spanNames =
-			resourceSpan.scopeSpans[0].spans?.map((span) => span.name) ?? []
-		const attributes = resourceSpan.resource?.attributes.reduce<
-			Record<string, string>
-		>((acc, attribute) => {
-			acc[attribute.key] =
-				attribute.value.stringValue ||
-				attribute.value.boolValue?.toString() ||
-				attribute.value.intValue?.toString() ||
-				attribute.value.arrayValue?.toString() ||
-				''
+		const filteredSpans = resourceSpan.scopeSpans
+			.flatMap((scopeSpan) => scopeSpan.spans)
+			.filter((span) => span?.name.includes('highlight')) as ISpan[]
+		const spanNames = filteredSpans.map((span) => span.name)
 
-			return acc
-		}, {})
+		const resourceAttributes =
+			resourceSpan.resource?.attributes.reduce<Record<string, string>>(
+				(acc, attribute) => {
+					acc[attribute.key] =
+						attribute.value.stringValue ||
+						attribute.value.boolValue?.toString() ||
+						attribute.value.intValue?.toString() ||
+						attribute.value.arrayValue?.toString() ||
+						''
 
-		attributes && aggregatedAttributes.push({ spanNames, attributes })
+					return acc
+				},
+				{},
+			) || {}
+		const events = filteredSpans.flatMap((span) => span.events) as IEvent[]
+		const attributes = events.reduce<Record<string, string>>(
+			(acc, event) => {
+				event.attributes.forEach((attribute) => {
+					acc[attribute.key] =
+						attribute.value.stringValue ||
+						attribute.value.boolValue?.toString() ||
+						attribute.value.intValue?.toString() ||
+						attribute.value.arrayValue?.toString() ||
+						''
+				})
+
+				return acc
+			},
+			resourceAttributes,
+		)
+
+		aggregatedAttributes.push({
+			spanNames,
+			attributes,
+			events,
+		})
 	})
 
 	return aggregatedAttributes
+}
+
+function getResourceSpansByPort(port = DEFAULT_PORT) {
+	return RESOURCE_SPANS_BY_PORT.get(port) || []
+}
+
+function setResourceSpansByPort(port = DEFAULT_PORT, resourceSpans: any[]) {
+	RESOURCE_SPANS_BY_PORT.set(port, resourceSpans)
+}
+
+export function getOtlpEndpoint(port = DEFAULT_PORT) {
+	return `http://127.0.0.1:${port}`
+}
+
+export function filterEventsByName(
+	details: ReturnType<typeof aggregateAttributes>,
+	name: string,
+) {
+	const events = details.flatMap((detail) => detail.events)
+
+	return events.filter((event) => event.name === name)
+}
+
+export function filterDetailsBySessionId(
+	details: ReturnType<typeof aggregateAttributes>,
+	sessionId: string,
+) {
+	return details.filter(
+		(detail) => detail.attributes['highlight.session_id'] === sessionId,
+	)
+}
+
+export function logDetails(
+	details: Awaited<ReturnType<typeof getResourceSpans>>['details'],
+) {
+	console.info(details.flatMap((d) => d.spanNames))
+	console.info(details.flatMap((d) => d.events.map((e) => e.name)))
 }

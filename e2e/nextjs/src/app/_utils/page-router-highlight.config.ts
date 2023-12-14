@@ -13,6 +13,7 @@ const env: HighlightEnv = {
 	backendUrl: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL,
 	serviceName: 'my-nextjs-backend',
 	enableFsInstrumentation: true,
+	disableConsoleRecording: true,
 }
 
 export const withPageRouterHighlight = PageRouterHighlight(env)

@@ -24,7 +24,24 @@ export const Highlight =
 
 			const start = new Date()
 
-			async function recordLatency() {
+			try {
+				const result = await H.runWithHeaders(req.headers, async () =>
+					originalHandler(req, res, NodeH),
+				)
+
+				recordLatency()
+
+				return result
+			} catch (e) {
+				res.statusCode = 500
+				res.statusMessage = 'Internal Server Error'
+
+				recordLatency()
+
+				throw e
+			}
+
+			function recordLatency() {
 				// convert ms to ns
 				const delta = (new Date().getTime() - start.getTime()) * 1000000
 				const { secureSessionId, requestId } = NodeH.parseHeaders(
@@ -33,28 +50,7 @@ export const Highlight =
 
 				if (secureSessionId && requestId) {
 					H.recordMetric(secureSessionId, 'latency', delta, requestId)
-
-					await H.flush()
 				}
-			}
-
-			try {
-				const result = await H.runWithHeaders(req.headers, async () =>
-					originalHandler(req, res, NodeH),
-				)
-
-				await recordLatency()
-				await H.stop()
-
-				return result
-			} catch (e) {
-				res.statusCode = 500
-				res.statusMessage = 'Internal Server Error'
-
-				await recordLatency()
-				await H.stop()
-
-				throw e
 			}
 		}
 	}

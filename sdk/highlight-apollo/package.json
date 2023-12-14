@@ -15,7 +15,8 @@
 	"scripts": {
 		"typegen": "tsup src/index.ts --dts-only",
 		"build": "tsup src/index.ts --format cjs,esm --dts",
-		"test": "vitest"
+		"test": "vitest run",
+		"test:dev": "vitest"
 	},
 	"publishConfig": {
 		"access": "public"

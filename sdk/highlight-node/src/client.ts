@@ -342,8 +342,9 @@ export class Highlight {
 				} else if (waitingForFinishedSpans) {
 					finish()
 				}
-			}, 10)
-			let timer = setTimeout(finish, 10000)
+			}, 100)
+			const timer = setTimeout(finish, 2000)
+
 			function finish() {
 				intervalTimer && clearInterval(intervalTimer)
 				timer && clearTimeout(timer)
@@ -386,7 +387,13 @@ export class Highlight {
 					}
 
 					try {
-						resolve(await cb())
+						const result = await cb()
+
+						resolve(result)
+
+						span.end()
+
+						await this.waitForFlush()
 					} catch (error) {
 						if (error instanceof Error) {
 							await this.consumeCustomError(
@@ -397,10 +404,12 @@ export class Highlight {
 						}
 
 						reject(error)
-					} finally {
+
 						span.end()
 
-						await this.flush()
+						this.flush()
+
+						await this.waitForFlush()
 					}
 				},
 			)

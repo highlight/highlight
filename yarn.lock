@@ -12643,8 +12643,10 @@ __metadata:
     highlight.run: "workspace:*"
     jest: ^29.2.0
     rollup: ^4.4.1
+    tree-kill: ^1.2.2
     ts-jest: ^29.0.3
     typescript: ^5.0.4
+    vitest: ^0.32.0
   peerDependencies:
     next: ">=12"
     react: ">=17"

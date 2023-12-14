@@ -3,8 +3,8 @@
 	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": true,
-		"source.fixAll.stylelint": true
+		"source.fixAll.eslint": "explicit",
+		"source.fixAll.stylelint": "explicit"
 	},
 	"go.formatTool": "gofmt",
 	"go.useLanguageServer": true,
@@ -101,6 +101,7 @@
 		"otlp",
 		"runtimes",
 		"snapshotting",
+		"unlisten",
 		"unobfuscated",
 		"Vadim"
 	],

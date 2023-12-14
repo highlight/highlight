@@ -20,15 +20,21 @@ export function Highlight(options: NodeOptions) {
 			const start = new Date()
 
 			try {
-				return H.runWithHeaders<Promise<Response>>(
+				const result = await H.runWithHeaders<Promise<Response>>(
 					request.headers,
 					async () => originalHandler(request, context, NodeH),
 				)
-			} catch (error) {
-				await H.stop()
 
-				throw error
-			} finally {
+				recordLatency()
+
+				return result
+			} catch (e) {
+				recordLatency()
+
+				throw e
+			}
+
+			function recordLatency() {
 				// convert ms to ns
 				const delta = (new Date().getTime() - start.getTime()) * 1000000
 				const { secureSessionId, requestId } = NodeH.parseHeaders(
@@ -37,9 +43,6 @@ export function Highlight(options: NodeOptions) {
 
 				if (secureSessionId && requestId) {
 					H.recordMetric(secureSessionId, 'latency', delta, requestId)
-
-					await H.flush()
-					await H.stop()
 				}
 			}
 		}

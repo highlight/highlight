@@ -6,6 +6,7 @@ const env: HighlightEnv = {
 	otlpEndpoint: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	serviceName: 'vercel-edge',
 	enableFsInstrumentation: true,
+	disableConsoleRecording: true,
 }
 
 export const withEdgeHighlight = EdgeHighlight(env)

@@ -7,6 +7,7 @@ const env: HighlightEnv = {
 	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	serviceName: 'vercel-app-router',
 	enableFsInstrumentation: true,
+	disableConsoleRecording: true,
 }
 
 export const withAppRouterHighlight = AppRouterHighlight(env)
