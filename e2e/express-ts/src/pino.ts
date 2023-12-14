@@ -1,4 +1,5 @@
 import pino from 'pino'
+import { CONSTANTS } from './constants'
 
 export function startPino() {
 	const logger = pino({
@@ -10,7 +11,7 @@ export function startPino() {
 						projectID: '1',
 						debug: true,
 						serviceVersion: 'git-sha',
-						otlpEndpoint: 'http://localhost:4318',
+						otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
 						serviceName: 'e2e-express-pino',
 					},
 					level: 'info',
