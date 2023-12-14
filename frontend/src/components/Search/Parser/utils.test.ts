@@ -6,7 +6,7 @@ describe('parseSearch', () => {
 			'  span_name="Chris Schmitz" source=(backend OR frontend)  service_name!=private-graph'
 		const { queryParts } = parseSearch(queryString)
 		expect(queryParts).toEqual([
-			{ type: 'spaces', value: '  ' },
+			{ type: 'spaces', value: '  ', start: 0, stop: 2 },
 			{
 				type: 'filter',
 				value: 'span_name="Chris Schmitz"',
@@ -15,7 +15,7 @@ describe('parseSearch', () => {
 				start: 2,
 				stop: 27,
 			},
-			{ type: 'spaces', value: ' ' },
+			{ type: 'spaces', value: ' ', start: 27, stop: 28 },
 			{
 				type: 'filter',
 				value: 'source=(backend OR frontend)',
@@ -24,7 +24,7 @@ describe('parseSearch', () => {
 				start: 28,
 				stop: 56,
 			},
-			{ type: 'spaces', value: '  ' },
+			{ type: 'spaces', value: '  ', start: 56, stop: 58 },
 			{
 				type: 'filter',
 				value: 'service_name!=private-graph',
@@ -44,13 +44,12 @@ describe('parseSearch', () => {
 		expect(stringFromParts).toEqual(queryString)
 	})
 
-	it.only('should parse a string correctly', () => {
+	it('should parse a string correctly', () => {
 		const queryString =
 			'service_name:private-graph span_name:KafkaBatchWorker'
 		const { queryParts } = parseSearch(queryString)
-		console.log(queryParts)
+
 		expect(queryParts).toEqual([
-			{ type: 'spaces', value: '' },
 			{
 				type: 'filter',
 				value: 'service_name:private-graph',
@@ -59,7 +58,7 @@ describe('parseSearch', () => {
 				start: 0,
 				stop: 26,
 			},
-			{ type: 'spaces', value: ' ' },
+			{ type: 'spaces', value: ' ', start: 26, stop: 27 },
 			{
 				type: 'filter',
 				value: 'span_name:KafkaBatchWorker',
