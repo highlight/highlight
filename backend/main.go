@@ -212,10 +212,10 @@ func main() {
 	// setup highlight
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
-		highlight.WithSamplingRate(1./100),
+		highlight.WithEnvironment(util.EnvironmentName()),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
-		highlight.WithEnvironment(util.EnvironmentName()),
+		highlight.WithTraceSamplingRate(1./100),
 	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
