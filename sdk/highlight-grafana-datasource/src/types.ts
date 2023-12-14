@@ -1,7 +1,6 @@
 import { DataSourceJsonData } from '@grafana/data';
 import { DataQuery } from '@grafana/schema';
 
-// eslint-disable-next-line deprecation/deprecation
 export interface HighlightQuery extends DataQuery {
   table?: string;
   metric?: string;
