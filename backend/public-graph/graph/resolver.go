@@ -189,8 +189,8 @@ var ErrUserFilteredError = e.New("User filtered error")
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
 
-var SessionProcessDelaySeconds = 60 // a session will be processed after not receiving events for this time
-var SessionProcessLockMinutes = 30  // a session marked as processing can be reprocessed after this time
+var SessionProcessDelaySeconds = 120 // a session will be processed after not receiving events for this time
+var SessionProcessLockMinutes = 30   // a session marked as processing can be reprocessed after this time
 func init() {
 	if util.IsDevEnv() {
 		SessionProcessDelaySeconds = 8
