@@ -2,7 +2,7 @@
 	"name": "@highlight-run/remix",
 	"version": "2.0.11",
 	"description": "Client for interfacing with Highlight in Remix",
-	"packageManager": "yarn@3.5.0",
+	"packageManager": "yarn@4.0.2",
 	"author": "",
 	"license": "Apache-2.0",
 	"files": [

@@ -10,9 +10,9 @@
     "test:ci": "jest --passWithNoTests --maxWorkers 4",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
-    "lint:fix": "npm run lint -- --fix",
-    "e2e": "npm exec cypress install && npm exec grafana-e2e run",
-    "e2e:update": "npm exec cypress install && npm exec grafana-e2e run --update-screenshots",
+    "lint:fix": "yarn lint -- --fix",
+    "e2e": "yarn exec cypress install && yarn exec grafana-e2e run",
+    "e2e:update": "yarn exec cypress install && yarn exec grafana-e2e run --update-screenshots",
     "server": "docker-compose up --build",
     "sign": "npx --yes @grafana/sign-plugin@latest"
   },
