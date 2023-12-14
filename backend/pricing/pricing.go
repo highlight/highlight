@@ -87,7 +87,7 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 			}},
 		},
 		model.PricingProductTypeLogs: {
-			Included: 500_000,
+			Included: 1_000_000,
 			Items: []GraduatedPriceItem{{
 				Rate:  2.5 / 1_000_000,
 				Count: 1_000_000,
