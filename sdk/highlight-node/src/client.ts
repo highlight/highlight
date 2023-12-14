@@ -105,7 +105,7 @@ export class Highlight {
 	_projectID: string
 	_debug: boolean
 	otel: NodeSDK
-	tracer: Tracer
+	private tracer: Tracer
 	private processor: CustomSpanProcessor
 
 	constructor(options: NodeOptions) {

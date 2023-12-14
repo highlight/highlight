@@ -6,9 +6,7 @@ type NextContext = { params: Record<string, string> }
 type NextHandler<Body = unknown> = (
 	request: NextRequest,
 	context: NextContext,
-	highlight: HighlightInitReturnType,
 ) => Promise<Response>
-type HighlightInitReturnType = ReturnType<typeof H.init>
 
 export function Highlight(options: NodeOptions) {
 	const NodeH = H.init(options)
@@ -22,7 +20,7 @@ export function Highlight(options: NodeOptions) {
 			try {
 				const result = await H.runWithHeaders<Promise<Response>>(
 					request.headers,
-					async () => originalHandler(request, context, NodeH),
+					async () => originalHandler(request, context),
 				)
 
 				recordLatency()

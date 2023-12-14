@@ -101,6 +101,7 @@
 		"otlp",
 		"runtimes",
 		"snapshotting",
+		"statfs",
 		"unlisten",
 		"unobfuscated",
 		"Vadim"

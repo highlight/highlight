@@ -8,9 +8,7 @@ export declare type HasStatus = { statusCode: number; statusMessage: string }
 export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 	req: T,
 	res: S,
-	highlight: HighlightInitReturnType,
 ) => unknown | Promise<unknown>
-type HighlightInitReturnType = ReturnType<typeof H.init>
 
 export const Highlight =
 	(options: NodeOptions) =>
@@ -26,7 +24,7 @@ export const Highlight =
 
 			try {
 				const result = await H.runWithHeaders(req.headers, async () =>
-					originalHandler(req, res, NodeH),
+					originalHandler(req, res),
 				)
 
 				recordLatency()
