@@ -99,6 +99,7 @@
 		"opentelemetry",
 		"otel",
 		"otlp",
+		"pino",
 		"runtimes",
 		"snapshotting",
 		"statfs",

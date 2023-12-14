@@ -13,7 +13,9 @@ import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
-import { IncomingHttpHeaders } from 'http'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import type { IncomingHttpHeaders } from 'http'
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
 
@@ -30,6 +32,19 @@ type TraceMapValue = {
 
 	destroy: () => void
 }
+
+const instrumentations = getNodeAutoInstrumentations({
+	'@opentelemetry/instrumentation-pino': {
+		logHook: (span, record, level) => {
+			// @ts-ignore
+			const attrs = span.attributes
+			for (const [key, value] of Object.entries(attrs)) {
+				record[key] = value
+			}
+		},
+	},
+})
+registerInstrumentations({ instrumentations })
 
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
@@ -124,17 +139,13 @@ export class Highlight {
 
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
-				const { secureSessionId, requestId } = this.parseHeaders(
-					// look for the context in asyncLocalStorage only
-					{},
-				)
 				this.log(
 					c.date,
 					c.message,
 					c.level,
 					c.stack,
-					secureSessionId,
-					requestId,
+					'',
+					'',
 					c.attributes,
 				)
 			})
@@ -185,13 +196,7 @@ export class Highlight {
 			resource: new Resource(attributes),
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [
-				getNodeAutoInstrumentations({
-					'@opentelemetry/instrumentation-fs': {
-						enabled: options.enableFsInstrumentation ?? false,
-					},
-				}),
-			],
+			instrumentations,
 		})
 		this.otel.start()
 

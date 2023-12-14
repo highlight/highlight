@@ -165,7 +165,6 @@ export const H: HighlightInterface = {
 	runWithHeaders: (headers, cb) => {
 		return highlight_obj.runWithHeaders(headers, cb)
 	},
-
 	consumeAndFlush: async function (...args) {
 		try {
 			this.consumeError(...args)
