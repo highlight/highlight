@@ -982,7 +982,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	}
 	log.WithContext(ctx).WithField("invoiceLinesLen", len(invoiceLines)).Infof("STRIPE_INTEGRATION_INFO found invoice lines %d %+v", len(invoiceLines), invoiceLines)
 
-	billingIssue, err := w.GetBillingIssue(ctx, &workspace, c, invoice)
+	billingIssue, err := w.GetBillingIssue(ctx, &workspace, c, subscription, invoice)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).WithField("customer", c.ID).Error("STRIPE_INTEGRATION_ERROR failed to get billing issue status")
 	} else {
@@ -1056,18 +1056,28 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 
 type PaymentIssueType = string
 
+const PaymentIssueTypeSubscriptionDue PaymentIssueType = "subscription_due"
 const PaymentIssueTypeInvoiceUncollectible PaymentIssueType = "invoice_uncollectible"
 const PaymentIssueTypeInvoiceOpenAttempted PaymentIssueType = "invoice_open_attempted"
 const PaymentIssueTypeNoPaymentMethod PaymentIssueType = "no_payment_method"
 const PaymentIssueTypeCardCheckFail PaymentIssueType = "payment_method_check_failed"
 
-func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace, customer *stripe.Customer, invoice *stripe.Invoice) (PaymentIssueType, error) {
+func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace, customer *stripe.Customer, subscription *stripe.Subscription, invoice *stripe.Invoice) (PaymentIssueType, error) {
 	settings, err := w.store.GetAllWorkspaceSettings(ctx, workspace.ID)
 	if err != nil {
 		return "", err
 	}
 	if !settings.CanShowBillingIssueBanner {
 		return "", err
+	}
+
+	if invalid := map[stripe.SubscriptionStatus]bool{
+		stripe.SubscriptionStatusIncomplete: true,
+		stripe.SubscriptionStatusPastDue:    true,
+		stripe.SubscriptionStatusUnpaid:     true,
+	}[subscription.Status]; invalid {
+		log.WithContext(ctx).WithField("customer", customer.ID).WithField("subscription_status", subscription.Status).Info("stripe unpaid invoice detected", invoice.ID)
+		return PaymentIssueTypeSubscriptionDue, nil
 	}
 
 	if invoice != nil && invoice.Status == stripe.InvoiceStatusUncollectible {
