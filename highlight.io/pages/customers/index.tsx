@@ -1,8 +1,6 @@
 import { gql } from 'graphql-request'
 import { GetStaticProps } from 'next'
 import Image from 'next/legacy/image'
-import { useState } from 'react'
-import { AnimateCarouselImage } from '../../components/Animate'
 import { Author } from '../../components/Blog/BlogPost/BlogPost'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
@@ -161,8 +159,6 @@ const CustomerCaseCard = ({
 	role: string
 	slug: string
 }) => {
-	const [loaded, setLoaded] = useState(false)
-
 	return (
 		<div className={styles.caseCard}>
 			<div className={styles.thumbnail}>
@@ -171,23 +167,20 @@ const CustomerCaseCard = ({
 					layout="fill"
 					objectFit="cover"
 					alt="Case thumbnail"
+					priority
 				/>
 			</div>
 			<div className={styles.caseDetails}>
 				<div>
 					{logo && (
 						<div className={styles.companyCaseLogo}>
-							<AnimateCarouselImage loaded={loaded}>
-								<Image
-									src={logo}
-									priority={true}
-									alt="Company logo"
-									layout="fill"
-									objectFit="contain"
-									objectPosition="left"
-									onLoad={() => setLoaded(true)}
-								/>
-							</AnimateCarouselImage>
+							<Image
+								src={logo}
+								alt="Company logo"
+								layout="fill"
+								objectFit="contain"
+								objectPosition="left"
+							/>
 						</div>
 					)}
 					<div className={styles.caseCardQuote}>
