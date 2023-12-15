@@ -31,17 +31,31 @@ export const AnimateBugLeft = ({
 	children,
 }: React.PropsWithChildren<{ loaded: boolean }>) => {
 	const orig = { left: -300, top: 0, opacity: 0 }
-	const final = { left: -120, top: 125, opacity: 1 }
-	return (
-		<motion.div
-			initial={orig}
-			animate={loaded ? final : orig}
-			transition={{
+	const final = {
+		left: -120,
+		top: 125,
+		opacity: 1,
+		transition: {
+			opacity: { delay: 1.2 },
+			top: {
 				type: 'spring',
 				bounce: 0.4,
 				duration: 0.8,
 				delay: 1,
-			}}
+			},
+			left: {
+				type: 'spring',
+				bounce: 0.4,
+				duration: 0.8,
+				delay: 1,
+			},
+		},
+	}
+
+	return (
+		<motion.div
+			initial={orig}
+			animate={final}
 			style={{
 				position: 'absolute',
 				width: 250,
@@ -57,17 +71,31 @@ export const AnimateBugRight = ({
 	children,
 }: React.PropsWithChildren<{ loaded: boolean }>) => {
 	const orig = { right: -275, top: -95, opacity: 0 }
-	const final = { right: -95, top: 30, opacity: 1 }
-	return (
-		<motion.div
-			initial={orig}
-			animate={loaded ? final : orig}
-			transition={{
+	const final = {
+		right: -95,
+		top: 30,
+		opacity: 1,
+		transition: {
+			opacity: { delay: 1.2 },
+			top: {
 				type: 'spring',
 				bounce: 0.4,
 				duration: 0.8,
 				delay: 1,
-			}}
+			},
+			right: {
+				type: 'spring',
+				bounce: 0.4,
+				duration: 0.8,
+				delay: 1,
+			},
+		},
+	}
+
+	return (
+		<motion.div
+			initial={orig}
+			animate={loaded ? final : orig}
 			style={{
 				position: 'absolute',
 				width: 250,
