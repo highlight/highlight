@@ -74,6 +74,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	}, [defaultIssueTitle, commentText])
 
 	const [containerId, setContainerId] = useState('')
+	const [issueTypeId, setIssueTypeId] = useState('')
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -125,6 +126,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 						issue_title: issueTitle,
 						issue_team_id: issueTeamId,
 						issue_description: issueDescription,
+						issue_type_id: issueTypeId || undefined,
 						integrations,
 						author_name: author,
 						time: timestamp || 0,
@@ -140,6 +142,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							text_for_attachment: text,
 							issue_title: issueTitle,
 							issue_team_id: issueTeamId,
+							issue_type_id: issueTypeId || undefined,
 							issue_description: issueDescription,
 							integrations,
 							author_name: author,
@@ -159,6 +162,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							integrations,
 							issue_title: issueTitle,
 							issue_team_id: issueTeamId,
+							issue_type_id: issueTypeId || undefined,
 							issue_description: issueDescription,
 						},
 						refetchQueries: [namedOperations.Query.GetErrorIssues],
@@ -247,6 +251,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					>
 						{selectedIntegration.containerSelection({
 							setSelectionId: setContainerId,
+							setIssueTypeId: setIssueTypeId,
 							disabled: loading,
 						})}
 						<Form.Input

@@ -1606,6 +1606,11 @@ query GetJiraIntegrationSettings($workspace_id: ID!) {
 		id
 		name
 		key
+		issueTypes {
+			id
+			name
+			description
+		}
 	}
 }
 
