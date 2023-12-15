@@ -4,7 +4,13 @@ import highlight_io
 from highlight_io.integrations import Integration
 from highlight_io.utils import utils
 
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
+try:
+    import requests
+    from opentelemetry.instrumentation.requests import RequestsInstrumentor
+    instrumentation_available = True
+except ImportError:
+    instrumentation_available = False
+
 
 
 class RequestsIntegration(Integration):
@@ -14,10 +20,12 @@ class RequestsIntegration(Integration):
         self._trace_origins = tracing_origins or False
 
     def enable(self):
-        RequestsInstrumentor().instrument(request_hook=self.request_hook)
+        if instrumentation_available:
+            RequestsInstrumentor().instrument(request_hook=self.request_hook)
 
     def disable(self):
-        RequestsInstrumentor().uninstrument()
+        if instrumentation_available:
+            RequestsInstrumentor().uninstrument()
 
     def request_hook(self, span, request):
         instance = highlight_io.H.get_instance()
