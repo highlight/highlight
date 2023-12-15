@@ -29,7 +29,15 @@ export default createNextApiHandler({
   // ... your config
   onError: ({ error, req }) => {
     // ... your own error handling logic here
-    Handlers.trpcOnError({ error, req }, { projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-trpc-app', serviceVersion: 'git-sha' })
+    Handlers.trpcOnError(
+			{ error, req },
+			{
+				projectID: '<YOUR_PROJECT_ID>',
+				serviceName: 'my-trpc-app',
+				serviceVersion: 'git-sha',
+				environment: 'production'
+			}
+		)
   },
 })
 `,

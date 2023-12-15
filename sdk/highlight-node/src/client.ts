@@ -8,7 +8,8 @@ import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
-import { IncomingHttpHeaders } from 'http'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import type { IncomingHttpHeaders } from 'http'
 import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
@@ -19,6 +20,22 @@ import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
+
+const instrumentations = getNodeAutoInstrumentations({
+	'@opentelemetry/instrumentation-pino': {
+		logHook: (span, record, level) => {
+			const context = Highlight.parseHeaders(undefined)
+			record['highlight.session_id'] = context.secureSessionId
+			record['highlight.trace_id'] = context.requestId
+			// @ts-ignore
+			const attrs = span.attributes
+			for (const [key, value] of Object.entries(attrs)) {
+				record[key] = value
+			}
+		},
+	},
+})
+registerInstrumentations({ instrumentations })
 
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
@@ -53,6 +70,12 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	}
 }
 
+const OTEL_TO_OPTIONS = {
+	[SemanticResourceAttributes.SERVICE_NAME]: 'serviceName',
+	[SemanticResourceAttributes.SERVICE_VERSION]: 'serviceVersion',
+	[SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: 'environment',
+} as const
+
 export class Highlight {
 	readonly FLUSH_TIMEOUT_MS = 30 * 1000
 	_projectID: string
@@ -60,7 +83,7 @@ export class Highlight {
 	otel: NodeSDK
 	private tracer: Tracer
 	private processor: CustomSpanProcessor
-	private asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
+	private static asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -73,7 +96,7 @@ export class Highlight {
 
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
-				const { secureSessionId, requestId } = this.parseHeaders(
+				const { secureSessionId, requestId } = Highlight.parseHeaders(
 					// look for the context in asyncLocalStorage only
 					{},
 				)
@@ -118,14 +141,10 @@ export class Highlight {
 		const attributes: Attributes = {}
 		attributes['highlight.project_id'] = this._projectID
 
-		if (options.serviceName) {
-			attributes[SemanticResourceAttributes.SERVICE_NAME] =
-				options.serviceName
-		}
-
-		if (options.serviceVersion) {
-			attributes[SemanticResourceAttributes.SERVICE_VERSION] =
-				options.serviceVersion
+		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
+			if (options[option]) {
+				attributes[otelAttr] = options[option]
+			}
 		}
 
 		this.otel = new NodeSDK({
@@ -134,13 +153,7 @@ export class Highlight {
 			resource: new Resource(attributes),
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [
-				getNodeAutoInstrumentations({
-					'@opentelemetry/instrumentation-fs': {
-						enabled: options.enableFsInstrumentation ?? false,
-					},
-				}),
-			],
+			instrumentations,
 		})
 		this.otel.start()
 
@@ -317,7 +330,7 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	parseHeaders(
+	static parseHeaders(
 		headers: Headers | IncomingHttpHeaders | undefined,
 	): HighlightContext {
 		let requestHeaders: IncomingHttpHeaders = {}
@@ -337,27 +350,27 @@ export class Highlight {
 				return { secureSessionId, requestId }
 			}
 		} catch (e) {
-			this._log('parseHeaders error: ', e)
+			log('parseHeaders error: ', e)
 		}
 		return { secureSessionId: undefined, requestId: undefined }
 	}
 
-	runWithHeaders<T>(
+	static runWithHeaders<T>(
 		headers: Headers | IncomingHttpHeaders | undefined,
 		cb: () => T,
 	) {
-		const highlightCtx = this.parseHeaders(headers)
+		const highlightCtx = Highlight.parseHeaders(headers)
 		if (highlightCtx) {
-			return this.asyncLocalStorage.run(highlightCtx, cb)
+			return Highlight.asyncLocalStorage.run(highlightCtx, cb)
 		} else {
 			return cb()
 		}
 	}
 
-	setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
-		const highlightCtx = this.parseHeaders(headers)
+	static setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
+		const highlightCtx = Highlight.parseHeaders(headers)
 		if (highlightCtx) {
-			this.asyncLocalStorage.enterWith(highlightCtx)
+			Highlight.asyncLocalStorage.enterWith(highlightCtx)
 		}
 	}
 }

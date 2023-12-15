@@ -1413,7 +1413,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.NewWorker(r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
@@ -1748,6 +1748,7 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error reading request body"))
 			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 
@@ -1756,30 +1757,34 @@ func (r *Resolver) StripeWebhook(ctx context.Context, endpointSecret string) fun
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 
 		if err := json.Unmarshal(payload, &event); err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "failed to parse webhook body json"))
 			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 
 		log.WithContext(ctx).Infof("Stripe webhook received event type: %s", event.Type)
 
 		switch event.Type {
-		case "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted":
+		case stripe.EventTypeCustomerSubscriptionCreated, stripe.EventTypeCustomerSubscriptionUpdated, stripe.EventTypeCustomerSubscriptionDeleted:
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to parse webhook body json as Subscription"))
 				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte(err.Error()))
 				return
 			}
 
 			if err := r.updateBillingDetails(ctx, subscription.Customer.ID); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to update billing details"))
 				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(err.Error()))
 				return
 			}
 		}

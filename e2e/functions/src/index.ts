@@ -21,6 +21,7 @@ export const hey = functions.https.onCall(
 			projectID: '1',
 			serviceName: 'my-firebase-app',
 			serviceVersion: '1.0.0',
+			environment: 'e2e-test',
 		},
 	),
 )

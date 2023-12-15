@@ -1036,6 +1036,7 @@ query GetBillingDetails($workspace_id: ID!) {
 			status
 		}
 		billingIssue
+		billingIngestBlocked
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -1071,6 +1072,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			status
 		}
 		billingIssue
+		billingIngestBlocked
 	}
 }
 

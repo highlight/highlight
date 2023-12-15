@@ -8,6 +8,7 @@ const config = {
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
 	otlpEndpoint: 'http://localhost:4318',
+	environment: 'e2e-test',
 }
 H.init(config)
 
@@ -32,7 +33,7 @@ app.get('/good', (req, res) => {
 	for (let i = 0; i < 1000; i++) {
 		const value = Math.random() * 1000
 		result += value
-		console.info('some work happening', { result, value })
+		console.warn('some work happening', { result, value })
 	}
 	res.send('yay!')
 })

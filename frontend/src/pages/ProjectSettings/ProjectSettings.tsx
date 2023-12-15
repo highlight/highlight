@@ -34,10 +34,10 @@ import {
 	namedOperations,
 } from '@/graph/generated/operations'
 import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveStaleErrorsForm/AutoresolveStaleErrorsForm'
-import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 import styles from './ProjectSettings.module.css'
+import { SessionFiltersCallout } from './SessionFiltersCallout/SessionFiltersCallout'
 
 const ProjectSettings = () => {
 	const navigate = useNavigate()
@@ -163,7 +163,7 @@ const ProjectSettings = () => {
 												</Button>
 											</Box>
 											<ExcludedUsersForm />
-											<FilterSessionsWithoutErrorForm />
+											<SessionFiltersCallout />
 											<RageClicksForm />
 											{workspaceSettingsData
 												?.workspaceSettings
