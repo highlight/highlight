@@ -79,7 +79,6 @@ export const InviteTeamForm: React.FC = () => {
 			variables: { workspace_id: workspace?.id ?? '' },
 			skip: !inWorkspace,
 		})
-	console.log('adminRoleData', adminRoleData)
 	const adminRole = adminRoleData?.admin_role?.role ?? AdminRole.Member
 
 	const formStore = useFormStore({

@@ -5917,7 +5917,7 @@ body {
   font-weight: 500;
   max-width: calc(100% - 26px);
   overflow: hidden;
-  padding-right: 4px;
+  padding-right: 8px;
   pointer-events: none;
   position: absolute;
   white-space: pre;

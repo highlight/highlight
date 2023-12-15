@@ -1,14 +1,13 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from 'antlr4'
 
 import {
-	Filter,
+	Expression,
 	SearchErrorListener,
 	SearchListener,
 } from '@/components/Search/Parser/listener'
 import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
 
 import SearchGrammarLexer from './SearchGrammarLexer'
-import Search from 'antd/lib/transfer/search'
 
 export const buildParser = (input: string) => {
 	const chars = new CharStream(input)
@@ -20,7 +19,7 @@ export const buildParser = (input: string) => {
 
 export const parseSearch = (input: string) => {
 	const { parser, tokens } = buildParser(input)
-	const queryParts: Filter[] = []
+	const queryParts: Expression[] = []
 
 	// Setup a custom error listener. The default listener prints a lot of noise.
 	parser.removeErrorListeners()
@@ -32,82 +31,88 @@ export const parseSearch = (input: string) => {
 	// Walk the tree created during the parse, trigger callbacks
 	ParseTreeWalker.DEFAULT.walk(listener, tree)
 
-	return { queryParts, tokens: groupTokens(tokens.tokens) }
+	return {
+		queryParts,
+		tokens: tokens.tokens,
+		tokenGroups: groupTokens(tokens.tokens, queryParts, input),
+	}
 }
 
-const stringTokens = [SearchGrammarParser.STRING, SearchGrammarParser.ID]
-const operatorTokens = [
-	SearchGrammarParser.EQ,
-	SearchGrammarParser.NEQ,
-	SearchGrammarParser.GT,
-	SearchGrammarParser.GTE,
-	SearchGrammarParser.LT,
-	SearchGrammarParser.LTE,
-]
+export type SearchToken = {
+	type: number
+	text: string
+	start: number
+	stop: number
+}
 
-export const groupTokens = (tokens: Token[]) => {
-	const originalString = (tokens[0] as any).getInputStream().strdata
-	const groupedTokens: Token[][] = []
-	let currentGroup: Token[] = []
-	let hasOperator = false
-	let hasMatchingParens = true
-	let hasKey = false
-	let hasValue = false
-	let startIndex: number | undefined = undefined
-	let stopIndex: number
-
-	for (const token of tokens) {
-		if (startIndex === undefined) {
-			startIndex = token.start
+export const groupTokens = (
+	tokens: Token[],
+	expressions: Expression[],
+	queryString: string,
+) => {
+	const groupedTokens: {
+		[start: number]: {
+			tokens: SearchToken[]
 		}
+	} = {}
 
-		if (token.type === SearchGrammarParser.LPAREN) {
-			hasMatchingParens = false
-		}
+	tokens.forEach((token, index) => {
+		const { start } = token
+		const prevStop = tokens[index - 1]?.stop ?? -1
+		const expression = expressions.find(
+			(e) => e.start <= start && e.stop >= token.stop,
+		)
+		const expressionStart = expression?.start
+		const whitespaceLength = start - prevStop - 1
 
-		if (token.type === SearchGrammarParser.RPAREN) {
-			hasMatchingParens = true
-		}
+		if (whitespaceLength) {
+			const whitespaceStart = start - (whitespaceLength ?? 0)
+			const whitespaceStop = whitespaceStart + whitespaceLength
+			const whitespaceToken = {
+				type: 100,
+				text: ' '.repeat(whitespaceLength),
+				start: whitespaceStart,
+				stop: whitespaceStop,
+			}
 
-		if (operatorTokens.includes(token.type)) {
-			hasOperator = true
-		}
-
-		if (stringTokens.includes(token.type)) {
-			if (hasKey) {
-				if (hasOperator) {
-					hasValue = true
-				} else {
-					groupedTokens.push(currentGroup)
-					currentGroup = []
-					hasOperator = false
-					hasKey = false
-				}
+			if (
+				expressionStart !== undefined &&
+				expressionStart <= whitespaceStart
+			) {
+				groupedTokens[expressionStart].tokens.push(whitespaceToken)
 			} else {
-				hasKey = true
+				groupedTokens[whitespaceStart] = {
+					tokens: [whitespaceToken],
+				}
 			}
 		}
 
-		currentGroup.push(token)
+		if (expressionStart !== undefined && token.type !== -1) {
+			if (!groupedTokens[expressionStart]) {
+				groupedTokens[expressionStart] = {
+					tokens: [],
+				}
+			}
 
-		if (hasMatchingParens && hasOperator && hasKey && hasValue) {
-			stopIndex = token.stop
-			// This works to get the full tag text, but need to figure out how to
-			// handle rendering of the tag group :thinking:
-			const text = originalString.substring(startIndex, stopIndex + 1)
-			console.log('::: text', text)
-			groupedTokens.push(currentGroup)
-			currentGroup = []
-			hasOperator = false
-			hasKey = false
-			hasValue = false
-			startIndex = undefined
+			groupedTokens[expressionStart].tokens.push({
+				type: token.type,
+				text: token.text,
+				start: token.start,
+				stop: token.stop,
+			})
+		} else if (token.type !== -1) {
+			groupedTokens[start] = {
+				tokens: [
+					{
+						type: token.type,
+						text: token.text,
+						start: token.start,
+						stop: token.stop,
+					},
+				],
+			}
 		}
-	}
+	})
 
-	if (currentGroup.length) {
-		groupedTokens.push(currentGroup)
-	}
-
-	return groupedTokens
+	return Object.values(groupedTokens).map((group) => group.tokens)
 }

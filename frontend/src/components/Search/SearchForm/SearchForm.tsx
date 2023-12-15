@@ -237,9 +237,8 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
-	const { queryParts, tokens } = parseSearch(query)
-	console.log('::: tokens', tokens)
-	const queryAsStringParts = queryParts.map((part) => part.value)
+	const { tokenGroups } = parseSearch(query)
+	console.log('::: tokenGroups', tokenGroups)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
@@ -376,9 +375,14 @@ export const Search: React.FC<{
 	}
 
 	const handleRemoveItem = (index: number) => {
-		const parts = [...queryAsStringParts]
-		parts.splice(index, 1)
-		const newQuery = parts.join(' ')
+		const groups = [...tokenGroups]
+		const hasTrailingWhitespace = groups[index + 1]?.[0]?.text.trim() === ''
+		const numItemsToRemove = hasTrailingWhitespace ? 2 : 1
+		groups.splice(index, numItemsToRemove)
+		const newQuery = groups
+			.flat()
+			.map((t) => t.text)
+			.join('')
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
@@ -412,7 +416,8 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
-					{queryAsStringParts.map((term, index) => {
+					{tokenGroups.map((group, index) => {
+						const term = group.map((token) => token.text).join('')
 						const nextIndex = currentIndex + term.length
 						const active =
 							cursorIndex >= currentIndex &&
