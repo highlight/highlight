@@ -87,6 +87,7 @@ func StartSpan(operationName string, options ...SpanOption) MultiSpan {
 type SpanConfig struct {
 	Tags                     []attribute.KeyValue
 	HighlightTracingDisabled bool
+	SpanKind                 trace.SpanKind
 }
 
 type SpanOption func(cfg *SpanConfig)
@@ -107,5 +108,11 @@ func ResourceName(name string) SpanOption {
 func WithHighlightTracingDisabled(disabled bool) SpanOption {
 	return func(cfg *SpanConfig) {
 		cfg.HighlightTracingDisabled = disabled
+	}
+}
+
+func WithSpanKind(kind trace.SpanKind) SpanOption {
+	return func(cfg *SpanConfig) {
+		cfg.SpanKind = kind
 	}
 }

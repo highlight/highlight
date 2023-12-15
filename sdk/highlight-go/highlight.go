@@ -2,6 +2,7 @@ package highlight
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,7 +21,7 @@ type config struct {
 	projectID          string
 	resourceAttributes []attribute.KeyValue
 	metricSamplingRate float64
-	samplingRate       float64
+	samplingRateMap    map[trace.SpanKind]float64
 }
 
 var (
@@ -29,7 +30,9 @@ var (
 	conf          = &config{
 		otlpEndpoint:       OTLPDefaultEndpoint,
 		metricSamplingRate: 1.,
-		samplingRate:       1.,
+		samplingRateMap: map[trace.SpanKind]float64{
+			trace.SpanKindUnspecified: 1.,
+		},
 	}
 )
 
@@ -57,7 +60,15 @@ func WithMetricSamplingRate(samplingRate float64) Option {
 
 func WithSamplingRate(samplingRate float64) Option {
 	return option(func(conf *config) {
-		conf.samplingRate = samplingRate
+		conf.samplingRateMap = map[trace.SpanKind]float64{
+			trace.SpanKindUnspecified: samplingRate,
+		}
+	})
+}
+
+func WithSamplingRateMap(rates map[trace.SpanKind]float64) Option {
+	return option(func(conf *config) {
+		conf.samplingRateMap = rates
 	})
 }
 
@@ -213,10 +224,6 @@ func SetOTLPEndpoint(newOtlpEndpoint string) {
 
 func SetDebugMode(l Logger) {
 	logger.Logger = l
-}
-
-func SetSamplingRate(rate float64) {
-	conf.samplingRate = rate
 }
 
 func SetProjectID(id string) {
