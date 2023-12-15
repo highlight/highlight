@@ -139,5 +139,5 @@ func serializeVars(vars map[string]interface{}) string {
 	if vars == nil {
 		return ""
 	}
-	return fmt.Sprintf("%#+v", vars)
+	return fmt.Sprintf("%+v", vars)
 }
