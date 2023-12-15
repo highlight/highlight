@@ -12,6 +12,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/gofiber/fiber/v2/log"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/highlight-run/highlight/backend/util"
@@ -742,6 +743,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	fromSb.Limit(10000)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	log.WithContext(ctx).Info(str)
 
 	metrics := &modelInputs.MetricsBuckets{
 		Buckets: []*modelInputs.MetricBucket{},
@@ -763,7 +766,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	)
 
 	groupByColResults := make([]string, len(groupBy))
-	metricResults := make([]float64, len(metricTypes))
+	metricResults := make([]*float64, len(metricTypes))
 	scanResults := make([]interface{}, 2+len(groupByColResults) + +len(metricResults))
 	scanResults[0] = &groupKey
 	scanResults[1] = &sampleFactor
@@ -785,12 +788,16 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		}
 
 		for idx, metricType := range metricTypes {
+			result := metricResults[idx]
+			if result == nil {
+				continue
+			}
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID: bucketId,
 				// make a slice copy as we reuse the same `groupByColResults` across multiple scans
 				Group:       append(make([]string, 0), groupByColResults...),
 				MetricType:  metricType,
-				MetricValue: metricResults[idx],
+				MetricValue: *result,
 			})
 		}
 	}

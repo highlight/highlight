@@ -65,9 +65,9 @@ var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	attributesColumn: "LogAttributes",
 }
 
-var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
-	tableConfig:         tracesTableConfig,
-	samplingTableConfig: tracesSamplingTableConfig,
+var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{
+	tableConfig:         logsTableConfig,
+	samplingTableConfig: logsSamplingTableConfig,
 	samplingThreshold:   24 * time.Hour,
 }
 
