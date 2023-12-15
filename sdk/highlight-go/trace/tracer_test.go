@@ -50,7 +50,7 @@ func BenchmarkOld(b *testing.B) {
 		out, err = json.MarshalIndent(data, "", "")
 		assert.NoError(b, err)
 	}
-	b.Log(out)
+	b.Log(string(out))
 }
 
 func BenchmarkNew(b *testing.B) {
