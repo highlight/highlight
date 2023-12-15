@@ -237,7 +237,8 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const queryTerms = parseSearchQuery(query)
-	const { queryParts } = parseSearch(query)
+	const { queryParts, tokens } = parseSearch(query)
+	console.log('::: tokens', tokens)
 	const queryAsStringParts = queryParts.map((part) => part.value)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]

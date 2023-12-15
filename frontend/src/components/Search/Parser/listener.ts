@@ -1,6 +1,7 @@
 import {
 	ErrorListener,
 	ErrorNode,
+	ParserRuleContext,
 	RecognitionException,
 	Recognizer,
 	Token,
@@ -12,7 +13,6 @@ import {
 	Search_exprContext,
 	Search_keyContext,
 	Search_queryContext,
-	SpacesContext,
 } from '@/components/Search/Parser/SearchGrammarParser'
 
 type Type = 'filter' | 'spaces'
@@ -40,36 +40,37 @@ export class SearchListener extends SearchGrammarListener {
 
 		this.queryString = queryString
 		this.filters = filters
+		this.tokens = []
 	}
 
-	exitSearch_query = (_: Search_queryContext) => {
-		const lastFilter = this.filters[this.filters.length - 1]
+	// exitSearch_query = (_: Search_queryContext) => {
+	// 	const lastFilter = this.filters[this.filters.length - 1]
 
-		// If the query ends with spaces (could be more than ont), add them as the
-		// last filter and trim them off the existing last filter.
-		// TODO: See if we can fix this in the grammar rather than here. See #7323
-		// for more details.
-		if (
-			lastFilter &&
-			lastFilter.type === 'filter' &&
-			lastFilter.value.endsWith(' ')
-		) {
-			const match = lastFilter.value.match(/(\s*)$/)
-			const trailingSpaces = match ? match[0] : ''
+	// 	// If the query ends with spaces (could be more than ont), add them as the
+	// 	// last filter and trim them off the existing last filter.
+	// 	// TODO: See if we can fix this in the grammar rather than here. See #7323
+	// 	// for more details.
+	// 	if (
+	// 		lastFilter &&
+	// 		lastFilter.type === 'filter' &&
+	// 		lastFilter.value.endsWith(' ')
+	// 	) {
+	// 		const match = lastFilter.value.match(/(\s*)$/)
+	// 		const trailingSpaces = match ? match[0] : ''
 
-			if (lastFilter) {
-				lastFilter.value = lastFilter.value.trimEnd()
-				lastFilter.stop = lastFilter.stop - trailingSpaces.length
-			}
+	// 		if (lastFilter) {
+	// 			lastFilter.value = lastFilter.value.trimEnd()
+	// 			lastFilter.stop = lastFilter.stop - trailingSpaces.length
+	// 		}
 
-			this.filters.push({
-				type: 'spaces',
-				value: trailingSpaces,
-				start: lastFilter.stop,
-				stop: lastFilter.stop,
-			})
-		}
-	}
+	// 		this.filters.push({
+	// 			type: 'spaces',
+	// 			value: trailingSpaces,
+	// 			start: lastFilter.stop,
+	// 			stop: lastFilter.stop,
+	// 		})
+	// 	}
+	// }
 
 	enterSearch_expr = (ctx: Search_exprContext) => {
 		if (!this.hasChildExpressions(ctx)) {
@@ -83,7 +84,7 @@ export class SearchListener extends SearchGrammarListener {
 
 			this.currentFilter = {
 				type: 'filter',
-				value,
+				value: ctx.getText(),
 				key: 'default',
 				operator: '=',
 				start,

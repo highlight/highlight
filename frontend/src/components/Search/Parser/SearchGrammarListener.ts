@@ -7,7 +7,6 @@ import { Col_exprContext } from './SearchGrammarParser'
 import { Search_exprContext } from './SearchGrammarParser'
 import { Search_keyContext } from './SearchGrammarParser'
 import { Bin_opContext } from './SearchGrammarParser'
-import { SpacesContext } from './SearchGrammarParser'
 
 /**
  * This interface defines a complete listener for a parse tree produced by
@@ -64,14 +63,4 @@ export default class SearchGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitBin_op?: (ctx: Bin_opContext) => void
-	/**
-	 * Enter a parse tree produced by `SearchGrammarParser.spaces`.
-	 * @param ctx the parse tree
-	 */
-	enterSpaces?: (ctx: SpacesContext) => void
-	/**
-	 * Exit a parse tree produced by `SearchGrammarParser.spaces`.
-	 * @param ctx the parse tree
-	 */
-	exitSpaces?: (ctx: SpacesContext) => void
 }
