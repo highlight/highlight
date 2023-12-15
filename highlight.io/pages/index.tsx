@@ -162,7 +162,7 @@ const Home: NextPage = () => {
 								ref={leftBugRef}
 								width="400"
 								height="400"
-								onLoadedData={() => setBugLoaded(true)}
+								onPlay={() => setBugLoaded(true)}
 								autoPlay
 								muted
 								loop
@@ -182,7 +182,7 @@ const Home: NextPage = () => {
 								width="400"
 								height="400"
 								className="scale-x-[-1]"
-								onLoadedData={() => setBugLoaded(true)}
+								onPlay={() => setBugLoaded(true)}
 								autoPlay
 								muted
 								loop
