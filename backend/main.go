@@ -209,16 +209,12 @@ func main() {
 		}
 	}
 
-	samplingRate := 1.
-	if runtimeParsed == util.PublicGraph {
-		samplingRate = 1. / 1000
-	}
 	// setup highlight
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
 		highlight.WithEnvironment(util.EnvironmentName()),
 		highlight.WithMetricSamplingRate(1./100),
-		highlight.WithSamplingRate(samplingRate),
+		highlight.WithSamplingRate(1.),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
 	)
