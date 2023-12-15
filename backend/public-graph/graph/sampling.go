@@ -15,6 +15,7 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	trace2 "go.opentelemetry.io/otel/trace"
 	"hash/fnv"
 	"regexp"
 	"time"
@@ -22,7 +23,7 @@ import (
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(true),
+		"IsIngestedBy", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(true), util.WithSpanKind(trace2.SpanKindServer),
 		util.Tag(highlight.ProjectIDAttribute, trace.ProjectId),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 		util.Tag(highlight.TraceKeyAttribute, trace.UUID),
@@ -63,7 +64,7 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 
 func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow) bool {
 	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"),
+		"IsIngestedBy", util.ResourceName("sampling"), util.WithSpanKind(trace2.SpanKindServer),
 		util.Tag(highlight.ProjectIDAttribute, logRow.ProjectId),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 		util.Tag(highlight.TraceKeyAttribute, logRow.UUID),
@@ -132,7 +133,7 @@ func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, s
 
 func (r *Resolver) IsErrorIngested(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
 	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"),
+		"IsIngestedBy", util.ResourceName("sampling"), util.WithSpanKind(trace2.SpanKindServer),
 		util.Tag(highlight.ProjectIDAttribute, projectID),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 		util.Tag(highlight.TraceKeyAttribute, getErrorObjectID(errorObject)),
@@ -194,7 +195,7 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 
 func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
 	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"),
+		"IsIngestedBy", util.ResourceName("sampling"), util.WithSpanKind(trace2.SpanKindServer),
 		util.Tag(highlight.ProjectIDAttribute, s.ProjectID),
 		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 		util.Tag(highlight.TraceKeyAttribute, s.ID),

@@ -453,6 +453,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
 	additional_context?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -498,6 +499,7 @@ export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForSessionCommentMutation = {
@@ -587,6 +589,7 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -615,6 +618,7 @@ export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -3782,7 +3786,18 @@ export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'JiraProject' } & Pick<
 				Types.JiraProject,
 				'id' | 'name' | 'key'
-			>
+			> & {
+					issueTypes?: Types.Maybe<
+						Array<
+							Types.Maybe<
+								{ __typename?: 'JiraIssueType' } & Pick<
+									Types.JiraIssueType,
+									'id' | 'name' | 'description'
+								>
+							>
+						>
+					>
+				}
 		>
 	>
 }

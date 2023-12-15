@@ -508,14 +508,14 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 						value = value.Elem()
 					}
 				}
-				rowValue = value.String()
+				rowValue = repr(value)
 			} else {
-				rowValue = v.FieldByName(chKey).String()
+				rowValue = repr(v.FieldByName(chKey))
 			}
 		} else if config.attributesColumn != "" {
 			value := v.FieldByName(config.attributesColumn)
 			if value.Kind() == reflect.Map {
-				rowValue = value.MapIndex(reflect.ValueOf(key)).String()
+				rowValue = repr(value.MapIndex(reflect.ValueOf(key)))
 			} else if value.Kind() == reflect.Slice {
 				// assume that the key is a 'field' in `type_name` format
 				fieldParts := strings.SplitN(key, "_", 2)
@@ -523,7 +523,7 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 					fieldType := value.Index(i).Elem().FieldByName("Type").String()
 					name := value.Index(i).Elem().FieldByName("Name").String()
 					if fieldType == fieldParts[0] && name == fieldParts[1] {
-						rowValue = value.Index(i).Elem().FieldByName("Value").String()
+						rowValue = repr(value.Index(i).Elem().FieldByName("Value"))
 						break
 					}
 				}
@@ -547,4 +547,15 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 		}
 	}
 	return true
+}
+
+func repr(val reflect.Value) string {
+	switch val.Kind() {
+	case reflect.Pointer:
+		return repr(val.Elem())
+	case reflect.Bool:
+		return fmt.Sprintf("%t", val.Bool())
+	default:
+		return val.String()
+	}
 }

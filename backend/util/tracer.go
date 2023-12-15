@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"time"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
@@ -59,7 +60,7 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 
 	var hSpan trace.Span
 	if !hTracingDisabled {
-		hSpan, _ = highlight.StartTrace(ctx, operationName, cfg.Tags...)
+		hSpan, _ = highlight.StartTraceWithTimestamp(ctx, operationName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(cfg.SpanKind)}, cfg.Tags...)
 		ctx = trace.ContextWithSpan(ctx, hSpan)
 	}
 
@@ -76,7 +77,7 @@ func StartSpan(operationName string, options ...SpanOption) MultiSpan {
 
 	var hSpan trace.Span
 	if !cfg.HighlightTracingDisabled {
-		hSpan, _ = highlight.StartTrace(context.Background(), operationName, cfg.Tags...)
+		hSpan, _ = highlight.StartTraceWithTimestamp(context.Background(), operationName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(cfg.SpanKind)}, cfg.Tags...)
 	}
 
 	return MultiSpan{
@@ -87,6 +88,7 @@ func StartSpan(operationName string, options ...SpanOption) MultiSpan {
 type SpanConfig struct {
 	Tags                     []attribute.KeyValue
 	HighlightTracingDisabled bool
+	SpanKind                 trace.SpanKind
 }
 
 type SpanOption func(cfg *SpanConfig)
@@ -107,5 +109,11 @@ func ResourceName(name string) SpanOption {
 func WithHighlightTracingDisabled(disabled bool) SpanOption {
 	return func(cfg *SpanConfig) {
 		cfg.HighlightTracingDisabled = disabled
+	}
+}
+
+func WithSpanKind(kind trace.SpanKind) SpanOption {
+	return func(cfg *SpanConfig) {
+		cfg.SpanKind = kind
 	}
 }

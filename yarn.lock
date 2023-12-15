@@ -12649,7 +12649,7 @@ __metadata:
     typescript: ^5.0.4
     vitest: ^0.32.0
   peerDependencies:
-    next: ">=12"
+    next: ">=11"
     react: ">=17"
   languageName: unknown
   linkType: soft

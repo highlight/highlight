@@ -11,6 +11,7 @@ import React from 'react'
 
 export interface ContainerSelectionProps {
 	setSelectionId: (id: string) => void
+	setIssueTypeId?: (id: string) => void
 	disabled: boolean
 }
 

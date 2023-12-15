@@ -21,6 +21,13 @@ const highlightTransport = new winston.transports.Http({
 		'x-highlight-project': projectID,
 		'x-highlight-service': 'e2e-nextjs',
 	},
+	level: 'success',
+	format: winston.format.combine(
+		winston.format.json(),
+		winston.format.errors({ stack: true }),
+		winston.format.timestamp(),
+		winston.format.prettyPrint(),
+	),
 })
 
 export const logger = winston.createLogger({

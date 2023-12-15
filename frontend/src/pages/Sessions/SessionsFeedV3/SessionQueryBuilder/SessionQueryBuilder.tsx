@@ -178,10 +178,10 @@ const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 	return (
 		<QueryBuilder
 			searchContext={searchContext}
-			timeRangeField={TIME_RANGE_FIELD}
-			customFields={CUSTOM_FIELDS}
-			fetchFields={fetchFields}
-			fieldData={fieldData}
+			timeRangeField={props.timeRangeField ?? TIME_RANGE_FIELD}
+			customFields={props.customFields ?? CUSTOM_FIELDS}
+			fetchFields={props.fetchFields ?? fetchFields}
+			fieldData={props.fieldData ?? fieldData}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}
 			CreateAnySegmentModal={CreateSegmentModal}

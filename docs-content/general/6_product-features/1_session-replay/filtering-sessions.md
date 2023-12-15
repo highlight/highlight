@@ -28,7 +28,7 @@ With these filters, we will only bill you for data actually retained. For instan
 In some cases, you may want to filter sessions from a specific user. You can do this by adding the user identifier to the "Filtered Sessions" input under the "Session Replay" tab in your [project settings](https://app.highlight.io/settings). Please note that we use the `identifier` (or first argument) sent in your `H.identify` method to filter against (SDK docs [here](../../../sdk/client.md)).
 
 ## Filtering sessions without an error
-If you're using Highlight mostly for error monitoring, enable the "Filter sessions without an error" in your [project settings](https://app.highlight.io/settings) to only record sessions with an error.
+If you're using Highlight mostly for error monitoring, customize the ingest filters in your [project settings](https://app.highlight.io/settings/filters/sessions) to only record sessions with an error by setting the `Has Error: false` filter.
 
 ## Filtering sessions using custom logic
 If you'd like to filter sessions based on custom logic (e.g. filtering sessions from users who have not logged in), use the [`manualStart` flag](https://www.highlight.io/docs/sdk/client#manualStart) in your `H.init` configuration. This will allow you to start and stop a session at your discretion. 

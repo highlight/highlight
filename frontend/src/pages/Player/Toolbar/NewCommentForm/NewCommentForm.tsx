@@ -113,6 +113,7 @@ export const NewCommentForm = ({
 	const [selectedIssueService, setSelectedIssueService] =
 		useState<IntegrationType>()
 	const [containerId, setContainerId] = useState('')
+	const [issueTypeId, setIssueTypeId] = useState('')
 	const formStore = useFormStore({
 		defaultValues: {
 			commentText: '',
@@ -196,6 +197,7 @@ export const NewCommentForm = ({
 					issue_description: selectedIssueService
 						? issueDescription
 						: null,
+					issue_type_id: issueTypeId || undefined,
 				},
 				refetchQueries: [namedOperations.Query.GetErrorComments],
 			})
@@ -248,6 +250,7 @@ export const NewCommentForm = ({
 					additional_context: currentUrl
 						? `*User\'s URL* <${currentUrl}|${currentUrl}>`
 						: null,
+					issue_type_id: issueTypeId || undefined,
 				},
 				refetchQueries: [namedOperations.Query.GetSessionComments],
 			})
@@ -484,6 +487,7 @@ export const NewCommentForm = ({
 							{issueServiceDetail?.containerSelection({
 								disabled: isCreatingComment,
 								setSelectionId: setContainerId,
+								setIssueTypeId,
 							})}
 							<Form.Input
 								name="issueTitle"
