@@ -55,8 +55,7 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		attribute.String("graphql.field.name", fieldName),
 		attribute.String("graphql.object.type", fc.Object),
 	)
-	args := fmt.Sprintf("%+v", fc.Args)
-	if len(args) < 2048 {
+	if args := serializeVars(fc.Args); len(args) < 2048 {
 		span.SetAttributes(attribute.String("graphql.field.arguments", args))
 	}
 	res, err := next(ctx)
@@ -80,8 +79,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	variables := ""
 	if oc != nil {
 		opName = oc.OperationName
-		vars := fmt.Sprintf("%#+v", oc.Variables)
-		if len(vars) < 2048 {
+		if vars := serializeVars(oc.Variables); len(vars) < 2048 {
 			variables = vars
 		}
 	}
@@ -135,4 +133,11 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 		}
 		return gqlerr
 	}
+}
+
+func serializeVars(vars map[string]interface{}) string {
+	if vars == nil {
+		return ""
+	}
+	return fmt.Sprintf("%#+v", vars)
 }
