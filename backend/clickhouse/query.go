@@ -766,7 +766,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	)
 
 	groupByColResults := make([]string, len(groupBy))
-	metricResults := make([]float64, len(metricTypes))
+	metricResults := make([]*float64, len(metricTypes))
 	scanResults := make([]interface{}, 2+len(groupByColResults) + +len(metricResults))
 	scanResults[0] = &groupKey
 	scanResults[1] = &sampleFactor
@@ -788,12 +788,16 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		}
 
 		for idx, metricType := range metricTypes {
+			result := metricResults[idx]
+			if result == nil {
+				continue
+			}
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID: bucketId,
 				// make a slice copy as we reuse the same `groupByColResults` across multiple scans
 				Group:       append(make([]string, 0), groupByColResults...),
 				MetricType:  metricType,
-				MetricValue: metricResults[idx],
+				MetricValue: *result,
 			})
 		}
 	}
