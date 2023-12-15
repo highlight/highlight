@@ -1,14 +1,15 @@
+import { gql } from 'graphql-request'
 import { GetStaticProps } from 'next'
 import Image from 'next/legacy/image'
-import styles from '../../components/Customers/CustomersList.module.scss'
-import productStyles from '../../components/Products/Products.module.scss'
-import Navbar from '../../components/common/Navbar/Navbar'
-import Footer from '../../components/common/Footer/Footer'
-import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
-import { Typography } from '../../components/common/Typography/Typography'
-import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
-import { gql } from 'graphql-request'
+import { useState } from 'react'
+import { AnimateCarouselImage } from '../../components/Animate'
 import { Author } from '../../components/Blog/BlogPost/BlogPost'
+import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
+import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
+import Footer from '../../components/common/Footer/Footer'
+import Navbar from '../../components/common/Navbar/Navbar'
+import { Typography } from '../../components/common/Typography/Typography'
+import styles from '../../components/Customers/CustomersList.module.scss'
 import { GraphQLRequest } from '../../utils/graphql'
 
 interface Customer {
@@ -160,6 +161,8 @@ const CustomerCaseCard = ({
 	role: string
 	slug: string
 }) => {
+	const [loaded, setLoaded] = useState(false)
+
 	return (
 		<div className={styles.caseCard}>
 			<div className={styles.thumbnail}>
@@ -174,13 +177,17 @@ const CustomerCaseCard = ({
 				<div>
 					{logo && (
 						<div className={styles.companyCaseLogo}>
-							<Image
-								src={logo}
-								alt="Company logo"
-								layout="fill"
-								objectFit="contain"
-								objectPosition="left"
-							/>
+							<AnimateCarouselImage loaded={loaded}>
+								<Image
+									src={logo}
+									priority={true}
+									alt="Company logo"
+									layout="fill"
+									objectFit="contain"
+									objectPosition="left"
+									onLoad={() => setLoaded(true)}
+								/>
+							</AnimateCarouselImage>
 						</div>
 					)}
 					<div className={styles.caseCardQuote}>
