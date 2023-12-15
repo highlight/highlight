@@ -4,7 +4,6 @@ package htrace
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -56,10 +55,9 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		attribute.String("graphql.field.name", fieldName),
 		attribute.String("graphql.object.type", fc.Object),
 	)
-	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
-		if bs := string(b); len(bs) < 2048 {
-			span.SetAttributes(attribute.String("graphql.field.arguments", bs))
-		}
+	args := fmt.Sprintf("%+v", fc.Args)
+	if len(args) < 2048 {
+		span.SetAttributes(attribute.String("graphql.field.arguments", args))
 	}
 	res, err := next(ctx)
 	highlight.RecordSpanError(
@@ -82,10 +80,9 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	variables := ""
 	if oc != nil {
 		opName = oc.OperationName
-		if b, err := json.MarshalIndent(oc.Variables, "", ""); err == nil {
-			if bs := string(b); len(bs) < 2048 {
-				variables = bs
-			}
+		vars := fmt.Sprintf("%#+v", oc.Variables)
+		if len(vars) < 2048 {
+			variables = vars
 		}
 	}
 	name := fmt.Sprintf("graphql.operation.%s", opName)
