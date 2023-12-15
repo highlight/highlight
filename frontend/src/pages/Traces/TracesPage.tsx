@@ -1,7 +1,8 @@
 import { Box, defaultPresets, getNow, Text } from '@highlight-run/ui/components'
+import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useCallback, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -24,17 +25,10 @@ import {
 import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
-	useGetTracesLazyQuery,
 	useGetTracesMetricsQuery,
-	useGetTracesQuery,
 } from '@/graph/generated/hooks'
 import {
-	GetTracesQuery,
-	GetTracesQueryVariables,
-} from '@/graph/generated/operations'
-import {
 	MetricAggregator,
-	SortDirection,
 	Trace,
 	TracesMetricColumn,
 } from '@/graph/generated/schemas'
@@ -42,8 +36,8 @@ import { useProjectId } from '@/hooks/useProjectId'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
+import { useGetTraces } from '@/pages/Traces/useGetTraces'
 import { formatNumber } from '@/util/numbers'
-import { usePollQuery } from '@/util/search'
 
 import * as styles from './TracesPage.css'
 
@@ -51,6 +45,9 @@ export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
+	const { trace_cursor: traceCursor } = useParams<{
+		trace_cursor: string
+	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
@@ -71,18 +68,19 @@ export const TracesPage: React.FC = () => {
 		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
 	}
 
-	const { data, loading } = useGetTracesQuery({
-		variables: {
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: moment(startDate).format(TIME_FORMAT),
-					end_date: moment(endDate).format(TIME_FORMAT),
-				},
-				query: serverQuery,
-			},
-			direction: SortDirection.Desc,
-		},
+	const {
+		traceEdges,
+		moreTraces,
+		clearMoreTraces,
+		loading,
+		loadingAfter,
+		fetchMoreForward,
+	} = useGetTraces({
+		query,
+		projectId,
+		traceCursor,
+		startDate,
+		endDate,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =
@@ -109,37 +107,19 @@ export const TracesPage: React.FC = () => {
 			fetchPolicy: 'cache-and-network',
 		})
 
-	const [moreDataQuery] = useGetTracesLazyQuery({
-		fetchPolicy: 'network-only',
-	})
-
-	const { numMore: numMoreTraces, reset: resetMoreTraces } = usePollQuery<
-		GetTracesQuery,
-		GetTracesQueryVariables
-	>({
-		variableFn: useCallback(
-			() => ({
-				project_id: projectId!,
-				direction: SortDirection.Desc,
-				params: {
-					query: serverQuery,
-					date_range: {
-						start_date: moment(endDate).format(TIME_FORMAT),
-						end_date: moment(endDate)
-							.add(1, 'hour')
-							.format(TIME_FORMAT),
-					},
-				},
-			}),
-			[endDate, projectId, serverQuery],
-		),
-		moreDataQuery,
-		getResultCount: useCallback((result) => {
-			if (result?.data?.traces.edges.length !== undefined) {
-				return result?.data?.traces.edges.length
+	const fetchMoreWhenScrolled = React.useCallback(
+		(containerRefElement?: HTMLDivElement | null) => {
+			if (containerRefElement) {
+				const { scrollHeight, scrollTop, clientHeight } =
+					containerRefElement
+				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
+				if (scrollHeight - scrollTop - clientHeight < 100) {
+					fetchMoreForward()
+				}
 			}
-		}, []),
-	})
+		},
+		[fetchMoreForward],
+	)
 
 	const histogramBuckets = metricsData?.traces_metrics.buckets
 		.filter((b) => b.metric_type === MetricAggregator.Count)
@@ -179,12 +159,12 @@ export const TracesPage: React.FC = () => {
 	})
 
 	const outletContext = useMemo<TracesOutletContext>(() => {
-		if (!data?.traces) {
+		if (!traceEdges) {
 			return []
 		}
 
-		return data.traces.edges.map((edge) => edge.node)
-	}, [data?.traces])
+		return traceEdges.map((edge) => edge.node)
+	}, [traceEdges])
 
 	return (
 		<>
@@ -302,12 +282,14 @@ export const TracesPage: React.FC = () => {
 
 					<TracesList
 						loading={loading}
-						numMoreTraces={numMoreTraces}
-						traces={data?.traces}
+						numMoreTraces={moreTraces}
+						traceEdges={traceEdges}
 						handleAdditionalTracesDateChange={
 							handleAdditionTracesDateChange
 						}
-						resetMoreTraces={resetMoreTraces}
+						resetMoreTraces={clearMoreTraces}
+						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+						loadingAfter={loadingAfter}
 					/>
 				</Box>
 			</Box>
