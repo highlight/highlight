@@ -459,15 +459,13 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	return client.conn.Exec(ctx, sql, args...)
 }
 
-var sessionsTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
-	tableName: SessionsTable,
-	keysToColumns: map[modelInputs.ReservedSessionKey]string{
-		modelInputs.ReservedSessionKeyEnvironment: "Environment",
-		modelInputs.ReservedSessionKeyServiceName: "ServiceName",
-		modelInputs.ReservedSessionKeyAppVersion:  "AppVersion",
-	},
+var sessionsTableConfig = tableConfig[string]{
+	tableName:        SessionsTable,
+	keysToColumns:    fieldMap,
 	attributesColumn: "Fields",
-	reservedKeys:     modelInputs.AllReservedSessionKey,
+	reservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
+		return item.String()
+	}),
 }
 
 func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) bool {

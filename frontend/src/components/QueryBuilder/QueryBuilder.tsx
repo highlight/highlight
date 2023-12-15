@@ -1162,7 +1162,11 @@ export interface QueryBuilderProps {
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesClickhouseQuery
 	errorTagData?: GetErrorTagsQuery
+	operators?: Operator[]
+	droppedFieldTypes?: string[]
+
 	readonly?: boolean
+	onlyAnd?: boolean
 	minimal?: boolean
 	setDefault?: boolean
 	useEditAnySegmentMutation:
@@ -1202,7 +1206,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fetchFields,
 		fieldData,
 		errorTagData,
+		droppedFieldTypes,
 		readonly,
+		onlyAnd,
+		operators,
 		minimal,
 		setDefault,
 		useEditAnySegmentMutation,
@@ -1210,6 +1217,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		CreateAnySegmentModal,
 		DeleteAnySegmentModal,
 	} = props
+	const ops = operators ?? OPERATORS
 
 	const {
 		searchQuery,
@@ -1320,7 +1328,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const getDefaultOperator = (field: SelectOption | undefined) =>
-		((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0]
+		((field && getCustomFieldOptions(field)?.operators) ?? ops)[0]
 
 	const { data: appVersionData } = useGetAppVersionsQuery({
 		variables: { project_id: projectId! },
@@ -1419,6 +1427,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		async (input: string) => {
 			return customFields
 				.concat(fieldData?.field_types ?? [])
+				.filter(
+					(ft) =>
+						!droppedFieldTypes ||
+						!droppedFieldTypes.includes(ft.type ?? ''),
+				)
 				.map((ft) => ({
 					label: ft.name,
 					value: ft.type + '_' + ft.name,
@@ -1440,7 +1453,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}
 				})
 		},
-		[customFields, fieldData?.field_types],
+		[customFields, droppedFieldTypes, fieldData?.field_types],
 	)
 
 	const getOperatorOptionsCallback = (
@@ -1448,7 +1461,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		val: MultiselectOption | undefined,
 	) => {
 		return async (input: string) => {
-			return (options?.operators ?? OPERATORS)
+			return (options?.operators ?? ops)
 				.map((op) => getOperator(op, val))
 				.filter((op) => op !== undefined)
 				.filter((op) =>
@@ -1918,7 +1931,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										emphasis="low"
 										onClick={toggleIsAndImpl}
 										key={`separator-${index}`}
-										disabled={readonly}
+										disabled={onlyAnd ? true : readonly}
 									>
 										{isAnd ? 'and' : 'or'}
 									</Tag>,
