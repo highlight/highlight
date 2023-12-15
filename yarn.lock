@@ -12884,8 +12884,7 @@ __metadata:
   dependencies:
     "@highlight-run/rrweb-snapshot": "workspace:*"
     typescript: "npm:^4.7.3"
-    vite: "npm:^3.2.0-beta.2"
-    vite-plugin-dts: "npm:^1.6.6"
+    vite: "npm:^3.2.6"
   languageName: unknown
   linkType: soft
 
@@ -12931,7 +12930,7 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:^13.1.3"
     "@types/chai": "npm:^4.1.6"
     "@types/css-font-loading-module": "npm:0.0.7"
-    "@types/dom-mediacapture-transform": "npm:^0.1.3"
+    "@types/dom-mediacapture-transform": "npm:0.1.5"
     "@types/inquirer": "npm:^8.2.1"
     "@types/jest": "npm:^27.4.1"
     "@types/jest-image-snapshot": "npm:^5.1.0"
@@ -14549,39 +14548,6 @@ __metadata:
     "@microsoft/tsdoc-config": "npm:~0.16.1"
     "@rushstack/node-core-library": "npm:3.59.6"
   checksum: 785453dfba4558cb20955204c69fea5e0f892eee213377bfeccc2e873f786c63d8f6cd55387c3d3c888bdc8af49118d1c9f1a827d4a64ec61758c04654e319f4
-  languageName: node
-  linkType: hard
-
-"@microsoft/api-extractor-model@npm:7.28.3":
-  version: 7.28.3
-  resolution: "@microsoft/api-extractor-model@npm:7.28.3"
-  dependencies:
-    "@microsoft/tsdoc": "npm:0.14.2"
-    "@microsoft/tsdoc-config": "npm:~0.16.1"
-    "@rushstack/node-core-library": "npm:3.62.0"
-  checksum: 704b8bfbf0b93c1d0605506a5a34ba3c68794d451f4b1dbfdc58fc142200c4d4391a435dd13d2d9470daaf4263ccdcee35f7e1806d1978cc64df6d0483481f94
-  languageName: node
-  linkType: hard
-
-"@microsoft/api-extractor@npm:^7.33.5":
-  version: 7.38.5
-  resolution: "@microsoft/api-extractor@npm:7.38.5"
-  dependencies:
-    "@microsoft/api-extractor-model": "npm:7.28.3"
-    "@microsoft/tsdoc": "npm:0.14.2"
-    "@microsoft/tsdoc-config": "npm:~0.16.1"
-    "@rushstack/node-core-library": "npm:3.62.0"
-    "@rushstack/rig-package": "npm:0.5.1"
-    "@rushstack/ts-command-line": "npm:4.17.1"
-    colors: "npm:~1.2.1"
-    lodash: "npm:~4.17.15"
-    resolve: "npm:~1.22.1"
-    semver: "npm:~7.5.4"
-    source-map: "npm:~0.6.1"
-    typescript: "npm:~5.0.4"
-  bin:
-    api-extractor: bin/api-extractor
-  checksum: 749c0b6677ec018028012b66b549a76c09f9afad1e1470c3912a45f9478c8c108931e926beca42d2846544d3839922fa3667e40e8fd9a8774600a5b86e87d0ad
   languageName: node
   linkType: hard
 
@@ -19665,26 +19631,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/node-core-library@npm:3.62.0, @rushstack/node-core-library@npm:^3.53.2":
-  version: 3.62.0
-  resolution: "@rushstack/node-core-library@npm:3.62.0"
-  dependencies:
-    colors: "npm:~1.2.1"
-    fs-extra: "npm:~7.0.1"
-    import-lazy: "npm:~4.0.0"
-    jju: "npm:~1.4.0"
-    resolve: "npm:~1.22.1"
-    semver: "npm:~7.5.4"
-    z-schema: "npm:~5.0.2"
-  peerDependencies:
-    "@types/node": "*"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 61e22a1a04cf194f12b05acb643a361a74a34944a48380f61ba9d5f4b6c3684a7ae5669af5013b5549101647c6862548e11e1b8c60bdb687541f09133bbdd976
-  languageName: node
-  linkType: hard
-
 "@rushstack/rig-package@npm:0.4.0":
   version: 0.4.0
   resolution: "@rushstack/rig-package@npm:0.4.0"
@@ -19692,16 +19638,6 @@ __metadata:
     resolve: "npm:~1.22.1"
     strip-json-comments: "npm:~3.1.1"
   checksum: 0739e49bba00308a25872357b55817ca400326ff80ff2de11f3ec09cc9b68ac2703656dca32e19881c9b211b877962c4c1b6a155b15b52d197759c6bf7a3f77d
-  languageName: node
-  linkType: hard
-
-"@rushstack/rig-package@npm:0.5.1":
-  version: 0.5.1
-  resolution: "@rushstack/rig-package@npm:0.5.1"
-  dependencies:
-    resolve: "npm:~1.22.1"
-    strip-json-comments: "npm:~3.1.1"
-  checksum: 9e5d425f60bb1e23371ecc086eaca838651ced904da33b690103ac731820e65a8a3720243f9e03578dfd1efa067fec9c6d762f16b3bb8cf92b56254d5f906989
   languageName: node
   linkType: hard
 
@@ -19714,18 +19650,6 @@ __metadata:
     colors: "npm:~1.2.1"
     string-argv: "npm:~0.3.1"
   checksum: 7d1cedc2d48d18bdb6f676a74dac9040b47521b0ebf3696ed595325859d4949573df733ff084185687c9a6bebf92a83a329e19ce31ad501cd302114c20eaaae9
-  languageName: node
-  linkType: hard
-
-"@rushstack/ts-command-line@npm:4.17.1":
-  version: 4.17.1
-  resolution: "@rushstack/ts-command-line@npm:4.17.1"
-  dependencies:
-    "@types/argparse": "npm:1.0.38"
-    argparse: "npm:~1.0.9"
-    colors: "npm:~1.2.1"
-    string-argv: "npm:~0.3.1"
-  checksum: 75407f6a42fda364ec9f945ebd346c632a23dd97d7ed5ad108c264d72ee0370d3d912cc6c16af6973bbc3f5f92b845b63fb13da75a077d61f7e34e69f00b8823
   languageName: node
   linkType: hard
 
@@ -22598,18 +22522,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ts-morph/common@npm:~0.18.0":
-  version: 0.18.1
-  resolution: "@ts-morph/common@npm:0.18.1"
-  dependencies:
-    fast-glob: "npm:^3.2.12"
-    minimatch: "npm:^5.1.0"
-    mkdirp: "npm:^1.0.4"
-    path-browserify: "npm:^1.0.1"
-  checksum: 0f448ed674ff15528bf37384fc46befe076dfef45e1bd8074fe0e18e32fab3d1fdf252033311e4ebe96d348d1246a1dda2d7e63d7531c6a13e1112069642c50e
-  languageName: node
-  linkType: hard
-
 "@ts-morph/common@npm:~0.19.0":
   version: 0.19.0
   resolution: "@ts-morph/common@npm:0.19.0"
@@ -22953,12 +22865,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dom-mediacapture-transform@npm:^0.1.3":
-  version: 0.1.9
-  resolution: "@types/dom-mediacapture-transform@npm:0.1.9"
+"@types/dom-mediacapture-transform@npm:0.1.5":
+  version: 0.1.5
+  resolution: "@types/dom-mediacapture-transform@npm:0.1.5"
   dependencies:
     "@types/dom-webcodecs": "npm:*"
-  checksum: df4daae58aa9e2c28307d676dc24af16e52b3171623bc8e3a2999c821e5c91b40ef86e0577e15f58498df697ef7578ae23c9f5cb292083b9b6e0a88edc29d269
+  checksum: 74c4e783c817fa90bb7e7ec0e60b70883aeed91429102dead2dedea7ad7676c65ea2035b540223485be823837752ee034f9474657852ec88a5e99df3ca0720c4
   languageName: node
   linkType: hard
 
@@ -23766,6 +23678,13 @@ __metadata:
   version: 1.2.1
   resolution: "@types/minimist@npm:1.2.1"
   checksum: 02631cdd79d346ed6838f5443767b5218a0d915fd0529d4a8840c4eba942d7f6906f0056686dd5a119d42528bed0bee5767ebef7667fdca6fcb95411bb56084e
+  languageName: node
+  linkType: hard
+
+"@types/minimist@npm:^1.2.1":
+  version: 1.2.5
+  resolution: "@types/minimist@npm:1.2.5"
+  checksum: 477047b606005058ab0263c4f58097136268007f320003c348794f74adedc3166ffc47c80ec3e94687787f2ab7f4e72c468223946e79892cf0fd9e25e9970a90
   languageName: node
   linkType: hard
 
@@ -30296,13 +30215,6 @@ __metadata:
   version: 10.1.1
   resolution: "code-block-writer@npm:10.1.1"
   checksum: 06c720f3216e59654868a63a9db5d89c8cafaf760ad57d8facff2463a2605a196fe0f1ab2fa8a4face5c3afa2cc1513363a712f8f3843fb9c7228a6fa781f62b
-  languageName: node
-  linkType: hard
-
-"code-block-writer@npm:^11.0.3":
-  version: 11.0.3
-  resolution: "code-block-writer@npm:11.0.3"
-  checksum: aecf33ec312c595164bb0f6fd6d92d1b7bada83352b787e033ae0e5a15c87146503ca68a258ab7f54cba1b46dc381271c1e0037a3b0869c9c6d57ef5d7bc3501
   languageName: node
   linkType: hard
 
@@ -43830,7 +43742,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kolorist@npm:^1.6.0, kolorist@npm:^1.7.0":
+"kolorist@npm:^1.7.0":
   version: 1.8.0
   resolution: "kolorist@npm:1.8.0"
   checksum: 71d5d122951cc65f2f14c3e1d7f8fd91694b374647d4f6deec3816d018cd04a44edd9578d93e00c82c2053b925e5d30a0565746c4171f4ca9fce1a13bd5f3315
@@ -55367,6 +55279,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rrvideo@workspace:rrweb/packages/rrvideo":
+  version: 0.0.0-use.local
+  resolution: "rrvideo@workspace:rrweb/packages/rrvideo"
+  dependencies:
+    "@highlight-run/rrweb-player": "workspace:*"
+    "@highlight-run/rrweb-types": "workspace:*"
+    "@types/minimist": "npm:^1.2.1"
+    minimist: "npm:^1.2.5"
+    puppeteer: "npm:^19.7.2"
+    typescript: "npm:^4.7.3"
+  bin:
+    rrvideo: build/cli.js
+  languageName: unknown
+  linkType: soft
+
 "rtl-css-js@npm:^1.14.0":
   version: 1.14.1
   resolution: "rtl-css-js@npm:1.14.1"
@@ -59282,16 +59209,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-morph@npm:17.0.1":
-  version: 17.0.1
-  resolution: "ts-morph@npm:17.0.1"
-  dependencies:
-    "@ts-morph/common": "npm:~0.18.0"
-    code-block-writer: "npm:^11.0.3"
-  checksum: 608854c7f082a90ff94323dd7ed62e318438de198c4c92c70a018ff1556c81da60ba0bab165f41dd90b7488719fd8720a90cdcec1770e0cfdc4f9421498d5c2e
-  languageName: node
-  linkType: hard
-
 "ts-morph@npm:18.0.0":
   version: 18.0.0
   resolution: "ts-morph@npm:18.0.0"
@@ -61240,24 +61157,6 @@ __metadata:
   bin:
     vite-node: vite-node.mjs
   checksum: 8ddd11a7615f52c9fd3b59f27554c263b480bb64c7ca0b1ec3b22b14439038876c7edbde79fdf8678e211be8a1d3883c79a140207bd84a4ef815faf3da09cbbb
-  languageName: node
-  linkType: hard
-
-"vite-plugin-dts@npm:^1.6.6":
-  version: 1.7.3
-  resolution: "vite-plugin-dts@npm:1.7.3"
-  dependencies:
-    "@microsoft/api-extractor": "npm:^7.33.5"
-    "@rollup/pluginutils": "npm:^5.0.2"
-    "@rushstack/node-core-library": "npm:^3.53.2"
-    debug: "npm:^4.3.4"
-    fast-glob: "npm:^3.2.12"
-    fs-extra: "npm:^10.1.0"
-    kolorist: "npm:^1.6.0"
-    ts-morph: "npm:17.0.1"
-  peerDependencies:
-    vite: ">=2.9.0"
-  checksum: 3cca71a6474e57533dc59db30410fd7b5ecfd68c7f7ee1ebcc669a67191230ff19608ef46d5439d84cf54c989e32f638c9f5ffa00736fe0d994365cb568db386
   languageName: node
   linkType: hard
 
