@@ -11,7 +11,7 @@
 		"@aws-sdk/client-s3": "^3.198.0",
 		"@types/yargs": "^17.0.13",
 		"semver": "^7.3.8",
-		"ts-node": "^10.9.1",
+		"ts-node": "^10.9.2",
 		"yargs": "^17.6.0"
 	}
 }
