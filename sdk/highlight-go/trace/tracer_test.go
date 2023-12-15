@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/stretchr/testify/assert"
 	"github.com/vektah/gqlparser/v2/ast"
 	"testing"
 )
@@ -43,15 +44,21 @@ func TestTracer(t *testing.T) {
 func BenchmarkOld(b *testing.B) {
 	data := map[string]interface{}{"direction": "DESC", "params": map[string]interface{}{"date_range": map[string]interface{}{"end_date": "2023-12-15T00:28:37.564391000-00:00", "start_date": "2023-12-15T00:28:37.522161000-00:00"}, "query": "work happening"}, "project_id": "1"}
 
+	var err error
+	var out []byte
 	for i := 0; i < b.N; i++ {
-		json.MarshalIndent(data, "", "")
+		out, err = json.MarshalIndent(data, "", "")
+		assert.NoError(b, err)
 	}
+	b.Log(out)
 }
 
 func BenchmarkNew(b *testing.B) {
 	data := map[string]interface{}{"direction": "DESC", "params": map[string]interface{}{"date_range": map[string]interface{}{"end_date": "2023-12-15T00:28:37.564391000-00:00", "start_date": "2023-12-15T00:28:37.522161000-00:00"}, "query": "work happening"}, "project_id": "1"}
 
+	var out string
 	for i := 0; i < b.N; i++ {
-		serializeVars(data)
+		out = serializeVars(data)
 	}
+	b.Log(out)
 }
