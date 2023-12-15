@@ -27,6 +27,15 @@ export const metricOptions = [
   { value: 'Sum', label: 'Sum' },
 ];
 
+export const errorKeyOptions = [
+  { value: 'error-field_browser', label: 'Browser' },
+  { value: 'error-field_browser', label: 'Browser' },
+  { value: 'error-field_browser', label: 'Browser' },
+  { value: 'error-field_browser', label: 'Browser' },
+  { value: 'error-field_browser', label: 'Browser' },
+  { value: 'error-field_browser', label: 'Browser' },
+];
+
 export class DataSource extends DataSourceWithBackend<HighlightQuery, HighlightDataSourceOptions> {
   url?: string;
   projectID?: number;

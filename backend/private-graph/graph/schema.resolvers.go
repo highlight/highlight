@@ -7732,6 +7732,37 @@ func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyN
 	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
+// ErrorsKeys is the resolver for the errors_keys field.
+func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	if typeArg == nil || *typeArg == modelInputs.KeyTypeNumeric {
+		return []*modelInputs.QueryKey{}, nil
+	} else {
+		return []*modelInputs.QueryKey{
+			{Name: "browser"},
+			{Name: "environment"},
+			{Name: "event"},
+			{Name: "has_sessions"},
+			{Name: "operating_system"},
+			{Name: "service"},
+			{Name: "service_version"},
+			{Name: "status"},
+			{Name: "tag"},
+			{Name: "type"},
+			{Name: "visited_url"},
+		}, nil
+	}
+}
+
+// SessionsKeys is the resolver for the sessions_keys field.
+func (r *queryResolver) SessionsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	panic(fmt.Errorf("not implemented: SessionsKeys - sessions_keys"))
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
