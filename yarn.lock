@@ -12512,6 +12512,7 @@ __metadata:
     ts-jest: ^29.0.3
     typescript: ^5.0.4
   peerDependencies:
+    next: ">=11"
     react: ">=17"
   languageName: unknown
   linkType: soft
