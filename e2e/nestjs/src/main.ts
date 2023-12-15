@@ -10,6 +10,7 @@ async function bootstrap() {
 		otlpEndpoint: 'http://localhost:4318',
 		serviceName: 'my-nest-app',
 		serviceVersion: '1.0.0',
+		environment: 'e2e-test',
 	}
 	app.useLogger(new HighlightLogger(highlightOpts))
 	app.useGlobalInterceptors(new HighlightInterceptor(highlightOpts))

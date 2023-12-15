@@ -313,6 +313,32 @@ func (w *Workspace) GetRetentionPeriod() modelInputs.RetentionPeriod {
 	return modelInputs.RetentionPeriodSixMonths
 }
 
+func (w *Workspace) AdminEmailAddresses(db *gorm.DB) ([]struct {
+	AdminID int
+	Email   string
+}, error) {
+	var toAddrs []struct {
+		AdminID int
+		Email   string
+	}
+	if err := db.Raw(`
+			SELECT a.id as admin_id, a.email
+			FROM workspace_admins wa
+			INNER JOIN admins a
+			ON wa.admin_id = a.id
+			WHERE wa.workspace_id = ?
+			AND NOT EXISTS (
+				SELECT *
+				FROM email_opt_outs eoo
+				WHERE eoo.admin_id = a.id
+				AND eoo.category IN ('All', 'Billing')
+			)
+		`, w.ID).Scan(&toAddrs).Error; err != nil {
+		return nil, e.Wrap(err, "error querying recipient emails")
+	}
+	return toAddrs, nil
+}
+
 type WorkspaceAdmin struct {
 	AdminID     int        `gorm:"primaryKey"`
 	WorkspaceID int        `gorm:"primaryKey"`
@@ -1356,17 +1382,17 @@ type SystemConfiguration struct {
 	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}'"`
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
-	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
-	LogsQueueSize     int            `gorm:"type:bigint;default:10000"`
-	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
+	LogsFlushSize     int            `gorm:"type:bigint;default:1000"`
+	LogsQueueSize     int            `gorm:"type:bigint;default:100"`
+	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:1000000000"`
 	DataSyncWorkers   int            `gorm:"default:1"`
-	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
-	DataSyncQueueSize int            `gorm:"type:bigint;default:10000"`
-	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
+	DataSyncFlushSize int            `gorm:"type:bigint;default:1000"`
+	DataSyncQueueSize int            `gorm:"type:bigint;default:100"`
+	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:1000000000"`
 	TraceWorkers      int            `gorm:"default:1"`
-	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
-	TraceQueueSize    int            `gorm:"type:bigint;default:10000"`
-	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
+	TraceFlushSize    int            `gorm:"type:bigint;default:1000"`
+	TraceQueueSize    int            `gorm:"type:bigint;default:100"`
+	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:1000000000"`
 }
 
 type RetryableType string
@@ -1987,26 +2013,6 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 	}
 	emailHistoryCache.Set(cacheKey, true)
 
-	var toAddrs []struct {
-		AdminID int
-		Email   string
-	}
-	if err := db.Raw(`
-		SELECT a.id as admin_id, a.email
-		FROM workspace_admins wa
-		INNER JOIN admins a
-		ON wa.admin_id = a.id
-		WHERE wa.workspace_id = ?
-		AND NOT EXISTS (
-			SELECT *
-			FROM email_opt_outs eoo
-			WHERE eoo.admin_id = a.id
-			AND eoo.category IN ('All', 'Billing')
-		)
-	`, workspace.ID).Scan(&toAddrs).Error; err != nil {
-		return e.Wrap(err, "error querying recipient emails")
-	}
-
 	history := BillingEmailHistory{
 		WorkspaceID: workspace.ID,
 		Type:        emailType,
@@ -2024,9 +2030,13 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 		return e.Wrap(err, "error creating BillingEmailHistory")
 	}
 
-	errors := []string{}
+	toAddrs, err := workspace.AdminEmailAddresses(db)
+	if err != nil {
+		return err
+	}
+	var errors []string
 	for _, toAddr := range toAddrs {
-		err := Email.SendBillingNotificationEmail(ctx, mailClient, workspace.ID, workspace.Name, workspace.RetentionPeriod, emailType, toAddr.Email, toAddr.AdminID)
+		err := Email.SendBillingNotificationEmail(ctx, mailClient, workspace.ID, workspace.Name, emailType, toAddr.Email, toAddr.AdminID)
 		if err != nil {
 			errors = append(errors, err.Error())
 		}

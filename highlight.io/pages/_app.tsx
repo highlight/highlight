@@ -14,6 +14,7 @@ import { Meta } from '../components/common/Head/Meta'
 import MetaImage from '../public/images/meta-image.jpg'
 import { rudderInitialize } from '../scripts/rudder-initialize'
 import { setAttributionData } from '../utils/attribution'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
@@ -71,6 +72,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${MetaImage.src}`}
 			/>
 			<Component {...pageProps} />
+			<SpeedInsights />
 		</SSRProvider>
 	)
 }

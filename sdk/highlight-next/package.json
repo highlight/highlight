@@ -53,6 +53,7 @@
 		"hoistingLimits": "workspaces"
 	},
 	"peerDependencies": {
+		"next": ">=11",
 		"react": ">=17"
 	},
 	"dependencies": {

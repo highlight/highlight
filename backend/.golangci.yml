@@ -33,11 +33,9 @@ linters-settings:
             - 'backend/alerts'
 
     depguard:
-        list-type: denylist
-        include-go-root: true
-        packages:
-            - log
-
-        packages-with-error-message:
-            # specify an error message to output when a denylist package is used
-            - log: 'logging is allowed only by github.com/sirupsen/logrus'
+        rules:
+            main:
+                list-mode: lax
+                deny:
+                    - pkg: 'log'
+                      desc: 'logging is allowed only by github.com/sirupsen/logrus'

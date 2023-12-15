@@ -32,7 +32,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
@@ -49,6 +48,7 @@ import (
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
 	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -4553,7 +4553,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				return nil, nil
 			}
 			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
-			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhancedDetails.miss", nil, 1)
 			clearbitApiRequestSpan, _ := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
 				util.ResourceName("clearbit.api.request"),
 				util.Tag("session_id", s.ID), util.Tag("workspace_id", w.ID), util.Tag("project_id", p.ID), util.Tag("plan_tier", w.PlanTier))
@@ -4588,7 +4588,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 		} else {
 			log.WithContext(ctx).Infof("retrieving cache db entry of clearbit lookup")
-			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.WithContext(ctx).Errorf("error unmarshaling person: %v", err)
@@ -5502,6 +5502,60 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 	}, nil
 }
 
+// SessionsReport is the resolver for the sessions_report field.
+func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery) ([]*modelInputs.SessionsReportRow, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	// If there's no admin for the context, use `admin=nil`
+	// (admin is used by the "viewed by me" filter)
+	admin, err := r.getCurrentAdmin(ctx)
+	if errors.Is(err, AuthenticationError) {
+		admin = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	ids, total, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000, query, "ID", nil, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+	if total >= 1_000_000 {
+		return nil, e.New("too many sessions to generate report, adjust the query to return fewer sessions")
+	}
+
+	var results []*modelInputs.SessionsReportRow
+	if err := r.DB.Raw(`
+select coalesce(email, ip, client_id, identifier)                              as key,
+       max(user_properties::text) filter ( where user_properties is not null ) as user_properties,
+       count(*)                                                                as num_sessions,
+       count(distinct date_trunc('day', created_at))                           as num_days_visited,
+       count(distinct date_trunc('month', created_at))                         as num_months_visited,
+       avg(active_length) / 1000 / 60                                          as avg_active_length_mins,
+       max(active_length) / 1000 / 60                                          as max_active_length_mins,
+       sum(active_length) / 1000 / 60                                          as total_active_length_mins,
+       avg(length) / 1000 / 60                                                 as avg_length_mins,
+       max(length) / 1000 / 60                                                 as max_length_mins,
+       sum(length) / 1000 / 60                                                 as total_length_mins,
+       max(case when state is not null then state || '|' || city end)          as location
+from sessions
+where id in (?)
+group by 1
+order by num_sessions desc;
+`, ids).Scan(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
 func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5664,7 +5718,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	tracesIncluded := pricing.IncludedAmount(planType, model.PricingProductTypeTraces)
 	// use monthly traces limit if it exists
 	if workspace.MonthlyTracesLimit != nil {
-		tracesIncluded = int64(*workspace.MonthlyLogsLimit)
+		tracesIncluded = int64(*workspace.MonthlyTracesLimit)
 	}
 
 	sessionsRetentionPeriod := modelInputs.RetentionPeriodSixMonths
@@ -6999,11 +7053,15 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
-		settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
 		if err != nil {
 			return nil, err
 		}
-		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
+		details.BillingIssue = !warningSent.IsZero()
+	}
+
+	if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
+		return nil, err
 	}
 
 	return details, nil
@@ -7074,7 +7132,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		return nil, err
 	}
 
-	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
+	keys, err := r.ClickhouseClient.TracesMetrics(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), &prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -7087,12 +7145,12 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 }
 
 // MetricTags is the resolver for the metric_tags field.
-func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error) {
+func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
 
-	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now())
+	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7132,7 +7190,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 			StartDate: time.Now().Add(time.Duration(-params.LookbackDays) * 24 * time.Hour),
 			EndDate:   time.Now(),
 		},
-	}, modelInputs.TracesMetricColumnDuration, []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48)
+	}, string(modelInputs.TracesMetricColumnDuration), []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48, string(modelInputs.TracesMetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7372,13 +7430,13 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 }
 
 // LogsKeyValues is the resolver for the logs_key_values field.
@@ -7629,23 +7687,28 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 }
 
 // TracesMetrics is the resolver for the traces_metrics field.
-func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column modelInputs.TracesMetricColumn, metricTypes []modelInputs.MetricAggregator, groupBy []string) (*modelInputs.TracesMetrics, error) {
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.TracesMetrics, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48)
+	bucketByDeref := string(modelInputs.TracesMetricBucketByTimestamp)
+	if bucketBy != nil {
+		bucketByDeref = *bucketBy
+	}
+
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketByDeref, limit, limitAggregator, limitColumn)
 }
 
 // TracesKeys is the resolver for the traces_keys field.
-func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 }
 
 // TracesKeyValues is the resolver for the traces_key_values field.

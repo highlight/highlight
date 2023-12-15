@@ -20,8 +20,8 @@ import (
 
 type ClickhouseErrorGroup struct {
 	ProjectID           int32
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	CreatedAt           int64
+	UpdatedAt           int64
 	ID                  int64
 	Event               string
 	Status              string
@@ -33,7 +33,7 @@ type ClickhouseErrorGroup struct {
 
 type ClickhouseErrorObject struct {
 	ProjectID      int32
-	Timestamp      time.Time
+	Timestamp      int64
 	ErrorGroupID   int64
 	HasSession     bool
 	ID             int64
@@ -60,8 +60,8 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 
 		chEg := ClickhouseErrorGroup{
 			ProjectID: int32(group.ProjectID),
-			CreatedAt: group.CreatedAt,
-			UpdatedAt: group.UpdatedAt,
+			CreatedAt: group.CreatedAt.UTC().UnixMicro(),
+			UpdatedAt: group.UpdatedAt.UTC().UnixMicro(),
 			ID:        int64(group.ID),
 			Event:     group.Event,
 			Status:    string(group.State),
@@ -86,6 +86,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			NewStruct(new(ClickhouseErrorGroup)).
 			InsertInto(ErrorGroupsTable, chGroups...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
+		sql, args = replaceTimestampInserts(sql, args, 10, map[int]bool{1: true, 2: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 
@@ -116,7 +117,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 		chEg := ClickhouseErrorObject{
 			ProjectID:      int32(object.ProjectID),
-			Timestamp:      object.Timestamp,
+			Timestamp:      object.Timestamp.UTC().UnixMicro(),
 			ErrorGroupID:   int64(object.ErrorGroupID),
 			HasSession:     hasSession,
 			ID:             int64(object.ID),
@@ -142,6 +143,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			NewStruct(new(ClickhouseErrorObject)).
 			InsertInto(ErrorObjectsTable, chObjects...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
+		sql, args = replaceTimestampInserts(sql, args, 12, map[int]bool{1: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 
@@ -158,7 +160,7 @@ func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs
 		return r.Field == errorsTimeRangeField
 	})
 	if !found {
-		end := time.Now()
+		end := time.Now().UTC()
 		start := end.AddDate(0, 0, -30)
 		timeRangeRule = Rule{
 			Field: errorsTimeRangeField,

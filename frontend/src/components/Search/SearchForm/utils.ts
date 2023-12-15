@@ -15,7 +15,8 @@ export const BODY_KEY = 'message'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|(\S+:\((?:[^\)\\]|\\.)*\))|\S+|\S+:\S+|\s$/g
 
-const WHITESPACE_REGEX = /\s+(?=(?:[^"]*"[^"]*")*[^"]*$)(?![^\(]*\))/g
+const WHITESPACE_REGEX =
+	/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)(?=(?:[^']*'[^']*')*[^']*$)(?=(?:[^()]*\([^()]*\))*[^()]*$)/g
 
 export const parseSearchQuery = (query = ''): SearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
@@ -76,17 +77,10 @@ export const parseSearchQuery = (query = ''): SearchParam[] => {
 // input: ' body-a   source:(backend OR frotend) body-b  name:"Chris Schmitz" body-c '
 // output: [' ', 'body-a', '   ', 'source:(backend OR frotend)', ' ', 'body-b', '  ', 'name:"Chris Schmitz"', ' ', 'body-c']
 export const queryAsStringParams = (query: string): string[] => {
-	const startsWithSpace = query.startsWith(' ')
-	const params: string[] = []
-
-	let match
-	while ((match = PARSE_REGEX.exec(query)) !== null) {
-		if (match[0].trim().length > 0) {
-			params.push(match[0])
-		}
-	}
-
-	const whitespace = query.match(WHITESPACE_REGEX) || []
+	const q = String(query)
+	const startsWithSpace = q.startsWith(' ')
+	const params = q.split(WHITESPACE_REGEX).filter(Boolean) || []
+	const whitespace = q.match(WHITESPACE_REGEX) || []
 	const longestArray = params.length > whitespace.length ? params : whitespace
 
 	return longestArray.reduce((acc: string[], _: string, index: number) => {

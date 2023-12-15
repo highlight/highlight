@@ -84,4 +84,4 @@ const nextConfig = {
 	},
 }
 
-module.exports = withHighlightConfig(withBundleAnalyzer(nextConfig))
+module.exports = withHighlightConfig(nextConfig)

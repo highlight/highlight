@@ -21,6 +21,13 @@ export interface NodeOptions extends HighlightOptions {
 	 * This app's version ideally set to the latest deployed git SHA.
 	 */
 	serviceVersion?: string
+
+	/**
+	 * Specifies the environment your application is running in.
+	 * This is useful to distinguish whether your session was recorded on localhost or in production.
+	 */
+	environment?: 'development' | 'staging' | 'production' | string
+
 	/**
 	 * Enables node fs instrumentation @default false
 	 * see .

@@ -6,3 +6,8 @@
 
 - Tune settings of opentelemetry SDK to reduce memory usage.
 - Enable GZIP compression of exported data.
+
+## 0.2.0
+
+- Support setting `environment` attribute to SDK initialization.
+- `otlp_endpoint` updated to keyword parameter when initializing.

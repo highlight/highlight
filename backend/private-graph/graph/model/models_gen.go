@@ -488,6 +488,7 @@ type Log struct {
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
 	ServiceVersion  *string                `json:"serviceVersion"`
+	Environment     *string                `json:"environment"`
 }
 
 type LogAlertInput struct {
@@ -771,6 +772,21 @@ type SessionQuery struct {
 	ProjectID int `json:"project_id"`
 }
 
+type SessionsReportRow struct {
+	Key                   string  `json:"key"`
+	NumSessions           int     `json:"num_sessions"`
+	NumDaysVisited        int     `json:"num_days_visited"`
+	NumMonthsVisited      int     `json:"num_months_visited"`
+	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
+	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
+	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
+	AvgLengthMins         float64 `json:"avg_length_mins"`
+	MaxLengthMins         float64 `json:"max_length_mins"`
+	TotalLengthMins       float64 `json:"total_length_mins"`
+	Location              string  `json:"location"`
+	UserProperties        *string `json:"user_properties"`
+}
+
 type SlackSyncResponse struct {
 	Success               bool `json:"success"`
 	NewChannelsAddedCount int  `json:"newChannelsAddedCount"`
@@ -798,10 +814,11 @@ type SourceMappingError struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount   int64                 `json:"baseAmount"`
-	Discount     *SubscriptionDiscount `json:"discount"`
-	LastInvoice  *Invoice              `json:"lastInvoice"`
-	BillingIssue bool                  `json:"billingIssue"`
+	BaseAmount           int64                 `json:"baseAmount"`
+	Discount             *SubscriptionDiscount `json:"discount"`
+	LastInvoice          *Invoice              `json:"lastInvoice"`
+	BillingIssue         bool                  `json:"billingIssue"`
+	BillingIngestBlocked bool                  `json:"billingIngestBlocked"`
 }
 
 type SubscriptionDiscount struct {
@@ -833,6 +850,7 @@ type Trace struct {
 	StartTime       int                    `json:"startTime"`
 	ServiceName     string                 `json:"serviceName"`
 	ServiceVersion  string                 `json:"serviceVersion"`
+	Environment     string                 `json:"environment"`
 	TraceAttributes map[string]interface{} `json:"traceAttributes"`
 	StatusCode      string                 `json:"statusCode"`
 	StatusMessage   string                 `json:"statusMessage"`
@@ -1241,16 +1259,18 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 type KeyType string
 
 const (
-	KeyTypeString KeyType = "String"
+	KeyTypeString  KeyType = "String"
+	KeyTypeNumeric KeyType = "Numeric"
 )
 
 var AllKeyType = []KeyType{
 	KeyTypeString,
+	KeyTypeNumeric,
 }
 
 func (e KeyType) IsValid() bool {
 	switch e {
-	case KeyTypeString:
+	case KeyTypeString, KeyTypeNumeric:
 		return true
 	}
 	return false
@@ -2420,6 +2440,47 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TracesMetricBucketBy string
+
+const (
+	TracesMetricBucketByNone      TracesMetricBucketBy = "None"
+	TracesMetricBucketByTimestamp TracesMetricBucketBy = "Timestamp"
+)
+
+var AllTracesMetricBucketBy = []TracesMetricBucketBy{
+	TracesMetricBucketByNone,
+	TracesMetricBucketByTimestamp,
+}
+
+func (e TracesMetricBucketBy) IsValid() bool {
+	switch e {
+	case TracesMetricBucketByNone, TracesMetricBucketByTimestamp:
+		return true
+	}
+	return false
+}
+
+func (e TracesMetricBucketBy) String() string {
+	return string(e)
+}
+
+func (e *TracesMetricBucketBy) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TracesMetricBucketBy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TracesMetricBucketBy", str)
+	}
+	return nil
+}
+
+func (e TracesMetricBucketBy) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

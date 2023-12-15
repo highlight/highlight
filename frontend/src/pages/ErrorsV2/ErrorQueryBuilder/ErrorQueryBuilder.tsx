@@ -119,10 +119,10 @@ const ErrorQueryBuilder = (props: Partial<QueryBuilderProps>) => {
 	return (
 		<QueryBuilder
 			searchContext={useErrorSearchContext()}
-			timeRangeField={TIME_RANGE_FIELD}
-			customFields={CUSTOM_FIELDS}
-			fetchFields={fetchFields}
-			errorTagData={data}
+			timeRangeField={props.timeRangeField ?? TIME_RANGE_FIELD}
+			customFields={props.customFields ?? CUSTOM_FIELDS}
+			fetchFields={props.fetchFields ?? fetchFields}
+			errorTagData={props.errorTagData ?? data}
 			useEditAnySegmentMutation={useEditErrorSegmentMutation}
 			useGetAnySegmentsQuery={useGetErrorSegmentsQuery}
 			CreateAnySegmentModal={CreateErrorSegmentModal}

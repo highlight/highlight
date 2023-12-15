@@ -33,7 +33,9 @@ import { ApolloServerHighlightPlugin } from '@highlight-run/apollo'
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  plugins: [ApolloServerHighlightPlugin({ projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-apollo-app', serviceVersion: 'git-sha' })],
+  plugins: [
+		ApolloServerHighlightPlugin({ projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-apollo-app', serviceVersion: 'git-sha', environment: 'production' }),
+	],
 })`,
 					language: `js`,
 				},

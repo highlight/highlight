@@ -1,12 +1,12 @@
-package highlight
+package htrace
 
 // This schema/arch is taken from: https://github.com/99designs/gqlgen/blob/master/graphql/handler/apollotracing/tracer.go
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -49,23 +49,21 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	fc := graphql.GetFieldContext(ctx)
 	fieldName := fc.Field.Name
 	name := fmt.Sprintf("graphql.field.%s", fieldName)
-	span, ctx := StartTrace(ctx, name)
+	span, ctx := highlight.StartTrace(ctx, name)
 	span.SetAttributes(
 		semconv.ServiceNameKey.String(t.graphName),
 		attribute.String("graphql.field.name", fieldName),
 		attribute.String("graphql.object.type", fc.Object),
 	)
-	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
-		if bs := string(b); len(bs) < 2048 {
-			span.SetAttributes(attribute.String("graphql.field.arguments", bs))
-		}
+	if args := serializeVars(fc.Args); len(args) < 2048 {
+		span.SetAttributes(attribute.String("graphql.field.arguments", args))
 	}
 	res, err := next(ctx)
-	RecordSpanError(
+	highlight.RecordSpanError(
 		span, err,
-		attribute.String(SourceAttribute, "InterceptField"),
+		attribute.String(highlight.SourceAttribute, "InterceptField"),
 	)
-	EndTrace(span)
+	highlight.EndTrace(span)
 
 	return res, err
 }
@@ -81,15 +79,13 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	variables := ""
 	if oc != nil {
 		opName = oc.OperationName
-		if b, err := json.MarshalIndent(oc.Variables, "", ""); err == nil {
-			if bs := string(b); len(bs) < 2048 {
-				variables = bs
-			}
+		if vars := serializeVars(oc.Variables); len(vars) < 2048 {
+			variables = vars
 		}
 	}
 	name := fmt.Sprintf("graphql.operation.%s", opName)
 
-	span, ctx := StartTrace(ctx, name)
+	span, ctx := highlight.StartTrace(ctx, name)
 	span.SetAttributes(
 		semconv.ServiceNameKey.String(t.graphName),
 		semconv.GraphqlOperationName(opName),
@@ -98,7 +94,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	resp := next(ctx)
 	// though there is a resp.Errors, we should not record it because it will
 	// be a duplicate of errors on individual fields.
-	EndTrace(span)
+	highlight.EndTrace(span)
 
 	return resp
 }
@@ -110,7 +106,7 @@ func GraphQLRecoverFunc() graphql.RecoverFunc {
 		if e, ok = err.(error); !ok {
 			e = errors.Errorf("panic {error: %+v}", err)
 		}
-		RecordError(ctx, e, attribute.String(SourceAttribute, "GraphQLRecoverFunc"))
+		highlight.RecordError(ctx, e, attribute.String(highlight.SourceAttribute, "GraphQLRecoverFunc"))
 		return e
 	}
 }
@@ -137,4 +133,11 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 		}
 		return gqlerr
 	}
+}
+
+func serializeVars(vars map[string]interface{}) string {
+	if vars == nil {
+		return ""
+	}
+	return fmt.Sprintf("%+v", vars)
 }

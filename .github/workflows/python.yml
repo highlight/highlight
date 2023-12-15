@@ -6,6 +6,7 @@ on:
     pull_request:
         types: [opened, synchronize]
         paths:
+            - 'e2e/tests/**'
             - 'sdk/highlight-py/**'
             - '.github/workflows/python.yml'
 
@@ -49,3 +50,22 @@ jobs:
               env:
                   PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
                   PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+
+    e2e:
+        name: Validate E2E tests
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./e2e/tests
+
+        steps:
+            - uses: actions/checkout@v3
+            - name: Install poetry
+              run: pipx install poetry
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+            - run: poetry install --all-extras
+            - name: Lint
+              run: poetry run black --check .

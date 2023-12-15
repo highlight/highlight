@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/stretchr/testify/assert"
@@ -42,7 +43,40 @@ func Test_TraceMatchesQuery(t *testing.T) {
 	assert.True(t, matches)
 }
 
-func TestNewTraceRowWithEnvironment(t *testing.T) {
+func TestReadTracesWithEnvironmentFilter(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
 	now := time.Now()
-	assert.Equal(t, "production", NewTraceRow(now, 1).WithEnvironment("production").Environment)
+	rows := []*TraceRow{
+		NewTraceRow(now, 1),
+		NewTraceRow(now, 1).WithEnvironment("production"),
+		NewTraceRow(now, 1).WithEnvironment("development"),
+	}
+
+	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
+
+	payload, err := client.ReadTraces(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "environment:production",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "production", payload.Edges[0].Node.Environment)
+
+	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "environment:*dev*",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "development", payload.Edges[0].Node.Environment)
+
+	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "environment:production environment:development",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
 }

@@ -2345,6 +2345,31 @@ export type GetSessionsHistogramClickhouseQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetSessionsReportQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.ClickhouseQuery
+}>
+
+export type GetSessionsReportQuery = { __typename?: 'Query' } & {
+	sessions_report: Array<
+		{ __typename?: 'SessionsReportRow' } & Pick<
+			Types.SessionsReportRow,
+			| 'key'
+			| 'user_properties'
+			| 'num_sessions'
+			| 'num_days_visited'
+			| 'num_months_visited'
+			| 'avg_active_length_mins'
+			| 'max_active_length_mins'
+			| 'total_active_length_mins'
+			| 'avg_length_mins'
+			| 'max_length_mins'
+			| 'total_length_mins'
+			| 'location'
+		>
+	>
+}
+
 export type GetErrorGroupsClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
@@ -2869,7 +2894,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
 			discount?: Types.Maybe<
 				{ __typename?: 'SubscriptionDiscount' } & Pick<
@@ -2915,7 +2940,7 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
 			discount?: Types.Maybe<
 				{ __typename?: 'SubscriptionDiscount' } & Pick<
@@ -4290,6 +4315,7 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
 export type GetMetricTagsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetMetricTagsQuery = { __typename?: 'Query' } & Pick<
@@ -4418,6 +4444,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'source'
 						| 'serviceName'
 						| 'serviceVersion'
+						| 'environment'
 					>
 				}
 		>
@@ -4483,6 +4510,7 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
@@ -4783,6 +4811,7 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'duration'
 					| 'serviceName'
 					| 'serviceVersion'
+					| 'environment'
 					| 'traceAttributes'
 					| 'startTime'
 					| 'statusCode'
@@ -4834,6 +4863,7 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 						| 'duration'
 						| 'serviceName'
 						| 'serviceVersion'
+						| 'environment'
 						| 'traceAttributes'
 						| 'statusCode'
 						| 'statusMessage'
@@ -4850,9 +4880,13 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	column: Types.TracesMetricColumn
+	column: Types.Scalars['String']
 	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
+	bucket_by?: Types.Maybe<Types.Scalars['String']>
+	limit?: Types.Maybe<Types.Scalars['Int']>
+	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
+	limit_column?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
@@ -4872,6 +4906,7 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 export type GetTracesKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesKeysQuery = { __typename?: 'Query' } & {
@@ -4921,6 +4956,7 @@ export const namedOperations = {
 		GetSessionsClickhouse: 'GetSessionsClickhouse' as const,
 		GetSessionsHistogramClickhouse:
 			'GetSessionsHistogramClickhouse' as const,
+		GetSessionsReport: 'GetSessionsReport' as const,
 		GetErrorGroupsClickhouse: 'GetErrorGroupsClickhouse' as const,
 		GetErrorsHistogramClickhouse: 'GetErrorsHistogramClickhouse' as const,
 		GetProjects: 'GetProjects' as const,

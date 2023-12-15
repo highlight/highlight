@@ -127,6 +127,7 @@ type PopoutType =
 	| 'select'
 	| 'multiselect'
 	| 'creatable'
+	| 'editable'
 	| 'date_range'
 	| 'time_range'
 	| 'range'
@@ -441,8 +442,67 @@ const MultiselectPopout = ({
 
 	let multiValue: string[] = []
 	switch (type) {
-		case 'creatable':
 		case 'multiselect':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={options?.map((o) => ({
+						key: o.value,
+						render: getOption(o, lastQuery),
+					}))}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender={loadingBox}
+				/>
+			)
+		case 'creatable':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={[]}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					creatableRender={(query) =>
+						getOption({ label: query, value: query }, '')
+					}
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender={loadingBox}
+				/>
+			)
+		case 'editable':
 			multiValue = value?.options.map((o) => o.value) ?? []
 			return (
 				<ComboboxSelect
@@ -566,6 +626,8 @@ const SelectPopout = ({
 
 const getPopoutType = (op: Operator | undefined): PopoutType => {
 	switch (op) {
+		case 'is_editable':
+			return 'editable'
 		case 'contains':
 		case 'not_contains':
 		case 'matches':
@@ -702,6 +764,7 @@ export const hasArguments = (op: Operator): boolean =>
 const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 	is: 'is',
 	is_not: 'is not',
+	is_editable: 'is',
 	contains: 'contains',
 	not_contains: 'does not contain',
 	exists: 'exists',
@@ -719,6 +782,7 @@ const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 const LABEL_MAP_MULTI: { [K in Operator]: string } = {
 	is: 'is any of',
 	is_not: 'is not any of',
+	is_editable: 'is any of',
 	contains: 'contains any of',
 	not_contains: 'does not contain any of',
 	exists: 'exists',
@@ -746,6 +810,7 @@ const TOOLTIP_MESSAGES: { [K in string]: string } = {
 
 export type Operator =
 	| 'is'
+	| 'is_editable'
 	| 'is_not'
 	| 'contains'
 	| 'not_contains'
@@ -1097,7 +1162,11 @@ export interface QueryBuilderProps {
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesClickhouseQuery
 	errorTagData?: GetErrorTagsQuery
+	operators?: Operator[]
+	droppedFieldTypes?: string[]
+
 	readonly?: boolean
+	onlyAnd?: boolean
 	minimal?: boolean
 	setDefault?: boolean
 	useEditAnySegmentMutation:
@@ -1137,7 +1206,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fetchFields,
 		fieldData,
 		errorTagData,
+		droppedFieldTypes,
 		readonly,
+		onlyAnd,
+		operators,
 		minimal,
 		setDefault,
 		useEditAnySegmentMutation,
@@ -1145,6 +1217,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		CreateAnySegmentModal,
 		DeleteAnySegmentModal,
 	} = props
+	const ops = operators ?? OPERATORS
 
 	const {
 		searchQuery,
@@ -1255,7 +1328,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const getDefaultOperator = (field: SelectOption | undefined) =>
-		((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0]
+		((field && getCustomFieldOptions(field)?.operators) ?? ops)[0]
 
 	const { data: appVersionData } = useGetAppVersionsQuery({
 		variables: { project_id: projectId! },
@@ -1354,6 +1427,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		async (input: string) => {
 			return customFields
 				.concat(fieldData?.field_types ?? [])
+				.filter(
+					(ft) =>
+						!droppedFieldTypes ||
+						!droppedFieldTypes.includes(ft.type ?? ''),
+				)
 				.map((ft) => ({
 					label: ft.name,
 					value: ft.type + '_' + ft.name,
@@ -1375,7 +1453,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}
 				})
 		},
-		[customFields, fieldData?.field_types],
+		[customFields, droppedFieldTypes, fieldData?.field_types],
 	)
 
 	const getOperatorOptionsCallback = (
@@ -1383,7 +1461,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		val: MultiselectOption | undefined,
 	) => {
 		return async (input: string) => {
-			return (options?.operators ?? OPERATORS)
+			return (options?.operators ?? ops)
 				.map((op) => getOperator(op, val))
 				.filter((op) => op !== undefined)
 				.filter((op) =>
@@ -1692,12 +1770,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 						})
 					}}
 				/>
-				<Box marginLeft="auto" display="flex" gap="4">
+				<Box marginLeft="auto" display="flex" gap="0">
 					{!isOnErrorsPage && (
-						<DropdownMenu
-							sessionCount={searchResultsCount || 0}
-							sessionQuery={JSON.parse(searchQuery)}
-						/>
+						<DropdownMenu sessionQuery={JSON.parse(searchQuery)} />
 					)}
 
 					<ButtonIcon
@@ -1714,7 +1789,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [
 		dateRange,
 		isOnErrorsPage,
-		searchResultsCount,
 		searchQuery,
 		updateRule,
 		timeRangeRule,
@@ -1857,7 +1931,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										emphasis="low"
 										onClick={toggleIsAndImpl}
 										key={`separator-${index}`}
-										disabled={readonly}
+										disabled={onlyAnd ? true : readonly}
 									>
 										{isAnd ? 'and' : 'or'}
 									</Tag>,

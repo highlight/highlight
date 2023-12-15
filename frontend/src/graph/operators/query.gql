@@ -659,6 +659,23 @@ query GetSessionsHistogramClickhouse(
 	}
 }
 
+query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
+	sessions_report(project_id: $project_id, query: $query) {
+		key
+		user_properties
+		num_sessions
+		num_days_visited
+		num_months_visited
+		avg_active_length_mins
+		max_active_length_mins
+		total_active_length_mins
+		avg_length_mins
+		max_length_mins
+		total_length_mins
+		location
+	}
+}
+
 query GetErrorGroupsClickhouse(
 	$project_id: ID!
 	$count: Int!
@@ -1019,6 +1036,7 @@ query GetBillingDetails($workspace_id: ID!) {
 			status
 		}
 		billingIssue
+		billingIngestBlocked
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -1054,6 +1072,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			status
 		}
 		billingIssue
+		billingIngestBlocked
 	}
 }
 
@@ -1953,8 +1972,12 @@ query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
 	suggested_metrics(project_id: $project_id, prefix: $prefix)
 }
 
-query GetMetricTags($project_id: ID!, $metric_name: String!) {
-	metric_tags(project_id: $project_id, metric_name: $metric_name)
+query GetMetricTags($project_id: ID!, $metric_name: String!, $query: String) {
+	metric_tags(
+		project_id: $project_id
+		metric_name: $metric_name
+		query: $query
+	)
 }
 
 query GetMetricTagValues(
@@ -2058,6 +2081,7 @@ query GetLogs(
 				source
 				serviceName
 				serviceVersion
+				environment
 			}
 		}
 		pageInfo {
@@ -2099,8 +2123,16 @@ query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	}
 }
 
-query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+query GetLogsKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: logs_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}
@@ -2323,6 +2355,7 @@ query GetTrace($project_id: ID!, $trace_id: String!) {
 			duration
 			serviceName
 			serviceVersion
+			environment
 			traceAttributes
 			startTime
 			statusCode
@@ -2373,6 +2406,7 @@ query GetTraces(
 				duration
 				serviceName
 				serviceVersion
+				environment
 				traceAttributes
 				statusCode
 				statusMessage
@@ -2390,9 +2424,13 @@ query GetTraces(
 query GetTracesMetrics(
 	$project_id: ID!
 	$params: QueryInput!
-	$column: TracesMetricColumn!
+	$column: String!
 	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
+	$bucket_by: String
+	$limit: Int
+	$limit_aggregator: MetricAggregator
+	$limit_column: String
 ) {
 	traces_metrics(
 		project_id: $project_id
@@ -2400,6 +2438,10 @@ query GetTracesMetrics(
 		column: $column
 		metric_types: $metric_types
 		group_by: $group_by
+		bucket_by: $bucket_by
+		limit: $limit
+		limit_aggregator: $limit_aggregator
+		limit_column: $limit_column
 	) {
 		buckets {
 			bucket_id
@@ -2412,8 +2454,16 @@ query GetTracesMetrics(
 	}
 }
 
-query GetTracesKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+query GetTracesKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: traces_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}

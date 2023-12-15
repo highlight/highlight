@@ -3,32 +3,26 @@ package util
 import (
 	"context"
 	"fmt"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const KafkaBatchWorkerOp = "KafkaBatchWorker"
 
 type MultiSpan struct {
-	ddSpan tracer.Span
-	hSpan  trace.Span
+	hSpan trace.Span
 }
 
 func (s *MultiSpan) Finish(err ...error) {
 	if len(err) > 1 {
 		log.WithContext(context.TODO()).Warnf("Multiple errors passed to MultiSpan.Finish: %+v", err)
 	} else if len(err) > 0 && err[0] != nil {
-		s.ddSpan.Finish(tracer.WithError(err[0]))
 		if s.hSpan != nil {
 			highlight.RecordSpanError(s.hSpan, err[0])
 		}
-	} else {
-		s.ddSpan.Finish()
 	}
 	if s.hSpan != nil {
 		highlight.EndTrace(s.hSpan)
@@ -36,14 +30,12 @@ func (s *MultiSpan) Finish(err ...error) {
 }
 
 func (s *MultiSpan) SetAttribute(key string, value interface{}) {
-	s.ddSpan.SetTag(key, value)
 	if s.hSpan != nil {
 		s.hSpan.SetAttributes(attribute.String(key, fmt.Sprintf("%v", value)))
 	}
 }
 
 func (s *MultiSpan) SetOperationName(name string) {
-	s.ddSpan.SetOperationName(name)
 	if s.hSpan != nil {
 		s.hSpan.SetName(name)
 	}
@@ -65,22 +57,15 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 	hTracingDisabled = hTracingDisabled || cfg.HighlightTracingDisabled
 	ctx = context.WithValue(ctx, ContextKeyHighlightTracingDisabled, hTracingDisabled)
 
-	var ddOptions []tracer.StartSpanOption
-	for _, tag := range cfg.Tags {
-		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value.AsString()))
-	}
-
-	ddSpan, mergedCtx := tracer.StartSpanFromContext(ctx, operationName, ddOptions...)
 	var hSpan trace.Span
 	if !hTracingDisabled {
 		hSpan, _ = highlight.StartTrace(ctx, operationName, cfg.Tags...)
-		mergedCtx = trace.ContextWithSpan(mergedCtx, hSpan)
+		ctx = trace.ContextWithSpan(ctx, hSpan)
 	}
 
 	return MultiSpan{
-		ddSpan: ddSpan,
-		hSpan:  hSpan,
-	}, mergedCtx
+		hSpan: hSpan,
+	}, ctx
 }
 
 func StartSpan(operationName string, options ...SpanOption) MultiSpan {
@@ -89,20 +74,13 @@ func StartSpan(operationName string, options ...SpanOption) MultiSpan {
 		opt(&cfg)
 	}
 
-	var ddOptions []tracer.StartSpanOption
-	for _, tag := range cfg.Tags {
-		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value.AsString()))
-	}
-
-	ddSpan := tracer.StartSpan(operationName, ddOptions...)
 	var hSpan trace.Span
 	if !cfg.HighlightTracingDisabled {
 		hSpan, _ = highlight.StartTrace(context.Background(), operationName, cfg.Tags...)
 	}
 
 	return MultiSpan{
-		ddSpan: ddSpan,
-		hSpan:  hSpan,
+		hSpan: hSpan,
 	}
 }
 

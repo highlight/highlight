@@ -78,6 +78,7 @@ export const LogDetails: React.FC<Props> = ({
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const {
+		environment,
 		traceID,
 		spanID,
 		secureSessionID,
@@ -98,6 +99,7 @@ export const LogDetails: React.FC<Props> = ({
 	} & {
 		[key in ReservedLogKey]: Maybe<string> | undefined
 	} = {
+		environment,
 		level,
 		message,
 		trace_id: traceID,
@@ -106,7 +108,6 @@ export const LogDetails: React.FC<Props> = ({
 		source,
 		service_name: serviceName,
 		service_version: serviceVersion,
-		environment: null, // TODO: replace this when implementing for logs
 	}
 
 	if (!expanded) {

@@ -92,10 +92,9 @@ type PushBackendPayloadArgs struct {
 }
 
 type PushMetricsArgs struct {
-	SessionSecureID string
-	SessionID       int
-	ProjectID       int
-	Metrics         []*customModels.MetricInput
+	ProjectVerboseID *string
+	SessionSecureID  *string
+	Metrics          []*customModels.MetricInput
 }
 
 type AddSessionFeedbackArgs struct {

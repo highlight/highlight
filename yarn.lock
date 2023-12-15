@@ -12356,6 +12356,7 @@ __metadata:
     js-cookie: ^3.0.1
     jsonc-parser: ^3.2.0
     less: ^4.1.3
+    lightningcss: ^1.22.1
     lodash: ^4.17.21
     lottie-react: ^2.1.0
     moment: 2.29.4
@@ -12511,6 +12512,7 @@ __metadata:
     ts-jest: ^29.0.3
     typescript: ^5.0.4
   peerDependencies:
+    next: ">=11"
     react: ">=17"
   languageName: unknown
   linkType: soft
@@ -12523,6 +12525,7 @@ __metadata:
     "@opentelemetry/auto-instrumentations-node": ^0.40.1
     "@opentelemetry/core": ^1.18.1
     "@opentelemetry/exporter-trace-otlp-proto": ^0.45.1
+    "@opentelemetry/instrumentation": ^0.45.1
     "@opentelemetry/resources": ^1.18.1
     "@opentelemetry/sdk-node": ^0.45.1
     "@opentelemetry/sdk-trace-base": ^1.18.1
@@ -12567,7 +12570,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/pino@workspace:sdk/pino":
+"@highlight-run/pino@workspace:*, @highlight-run/pino@workspace:sdk/pino":
   version: 0.0.0-use.local
   resolution: "@highlight-run/pino@workspace:sdk/pino"
   dependencies:
@@ -14954,15 +14957,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/bundle-analyzer@npm:^14.0.4":
-  version: 14.0.4
-  resolution: "@next/bundle-analyzer@npm:14.0.4"
-  dependencies:
-    webpack-bundle-analyzer: 4.7.0
-  checksum: 46224e08b20dffd0ff02d210ed527deddc189f054fb1501bca6d861f30c2bbcf5ede50f50c61401e2e865aede6ee736c1ce4ca0094ac14c839c2860cb13251ab
-  languageName: node
-  linkType: hard
-
 "@next/env@npm:14.0.2":
   version: 14.0.2
   resolution: "@next/env@npm:14.0.2"
@@ -16018,6 +16012,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@opentelemetry/instrumentation@npm:^0.45.1":
+  version: 0.45.1
+  resolution: "@opentelemetry/instrumentation@npm:0.45.1"
+  dependencies:
+    "@types/shimmer": ^1.0.2
+    import-in-the-middle: 1.4.2
+    require-in-the-middle: ^7.1.1
+    semver: ^7.5.2
+    shimmer: ^1.2.1
+  peerDependencies:
+    "@opentelemetry/api": ^1.3.0
+  checksum: 4692d93f9bdb82c9e8c9facc45ef1a3affdcaf7e062edd261239e88486bacfa979ecadcdda0581a2275ddd2b04e457385536a2c80aa9d10cab72f6b8c5940cbd
+  languageName: node
+  linkType: hard
+
 "@opentelemetry/instrumentation@patch:@opentelemetry/instrumentation@npm%3A0.44.0#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch::locator=highlight%40workspace%3A.":
   version: 0.44.0
   resolution: "@opentelemetry/instrumentation@patch:@opentelemetry/instrumentation@npm%3A0.44.0#./.yarn/patches/@opentelemetry-instrumentation-npm-0.44.0-525d6b163a.patch::version=0.44.0&hash=c22088&locator=highlight%40workspace%3A."
@@ -16470,13 +16479,6 @@ __metadata:
   version: 0.5.0
   resolution: "@polka/url@npm:0.5.0"
   checksum: 3f007adf9c271b28992ebff1df6424e75e7d579493c66969356a9b5dada18480583744dbc28a7467371fa10eb794a5e1dc1f3fcd359c0b5685f4f9c6592cd312
-  languageName: node
-  linkType: hard
-
-"@polka/url@npm:^1.0.0-next.20":
-  version: 1.0.0-next.24
-  resolution: "@polka/url@npm:1.0.0-next.24"
-  checksum: 00baec4458ac86ca27edf7ce807ccfad97cd1d4b67bdedaf3401a9e755757588f3331e891290d1deea52d88df2bf2387caf8d94a6835b614d5b37b638a688273
   languageName: node
   linkType: hard
 
@@ -25519,6 +25521,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/speed-insights@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@vercel/speed-insights@npm:1.0.0"
+  checksum: 6a089f8d4c97136dd90aeef160867da2d93757d057f4f3806e6ec9e8100047fa464e9a175e88bd612ab523b60d9cc2edb308c575cabcecc19a68686facd2f785
+  languageName: node
+  linkType: hard
+
 "@vercel/static-build@npm:2.0.8":
   version: 2.0.8
   resolution: "@vercel/static-build@npm:2.0.8"
@@ -26153,13 +26162,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn-walk@npm:^8.0.0":
-  version: 8.3.1
-  resolution: "acorn-walk@npm:8.3.1"
-  checksum: 5c8926ddb5400bc825b6baca782931f9df4ace603ba1a517f5243290fd9cdb089d52877840687b5d5c939591ebc314e2e63721514feaa37c6829c828f2b940ce
-  languageName: node
-  linkType: hard
-
 "acorn-walk@npm:^8.0.2, acorn-walk@npm:^8.1.1, acorn-walk@npm:^8.2.0":
   version: 8.2.0
   resolution: "acorn-walk@npm:8.2.0"
@@ -26182,15 +26184,6 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: f790b99a1bf63ef160c967e23c46feea7787e531292bb827126334612c234ed489a0dc2c7ba33156416f0ffa8d25bf2b0fdb7f35c2ba60eb3e960572bece4001
-  languageName: node
-  linkType: hard
-
-"acorn@npm:^8.0.4":
-  version: 8.11.2
-  resolution: "acorn@npm:8.11.2"
-  bin:
-    acorn: bin/acorn
-  checksum: 818450408684da89423e3daae24e4dc9b68692db8ab49ea4569c7c5abb7a3f23669438bf129cc81dfdada95e1c9b944ee1bfca2c57a05a4dc73834a612fbf6a7
   languageName: node
   linkType: hard
 
@@ -30000,7 +29993,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"colorette@npm:^2.0.14, colorette@npm:^2.0.19":
+"colorette@npm:^2.0.14, colorette@npm:^2.0.19, colorette@npm:^2.0.7":
   version: 2.0.20
   resolution: "colorette@npm:2.0.20"
   checksum: 0c016fea2b91b733eb9f4bcdb580018f52c0bc0979443dad930e5037a968237ac53d9beb98e218d2e9235834f8eebce7f8e080422d6194e957454255bde71d3d
@@ -31852,6 +31845,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dateformat@npm:^4.6.3":
+  version: 4.6.3
+  resolution: "dateformat@npm:4.6.3"
+  checksum: c3aa0617c0a5b30595122bc8d1bee6276a9221e4d392087b41cbbdf175d9662ae0e50d0d6dcdf45caeac5153c4b5b0844265f8cd2b2245451e3da19e39e3b65d
+  languageName: node
+  linkType: hard
+
 "dayjs@npm:1.x":
   version: 1.11.3
   resolution: "dayjs@npm:1.11.3"
@@ -32912,7 +32912,10 @@ __metadata:
   resolution: "e2e-express-ts@workspace:e2e/express-ts"
   dependencies:
     "@highlight-run/node": "workspace:*"
+    "@highlight-run/pino": "workspace:*"
     express: ^4.18.2
+    pino: ^8.16.2
+    pino-pretty: ^10.2.3
     typescript: ^5.3.2
   languageName: unknown
   linkType: soft
@@ -35547,6 +35550,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-copy@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "fast-copy@npm:3.0.1"
+  checksum: 5496b5cf47df29eea479deef03b6b7188626a2cbc356b3015649062846729de6f1a9f555f937e772da8feae0a1231fab13096ed32424b2d61e4d065abc9969fe
+  languageName: node
+  linkType: hard
+
 "fast-deep-equal@npm:3.1.3, fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
@@ -35679,7 +35689,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-safe-stringify@npm:2.1.1":
+"fast-safe-stringify@npm:2.1.1, fast-safe-stringify@npm:^2.1.1":
   version: 2.1.1
   resolution: "fast-safe-stringify@npm:2.1.1"
   checksum: a851cbddc451745662f8f00ddb622d6766f9bd97642dabfd9a405fb0d646d69fc0b9a1243cbf67f5f18a39f40f6fa821737651ff1bceeba06c9992ca2dc5bd3d
@@ -38176,6 +38186,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"help-me@npm:^4.0.1":
+  version: 4.2.0
+  resolution: "help-me@npm:4.2.0"
+  dependencies:
+    glob: ^8.0.0
+    readable-stream: ^3.6.0
+  checksum: 6548acba10dd79ebfc93f0d739c4cb2f32f7932c8d87b091992f3a0f844706263415eab81be015aed4ab874154232beb666920d7e280502c6bba29a40cde343e
+  languageName: node
+  linkType: hard
+
 "hex-color-regex@npm:^1.1.0":
   version: 1.1.0
   resolution: "hex-color-regex@npm:1.1.0"
@@ -38228,7 +38248,7 @@ __metadata:
     "@headlessui/react": ^1.7.4
     "@heroicons/react": ^2.0.13
     "@highlight-run/next": "workspace:*"
-    "@next/bundle-analyzer": ^14.0.4
+    "@highlight-run/pino": "workspace:*"
     "@radix-ui/react-slider": ^1.1.0
     "@supabase/supabase-js": ^2.7.1
     "@svgr/webpack": ^6.5.1
@@ -38246,6 +38266,7 @@ __metadata:
     "@types/react-syntax-highlighter": ^15.5.6
     "@types/remove-markdown": ^0.3.1
     "@vercel/og": ^0.5.20
+    "@vercel/speed-insights": ^1.0.0
     antd: ^4.24.7
     autoprefixer: ^10.4.14
     classnames: ^2.3.1
@@ -43528,6 +43549,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-darwin-arm64@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-darwin-arm64@npm:1.22.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "lightningcss-darwin-x64@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-darwin-x64@npm:1.20.0"
@@ -43535,9 +43563,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-darwin-x64@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-darwin-x64@npm:1.22.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lightningcss-freebsd-x64@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-freebsd-x64@npm:1.22.1"
+  conditions: os=freebsd & cpu=x64
+  languageName: node
+  linkType: hard
+
 "lightningcss-linux-arm-gnueabihf@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-linux-arm-gnueabihf@npm:1.20.0"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-arm-gnueabihf@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-arm-gnueabihf@npm:1.22.1"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -43549,9 +43598,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-linux-arm64-gnu@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-arm64-gnu@npm:1.22.1"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "lightningcss-linux-arm64-musl@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-linux-arm64-musl@npm:1.20.0"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"lightningcss-linux-arm64-musl@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-arm64-musl@npm:1.22.1"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -43563,6 +43626,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-linux-x64-gnu@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-x64-gnu@npm:1.22.1"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "lightningcss-linux-x64-musl@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-linux-x64-musl@npm:1.20.0"
@@ -43570,9 +43640,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lightningcss-linux-x64-musl@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-linux-x64-musl@npm:1.22.1"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "lightningcss-win32-x64-msvc@npm:1.20.0":
   version: 1.20.0
   resolution: "lightningcss-win32-x64-msvc@npm:1.20.0"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"lightningcss-win32-x64-msvc@npm:1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss-win32-x64-msvc@npm:1.22.1"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -43608,6 +43692,43 @@ __metadata:
     lightningcss-win32-x64-msvc:
       optional: true
   checksum: 633594543fd297f1f7a10d3472d5e55f65b0d8707254d1d975dc37b36208c6ef4c4d9d0f391f7fb1e7b2547f0c7b06bbc0aa31575ebb16917a2d1ff9cc25183e
+  languageName: node
+  linkType: hard
+
+"lightningcss@npm:^1.22.1":
+  version: 1.22.1
+  resolution: "lightningcss@npm:1.22.1"
+  dependencies:
+    detect-libc: ^1.0.3
+    lightningcss-darwin-arm64: 1.22.1
+    lightningcss-darwin-x64: 1.22.1
+    lightningcss-freebsd-x64: 1.22.1
+    lightningcss-linux-arm-gnueabihf: 1.22.1
+    lightningcss-linux-arm64-gnu: 1.22.1
+    lightningcss-linux-arm64-musl: 1.22.1
+    lightningcss-linux-x64-gnu: 1.22.1
+    lightningcss-linux-x64-musl: 1.22.1
+    lightningcss-win32-x64-msvc: 1.22.1
+  dependenciesMeta:
+    lightningcss-darwin-arm64:
+      optional: true
+    lightningcss-darwin-x64:
+      optional: true
+    lightningcss-freebsd-x64:
+      optional: true
+    lightningcss-linux-arm-gnueabihf:
+      optional: true
+    lightningcss-linux-arm64-gnu:
+      optional: true
+    lightningcss-linux-arm64-musl:
+      optional: true
+    lightningcss-linux-x64-gnu:
+      optional: true
+    lightningcss-linux-x64-musl:
+      optional: true
+    lightningcss-win32-x64-msvc:
+      optional: true
+  checksum: 75319e14cae842f92d2d3fbf3c7616ef427298fc3bd010bc644eb67c21af93debc2dff5dcf67b6dcf0eab0ca6c073bc670805bba1977cf3423d0da766e15caf3
   languageName: node
   linkType: hard
 
@@ -47221,15 +47342,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"opener@npm:^1.5.2":
-  version: 1.5.2
-  resolution: "opener@npm:1.5.2"
-  bin:
-    opener: bin/opener-bin.js
-  checksum: 33b620c0d53d5b883f2abc6687dd1c5fd394d270dbe33a6356f2d71e0a2ec85b100d5bac94694198ccf5c30d592da863b2292c5539009c715a9c80c697b4f6cc
-  languageName: node
-  linkType: hard
-
 "opentracing@npm:^0.14.4":
   version: 0.14.7
   resolution: "opentracing@npm:0.14.7"
@@ -48403,6 +48515,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pino-abstract-transport@npm:^1.0.0, pino-abstract-transport@npm:v1.1.0":
+  version: 1.1.0
+  resolution: "pino-abstract-transport@npm:1.1.0"
+  dependencies:
+    readable-stream: ^4.0.0
+    split2: ^4.0.0
+  checksum: cc84caabee5647b5753ae484d5f63a1bca0f6e1791845e2db2b6d830a561c2b5dd1177720f68d78994c8a93aecc69f2729e6ac2bc871a1bf5bb4b0ec17210668
+  languageName: node
+  linkType: hard
+
 "pino-abstract-transport@npm:v0.5.0":
   version: 0.5.0
   resolution: "pino-abstract-transport@npm:0.5.0"
@@ -48438,6 +48560,30 @@ __metadata:
   bin:
     pino-http-send: dist/bin.js
   checksum: 11b78c1c840a6985edec50c119aab091d3a6247cbdfcbc5f05422b837d2e046132182bc4f71f3acbe62ffdb791c566083338daba3b811aec81dcbd14428d4027
+  languageName: node
+  linkType: hard
+
+"pino-pretty@npm:^10.2.3":
+  version: 10.2.3
+  resolution: "pino-pretty@npm:10.2.3"
+  dependencies:
+    colorette: ^2.0.7
+    dateformat: ^4.6.3
+    fast-copy: ^3.0.0
+    fast-safe-stringify: ^2.1.1
+    help-me: ^4.0.1
+    joycon: ^3.1.1
+    minimist: ^1.2.6
+    on-exit-leak-free: ^2.1.0
+    pino-abstract-transport: ^1.0.0
+    pump: ^3.0.0
+    readable-stream: ^4.0.0
+    secure-json-parse: ^2.4.0
+    sonic-boom: ^3.0.0
+    strip-json-comments: ^3.1.1
+  bin:
+    pino-pretty: bin.js
+  checksum: 9182886855515000df2ef381762c69fc29dbdd9014a76839cc3d8a7a94ac96d4ce17423adb9ddd61eae78986bb0ff3a1d9e6e7aa55476c096a3dd4a0c89440e8
   languageName: node
   linkType: hard
 
@@ -48493,6 +48639,27 @@ __metadata:
   bin:
     pino: bin.js
   checksum: 9a54d0757f0256201fad01346be1c18b0a4378704fa383df867189da12151d664d2bd18b1e53df70633fbff6c90fd3175228c0c971eaaa734939709cc1a0005b
+  languageName: node
+  linkType: hard
+
+"pino@npm:^8.16.2":
+  version: 8.16.2
+  resolution: "pino@npm:8.16.2"
+  dependencies:
+    atomic-sleep: ^1.0.0
+    fast-redact: ^3.1.1
+    on-exit-leak-free: ^2.1.0
+    pino-abstract-transport: v1.1.0
+    pino-std-serializers: ^6.0.0
+    process-warning: ^2.0.0
+    quick-format-unescaped: ^4.0.3
+    real-require: ^0.2.0
+    safe-stable-stringify: ^2.3.1
+    sonic-boom: ^3.7.0
+    thread-stream: ^2.0.0
+  bin:
+    pino: bin.js
+  checksum: 78d194112f09f82471ec7e0022bc114ddb833375d60236be40ac55bf8a8ae26b88c8780d54912687c7cd6d0321ba5b1a78ffa89c5e9d5855ef849c3b9273c7ab
   languageName: node
   linkType: hard
 
@@ -55113,6 +55280,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"secure-json-parse@npm:^2.4.0":
+  version: 2.7.0
+  resolution: "secure-json-parse@npm:2.7.0"
+  checksum: d9d7d5a01fc6db6115744ba23cf9e67ecfe8c524d771537c062ee05ad5c11b64c730bc58c7f33f60bd6877f96b86f0ceb9ea29644e4040cb757f6912d4dd6737
+  languageName: node
+  linkType: hard
+
 "selderee@npm:^0.10.0":
   version: 0.10.0
   resolution: "selderee@npm:0.10.0"
@@ -55660,17 +55834,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sirv@npm:^1.0.7":
-  version: 1.0.19
-  resolution: "sirv@npm:1.0.19"
-  dependencies:
-    "@polka/url": ^1.0.0-next.20
-    mrmime: ^1.0.0
-    totalist: ^1.0.0
-  checksum: c943cfc61baf85f05f125451796212ec35d4377af4da90ae8ec1fa23e6d7b0b4d9c74a8fbf65af83c94e669e88a09dc6451ba99154235eead4393c10dda5b07c
-  languageName: node
-  linkType: hard
-
 "sister@npm:^3.0.0":
   version: 3.0.2
   resolution: "sister@npm:3.0.2"
@@ -55969,6 +56132,15 @@ __metadata:
   dependencies:
     atomic-sleep: ^1.0.0
   checksum: c7f9c89f931d7f60f8e0741551a729f0d81e6dc407a99420fc847a9a4c25af048a615b1188ab3c4f1fb3708fe4904973ddab6ebcc8ed5b78b50ab81a99045910
+  languageName: node
+  linkType: hard
+
+"sonic-boom@npm:^3.0.0, sonic-boom@npm:^3.7.0":
+  version: 3.7.0
+  resolution: "sonic-boom@npm:3.7.0"
+  dependencies:
+    atomic-sleep: ^1.0.0
+  checksum: 528f0f7f7e09dcdb02ad5985039f66554266cbd8813f9920781607c9248e01f468598c1334eab2cc740c016a63c8b2a20e15c3f618cddb08ea1cfb4a390a796e
   languageName: node
   linkType: hard
 
@@ -58336,13 +58508,6 @@ __metadata:
   version: 1.0.0
   resolution: "tosource@npm:1.0.0"
   checksum: 683fc64700484cd749b6eed461c2d105e251df7caf886484ff824bcf1249e365210d65c4f2ca3ced30baa34ea7912c656984e084aaada669920b44e2437c1c05
-  languageName: node
-  linkType: hard
-
-"totalist@npm:^1.0.0":
-  version: 1.1.0
-  resolution: "totalist@npm:1.1.0"
-  checksum: dfab80c7104a1d170adc8c18782d6c04b7df08352dec452191208c66395f7ef2af7537ddfa2cf1decbdcfab1a47afbbf0dec6543ea191da98c1c6e1599f86adc
   languageName: node
   linkType: hard
 
@@ -61038,25 +61203,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack-bundle-analyzer@npm:4.7.0":
-  version: 4.7.0
-  resolution: "webpack-bundle-analyzer@npm:4.7.0"
-  dependencies:
-    acorn: ^8.0.4
-    acorn-walk: ^8.0.0
-    chalk: ^4.1.0
-    commander: ^7.2.0
-    gzip-size: ^6.0.0
-    lodash: ^4.17.20
-    opener: ^1.5.2
-    sirv: ^1.0.7
-    ws: ^7.3.1
-  bin:
-    webpack-bundle-analyzer: lib/bin/analyzer.js
-  checksum: 4ce3b379c61ce16b2219756843407cc99f2b82cd191f653043f1b705a3e32b3af03834af0dfded98ab852313a892a148bed1a8effaacd6440f028c19f41581f3
-  languageName: node
-  linkType: hard
-
 "webpack-cli@npm:^5.1.4":
   version: 5.1.4
   resolution: "webpack-cli@npm:5.1.4"
@@ -61730,7 +61876,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^5.2.0 || ^6.0.0 || ^7.0.0, ws@npm:^7.2.0, ws@npm:^7.3.1, ws@npm:^7.4.3, ws@npm:^7.4.4, ws@npm:^7.4.5":
+"ws@npm:^5.2.0 || ^6.0.0 || ^7.0.0, ws@npm:^7.2.0, ws@npm:^7.4.3, ws@npm:^7.4.4, ws@npm:^7.4.5":
   version: 7.5.9
   resolution: "ws@npm:7.5.9"
   peerDependencies:

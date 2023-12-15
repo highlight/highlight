@@ -19,7 +19,7 @@ import {
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -116,7 +116,7 @@ export const TraceLogs: React.FC = () => {
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
-						fetchKeys={useGetLogsKeysQuery}
+						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<Box height="full" pt="4" px="12" pb="12">
