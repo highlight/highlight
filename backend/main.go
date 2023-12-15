@@ -217,9 +217,10 @@ func main() {
 		highlight.WithMetricSamplingRate(1./1000),
 		highlight.WithSamplingRateMap(map[trace.SpanKind]float64{
 			trace.SpanKindUnspecified: 1. / 1000,
-			// report `sampling` and other important internal metrics / sdk logs as server
+			trace.SpanKindInternal:    1. / 1000,
+			// report `sampling`
 			trace.SpanKindServer: 1.,
-			// keep all `Client` traces which we set for customer logs
+			// report all customer data
 			trace.SpanKindClient: 1.,
 		}),
 		highlight.WithServiceName(serviceName),
