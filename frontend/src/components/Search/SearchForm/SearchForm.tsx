@@ -33,7 +33,8 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
-import { parseSearch } from '@/components/Search/Parser/utils'
+import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
+import { parseSearch, SearchToken } from '@/components/Search/Parser/utils'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -44,9 +45,7 @@ import {
 	parseSearchQuery,
 	quoteQueryValue,
 	SearchParam,
-	SEPARATORS,
 	stringifySearchQuery,
-	tokenAsParts,
 } from '@/components/Search/SearchForm/utils'
 import {
 	useGetLogsKeysLazyQuery,
@@ -238,7 +237,6 @@ export const Search: React.FC<{
 
 	const queryTerms = parseSearchQuery(query)
 	const { tokenGroups } = parseSearch(query)
-	console.log('::: tokenGroups', tokenGroups)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
@@ -430,6 +428,7 @@ export const Search: React.FC<{
 								term={term}
 								index={index}
 								active={active}
+								tokens={group}
 								onRemoveItem={handleRemoveItem}
 							/>
 						)
@@ -630,17 +629,20 @@ export const Search: React.FC<{
 	)
 }
 
+const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
+	name?.replaceAll("'", ''),
+)
+
 const TermTag: React.FC<{
 	active: boolean
 	index: number
 	term: string
+	tokens: SearchToken[]
 	onRemoveItem: (index: number) => void
-}> = ({ active, index, term, onRemoveItem }) => {
+}> = ({ active, index, term, tokens, onRemoveItem }) => {
 	if (term.trim().length === 0) {
 		return <span>{term}</span>
 	}
-
-	const parts = tokenAsParts(term)
 
 	return (
 		<>
@@ -657,22 +659,23 @@ const TermTag: React.FC<{
 					size={13}
 					onClick={() => onRemoveItem(index)}
 				/>
-				{parts.map((part, index) => {
-					const key = `${part}-${index}`
+				{tokens.map((token, index) => {
+					const { text } = token
+					const key = `${text}-${index}`
 
-					if (SEPARATORS.includes(part)) {
+					if (SEPARATORS.includes(text)) {
 						return (
 							<Box
 								key={key}
 								style={{ color: '#E93D82', zIndex: 1 }}
 							>
-								{part}
+								{text}
 							</Box>
 						)
 					} else {
 						return (
 							<Box key={key} style={{ zIndex: 1 }}>
-								{part}
+								{text}
 							</Box>
 						)
 					}

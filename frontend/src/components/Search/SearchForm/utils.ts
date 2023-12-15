@@ -15,7 +15,7 @@ export const BODY_KEY = 'message'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|(\S+:\((?:[^\)\\]|\\.)*\))|\S+|\S+:\S+|\s$/g
 
-export const parseSearchQuery = (query = ''): SearchParam[] => {
+export const parseSearchQuery = (query = ''): Expression[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
 		return [
 			{
@@ -66,31 +66,6 @@ export const parseSearchQuery = (query = ''): SearchParam[] => {
 	}
 
 	return terms
-}
-
-export const SEPARATORS = [
-	'AND',
-	'OR',
-	'!=',
-	'>=',
-	'<=',
-	'<',
-	'>',
-	':',
-	'=',
-	'(',
-	')',
-	'*',
-]
-
-const escapedSeparators = SEPARATORS.map((separator) =>
-	separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-)
-
-export const tokenAsParts = (token: string): string[] => {
-	return token
-		.split(new RegExp(`(${escapedSeparators.join('|')})`, 'g'))
-		.filter(Boolean)
 }
 
 export const stringifySearchQuery = (params: SearchParam[]) => {
