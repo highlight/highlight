@@ -7,10 +7,10 @@ from highlight_io.utils import utils
 try:
     import requests
     from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
     instrumentation_available = True
 except ImportError:
     instrumentation_available = False
-
 
 
 class RequestsIntegration(Integration):
