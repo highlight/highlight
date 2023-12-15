@@ -54,11 +54,7 @@ export interface HighlightInterface {
 		metadata?: Attributes,
 	) => Promise<void>
 	setAttributes: (attributes: ResourceAttributes) => void
-	startSpan: (
-		name: string,
-		options: SpanOptions,
-		cb: (span: OtelSpan) => unknown,
-	) => void
+	startActiveSpan: (name: string, options: SpanOptions) => Promise<OtelSpan>
 	_debug: (...data: any[]) => void
 }
 
@@ -177,12 +173,8 @@ export const H: HighlightInterface = {
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)
 	},
-	startSpan: (
-		name: string,
-		options: SpanOptions,
-		cb: (span: OtelSpan) => unknown,
-	) => {
-		return highlight_obj.startSpan(name, options, cb)
+	startActiveSpan: (name: string, options: SpanOptions) => {
+		return highlight_obj.startActiveSpan(name, options)
 	},
 
 	_debug: (...data: any[]) => {

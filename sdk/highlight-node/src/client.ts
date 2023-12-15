@@ -15,7 +15,6 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import type { IncomingHttpHeaders } from 'http'
-import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
 
@@ -391,6 +390,8 @@ export class Highlight {
 					const { secureSessionId, requestId } =
 						this.parseHeaders(headers)
 
+					console.log({ headers, secureSessionId, requestId })
+
 					if (secureSessionId && requestId) {
 						this.processor.setTraceMetadata(span, {
 							'highlight.session_id': secureSessionId,
@@ -428,12 +429,10 @@ export class Highlight {
 		})
 	}
 
-	startSpan(
-		name: string,
-		options: SpanOptions,
-		cb: (span: OtelSpan) => unknown,
-	) {
-		return this.tracer.startActiveSpan(name, options, cb)
+	startActiveSpan(name: string, options?: SpanOptions) {
+		return new Promise<OtelSpan>((resolve) =>
+			this.tracer.startActiveSpan(name, options || {}, resolve),
+		)
 	}
 }
 function parseHeaders(

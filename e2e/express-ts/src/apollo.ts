@@ -55,11 +55,13 @@ const server = new ApolloServer({
 })
 
 export async function startApollo() {
-	const { url } = await startStandaloneServer(server, {
-		listen: { port: 3004 },
+	return new Promise<() => void>(async (resolve) => {
+		const { url } = await startStandaloneServer(server, {
+			listen: { port: 3004 },
+		})
+
+		console.log(`🚀  Server ready at: ${url}`)
+
+		resolve(() => server.stop())
 	})
-
-	console.log(`🚀  Server ready at: ${url}`)
-
-	return () => server.stop()
 }

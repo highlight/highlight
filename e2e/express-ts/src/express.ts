@@ -4,7 +4,7 @@ import { CONSTANTS } from './constants'
 
 /** @type {import('@highlight-run/node').NodeOptions} */
 const config = {
-	projectID: '1',
+	projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID ?? '1',
 	debug: true,
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
@@ -44,10 +44,12 @@ app.get('/good', (req, res) => {
 // This should be before any other error middleware and after all controllers (route definitions)
 app.use(Handlers.errorHandler(config))
 
-export function startExpress() {
-	const server = app.listen(port, () => {
-		console.log(`Example app listening on port ${port}`)
-	})
+export async function startExpress() {
+	return new Promise<() => void>((resolve) => {
+		const server = app.listen(port, () => {
+			console.log(`Example app listening on port ${port}`)
 
-	return () => server.close()
+			resolve(() => server.close())
+		})
+	})
 }

@@ -8,15 +8,13 @@ export default withPageRouterHighlight(async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
-	return new Promise<void>((resolve) => {
-		H.startSpan('page-router-span', {}, (span) => {
-			console.info('Here: /pages/api/page-router-trace.ts ⌚⌚⌚')
+	return new Promise<void>(async (resolve) => {
+		const span = await H.startActiveSpan('page-router-span', {})
 
-			res.send(
-				`Trace sent! Check out this random number: ${Math.random()}`,
-			)
-			span.end()
-			resolve()
-		})
+		console.info('Here: /pages/api/page-router-trace.ts ⌚⌚⌚')
+
+		res.send(`Trace sent! Check out this random number: ${Math.random()}`)
+		span.end()
+		resolve()
 	})
 })

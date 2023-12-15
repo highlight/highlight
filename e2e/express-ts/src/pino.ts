@@ -1,7 +1,16 @@
 import pino from 'pino'
 import { CONSTANTS } from './constants'
+import { H } from '@highlight-run/node'
 
 export function startPino() {
+	H.init({
+		projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID ?? '1',
+		debug: true,
+		serviceName: 'e2e-express-pino-manual-init',
+		serviceVersion: 'git-sha',
+		otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
+	})
+
 	const logger = pino({
 		transport: {
 			targets: [
@@ -27,9 +36,11 @@ export function startPino() {
 		},
 	})
 
-	logger.info('hello world')
+	H.runWithHeaders({ 'x-highlight-request': '987654/321654' }, () => {
+		logger.info('hello world')
 
-	const child = logger.child({ a: 'property' })
+		const child = logger.child({ a: 'property' })
 
-	child.info('hello child!')
+		child.info('hello child!')
+	})
 }
