@@ -19,6 +19,7 @@ except ImportError:
 
 class FlaskIntegration(Integration):
     HIGHLIGHT_HEADER = "HTTP_X_HIGHLIGHT_REQUEST"
+    INTEGRATION_KEY = "flask"
 
     def __init__(self):
         self._orig_flask = None

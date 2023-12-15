@@ -19,6 +19,7 @@ except ImportError:
 
 class DjangoIntegration(Integration):
     HIGHLIGHT_HEADER = "HTTP_X_HIGHLIGHT_REQUEST"
+    INTEGRATION_KEY = "django"
 
     def __init__(self):
         self._orig_django = None

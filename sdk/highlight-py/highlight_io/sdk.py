@@ -21,6 +21,10 @@ from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
+from highlight_io.utils.lru_cache import LRUCache
+from highlight_io.integrations.requests import RequestsIntegration
+
+DEFAULT_INTEGRATIONS = [RequestsIntegration]
 
 
 class LogHandler(logging.Handler):
@@ -44,6 +48,9 @@ class H(object):
     OTLP_HTTP = "https://otel.highlight.io:4318"
     _instance: "H" = None
     _logging_instrumented = False
+    # context is a LRU cache to avoid storing too many trace ids in memory
+    # we should not need more than 1000 since Python processes are single-threaded
+    _context_map = LRUCache(1000)
 
     @classmethod
     def get_instance(cls) -> "H":
@@ -57,6 +64,7 @@ class H(object):
         self,
         project_id: str,
         integrations: typing.List[Integration] = None,
+        disabled_integrations: typing.List[str] = None,
         otlp_endpoint: str = "",
         instrument_logging: bool = True,
         log_level=logging.DEBUG,
@@ -74,6 +82,7 @@ class H(object):
 
         :param project_id: a string that corresponds to the verbose id of your project from app.highlight.io/setup
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
+        :param disabled_integrations: a list of integrations to disable.
         :param instrument_logging: defaults to True. set False to disable auto-instrumentation of python `logging` methods.
         :param otlp_endpoint: set to a custom otlp destination
         :param service_name: a string to name this app
@@ -84,6 +93,7 @@ class H(object):
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
+        self._disabled_integrations = disabled_integrations or []
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
@@ -124,8 +134,15 @@ class H(object):
         _logs.set_logger_provider(self._log_provider)
         self.log = self._log_provider.get_logger(__name__)
 
+        skip_disabled_integrations = self._disabled_integrations.copy()
+
         for integration in self._integrations:
             integration.enable()
+            skip_disabled_integrations.append(integration.INTEGRATION_KEY)
+
+        for integration in DEFAULT_INTEGRATIONS:
+            if integration.INTEGRATION_KEY not in skip_disabled_integrations:
+                integration().enable()
 
     def flush(self):
         self._trace_provider.force_flush()
@@ -168,6 +185,9 @@ class H(object):
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})
+
+            self._context_map.put(span.context.trace_id, (session_id, request_id))
+
             try:
                 yield span
             except Exception as e:
@@ -361,6 +381,15 @@ class H(object):
 
         logging.setLogRecordFactory(factory)
         H._logging_instrumented = True
+
+    def get_highlight_context(self, trace_id: str) -> typing.Tuple[str, str]:
+        """
+        Get the highlight context associated with a trace id.
+
+        :param trace_id: the trace id to lookup
+        :return: a tuple of (session_id, request_id)
+        """
+        return self._context_map.get(trace_id, ("", ""))
 
 
 def _build_resource(

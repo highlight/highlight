@@ -1,16 +1,21 @@
 import logging
 import random
 import time
+import requests
 
 from flask import Flask, request
 
 import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
+from highlight_io.integrations.requests import RequestsIntegration
 
 app = Flask(__name__)
 H = highlight_io.H(
     "1",
-    integrations=[FlaskIntegration()],
+    integrations=[
+        FlaskIntegration(),
+        RequestsIntegration(tracing_origins=["localhost", "highlight.io"]),
+    ],
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-flask-app",
@@ -22,8 +27,13 @@ H = highlight_io.H(
 @app.route("/")
 def hello():
     logging.info(
-        "hello handler", {"customer": request.headers.get("customer") or "unknown"}
+        "Making an external request with requests",
+        {"customer": request.headers.get("customer") or "unknown"},
     )
+
+    r = requests.get(url="http://app.highlight.io/health_check")
+    logging.info(f"received {r.status_code} response")
+
     for idx in range(1000):
         logging.info(f"hello {idx}")
         time.sleep(0.001)
