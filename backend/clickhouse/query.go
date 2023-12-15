@@ -39,7 +39,7 @@ type tableConfig[TReservedKey ~string] struct {
 type sampleableTableConfig[TReservedKey ~string] struct {
 	tableConfig         tableConfig[TReservedKey]
 	samplingTableConfig tableConfig[TReservedKey]
-	samplingThreshold   time.Duration
+	useSampling         func(time.Duration) bool
 }
 
 func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config tableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -610,7 +610,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
-	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= sampleableConfig.samplingThreshold
+	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 
 	selectArgs := []interface{}{}
 

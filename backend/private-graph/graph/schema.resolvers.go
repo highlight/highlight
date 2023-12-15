@@ -7426,18 +7426,13 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsMetrics is the resolver for the logs_metrics field.
-func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	bucketByDeref := string(modelInputs.MetricBucketByTimestamp)
-	if bucketBy != nil {
-		bucketByDeref = *bucketBy
-	}
-
-	return r.ClickhouseClient.ReadLogsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketByDeref, limit, limitAggregator, limitColumn)
+	return r.ClickhouseClient.ReadLogsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 // LogsKeys is the resolver for the logs_keys field.
@@ -7742,25 +7737,20 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 	if typeArg == nil || *typeArg == modelInputs.KeyTypeNumeric {
 		return []*modelInputs.QueryKey{}, nil
 	} else {
-		return []*modelInputs.QueryKey{
-			{Name: "browser"},
-			{Name: "environment"},
-			{Name: "event"},
-			{Name: "has_sessions"},
-			{Name: "operating_system"},
-			{Name: "service"},
-			{Name: "service_version"},
-			{Name: "status"},
-			{Name: "tag"},
-			{Name: "type"},
-			{Name: "visited_url"},
-		}, nil
+		return lo.Map(modelInputs.AllReservedErrorObjectKey, func(k modelInputs.ReservedErrorObjectKey, _ int) *modelInputs.QueryKey {
+			return &modelInputs.QueryKey{Name: string(k)}
+		}), nil
 	}
 }
 
-// SessionsKeys is the resolver for the sessions_keys field.
-func (r *queryResolver) SessionsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	panic(fmt.Errorf("not implemented: SessionsKeys - sessions_keys"))
+// ErrorsMetrics is the resolver for the errors_metrics field.
+func (r *queryResolver) ErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadErrorsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 // Params is the resolver for the params field.

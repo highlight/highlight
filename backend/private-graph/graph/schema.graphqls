@@ -943,9 +943,12 @@ enum ReservedTraceKey {
 }
 
 enum ReservedErrorObjectKey {
+	browser
 	environment
 	event
+	has_sessions
 	log_cursor
+	os
 	payload
 	request_id
 	service_name
@@ -954,6 +957,8 @@ enum ReservedErrorObjectKey {
 	source
 	span_id
 	stackTrace
+	status
+	tag
 	timestamp
 	trace_id
 	type
@@ -2061,7 +2066,7 @@ type Query {
 		column: String!
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
-		bucket_by: String
+		bucket_by: String!
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2130,12 +2135,17 @@ type Query {
 		query: String
 		type: KeyType
 	): [QueryKey!]!
-	sessions_keys(
+	errors_metrics(
 		project_id: ID!
-		date_range: DateRangeRequiredInput!
-		query: String
-		type: KeyType
-	): [QueryKey!]!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
 }
 
 type Mutation {
