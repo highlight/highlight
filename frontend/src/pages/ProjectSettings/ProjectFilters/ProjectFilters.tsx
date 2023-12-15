@@ -206,18 +206,6 @@ export const ProjectProductFilters: React.FC<{
 	const canEditSampling =
 		workspaceSettingsData?.workspaceSettings?.enable_ingest_sampling
 
-	const showEditIngestionUpgrade = React.useCallback(async () => {
-		analytics.track('Project Ingestion Upgrade', {
-			product,
-			workspaceId: currentWorkspace?.id,
-		})
-		await message.warn(
-			'Setting up ingest filters is only available on paying plans.',
-			3,
-		)
-		navigate(`/w/${currentWorkspace?.id}/current-plan/update-plan`)
-	}, [currentWorkspace?.id, navigate, product])
-
 	const showEditSamplingUpgrade = React.useCallback(async () => {
 		analytics.track('Project Sampling Upgrade', {
 			product,
@@ -410,6 +398,34 @@ export const ProjectProductFilters: React.FC<{
 		</Button>
 	)
 
+	const save = (
+		<Box display="flex" alignItems="center" gap="6">
+			<Button
+				trackingId={`project-filters-${product}-discard`}
+				kind="secondary"
+				size="small"
+				emphasis="low"
+				onClick={resetConfig}
+			>
+				Discard changes
+			</Button>
+			<Button
+				trackingId={`project-filters-${product}-save`}
+				kind="primary"
+				size="small"
+				emphasis="high"
+				onClick={onSave}
+				loading={saveLoading}
+				disabled={
+					billingDetails?.billingDetailsForProject?.plan.type ===
+					PlanType.Free
+				}
+			>
+				Save changes
+			</Button>
+		</Box>
+	)
+
 	return (
 		<Box width="full">
 			{view ? null : (
@@ -422,30 +438,20 @@ export const ProjectProductFilters: React.FC<{
 					alignItems="center"
 					width="full"
 				>
-					<Text>{label} filters</Text>
-					{view ? null : (
-						<Box display="flex" alignItems="center" gap="6">
-							<Button
-								trackingId={`project-filters-${product}-discard`}
-								kind="secondary"
-								size="small"
-								emphasis="low"
-								onClick={resetConfig}
+					<>
+						<Text>{label} filters</Text>
+						{view ? null : (
+							<FilterPaywall
+								paywalled={
+									billingDetails?.billingDetailsForProject
+										?.plan.type === PlanType.Free
+								}
+								product={product}
 							>
-								Discard changes
-							</Button>
-							<Button
-								trackingId={`project-filters-${product}-save`}
-								kind="primary"
-								size="small"
-								emphasis="high"
-								onClick={onSave}
-								loading={saveLoading}
-							>
-								Save changes
-							</Button>
-						</Box>
-					)}
+								{save}
+							</FilterPaywall>
+						)}
+					</>
 				</Box>
 				<Stack gap="6" py="6">
 					<Box display="flex" width="full" gap="6">
@@ -525,38 +531,12 @@ export const ProjectProductFilters: React.FC<{
 							)}
 						</Box>
 						{view ? (
-							canEditIngestion ? (
-								edit
-							) : (
-								<Tooltip
-									trigger={
-										<Box
-											display="inline-flex"
-											onClick={showEditIngestionUpgrade}
-										>
-											{edit}
-										</Box>
-									}
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										justifyContent="center"
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											justifyContent="center"
-											p="4"
-											onClick={showEditIngestionUpgrade}
-										>
-											<Text>
-												Available to paid customers
-											</Text>
-										</Box>
-									</Box>
-								</Tooltip>
-							)
+							<FilterPaywall
+								paywalled={!canEditIngestion}
+								product={product}
+							>
+								{edit}
+							</FilterPaywall>
 						) : null}
 					</Box>
 					{view ? (
@@ -657,6 +637,50 @@ export const ProjectProductFilters: React.FC<{
 				</Form>
 			</Box>
 		</Box>
+	)
+}
+
+const FilterPaywall: React.FC<
+	React.PropsWithChildren<{ product: ProductType; paywalled: boolean }>
+> = ({ product, paywalled, children }) => {
+	const navigate = useNavigate()
+	const { currentWorkspace } = useApplicationContext()
+
+	const showEditIngestionUpgrade = React.useCallback(async () => {
+		analytics.track('Project Ingestion Upgrade', {
+			product,
+			workspaceId: currentWorkspace?.id,
+		})
+		await message.warn(
+			'Setting up ingest filters is only available on paying plans.',
+			3,
+		)
+		navigate(`/w/${currentWorkspace?.id}/current-plan/update-plan`)
+	}, [currentWorkspace?.id, navigate, product])
+
+	if (!paywalled) {
+		return <>{children}</>
+	}
+	return (
+		<Tooltip
+			trigger={
+				<Box display="inline-flex" onClick={showEditIngestionUpgrade}>
+					{children}
+				</Box>
+			}
+		>
+			<Box display="flex" alignItems="center" justifyContent="center">
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					p="4"
+					onClick={showEditIngestionUpgrade}
+				>
+					<Text>Available to paid customers</Text>
+				</Box>
+			</Box>
+		</Tooltip>
 	)
 }
 
