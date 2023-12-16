@@ -7,9 +7,6 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	"github.com/samber/lo"
-	"golang.org/x/sync/errgroup"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -20,9 +17,12 @@ import (
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
@@ -111,18 +111,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		payloadID = pointy.Int(0)
 	}
 
-	const desiredMsgBytes = 1_000_000
 	const staticChunkSize = 1_000
-	var logsChunkSize, resourcesChunkSize, websocketEventsChunkSize = staticChunkSize, staticChunkSize, staticChunkSize
-	if cs := len(messages) / desiredMsgBytes; cs > 0 {
-		logsChunkSize = cs
-	}
-	if cs := len(resources) / desiredMsgBytes; cs > 0 {
-		resourcesChunkSize = cs
-	}
-	if cs := len(ptr.ToString(webSocketEvents)) / desiredMsgBytes; cs > 0 {
-		websocketEventsChunkSize = cs
-	}
 
 	var logRows []*hlog.Message
 	var resourcesParsed PushPayloadResources
@@ -164,7 +153,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.errors = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(logRows, logsChunkSize) {
+	for idx, chunk := range lo.Chunk(logRows, staticChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -172,7 +161,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.logRows = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(resourcesParsed.Resources, resourcesChunkSize) {
+	for idx, chunk := range lo.Chunk(resourcesParsed.Resources, staticChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -180,7 +169,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.resources = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(webSocketEventsParsed.WebSocketEvents, websocketEventsChunkSize) {
+	for idx, chunk := range lo.Chunk(webSocketEventsParsed.WebSocketEvents, staticChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
