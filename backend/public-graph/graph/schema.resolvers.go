@@ -105,31 +105,17 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecu
 	return sessionSecureID, err
 }
 
-type PushPayloadMessages struct {
-	Messages []*hlog.Message `json:"messages"`
-}
-
-type PushPayloadResources struct {
-	Resources []*json.RawMessage `json:"resources"`
-}
-
-type PushPayloadWebSocketEvents struct {
-	WebSocketEvents []*json.RawMessage `json:"webSocketEvents"`
-}
-
-type PushPayloadChunk struct {
-	events          []*customModels.ReplayEventInput
-	errors          []*customModels.ErrorObjectInput
-	logRows         []*hlog.Message
-	resources       []*json.RawMessage
-	websocketEvents []*json.RawMessage
-}
-
 // PushPayload is the resolver for the pushPayload field.
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
 	if payloadID == nil {
 		payloadID = pointy.Int(0)
 	}
+
+	const desiredMsgBytes = 1_000_000
+	const staticChunkSize = 1_000
+	logsChunkSize := desiredMsgBytes / len(messages)
+	resourcesChunkSize := desiredMsgBytes / len(resources)
+	websocketEventsChunkSize := desiredMsgBytes / len(ptr.ToString(webSocketEvents))
 
 	var logRows []*hlog.Message
 	var resourcesParsed PushPayloadResources
@@ -154,10 +140,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		return 0, err
 	}
 
-	const chunkSize = 1024
 	chunks := map[int]PushPayloadChunk{}
-
-	for idx, chunk := range lo.Chunk(events.Events, chunkSize) {
+	for idx, chunk := range lo.Chunk(events.Events, staticChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -165,7 +149,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.events = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(errors, chunkSize) {
+	for idx, chunk := range lo.Chunk(errors, staticChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -173,7 +157,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.errors = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(logRows, chunkSize) {
+	for idx, chunk := range lo.Chunk(logRows, logsChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -181,7 +165,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.logRows = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(resourcesParsed.Resources, chunkSize) {
+	for idx, chunk := range lo.Chunk(resourcesParsed.Resources, resourcesChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -189,7 +173,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.resources = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(webSocketEventsParsed.WebSocketEvents, chunkSize) {
+	for idx, chunk := range lo.Chunk(webSocketEventsParsed.WebSocketEvents, websocketEventsChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -198,6 +182,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		chunks[idx] = entry
 	}
 
+	var msgs []*kafkaqueue.Message
 	for _, chunk := range chunks {
 		logRowsB, err := json.Marshal(PushPayloadMessages{
 			Messages: chunk.logRows,
@@ -221,8 +206,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 			}
 			webSocketEventsPtr = ptr.String(string(websocketEventsB))
 		}
-
-		err = r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
+		msgs = append(msgs, &kafkaqueue.Message{
 			Type: kafkaqueue.PushPayload,
 			PushPayload: &kafkaqueue.PushPayloadArgs{
 				SessionSecureID: sessionSecureID,
@@ -237,12 +221,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 				HasSessionUnloaded: hasSessionUnloaded,
 				HighlightLogs:      highlightLogs,
 				PayloadID:          payloadID,
-			}})
-		if err != nil {
-			return 0, err
-		}
+			},
+		})
 	}
-	return size.Of(events), nil
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, msgs...)
+	return size.Of(events), err
 }
 
 // PushBackendPayload is the resolver for the pushBackendPayload field.

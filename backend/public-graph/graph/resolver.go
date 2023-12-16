@@ -2469,6 +2469,26 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	return nil
 }
 
+type PushPayloadMessages struct {
+	Messages []*hlog.Message `json:"messages"`
+}
+
+type PushPayloadResources struct {
+	Resources []*json.RawMessage `json:"resources"`
+}
+
+type PushPayloadWebSocketEvents struct {
+	WebSocketEvents []*json.RawMessage `json:"webSocketEvents"`
+}
+
+type PushPayloadChunk struct {
+	events          []*publicModel.ReplayEventInput
+	errors          []*publicModel.ErrorObjectInput
+	logRows         []*hlog.Message
+	resources       []*json.RawMessage
+	websocketEvents []*json.RawMessage
+}
+
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	// old clients do not send web socket events, so the value can be nil.
 	// use this str as a simpler way to reference
