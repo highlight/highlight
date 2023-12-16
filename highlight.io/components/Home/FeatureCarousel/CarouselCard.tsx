@@ -22,12 +22,14 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 			<div className="absolute right-0 top-0 bottom-0">
 				<AnimateCarouselImage loaded={imageLoaded}>
 					<Image
-						className={`${
-							feature.right ? 'right-0' : 'left-0'
-						} object-contain absolute bottom-0 sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]`}
+						priority={feature.name == 'Session Replay'}
+						className={
+							'object-contain sm:w-[280px] md:w-[300px] lg:w-[450px] xl:w-[450px]'
+						}
 						src={feature.desktopImage}
 						alt="Feature Spotlight"
-						onLoadingComplete={() => setImageLoaded(true)}
+						crossOrigin="anonymous"
+						onLoad={() => setImageLoaded(true)}
 					/>
 				</AnimateCarouselImage>
 			</div>
@@ -36,8 +38,6 @@ const CarouselImage = ({ feature }: { feature: Feature }) => {
 }
 
 const CarouselFeatures = ({ feature }: { feature: Feature }) => {
-	const [imageLoaded, setImageLoaded] = useState(false)
-
 	return (
 		<div
 			className={`${
