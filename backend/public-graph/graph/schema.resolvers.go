@@ -6,6 +6,10 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	"github.com/samber/lo"
+	"golang.org/x/sync/errgroup"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -101,27 +105,144 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecu
 	return sessionSecureID, err
 }
 
+type PushPayloadMessages struct {
+	Messages []*hlog.Message `json:"messages"`
+}
+
+type PushPayloadResources struct {
+	Resources []*json.RawMessage `json:"resources"`
+}
+
+type PushPayloadWebSocketEvents struct {
+	WebSocketEvents []*json.RawMessage `json:"webSocketEvents"`
+}
+
+type PushPayloadChunk struct {
+	events          []*customModels.ReplayEventInput
+	errors          []*customModels.ErrorObjectInput
+	logRows         []*hlog.Message
+	resources       []*json.RawMessage
+	websocketEvents []*json.RawMessage
+}
+
 // PushPayload is the resolver for the pushPayload field.
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
 	if payloadID == nil {
 		payloadID = pointy.Int(0)
 	}
 
-	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
-		Type: kafkaqueue.PushPayload,
-		PushPayload: &kafkaqueue.PushPayloadArgs{
-			SessionSecureID:    sessionSecureID,
-			Events:             events,
-			Messages:           messages,
-			Resources:          resources,
-			WebSocketEvents:    webSocketEvents,
-			Errors:             errors,
-			IsBeacon:           isBeacon,
-			HasSessionUnloaded: hasSessionUnloaded,
-			HighlightLogs:      highlightLogs,
-			PayloadID:          payloadID,
-		}})
-	return size.Of(events), err
+	var logRows []*hlog.Message
+	var resourcesParsed PushPayloadResources
+	var webSocketEventsParsed PushPayloadWebSocketEvents
+
+	var g errgroup.Group
+	g.Go(func() error {
+		var err error
+		logRows, err = hlog.ParseConsoleMessages(messages)
+		return err
+	})
+	g.Go(func() error {
+		return json.Unmarshal([]byte(resources), &resourcesParsed)
+	})
+	g.Go(func() error {
+		if webSocketEvents == nil {
+			return nil
+		}
+		return json.Unmarshal([]byte(*webSocketEvents), &webSocketEventsParsed)
+	})
+	if err := g.Wait(); err != nil {
+		return 0, err
+	}
+
+	const chunkSize = 1024
+	chunks := map[int]PushPayloadChunk{}
+
+	for idx, chunk := range lo.Chunk(events.Events, chunkSize) {
+		if _, ok := chunks[idx]; !ok {
+			chunks[idx] = PushPayloadChunk{}
+		}
+		entry := chunks[idx]
+		entry.events = chunk
+		chunks[idx] = entry
+	}
+	for idx, chunk := range lo.Chunk(errors, chunkSize) {
+		if _, ok := chunks[idx]; !ok {
+			chunks[idx] = PushPayloadChunk{}
+		}
+		entry := chunks[idx]
+		entry.errors = chunk
+		chunks[idx] = entry
+	}
+	for idx, chunk := range lo.Chunk(logRows, chunkSize) {
+		if _, ok := chunks[idx]; !ok {
+			chunks[idx] = PushPayloadChunk{}
+		}
+		entry := chunks[idx]
+		entry.logRows = chunk
+		chunks[idx] = entry
+	}
+	for idx, chunk := range lo.Chunk(resourcesParsed.Resources, chunkSize) {
+		if _, ok := chunks[idx]; !ok {
+			chunks[idx] = PushPayloadChunk{}
+		}
+		entry := chunks[idx]
+		entry.resources = chunk
+		chunks[idx] = entry
+	}
+	for idx, chunk := range lo.Chunk(webSocketEventsParsed.WebSocketEvents, chunkSize) {
+		if _, ok := chunks[idx]; !ok {
+			chunks[idx] = PushPayloadChunk{}
+		}
+		entry := chunks[idx]
+		entry.websocketEvents = chunk
+		chunks[idx] = entry
+	}
+
+	for _, chunk := range chunks {
+		logRowsB, err := json.Marshal(PushPayloadMessages{
+			Messages: chunk.logRows,
+		})
+		if err != nil {
+			return 0, err
+		}
+		resourcesB, err := json.Marshal(PushPayloadResources{
+			Resources: chunk.resources,
+		})
+		if err != nil {
+			return 0, err
+		}
+		var webSocketEventsPtr *string
+		if chunk.websocketEvents != nil {
+			websocketEventsB, err := json.Marshal(PushPayloadWebSocketEvents{
+				WebSocketEvents: chunk.websocketEvents,
+			})
+			if err != nil {
+				return 0, err
+			}
+			webSocketEventsPtr = ptr.String(string(websocketEventsB))
+		}
+
+		err = r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
+			Type: kafkaqueue.PushPayload,
+			PushPayload: &kafkaqueue.PushPayloadArgs{
+				SessionSecureID: sessionSecureID,
+				Events: customModels.ReplayEventsInput{
+					Events: chunk.events,
+				},
+				Messages:           string(logRowsB),
+				Resources:          string(resourcesB),
+				WebSocketEvents:    webSocketEventsPtr,
+				Errors:             chunk.errors,
+				IsBeacon:           isBeacon,
+				HasSessionUnloaded: hasSessionUnloaded,
+				HighlightLogs:      highlightLogs,
+				PayloadID:          payloadID,
+			}})
+		if err != nil {
+			return 0, err
+		}
+	}
+	return size.Of(events), nil
 }
 
 // PushBackendPayload is the resolver for the pushBackendPayload field.

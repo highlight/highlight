@@ -27,7 +27,7 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 5
 	prefetchQueueCapacity = 64
-	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
+	messageSizeBytes      = 8 * 1000 * 1000 // 8 MB
 )
 
 var (
@@ -295,7 +295,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 	defer cancel()
 	err := p.kafkaP.WriteMessages(ctx, kMessages...)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
+		log.WithContext(ctx).WithError(err).WithField("topic", p.Topic).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
 	hmetric.Histogram(ctx, p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
