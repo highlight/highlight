@@ -114,13 +114,13 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 	const desiredMsgBytes = 1_000_000
 	const staticChunkSize = 1_000
 	var logsChunkSize, resourcesChunkSize, websocketEventsChunkSize = staticChunkSize, staticChunkSize, staticChunkSize
-	if cs := desiredMsgBytes / len(messages); cs > 0 {
+	if cs := len(messages) / desiredMsgBytes; cs > 0 {
 		logsChunkSize = cs
 	}
-	if cs := desiredMsgBytes / len(resources); cs > 0 {
+	if cs := len(resources) / desiredMsgBytes; cs > 0 {
 		resourcesChunkSize = cs
 	}
-	if cs := desiredMsgBytes / len(ptr.ToString(webSocketEvents)); cs > 0 {
+	if cs := len(ptr.ToString(webSocketEvents)) / desiredMsgBytes; cs > 0 {
 		websocketEventsChunkSize = cs
 	}
 
