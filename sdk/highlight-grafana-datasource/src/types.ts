@@ -1,7 +1,7 @@
 import { DataSourceJsonData } from '@grafana/data';
 import { DataQuery } from '@grafana/schema';
 
-export type Table = 'traces' | 'logs' | 'errors';
+export type Table = 'traces' | 'logs' | 'errors' | 'sessions';
 
 export interface HighlightQuery extends DataQuery {
   table?: Table;

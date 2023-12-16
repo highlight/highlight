@@ -693,7 +693,6 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	if limitAggregator != nil && len(groupBy) > 0 {
 		innerSb := sqlbuilder.NewSelectBuilder()
-
 		colStrs := []string{}
 		groupByIndexes := []string{}
 
@@ -707,8 +706,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		}
 
 		innerSb.
-			Select(strings.Join(colStrs, ", ")).
 			From(config.tableName).
+			Select(strings.Join(colStrs, ", ")).
 			Where(innerSb.Equal("ProjectId", projectID)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
 			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
@@ -729,7 +728,20 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		innerSb.OrderBy(fmt.Sprintf("%s DESC", limitFn)).
 			Limit(limitCount)
 
-		fromSb.Where(fromSb.In(fmt.Sprintf("(%s)", strings.Join(colStrs, ", ")), innerSb))
+		fromColStrs := []string{}
+
+		for idx, group := range groupBy {
+			if col, found := keysToColumns[T(group)]; found {
+				fromColStrs = append(fromColStrs, col)
+			} else {
+				fromColStrs = append(fromColStrs, fmt.Sprintf("toString("+attributesColumn+"[%s])", fromSb.Var(group)))
+			}
+			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
+		}
+
+		fromSb.In()
+
+		fromSb.Where(fmt.Sprintf("(%s) IN (%s)", strings.Join(fromColStrs, ", "), innerSb))
 	}
 
 	base := 3 + len(metricTypes)
