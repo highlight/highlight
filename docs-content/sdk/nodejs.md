@@ -51,6 +51,7 @@ slug: nodejs
   </div>
   <div className="right">
     <code>
+
       import { H } from "@highlight-run/node";
 
       if (!H.isInitialized()) {
@@ -71,6 +72,7 @@ slug: nodejs
   </div>
   <div className="right">
     <code>
+    
       import { H } from "@highlight-run/node";
 
       if (!H.isInitialized()) {
@@ -149,6 +151,7 @@ slug: nodejs
   </div>
   <div className="right">
     <code>
+      
       import { H } from "@highlight-run/node";
 
       const handler = (request) => {
