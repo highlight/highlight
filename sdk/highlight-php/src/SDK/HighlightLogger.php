@@ -22,7 +22,7 @@ class HighlightLogger {
         $logRecord = new LogRecord($record->getMessage());
 
         $logRecord->setTimestamp($record->getTimeOccurred()->getTimestamp())
-        ->setSeverityNumber($severity->toOpenTelemetry())
+        ->setSeverityNumber($severity->id())
         ->setSeverityText($severity->text())
         ->setAttributes($record->getAttributes()->toArray());
 
@@ -35,23 +35,5 @@ class HighlightLogger {
         }
 
         $this->logger->emit($logRecord);
-
-        // $builder = $this->logger->logRecordBuilder()
-        //     ->setAllAttributes($record->getAttributes())
-        //     ->setEpoch($record->getTimeOccured())
-        //     ->setSeverity($severity->toOpenTelemetry())
-        //     ->setSeverityText($severity->text())
-        //     ->setBody($record->getMessage());
-
-        // if ($record->hasUserSession()) {
-        //     $builder->setAttribute(HighlightAttributes::HIGHLIGHT_SESSION_ID, $record->getUserSession()->sessionId());
-        // }
-
-        // if ($record->hasRequestId()) {
-        //     $builder->setAttribute(HighlightAttributes::HIGHLIGHT_TRACE_ID, $record->getRequestId());
-        // }
-
-        // $builder->emit();
-
     }
 }

@@ -57,5 +57,4 @@ class HighlightOptionsTest extends TestCase
         $this->assertSame(true, $options->isMetricEnabled());
         $this->assertEmpty($options->getDefaultAttributes());
     }
-
 }

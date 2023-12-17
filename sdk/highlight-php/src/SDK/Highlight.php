@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Highlight\SDK;
 
 use Highlight\SDK\Common\HighlightOptions;
@@ -41,7 +43,6 @@ class Highlight
 
     public function captureRecord(HighlightRecord $record): void
     {
-        // if ($this->state !== State::RUNNING) {
         if (!self::isInitialized()) {
             throw new HighlightIllegalStateException("Highlight state is not running");
         }
@@ -76,10 +77,12 @@ class Highlight
      *
      * @throws HighlightIllegalStateException if Highlight is already initialized
      */
-    public static function init(string $projectId, callable $options): void
+    public static function init(string $projectId, ?callable $options = null): void
     {
         $builder = HighlightOptions::builder($projectId);
-        $options($builder);
+        if ($options !== null) {
+            $options($builder);
+        }
 
         self::initWithOptions($builder->build());
     }

@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Highlight\SDK;
 
 use Highlight\SDK\Common\HighlightAttributes;
 use Highlight\SDK\Common\Record\HighlightErrorRecord;
-use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
 
@@ -15,7 +16,8 @@ class HighlightTracer
 
     public function __construct(Highlight $highlight)
     {
-		$this->tracer = $highlight->getTracer();
+        $highlightOpenTelemetry = $highlight->getOpenTelemetry();
+		$this->tracer = $highlightOpenTelemetry->getTracerProvider()->getTracer('highlight-php'); 
     }
 
     public function process(HighlightErrorRecord $record)
@@ -29,8 +31,7 @@ class HighlightTracer
         $span = $spanBuilder->startSpan();
 
         try {
-            $context = $this->tracer->getActiveSpan()->storeInContext(Context::getCurrent());
-            $context = $context->withContextValue($span);
+            Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
             if ($record->hasUserSession()) {
                 $span->setAttribute(HighlightAttributes::HIGHLIGHT_SESSION_ID, $record->getUserSession()->sessionId());

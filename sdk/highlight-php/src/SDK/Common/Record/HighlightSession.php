@@ -18,6 +18,6 @@ class HighlightSession implements HighlightSessionId
 
     public function sessionId(): string 
     {
-        return $this->sessionId;
+        return $this->sessionId ?? "";
     }
 }

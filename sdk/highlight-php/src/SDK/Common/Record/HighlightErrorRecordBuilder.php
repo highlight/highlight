@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Highlight\SDK\Common\Record;
 
+use InvalidArgumentException;
 
 /**
  * Builder class for `HighlightErrorRecord`.
@@ -27,10 +28,11 @@ class HighlightErrorRecordBuilder extends HighlightRecordBuilder
      * @param HighlightErrorRecord $record the existing `HighlightErrorRecord` to use as the basis
      *                                      for the new builder
      */
-    public function fromRecord(HighlightErrorRecord $record)
+    public function fromRecord(HighlightErrorRecord $record): self
     {
-        parent::__constructFromRecord($record);
+        parent::__construct($record);
         $this->throwable = $record->getThrowable();
+        return $this;
     }
 
     /**
@@ -52,6 +54,9 @@ class HighlightErrorRecordBuilder extends HighlightRecordBuilder
      */
     public function build(): HighlightErrorRecord
     {
+        if (!isset($this->throwable)) {
+            throw new InvalidArgumentException("Throwable cannot be null");
+        }
         return new HighlightErrorRecord(parent::build(), $this->throwable);
     }
 }

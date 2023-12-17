@@ -14,7 +14,7 @@ use OpenTelemetry\SDK\Common\Attribute\AttributesFactory;
 /**
  * A builder class for creating instances of `HighlightRecord`.
  */
-class HighlightRecordBuilder
+abstract class HighlightRecordBuilder
 {
     protected DateTimeImmutable $timeOccurred;
     protected AttributesBuilder $attributesBuilder;
@@ -24,20 +24,19 @@ class HighlightRecordBuilder
     /**
      * Constructs a new instance of `Builder`.
      */
-    protected function __construct()
+    protected function __construct(?HighlightRecord $record = null)
     {
-        $this->attributesBuilder = Attributes::factory()->builder([]);
-    }
-
-    /**
-     * Constructs a new instance of `Builder`.
-     */
-    protected function __constructFromRecord(HighlightRecord $record)
-    {
-        $this->timeOccurred = $record->getTimeOccurred();
-        $this->attributesBuilder = (new AttributesFactory())->builder($record->getAttributes()->toArray());
-        $this->userSession = $record->getUserSession();
-        $this->requestId = $record->getRequestId();
+        if (isset($record)) {
+            $this->timeOccurred = $record->getTimeOccurred();
+            $this->attributesBuilder = (new AttributesFactory())->builder($record->getAttributes()->toArray());
+            $this->userSession = $record->getUserSession();
+            $this->requestId = $record->getRequestId();
+        } else {
+            $this->timeOccurred = new DateTimeImmutable();
+            $this->attributesBuilder = Attributes::factory()->builder([]);
+            $this->userSession = null;
+            $this->requestId = null;
+        }
     }
 
     /**
@@ -124,10 +123,8 @@ class HighlightRecordBuilder
         return new HighlightRecord(
             $this->timeOccurred ?? new DateTimeImmutable(),
             $this->attributesBuilder->build(), 
-            $this->userSession,
-            $this->requestId
+            $this->userSession ?? null,
+            $this->requestId ?? ""
         );
     }
 }
-
-

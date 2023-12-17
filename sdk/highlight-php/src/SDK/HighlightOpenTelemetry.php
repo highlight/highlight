@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Highlight\SDK;
 
 use Highlight\SDK\Common\HighlightAttributes;
@@ -28,10 +30,8 @@ use OpenTelemetry\SDK\Common\Util\ShutdownHandler;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Common\Attribute\AttributesFactory;
 use OpenTelemetry\SDK\Logs\LoggerProviderBuilder;
-use OpenTelemetry\Semconv\ResourceAttributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 
-// use OpenTelemetry\SDK\Logs\LogRecordLimitsBuilder;
-// use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
 
 /**
  * In the Java SDK, the HighlightOpenTelemetry class implements the io.opentelemetry.api.OpenTelemetry interface
@@ -45,11 +45,15 @@ class HighlightOpenTelemetry
     private TracerProvider $tracerProvider;
     private LoggerProvider $loggerProvider;
 
-    // OTLP Tracer params
+    // Common params to the Tracer and Logger
+    private static string $format = 'application/json';
     private static array $headers = [];
     private static string $compression = 'gzip';
     private static float $timeout = 30.;
-        
+    private static int $exportTimeoutMillis = 30000;
+    private static int $scheduleDelayMillis = 1000;
+    private static int $maxExportBatchSize = 128;
+    private static int $maxQueueSize = 1024;
 
     public function __construct(Highlight $highlight)
     {
@@ -84,41 +88,48 @@ class HighlightOpenTelemetry
         }
         $attributesFactory = new AttributesFactory();
         $attributesBuilder = $attributesFactory->builder($attributes);
-        
-
         $resource = ResourceInfo::create($attributesBuilder->build());
 
         // Tracer
-        $transport = (new OtlpHttpTransportFactory())
-            ->create(HighlightRoute::buildTraceRoute($options->getBackendUrl()), 
-                'application/json', 
-                self::$headers, 
-                self::$compression, 
-                self::$timeout);
-        
+        $transport = (new OtlpHttpTransportFactory())->create(
+            HighlightRoute::buildTraceRoute($options->getBackendUrl()), 
+            self::$format, 
+            self::$headers, 
+            self::$compression, 
+            self::$timeout);
         $exporter = new SpanExporter($transport);
-        $spanProcessor = new BatchSpanProcessor($exporter, ClockFactory::getDefault());
-        $sampler = new AlwaysOnSampler();
+        $spanProcessor = new BatchSpanProcessor(
+            $exporter, 
+            ClockFactory::getDefault(), 
+            self::$maxQueueSize,
+            self::$scheduleDelayMillis,
+            self::$exportTimeoutMillis,
+            self::$maxExportBatchSize);
 
         $this->tracerProvider = (new TracerProviderBuilder())
             ->addSpanProcessor($spanProcessor)
-            ->setResource($resource)->setSampler($sampler);
+            ->setResource($resource)->setSampler(new AlwaysOnSampler())->build();
 
 
         // Log
-        $transport = (new OtlpHttpTransportFactory())->create(HighlightRoute::buildLogRoute($options->getBackendUrl()), 'application/json');
+        $transport = (new OtlpHttpTransportFactory())->create(
+            HighlightRoute::buildLogRoute($options->getBackendUrl()), 
+            self::$format, 
+            self::$headers, 
+            self::$compression, 
+            self::$timeout);
         $exporter = new LogsExporter($transport);
-        $logProcessor = new BatchLogRecordProcessor($exporter, ClockFactory::getDefault());
+        $logProcessor = new BatchLogRecordProcessor(
+            $exporter,
+            ClockFactory::getDefault(),
+            self::$maxQueueSize,
+            self::$scheduleDelayMillis,
+            self::$exportTimeoutMillis,
+            self::$maxExportBatchSize);
 
         $this->loggerProvider = (new LoggerProviderBuilder())
             ->addLogRecordProcessor($logProcessor)
-            ->setResource($resource);
-
-        // new LoggerProvider($logProcessor,
-        //     new InstrumentationScopeFactory(
-        //         (new LogRecordLimitsBuilder())->build()->getAttributeFactory()
-        //     )
-        // );
+            ->setResource($resource)->build();
 
         ShutdownHandler::register([$this->tracerProvider, 'shutdown']);
         ShutdownHandler::register([$this->loggerProvider, 'shutdown']);

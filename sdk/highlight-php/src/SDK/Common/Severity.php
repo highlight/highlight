@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Highlight\SDK\Common;
 
-use OpenTelemetry\Logs\Severity as OpenTelemetrySeverity;
-
 /**
  * Represents the severity of a log message, along with its text and priority.
  * 
@@ -124,17 +122,4 @@ class Severity
         $name = $this->name();
         return $name . ($this->priority === Priority::LOW ? "" : $this->priority->difference());
     }
-
-    // public function toOpenTelemetry(): OpenTelemetrySeverity
-    // {
-    //     $severities = [
-    //         self::TRACE_ID => OpenTelemetrySeverity::TRACE(),
-    //         self::DEBUG_ID => OpenTelemetrySeverity::DEBUG(),
-    //         self::INFO_ID => OpenTelemetrySeverity::INFO(),
-    //         self::WARN_ID => OpenTelemetrySeverity::WARNING(),
-    //         self::ERROR_ID => OpenTelemetrySeverity::ERROR(),
-    //         self::FATAL_ID => OpenTelemetrySeverity::FATAL(),
-    //     ];
-    //     return $severities[$this->id];
-    // }
 }

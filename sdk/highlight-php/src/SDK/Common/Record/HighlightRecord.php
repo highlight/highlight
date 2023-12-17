@@ -15,7 +15,7 @@ use OpenTelemetry\SDK\Common\Attribute\Attributes;
  * including attributes for its declarations, and a trace id. It can also
  * contain a session id.
  */
-abstract class HighlightRecord
+class HighlightRecord
 {
     protected DateTimeImmutable $timeOccurred;
     protected Attributes $attributes;
@@ -30,7 +30,7 @@ abstract class HighlightRecord
      * @param HighlightSessionId|null $userSession the user session associated with the record, may be null
      * @param string|null $requestId the ID of the request associated with the record, may be null
      */
-    protected function __construct(DateTimeImmutable $timeOccurred, Attributes $attributes, ?HighlightSessionId $userSession, ?string $requestId)
+    public function __construct(DateTimeImmutable $timeOccurred, Attributes $attributes, ?HighlightSessionId $userSession, ?string $requestId)
     {
         $this->timeOccurred = $timeOccurred;
         $this->attributes = $attributes;
@@ -120,7 +120,7 @@ abstract class HighlightRecord
      */
     public static function errorFromRecord(HighlightErrorRecord $record): HighlightErrorRecordBuilder
     {
-        return new HighlightErrorRecordBuilder($record);
+        return (new HighlightErrorRecordBuilder())->fromRecord($record);
     }
 
     /**
@@ -141,6 +141,6 @@ abstract class HighlightRecord
      */
     public static function logFromRecord(HighlightLogRecord $record): HighlightLogRecordBuilder
     {
-        return new HighlightLogRecordBuilder($record);
+        return (new HighlightLogRecordBuilder())->fromRecord($record);
     }
 }

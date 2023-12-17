@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Highlight\SDK\Common\Record;
 
 use Highlight\SDK\Common\Severity;
+use InvalidArgumentException;
 
 
 /**
@@ -30,9 +31,9 @@ class HighlightLogRecordBuilder extends HighlightRecordBuilder
      * @param HighlightLogRecord $record the existing `HighlightLogRecord` to use as the basis for
      *                                   the new builder
      */
-    public function fromRecord(HighlightLogRecord $record)
+    public function fromRecord(HighlightLogRecord $record): self
     {
-        parent::__constructFromRecord($record);
+        parent::__construct($record);
         $this->severity = $record->getSeverity();
         $this->message = $record->getMessage();
         return $this;
@@ -70,7 +71,7 @@ class HighlightLogRecordBuilder extends HighlightRecordBuilder
     public function build(): HighlightLogRecord
     {
         if (!isset($this->severity)) {
-            throw new \RuntimeException("Severity can't be null");
+            throw new InvalidArgumentException("Severity cannot be null");
         }
         $this->message = $this->message ?? $this->severity->text();
 

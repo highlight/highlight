@@ -21,7 +21,7 @@ final class HighlightErrorRecord extends HighlightRecord
      * @param HighlightRecord $record the record
      * @param \Throwable $throwable the throwable of the error record
      */
-    private function __construct(HighlightRecord $record, \Throwable $throwable)
+    public function __construct(HighlightRecord $record, \Throwable $throwable)
     {
         parent::__construct($record->timeOccurred, $record->attributes, $record->userSession, $record->requestId);
         $this->throwable = $throwable;

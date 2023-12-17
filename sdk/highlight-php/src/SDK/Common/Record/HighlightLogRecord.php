@@ -25,7 +25,7 @@ final class HighlightLogRecord extends HighlightRecord
      * @param Severity $severity the severity of the log record
      * @param string $message the message of the log record
      */
-    private function __construct(HighlightRecord $record, Severity $severity, string $message)
+    public function __construct(HighlightRecord $record, Severity $severity, string $message)
     {
         parent::__construct($record->timeOccurred, $record->attributes, $record->userSession, $record->requestId);
         $this->severity = $severity;
