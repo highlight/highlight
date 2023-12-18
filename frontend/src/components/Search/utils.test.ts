@@ -1,4 +1,4 @@
-import { groupTokens, parseSearch } from '@/components/Search/Parser/utils'
+import { groupTokens, parseSearch } from '@/components/Search/utils'
 
 describe('parseSearch', () => {
 	it('should parse a string correctly', () => {

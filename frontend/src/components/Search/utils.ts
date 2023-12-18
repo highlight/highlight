@@ -7,7 +7,7 @@ import {
 } from '@/components/Search/Parser/listener'
 import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
 
-import SearchGrammarLexer from './SearchGrammarLexer'
+import SearchGrammarLexer from './Parser/SearchGrammarLexer'
 
 export const buildParser = (input: string) => {
 	const chars = new CharStream(input)
@@ -34,7 +34,7 @@ export const parseSearch = (input: string) => {
 	return {
 		queryParts,
 		tokens: tokens.tokens,
-		tokenGroups: groupTokens(tokens.tokens, queryParts, input),
+		tokenGroups: groupTokens(tokens.tokens, queryParts),
 	}
 }
 

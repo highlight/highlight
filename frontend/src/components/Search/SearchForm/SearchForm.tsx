@@ -34,7 +34,6 @@ import {
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
-import { parseSearch, SearchToken } from '@/components/Search/Parser/utils'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -47,6 +46,7 @@ import {
 	SearchParam,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
+import { parseSearch, SearchToken } from '@/components/Search/utils'
 import {
 	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
