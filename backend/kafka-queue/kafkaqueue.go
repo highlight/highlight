@@ -27,7 +27,7 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 5
 	prefetchQueueCapacity = 64
-	messageSizeBytes      = 8 * 1000 * 1000 // 8 MB
+	messageSizeBytes      = 1 * 1000 * 1000 // 1 MB
 )
 
 var (
@@ -284,7 +284,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 			return err
 		}
 		if len(msgBytes) >= messageSizeBytes/2 {
-			log.WithContext(ctx).WithField("topic", p.Topic).WithField("partitionKey", partitionKey).WithField("msgBytes", len(msgBytes)).WithField("msg", msgBytes).Warn("large kafka message")
+			log.WithContext(ctx).WithField("topic", p.Topic).WithField("partitionKey", partitionKey).WithField("msgBytes", len(msgBytes)).WithField("msg", string(msgBytes)).Warn("large kafka message")
 		}
 		kMessages = append(kMessages, kafka.Message{
 			Key:   []byte(partitionKey),
