@@ -6,6 +6,7 @@ import {
 import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
+import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -14,7 +15,6 @@ import {
 	buildSearchQueryForServer,
 	parseSearchQuery,
 } from '@/components/Search/SearchForm/utils'
-import { usePollQuery } from '@/util/search'
 
 export type LogEdgeWithError = LogEdge & {
 	error_object?: Pick<
@@ -81,7 +81,10 @@ export const useGetLogs = ({
 		fetchPolicy: 'network-only',
 	})
 
-	usePollQuery<GetLogsQuery, GetLogsQueryVariables>({
+	const { numMore, reset } = usePollQuery<
+		GetLogsQuery,
+		GetLogsQueryVariables
+	>({
 		variableFn: useCallback(
 			() => ({
 				project_id: project_id!,
@@ -126,19 +129,19 @@ export const useGetLogs = ({
 
 		setLoadingAfter(true)
 
-		// console.log('::: lastItem', lastItem)
-		// console.log('::: lastCursor', lastCursor)
-		// console.log('::: data', data?.logs.edges.length)
+		console.log('::: lastItem', lastItem)
+		console.log('::: lastCursor', lastCursor)
 		await fetchMore({
 			variables: { after: lastCursor },
 			updateQuery: (prevResult, { fetchMoreResult }) => {
-				console.log(prevResult, fetchMoreResult)
 				const newData = fetchMoreResult.logs.edges
 				setWindowInfo({
 					...windowInfo,
 					hasNextPage: fetchMoreResult.logs.pageInfo.hasNextPage,
 				})
 				setLoadingAfter(false)
+				console.log('::: prevResult', prevResult)
+				console.log('::: fetchMoreResult', fetchMoreResult)
 				return {
 					logs: {
 						...prevResult.logs,
@@ -196,8 +199,8 @@ export const useGetLogs = ({
 
 	return {
 		logEdges: logEdgesWithError,
-		moreLogs: 0,
-		clearMoreLogs: () => null,
+		moreLogs: numMore,
+		clearMoreLogs: reset,
 		loading,
 		loadingAfter,
 		loadingBefore,
