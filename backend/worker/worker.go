@@ -481,16 +481,16 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		wg.Add(cfg.Workers)
 		for i := 0; i < cfg.Workers; i++ {
 			if cfg.Topic == kafkaqueue.TopicTypeDefault {
-				go func(workerId int) {
+				go func(config WorkerConfig, workerId int) {
 					ctx := context.Background()
 					k := KafkaWorker{
-						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{MessageSizeBytes: cfg.MessageSizeBytes}),
+						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{MessageSizeBytes: config.MessageSizeBytes}),
 						Worker:       w,
 						WorkerThread: workerId,
 					}
 					k.ProcessMessages(ctx)
 					wg.Done()
-				}(i)
+				}(cfg, i)
 			} else {
 				go func(config WorkerConfig, workerId int) {
 					ctx := context.Background()
