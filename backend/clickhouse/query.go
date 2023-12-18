@@ -610,7 +610,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= sampleableConfig.samplingThreshold
 
-	selectArgs := []interface{}{}
+	var selectArgs []interface{}
 
 	keysToColumns := sampleableConfig.tableConfig.keysToColumns
 	attributesColumn := sampleableConfig.tableConfig.attributesColumn
@@ -630,6 +630,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	switch column {
 	case string(modelInputs.MetricColumnMetricValue):
 		metricColName = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
+		selectArgs = []interface{}{}
 	}
 
 	fnStr := strings.Join(lo.Map(metricTypes, func(agg modelInputs.MetricAggregator, _ int) string {
