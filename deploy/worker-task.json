@@ -1,27 +1,12 @@
 {
-	"ipcMode": null,
-	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/worker-task:1679",
 	"containerDefinitions": [
 		{
-			"dnsSearchDomains": null,
-			"environmentFiles": null,
-			"entryPoint": null,
-			"logConfiguration": {
-				"logDriver": "awslogs",
-				"secretOptions": null,
-				"options": {
-					"awslogs-group": "/ecs/worker-task",
-					"awslogs-region": "us-east-2",
-					"awslogs-stream-prefix": "ecs"
-				}
-			},
-			"portMappings": [
-				{
-					"hostPort": 8082,
-					"protocol": "tcp",
-					"containerPort": 8082
-				}
-			],
+			"name": "highlight-backend",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-production-ecr-repo:542146948c0ec67f57d7952f2c441ce37f463d8c.arm64",
+			"cpu": 0,
+			"portMappings": [],
+			"essential": true,
 			"command": [
 				"doppler",
 				"run",
@@ -29,157 +14,86 @@
 				"/bin/backend",
 				"-runtime=worker"
 			],
-			"linuxParameters": null,
-			"cpu": 0,
 			"environment": [],
-			"resourceRequirements": null,
-			"ulimits": [
-				{ "name": "nofile", "softLimit": 65535, "hardLimit": 65535 }
-			],
-			"dnsServers": null,
 			"mountPoints": [
 				{
-					"readOnly": null,
-					"containerPath": "/var/lib/data",
-					"sourceVolume": "worker-volume"
+					"sourceVolume": "worker-volume",
+					"containerPath": "/var/lib/data"
 				}
 			],
-			"workingDirectory": null,
+			"volumesFrom": [],
 			"secrets": [
 				{
-					"valueFrom": "DOPPLER_TOKEN",
-					"name": "DOPPLER_TOKEN"
+					"name": "DOPPLER_TOKEN",
+					"valueFrom": "DOPPLER_TOKEN"
 				}
 			],
-			"dockerSecurityOptions": null,
-			"memory": null,
-			"memoryReservation": null,
-			"volumesFrom": [],
-			"stopTimeout": null,
-			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-production-ecr-repo:12cbccd09345f7eb72224b9f809bc80edea821e6",
-			"startTimeout": null,
-			"firelensConfiguration": null,
-			"dependsOn": null,
-			"disableNetworking": null,
-			"interactive": null,
-			"healthCheck": null,
-			"essential": true,
-			"links": null,
-			"hostname": null,
-			"extraHosts": null,
-			"pseudoTerminal": null,
-			"user": null,
-			"readonlyRootFilesystem": null,
-			"dockerLabels": null,
-			"systemControls": null,
-			"privileged": null,
-			"name": "highlight-backend"
+			"ulimits": [
+				{
+					"name": "nofile",
+					"softLimit": 65535,
+					"hardLimit": 65535
+				}
+			],
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/worker-task",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
+				},
+				"secretOptions": []
+			}
 		}
 	],
-	"placementConstraints": [],
-	"memory": "30720",
-	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
-	"compatibilities": ["EC2", "FARGATE"],
-	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/worker-task:40",
 	"family": "worker-task",
+	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"networkMode": "bridge",
+	"revision": 1679,
+	"volumes": [
+		{
+			"name": "worker-volume",
+			"host": {}
+		}
+	],
+	"status": "ACTIVE",
 	"requiresAttributes": [
 		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "ecs.capability.execution-role-awslogs"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "com.amazonaws.ecs.capability.ecr-auth"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "com.amazonaws.ecs.capability.logging-driver.awsfirelens"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "com.amazonaws.ecs.capability.task-iam-role"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "ecs.capability.execution-role-ecr-pull"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "ecs.capability.secrets.ssm.environment-variables"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "ecs.capability.task-eni"
-		},
-		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
 			"name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
 		},
 		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "ecs.capability.efsAuth"
+			"name": "ecs.capability.execution-role-awslogs"
 		},
 		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
+			"name": "com.amazonaws.ecs.capability.ecr-auth"
+		},
+		{
 			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
 		},
 		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "ecs.capability.firelens.fluentbit"
+			"name": "com.amazonaws.ecs.capability.task-iam-role"
 		},
 		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "ecs.capability.efs"
+			"name": "ecs.capability.execution-role-ecr-pull"
 		},
 		{
-			"targetId": null,
-			"targetType": null,
-			"value": null,
-			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
+			"name": "ecs.capability.secrets.ssm.environment-variables"
+		},
+		{
+			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
 		}
 	],
-	"pidMode": null,
-	"requiresCompatibilities": ["FARGATE"],
-	"networkMode": "awsvpc",
+	"placementConstraints": [],
+	"compatibilities": ["EXTERNAL", "EC2"],
+	"requiresCompatibilities": ["EC2"],
 	"cpu": "4096",
-	"revision": 40,
-	"status": "ACTIVE",
-	"inferenceAccelerators": null,
-	"proxyConfiguration": null,
-	"volumes": [
-		{
-			"name": "worker-volume"
-		}
-	],
-	"runtimePlatform": { "cpuArchitecture": "ARM64" }
+	"memory": "16384",
+	"runtimePlatform": {
+		"cpuArchitecture": "ARM64",
+		"operatingSystemFamily": "LINUX"
+	},
+	"registeredAt": "2023-12-16T03:16:22.663Z",
+	"registeredBy": "arn:aws:iam::173971919437:user/vadim",
+	"tags": []
 }
