@@ -68,7 +68,7 @@ export const useGetLogs = ({
 				},
 			},
 		},
-		fetchPolicy: 'cache-and-network',
+		fetchPolicy: 'network-only',
 	})
 
 	// const [moreDataQuery] = useGetLogsLazyQuery({
