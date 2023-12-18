@@ -1007,26 +1007,26 @@ enum MetricAggregator {
 	Sum
 }
 
-enum TracesMetricColumn {
+enum MetricColumn {
 	Duration
 	MetricValue
 }
 
-enum TracesMetricBucketBy {
+enum MetricBucketBy {
 	None
 	Timestamp
 }
 
-type TracesMetricBucket {
+type MetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
-	column: TracesMetricColumn!
+	column: MetricColumn!
 	metric_type: MetricAggregator!
 	metric_value: Float!
 }
 
-type TracesMetrics {
-	buckets: [TracesMetricBucket!]!
+type MetricsBuckets {
+	buckets: [MetricBucket!]!
 	bucket_count: UInt64!
 	sample_factor: Float!
 }
@@ -2056,6 +2056,17 @@ type Query {
 	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: QueryInput!): UInt64!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
+	logs_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
 	logs_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
@@ -2102,7 +2113,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
-	): TracesMetrics!
+	): MetricsBuckets!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!

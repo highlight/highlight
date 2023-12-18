@@ -710,6 +710,14 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	MetricBucket struct {
+		BucketID    func(childComplexity int) int
+		Column      func(childComplexity int) int
+		Group       func(childComplexity int) int
+		MetricType  func(childComplexity int) int
+		MetricValue func(childComplexity int) int
+	}
+
 	MetricMonitor struct {
 		Aggregator              func(childComplexity int) int
 		ChannelsToNotify        func(childComplexity int) int
@@ -737,6 +745,12 @@ type ComplexityRoot struct {
 		Op    func(childComplexity int) int
 		Tag   func(childComplexity int) int
 		Value func(childComplexity int) int
+	}
+
+	MetricsBuckets struct {
+		BucketCount  func(childComplexity int) int
+		Buckets      func(childComplexity int) int
+		SampleFactor func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -957,6 +971,7 @@ type ComplexityRoot struct {
 		LogsIntegration              func(childComplexity int, projectID int) int
 		LogsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
 		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
+		LogsMetrics                  func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		LogsTotalCount               func(childComplexity int, projectID int, params model.QueryInput) int
 		MatchErrorTag                func(childComplexity int, query string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
@@ -1440,20 +1455,6 @@ type ComplexityRoot struct {
 		Trace  func(childComplexity int) int
 	}
 
-	TracesMetricBucket struct {
-		BucketID    func(childComplexity int) int
-		Column      func(childComplexity int) int
-		Group       func(childComplexity int) int
-		MetricType  func(childComplexity int) int
-		MetricValue func(childComplexity int) int
-	}
-
-	TracesMetrics struct {
-		BucketCount  func(childComplexity int) int
-		Buckets      func(childComplexity int) int
-		SampleFactor func(childComplexity int) int
-	}
-
 	TrackProperty struct {
 		ID    func(childComplexity int) int
 		Name  func(childComplexity int) int
@@ -1824,6 +1825,7 @@ type QueryResolver interface {
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.LogsHistogram, error)
+	LogsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
@@ -1838,7 +1840,7 @@ type QueryResolver interface {
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
-	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.TracesMetrics, error)
+	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
@@ -4848,6 +4850,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Metric.Value(childComplexity), true
 
+	case "MetricBucket.bucket_id":
+		if e.complexity.MetricBucket.BucketID == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.BucketID(childComplexity), true
+
+	case "MetricBucket.column":
+		if e.complexity.MetricBucket.Column == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.Column(childComplexity), true
+
+	case "MetricBucket.group":
+		if e.complexity.MetricBucket.Group == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.Group(childComplexity), true
+
+	case "MetricBucket.metric_type":
+		if e.complexity.MetricBucket.MetricType == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.MetricType(childComplexity), true
+
+	case "MetricBucket.metric_value":
+		if e.complexity.MetricBucket.MetricValue == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.MetricValue(childComplexity), true
+
 	case "MetricMonitor.aggregator":
 		if e.complexity.MetricMonitor.Aggregator == nil {
 			break
@@ -4987,6 +5024,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricTagFilter.Value(childComplexity), true
+
+	case "MetricsBuckets.bucket_count":
+		if e.complexity.MetricsBuckets.BucketCount == nil {
+			break
+		}
+
+		return e.complexity.MetricsBuckets.BucketCount(childComplexity), true
+
+	case "MetricsBuckets.buckets":
+		if e.complexity.MetricsBuckets.Buckets == nil {
+			break
+		}
+
+		return e.complexity.MetricsBuckets.Buckets(childComplexity), true
+
+	case "MetricsBuckets.sample_factor":
+		if e.complexity.MetricsBuckets.SampleFactor == nil {
+			break
+		}
+
+		return e.complexity.MetricsBuckets.SampleFactor(childComplexity), true
 
 	case "Mutation.addAdminToWorkspace":
 		if e.complexity.Mutation.AddAdminToWorkspace == nil {
@@ -7129,6 +7187,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
+
+	case "Query.logs_metrics":
+		if e.complexity.Query.LogsMetrics == nil {
+			break
+		}
+
+		args, err := ec.field_Query_logs_metrics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LogsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(*string), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
 	case "Query.logs_total_count":
 		if e.complexity.Query.LogsTotalCount == nil {
@@ -9945,62 +10015,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TracePayload.Trace(childComplexity), true
 
-	case "TracesMetricBucket.bucket_id":
-		if e.complexity.TracesMetricBucket.BucketID == nil {
-			break
-		}
-
-		return e.complexity.TracesMetricBucket.BucketID(childComplexity), true
-
-	case "TracesMetricBucket.column":
-		if e.complexity.TracesMetricBucket.Column == nil {
-			break
-		}
-
-		return e.complexity.TracesMetricBucket.Column(childComplexity), true
-
-	case "TracesMetricBucket.group":
-		if e.complexity.TracesMetricBucket.Group == nil {
-			break
-		}
-
-		return e.complexity.TracesMetricBucket.Group(childComplexity), true
-
-	case "TracesMetricBucket.metric_type":
-		if e.complexity.TracesMetricBucket.MetricType == nil {
-			break
-		}
-
-		return e.complexity.TracesMetricBucket.MetricType(childComplexity), true
-
-	case "TracesMetricBucket.metric_value":
-		if e.complexity.TracesMetricBucket.MetricValue == nil {
-			break
-		}
-
-		return e.complexity.TracesMetricBucket.MetricValue(childComplexity), true
-
-	case "TracesMetrics.bucket_count":
-		if e.complexity.TracesMetrics.BucketCount == nil {
-			break
-		}
-
-		return e.complexity.TracesMetrics.BucketCount(childComplexity), true
-
-	case "TracesMetrics.buckets":
-		if e.complexity.TracesMetrics.Buckets == nil {
-			break
-		}
-
-		return e.complexity.TracesMetrics.Buckets(childComplexity), true
-
-	case "TracesMetrics.sample_factor":
-		if e.complexity.TracesMetrics.SampleFactor == nil {
-			break
-		}
-
-		return e.complexity.TracesMetrics.SampleFactor(childComplexity), true
-
 	case "TrackProperty.id":
 		if e.complexity.TrackProperty.ID == nil {
 			break
@@ -11544,26 +11558,26 @@ enum MetricAggregator {
 	Sum
 }
 
-enum TracesMetricColumn {
+enum MetricColumn {
 	Duration
 	MetricValue
 }
 
-enum TracesMetricBucketBy {
+enum MetricBucketBy {
 	None
 	Timestamp
 }
 
-type TracesMetricBucket {
+type MetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
-	column: TracesMetricColumn!
+	column: MetricColumn!
 	metric_type: MetricAggregator!
 	metric_value: Float!
 }
 
-type TracesMetrics {
-	buckets: [TracesMetricBucket!]!
+type MetricsBuckets {
+	buckets: [MetricBucket!]!
 	bucket_count: UInt64!
 	sample_factor: Float!
 }
@@ -12593,6 +12607,17 @@ type Query {
 	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: QueryInput!): UInt64!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
+	logs_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
 	logs_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
@@ -12639,7 +12664,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
-	): TracesMetrics!
+	): MetricsBuckets!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
@@ -17892,6 +17917,93 @@ func (ec *executionContext) field_Query_logs_keys_args(ctx context.Context, rawA
 		}
 	}
 	args["type"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_logs_metrics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 model.QueryInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg1, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["column"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["column"] = arg2
+	var arg3 []model.MetricAggregator
+	if tmp, ok := rawArgs["metric_types"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_types"))
+		arg3, err = ec.unmarshalNMetricAggregator2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregatorᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric_types"] = arg3
+	var arg4 []string
+	if tmp, ok := rawArgs["group_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
+		arg4, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["group_by"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["bucket_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_by"))
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bucket_by"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg6
+	var arg7 *model.MetricAggregator
+	if tmp, ok := rawArgs["limit_aggregator"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
+		arg7, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit_aggregator"] = arg7
+	var arg8 *string
+	if tmp, ok := rawArgs["limit_column"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
+		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit_column"] = arg8
 	return args, nil
 }
 
@@ -38199,6 +38311,226 @@ func (ec *executionContext) fieldContext_Metric_value(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricBucket_bucket_id(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_bucket_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_bucket_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricBucket_group(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_group(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Group, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_group(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricBucket_column(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_column(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Column, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.MetricColumn)
+	fc.Result = res
+	return ec.marshalNMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricColumn(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_column(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MetricColumn does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricBucket_metric_type(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_metric_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.MetricAggregator)
+	fc.Result = res
+	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_metric_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MetricAggregator does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricBucket_metric_value(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_metric_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_metric_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricMonitor_id(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MetricMonitor_id(ctx, field)
 	if err != nil {
@@ -39091,6 +39423,150 @@ func (ec *executionContext) fieldContext_MetricTagFilter_value(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricsBuckets_buckets(ctx context.Context, field graphql.CollectedField, obj *model.MetricsBuckets) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Buckets, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.MetricBucket)
+	fc.Result = res
+	return ec.marshalNMetricBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricBucketᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricsBuckets_buckets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricsBuckets",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bucket_id":
+				return ec.fieldContext_MetricBucket_bucket_id(ctx, field)
+			case "group":
+				return ec.fieldContext_MetricBucket_group(ctx, field)
+			case "column":
+				return ec.fieldContext_MetricBucket_column(ctx, field)
+			case "metric_type":
+				return ec.fieldContext_MetricBucket_metric_type(ctx, field)
+			case "metric_value":
+				return ec.fieldContext_MetricBucket_metric_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricBucket", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricsBuckets_bucket_count(ctx context.Context, field graphql.CollectedField, obj *model.MetricsBuckets) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricsBuckets_bucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricsBuckets",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricsBuckets_sample_factor(ctx context.Context, field graphql.CollectedField, obj *model.MetricsBuckets) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SampleFactor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricsBuckets_sample_factor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricsBuckets",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -55177,6 +55653,68 @@ func (ec *executionContext) fieldContext_Query_logs_histogram(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_logs_metrics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_logs_metrics(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LogsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(*string), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MetricsBuckets)
+	fc.Result = res
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_logs_metrics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "buckets":
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_logs_metrics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_logs_keys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_logs_keys(ctx, field)
 	if err != nil {
@@ -56073,9 +56611,9 @@ func (ec *executionContext) _Query_traces_metrics(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.TracesMetrics)
+	res := resTmp.(*model.MetricsBuckets)
 	fc.Result = res
-	return ec.marshalNTracesMetrics2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetrics(ctx, field.Selections, res)
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_traces_metrics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -56087,13 +56625,13 @@ func (ec *executionContext) fieldContext_Query_traces_metrics(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "buckets":
-				return ec.fieldContext_TracesMetrics_buckets(ctx, field)
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
 			case "bucket_count":
-				return ec.fieldContext_TracesMetrics_bucket_count(ctx, field)
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
 			case "sample_factor":
-				return ec.fieldContext_TracesMetrics_sample_factor(ctx, field)
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TracesMetrics", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
 		},
 	}
 	defer func() {
@@ -69201,370 +69739,6 @@ func (ec *executionContext) fieldContext_TracePayload_errors(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _TracesMetricBucket_bucket_id(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetricBucket_bucket_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BucketID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetricBucket_bucket_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetricBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt64 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetricBucket_group(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetricBucket_group(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Group, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetricBucket_group(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetricBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetricBucket_column(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetricBucket_column(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Column, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.TracesMetricColumn)
-	fc.Result = res
-	return ec.marshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetricBucket_column(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetricBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type TracesMetricColumn does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetricBucket_metric_type(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MetricType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.MetricAggregator)
-	fc.Result = res
-	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetricBucket_metric_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetricBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type MetricAggregator does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetricBucket_metric_value(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetricBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetricBucket_metric_value(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MetricValue, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetricBucket_metric_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetricBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetrics_buckets(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetrics) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetrics_buckets(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Buckets, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.TracesMetricBucket)
-	fc.Result = res
-	return ec.marshalNTracesMetricBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricBucketᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetrics_buckets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetrics",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "bucket_id":
-				return ec.fieldContext_TracesMetricBucket_bucket_id(ctx, field)
-			case "group":
-				return ec.fieldContext_TracesMetricBucket_group(ctx, field)
-			case "column":
-				return ec.fieldContext_TracesMetricBucket_column(ctx, field)
-			case "metric_type":
-				return ec.fieldContext_TracesMetricBucket_metric_type(ctx, field)
-			case "metric_value":
-				return ec.fieldContext_TracesMetricBucket_metric_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TracesMetricBucket", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetrics_bucket_count(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetrics) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetrics_bucket_count(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BucketCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint64)
-	fc.Result = res
-	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetrics_bucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetrics",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt64 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TracesMetrics_sample_factor(ctx context.Context, field graphql.CollectedField, obj *model.TracesMetrics) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TracesMetrics_sample_factor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SampleFactor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TracesMetrics_sample_factor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TracesMetrics",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _TrackProperty_id(ctx context.Context, field graphql.CollectedField, obj *model1.TrackProperty) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TrackProperty_id(ctx, field)
 	if err != nil {
@@ -80292,6 +80466,62 @@ func (ec *executionContext) _Metric(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var metricBucketImplementors = []string{"MetricBucket"}
+
+func (ec *executionContext) _MetricBucket(ctx context.Context, sel ast.SelectionSet, obj *model.MetricBucket) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricBucketImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricBucket")
+		case "bucket_id":
+
+			out.Values[i] = ec._MetricBucket_bucket_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "group":
+
+			out.Values[i] = ec._MetricBucket_group(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "column":
+
+			out.Values[i] = ec._MetricBucket_column(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "metric_type":
+
+			out.Values[i] = ec._MetricBucket_metric_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "metric_value":
+
+			out.Values[i] = ec._MetricBucket_metric_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var metricMonitorImplementors = []string{"MetricMonitor"}
 
 func (ec *executionContext) _MetricMonitor(ctx context.Context, sel ast.SelectionSet, obj *model1.MetricMonitor) graphql.Marshaler {
@@ -80536,6 +80766,48 @@ func (ec *executionContext) _MetricTagFilter(ctx context.Context, sel ast.Select
 		case "value":
 
 			out.Values[i] = ec._MetricTagFilter_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var metricsBucketsImplementors = []string{"MetricsBuckets"}
+
+func (ec *executionContext) _MetricsBuckets(ctx context.Context, sel ast.SelectionSet, obj *model.MetricsBuckets) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metricsBucketsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetricsBuckets")
+		case "buckets":
+
+			out.Values[i] = ec._MetricsBuckets_buckets(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "bucket_count":
+
+			out.Values[i] = ec._MetricsBuckets_bucket_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sample_factor":
+
+			out.Values[i] = ec._MetricsBuckets_sample_factor(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -84054,6 +84326,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "logs_metrics":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_logs_metrics(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "logs_keys":
 			field := field
 
@@ -87246,104 +87538,6 @@ func (ec *executionContext) _TracePayload(ctx context.Context, sel ast.Selection
 		case "errors":
 
 			out.Values[i] = ec._TracePayload_errors(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var tracesMetricBucketImplementors = []string{"TracesMetricBucket"}
-
-func (ec *executionContext) _TracesMetricBucket(ctx context.Context, sel ast.SelectionSet, obj *model.TracesMetricBucket) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, tracesMetricBucketImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TracesMetricBucket")
-		case "bucket_id":
-
-			out.Values[i] = ec._TracesMetricBucket_bucket_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "group":
-
-			out.Values[i] = ec._TracesMetricBucket_group(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "column":
-
-			out.Values[i] = ec._TracesMetricBucket_column(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "metric_type":
-
-			out.Values[i] = ec._TracesMetricBucket_metric_type(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "metric_value":
-
-			out.Values[i] = ec._TracesMetricBucket_metric_value(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var tracesMetricsImplementors = []string{"TracesMetrics"}
-
-func (ec *executionContext) _TracesMetrics(ctx context.Context, sel ast.SelectionSet, obj *model.TracesMetrics) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, tracesMetricsImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TracesMetrics")
-		case "buckets":
-
-			out.Values[i] = ec._TracesMetrics_buckets(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "bucket_count":
-
-			out.Values[i] = ec._TracesMetrics_bucket_count(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "sample_factor":
-
-			out.Values[i] = ec._TracesMetrics_sample_factor(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -90962,6 +91156,70 @@ func (ec *executionContext) marshalNMetricAggregator2ᚕgithubᚗcomᚋhighlight
 	return ret
 }
 
+func (ec *executionContext) marshalNMetricBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricBucket) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMetricBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricBucket(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMetricBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricBucket(ctx context.Context, sel ast.SelectionSet, v *model.MetricBucket) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MetricBucket(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricColumn(ctx context.Context, v interface{}) (model.MetricColumn, error) {
+	var res model.MetricColumn
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricColumn(ctx context.Context, sel ast.SelectionSet, v model.MetricColumn) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐMetricMonitor(ctx context.Context, sel ast.SelectionSet, v []*model1.MetricMonitor) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -91023,6 +91281,20 @@ func (ec *executionContext) unmarshalNMetricTagFilterOp2githubᚗcomᚋhighlight
 
 func (ec *executionContext) marshalNMetricTagFilterOp2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterOp(ctx context.Context, sel ast.SelectionSet, v model.MetricTagFilterOp) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNMetricsBuckets2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx context.Context, sel ast.SelectionSet, v model.MetricsBuckets) graphql.Marshaler {
+	return ec._MetricsBuckets(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx context.Context, sel ast.SelectionSet, v *model.MetricsBuckets) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MetricsBuckets(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkHistogramParamsInput(ctx context.Context, v interface{}) (model.NetworkHistogramParamsInput, error) {
@@ -92706,84 +92978,6 @@ func (ec *executionContext) marshalNTraceError2ᚖgithubᚗcomᚋhighlightᚑrun
 		return graphql.Null
 	}
 	return ec._TraceError(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNTracesMetricBucket2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TracesMetricBucket) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTracesMetricBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricBucket(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNTracesMetricBucket2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricBucket(ctx context.Context, sel ast.SelectionSet, v *model.TracesMetricBucket) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._TracesMetricBucket(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx context.Context, v interface{}) (model.TracesMetricColumn, error) {
-	var res model.TracesMetricColumn
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx context.Context, sel ast.SelectionSet, v model.TracesMetricColumn) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) marshalNTracesMetrics2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetrics(ctx context.Context, sel ast.SelectionSet, v model.TracesMetrics) graphql.Marshaler {
-	return ec._TracesMetrics(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTracesMetrics2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetrics(ctx context.Context, sel ast.SelectionSet, v *model.TracesMetrics) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._TracesMetrics(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTrackProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTrackProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.TrackProperty) graphql.Marshaler {

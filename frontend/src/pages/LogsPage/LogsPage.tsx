@@ -78,7 +78,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		error,
 		loadingAfter,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	} = useGetLogs({
 		query,
@@ -102,22 +101,17 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(
-			containerRefElement?: HTMLDivElement | null,
-			disableBackward?: boolean,
-		) => {
+		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (!disableBackward && scrollTop === 0) {
-					fetchMoreBackward()
 				}
 			}
 		},
-		[fetchMoreForward, fetchMoreBackward],
+		[fetchMoreForward],
 	)
 
 	const { projectId } = useNumericProjectId()
