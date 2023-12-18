@@ -2474,19 +2474,19 @@ type PushPayloadMessages struct {
 }
 
 type PushPayloadResources struct {
-	Resources []*json.RawMessage `json:"resources"`
+	Resources []*any `json:"resources"`
 }
 
 type PushPayloadWebSocketEvents struct {
-	WebSocketEvents []*json.RawMessage `json:"webSocketEvents"`
+	WebSocketEvents []*any `json:"webSocketEvents"`
 }
 
 type PushPayloadChunk struct {
 	events          []*publicModel.ReplayEventInput
 	errors          []*publicModel.ErrorObjectInput
 	logRows         []*hlog.Message
-	resources       []*json.RawMessage
-	websocketEvents []*json.RawMessage
+	resources       []*any
+	websocketEvents []*any
 }
 
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
@@ -2515,7 +2515,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		return e.New("ProcessPayload called without secureID")
 	}
 	sessionObj := &model.Session{}
-	if err := r.DB.WithContext(ctx).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
+	var err error
+	if sessionObj, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureID); err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
 		log.WithContext(ctx).Error(retErr)
 		querySessionSpan.Finish(retErr)

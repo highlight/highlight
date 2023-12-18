@@ -173,10 +173,9 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			// override batch limit to be our message max size
 			BatchBytes:   messageSizeBytes,
 			BatchSize:    1,
+			BatchTimeout: KafkaOperationTimeout,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
-			// low timeout because we don't want to block WriteMessage calls since we are sync mode
-			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
 
@@ -283,6 +282,9 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 		if err != nil {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
 			return err
+		}
+		if len(msgBytes) >= messageSizeBytes/2 {
+			log.WithContext(ctx).WithField("topic", p.Topic).WithField("partitionKey", partitionKey).WithField("MB", len(msgBytes)).Warn("large kafka message")
 		}
 		kMessages = append(kMessages, kafka.Message{
 			Key:   []byte(partitionKey),
