@@ -3,7 +3,10 @@ import { CoreApp, DataSourceInstanceSettings } from '@grafana/data';
 import { HighlightDataSourceOptions, HighlightQuery } from './types';
 import { DataSourceWithBackend } from '@grafana/runtime';
 
-export const tableOptions = [{ value: 'traces', label: 'traces' }];
+export const tableOptions = [
+  { value: 'traces', label: 'traces' },
+  { value: 'logs', label: 'logs' },
+];
 
 export const columnOptions = [{ value: 'duration', label: 'duration' }];
 

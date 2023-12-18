@@ -547,6 +547,14 @@ type MatchedErrorTag struct {
 	Score       float64 `json:"score"`
 }
 
+type MetricBucket struct {
+	BucketID    uint64           `json:"bucket_id"`
+	Group       []string         `json:"group"`
+	Column      MetricColumn     `json:"column"`
+	MetricType  MetricAggregator `json:"metric_type"`
+	MetricValue float64          `json:"metric_value"`
+}
+
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`
@@ -562,6 +570,12 @@ type MetricTagFilterInput struct {
 	Tag   string            `json:"tag"`
 	Op    MetricTagFilterOp `json:"op"`
 	Value string            `json:"value"`
+}
+
+type MetricsBuckets struct {
+	Buckets      []*MetricBucket `json:"buckets"`
+	BucketCount  uint64          `json:"bucket_count"`
+	SampleFactor float64         `json:"sample_factor"`
 }
 
 type NamedCount struct {
@@ -902,20 +916,6 @@ type TraceLink struct {
 type TracePayload struct {
 	Trace  []*Trace      `json:"trace"`
 	Errors []*TraceError `json:"errors"`
-}
-
-type TracesMetricBucket struct {
-	BucketID    uint64             `json:"bucket_id"`
-	Group       []string           `json:"group"`
-	Column      TracesMetricColumn `json:"column"`
-	MetricType  MetricAggregator   `json:"metric_type"`
-	MetricValue float64            `json:"metric_value"`
-}
-
-type TracesMetrics struct {
-	Buckets      []*TracesMetricBucket `json:"buckets"`
-	BucketCount  uint64                `json:"bucket_count"`
-	SampleFactor float64               `json:"sample_factor"`
 }
 
 type TrackPropertyInput struct {
@@ -1441,6 +1441,88 @@ func (e *MetricAggregator) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricAggregator) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricBucketBy string
+
+const (
+	MetricBucketByNone      MetricBucketBy = "None"
+	MetricBucketByTimestamp MetricBucketBy = "Timestamp"
+)
+
+var AllMetricBucketBy = []MetricBucketBy{
+	MetricBucketByNone,
+	MetricBucketByTimestamp,
+}
+
+func (e MetricBucketBy) IsValid() bool {
+	switch e {
+	case MetricBucketByNone, MetricBucketByTimestamp:
+		return true
+	}
+	return false
+}
+
+func (e MetricBucketBy) String() string {
+	return string(e)
+}
+
+func (e *MetricBucketBy) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricBucketBy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricBucketBy", str)
+	}
+	return nil
+}
+
+func (e MetricBucketBy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricColumn string
+
+const (
+	MetricColumnDuration    MetricColumn = "Duration"
+	MetricColumnMetricValue MetricColumn = "MetricValue"
+)
+
+var AllMetricColumn = []MetricColumn{
+	MetricColumnDuration,
+	MetricColumnMetricValue,
+}
+
+func (e MetricColumn) IsValid() bool {
+	switch e {
+	case MetricColumnDuration, MetricColumnMetricValue:
+		return true
+	}
+	return false
+}
+
+func (e MetricColumn) String() string {
+	return string(e)
+}
+
+func (e *MetricColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricColumn", str)
+	}
+	return nil
+}
+
+func (e MetricColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -2440,87 +2522,5 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TracesMetricBucketBy string
-
-const (
-	TracesMetricBucketByNone      TracesMetricBucketBy = "None"
-	TracesMetricBucketByTimestamp TracesMetricBucketBy = "Timestamp"
-)
-
-var AllTracesMetricBucketBy = []TracesMetricBucketBy{
-	TracesMetricBucketByNone,
-	TracesMetricBucketByTimestamp,
-}
-
-func (e TracesMetricBucketBy) IsValid() bool {
-	switch e {
-	case TracesMetricBucketByNone, TracesMetricBucketByTimestamp:
-		return true
-	}
-	return false
-}
-
-func (e TracesMetricBucketBy) String() string {
-	return string(e)
-}
-
-func (e *TracesMetricBucketBy) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TracesMetricBucketBy(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TracesMetricBucketBy", str)
-	}
-	return nil
-}
-
-func (e TracesMetricBucketBy) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TracesMetricColumn string
-
-const (
-	TracesMetricColumnDuration    TracesMetricColumn = "Duration"
-	TracesMetricColumnMetricValue TracesMetricColumn = "MetricValue"
-)
-
-var AllTracesMetricColumn = []TracesMetricColumn{
-	TracesMetricColumnDuration,
-	TracesMetricColumnMetricValue,
-}
-
-func (e TracesMetricColumn) IsValid() bool {
-	switch e {
-	case TracesMetricColumnDuration, TracesMetricColumnMetricValue:
-		return true
-	}
-	return false
-}
-
-func (e TracesMetricColumn) String() string {
-	return string(e)
-}
-
-func (e *TracesMetricColumn) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TracesMetricColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TracesMetricColumn", str)
-	}
-	return nil
-}
-
-func (e TracesMetricColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

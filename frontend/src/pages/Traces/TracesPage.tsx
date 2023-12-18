@@ -29,8 +29,8 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	MetricAggregator,
+	MetricColumn,
 	Trace,
-	TracesMetricColumn,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -87,7 +87,7 @@ export const TracesPage: React.FC = () => {
 		useGetTracesMetricsQuery({
 			variables: {
 				project_id: projectId!,
-				column: TracesMetricColumn.Duration,
+				column: MetricColumn.Duration,
 				group_by: [],
 				params: {
 					query: serverQuery,
