@@ -111,7 +111,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		payloadID = pointy.Int(0)
 	}
 
-	const staticChunkSize = 32
+	const staticChunkSize = 128
 	const largeChunkSize = 1
 
 	var logRows []*hlog.Message
