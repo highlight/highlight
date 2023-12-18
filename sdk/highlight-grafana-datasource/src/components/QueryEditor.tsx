@@ -2,7 +2,7 @@ import React, { ChangeEvent } from 'react';
 import { AsyncMultiSelect, AsyncSelect, InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource, bucketByOptions, columnOptions, metricOptions, tableOptions } from '../datasource';
-import { HighlightDataSourceOptions, HighlightQuery } from '../types';
+import { HighlightDataSourceOptions, HighlightQuery, Table } from '../types';
 
 type Props = QueryEditorProps<DataSource, HighlightQuery, HighlightDataSourceOptions>;
 
@@ -18,7 +18,7 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
     onChange({ ...query, queryText: event.target.value });
   };
 
-  const onTableChange = (option: SelectableValue<string>) => {
+  const onTableChange = (option: SelectableValue<Table>) => {
     onChange({ ...query, table: option.value });
   };
 
@@ -50,12 +50,12 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
     onChange({ ...query, limit: Number(event.target.value) });
   };
 
-  const loadColumnOptions = async (table: string | undefined, query: string) => {
+  const loadColumnOptions = async (table: Table | undefined, query: string) => {
     let keys: TraceKey[] = await datasource.getResource(`${table}-keys`, { query, type: 'Numeric' });
     return (table === 'traces' ? columnOptions : []).concat(keys.map((k) => ({ value: k.Name, label: k.Name })));
   };
 
-  const loadGroupByOptions = async (table: string | undefined, query: string) => {
+  const loadGroupByOptions = async (table: Table | undefined, query: string) => {
     let keys: TraceKey[] = await datasource.getResource(`${table}-keys`, { query, type: 'String' });
     return keys.map((k) => ({ value: k.Name, label: k.Name }));
   };
@@ -69,7 +69,11 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Function" labelWidth={10}>
-          <Select value={metric} onChange={onMetricChange} options={metricOptions} />
+          <Select
+            value={metric}
+            onChange={onMetricChange}
+            options={metricOptions.filter((o) => o.tables.includes(table ?? 'traces'))}
+          />
         </InlineField>
         {metric !== undefined && metric !== 'Count' && (
           <InlineField>

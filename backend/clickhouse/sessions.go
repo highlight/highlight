@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/samber/lo"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
 
@@ -104,6 +105,7 @@ type ClickhouseField struct {
 
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
+const SessionKeysTable = "session_keys"
 const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
 
@@ -470,4 +472,25 @@ var sessionsTableConfig = tableConfig[string]{
 
 func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) bool {
 	return matchesQuery(session, sessionsTableConfig, filters)
+}
+
+var sessionsJoinedTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
+	tableName:        "sessions_joined_vw",
+	attributesColumn: "SessionAttributes",
+	reservedKeys:     modelInputs.AllReservedSessionKey,
+}
+
+var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
+	tableConfig: sessionsJoinedTableConfig,
+	useSampling: func(time.Duration) bool {
+		return false
+	},
+}
+
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readMetrics(ctx, client, sessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
 }

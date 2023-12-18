@@ -91,7 +91,9 @@ var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
 	tableConfig:         tracesTableConfig,
 	samplingTableConfig: tracesSamplingTableConfig,
-	samplingThreshold:   time.Hour,
+	useSampling: func(d time.Duration) bool {
+		return d >= time.Hour
+	},
 }
 
 type ClickhouseTraceRow struct {
