@@ -173,8 +173,8 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Async:        true,
 			// override batch limit to be our message max size
 			BatchBytes:   defaultMessageSizeBytes,
-			BatchSize:    1000,
-			BatchTimeout: KafkaOperationTimeout,
+			BatchSize:    1_000_000,
+			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			MaxAttempts:  10,
