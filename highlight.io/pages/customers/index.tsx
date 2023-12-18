@@ -1,14 +1,13 @@
+import { gql } from 'graphql-request'
 import { GetStaticProps } from 'next'
 import Image from 'next/legacy/image'
-import styles from '../../components/Customers/CustomersList.module.scss'
-import productStyles from '../../components/Products/Products.module.scss'
-import Navbar from '../../components/common/Navbar/Navbar'
-import Footer from '../../components/common/Footer/Footer'
-import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
-import { Typography } from '../../components/common/Typography/Typography'
-import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
-import { gql } from 'graphql-request'
 import { Author } from '../../components/Blog/BlogPost/BlogPost'
+import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
+import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
+import Footer from '../../components/common/Footer/Footer'
+import Navbar from '../../components/common/Navbar/Navbar'
+import { Typography } from '../../components/common/Typography/Typography'
+import styles from '../../components/Customers/CustomersList.module.scss'
 import { GraphQLRequest } from '../../utils/graphql'
 
 interface Customer {
@@ -168,6 +167,7 @@ const CustomerCaseCard = ({
 					layout="fill"
 					objectFit="cover"
 					alt="Case thumbnail"
+					priority
 				/>
 			</div>
 			<div className={styles.caseDetails}>

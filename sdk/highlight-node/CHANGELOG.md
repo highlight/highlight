@@ -1,5 +1,13 @@
 # @highlight-run/node
 
+## 3.6.6
+
+### Patch Changes
+
+-   352641cf7: fix incorrect reporting of log level for pino
+-   8f0b8de6b: Repairing a circular dependency in @highlight-run/node and a bad export from @highlight-run/next's Edge runtime support
+-   46ed85c91: Support environment attribute to be passed in natively.
+
 ## 3.6.5
 
 ### Patch Changes

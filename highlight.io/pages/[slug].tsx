@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { MdKeyboardReturn } from 'react-icons/md'
 import { PrimaryButton } from '../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
@@ -33,12 +33,12 @@ import loggingscreenshot from '../public/images/loggingscreenshot.png'
 import monitoringscreenshot from '../public/images/monitoringscreenshot.png'
 import sessionscreenshot from '../public/images/sessionscreenshot.png'
 
+import { FaPlay } from 'react-icons/fa'
 import {
 	AnimateFeatureHeroRight,
 	AnimateFeatureHeroXL,
 } from '../components/Animate'
 import { CalendlyPopover } from '../components/Home/CalendlyPopover'
-import { FaPlay } from 'react-icons/fa'
 
 const IMAGE_MAP = {
 	[errorMonitoringHeroKey]: errorMonitoringHero,
@@ -143,7 +143,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0 lg:w-[550px] xl:w-[650px]`}
 								src={IMAGE_MAP[feature.slantedImage]}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroRight>
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
@@ -151,14 +151,14 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 								className={`hidden ultra:flex w-[500px]`}
 								src={IMAGE_MAP[feature.regularImage]}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroXL>
 						<Image
 							className={`lg:hidden right-0 object-contain bottom-0 md:w-[500px]`}
 							src={IMAGE_MAP[feature.regularImage]}
 							alt="Feature Spotlight"
-							onLoadingComplete={() => setImageLoaded(true)}
+							onLoad={() => setImageLoaded(true)}
 						/>
 					</div>
 				</div>

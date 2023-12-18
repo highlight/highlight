@@ -68,7 +68,6 @@
 			.leftQuote {
 				position: absolute;
 				left: -24px;
-				top: 16px;
 			}
 
 			.rightQuote {
@@ -162,6 +161,10 @@
 	.caseCard {
 		.thumbnail {
 			height: 240px;
+		}
+
+		.leftQuote {
+			top: -8px;
 		}
 	}
 }
