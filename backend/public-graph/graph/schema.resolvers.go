@@ -112,6 +112,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 	}
 
 	const staticChunkSize = 128
+	const largeChunkSize = 16
 
 	var logRows []*hlog.Message
 	var resourcesParsed PushPayloadResources
@@ -153,7 +154,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.errors = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(logRows, staticChunkSize) {
+	for idx, chunk := range lo.Chunk(logRows, largeChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -161,7 +162,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.logRows = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(resourcesParsed.Resources, staticChunkSize) {
+	for idx, chunk := range lo.Chunk(resourcesParsed.Resources, largeChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}
@@ -169,7 +170,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		entry.resources = chunk
 		chunks[idx] = entry
 	}
-	for idx, chunk := range lo.Chunk(webSocketEventsParsed.WebSocketEvents, staticChunkSize) {
+	for idx, chunk := range lo.Chunk(webSocketEventsParsed.WebSocketEvents, largeChunkSize) {
 		if _, ok := chunks[idx]; !ok {
 			chunks[idx] = PushPayloadChunk{}
 		}

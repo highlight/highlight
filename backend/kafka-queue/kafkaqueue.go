@@ -284,7 +284,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 			return err
 		}
 		if len(msgBytes) >= messageSizeBytes/2 {
-			log.WithContext(ctx).WithField("topic", p.Topic).WithField("partitionKey", partitionKey).WithField("MB", len(msgBytes)).Warn("large kafka message")
+			log.WithContext(ctx).WithField("topic", p.Topic).WithField("partitionKey", partitionKey).WithField("msgBytes", len(msgBytes)).WithField("msg", msgBytes).Warn("large kafka message")
 		}
 		kMessages = append(kMessages, kafka.Message{
 			Key:   []byte(partitionKey),
