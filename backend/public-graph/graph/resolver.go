@@ -2514,8 +2514,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if sessionSecureID == "" {
 		return e.New("ProcessPayload called without secureID")
 	}
-	sessionObj := &model.Session{}
 	var err error
+	var sessionObj *model.Session
 	if sessionObj, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureID); err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
 		log.WithContext(ctx).Error(retErr)
