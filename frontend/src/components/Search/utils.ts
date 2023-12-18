@@ -9,6 +9,10 @@ import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
 
 import SearchGrammarLexer from './Parser/SearchGrammarLexer'
 
+// We don't have a type from the generated lexer for this token type, so create
+//
+export const STRING_TYPE = 100
+
 export const buildParser = (input: string) => {
 	const chars = new CharStream(input)
 	const lexer = new SearchGrammarLexer(chars)
