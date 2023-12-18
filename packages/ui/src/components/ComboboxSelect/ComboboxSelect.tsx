@@ -192,7 +192,7 @@ export const ComboboxSelect_test = () => {
 		{ key: 'blue', render: 'Blue' },
 		{ key: 'green', render: 'Green' },
 	]
-	const label = 'Select a color'
+	const label = 'Select a color!'
 	return (
 		<ComboboxSelect
 			label={label}
@@ -207,21 +207,39 @@ export const ComboboxSelect_test = () => {
 	)
 }
 
+// Will add a TS type package for this stuff soon!
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-ComboboxSelect_test.run = async ({ user, screen, captureScreenshot }) => {
-	const combobox = await screen.findByRole('combobox')
-	await captureScreenshot(combobox, { name: 'initial' })
+ComboboxSelect_test.run = async ({ step }) => {
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	await step('open dialog', async ({ screen, user }) => {
+		const combobox = await screen.findByRole('combobox')
+		await user.click(combobox)
+		const dialog = await screen.findByRole('dialog')
+		return {
+			screenshotOptions: {
+				element: dialog,
+			},
+		}
+	})
 
-	await user.click(combobox)
-	const dialog = await screen.findByRole('dialog')
-	await captureScreenshot(dialog, { name: 'dialog opened' })
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	await step('enter filter text', async ({ screen, user }) => {
+		const filterInput = await screen.findByPlaceholderText('Filter...')
+		await user.type(filterInput, 're')
+		return {
+			screenshotOptions: {
+				element: filterInput,
+			},
+		}
+	})
 
-	const filterInput = await screen.findByPlaceholderText('Filter...')
-
-	await user.type(filterInput, 're')
-	await captureScreenshot(dialog, { name: 'filter entered' })
-
-	const redOption = await screen.findByText('Red')
-	await user.click(redOption)
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	await step('select option', async ({ screen, user }) => {
+		const redOption = await screen.findByText('Red')
+		await user.click(redOption)
+	})
 }

@@ -814,10 +814,11 @@ type SourceMappingError struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount   int64                 `json:"baseAmount"`
-	Discount     *SubscriptionDiscount `json:"discount"`
-	LastInvoice  *Invoice              `json:"lastInvoice"`
-	BillingIssue bool                  `json:"billingIssue"`
+	BaseAmount           int64                 `json:"baseAmount"`
+	Discount             *SubscriptionDiscount `json:"discount"`
+	LastInvoice          *Invoice              `json:"lastInvoice"`
+	BillingIssue         bool                  `json:"billingIssue"`
+	BillingIngestBlocked bool                  `json:"billingIngestBlocked"`
 }
 
 type SubscriptionDiscount struct {
@@ -2439,6 +2440,47 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TracesMetricBucketBy string
+
+const (
+	TracesMetricBucketByNone      TracesMetricBucketBy = "None"
+	TracesMetricBucketByTimestamp TracesMetricBucketBy = "Timestamp"
+)
+
+var AllTracesMetricBucketBy = []TracesMetricBucketBy{
+	TracesMetricBucketByNone,
+	TracesMetricBucketByTimestamp,
+}
+
+func (e TracesMetricBucketBy) IsValid() bool {
+	switch e {
+	case TracesMetricBucketByNone, TracesMetricBucketByTimestamp:
+		return true
+	}
+	return false
+}
+
+func (e TracesMetricBucketBy) String() string {
+	return string(e)
+}
+
+func (e *TracesMetricBucketBy) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TracesMetricBucketBy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TracesMetricBucketBy", str)
+	}
+	return nil
+}
+
+func (e TracesMetricBucketBy) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

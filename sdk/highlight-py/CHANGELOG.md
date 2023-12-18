@@ -44,3 +44,16 @@
 ### Fix
 
 - Remove `Highlight caught a ...` log messages as error logs are generated server side.
+
+## v0.6.7 (2023-12-12)
+
+### Fix
+
+- Support `environment` when initializing the SDK.
+
+## v0.6.8 (2023-12-13)
+
+### Fix
+
+- Support tracing auto-instrumentation for the requests library.
+- Add `tracing_origins` configuration to pass X-Highlight-Request header to outgoing requests.

@@ -746,18 +746,18 @@ type ComplexityRoot struct {
 		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		CreateAdmin                      func(childComplexity int) int
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) int
-		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
+		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateErrorTag                   func(childComplexity int, title string, description string) int
-		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
-		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
+		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
+		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateLogAlert                   func(childComplexity int, input model.LogAlertInput) int
 		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
 		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
-		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
+		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
 		CreateWorkspace                  func(childComplexity int, name string, promoCode *string) int
 		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
 		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
@@ -956,7 +956,7 @@ type ComplexityRoot struct {
 		LogsHistogram                func(childComplexity int, projectID int, params model.QueryInput) int
 		LogsIntegration              func(childComplexity int, projectID int) int
 		LogsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string) int
+		LogsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		LogsTotalCount               func(childComplexity int, projectID int, params model.QueryInput) int
 		MatchErrorTag                func(childComplexity int, query string) int
 		MetricMonitors               func(childComplexity int, projectID int, metricName *string) int
@@ -1007,8 +1007,8 @@ type ComplexityRoot struct {
 		Traces                       func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
 		TracesIntegration            func(childComplexity int, projectID int) int
 		TracesKeyValues              func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput) int
-		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string) int
-		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) int
+		TracesKeys                   func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
+		TracesMetrics                func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
 		UserFingerprintCount         func(childComplexity int, projectID int, lookbackDays float64) int
@@ -1343,10 +1343,11 @@ type ComplexityRoot struct {
 	}
 
 	SubscriptionDetails struct {
-		BaseAmount   func(childComplexity int) int
-		BillingIssue func(childComplexity int) int
-		Discount     func(childComplexity int) int
-		LastInvoice  func(childComplexity int) int
+		BaseAmount           func(childComplexity int) int
+		BillingIngestBlocked func(childComplexity int) int
+		BillingIssue         func(childComplexity int) int
+		Discount             func(childComplexity int) int
+		LastInvoice          func(childComplexity int) int
 	}
 
 	SubscriptionDiscount struct {
@@ -1639,15 +1640,15 @@ type MutationResolver interface {
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
 	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) (*bool, error)
-	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
-	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
+	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	MuteSessionCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
 	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
-	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
+	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	RemoveErrorIssue(ctx context.Context, errorIssueID int) (*bool, error)
 	MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
-	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
+	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	AddIntegrationToProject(ctx context.Context, integrationType *model.IntegrationType, projectID int, code string) (bool, error)
@@ -1823,7 +1824,7 @@ type QueryResolver interface {
 	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
 	LogsTotalCount(ctx context.Context, projectID int, params model.QueryInput) (uint64, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.LogsHistogram, error)
-	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string) ([]*model.QueryKey, error)
+	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
@@ -1837,8 +1838,8 @@ type QueryResolver interface {
 	FindSimilarErrors(ctx context.Context, query string) ([]*model1.MatchedErrorObject, error)
 	Trace(ctx context.Context, projectID int, traceID string) (*model.TracePayload, error)
 	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.TraceConnection, error)
-	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column model.TracesMetricColumn, metricTypes []model.MetricAggregator, groupBy []string) (*model.TracesMetrics, error)
-	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string) ([]*model.QueryKey, error)
+	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.TracesMetrics, error)
+	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 }
 type SegmentResolver interface {
@@ -5064,7 +5065,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
+		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["issue_type_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -5100,7 +5101,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateIssueForErrorComment(childComplexity, args["project_id"].(int), args["error_url"].(string), args["error_comment_id"].(int), args["author_name"].(string), args["text_for_attachment"].(string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
+		return e.complexity.Mutation.CreateIssueForErrorComment(childComplexity, args["project_id"].(int), args["error_url"].(string), args["error_comment_id"].(int), args["author_name"].(string), args["text_for_attachment"].(string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["issue_type_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
 
 	case "Mutation.createIssueForSessionComment":
 		if e.complexity.Mutation.CreateIssueForSessionComment == nil {
@@ -5112,7 +5113,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateIssueForSessionComment(childComplexity, args["project_id"].(int), args["session_url"].(string), args["session_comment_id"].(int), args["author_name"].(string), args["text_for_attachment"].(string), args["time"].(float64), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
+		return e.complexity.Mutation.CreateIssueForSessionComment(childComplexity, args["project_id"].(int), args["session_url"].(string), args["session_comment_id"].(int), args["author_name"].(string), args["text_for_attachment"].(string), args["time"].(float64), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["issue_type_id"].(*string), args["integrations"].([]*model.IntegrationType)), true
 
 	case "Mutation.createLogAlert":
 		if e.complexity.Mutation.CreateLogAlert == nil {
@@ -5196,7 +5197,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType), args["tags"].([]*model.SessionCommentTagInput), args["additional_context"].(*string)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["issue_type_id"].(*string), args["integrations"].([]*model.IntegrationType), args["tags"].([]*model.SessionCommentTagInput), args["additional_context"].(*string)), true
 
 	case "Mutation.createWorkspace":
 		if e.complexity.Mutation.CreateWorkspace == nil {
@@ -7127,7 +7128,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string)), true
+		return e.complexity.Query.LogsKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
 
 	case "Query.logs_total_count":
 		if e.complexity.Query.LogsTotalCount == nil {
@@ -7724,7 +7725,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string)), true
+		return e.complexity.Query.TracesKeys(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
 
 	case "Query.traces_metrics":
 		if e.complexity.Query.TracesMetrics == nil {
@@ -7736,7 +7737,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(model.TracesMetricColumn), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string)), true
+		return e.complexity.Query.TracesMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(*string), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
 	case "Query.track_properties_alerts":
 		if e.complexity.Query.TrackPropertiesAlerts == nil {
@@ -9517,6 +9518,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.BaseAmount(childComplexity), true
 
+	case "SubscriptionDetails.billingIngestBlocked":
+		if e.complexity.SubscriptionDetails.BillingIngestBlocked == nil {
+			break
+		}
+
+		return e.complexity.SubscriptionDetails.BillingIngestBlocked(childComplexity), true
+
 	case "SubscriptionDetails.billingIssue":
 		if e.complexity.SubscriptionDetails.BillingIssue == nil {
 			break
@@ -10708,6 +10716,7 @@ type SubscriptionDetails {
 	discount: SubscriptionDiscount
 	lastInvoice: Invoice
 	billingIssue: Boolean!
+	billingIngestBlocked: Boolean!
 }
 
 type Plan {
@@ -11538,6 +11547,11 @@ enum MetricAggregator {
 enum TracesMetricColumn {
 	Duration
 	MetricValue
+}
+
+enum TracesMetricBucketBy {
+	None
+	Timestamp
 }
 
 type TracesMetricBucket {
@@ -12583,6 +12597,7 @@ type Query {
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -12617,14 +12632,19 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: TracesMetricColumn!
+		column: String!
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
+		bucket_by: String
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
 	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
@@ -12766,6 +12786,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 		tags: [SessionCommentTagInput]!
 		additional_context: String
@@ -12780,6 +12801,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
@@ -12804,6 +12826,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	removeErrorIssue(error_issue_id: ID!): Boolean
@@ -12817,6 +12840,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	deleteErrorComment(id: ID!): Boolean
@@ -13365,15 +13389,24 @@ func (ec *executionContext) field_Mutation_createErrorComment_args(ctx context.C
 		}
 	}
 	args["issue_team_id"] = arg10
-	var arg11 []*model.IntegrationType
-	if tmp, ok := rawArgs["integrations"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
-		arg11, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+	var arg11 *string
+	if tmp, ok := rawArgs["issue_type_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_type_id"))
+		arg11, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["integrations"] = arg11
+	args["issue_type_id"] = arg11
+	var arg12 []*model.IntegrationType
+	if tmp, ok := rawArgs["integrations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
+		arg12, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integrations"] = arg12
 	return args, nil
 }
 
@@ -13509,15 +13542,24 @@ func (ec *executionContext) field_Mutation_createIssueForErrorComment_args(ctx c
 		}
 	}
 	args["issue_team_id"] = arg7
-	var arg8 []*model.IntegrationType
-	if tmp, ok := rawArgs["integrations"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
-		arg8, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+	var arg8 *string
+	if tmp, ok := rawArgs["issue_type_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_type_id"))
+		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["integrations"] = arg8
+	args["issue_type_id"] = arg8
+	var arg9 []*model.IntegrationType
+	if tmp, ok := rawArgs["integrations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
+		arg9, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integrations"] = arg9
 	return args, nil
 }
 
@@ -13605,15 +13647,24 @@ func (ec *executionContext) field_Mutation_createIssueForSessionComment_args(ctx
 		}
 	}
 	args["issue_team_id"] = arg8
-	var arg9 []*model.IntegrationType
-	if tmp, ok := rawArgs["integrations"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
-		arg9, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+	var arg9 *string
+	if tmp, ok := rawArgs["issue_type_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_type_id"))
+		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["integrations"] = arg9
+	args["issue_type_id"] = arg9
+	var arg10 []*model.IntegrationType
+	if tmp, ok := rawArgs["integrations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
+		arg10, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["integrations"] = arg10
 	return args, nil
 }
 
@@ -13980,33 +14031,42 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["issue_team_id"] = arg15
-	var arg16 []*model.IntegrationType
+	var arg16 *string
+	if tmp, ok := rawArgs["issue_type_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issue_type_id"))
+		arg16, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["issue_type_id"] = arg16
+	var arg17 []*model.IntegrationType
 	if tmp, ok := rawArgs["integrations"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrations"))
-		arg16, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
+		arg17, err = ec.unmarshalNIntegrationType2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["integrations"] = arg16
-	var arg17 []*model.SessionCommentTagInput
+	args["integrations"] = arg17
+	var arg18 []*model.SessionCommentTagInput
 	if tmp, ok := rawArgs["tags"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
-		arg17, err = ec.unmarshalNSessionCommentTagInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentTagInput(ctx, tmp)
+		arg18, err = ec.unmarshalNSessionCommentTagInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentTagInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tags"] = arg17
-	var arg18 *string
+	args["tags"] = arg18
+	var arg19 *string
 	if tmp, ok := rawArgs["additional_context"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("additional_context"))
-		arg18, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg19, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["additional_context"] = arg18
+	args["additional_context"] = arg19
 	return args, nil
 }
 
@@ -17823,6 +17883,15 @@ func (ec *executionContext) field_Query_logs_keys_args(ctx context.Context, rawA
 		}
 	}
 	args["query"] = arg2
+	var arg3 *model.KeyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg3, err = ec.unmarshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg3
 	return args, nil
 }
 
@@ -18903,6 +18972,15 @@ func (ec *executionContext) field_Query_traces_keys_args(ctx context.Context, ra
 		}
 	}
 	args["query"] = arg2
+	var arg3 *model.KeyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg3, err = ec.unmarshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg3
 	return args, nil
 }
 
@@ -18927,10 +19005,10 @@ func (ec *executionContext) field_Query_traces_metrics_args(ctx context.Context,
 		}
 	}
 	args["params"] = arg1
-	var arg2 model.TracesMetricColumn
+	var arg2 string
 	if tmp, ok := rawArgs["column"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
-		arg2, err = ec.unmarshalNTracesMetricColumn2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTracesMetricColumn(ctx, tmp)
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -18954,6 +19032,42 @@ func (ec *executionContext) field_Query_traces_metrics_args(ctx context.Context,
 		}
 	}
 	args["group_by"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["bucket_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_by"))
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bucket_by"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg6
+	var arg7 *model.MetricAggregator
+	if tmp, ok := rawArgs["limit_aggregator"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
+		arg7, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit_aggregator"] = arg7
+	var arg8 *string
+	if tmp, ok := rawArgs["limit_column"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
+		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit_column"] = arg8
 	return args, nil
 }
 
@@ -41115,7 +41229,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_secure_id"].(string), fc.Args["session_timestamp"].(int), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["x_coordinate"].(float64), fc.Args["y_coordinate"].(float64), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["session_url"].(string), fc.Args["time"].(float64), fc.Args["author_name"].(string), fc.Args["session_image"].(*string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType), fc.Args["tags"].([]*model.SessionCommentTagInput), fc.Args["additional_context"].(*string))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_secure_id"].(string), fc.Args["session_timestamp"].(int), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["x_coordinate"].(float64), fc.Args["y_coordinate"].(float64), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["session_url"].(string), fc.Args["time"].(float64), fc.Args["author_name"].(string), fc.Args["session_image"].(*string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["issue_type_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType), fc.Args["tags"].([]*model.SessionCommentTagInput), fc.Args["additional_context"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41200,7 +41314,7 @@ func (ec *executionContext) _Mutation_createIssueForSessionComment(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateIssueForSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_url"].(string), fc.Args["session_comment_id"].(int), fc.Args["author_name"].(string), fc.Args["text_for_attachment"].(string), fc.Args["time"].(float64), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType))
+		return ec.resolvers.Mutation().CreateIssueForSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_url"].(string), fc.Args["session_comment_id"].(int), fc.Args["author_name"].(string), fc.Args["text_for_attachment"].(string), fc.Args["time"].(float64), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["issue_type_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41450,7 +41564,7 @@ func (ec *executionContext) _Mutation_createErrorComment(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorComment(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_id"].(string), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["error_url"].(string), fc.Args["author_name"].(string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType))
+		return ec.resolvers.Mutation().CreateErrorComment(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_id"].(string), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["error_url"].(string), fc.Args["author_name"].(string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["issue_type_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41625,7 +41739,7 @@ func (ec *executionContext) _Mutation_createIssueForErrorComment(ctx context.Con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateIssueForErrorComment(rctx, fc.Args["project_id"].(int), fc.Args["error_url"].(string), fc.Args["error_comment_id"].(int), fc.Args["author_name"].(string), fc.Args["text_for_attachment"].(string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType))
+		return ec.resolvers.Mutation().CreateIssueForErrorComment(rctx, fc.Args["project_id"].(int), fc.Args["error_url"].(string), fc.Args["error_comment_id"].(int), fc.Args["author_name"].(string), fc.Args["text_for_attachment"].(string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["issue_type_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -54025,6 +54139,8 @@ func (ec *executionContext) fieldContext_Query_subscription_details(ctx context.
 				return ec.fieldContext_SubscriptionDetails_lastInvoice(ctx, field)
 			case "billingIssue":
 				return ec.fieldContext_SubscriptionDetails_billingIssue(ctx, field)
+			case "billingIngestBlocked":
+				return ec.fieldContext_SubscriptionDetails_billingIngestBlocked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SubscriptionDetails", field.Name)
 		},
@@ -55075,7 +55191,7 @@ func (ec *executionContext) _Query_logs_keys(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string))
+		return ec.resolvers.Query().LogsKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["type"].(*model.KeyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -55946,7 +56062,7 @@ func (ec *executionContext) _Query_traces_metrics(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(model.TracesMetricColumn), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string))
+		return ec.resolvers.Query().TracesMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(*string), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -56008,7 +56124,7 @@ func (ec *executionContext) _Query_traces_keys(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TracesKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string))
+		return ec.resolvers.Query().TracesKeys(rctx, fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["type"].(*model.KeyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -66414,6 +66530,50 @@ func (ec *executionContext) _SubscriptionDetails_billingIssue(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_SubscriptionDetails_billingIssue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SubscriptionDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SubscriptionDetails_billingIngestBlocked(ctx context.Context, field graphql.CollectedField, obj *model.SubscriptionDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SubscriptionDetails_billingIngestBlocked(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BillingIngestBlocked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SubscriptionDetails_billingIngestBlocked(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SubscriptionDetails",
 		Field:      field,
@@ -86467,6 +86627,13 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "billingIngestBlocked":
+
+			out.Values[i] = ec._SubscriptionDetails_billingIngestBlocked(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -94244,6 +94411,22 @@ func (ec *executionContext) marshalOJiraProjectIdentifier2ᚖgithubᚗcomᚋhigh
 		return graphql.Null
 	}
 	return ec._JiraProjectIdentifier(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx context.Context, v interface{}) (*model.KeyType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.KeyType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐKeyType(ctx context.Context, sel ast.SelectionSet, v *model.KeyType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {

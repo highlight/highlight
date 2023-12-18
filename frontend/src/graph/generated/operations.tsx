@@ -453,6 +453,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
 	additional_context?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -498,6 +499,7 @@ export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForSessionCommentMutation = {
@@ -587,6 +589,7 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -615,6 +618,7 @@ export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -2894,7 +2898,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
 			discount?: Types.Maybe<
 				{ __typename?: 'SubscriptionDiscount' } & Pick<
@@ -2940,7 +2944,7 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
 			discount?: Types.Maybe<
 				{ __typename?: 'SubscriptionDiscount' } & Pick<
@@ -3782,7 +3786,18 @@ export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'JiraProject' } & Pick<
 				Types.JiraProject,
 				'id' | 'name' | 'key'
-			>
+			> & {
+					issueTypes?: Types.Maybe<
+						Array<
+							Types.Maybe<
+								{ __typename?: 'JiraIssueType' } & Pick<
+									Types.JiraIssueType,
+									'id' | 'name' | 'description'
+								>
+							>
+						>
+					>
+				}
 		>
 	>
 }
@@ -4880,9 +4895,13 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	column: Types.TracesMetricColumn
+	column: Types.Scalars['String']
 	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
+	bucket_by?: Types.Maybe<Types.Scalars['String']>
+	limit?: Types.Maybe<Types.Scalars['Int']>
+	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
+	limit_column?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {

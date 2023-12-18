@@ -32,7 +32,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
@@ -49,6 +48,7 @@ import (
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
 	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -1357,7 +1357,7 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 }
 
 // CreateSessionComment is the resolver for the createSessionComment field.
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput, additionalContext *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput, additionalContext *string) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1580,6 +1580,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeJira {
+			if issueTeamID == nil || issueTypeID == nil {
+				return nil, e.New("issue team and type are required")
+			}
+
 			if err := r.CreateJiraTaskAndAttachment(
 				ctx,
 				workspace,
@@ -1587,6 +1591,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				title,
 				desc,
 				*issueTeamID,
+				*issueTypeID,
 			); err != nil {
 				return nil, e.Wrap(err, "error creating Jira task")
 			}
@@ -1614,7 +1619,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 }
 
 // CreateIssueForSessionComment is the resolver for the createIssueForSessionComment field.
-func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
 	if err := r.DB.WithContext(ctx).Where("id = ?", projectID).Take(&project).Error; err != nil {
 		return nil, err
@@ -1667,7 +1672,11 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeJira {
-			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+			if issueTeamID == nil || issueTypeID == nil {
+				return nil, e.New("issue team and type are required")
+			}
+
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID, *issueTypeID); err != nil {
 				return nil, e.Wrap(err, "error creating Jira task")
 			}
 
@@ -1852,7 +1861,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 }
 
 // CreateErrorComment is the resolver for the createErrorComment field.
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
@@ -1990,7 +1999,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeJira {
-			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+			if issueTeamID == nil || issueTypeID == nil {
+				return nil, e.New("issue team and type are required")
+			}
+
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID, *issueTypeID); err != nil {
 				return nil, e.Wrap(err, "error creating Jira task")
 			}
 
@@ -2095,7 +2108,7 @@ func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, h
 }
 
 // CreateIssueForErrorComment is the resolver for the createIssueForErrorComment field.
-func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	var project model.Project
 	if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, err
@@ -2169,7 +2182,11 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeJira {
-			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+			if issueTeamID == nil || issueTypeID == nil {
+				return nil, e.New("issue team and type are required")
+			}
+
+			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID, *issueTypeID); err != nil {
 				return nil, e.Wrap(err, "error creating Jira task")
 			}
 
@@ -4553,7 +4570,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				return nil, nil
 			}
 			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
-			hlog.Incr("private-graph.enhancedDetails.miss", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhancedDetails.miss", nil, 1)
 			clearbitApiRequestSpan, _ := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
 				util.ResourceName("clearbit.api.request"),
 				util.Tag("session_id", s.ID), util.Tag("workspace_id", w.ID), util.Tag("project_id", p.ID), util.Tag("plan_tier", w.PlanTier))
@@ -4588,7 +4605,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 		} else {
 			log.WithContext(ctx).Infof("retrieving cache db entry of clearbit lookup")
-			hlog.Incr("private-graph.enhancedDetails.hit", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhancedDetails.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.WithContext(ctx).Errorf("error unmarshaling person: %v", err)
@@ -7053,11 +7070,15 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 			Status:       &status,
 			URL:          &invoice.HostedInvoiceURL,
 		}
-		settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
+		warningSent, err := r.Redis.GetCustomerBillingWarning(ctx, ptr.ToString(workspace.StripeCustomerID))
 		if err != nil {
 			return nil, err
 		}
-		details.BillingIssue = settings.CanShowBillingIssueBanner && details.LastInvoice.Status != nil && !lo.Contains([]string{"paid", "void", "draft"}, *details.LastInvoice.Status)
+		details.BillingIssue = !warningSent.IsZero()
+	}
+
+	if details.BillingIngestBlocked, err = r.Redis.GetCustomerBillingInvalid(ctx, ptr.ToString(workspace.StripeCustomerID)); err != nil {
+		return nil, err
 	}
 
 	return details, nil
@@ -7146,7 +7167,7 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		return nil, err
 	}
 
-	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), query)
+	keys, err := r.ClickhouseClient.TracesKeys(ctx, projectID, time.Now().Add(-30*24*time.Hour), time.Now(), query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7186,7 +7207,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 			StartDate: time.Now().Add(time.Duration(-params.LookbackDays) * 24 * time.Hour),
 			EndDate:   time.Now(),
 		},
-	}, modelInputs.TracesMetricColumnDuration, []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48)
+	}, string(modelInputs.TracesMetricColumnDuration), []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, []string{string(semconv.HTTPURLKey)}, 48, string(modelInputs.TracesMetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7426,13 +7447,13 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query)
+	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 }
 
 // LogsKeyValues is the resolver for the logs_key_values field.
@@ -7683,23 +7704,28 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 }
 
 // TracesMetrics is the resolver for the traces_metrics field.
-func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column modelInputs.TracesMetricColumn, metricTypes []modelInputs.MetricAggregator, groupBy []string) (*modelInputs.TracesMetrics, error) {
+func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy *string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.TracesMetrics, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48)
+	bucketByDeref := string(modelInputs.TracesMetricBucketByTimestamp)
+	if bucketBy != nil {
+		bucketByDeref = *bucketBy
+	}
+
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketByDeref, limit, limitAggregator, limitColumn)
 }
 
 // TracesKeys is the resolver for the traces_keys field.
-func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query)
+	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 }
 
 // TracesKeyValues is the resolver for the traces_key_values field.

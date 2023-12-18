@@ -8,6 +8,7 @@ const config = {
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
 	otlpEndpoint: 'http://localhost:4318',
+	environment: 'e2e-test',
 }
 H.init(config)
 
@@ -18,9 +19,8 @@ const port = 3003
 app.use(Handlers.middleware(config))
 app.get('/', (req, res) => {
 	const err = new Error('this is a test error')
-	const highlightCtx = H.parseHeaders(req.headers)
-	if (highlightCtx) {
-		const { secureSessionId, requestId } = highlightCtx
+	const { secureSessionId, requestId } = H.parseHeaders(req.headers)
+	if (secureSessionId && requestId) {
 		console.info('Sending error to highlight', secureSessionId, requestId)
 		H.consumeError(err, secureSessionId, requestId)
 	}
@@ -33,7 +33,7 @@ app.get('/good', (req, res) => {
 	for (let i = 0; i < 1000; i++) {
 		const value = Math.random() * 1000
 		result += value
-		console.info('some work happening', { result, value })
+		console.warn('some work happening', { result, value })
 	}
 	res.send('yay!')
 })

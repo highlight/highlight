@@ -179,6 +179,7 @@ type SubscriptionDetails {
 	discount: SubscriptionDiscount
 	lastInvoice: Invoice
 	billingIssue: Boolean!
+	billingIngestBlocked: Boolean!
 }
 
 type Plan {
@@ -1009,6 +1010,11 @@ enum MetricAggregator {
 enum TracesMetricColumn {
 	Duration
 	MetricValue
+}
+
+enum TracesMetricBucketBy {
+	None
+	Timestamp
 }
 
 type TracesMetricBucket {
@@ -2054,6 +2060,7 @@ type Query {
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -2088,14 +2095,19 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: TracesMetricColumn!
+		column: String!
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
+		bucket_by: String
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
 	): TracesMetrics!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
+		type: KeyType
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
@@ -2237,6 +2249,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 		tags: [SessionCommentTagInput]!
 		additional_context: String
@@ -2251,6 +2264,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
@@ -2275,6 +2289,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	removeErrorIssue(error_issue_id: ID!): Boolean
@@ -2288,6 +2303,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	deleteErrorComment(id: ID!): Boolean

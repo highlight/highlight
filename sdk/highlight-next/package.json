@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/next",
-	"version": "7.2.5",
+	"version": "7.2.6",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
@@ -53,6 +53,7 @@
 		"hoistingLimits": "workspaces"
 	},
 	"peerDependencies": {
+		"next": ">=11",
 		"react": ">=17"
 	},
 	"dependencies": {

@@ -1036,6 +1036,7 @@ query GetBillingDetails($workspace_id: ID!) {
 			status
 		}
 		billingIssue
+		billingIngestBlocked
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -1071,6 +1072,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			status
 		}
 		billingIssue
+		billingIngestBlocked
 	}
 }
 
@@ -1604,6 +1606,11 @@ query GetJiraIntegrationSettings($workspace_id: ID!) {
 		id
 		name
 		key
+		issueTypes {
+			id
+			name
+			description
+		}
 	}
 }
 
@@ -2422,9 +2429,13 @@ query GetTraces(
 query GetTracesMetrics(
 	$project_id: ID!
 	$params: QueryInput!
-	$column: TracesMetricColumn!
+	$column: String!
 	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
+	$bucket_by: String
+	$limit: Int
+	$limit_aggregator: MetricAggregator
+	$limit_column: String
 ) {
 	traces_metrics(
 		project_id: $project_id
@@ -2432,6 +2443,10 @@ query GetTracesMetrics(
 		column: $column
 		metric_types: $metric_types
 		group_by: $group_by
+		bucket_by: $bucket_by
+		limit: $limit
+		limit_aggregator: $limit_aggregator
+		limit_column: $limit_column
 	) {
 		buckets {
 			bucket_id

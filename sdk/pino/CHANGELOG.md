@@ -1,5 +1,15 @@
 # @highlight-run/pino
 
+## 0.1.5
+
+### Patch Changes
+
+-   352641cf7: fix incorrect reporting of log level for pino
+-   Updated dependencies [352641cf7]
+-   Updated dependencies [8f0b8de6b]
+-   Updated dependencies [46ed85c91]
+    -   @highlight-run/node@3.6.6
+
 ## 0.1.0
 
 ### Initial Release
@@ -14,5 +24,5 @@
 
 ### Patch Changes
 
-- Tune settings of opentelemetry SDK to reduce memory usage.
-- Enable GZIP compression of exported data.
+-   Tune settings of opentelemetry SDK to reduce memory usage.
+-   Enable GZIP compression of exported data.

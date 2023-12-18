@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +14,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/hasura/go-graphql-client"
+	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -47,10 +50,10 @@ func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSetti
 	config := clientcredentials.Config{
 		ClientID:     dataSourceSettings.ClientId,
 		ClientSecret: clientSecret,
-		TokenURL:     "https://1b2278611b17.ngrok.app/oauth/token",
+		TokenURL:     dataSourceSettings.TokenURL,
 	}
 
-	client := graphql.NewClient("https://1b2278611b17.ngrok.app/private", config.Client(ctx))
+	client := graphql.NewClient(dataSourceSettings.BackendURL, config.Client(context.Background()))
 
 	return &Datasource{Client: client}, nil
 }
@@ -88,14 +91,82 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 	return response, nil
 }
 
+type QueryKey struct {
+	Name string
+	Type string
+}
+
+type KeyType string
+
+const (
+	KeyTypeString  KeyType = "String"
+	KeyTypeNumeric KeyType = "Numeric"
+)
+
+func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+	switch req.Path {
+	case "traces-keys":
+		var q struct {
+			TracesKeys []QueryKey `graphql:"traces_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
+		}
+
+		var dataSourceSettings DataSourceSettings
+		err := json.Unmarshal(req.PluginContext.DataSourceInstanceSettings.JSONData, &dataSourceSettings)
+		if err != nil {
+			return err
+		}
+
+		u, err := url.Parse(req.URL)
+		if err != nil {
+			return err
+		}
+
+		queryParams := u.Query()
+
+		query := queryParams.Get("query")
+		keyType := KeyType(queryParams.Get("type"))
+
+		err = d.Client.Query(ctx, &q, map[string]interface{}{
+			"project_id": ID(strconv.Itoa(dataSourceSettings.ProjectId)),
+			"date_range": DateRangeRequiredInput{
+				StartDate: time.Now().AddDate(0, -1, 0),
+				EndDate:   time.Now(),
+			},
+			"query": &query,
+			"type":  &keyType,
+		})
+		if err != nil {
+			return err
+		}
+
+		body, err := json.Marshal(q.TracesKeys)
+		if err != nil {
+			return err
+		}
+
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusOK,
+			Body:   body,
+		})
+	default:
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusNotFound,
+		})
+	}
+}
+
 type queryModel struct{}
 
 type queryInput struct {
-	Table     string
-	Column    string
-	GroupBy   []string
-	Metric    string
-	QueryText string
+	Table           string
+	Column          string
+	GroupBy         []string
+	Metric          string
+	QueryText       string
+	BucketBy        string
+	Limit           int
+	LimitAggregator string
+	LimitColumn     string
 }
 
 type MetricAggregator string
@@ -113,19 +184,12 @@ const (
 	MetricAggregatorSum              MetricAggregator = "Sum"
 )
 
-type TracesMetricColumn string
-
-const (
-	TracesMetricColumnDuration    TracesMetricColumn = "Duration"
-	TracesMetricColumnMetricValue TracesMetricColumn = "MetricValue"
-)
-
 type TracesMetricBucket struct {
-	BucketID    uint64             `json:"bucket_id" graphql:"bucket_id"`
-	Group       []string           `json:"group" graphql:"group"`
-	Column      TracesMetricColumn `json:"column" graphql:"column"`
-	MetricType  MetricAggregator   `json:"metric_type" graphql:"metric_type"`
-	MetricValue float64            `json:"metric_value" graphql:"metric_value"`
+	BucketID    uint64           `json:"bucket_id" graphql:"bucket_id"`
+	Group       []string         `json:"group" graphql:"group"`
+	Column      string           `json:"column" graphql:"column"`
+	MetricType  MetricAggregator `json:"metric_type" graphql:"metric_type"`
+	MetricValue float64          `json:"metric_value" graphql:"metric_value"`
 }
 
 type TracesMetrics struct {
@@ -145,8 +209,10 @@ type QueryInput struct {
 }
 
 type DataSourceSettings struct {
-	ClientId  string `json:"clientID"`
-	ProjectId int    `json:"projectID"`
+	ClientId   string `json:"clientID"`
+	ProjectId  int    `json:"projectID"`
+	TokenURL   string `json:"tokenURL"`
+	BackendURL string `json:"backendURL"`
 }
 
 type DataSourceSecureSettings struct {
@@ -154,6 +220,10 @@ type DataSourceSecureSettings struct {
 }
 
 type ID string
+
+type Admin struct {
+	Id ID
+}
 
 func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	from := query.TimeRange.From
@@ -172,7 +242,13 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	}
 
 	var q struct {
-		TracesMetrics TracesMetrics `graphql:"traces_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by)"`
+		TracesMetrics TracesMetrics `graphql:"traces_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
+	}
+
+	var agg *MetricAggregator
+	if input.LimitAggregator != "" {
+		tmp := MetricAggregator(input.LimitAggregator)
+		agg = &tmp
 	}
 
 	err = d.Client.Query(ctx, &q, map[string]interface{}{
@@ -186,7 +262,11 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 				EndDate:   to,
 			},
 		},
-		"column": TracesMetricColumn(input.Column),
+		"column":           input.Column,
+		"bucket_by":        &input.BucketBy,
+		"limit":            &input.Limit,
+		"limit_aggregator": agg,
+		"limit_column":     &input.LimitColumn,
 	})
 	if err != nil {
 		return backend.DataResponse{Error: err}
@@ -204,7 +284,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 			time.Duration(float64(i) / float64(q.TracesMetrics.BucketCount) * float64(to.Sub(from))))
 	})
 
-	frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
+	if input.BucketBy != "None" {
+		frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
+	}
 
 	metricTypes := lo.Uniq(lo.Map(q.TracesMetrics.Buckets, func(bucket *TracesMetricBucket, _ int) MetricAggregator {
 		return bucket.MetricType
@@ -216,13 +298,13 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 	for _, metricType := range metricTypes {
 		for _, metricGroup := range metricGroups {
-			values := make([]float64, q.TracesMetrics.BucketCount)
+			values := make([]*float64, q.TracesMetrics.BucketCount)
 			for _, bucket := range q.TracesMetrics.Buckets {
 				if bucket.MetricType != metricType || strings.Join(bucket.Group, "-") != metricGroup {
 					continue
 				}
 
-				values[bucket.BucketID] = bucket.MetricValue
+				values[bucket.BucketID] = pointy.Float64(bucket.MetricValue)
 			}
 
 			frame.Fields = append(frame.Fields, data.NewField(string(metricType)+"."+metricGroup, nil, values))
@@ -241,11 +323,17 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 // datasource configuration page which allows users to verify that
 // a datasource is working as expected.
 func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	var status = backend.HealthStatusOk
-	var message = "Data source is working"
+	var q struct {
+		Admin Admin `graphql:"admin"`
+	}
+
+	err := d.Client.Query(ctx, &q, map[string]interface{}{})
+	if err != nil {
+		return nil, err
+	}
 
 	return &backend.CheckHealthResult{
-		Status:  status,
-		Message: message,
+		Status:  backend.HealthStatusOk,
+		Message: "Data source is working",
 	}, nil
 }

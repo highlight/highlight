@@ -1152,6 +1152,7 @@ export type MutationCreateErrorCommentArgs = {
 	issue_description?: InputMaybe<Scalars['String']>
 	issue_team_id?: InputMaybe<Scalars['String']>
 	issue_title?: InputMaybe<Scalars['String']>
+	issue_type_id?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	tagged_admins: Array<InputMaybe<SanitizedAdminInput>>
 	tagged_slack_users: Array<InputMaybe<SanitizedSlackChannelInput>>
@@ -1178,6 +1179,7 @@ export type MutationCreateIssueForErrorCommentArgs = {
 	issue_description?: InputMaybe<Scalars['String']>
 	issue_team_id?: InputMaybe<Scalars['String']>
 	issue_title?: InputMaybe<Scalars['String']>
+	issue_type_id?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	text_for_attachment: Scalars['String']
 }
@@ -1188,6 +1190,7 @@ export type MutationCreateIssueForSessionCommentArgs = {
 	issue_description?: InputMaybe<Scalars['String']>
 	issue_team_id?: InputMaybe<Scalars['String']>
 	issue_title?: InputMaybe<Scalars['String']>
+	issue_type_id?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	session_comment_id: Scalars['Int']
 	session_url: Scalars['String']
@@ -1240,6 +1243,7 @@ export type MutationCreateSessionCommentArgs = {
 	issue_description?: InputMaybe<Scalars['String']>
 	issue_team_id?: InputMaybe<Scalars['String']>
 	issue_title?: InputMaybe<Scalars['String']>
+	issue_type_id?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	session_image?: InputMaybe<Scalars['String']>
 	session_secure_id: Scalars['String']
@@ -2250,6 +2254,7 @@ export type QueryLogs_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
 }
 
 export type QueryLogs_Total_CountArgs = {
@@ -2482,11 +2487,16 @@ export type QueryTraces_KeysArgs = {
 	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
 }
 
 export type QueryTraces_MetricsArgs = {
-	column: TracesMetricColumn
+	bucket_by?: InputMaybe<Scalars['String']>
+	column: Scalars['String']
 	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
 	params: QueryInput
 	project_id: Scalars['ID']
@@ -3114,6 +3124,7 @@ export type SubscriptionSession_Payload_AppendedArgs = {
 export type SubscriptionDetails = {
 	__typename?: 'SubscriptionDetails'
 	baseAmount: Scalars['Int64']
+	billingIngestBlocked: Scalars['Boolean']
 	billingIssue: Scalars['Boolean']
 	discount?: Maybe<SubscriptionDiscount>
 	lastInvoice?: Maybe<Invoice>
@@ -3232,6 +3243,11 @@ export type TracesMetricBucket = {
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value: Scalars['Float']
+}
+
+export enum TracesMetricBucketBy {
+	None = 'None',
+	Timestamp = 'Timestamp',
 }
 
 export enum TracesMetricColumn {

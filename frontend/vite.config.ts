@@ -65,6 +65,7 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			minify: 'esbuild',
+			cssMinify: 'esbuild',
 			outDir: 'build',
 			sourcemap: true,
 			rollupOptions: {
@@ -87,6 +88,7 @@ export default defineConfig(({ mode }) => {
 			setupFiles: ['./src/setupTests.ts'],
 		},
 		css: {
+			transformer: 'lightningcss',
 			devSourcemap: true,
 		},
 	}

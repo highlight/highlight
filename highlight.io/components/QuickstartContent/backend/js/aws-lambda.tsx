@@ -33,7 +33,12 @@ export const handler = Handlers.serverlessFunction(
     console.log('hello, world!', {queryString: event?.queryStringParameters});
     return {statusCode: 200};
   },
-  { projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-lambda-function', serviceVersion: 'git-sha' },
+  {
+		projectID: '<YOUR_PROJECT_ID>',
+		serviceName: 'my-lambda-function',
+		serviceVersion: 'git-sha',
+		environment: 'production',
+	},
 )
 `,
 					language: 'js',

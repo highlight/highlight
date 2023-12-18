@@ -152,7 +152,7 @@ jobs:
     e2e-frontend-backend-client:
         # non-blocking since we will just test prod client
         # needs the client build to be uploaded
-        # needs: yarn-monorepo
+        needs: yarn-monorepo
         name: E2E Client / Frontend / Backend
         timeout-minutes: 60
         runs-on: buildjet-4vcpu-ubuntu-2204
@@ -203,11 +203,11 @@ jobs:
               run: |
                   start_time=$(date -Isecond)
 
-                  # if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
-                  #   export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
-                  #   export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
-                  #   echo "Using client version ${CYPRESS_CLIENT_VERSION}";
-                  # fi
+                  if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
+                    export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                    export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
+                    echo "Using client version ${CYPRESS_CLIENT_VERSION}";
+                  fi
 
                   # start highlight
                   pushd docker;
