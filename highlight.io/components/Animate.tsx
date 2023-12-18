@@ -197,3 +197,16 @@ export const AnimateMobileCarouselImage = ({
 		</motion.div>
 	)
 }
+
+export const AnimateCustomerThumbnail = ({
+	loaded,
+	children,
+}: React.PropsWithChildren<{ loaded: boolean }>) => {
+	const orig = { opacity: 0 }
+	const final = { opacity: 1 }
+	return (
+		<motion.div initial={orig} animate={loaded ? final : orig} className="">
+			{children}
+		</motion.div>
+	)
+}
