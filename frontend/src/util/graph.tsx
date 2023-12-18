@@ -10,10 +10,7 @@ import {
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
-import {
-	getMainDefinition,
-	relayStylePagination,
-} from '@apollo/client/utilities'
+import { getMainDefinition } from '@apollo/client/utilities'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
 import { invalidateRefetch } from '@util/gql'
@@ -24,9 +21,6 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { PRIVATE_GRAPH_URI } from '@/constants'
-
-const logsPagination = relayStylePagination()
-console.log('::: logsPagination', logsPagination)
 
 const highlightGraph = new IndexedDBLink(
 	createHttpLink({
@@ -110,13 +104,6 @@ const cache = new InMemoryCache({
 		},
 		Query: {
 			fields: {
-				logs: relayStylePagination([
-					'project_id',
-					'at',
-					'direction',
-					'params',
-					['query', 'date_range', ['start_date', 'end_date']],
-				]),
 				error_groups_clickhouse: {
 					keyArgs: ['project_id', 'count', 'query', 'page'],
 				},
