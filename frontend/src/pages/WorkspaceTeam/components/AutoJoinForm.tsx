@@ -17,6 +17,7 @@ import styles from './AutoJoinForm.module.css'
 export const AutoJoinForm: React.FC = () => {
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { admin } = useAuthContext()
+	const adminsEmailDomain = getEmailDomain(admin?.email)
 	const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation()
 	const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>([])
 	const [adminDomains, setAdminDomains] = useState<string[]>([])
@@ -69,8 +70,6 @@ export const AutoJoinForm: React.FC = () => {
 	const handleSelectChange = (domains: string[]) => {
 		onChangeMsg(domains, 'Successfully updated auto-join email domains!')
 	}
-
-	const adminsEmailDomain = getEmailDomain(admin?.email)
 
 	return (
 		<Tooltip

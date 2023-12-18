@@ -8,10 +8,6 @@
 	min-height: var(--size-xxLarge);
 }
 
-.switchClass {
-	flex-shrink: 0;
-}
-
 .select {
 	width: 100%;
 
