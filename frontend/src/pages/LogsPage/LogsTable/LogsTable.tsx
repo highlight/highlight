@@ -104,10 +104,7 @@ type LogsTableInnerProps = {
 	logEdges: LogEdgeWithError[]
 	query: string
 	selectedCursor: string | undefined
-	fetchMoreWhenScrolled: (
-		target: HTMLDivElement,
-		disableBackwards?: boolean,
-	) => void
+	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
 	bodyHeight: string
@@ -282,7 +279,7 @@ const LogsTableInner = ({
 	useEffect(() => {
 		setTimeout(() => {
 			if (!loadingAfter && bodyRef?.current) {
-				fetchMoreWhenScrolled(bodyRef.current, true)
+				fetchMoreWhenScrolled(bodyRef.current)
 			}
 		}, 0)
 		// eslint-disable-next-line react-hooks/exhaustive-deps

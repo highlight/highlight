@@ -60,7 +60,6 @@ export const NetworkResourceLogs: React.FC<{
 		error,
 		loadingAfter,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	} = useGetLogs({
 		query,
@@ -71,22 +70,17 @@ export const NetworkResourceLogs: React.FC<{
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(
-			containerRefElement?: HTMLDivElement | null,
-			disableBackwards?: boolean,
-		) => {
+		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (!disableBackwards && scrollTop === 0) {
-					fetchMoreBackward()
 				}
 			}
 		},
-		[fetchMoreForward, fetchMoreBackward],
+		[fetchMoreForward],
 	)
 
 	useEffect(() => {
