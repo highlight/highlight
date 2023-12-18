@@ -45,11 +45,7 @@ export type SearchToken = {
 	stop: number
 }
 
-export const groupTokens = (
-	tokens: Token[],
-	expressions: Expression[],
-	queryString: string,
-) => {
+export const groupTokens = (tokens: Token[], expressions: Expression[]) => {
 	const groupedTokens: {
 		[start: number]: {
 			tokens: SearchToken[]

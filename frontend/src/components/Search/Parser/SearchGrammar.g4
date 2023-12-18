@@ -51,6 +51,8 @@ GTE : '>=' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
 COLON : ':' ;
+DQUOTE : '"' ;
+SQUOTE : '\'' ;
 ID : [a-zA-Z_0-9.\-*]+ ;
 STRING : '"'.*?'"' ;
 WS : [ \t\n\r\f]+ -> skip ;
