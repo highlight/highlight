@@ -1,21 +1,16 @@
 import { promises as fsp } from 'fs'
 import { gql } from 'graphql-request'
 import { NextApiRequest, NextApiResponse } from 'next'
-import pino from 'pino'
-import { createWriteStream } from 'pino-http-send'
 import { COMPETITORS } from '../../components/Competitors/competitors'
 import { FEATURES, iFeature } from '../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { withPageRouterHighlight } from '../../highlight.config'
+import { getLogger } from '../../highlight.logger'
 import { GraphQLRequest } from '../../utils/graphql'
 import { getBlogPaths } from '../blog'
 import { getGithubDocsPaths } from './docs/github'
 
-const stream = createWriteStream({
-	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
-})
-
-const logger = pino({ level: 'trace' }, stream)
+const logger = getLogger()
 
 async function generateXML(): Promise<string> {
 	logger.info('generating sitemap')
