@@ -400,7 +400,7 @@ jobs:
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
                   task-definition: ${{ steps.image-worker.outputs.task-definition }}
-                  service: worker-service-v2
+                  service: session-worker
                   cluster: highlight-ec2-prod
             # Edit and deploy metric monitors
             - name: Replace image label for metric monitors task
