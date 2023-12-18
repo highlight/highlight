@@ -15,7 +15,7 @@ export const BODY_KEY = 'message'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|(\S+:\((?:[^\)\\]|\\.)*\))|\S+|\S+:\S+|\s$/g
 
-export const parseSearchQuery = (query = ''): Expression[] => {
+export const parseSearchQuery = (query = ''): SearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
 		return [
 			{

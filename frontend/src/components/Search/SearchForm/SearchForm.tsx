@@ -235,6 +235,7 @@ export const Search: React.FC<{
 		fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
 
+	// TODO: Remove queryTerms and only use tokenGroups. See #7298 for details.
 	const queryTerms = parseSearchQuery(query)
 	const { tokenGroups } = parseSearch(query)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)

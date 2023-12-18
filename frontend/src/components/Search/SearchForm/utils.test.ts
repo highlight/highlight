@@ -4,7 +4,6 @@ import {
 	parseSearchQuery,
 	quoteQueryValue,
 	stringifySearchQuery,
-	tokenAsParts,
 	validateSearchQuery,
 } from './utils'
 
@@ -217,21 +216,5 @@ describe('quoteQueryValue', () => {
 
 	it('handles numbers', () => {
 		expect(quoteQueryValue(1234)).toEqual('1234')
-	})
-})
-
-describe('tokenAsParts', () => {
-	it('parses a token and breaks it into the correct parts', () => {
-		expect(tokenAsParts('service_name:(foo OR bar)')).toEqual([
-			'service_name',
-			':',
-			'(',
-			'foo ',
-			'OR',
-			' bar',
-			')',
-		])
-
-		expect(tokenAsParts('name!=chris')).toEqual(['name', '!=', 'chris'])
 	})
 })
