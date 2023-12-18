@@ -16,7 +16,6 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Box, Callout, Text } from '@highlight-run/ui/components'
-import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
 import { Divider, message } from 'antd'
@@ -30,6 +29,7 @@ import { authRedirect } from '@/pages/Auth/utils'
 import SvgCloseIcon from '@/static/CloseIcon'
 
 import Button from '../../components/Button/Button/Button'
+import { AutoJoinInput } from './AutoJoinInput'
 import styles from './NewProject.module.css'
 
 const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
@@ -38,7 +38,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	if (workspace_id) analytics.page('/new', { workspace_id })
 	const [name, setName] = useState<string>('')
 	const [visible, setVisible] = useState<boolean>(true)
-	const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>()
+	const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>([])
 
 	const { data: currentWorkspaceData } = useGetWorkspaceQuery({
 		skip: isNewWorkspace,
@@ -93,7 +93,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 			const createdWorkspaceId = result.data?.createWorkspace?.id
 			analytics.track('CreateWorkspace', { name })
 			setName('')
-			if (createdWorkspaceId && autoJoinDomains?.length) {
+			if (createdWorkspaceId && autoJoinDomains.length) {
 				await updateAllowedEmailOrigins({
 					variables: {
 						allowed_auto_join_email_origins:
@@ -103,23 +103,22 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 					refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],
 				})
 			}
-		} else {
-			if (workspace_id) {
-				await createProject({
-					variables: {
-						name: name,
-						workspace_id,
-					},
-					refetchQueries: [
-						namedOperations.Query.GetProjects,
-						namedOperations.Query.GetProjectDropdownOptions,
-						namedOperations.Query.GetProjectsAndWorkspaces,
-					],
-				})
-				analytics.track('CreateProject', { name })
-				setName('')
-			}
+		} else if (workspace_id) {
+			await createProject({
+				variables: {
+					name: name,
+					workspace_id,
+				},
+				refetchQueries: [
+					namedOperations.Query.GetProjects,
+					namedOperations.Query.GetProjectDropdownOptions,
+					namedOperations.Query.GetProjectsAndWorkspaces,
+				],
+			})
+			analytics.track('CreateProject', { name })
+			setName('')
 		}
+
 		await client.cache.reset()
 	}
 
@@ -285,11 +284,9 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 						{isNewWorkspace && (
 							<Box p="8" backgroundColor="raised">
 								<Box border="secondary" borderRadius="8" p="8">
-									<AutoJoinForm
-										newWorkspace
-										updateOrigins={(domains) => {
-											setAutoJoinDomains(domains)
-										}}
+									<AutoJoinInput
+										autoJoinDomains={autoJoinDomains}
+										setAutoJoinDomains={setAutoJoinDomains}
 									/>
 								</Box>
 							</Box>
