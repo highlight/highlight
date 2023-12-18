@@ -1,12 +1,6 @@
-import {
-	useGetLogsErrorObjectsQuery,
-	useGetLogsLazyQuery,
-	useGetLogsQuery,
-} from '@graph/hooks'
-import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
+import { useGetLogsErrorObjectsQuery, useGetLogsQuery } from '@graph/hooks'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
-import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -77,38 +71,38 @@ export const useGetLogs = ({
 		fetchPolicy: 'cache-and-network',
 	})
 
-	const [moreDataQuery] = useGetLogsLazyQuery({
-		fetchPolicy: 'network-only',
-	})
+	// const [moreDataQuery] = useGetLogsLazyQuery({
+	// 	fetchPolicy: 'network-only',
+	// })
 
-	const { numMore, reset } = usePollQuery<
-		GetLogsQuery,
-		GetLogsQueryVariables
-	>({
-		variableFn: useCallback(
-			() => ({
-				project_id: project_id!,
-				at: logCursor,
-				direction: Types.SortDirection.Desc,
-				params: {
-					query: serverQuery,
-					date_range: {
-						start_date: moment(endDate).format(TIME_FORMAT),
-						end_date: moment(endDate)
-							.add(1, 'hour')
-							.format(TIME_FORMAT),
-					},
-				},
-			}),
-			[endDate, logCursor, project_id, serverQuery],
-		),
-		moreDataQuery,
-		getResultCount: useCallback((result) => {
-			if (result?.data?.logs.edges.length !== undefined) {
-				return result?.data?.logs.edges.length
-			}
-		}, []),
-	})
+	// const { numMore, reset } = usePollQuery<
+	// 	GetLogsQuery,
+	// 	GetLogsQueryVariables
+	// >({
+	// 	variableFn: useCallback(
+	// 		() => ({
+	// 			project_id: project_id!,
+	// 			at: logCursor,
+	// 			direction: Types.SortDirection.Desc,
+	// 			params: {
+	// 				query: serverQuery,
+	// 				date_range: {
+	// 					start_date: moment(endDate).format(TIME_FORMAT),
+	// 					end_date: moment(endDate)
+	// 						.add(1, 'hour')
+	// 						.format(TIME_FORMAT),
+	// 				},
+	// 			},
+	// 		}),
+	// 		[endDate, logCursor, project_id, serverQuery],
+	// 	),
+	// 	moreDataQuery,
+	// 	getResultCount: useCallback((result) => {
+	// 		if (result?.data?.logs.edges.length !== undefined) {
+	// 			return result?.data?.logs.edges.length
+	// 		}
+	// 	}, []),
+	// })
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
 		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
@@ -199,8 +193,8 @@ export const useGetLogs = ({
 
 	return {
 		logEdges: logEdgesWithError,
-		moreLogs: numMore,
-		clearMoreLogs: reset,
+		moreLogs: 0,
+		clearMoreLogs: () => null,
 		loading,
 		loadingAfter,
 		loadingBefore,
