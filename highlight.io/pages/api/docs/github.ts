@@ -1,5 +1,6 @@
 import yaml from 'js-yaml'
 import path from 'path'
+import { getLogger } from '../../../highlight.logger'
 
 // ignored files from docs
 export const IGNORED_DOCS_PATHS = new Set<string>([
@@ -86,6 +87,8 @@ export const processDocPath = function (
 }
 
 export const getGithubDocsPaths = async (path: string = 'docs-content/') => {
+	const logger = getLogger()
+	logger.info({ path }, 'getGithubDocsPaths')
 	const url = `https://api.github.com/repos/highlight/highlight/contents/${path}`
 	const response = await fetch(url, {
 		headers: githubHeaders,
@@ -135,6 +138,8 @@ export const getGithubDoc = async (
 	meta: DocMeta
 	content: string
 } | null> => {
+	const logger = getLogger()
+	logger.info({ slug }, 'getGithubDoc')
 	const response = await fetch(
 		`https://api.github.com/repos/highlight/highlight/contents/docs-content/${slug}.md`,
 		{
@@ -160,7 +165,7 @@ export const getGithubDoc = async (
 	} else if (!slug.endsWith('/index')) {
 		return getGithubDoc(`${slug}/index`)
 	} else {
-		console.error('error fetching from the github api', response)
+		logger.error(response, 'error fetching from the github api')
 		return null
 	}
 }

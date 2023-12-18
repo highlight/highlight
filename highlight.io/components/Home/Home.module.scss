@@ -56,6 +56,7 @@
 }
 
 .heroBug {
+	pointer-events: none;
 	@media screen and (max-width: 1288px) {
 		display: none;
 	}

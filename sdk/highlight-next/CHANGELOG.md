@@ -1,5 +1,19 @@
 # @highlight-run/next
 
+## 7.2.6
+
+### Patch Changes
+
+-   38678a9c9: Make Next a peer dependency to @highlight-run/next
+-   8f0b8de6b: Repairing a circular dependency in @highlight-run/node and a bad export from @highlight-run/next's Edge runtime support
+-   46ed85c91: Support environment attribute to be passed in natively.
+-   Updated dependencies [85ea62d0c]
+-   Updated dependencies [352641cf7]
+-   Updated dependencies [8f0b8de6b]
+-   Updated dependencies [46ed85c91]
+    -   highlight.run@8.3.1
+    -   @highlight-run/node@3.6.6
+
 ## 7.2.5
 
 ### Patch Changes

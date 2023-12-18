@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Navbar from '../../components/common/Navbar/Navbar'
@@ -32,8 +31,6 @@ import Footer from '../../components/common/Footer/Footer'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 import { REVIEWS } from '../../components/Home/Reviews'
 import InfoRow from '../../components/Products/InfoRow'
-import HeroBugLeft from '../../public/images/hero-bug-left.gif'
-import HeroBugRight from '../../public/images/hero-bug-right.gif'
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	return {
@@ -66,8 +63,9 @@ const Products = ({ product }: { product: iProduct }) => {
 	const reviewsRef = useRef<HTMLDivElement>(null)
 	const scrollYPosition = useRef<number>(0)
 	const [scrollReviews, setScrollReviews] = useState(false)
-	const [leftBugLoaded, setLeftBugLoaded] = useState(false)
-	const [rightBugLoaded, setRightBugLoaded] = useState(false)
+	const [bugLoaded, setBugLoaded] = useState(false)
+	const leftBugRef = useRef<HTMLVideoElement>(null)
+	const rightBugRef = useRef<HTMLVideoElement>(null)
 
 	const scrollListener = useCallback(() => {
 		if (!scrollReviews) {
@@ -118,33 +116,56 @@ const Products = ({ product }: { product: iProduct }) => {
 		}
 	}, [reviewsRef])
 
+	useEffect(() => {
+		if (bugLoaded && leftBugRef.current && rightBugRef.current) {
+			leftBugRef.current.play()
+			rightBugRef.current.play()
+			console.log('playing')
+		}
+	}, [bugLoaded])
+
 	return (
 		<div>
 			<Navbar hideBanner />
 			<div>
 				<Section className={landingStyles.heroVideoWrapper}>
-					<AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}>
+					<AnimateBugLeft loaded={bugLoaded}>
 						<div className={landingStyles.heroBug}>
-							<Image
-								src={HeroBugLeft}
-								alt="bug left"
-								width={250}
-								height={250}
-								onLoadingComplete={() => setLeftBugLoaded(true)}
-							/>
+							<video
+								ref={leftBugRef}
+								width="400"
+								height="400"
+								onLoadedData={() => setBugLoaded(true)}
+								autoPlay
+								muted
+								loop
+							>
+								<source
+									src="/images/hero-bug-left.webm"
+									type="video/webm"
+								/>
+								Your browser does not support the video tag.
+							</video>
 						</div>
 					</AnimateBugLeft>
-					<AnimateBugRight loaded={leftBugLoaded && rightBugLoaded}>
+					<AnimateBugRight loaded={bugLoaded}>
 						<div className={landingStyles.heroBug}>
-							<Image
-								src={HeroBugRight}
-								alt="bug right"
-								width={250}
-								height={250}
-								onLoadingComplete={() =>
-									setRightBugLoaded(true)
-								}
-							/>
+							<video
+								ref={rightBugRef}
+								width="400"
+								height="400"
+								className="scale-x-[-1]"
+								onLoadedData={() => setBugLoaded(true)}
+								autoPlay
+								muted
+								loop
+							>
+								<source
+									src="/images/hero-bug-left.webm"
+									type="video/webm"
+								/>
+								Your browser does not support the video tag.
+							</video>
 						</div>
 					</AnimateBugRight>
 					<div className={landingStyles.anchorFeature}>

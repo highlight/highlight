@@ -6,13 +6,11 @@ import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import styles from '../components/Home/Home.module.scss'
 
-import HeroBugLeft from '../public/images/hero-bug-left.gif'
-import HeroBugRight from '../public/images/hero-bug-right.gif'
 import LandingInfoRowSecurity from '../public/images/landingInfoRowSecurity.png'
 
-import { Collapse } from 'antd'
 import classNames from 'classnames'
 import Link from 'next/link'
+import { FaPlay } from 'react-icons/fa'
 import { AnimateBugLeft, AnimateBugRight } from '../components/Animate'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToAction'
@@ -26,11 +24,6 @@ import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarou
 import LandingInfoRow from '../components/Home/LandingInfoRow'
 import { Review } from '../components/Home/Reviews'
 import InfoRow from '../components/Products/InfoRow'
-import { FaPlay } from 'react-icons/fa'
-
-const IMAGE_SHOW_OFFSET = 450
-
-const { Panel } = Collapse
 
 export const FeatureItem = ({
 	children,
@@ -92,8 +85,9 @@ const Home: NextPage = () => {
 	const reviewsRef = useRef<HTMLDivElement>(null)
 	const scrollYPosition = useRef<number>(0)
 	const [scrollReviews, setScrollReviews] = useState(false)
-	const [leftBugLoaded, setLeftBugLoaded] = useState(false)
-	const [rightBugLoaded, setRightBugLoaded] = useState(false)
+	const [bugLoaded, setBugLoaded] = useState(true)
+	const leftBugRef = useRef<HTMLVideoElement>(null)
+	const rightBugRef = useRef<HTMLVideoElement>(null)
 
 	const scrollListener = useCallback(() => {
 		if (!scrollReviews) {
@@ -149,29 +143,55 @@ const Home: NextPage = () => {
 		}
 	}, [reviewsRef])
 
+	useEffect(() => {
+		if (bugLoaded && leftBugRef.current && rightBugRef.current) {
+			leftBugRef.current.play()
+			rightBugRef.current.play()
+		}
+	}, [bugLoaded])
+
 	return (
 		<div>
 			<Navbar />
 			<main>
 				<Section className={styles.heroVideoWrapper}>
-					<AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}>
+					<AnimateBugLeft loaded={bugLoaded}>
 						<div className={styles.heroBug}>
-							<Image
-								src={HeroBugLeft}
-								alt="bug left"
-								onLoadingComplete={() => setLeftBugLoaded(true)}
-							/>
+							<video
+								ref={leftBugRef}
+								width="400"
+								height="400"
+								onPlay={() => setBugLoaded(true)}
+								autoPlay
+								muted
+								loop
+							>
+								<source
+									src="/images/hero-bug-left.webm"
+									type="video/webm"
+								/>
+								Your browser does not support the video tag.
+							</video>
 						</div>
 					</AnimateBugLeft>
-					<AnimateBugRight loaded={leftBugLoaded && rightBugLoaded}>
+					<AnimateBugRight loaded={bugLoaded}>
 						<div className={styles.heroBug}>
-							<Image
-								src={HeroBugRight}
-								alt="bug right"
-								onLoadingComplete={() =>
-									setRightBugLoaded(true)
-								}
-							/>
+							<video
+								ref={rightBugRef}
+								width="400"
+								height="400"
+								className="scale-x-[-1]"
+								onPlay={() => setBugLoaded(true)}
+								autoPlay
+								muted
+								loop
+							>
+								<source
+									src="/images/hero-bug-left.webm"
+									type="video/webm"
+								/>
+								Your browser does not support the video tag.
+							</video>
 						</div>
 					</AnimateBugRight>
 					<div className={styles.anchorFeature}>

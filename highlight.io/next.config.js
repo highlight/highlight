@@ -1,4 +1,3 @@
-const { withAxiom } = require('next-axiom')
 const { withHighlightConfig } = require('@highlight-run/next/config')
 const getStaticPages = require('./scripts/get-static-pages')
 
@@ -82,4 +81,4 @@ const nextConfig = {
 	},
 }
 
-module.exports = withHighlightConfig(withAxiom(nextConfig))
+module.exports = withHighlightConfig(nextConfig)

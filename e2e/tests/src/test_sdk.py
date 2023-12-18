@@ -19,7 +19,7 @@ def query(
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
     # retry up for up to N seconds in case the data needs time to populate
-    for _ in range(15):
+    for _ in range(60):
         try:
             if variables_fn:
                 variables = variables_fn(datetime.utcnow())
@@ -53,7 +53,6 @@ def query(
         raise exc
 
 
-@pytest.mark.skip(reason="test is not yet stable")
 @pytest.mark.parametrize("success", ["true", "false"])
 @pytest.mark.parametrize(
     "endpoint,expected_error",
@@ -73,17 +72,14 @@ def query(
 )
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
-    # TODO(vkorolik) figure out why our backend always holds on to the last error rather than writing it
-    # for now, send 3 requests to ensure errors are written to highlight
-    for _ in range(3):
-        r = requests.get(
-            f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
-        )
-        logging.info(f"GET {r.url} {r.status_code} {r.text}")
-        if success == "true":
-            assert r.ok
-        else:
-            assert not r.ok
+    r = requests.get(
+        f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
+    )
+    logging.info(f"GET {r.url} {r.status_code} {r.text}")
+    if success == "true":
+        assert r.ok
+    else:
+        assert not r.ok
 
     # check that the error came thru to highlight
     if success == "false":
@@ -107,7 +103,6 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
                 "query": {
                     "isAnd": True,
                     "rules": [
-                        # TODO(vkorolik) figure out why error filter returns no results
                         [
                             "error-field_timestamp",
                             "between_date",
@@ -126,6 +121,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
 
 
 def test_express_log(express_app, oauth_api):
+    express_app_type, _ = express_app
     start = datetime.utcnow()
     r = requests.get(
         f"http://localhost:3003/good",
@@ -144,14 +140,18 @@ def test_express_log(express_app, oauth_api):
                 data["logs"]["edges"],
             )
         )
-        exp = "doing some heavy work!"
+        exp = "some work happening"
         assert exp in msgs
         for item in filter(
             lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
         ):
             assert item["node"]["level"] == "warn"
             assert item["node"]["secureSessionID"] == "abc123"
-            assert item["node"]["serviceName"] == "e2e-express"
+            assert (
+                item["node"]["serviceName"] == "e2e-express"
+                if express_app_type == "express_js"
+                else "e2e-express-pino"
+            )
             assert item["node"]["serviceVersion"] == "git-sha"
 
     query(
@@ -162,7 +162,7 @@ def test_express_log(express_app, oauth_api):
             "project_id": "1",
             "direction": "DESC",
             "params": {
-                "query": "doing some work",
+                "query": "work happening",
                 "date_range": {
                     "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
