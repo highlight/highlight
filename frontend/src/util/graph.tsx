@@ -25,6 +25,9 @@ import {
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { PRIVATE_GRAPH_URI } from '@/constants'
 
+const logsPagination = relayStylePagination()
+console.log('::: logsPagination', logsPagination)
+
 const highlightGraph = new IndexedDBLink(
 	createHttpLink({
 		uri: PRIVATE_GRAPH_URI,
@@ -146,5 +149,6 @@ export const client = new ApolloClient({
 	},
 	cache,
 	assumeImmutableResults: true,
-	connectToDevTools: import.meta.env.DEV,
+	connectToDevTools:
+		location.host.split('.')[0] === 'preview' ?? import.meta.env.DEV,
 })

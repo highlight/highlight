@@ -134,8 +134,11 @@ export const useGetLogs = ({
 					hasNextPage: fetchMoreResult.logs.pageInfo.hasNextPage,
 				})
 				setLoadingAfter(false)
-				console.log('::: prevResult', prevResult)
-				console.log('::: fetchMoreResult', fetchMoreResult)
+				console.log('::: prevResult', prevResult.logs.pageInfo)
+				console.log(
+					'::: fetchMoreResult',
+					fetchMoreResult.logs.pageInfo,
+				)
 				return {
 					logs: {
 						...prevResult.logs,
