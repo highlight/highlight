@@ -218,6 +218,7 @@ jobs:
                   yarn install >> /tmp/highlight.log 2>&1;
                   unset REACT_APP_IN_DOCKER;
                   yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  yarn workspace @highlight-run/apollo build >> /tmp/highlight.log 2>&1;
                   yarn workspace @highlight-run/client dev &
                   yarn workspace highlight.run dev &
                   yarn workspace @highlight-run/frontend vite preview --port 3000 &
