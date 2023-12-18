@@ -20,6 +20,7 @@ export default function RootLayout({
 				debug={{ clientInteractions: true, domRecording: true }}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
 				serviceName="my-nextjs-frontend"
+				environment="e2e-test"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,

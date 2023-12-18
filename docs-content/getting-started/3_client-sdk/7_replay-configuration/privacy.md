@@ -15,7 +15,7 @@ One way to sanitize your recordings is by adding the `highlight-block` CSS class
 
 The Highlight snippet will in-turn measure the dimensions of the ignored element, and when the recording is being replayed, an empty placeholder will replace the content.
 
-![](/images/redaction.gif)
+![](/images/redaction.gif.webp)
 
 ## Obfuscating Elements
 

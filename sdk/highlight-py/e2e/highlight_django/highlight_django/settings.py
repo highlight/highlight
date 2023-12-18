@@ -128,6 +128,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 H = highlight_io.H(
     "1",
     integrations=[DjangoIntegration()],
+    disabled_integrations=["requests"],
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-django-app",

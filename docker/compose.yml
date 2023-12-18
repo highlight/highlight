@@ -9,7 +9,7 @@ x-logging: &highlight-logging
 services:
     zookeeper:
         logging: *highlight-logging
-        image: confluentinc/cp-zookeeper:7.3.0
+        image: confluentinc/cp-zookeeper
         container_name: zookeeper
         volumes:
             - zoo-data:/var/lib/zookeeper/data
@@ -20,7 +20,7 @@ services:
 
     kafka:
         logging: *highlight-logging
-        image: confluentinc/cp-kafka:7.3.0
+        image: confluentinc/cp-kafka
         container_name: kafka
         volumes:
             - kafka-data:/var/lib/kafka/data
@@ -75,7 +75,7 @@ services:
     clickhouse:
         logging: *highlight-logging
         container_name: clickhouse
-        image: clickhouse/clickhouse-server:23.5.1.3174
+        image: clickhouse/clickhouse-server
         ports:
             - 8123:8123
             - 9000:9000

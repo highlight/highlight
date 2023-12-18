@@ -1,5 +1,11 @@
 # highlight.run
 
+## 8.3.1
+
+### Patch Changes
+
+-   85ea62d0c: Add environment to backend error types.
+
 ## 8.3.0
 
 ### Minor Changes

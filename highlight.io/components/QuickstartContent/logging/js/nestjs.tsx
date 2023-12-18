@@ -24,7 +24,8 @@ async function bootstrap() {
     new HighlightLogger({
       projectID: '<YOUR_PROJECT_ID>',
       serviceName: 'my-nestjs-app',
-      serviceVersion: 'git-sha'
+      serviceVersion: 'git-sha',
+      environment: 'production'
     })
   )
   await app.listen(3000)

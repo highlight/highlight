@@ -125,7 +125,7 @@ def next_prod(node_js_bin):
 
 @pytest.fixture(params=["next_dev", "next_prod"])
 def next_app(request):
-    yield request.getfixturevalue(request.param)
+    yield request.param, request.getfixturevalue(request.param)
 
 
 @pytest.fixture()
@@ -160,4 +160,4 @@ def express_ts(node_js_bin):
 
 @pytest.fixture(params=["express_js", "express_ts"])
 def express_app(request):
-    yield request.getfixturevalue(request.param)
+    yield request.param, request.getfixturevalue(request.param)

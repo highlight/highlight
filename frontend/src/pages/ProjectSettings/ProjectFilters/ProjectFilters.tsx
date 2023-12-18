@@ -1,4 +1,8 @@
 import { Button } from '@components/Button'
+import {
+	BOOLEAN_OPERATORS,
+	Operator,
+} from '@components/QueryBuilder/QueryBuilder'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import { useGetBaseSearchContext } from '@context/SearchState'
@@ -158,6 +162,7 @@ export const ProjectProductFilters: React.FC<{
 	const [editProjectSettingsMutation, { loading: saveLoading }] =
 		useEditProjectSettingsMutation({
 			refetchQueries: [namedOperations.Query.GetProjectSettings],
+			awaitRefetchQueries: true,
 		})
 
 	const sessionSearchContext = useGetBaseSearchContext(
@@ -195,22 +200,11 @@ export const ProjectProductFilters: React.FC<{
 		},
 	})
 
+	const query = formStore.useValue('exclusionQuery') ?? ''
 	const canEditIngestion =
 		billingDetails?.billingDetailsForProject?.plan.type !== PlanType.Free
 	const canEditSampling =
 		workspaceSettingsData?.workspaceSettings?.enable_ingest_sampling
-
-	const showEditIngestionUpgrade = React.useCallback(async () => {
-		analytics.track('Project Ingestion Upgrade', {
-			product,
-			workspaceId: currentWorkspace?.id,
-		})
-		await message.warn(
-			'Setting up ingest filters is only available on paying plans.',
-			3,
-		)
-		navigate(`/w/${currentWorkspace?.id}/current-plan/update-plan`)
-	}, [currentWorkspace?.id, navigate, product])
 
 	const showEditSamplingUpgrade = React.useCallback(async () => {
 		analytics.track('Project Sampling Upgrade', {
@@ -220,11 +214,12 @@ export const ProjectProductFilters: React.FC<{
 		await message.warn(
 			'Setting up ingest sampling is only available on enterprise plans.',
 		)
-		showSupportMessage(
+		await showSupportMessage(
 			'Hi! I would like to use the ingest sampling feature.',
 		)
 	}, [currentWorkspace?.id, product])
 
+	// loads data from the backend into the form state and the query builder context
 	const resetConfig = React.useCallback(() => {
 		const c = {
 			exclusion_query:
@@ -270,7 +265,6 @@ export const ProjectProductFilters: React.FC<{
 			minuteRateLimit: c?.minute_rate_limit ?? null,
 		})
 
-		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
 		if (
 			product === ProductType.Sessions ||
 			product === ProductType.Errors
@@ -279,9 +273,15 @@ export const ProjectProductFilters: React.FC<{
 			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
 				const [key, value] = pair.split(':')
 				if (key && value) {
+					let op: Operator = 'is'
+					let v = value
+					if (value.startsWith('-')) {
+						op = 'is_not'
+						v = value.slice(1)
+					}
 					params[
 						`${product.toLowerCase().slice(0, -1)}_${key}`
-					] = `is:${value}`
+					] = `${op}:${v}`
 				}
 			}
 			;(product === ProductType.Sessions
@@ -296,35 +296,33 @@ export const ProjectProductFilters: React.FC<{
 		setSearchQuery,
 	])
 
+	// updates the form state from the query builder context (for sessions / errors)
 	React.useEffect(() => {
-		// TODO(vkorolik) exclusion query logic is not robust to operators and frontend types
-		const rules = []
 		if (
 			product === ProductType.Sessions ||
 			product === ProductType.Errors
 		) {
-			for (const [key, _, v] of JSON.parse(
+			const rules = []
+			for (const [key, op, v] of JSON.parse(
 				product === ProductType.Sessions
 					? searchQuery
 					: product === ProductType.Errors
 					? errorSearchQuery
 					: JSON.stringify({ rules: [] }),
-			).rules) {
-				const [type, k] = key.split(/_(.*)/s)
-				if (product === ProductType.Sessions && type !== 'session')
-					continue
-				if (product === ProductType.Errors && type !== 'error-field')
+			).rules as [key: string, op: Operator, v: string][]) {
+				const [_, k] = key.split(/_(.*)/s)
+				if (product === ProductType.Sessions && k === 'created_at')
 					continue
 				if (product === ProductType.Errors && k === 'timestamp')
 					continue
 				if (v.indexOf(' ') !== -1) {
-					rules.push(`${k}:"${v}"`)
+					rules.push(`${k}:${op === 'is_not' ? '-' : ''}"${v}"`)
 				} else {
-					rules.push(`${k}:${v}`)
+					rules.push(`${k}:${op === 'is_not' ? '-' : ''}${v}`)
 				}
 			}
+			formStore.setValue('exclusionQuery', rules.join(' '))
 		}
-		formStore.setValue('exclusionQuery', rules.join(' '))
 	}, [errorSearchQuery, formStore, product, searchQuery])
 
 	React.useEffect(resetConfig, [resetConfig])
@@ -337,7 +335,7 @@ export const ProjectProductFilters: React.FC<{
 	const onSave = async () => {
 		const sampling = {
 			[`${product.toLowerCase().slice(0, -1)}_exclusion_query`]:
-				formStore.getValue('exclusionQuery') || undefined,
+				formStore.getValue('exclusionQuery'),
 			[`${product.toLowerCase().slice(0, -1)}_sampling_rate`]:
 				formStore.getValue('samplingPercent') / 100,
 			[`${product.toLowerCase().slice(0, -1)}_minute_rate_limit`]:
@@ -349,7 +347,6 @@ export const ProjectProductFilters: React.FC<{
 				sampling,
 			},
 		})
-		await new Promise((r) => setTimeout(r, 1000))
 		navigate(`/${projectId}/settings/filters`)
 	}
 
@@ -401,6 +398,34 @@ export const ProjectProductFilters: React.FC<{
 		</Button>
 	)
 
+	const save = (
+		<Box display="flex" alignItems="center" gap="6">
+			<Button
+				trackingId={`project-filters-${product}-discard`}
+				kind="secondary"
+				size="small"
+				emphasis="low"
+				onClick={resetConfig}
+			>
+				Discard changes
+			</Button>
+			<Button
+				trackingId={`project-filters-${product}-save`}
+				kind="primary"
+				size="small"
+				emphasis="high"
+				onClick={onSave}
+				loading={saveLoading}
+				disabled={
+					billingDetails?.billingDetailsForProject?.plan.type ===
+					PlanType.Free
+				}
+			>
+				Save changes
+			</Button>
+		</Box>
+	)
+
 	return (
 		<Box width="full">
 			{view ? null : (
@@ -413,30 +438,20 @@ export const ProjectProductFilters: React.FC<{
 					alignItems="center"
 					width="full"
 				>
-					<Text>{label} filters</Text>
-					{view ? null : (
-						<Box display="flex" alignItems="center" gap="6">
-							<Button
-								trackingId={`project-filters-${product}-discard`}
-								kind="secondary"
-								size="small"
-								emphasis="low"
-								onClick={resetConfig}
+					<>
+						<Text>{label} filters</Text>
+						{view ? null : (
+							<FilterPaywall
+								paywalled={
+									billingDetails?.billingDetailsForProject
+										?.plan.type === PlanType.Free
+								}
+								product={product}
 							>
-								Discard changes
-							</Button>
-							<Button
-								trackingId={`project-filters-${product}-save`}
-								kind="primary"
-								size="small"
-								emphasis="high"
-								onClick={onSave}
-								loading={saveLoading}
-							>
-								Save changes
-							</Button>
-						</Box>
-					)}
+								{save}
+							</FilterPaywall>
+						)}
+					</>
 				</Box>
 				<Stack gap="6" py="6">
 					<Box display="flex" width="full" gap="6">
@@ -444,10 +459,7 @@ export const ProjectProductFilters: React.FC<{
 							{product === ProductType.Logs ||
 							product === ProductType.Traces ? (
 								<SearchForm
-									initialQuery={
-										formStore.getValue('exclusionQuery') ??
-										''
-									}
+									initialQuery={query}
 									onFormSubmit={(value: string) => {
 										formStore.setValue(
 											'exclusionQuery',
@@ -481,6 +493,15 @@ export const ProjectProductFilters: React.FC<{
 									<SessionQueryBuilder
 										minimal
 										readonly={view}
+										operators={['is', 'is_not']}
+										customFields={CUSTOM_FIELDS.filter(
+											(f) =>
+												!f.options?.operators ||
+												f.options.operators ===
+													BOOLEAN_OPERATORS,
+										)}
+										droppedFieldTypes={['user', 'track']}
+										onlyAnd
 										setDefault={false}
 									/>
 								</SearchContextProvider>
@@ -495,44 +516,27 @@ export const ProjectProductFilters: React.FC<{
 									<ErrorQueryBuilder
 										minimal
 										readonly={view}
+										operators={['is', 'is_not']}
+										customFields={ERROR_CUSTOM_FIELDS.filter(
+											(f) =>
+												!f.options?.operators ||
+												f.options.operators ===
+													BOOLEAN_OPERATORS,
+										)}
+										droppedFieldTypes={['error']}
+										onlyAnd
 										setDefault={false}
 									/>
 								</ErrorSearchContextProvider>
 							)}
 						</Box>
 						{view ? (
-							canEditIngestion ? (
-								edit
-							) : (
-								<Tooltip
-									trigger={
-										<Box
-											display="inline-flex"
-											onClick={showEditIngestionUpgrade}
-										>
-											{edit}
-										</Box>
-									}
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										justifyContent="center"
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											justifyContent="center"
-											p="4"
-											onClick={showEditIngestionUpgrade}
-										>
-											<Text>
-												Available to paid customers
-											</Text>
-										</Box>
-									</Box>
-								</Tooltip>
-							)
+							<FilterPaywall
+								paywalled={!canEditIngestion}
+								product={product}
+							>
+								{edit}
+							</FilterPaywall>
 						) : null}
 					</Box>
 					{view ? (
@@ -633,6 +637,50 @@ export const ProjectProductFilters: React.FC<{
 				</Form>
 			</Box>
 		</Box>
+	)
+}
+
+const FilterPaywall: React.FC<
+	React.PropsWithChildren<{ product: ProductType; paywalled: boolean }>
+> = ({ product, paywalled, children }) => {
+	const navigate = useNavigate()
+	const { currentWorkspace } = useApplicationContext()
+
+	const showEditIngestionUpgrade = React.useCallback(async () => {
+		analytics.track('Project Ingestion Upgrade', {
+			product,
+			workspaceId: currentWorkspace?.id,
+		})
+		await message.warn(
+			'Setting up ingest filters is only available on paying plans.',
+			3,
+		)
+		navigate(`/w/${currentWorkspace?.id}/current-plan/update-plan`)
+	}, [currentWorkspace?.id, navigate, product])
+
+	if (!paywalled) {
+		return <>{children}</>
+	}
+	return (
+		<Tooltip
+			trigger={
+				<Box display="inline-flex" onClick={showEditIngestionUpgrade}>
+					{children}
+				</Box>
+			}
+		>
+			<Box display="flex" alignItems="center" justifyContent="center">
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					p="4"
+					onClick={showEditIngestionUpgrade}
+				>
+					<Text>Available to paid customers</Text>
+				</Box>
+			</Box>
+		</Tooltip>
 	)
 }
 

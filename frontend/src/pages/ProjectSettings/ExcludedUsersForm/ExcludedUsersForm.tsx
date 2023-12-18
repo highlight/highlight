@@ -67,7 +67,7 @@ export const ExcludedUsersForm = () => {
 			<Form store={formStore}>
 				<Stack gap="8">
 					<BoxLabel
-						label="Filtered sessions"
+						label="Excluded users"
 						info="
 					Enter user identifiers or emails to filter (regular
 					expressions are accepted). On completion, sessions from

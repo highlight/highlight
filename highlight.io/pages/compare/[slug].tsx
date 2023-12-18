@@ -4,9 +4,9 @@ import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useState } from 'react'
-import { MdKeyboardReturn } from 'react-icons/md'
+import { useState } from 'react'
 import { FaPlay } from 'react-icons/fa'
+import { MdKeyboardReturn } from 'react-icons/md'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../../components/common/CallToAction/OSSCallToAction'
@@ -22,7 +22,7 @@ import {
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../../components/Home/CustomerReviewTrack'
 import homeStyles from '../../components/Home/Home.module.scss'
-import errorMonitoringSlanted from '../../public/images/error-monitoring.png'
+import errorMonitoringSlanted from '../../public/images/error-monitoring.webp'
 import loggingSlanted from '../../public/images/features/loggingHero.png'
 import sessionReplaySlant from '../../public/images/features/sessionReplayHero.png'
 import loggingStraight from '../../public/images/loggingscreenshot.png'
@@ -146,7 +146,7 @@ const CompetitorComparisonPage = ({
 								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0 lg:w-[550px] xl:w-[650px]`}
 								src={slantedImage}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroRight>
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
@@ -154,14 +154,14 @@ const CompetitorComparisonPage = ({
 								className={`hidden ultra:flex w-[650px]`}
 								src={straightImage}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroXL>
 						<Image
 							className={`lg:hidden right-0 object-contain bottom-0 md:w-[500px]`}
 							src={straightImage}
 							alt="Feature Spotlight"
-							onLoadingComplete={() => setImageLoaded(true)}
+							onLoad={() => setImageLoaded(true)}
 						/>
 					</div>
 				</div>

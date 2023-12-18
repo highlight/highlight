@@ -9,13 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/samber/lo"
-	"github.com/segmentio/kafka-go/sasl"
-
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
 )
@@ -289,7 +288,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
 		})
-		hlog.Incr(p.metricPrefix()+"produceMessageCount", nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"produceMessageCount", nil, 1)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
@@ -299,7 +298,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 		log.WithContext(ctx).WithError(err).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
-	hlog.Histogram(p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
 
@@ -320,8 +319,8 @@ func (p *Queue) Receive(ctx context.Context) (msg *Message) {
 		return nil
 	}
 	msg.KafkaMessage = &m
-	hlog.Incr(p.metricPrefix()+"consumeMessageCount", nil, 1)
-	hlog.Histogram(p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Incr(ctx, p.metricPrefix()+"consumeMessageCount", nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
 }
 
@@ -377,38 +376,39 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "failed to commit message"))
 	} else {
-		hlog.Incr(p.metricPrefix()+"commitMessageCount", nil, 1)
-		hlog.Histogram(p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"commitMessageCount", nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
 	}
 }
 
 func (p *Queue) LogStats() {
+	ctx := context.Background()
 	if p.kafkaP != nil {
 		stats := p.kafkaP.Stats()
-		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
+		log.WithContext(ctx).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
 
-		hlog.Histogram(p.metricPrefix()+"produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceQueueLength", float64(stats.QueueLength), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceBytes", float64(stats.Bytes), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceErrors", float64(stats.Errors), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceQueueLength", float64(stats.QueueLength), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBytes", float64(stats.Bytes), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceErrors", float64(stats.Errors), nil, 1)
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
 		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats).Debug("Kafka Consumer Stats")
 
-		hlog.Histogram(p.metricPrefix()+"consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeQueueLength", float64(stats.QueueLength), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeBytes", float64(stats.Bytes), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeErrors", float64(stats.Errors), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeQueueLength", float64(stats.QueueLength), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeBytes", float64(stats.Bytes), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeErrors", float64(stats.Errors), nil, 1)
 	}
 }
 

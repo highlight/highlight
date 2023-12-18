@@ -22,6 +22,7 @@ export type Scalars = {
 }
 
 export type BackendErrorObjectInput = {
+	environment: Scalars['String']
 	event: Scalars['String']
 	log_cursor?: InputMaybe<Scalars['String']>
 	payload?: InputMaybe<Scalars['String']>
@@ -59,9 +60,12 @@ export type MetricInput = {
 	category?: InputMaybe<Scalars['String']>
 	group?: InputMaybe<Scalars['String']>
 	name: Scalars['String']
+	parent_span_id?: InputMaybe<Scalars['String']>
 	session_secure_id: Scalars['String']
+	span_id?: InputMaybe<Scalars['String']>
 	tags?: InputMaybe<Array<MetricTag>>
 	timestamp: Scalars['Timestamp']
+	trace_id?: InputMaybe<Scalars['String']>
 	value: Scalars['Float']
 }
 
