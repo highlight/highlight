@@ -111,7 +111,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		payloadID = pointy.Int(0)
 	}
 
-	const staticChunkSize = 128
 	const largeChunkSize = 1
 
 	var logRows []*hlog.Message
@@ -137,22 +136,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		return 0, err
 	}
 
-	chunks := map[int]PushPayloadChunk{}
-	for idx, chunk := range lo.Chunk(events.Events, staticChunkSize) {
-		if _, ok := chunks[idx]; !ok {
-			chunks[idx] = PushPayloadChunk{}
-		}
-		entry := chunks[idx]
-		entry.events = chunk
-		chunks[idx] = entry
-	}
-	for idx, chunk := range lo.Chunk(errors, staticChunkSize) {
-		if _, ok := chunks[idx]; !ok {
-			chunks[idx] = PushPayloadChunk{}
-		}
-		entry := chunks[idx]
-		entry.errors = chunk
-		chunks[idx] = entry
+	chunks := map[int]PushPayloadChunk{
+		0: {
+			events: events.Events,
+			errors: errors,
+		},
 	}
 	for idx, chunk := range lo.Chunk(logRows, largeChunkSize) {
 		if _, ok := chunks[idx]; !ok {
