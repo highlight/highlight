@@ -35,38 +35,27 @@ export const TraceLogs: React.FC = () => {
 	const { projectId } = useProjectId()
 	const [query, setQuery] = useState('')
 
-	const {
-		logEdges,
-		loading,
-		error,
-		loadingAfter,
-		fetchMoreForward,
-		fetchMoreBackward,
-	} = useGetLogs({
-		query,
-		project_id: projectId,
-		logCursor: undefined,
-		startDate,
-		endDate,
-	})
+	const { logEdges, loading, error, loadingAfter, fetchMoreForward } =
+		useGetLogs({
+			query,
+			project_id: projectId,
+			logCursor: undefined,
+			startDate,
+			endDate,
+		})
 
 	const fetchMoreWhenScrolled = React.useCallback(
-		(
-			containerRefElement?: HTMLDivElement | null,
-			disableBackwards?: boolean,
-		) => {
+		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (!disableBackwards && scrollTop === 0) {
-					fetchMoreBackward()
 				}
 			}
 		},
-		[fetchMoreForward, fetchMoreBackward],
+		[fetchMoreForward],
 	)
 
 	// Making this a noop since there shouldn't be additional logs to fetch
