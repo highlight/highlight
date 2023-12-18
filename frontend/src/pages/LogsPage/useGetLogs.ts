@@ -129,6 +129,9 @@ export const useGetLogs = ({
 
 		setLoadingAfter(true)
 
+		console.log('::: lastItem', lastItem)
+		console.log('::: lastCursor', lastCursor)
+		console.log('::: data', data?.logs.edges.length)
 		await fetchMore({
 			variables: { after: lastCursor },
 			updateQuery: (prevResult, { fetchMoreResult }) => {
