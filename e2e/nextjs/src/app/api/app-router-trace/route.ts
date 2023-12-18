@@ -6,14 +6,14 @@ import { H } from '@highlight-run/next/server'
 export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,
 ) {
-	return new Promise((resolve) => {
-		H.startSpan('app-router-span', {}, (span) => {
-			console.info('Here: /pages/api/app-router-trace/route.ts ⏰⏰⏰')
+	return new Promise(async (resolve) => {
+		const span = await H.startActiveSpan('app-router-span', {})
 
-			span.end()
+		console.info('Here: /pages/api/app-router-trace/route.ts ⏰⏰⏰')
 
-			resolve(new Response('Success: /api/app-router-trace'))
-		})
+		span.end()
+
+		resolve(new Response('Success: /api/app-router-trace'))
 	})
 })
 
