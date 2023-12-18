@@ -181,11 +181,11 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 		return sb.Var(arg)
 	})...)}
 
-	for _, group := range groupBy {
+	for idx, group := range groupBy {
 		if col, found := config.keysToColumns[T(group)]; found {
 			cols = append(cols, col)
 		} else {
-			cols = append(cols, "toString("+config.attributesColumn+"["+sb.Var(group)+"])")
+			cols = append(cols, sb.As("toString("+config.attributesColumn+"["+sb.Var(group)+"])", fmt.Sprintf("g%d", idx)))
 		}
 	}
 	sb.Select(cols...)
@@ -734,14 +734,12 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 			if col, found := keysToColumns[T(group)]; found {
 				fromColStrs = append(fromColStrs, col)
 			} else {
-				fromColStrs = append(fromColStrs, fmt.Sprintf("toString("+attributesColumn+"[%s])", fromSb.Var(group)))
+				fromColStrs = append(fromColStrs, fmt.Sprintf("g%d", idx))
 			}
 			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
 		}
 
-		fromSb.In()
-
-		fromSb.Where(fmt.Sprintf("(%s) IN (%s)", strings.Join(fromColStrs, ", "), innerSb))
+		fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
 	}
 
 	base := 3 + len(metricTypes)
