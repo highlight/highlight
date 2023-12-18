@@ -1,12 +1,7 @@
 This directory contains an [ANTLR](https://www.antlr.org/) grammar for parsing search strings and converting them to data structures we can use for things like syntax highlighting in the client, and building SQL queries on the server.
 
-Many files in this directory are generated using the `generate:antlr4` commaned. The only files we maintain by hand are:
+All the files in this directory are generated using the `generate:antlr4` command except for `SearchGrammar.g4`. The `.g4` file is the input for ANTLR that we use (via the ANTLR CLI) to generate the language-specific code we need.
 
-**ANTLR Files**
-* `SearchGrammar.g4` - This is the raw grammar that ANTLR uses. From here we rely on the ANTLR CLI to generate the language-specific code we need.
-
-**TypeScript Files**
-* `utils.(test.)ts` - This contains helpers for running all the generated code + our custom TypeScript [listener](https://tomassetti.me/listeners-and-visitors/).
-* `listener.ts` - Our custom listener for capturing data about the query and creating an object we can use in the client for showing a visual representation of the query with syntax highlight and errors.
+If you make changes to the grammar file you will need to run `yarn generate:antlr4` to re-generate the files in thie directory.
 
 In the future we will also have some Go files generated. At that point it might make sense to reorganize and move the grammar file somewhere else.
