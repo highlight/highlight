@@ -409,12 +409,13 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 type WorkerConfig struct {
-	Workers         int
-	FlushSize       int
-	QueueSize       int
-	FlushTimeout    time.Duration
-	Topic           kafkaqueue.TopicType
-	TracingDisabled bool
+	Workers          int
+	FlushSize        int
+	QueueSize        int
+	MessageSizeBytes *int64
+	FlushTimeout     time.Duration
+	Topic            kafkaqueue.TopicType
+	TracingDisabled  bool
 }
 
 func (w *Worker) GetPublicWorker(topic kafkaqueue.TopicType) func(context.Context) {
@@ -435,8 +436,9 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	}
 
 	mainConfig := WorkerConfig{
-		Topic:   kafkaqueue.TopicTypeDefault,
-		Workers: sys.MainWorkers,
+		Topic:            kafkaqueue.TopicTypeDefault,
+		Workers:          sys.MainWorkers,
+		MessageSizeBytes: pointy.Int64(1 * 1000 * 1000),
 	}
 	logsConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeBatched,
@@ -482,7 +484,7 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 				go func(workerId int) {
 					ctx := context.Background()
 					k := KafkaWorker{
-						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil),
+						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{MessageSizeBytes: cfg.MessageSizeBytes}),
 						Worker:       w,
 						WorkerThread: workerId,
 					}
