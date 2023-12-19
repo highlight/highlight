@@ -1,33 +1,43 @@
 import { promises as fsp } from 'fs'
+import { gql } from 'graphql-request'
 import { NextApiRequest, NextApiResponse } from 'next'
-import pino from 'pino'
-import { createWriteStream } from 'pino-http-send'
 import { COMPETITORS } from '../../components/Competitors/competitors'
 import { FEATURES, iFeature } from '../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { withPageRouterHighlight } from '../../highlight.config'
+import { GraphQLRequest } from '../../utils/graphql'
 import { getBlogPaths } from '../blog'
 import { getGithubDocsPaths } from './docs/github'
 
-const stream = createWriteStream({
-	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
-})
-
-const logger = pino({ level: 'trace' }, stream)
+// const stream = createWriteStream({
+// 	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
+// })
+//
+// const logger = pino({ level: 'trace' }, stream)
 
 async function generateXML(): Promise<string> {
-	logger.info('generating sitemap')
+	// logger.info('generating sitemap')
 
-	const [docs, githubBlogPosts] = await Promise.all([
+	const [{ customers }, docs, githubBlogPosts] = await Promise.all([
+		await GraphQLRequest<{ customers: { slug: string }[] }>(gql`
+            query GetCustomers() {
+                customers() {
+                    slug
+                }
+            }
+        `),
 		await getGithubDocsPaths(),
 		await getBlogPaths(fsp, ''),
 	])
-	logger.info('got remote data')
+	// logger.info('got remote data')
 
 	const githubBlogPages = githubBlogPosts.map(
 		(path) => `blog/${path.simple_path}`,
 	)
 
+	const customerPages = customers.map(
+		(customer: { slug: string }) => `customers/${customer.slug}`,
+	)
 	const docsPages = Array.from(docs.keys()).map(
 		(d) => `docs/${d.split('docs-content/').pop()}`,
 	)
@@ -50,12 +60,13 @@ async function generateXML(): Promise<string> {
 	const pages = [
 		...staticPages,
 		...githubBlogPages,
+		...customerPages,
 		...docsPages,
 		...productPages,
 		...featurePages,
 		...competitorPages,
 	]
-	logger.info({ numPages: pages.length }, 'build pages')
+	// logger.info({ numPages: pages.length }, 'build pages')
 
 	const addPage = (page: string) => {
 		return `    <url>
