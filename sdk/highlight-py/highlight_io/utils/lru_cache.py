@@ -12,7 +12,7 @@ class LRUCache:
     # don't find the key in out dict / cache.
     # And also move the key to the end
     # to show that it was recently used.
-    def get(self, key, default_value):        
+    def get(self, key, default_value):
         if not key or key not in self.cache:
             return default_value
         else:
