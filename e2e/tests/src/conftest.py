@@ -107,7 +107,7 @@ def next_dev(node_js_bin):
 @pytest.fixture()
 def next_prod(node_js_bin):
     def build():
-        proc = run(node_js_bin, ["yarn", "workspace", "nextjs", "build"])
+        proc = run(node_js_bin, ["yarn", "turbo", "run", "--filter", "nextjs", "build"])
         stdout, stderr = proc.communicate()
         logging.info("next build output")
         for line in stdout.splitlines():
@@ -141,7 +141,9 @@ def express_js(node_js_bin):
 @pytest.fixture()
 def express_ts(node_js_bin):
     def build():
-        proc = run(node_js_bin, ["yarn", "workspace", "e2e-express-ts", "build"])
+        proc = run(
+            node_js_bin, ["yarn", "turbo", "run", "--filter", "e2e-express-ts", "build"]
+        )
         stdout, stderr = proc.communicate()
         logging.info("express-ts build output")
         for line in stdout.splitlines():
