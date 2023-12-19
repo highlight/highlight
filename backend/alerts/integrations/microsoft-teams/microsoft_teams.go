@@ -61,6 +61,7 @@ type BotHandler struct {
 
 type MicrosoftTeamsBot struct {
 	core.Adapter
+	TenantID string
 }
 
 func makeAttachmentHandler(attachments interface{}) activity.HandlerFuncs {
@@ -72,7 +73,7 @@ func makeAttachmentHandler(attachments interface{}) activity.HandlerFuncs {
 					Content:     attachments,
 				},
 			}
-			return turn.SendActivity(activity.MsgOptionText("Sample attachment"), activity.MsgOptionAttachments(attachments))
+			return turn.SendActivity(activity.MsgOptionAttachments(attachments))
 		},
 	}
 }
@@ -225,13 +226,13 @@ func MakeBotAdapter() (core.Adapter, error) {
 	return adapter, nil
 }
 
-func NewMicrosoftTeamsBot() (*MicrosoftTeamsBot, error) {
+func NewMicrosoftTeamsBot(tenantID string) (*MicrosoftTeamsBot, error) {
 	adapter, err := MakeBotAdapter()
 	if err != nil {
 		log.Println("Error creating adapter: ", err)
 		return nil, errors.New("error creating microsoft teams bot adapter")
 	}
-	return &MicrosoftTeamsBot{adapter}, nil
+	return &MicrosoftTeamsBot{adapter, tenantID}, nil
 }
 
 func BotHandlerFunc(db *gorm.DB) (*BotHandler, error) {
@@ -542,7 +543,7 @@ func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, inp
 
 	channels := alert.MicrosoftTeamsChannelsToNotify
 
-	bot, err := NewMicrosoftTeamsBot()
+	bot, err := NewMicrosoftTeamsBot(*workspace.MicrosoftTeamsTenantId)
 
 	if err != nil {
 		return errors.New("microsoft teams bot installation not complete")
@@ -560,7 +561,7 @@ func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, inp
 			IsGroup:          true,
 			ConversationType: "channel",
 			ID:               channel.ID,
-			TenantID:         *workspace.MicrosoftTeamsTenantId,
+			TenantID:         bot.TenantID,
 		}
 
 		newActivity := schema.Activity{
@@ -586,4 +587,216 @@ func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, inp
 	}
 
 	return nil
+}
+
+func (bot *MicrosoftTeamsBot) SendNewSessionAlert(channelId string, payload integrations.NewSessionAlertPayload) error {
+	facts := []*Fact{}
+
+	if payload.VisitedURL != nil && *payload.VisitedURL != "" {
+		facts = append(facts, &Fact{
+			Title: "Visited URL",
+			Value: *payload.VisitedURL,
+			// Inline: false,
+		})
+	}
+
+	for key, value := range payload.UserProperties {
+		facts = append(facts, &Fact{
+			Title: key,
+			Value: value,
+		})
+	}
+
+	titleBlock := map[string]interface{}{
+		"type":   "TextBlock",
+		"size":   "Large",
+		"weight": "Bolder",
+		"text":   "Highlight New Session Alert",
+	}
+
+	if payload.AvatarURL != nil {
+		titleBlock = map[string]interface{}{
+			"type": "ColumnSet",
+			"columns": []interface{}{
+				map[string]interface{}{
+					"type": "Column",
+					"items": []interface{}{
+						map[string]interface{}{
+							"type":  "Image",
+							"style": "Person",
+							"url":   *payload.AvatarURL,
+							"size":  "Small",
+						},
+					},
+					"width": "auto",
+				},
+				map[string]interface{}{
+					"type": "Column",
+					"items": []interface{}{
+						map[string]interface{}{
+							"type":   "TextBlock",
+							"weight": "Bolder",
+							"text":   "Highlight New Session Alert",
+							"wrap":   true,
+						},
+					},
+					"width":                    "stretch",
+					"spacing":                  "Small",
+					"horizontalAlignment":      "Left",
+					"verticalContentAlignment": "Center",
+				},
+			},
+		}
+	}
+
+	descriptionTextBlock := map[string]interface{}{
+		"type": "TextBlock",
+		"text": payload.UserIdentifier,
+		"wrap": true,
+	}
+
+	columnSet := map[string]interface{}{
+		"type":  "Column",
+		"width": "stretch",
+		"items": []map[string]interface{}{descriptionTextBlock},
+	}
+
+	decriptionTextBlock := map[string]interface{}{
+		"type":    "ColumnSet",
+		"columns": []map[string]interface{}{columnSet},
+	}
+
+	action := map[string]interface{}{
+		"type":  "Action.OpenUrl",
+		"title": "View Session",
+		"url":   payload.SessionURL,
+	}
+	actions := []map[string]interface{}{action}
+
+	var body []map[string]interface{}
+
+	body = append(body, titleBlock)
+	body = append(body, decriptionTextBlock)
+
+	factset := map[string]interface{}{
+		"type":  "FactSet",
+		"facts": facts,
+	}
+	body = append(body, factset)
+
+	adaptiveCard := map[string]interface{}{
+		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+		"type":    "AdaptiveCard",
+		"version": "1.6",
+		"body":    body,
+		"actions": actions,
+	}
+
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	conversation := schema.ConversationAccount{
+		IsGroup:          true,
+		ConversationType: "channel",
+		ID:               channelId,
+		TenantID:         bot.TenantID,
+	}
+
+	newActivity := schema.Activity{
+		Type:         schema.Message,
+		ChannelID:    "msteams",
+		ServiceURL:   "https://smba.trafficmanager.net/amer/",
+		Conversation: conversation,
+		From: schema.ChannelAccount{
+			// TODO: unhardcode
+			ID: "28:9817330b-7262-42de-bfa9-055b47b67967",
+		},
+	}
+
+	err := bot.Adapter.ProcessActivity(ctx, newActivity, handler)
+	return err
+}
+
+func (bot *MicrosoftTeamsBot) SendErrorFeedbackAlert(channelId string, payload integrations.ErrorFeedbackAlertPayload) error {
+	fmt.Println("About firing the error feedback alert")
+
+	facts := []*Fact{}
+	facts = append(facts, &Fact{
+		Title: "Comment",
+		Value: payload.CommentText,
+	})
+
+	titleBlock := map[string]interface{}{
+		"type":   "TextBlock",
+		"size":   "Medium",
+		"weight": "Bolder",
+		"text":   "Highlight Error Feedback Alert",
+	}
+
+	descriptionTextBlock := map[string]interface{}{
+		"type": "TextBlock",
+		"text": payload.UserIdentifier,
+		"wrap": true,
+	}
+
+	columnSet := map[string]interface{}{
+		"type":  "Column",
+		"width": "stretch",
+		"items": []map[string]interface{}{descriptionTextBlock},
+	}
+
+	decriptionTextBlock := map[string]interface{}{
+		"type":    "ColumnSet",
+		"columns": []map[string]interface{}{columnSet},
+	}
+
+	var body []map[string]interface{}
+
+	body = append(body, titleBlock)
+	body = append(body, decriptionTextBlock)
+
+	factset := map[string]interface{}{
+		"type":  "FactSet",
+		"facts": facts,
+	}
+	body = append(body, factset)
+
+	action := map[string]interface{}{
+		"type":  "Action.OpenUrl",
+		"title": "View Comment",
+		"url":   payload.SessionCommentURL,
+	}
+	actions := []map[string]interface{}{action}
+
+	adaptiveCard := map[string]interface{}{
+		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+		"type":    "AdaptiveCard",
+		"version": "1.6",
+		"body":    body,
+		"actions": actions,
+	}
+
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	conversation := schema.ConversationAccount{
+		IsGroup:          true,
+		ConversationType: "channel",
+		ID:               channelId,
+		TenantID:         bot.TenantID,
+	}
+
+	newActivity := schema.Activity{
+		Type:         schema.Message,
+		ChannelID:    "msteams",
+		ServiceURL:   "https://smba.trafficmanager.net/amer/",
+		Conversation: conversation,
+		From: schema.ChannelAccount{
+			// TODO: unhardcode
+			ID: "28:9817330b-7262-42de-bfa9-055b47b67967",
+		},
+	}
+
+	err := bot.Adapter.ProcessActivity(ctx, newActivity, handler)
+	return err
 }
