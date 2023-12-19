@@ -49,6 +49,7 @@ registerInstrumentations({ instrumentations })
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
 	private traceAttributesMap = new Map<string, TraceMapValue>()
+	private finishedSpanNames = new Set<string>()
 
 	constructor(exporter: any, options: any) {
 		super(exporter, options)
@@ -78,6 +79,14 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 		}
 	}
 
+	getFinishedSpanNames() {
+		return this.finishedSpanNames
+	}
+
+	clearFinishedSpanNames() {
+		return this.finishedSpanNames.clear()
+	}
+
 	onEnd(span: ReadableSpan) {
 		const traceMetadata = this.getTraceMetadata(span)
 
@@ -91,6 +100,8 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 		if (!span.parentSpanId && traceMetadata) {
 			traceMetadata.destroy()
 		}
+
+		this.finishedSpanNames.add(span.name)
 
 		// @ts-ignore
 		super.onEnd(span)
@@ -338,33 +349,48 @@ export class Highlight {
 		}
 	}
 
-	async waitForFlush() {
-		return new Promise<void>(async (resolve) => {
+	async waitForFlush(expectedSpanNames: string[] = []) {
+		return new Promise<string[]>(async (resolve) => {
 			let resolved = false
-			let waitingForFinishedSpans = false
-
-			await this.flush()
+			let finishedSpansCount = this.finishedSpans.length
+			let waitingForFinishedSpans = finishedSpansCount > 0
 
 			let intervalTimer = setInterval(async () => {
-				const finishedSpansCount = this.finishedSpans.length
+				finishedSpansCount = this.finishedSpans.length
+
+				const canFinish =
+					!expectedSpanNames.length ||
+					expectedSpanNames.every((n) =>
+						this.processor.getFinishedSpanNames().has(n),
+					)
 
 				if (finishedSpansCount) {
 					waitingForFinishedSpans = true
-				} else if (waitingForFinishedSpans) {
+				} else if (canFinish && waitingForFinishedSpans) {
 					finish()
-				}
-			}, 100)
-			const timer = setTimeout(finish, 2000)
 
-			function finish() {
-				intervalTimer && clearInterval(intervalTimer)
-				timer && clearTimeout(timer)
+					this.processor.clearFinishedSpanNames()
+				}
+			}, 10)
+
+			this.flush()
+
+			let timer: ReturnType<typeof setTimeout>
+
+			const finish = async () => {
+				clearInterval(intervalTimer)
+				clearTimeout(timer)
 				unlisten()
 
 				if (!resolved) {
 					resolved = true
-					resolve()
+
+					resolve(Array.from(this.processor.getFinishedSpanNames()))
 				}
+			}
+
+			if (!expectedSpanNames.length) {
+				timer = setTimeout(finish, 2000)
 			}
 
 			const unlisten = this.processor.registerListener(finish)
@@ -390,8 +416,6 @@ export class Highlight {
 					const { secureSessionId, requestId } =
 						this.parseHeaders(headers)
 
-					console.log({ headers, secureSessionId, requestId })
-
 					if (secureSessionId && requestId) {
 						this.processor.setTraceMetadata(span, {
 							'highlight.session_id': secureSessionId,
@@ -416,13 +440,14 @@ export class Highlight {
 							)
 						}
 
-						reject(error)
-
 						span.end()
 
-						this.flush()
+						await Promise.allSettled([
+							this.waitForFlush(['highlight-run-with-headers']),
+							this.flush(),
+						])
 
-						await this.waitForFlush()
+						reject(error)
 					}
 				},
 			)
@@ -463,4 +488,8 @@ function extractIncomingHttpHeaders(
 	} else {
 		return { secureSessionId: undefined, requestId: undefined }
 	}
+}
+
+async function wait(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }

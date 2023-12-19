@@ -16,26 +16,30 @@ export const GET = withAppRouterHighlight(async function GET(
 	console.info('Here: /api/app-router-test/route.ts 💘💘💘', { sql, success })
 
 	if (sql === 'true') {
-		console.info('😇 Connecting to Postgres...')
-		const pgClient = new Client({
-			user: 'postgres',
-			database: 'postgres',
-			port: 5432,
-			host: 'localhost',
-		})
-		await pgClient.connect()
+		try {
+			console.info('😇 Connecting to Postgres...')
+			const pgClient = new Client({
+				user: 'postgres',
+				database: 'postgres',
+				port: 5432,
+				host: 'localhost',
+			})
+			await pgClient.connect()
 
-		result = await pgClient.query('SELECT $1::text as message', [
-			'Hello world!',
-		])
-		await pgClient.end()
+			result = await pgClient.query('SELECT $1::text as message', [
+				'Hello world!',
+			])
+			await pgClient.end()
 
-		for (let i = 0; i < 3; i++) {
-			try {
-				statfsSync(`/tmp/${i}`)
-			} catch (e) {
-				console.error(e)
+			for (let i = 0; i < 3; i++) {
+				try {
+					statfsSync(`/tmp/${i}`)
+				} catch (e) {
+					console.error(e)
+				}
 			}
+		} catch (e) {
+			console.error(e)
 		}
 	}
 
@@ -47,6 +51,7 @@ export const GET = withAppRouterHighlight(async function GET(
 			}),
 		)
 	} else {
+		console.log('Error: /api/app-router-test (App Router)')
 		throw new Error('Error: /api/app-router-test (App Router)')
 	}
 })

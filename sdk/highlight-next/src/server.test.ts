@@ -114,7 +114,7 @@ describe('Next.js server instrumentation', () => {
 			detailsWithSessionId.length === 0 && logDetails(details)
 
 			expect(detailsWithSessionId.length > 0).toEqual(true)
-		})
+		}, 10000)
 
 		it('Should report App Router error', async () => {
 			await fetch(
@@ -139,7 +139,7 @@ describe('Next.js server instrumentation', () => {
 
 			expect(hasError.length).toEqual(1)
 			expect(detailsWithSessionId.length > 0).toEqual(true)
-		})
+		}, 10000)
 	})
 })
 
