@@ -110,8 +110,8 @@ slug: nodejs
   </div>
   <div className="right">
     <code>
-      import * as http from 'http';
-      import { H } from "@highlight-run/node";
+    
+      import { H } from '@highlight-run/node';
 
       const onError = (request: http.IncomingMessage, error: Error): void => {
         const parsed = H.parseHeaders(request.headers);
