@@ -409,12 +409,13 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 type WorkerConfig struct {
-	Workers         int
-	FlushSize       int
-	QueueSize       int
-	FlushTimeout    time.Duration
-	Topic           kafkaqueue.TopicType
-	TracingDisabled bool
+	Workers          int
+	FlushSize        int
+	QueueSize        int
+	MessageSizeBytes *int64
+	FlushTimeout     time.Duration
+	Topic            kafkaqueue.TopicType
+	TracingDisabled  bool
 }
 
 func (w *Worker) GetPublicWorker(topic kafkaqueue.TopicType) func(context.Context) {
@@ -429,15 +430,14 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
 	// is processed serially, so messages in that slice are processed in order.
 
-	mainWorkers := 64
-	sys, cfgErr := w.PublicResolver.Store.GetSystemConfiguration(ctx)
-	if cfgErr == nil {
-		mainWorkers = sys.MainWorkers
+	sys, err := w.PublicResolver.Store.GetSystemConfiguration(ctx)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get config for public workers")
 	}
 
 	mainConfig := WorkerConfig{
 		Topic:   kafkaqueue.TopicTypeDefault,
-		Workers: mainWorkers,
+		Workers: sys.MainWorkers,
 	}
 	logsConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeBatched,
@@ -480,16 +480,16 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		wg.Add(cfg.Workers)
 		for i := 0; i < cfg.Workers; i++ {
 			if cfg.Topic == kafkaqueue.TopicTypeDefault {
-				go func(workerId int) {
+				go func(config WorkerConfig, workerId int) {
 					ctx := context.Background()
 					k := KafkaWorker{
-						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil),
+						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{MessageSizeBytes: config.MessageSizeBytes}),
 						Worker:       w,
 						WorkerThread: workerId,
 					}
 					k.ProcessMessages(ctx)
 					wg.Done()
-				}(i)
+				}(cfg, i)
 			} else {
 				go func(config WorkerConfig, workerId int) {
 					ctx := context.Background()
