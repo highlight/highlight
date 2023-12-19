@@ -2,7 +2,7 @@
 title: Privacy
 slug: privacy
 createdAt: 2021-09-14T17:47:33.000Z
-updatedAt: 2022-08-03T23:29:08.000Z
+updatedAt: 2022-12-19T00:00:00.000Z
 ---
 
 ## Masking Elements
@@ -42,20 +42,24 @@ Interested in redacting particular requests, responses, or the data within them?
 
 ## Default Privacy Mode
 
-By default, Highlight will obfuscate any text or input data that matches commonly used Regex expressions and input names of personally identifiable information. This offers a base level protection from recording info such as addresses, phone numbers, social security numbers, and more. It will not obfuscate any images or media content. It is possible that other, non PII text is obfuscated if it matches the expressions for larger number, or contact information on the site. If you want to turn this off, you can set `privacySetting` to `none` when calling [`H.init()`](../../../sdk/client.md#Hinit).
+By default, Highlight will obfuscate all inputs and any text that matches commonly used Regex expressions of personally identifiable information. This offers a base level protection from recording info such as addresses, phone numbers, social security numbers, and more. It will not obfuscate any images or media content. It is possible that other, non PII text is obfuscated if it matches the expressions for larger number, or contact information on the site. If you want to turn this off, you can set `privacySetting` to `none` when calling [`H.init()`](../../../sdk/client.md#Hinit).
 
 Note: This mode is only available in SDK versions 8.0.0 and later.
 
 Here are a list of the [regex expressions used in default privacy mode](https://github.com/highlight/rrweb/blob/e6a375a554dac9de984a18bfb8ba6e3beb4bd961/packages/rrweb-snapshot/src/utils.ts#L267-L295):
 ```
-Email: "[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*"
+Email: '[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*'
 SSN: '[0-9]{3}-?[0-9]{2}-?[0-9]{4}'
-Phone number: '[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}'
+Phone number: '[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}'
 Credit card: '[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}'
 Unformatted SSN, phone number, credit card: '[0-9]{9,16}'
-Address: '[0-9]{1,5}.?[0-9]{0,3}s[a-zA-Z]{2,30}s[a-zA-Z]{2,15}'
+Address: '[0-9]{1,5}.?[0-9]{0,3}\s[a-zA-Z]{2,30}\s[a-zA-Z]{2,15}'
 IP address: '(?:[0-9]{1,3}.){3}[0-9]{1,3}'
 ```
+
+### Overriding Obfuscation
+
+In default privacy mode, there may be some innocuous text or inputs that would be helpful to record, but are obfuscated by default. For example, user created names in inputs or your company address. These HTML tags can be overridden with the `data-hl-record="true"` attribute. Currently, this attribute must be used on the recorded HTML tag itself, and any decesendants of the element may still be redacted.
 
 ## Strict Privacy Mode
 
@@ -80,5 +84,3 @@ Here are some examples:
   ></iframe
 >
 ```
-
-
