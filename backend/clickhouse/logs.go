@@ -68,7 +68,9 @@ var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{
 	tableConfig:         logsTableConfig,
 	samplingTableConfig: logsSamplingTableConfig,
-	samplingThreshold:   24 * time.Hour,
+	useSampling: func(d time.Duration) bool {
+		return d >= 24*time.Hour
+	},
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {

@@ -39,7 +39,7 @@ type tableConfig[TReservedKey ~string] struct {
 type sampleableTableConfig[TReservedKey ~string] struct {
 	tableConfig         tableConfig[TReservedKey]
 	samplingTableConfig tableConfig[TReservedKey]
-	samplingThreshold   time.Duration
+	useSampling         func(time.Duration) bool
 }
 
 func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config tableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -181,11 +181,11 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 		return sb.Var(arg)
 	})...)}
 
-	for _, group := range groupBy {
+	for idx, group := range groupBy {
 		if col, found := config.keysToColumns[T(group)]; found {
 			cols = append(cols, col)
 		} else {
-			cols = append(cols, "toString("+config.attributesColumn+"["+sb.Var(group)+"])")
+			cols = append(cols, sb.As("toString("+config.attributesColumn+"["+sb.Var(group)+"])", fmt.Sprintf("g%d", idx)))
 		}
 	}
 	sb.Select(cols...)
@@ -608,7 +608,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
-	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= sampleableConfig.samplingThreshold
+	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 
 	var selectArgs []interface{}
 
@@ -692,7 +692,6 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	if limitAggregator != nil && len(groupBy) > 0 {
 		innerSb := sqlbuilder.NewSelectBuilder()
-
 		colStrs := []string{}
 		groupByIndexes := []string{}
 
@@ -706,8 +705,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		}
 
 		innerSb.
-			Select(strings.Join(colStrs, ", ")).
 			From(config.tableName).
+			Select(strings.Join(colStrs, ", ")).
 			Where(innerSb.Equal("ProjectId", projectID)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
 			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
@@ -728,7 +727,18 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		innerSb.OrderBy(fmt.Sprintf("%s DESC", limitFn)).
 			Limit(limitCount)
 
-		fromSb.Where(fromSb.In(fmt.Sprintf("(%s)", strings.Join(colStrs, ", ")), innerSb))
+		fromColStrs := []string{}
+
+		for idx, group := range groupBy {
+			if col, found := keysToColumns[T(group)]; found {
+				fromColStrs = append(fromColStrs, col)
+			} else {
+				fromColStrs = append(fromColStrs, fmt.Sprintf("g%d", idx))
+			}
+			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
+		}
+
+		fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
 	}
 
 	base := 3 + len(metricTypes)
