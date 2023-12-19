@@ -126,7 +126,8 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			From(config.tableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), fromSb)).
-			OrderBy(orderForward)
+			OrderBy(orderForward).
+			Limit(LogsLimit + 1)
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
