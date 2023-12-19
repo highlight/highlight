@@ -442,7 +442,7 @@ func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error
 func (p *Queue) resetConsumerOffset(ctx context.Context, partitionOffsets map[int]int64) (error error) {
 	cfg := p.kafkaC.Config()
 	group, err := kafka.NewConsumerGroup(kafka.ConsumerGroupConfig{
-		ID:      ConsumerGroupName,
+		ID:      strings.Join([]string{ConsumerGroupName, p.Topic}, "_"),
 		Brokers: cfg.Brokers,
 		Dialer:  cfg.Dialer,
 		Topics:  []string{cfg.Topic},
