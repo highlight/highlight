@@ -50,6 +50,7 @@ class H(object):
     _logging_instrumented = False
     # context is a LRU cache to avoid storing too many trace ids in memory
     # we should not need more than 1000 since Python processes are single-threaded
+    # context map is a cache of trace ids to (session_id, request_id) tuples
     _context_map = LRUCache(1000)
 
     @classmethod
