@@ -10,7 +10,10 @@ import {
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
-import { getMainDefinition } from '@apollo/client/utilities'
+import {
+	getMainDefinition,
+	relayStylePagination,
+} from '@apollo/client/utilities'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
 import { invalidateRefetch } from '@util/gql'
@@ -104,6 +107,13 @@ const cache = new InMemoryCache({
 		},
 		Query: {
 			fields: {
+				logs: relayStylePagination([
+					'project_id',
+					'at',
+					'direction',
+					'params',
+					['query', 'date_range', ['start_date', 'end_date']],
+				]),
 				error_groups_clickhouse: {
 					keyArgs: ['project_id', 'count', 'query', 'page'],
 				},
@@ -136,6 +146,5 @@ export const client = new ApolloClient({
 	},
 	cache,
 	assumeImmutableResults: true,
-	connectToDevTools:
-		location.host.split('.')[0] === 'preview' ?? import.meta.env.DEV,
+	connectToDevTools: import.meta.env.DEV,
 })
