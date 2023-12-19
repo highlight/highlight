@@ -327,7 +327,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	assert.Len(t, payload.Edges, 50)
 	assert.False(t, payload.PageInfo.HasNextPage)
 
-	// Add another row to have >50 rows + duplicates
+	// Add another row to have >50 rows
 	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{NewLogRow(now, 1)}))
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
@@ -339,7 +339,7 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	assert.True(t, payload.PageInfo.HasNextPage)
 
 	// We had a bug where we could potentially return >50 rows if there were
-	// duplicate UUIDs in the result set. This test repro'd that bug.
+	// duplicate in the result set. This test repro'd that bug.
 	duplicateLogRows := []*LogRow{}
 	duplicateLogRows = append(duplicateLogRows, rows[0])
 	duplicateLogRows = append(duplicateLogRows, rows[2])
