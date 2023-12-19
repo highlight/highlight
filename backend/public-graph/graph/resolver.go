@@ -2886,7 +2886,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	defer updateSpan.Finish()
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
-	elapsedSinceUpdate := now.Sub(*sessionObj.PayloadUpdatedAt)
+	elapsedSinceUpdate := time.Hour
+	if sessionObj.PayloadUpdatedAt != nil {
+		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
+	}
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
