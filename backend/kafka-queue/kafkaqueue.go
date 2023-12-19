@@ -99,7 +99,7 @@ type ConfigOverride struct {
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
-	groupID := ConsumerGroupName
+	groupID := strings.Join([]string{ConsumerGroupName, topic}, "_")
 
 	tlsConfig := &tls.Config{}
 	var mechanism sasl.Mechanism
@@ -209,7 +209,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			ReadBatchTimeout:  KafkaOperationTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
-			MaxBytes:          MaxMessageSizeBytes,
+			MaxBytes:          64 * 1000 * 1000,
 			MaxWait:           time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
