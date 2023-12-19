@@ -436,9 +436,8 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	}
 
 	mainConfig := WorkerConfig{
-		Topic:            kafkaqueue.TopicTypeDefault,
-		Workers:          sys.MainWorkers,
-		MessageSizeBytes: pointy.Int64(128 * 1000 * 1000),
+		Topic:   kafkaqueue.TopicTypeDefault,
+		Workers: sys.MainWorkers,
 	}
 	logsConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeBatched,
