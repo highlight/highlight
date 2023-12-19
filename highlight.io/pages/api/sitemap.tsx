@@ -7,10 +7,9 @@ import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { withPageRouterHighlight } from '../../highlight.config'
 import { GraphQLRequest } from '../../utils/graphql'
 import { getBlogPaths } from '../blog'
-import { getGithubDocsPaths } from './docs/github'
 
 async function generateXML(): Promise<string> {
-	const [{ customers }, docs, githubBlogPosts] = await Promise.all([
+	const [{ customers }, githubBlogPosts] = await Promise.all([
 		await GraphQLRequest<{ customers: { slug: string }[] }>(gql`
             query GetCustomers() {
                 customers() {
@@ -18,7 +17,7 @@ async function generateXML(): Promise<string> {
                 }
             }
         `),
-		await getGithubDocsPaths(),
+		// await getGithubDocsPaths(),
 		await getBlogPaths(fsp, ''),
 	])
 
@@ -28,9 +27,6 @@ async function generateXML(): Promise<string> {
 
 	const customerPages = customers.map(
 		(customer: { slug: string }) => `customers/${customer.slug}`,
-	)
-	const docsPages = Array.from(docs.keys()).map(
-		(d) => `docs/${d.split('docs-content/').pop()}`,
 	)
 	const productPages = Object.values(PRODUCTS).map(
 		(product: iProduct) => `for/${product.slug}`,
@@ -52,7 +48,6 @@ async function generateXML(): Promise<string> {
 		...staticPages,
 		...githubBlogPages,
 		...customerPages,
-		...docsPages,
 		...productPages,
 		...featurePages,
 		...competitorPages,

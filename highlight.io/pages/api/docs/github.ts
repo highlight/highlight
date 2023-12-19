@@ -87,6 +87,8 @@ export const processDocPath = function (
 }
 
 export const getGithubDocsPaths = async (path: string = 'docs-content/') => {
+	const logger = getLogger()
+	logger.info({ path }, 'getGithubDocsPaths')
 	const url = `https://api.github.com/repos/highlight/highlight/contents/${path}`
 	const response = await fetch(url, {
 		headers: githubHeaders,
