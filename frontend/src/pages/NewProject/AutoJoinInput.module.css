@@ -9,9 +9,13 @@
 }
 
 .select {
-	width: 100%;
-
 	&:global(.ant-select-disabled .ant-select-selector) {
-		background-color: var(--color-primary-background) !important;
+		background-color: transparent !important;
+	}
+
+	:global(.ant-select-selector) {
+		padding: 0 !important;
+		border: 0px solid var(--color-gray-300) !important;
+		background-color: transparent !important;
 	}
 }
