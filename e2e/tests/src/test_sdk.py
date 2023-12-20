@@ -73,7 +73,9 @@ def query(
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
     r = requests.get(
-        f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
+        f"http://localhost:3005{endpoint}",
+        params={"success": success, "sql": "true"},
+        timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")
     if success == "true":
