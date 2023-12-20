@@ -55636,7 +55636,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.198.0"
     "@types/yargs": "npm:^17.0.13"
     semver: "npm:^7.3.8"
-    ts-node: "npm:^10.9.2"
+    tsx: "npm:^4.7.0"
     yargs: "npm:^17.6.0"
   languageName: unknown
   linkType: soft
@@ -59219,7 +59219,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:10.9.1, ts-node@npm:^10.8.1, ts-node@npm:^10.9.1":
+"ts-node@npm:10.9.1":
   version: 10.9.1
   resolution: "ts-node@npm:10.9.1"
   dependencies:
@@ -59257,7 +59257,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.9.2":
+"ts-node@npm:^10.8.1, ts-node@npm:^10.9.1":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:
@@ -59686,6 +59686,22 @@ __metadata:
   bin:
     tsx: dist/cli.mjs
   checksum: 451b23ed999a3bf3592181f3411d67bfe6d4269f2171ca627c5acbe442fd08d8864585eb67095c0dc8462e35ee8427de37c9bb2b4f6ffc629d5a05f0c66983d4
+  languageName: node
+  linkType: hard
+
+"tsx@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "tsx@npm:4.7.0"
+  dependencies:
+    esbuild: "npm:~0.19.10"
+    fsevents: "npm:~2.3.3"
+    get-tsconfig: "npm:^4.7.2"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    tsx: dist/cli.mjs
+  checksum: 3e6ee0a0a8adb7b1cb58875f50b143b41df0132ade3a7cdda16a166ac473eee446197762ba6afb235ace4c6adae7e55f61a420ee55b17438717eea1e55e611c0
   languageName: node
   linkType: hard
 
