@@ -10,12 +10,12 @@ from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_LOGS
 
 
 def query(
-        oauth_api: tuple[str, str],
-        operation_name: str,
-        query: str,
-        variables: Optional[dict[str, any]] = None,
-        variables_fn: Optional[Callable[[datetime], dict[str, any]]] = None,
-        validator: Optional[Callable[[dict[str, any]], None]] = None,
+    oauth_api: tuple[str, str],
+    operation_name: str,
+    query: str,
+    variables: Optional[dict[str, any]] = None,
+    variables_fn: Optional[Callable[[datetime], dict[str, any]]] = None,
+    validator: Optional[Callable[[dict[str, any]], None]] = None,
 ):
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
@@ -59,12 +59,12 @@ def query(
     "endpoint,expected_error",
     [
         (
-                "/api/page-router-test",
-                "Error: /pages/api/page-router-test.ts (Page Router)",
+            "/api/page-router-test",
+            "Error: /pages/api/page-router-test.ts (Page Router)",
         ),
         (
-                "/api/page-router-edge-test",
-                "Error: /api/page-router-edge-test (Edge Runtime)",
+            "/api/page-router-edge-test",
+            "Error: /api/page-router-edge-test (Edge Runtime)",
         ),
         ("/api/app-router-test", "Error: /api/app-router-test (App Router)"),
         ("/api/edge-test", "Error: /api/edge-test (Edge Runtime)"),
@@ -86,6 +86,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
 
     # check that the error came thru to highlight
     if success == "false":
+
         def validator(data: dict[str, any]):
             assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
             # check that we actually received the edge runtime error
@@ -145,7 +146,7 @@ def test_express_log(express_app, oauth_api):
         exp = "some work happening"
         assert exp in msgs
         for item in filter(
-                lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
+            lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
         ):
             assert (
                 item["node"]["level"] == "warn"
