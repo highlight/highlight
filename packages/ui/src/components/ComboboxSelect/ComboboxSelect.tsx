@@ -193,7 +193,7 @@ export const ComboboxSelect_test: ComponentTest = () => {
 		{ key: 'blue', render: 'Blue' },
 		{ key: 'green', render: 'Green' },
 	]
-	const label = 'Select a color!'
+	const label = 'Select a color!!'
 	return (
 		<ComboboxSelect
 			label={label}
@@ -208,7 +208,8 @@ export const ComboboxSelect_test: ComponentTest = () => {
 	)
 }
 
-ComboboxSelect_test.run = async ({ step, screen, user }) => {
+ComboboxSelect_test.run = async ({ step, screen, user, screenshot }) => {
+	// await screenshot(element)
 	await step('open dialog', async () => {
 		const combobox = await screen.findByRole('combobox')
 		await user.click(combobox)
