@@ -12294,6 +12294,7 @@ __metadata:
     "@highlight-run/rrweb-types": "workspace:*"
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
+    "@reflame/testing": ^0.0.2
     "@rehooks/local-storage": ^2.4.0
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
@@ -12853,6 +12854,7 @@ __metadata:
     "@capsizecss/core": ^3.0.0
     "@capsizecss/metrics": ^0.3.0
     "@mdx-js/react": ^1.6.22
+    "@reflame/testing": ^0.0.2
     "@rehookify/datepicker": ^4.1.5
     "@storybook/addon-essentials": ^7.0.18
     "@storybook/addon-interactions": ^7.0.18
@@ -18805,6 +18807,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@reflame/testing@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "@reflame/testing@npm:0.0.2"
+  dependencies:
+    "@testing-library/dom": ^9.3.3
+    "@testing-library/user-event": ^14.5.1
+    "@types/react": ^18.2.45
+  checksum: d01e4eb5e5b4304ff8aa914242cf9232c29992bc500f1b6dbceb112310579f70227889aa5015f7244f423fefe1b4771b2ce6adfb2cd74eb89ea6767568ad8986
+  languageName: node
+  linkType: hard
+
 "@rehookify/datepicker@npm:^4.1.5":
   version: 4.2.0
   resolution: "@rehookify/datepicker@npm:4.2.0"
@@ -22115,7 +22128,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/dom@npm:>=7":
+"@testing-library/dom@npm:>=7, @testing-library/dom@npm:^9.3.3":
   version: 9.3.3
   resolution: "@testing-library/dom@npm:9.3.3"
   dependencies:
@@ -22255,6 +22268,15 @@ __metadata:
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
   checksum: 16319de685fbb7008f1ba667928f458b2d08196918002daca56996de80ef35e6d9de26e9e1ece7d00a004692b95a597cf9142fff0dc53f2f51606a776584f549
+  languageName: node
+  linkType: hard
+
+"@testing-library/user-event@npm:^14.5.1":
+  version: 14.5.1
+  resolution: "@testing-library/user-event@npm:14.5.1"
+  peerDependencies:
+    "@testing-library/dom": ">=7.21.4"
+  checksum: 3e6bc9fd53dfe2f3648190193ed2fd4bca2a1bfb47f68810df3b33f05412526e5fd5c4ef9dc5375635e0f4cdf1859916867b597eed22bda1321e04242ea6c519
   languageName: node
   linkType: hard
 
