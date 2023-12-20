@@ -208,8 +208,8 @@ export const ComboboxSelect_test: ComponentTest = () => {
 	)
 }
 
-ComboboxSelect_test.run = async ({ step }) => {
-	await step('open dialog', async ({ screen, user }) => {
+ComboboxSelect_test.run = async ({ step, screen, user }) => {
+	await step('open dialog', async () => {
 		const combobox = await screen.findByRole('combobox')
 		await user.click(combobox)
 		const dialog = await screen.findByRole('dialog')
@@ -220,7 +220,7 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	await step('enter filter text', async ({ screen, user }) => {
+	await step('enter filter text', async () => {
 		const filterInput = await screen.findByPlaceholderText('Filter...')
 		await user.type(filterInput, 're')
 		return {
@@ -230,7 +230,7 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	await step('select option', async ({ screen, user }) => {
+	await step('select option', async () => {
 		const redOption = await screen.findByText('Red')
 		await user.click(redOption)
 	})
