@@ -147,7 +147,11 @@ def test_express_log(express_app, oauth_api):
         for item in filter(
             lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
         ):
-            assert item["node"]["level"] == "warn"
+            assert (
+                item["node"]["level"] == "warn"
+                if express_app_type == "express_js"
+                else "info"
+            )
             assert item["node"]["secureSessionID"] == "abc123"
             assert (
                 item["node"]["serviceName"] == "e2e-express"
