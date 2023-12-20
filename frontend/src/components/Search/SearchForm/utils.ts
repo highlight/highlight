@@ -15,9 +15,6 @@ export const BODY_KEY = 'message'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|(\S+:\((?:[^\)\\]|\\.)*\))|\S+|\S+:\S+|\s$/g
 
-const WHITESPACE_REGEX =
-	/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)(?=(?:[^']*'[^']*')*[^']*$)(?=(?:[^()]*\([^()]*\))*[^()]*$)/g
-
 export const parseSearchQuery = (query = ''): SearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
 		return [
@@ -69,60 +66,6 @@ export const parseSearchQuery = (query = ''): SearchParam[] => {
 	}
 
 	return terms
-}
-
-// Takes a query string and returns an array of strings and the whitespace
-// between them. This is useful for highlighting search terms in the query.
-//
-// input: ' body-a   source:(backend OR frotend) body-b  name:"Chris Schmitz" body-c '
-// output: [' ', 'body-a', '   ', 'source:(backend OR frotend)', ' ', 'body-b', '  ', 'name:"Chris Schmitz"', ' ', 'body-c']
-export const queryAsStringParams = (query: string): string[] => {
-	const q = String(query)
-	const startsWithSpace = q.startsWith(' ')
-	const params = q.split(WHITESPACE_REGEX).filter(Boolean) || []
-	const whitespace = q.match(WHITESPACE_REGEX) || []
-	const longestArray = params.length > whitespace.length ? params : whitespace
-
-	return longestArray.reduce((acc: string[], _: string, index: number) => {
-		if (startsWithSpace && whitespace[index]) {
-			acc.push(whitespace[index])
-		}
-
-		if (params[index]) {
-			acc.push(params[index])
-		}
-
-		if (!startsWithSpace && whitespace[index]) {
-			acc.push(whitespace[index])
-		}
-
-		return acc
-	}, [])
-}
-
-export const SEPARATORS = [
-	'AND',
-	'OR',
-	'!=',
-	'>=',
-	'<=',
-	'<',
-	'>',
-	':',
-	'=',
-	'(',
-	')',
-	'*',
-]
-
-const escapedSeparators = SEPARATORS.map((separator) =>
-	separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-)
-
-export const tokenAsParts = (token: string): string[] => {
-	return token
-		.split(new RegExp(`(${escapedSeparators.join('|')})`, 'g'))
-		.filter(Boolean)
 }
 
 export const stringifySearchQuery = (params: SearchParam[]) => {

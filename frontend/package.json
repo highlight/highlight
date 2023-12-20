@@ -20,6 +20,7 @@
 		"@tanstack/react-virtual": "3.0.0-beta.52",
 		"@vanilla-extract/recipes": "^0.5.0",
 		"antd": "4.21.7",
+		"antlr4": "4.13.1-patch-1",
 		"clsx": "^1.2.1",
 		"color-hash": "^2.0.1",
 		"dexie": "^3.2.2",
@@ -72,24 +73,25 @@
 		"xss": "^1.0.14"
 	},
 	"scripts": {
+		"analyze": "source-map-explorer 'build/static/js/*.js'",
+		"build": "yarn types:check && NODE_OPTIONS='--max-old-space-size=16384' vite build",
+		"codegen": "graphql-codegen --config codegen.yml",
 		"dev": "run-p --print-label --race 'dev:**'",
 		"dev:vite": "vite",
 		"dev:reflame": "node scripts/reflame.mjs --watch",
 		"dev:tsm": "tsm src -w --logLevel=error",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
-		"codegen": "graphql-codegen --config codegen.yml",
-		"build": "yarn types:check && NODE_OPTIONS='--max-old-space-size=16384' vite build",
+		"generate:antlr": "antlr4 -Dlanguage=TypeScript ./src/components/Search/Parser/SearchGrammar.g4 && prettier --write ./src/components/Search/Parser/*.ts",
 		"reflame": "yarn dev:reflame",
 		"reflame-build": "node scripts/reflame.mjs",
 		"lint": "eslint ./src",
 		"lint:fix": "eslint ./src --fix",
 		"sourcemaps": "yarn exec ../sourcemap-uploader/dist/index.js upload --apiKey \"${HIGHLIGHT_API_KEY}\" --appVersion \"${APP_VERSION}\" --path ./build",
+		"svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && yarn lint:es",
 		"test": "TZ=UTC vitest --run",
 		"test:watch": "TZ=UTC vitest",
-		"types:check": "tsc -noEmit",
-		"analyze": "source-map-explorer 'build/static/js/*.js'",
-		"svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && yarn lint:es",
-		"typegen": "tsc"
+		"typegen": "tsc",
+		"types:check": "tsc -noEmit"
 	},
 	"browserslist": {
 		"production": [
@@ -146,6 +148,7 @@
 		"@vanilla-extract/esbuild-plugin": "^2.3.0",
 		"@vanilla-extract/vite-plugin": "^3.9.0",
 		"@vitejs/plugin-react-swc": "^3.3.2",
+		"antlr4ts-cli": "^0.5.0-alpha.4",
 		"autoprefixer": "^10.4.8",
 		"esbuild": "0.19.5",
 		"eslint": "^7.0.0",

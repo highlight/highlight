@@ -33,6 +33,7 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -41,13 +42,11 @@ import {
 	BODY_KEY,
 	DEFAULT_OPERATOR,
 	parseSearchQuery,
-	queryAsStringParams,
 	quoteQueryValue,
 	SearchParam,
-	SEPARATORS,
 	stringifySearchQuery,
-	tokenAsParts,
 } from '@/components/Search/SearchForm/utils'
+import { parseSearch, SearchToken } from '@/components/Search/utils'
 import {
 	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
@@ -236,8 +235,9 @@ export const Search: React.FC<{
 		fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
 
+	// TODO: Remove queryTerms and only use tokenGroups. See #7298 for details.
 	const queryTerms = parseSearchQuery(query)
-	const queryAsStringParts = queryAsStringParams(query)
+	const { tokenGroups } = parseSearch(query)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
@@ -374,9 +374,14 @@ export const Search: React.FC<{
 	}
 
 	const handleRemoveItem = (index: number) => {
-		const parts = [...queryAsStringParts]
-		parts.splice(index, 1)
-		const newQuery = parts.join(' ')
+		const groups = [...tokenGroups]
+		const hasTrailingWhitespace = groups[index + 1]?.[0]?.text.trim() === ''
+		const numItemsToRemove = hasTrailingWhitespace ? 2 : 1
+		groups.splice(index, numItemsToRemove)
+		const newQuery = groups
+			.flat()
+			.map((t) => t.text)
+			.join('')
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
@@ -410,7 +415,8 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
-					{queryAsStringParts.map((term, index) => {
+					{tokenGroups.map((group, index) => {
+						const term = group.map((token) => token.text).join('')
 						const nextIndex = currentIndex + term.length
 						const active =
 							cursorIndex >= currentIndex &&
@@ -423,6 +429,7 @@ export const Search: React.FC<{
 								term={term}
 								index={index}
 								active={active}
+								tokens={group}
 								onRemoveItem={handleRemoveItem}
 							/>
 						)
@@ -623,17 +630,20 @@ export const Search: React.FC<{
 	)
 }
 
+const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
+	name?.replaceAll("'", ''),
+)
+
 const TermTag: React.FC<{
 	active: boolean
 	index: number
 	term: string
+	tokens: SearchToken[]
 	onRemoveItem: (index: number) => void
-}> = ({ active, index, term, onRemoveItem }) => {
+}> = ({ active, index, term, tokens, onRemoveItem }) => {
 	if (term.trim().length === 0) {
 		return <span>{term}</span>
 	}
-
-	const parts = tokenAsParts(term)
 
 	return (
 		<>
@@ -650,22 +660,23 @@ const TermTag: React.FC<{
 					size={13}
 					onClick={() => onRemoveItem(index)}
 				/>
-				{parts.map((part, index) => {
-					const key = `${part}-${index}`
+				{tokens.map((token, index) => {
+					const { text } = token
+					const key = `${text}-${index}`
 
-					if (SEPARATORS.includes(part)) {
+					if (SEPARATORS.includes(text)) {
 						return (
 							<Box
 								key={key}
 								style={{ color: '#E93D82', zIndex: 1 }}
 							>
-								{part}
+								{text}
 							</Box>
 						)
 					} else {
 						return (
 							<Box key={key} style={{ zIndex: 1 }}>
-								{part}
+								{text}
 							</Box>
 						)
 					}

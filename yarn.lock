@@ -12333,6 +12333,8 @@ __metadata:
     "@vanilla-extract/vite-plugin": ^3.9.0
     "@vitejs/plugin-react-swc": ^3.3.2
     antd: 4.21.7
+    antlr4: 4.13.1-patch-1
+    antlr4ts-cli: ^0.5.0-alpha.4
     autoprefixer: ^10.4.8
     clsx: ^1.2.1
     color-hash: ^2.0.1
@@ -26756,6 +26758,24 @@ __metadata:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
   checksum: 99744b6769454f961e8332b571a1785c7c6d9e1c125dedaaa2314348faccda66dd48c2eec6bb9f71de5474b47ccf02cfed5132d29645b038b144c5701143669f
+  languageName: node
+  linkType: hard
+
+"antlr4@npm:4.13.1-patch-1":
+  version: 4.13.1-patch-1
+  resolution: "antlr4@npm:4.13.1-patch-1"
+  checksum: 7640a44f7ba75d15490838b908aa9e9b3b0d034c6a74ab589bb13a92904358bca7c4d9aff863dcccfc3b11c90492087e9aa8386ace3b84cc2299670e4fd2f39e
+  languageName: node
+  linkType: hard
+
+"antlr4ts-cli@npm:^0.5.0-alpha.4":
+  version: 0.5.0-dev
+  resolution: "antlr4ts-cli@npm:0.5.0-dev"
+  dependencies:
+    source-map-support: ^0.5.16
+  bin:
+    antlr4ts: antlr4ts
+  checksum: 09f743ddfc4365cfe3e5c04896006b5ff8470913fcc80d05e17ded72079b11c3ba54c3b19857014df14f33c110d46ce67507873406687c6dcc4a3d730c514bbc
   languageName: node
   linkType: hard
 
