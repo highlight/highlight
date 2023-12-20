@@ -1,7 +1,7 @@
 import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4'
 
-import SearchGrammarListener from '@/components/Search/Parser/SearchGrammarListener'
-import { Search_exprContext } from '@/components/Search/Parser/SearchGrammarParser'
+import SearchGrammarListener from '@/components/Search/Parser/antlr/SearchGrammarListener'
+import { Search_exprContext } from '@/components/Search/Parser/antlr/SearchGrammarParser'
 
 export type Expression = {
 	start: number

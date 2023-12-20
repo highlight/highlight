@@ -1,4 +1,4 @@
-// Generated from ./src/components/Search/Parser/SearchGrammar.g4 by ANTLR 4.13.1
+// Generated from ./antlr/SearchGrammar.g4 by ANTLR 4.13.1
 
 import { ParseTreeListener } from 'antlr4'
 

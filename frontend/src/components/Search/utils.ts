@@ -1,13 +1,13 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from 'antlr4'
 
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import {
 	Expression,
 	SearchErrorListener,
 	SearchListener,
 } from '@/components/Search/Parser/listener'
-import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
 
-import SearchGrammarLexer from './Parser/SearchGrammarLexer'
+import SearchGrammarLexer from './Parser/antlr/SearchGrammarLexer'
 
 // We don't have a type from the generated lexer for this token type, so create
 //

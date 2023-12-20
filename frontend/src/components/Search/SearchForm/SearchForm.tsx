@@ -33,7 +33,7 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
-import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import {
 	TIME_FORMAT,
 	TIME_MODE,

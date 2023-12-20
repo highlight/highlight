@@ -1,4 +1,4 @@
-import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { parseSearch, STRING_TYPE } from '@/components/Search/utils'
 
 describe('parseSearch', () => {
