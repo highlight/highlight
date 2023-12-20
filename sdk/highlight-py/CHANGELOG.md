@@ -57,3 +57,10 @@
 
 - Support tracing auto-instrumentation for the requests library.
 - Add `tracing_origins` configuration to pass X-Highlight-Request header to outgoing requests.
+
+## v0.6.9 (2023-12-19)
+
+### Fix
+
+- Add support for Python versions 3.9 and lower for sdk v0.6.8.
+- Optimization of LRU cache

@@ -30,7 +30,11 @@
 			"jsx": true
 		}
 	},
-	"ignorePatterns": ["src/graph/generated/*", "src/__generated/*"],
+	"ignorePatterns": [
+		"src/graph/generated/*",
+		"src/__generated/*",
+		"src/components/Search/Parser/*"
+	],
 	"rules": {
 		"@typescript-eslint/explicit-module-boundary-types": "off",
 		"react/no-unescaped-entities": "off",

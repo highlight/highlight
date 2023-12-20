@@ -12,8 +12,8 @@ class LRUCache:
     # don't find the key in out dict / cache.
     # And also move the key to the end
     # to show that it was recently used.
-    def get(self, key: int, default_value: tuple[str, str]) -> tuple[str, str]:
-        if key not in self.cache:
+    def get(self, key, default_value):
+        if not key or key not in self.cache:
             return default_value
         else:
             self.cache.move_to_end(key)
@@ -24,7 +24,10 @@ class LRUCache:
     # But here we will also check whether the length of our
     # ordered dictionary has exceeded our capacity,
     # If so we remove the first key (least recently used)
-    def put(self, key: int, value: tuple[str, str]) -> None:
+    def put(self, key, value) -> None:
+        if not key:
+            return
+
         self.cache[key] = value
         self.cache.move_to_end(key)
         if len(self.cache) > self.capacity:

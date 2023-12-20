@@ -2,7 +2,7 @@ import React, { ChangeEvent } from 'react';
 import { AsyncMultiSelect, AsyncSelect, InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource, bucketByOptions, columnOptions, metricOptions, tableOptions } from '../datasource';
-import { HighlightDataSourceOptions, HighlightQuery } from '../types';
+import { HighlightDataSourceOptions, HighlightQuery, Table } from '../types';
 
 type Props = QueryEditorProps<DataSource, HighlightQuery, HighlightDataSourceOptions>;
 
@@ -11,14 +11,14 @@ interface TraceKey {
   Type: 'String' | 'Numeric';
 }
 
-export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+export function QueryEditor({ query, onChange, datasource }: Props) {
   const { queryText, table, groupBy, metric, column, bucketBy, limitAggregator, limitColumn, limit } = query;
 
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, queryText: event.target.value });
   };
 
-  const onTableChange = (option: SelectableValue<string>) => {
+  const onTableChange = (option: SelectableValue<Table>) => {
     onChange({ ...query, table: option.value });
   };
 
@@ -50,13 +50,13 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     onChange({ ...query, limit: Number(event.target.value) });
   };
 
-  const loadColumnOptions = async (query: string) => {
-    let keys: TraceKey[] = await datasource.getResource('traces-keys', { query, type: 'Numeric' });
-    return columnOptions.concat(keys.map((k) => ({ value: k.Name, label: k.Name })));
+  const loadColumnOptions = async (table: Table | undefined, query: string) => {
+    let keys: TraceKey[] = await datasource.getResource(`${table}-keys`, { query, type: 'Numeric' });
+    return (table === 'traces' ? columnOptions : []).concat(keys.map((k) => ({ value: k.Name, label: k.Name })));
   };
 
-  const loadGroupByOptions = async (query: string) => {
-    let keys: TraceKey[] = await datasource.getResource('traces-keys', { query, type: 'String' });
+  const loadGroupByOptions = async (table: Table | undefined, query: string) => {
+    let keys: TraceKey[] = await datasource.getResource(`${table}-keys`, { query, type: 'String' });
     return keys.map((k) => ({ value: k.Name, label: k.Name }));
   };
 
@@ -69,15 +69,20 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Function" labelWidth={10}>
-          <Select value={metric} onChange={onMetricChange} options={metricOptions} />
+          <Select
+            value={metric}
+            onChange={onMetricChange}
+            options={metricOptions.filter((o) => o.tables.includes(table ?? 'traces'))}
+          />
         </InlineField>
         {metric !== undefined && metric !== 'Count' && (
           <InlineField>
             <AsyncSelect
+              key={table}
               defaultOptions
               value={{ name: column, label: column }}
               onChange={onColumnChange}
-              loadOptions={loadColumnOptions}
+              loadOptions={(q) => loadColumnOptions(table, q)}
             />
           </InlineField>
         )}
@@ -90,11 +95,11 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
       <InlineFieldRow>
         <InlineField label="Group by" labelWidth={10}>
           <AsyncMultiSelect
+            key={table}
             defaultOptions
             value={groupBy?.map((g) => ({ name: g, label: g }))}
             onChange={onGroupByChange}
-            loadOptions={loadGroupByOptions}
-            isMulti
+            loadOptions={(q) => loadGroupByOptions(table, q)}
           />
         </InlineField>
         {groupBy !== undefined && groupBy.length > 0 && (
@@ -108,10 +113,11 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
             {limitAggregator !== undefined && limitAggregator !== 'Count' && (
               <InlineField>
                 <AsyncSelect
+                  key={table}
                   defaultOptions
                   value={{ name: limitColumn, label: limitColumn }}
                   onChange={onLimitColumnChange}
-                  loadOptions={loadColumnOptions}
+                  loadOptions={(q) => loadGroupByOptions(table, q)}
                 />
               </InlineField>
             )}

@@ -65,6 +65,14 @@ var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	attributesColumn: "LogAttributes",
 }
 
+var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{
+	tableConfig:         logsTableConfig,
+	samplingTableConfig: logsSamplingTableConfig,
+	useSampling: func(d time.Duration) bool {
+		return d >= 24*time.Hour
+	},
+}
+
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
 	if len(logRows) == 0 {
 		return nil
@@ -429,6 +437,10 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	histogram.SampleFactor = sampleFactor
 
 	return histogram, err
+}
+
+func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readMetrics(ctx, client, logsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {

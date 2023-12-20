@@ -4905,13 +4905,13 @@ export type GetTracesMetricsQueryVariables = Types.Exact<{
 }>
 
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
-	traces_metrics: { __typename?: 'TracesMetrics' } & Pick<
-		Types.TracesMetrics,
+	traces_metrics: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
 		'bucket_count' | 'sample_factor'
 	> & {
 			buckets: Array<
-				{ __typename?: 'TracesMetricBucket' } & Pick<
-					Types.TracesMetricBucket,
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
 					'bucket_id' | 'group' | 'metric_type' | 'metric_value'
 				>
 			>

@@ -2447,6 +2447,14 @@ func (r *Resolver) MoveSessionDataToStorage(ctx context.Context, sessionId int, 
 	return nil
 }
 
+// Returns a variable processing delay based on the session's last processing time
+func getSessionProcessingDelaySeconds(timeElapsed time.Duration) int {
+	if timeElapsed >= time.Minute {
+		return 600 // 10 minutes
+	}
+	return SessionProcessDelaySeconds
+}
+
 func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
 	redisSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
 		util.ResourceName("go.parseEvents.processWithRedis"), util.Tag("project_id", projectId), util.Tag("payload_type", payloadType))
@@ -2467,6 +2475,26 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	}
 
 	return nil
+}
+
+type PushPayloadMessages struct {
+	Messages []*hlog.Message `json:"messages"`
+}
+
+type PushPayloadResources struct {
+	Resources []*any `json:"resources"`
+}
+
+type PushPayloadWebSocketEvents struct {
+	WebSocketEvents []*any `json:"webSocketEvents"`
+}
+
+type PushPayloadChunk struct {
+	events          []*publicModel.ReplayEventInput
+	errors          []*publicModel.ErrorObjectInput
+	logRows         []*hlog.Message
+	resources       []*any
+	websocketEvents []*any
 }
 
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
@@ -2858,11 +2886,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	defer updateSpan.Finish()
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
+	elapsedSinceUpdate := time.Hour
+	if sessionObj.PayloadUpdatedAt != nil {
+		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
+	}
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
-		now.Sub(*sessionObj.PayloadUpdatedAt) > 15*time.Second ||
+		elapsedSinceUpdate > 15*time.Second ||
 		beaconTime != nil ||
 		hasSessionUnloaded != sessionObj.HasUnloaded ||
 		(sessionObj.Processed != nil && *sessionObj.Processed) ||
@@ -2927,7 +2959,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	if !excluded {
-		if err := r.Redis.AddSessionToProcess(ctx, sessionID, SessionProcessDelaySeconds); err != nil {
+		processingDelay := getSessionProcessingDelaySeconds(elapsedSinceUpdate)
+		if err := r.Redis.AddSessionToProcess(ctx, sessionID, processingDelay); err != nil {
 			return err
 		}
 	}

@@ -327,16 +327,31 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	assert.Len(t, payload.Edges, 50)
 	assert.False(t, payload.PageInfo.HasNextPage)
 
-	// Add more more row to have 101 rows
-	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{
-		NewLogRow(now, 1),
-	}))
+	// Add another row to have >50 rows
+	assert.NoError(t, client.BatchWriteLogRows(ctx, []*LogRow{NewLogRow(now, 1)}))
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{})
 	assert.NoError(t, err)
 
+	assert.Len(t, payload.Edges, 50)
+	assert.True(t, payload.PageInfo.HasNextPage)
+
+	// We had a bug where we could potentially return >50 rows if there were
+	// duplicate in the result set. This test repro'd that bug.
+	duplicateLogRows := []*LogRow{}
+	duplicateLogRows = append(duplicateLogRows, rows[0])
+	duplicateLogRows = append(duplicateLogRows, rows[2])
+	duplicateLogRows = append(duplicateLogRows, rows[4])
+	assert.NoError(t, client.BatchWriteLogRows(ctx, duplicateLogRows))
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+	}, Pagination{After: &payload.Edges[0].Cursor})
+	assert.NoError(t, err)
+
+	assert.Len(t, payload.Edges, 50)
 	assert.True(t, payload.PageInfo.HasNextPage)
 }
 

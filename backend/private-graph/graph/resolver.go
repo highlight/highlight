@@ -3209,12 +3209,12 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	metrics, err := ccClient.ReadTracesMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, string(modelInputs.TracesMetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, numBuckets, string(modelInputs.TracesMetricBucketByTimestamp), nil, nil, nil)
+	}, string(modelInputs.MetricColumnMetricValue), []modelInputs.MetricAggregator{agg}, params.Groups, numBuckets, string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 	bucketLength := params.DateRange.EndDate.Sub(params.DateRange.StartDate) / numBuckets
-	return lo.Map(metrics.Buckets, func(item *modelInputs.TracesMetricBucket, index int) *modelInputs.DashboardPayload {
+	return lo.Map(metrics.Buckets, func(item *modelInputs.MetricBucket, index int) *modelInputs.DashboardPayload {
 		var group *string
 		if len(item.Group) > 0 {
 			group = pointy.String(strings.Join(item.Group, "-"))
