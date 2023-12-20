@@ -37,8 +37,7 @@ export const parseSearch = (input: string) => {
 
 	return {
 		queryParts,
-		tokens: tokens.tokens,
-		tokenGroups: groupTokens(tokens.tokens, queryParts),
+		tokenGroups: groupTokens(tokens.tokens, queryParts, input),
 	}
 }
 
@@ -49,7 +48,11 @@ export type SearchToken = {
 	stop: number
 }
 
-export const groupTokens = (tokens: Token[], expressions: Expression[]) => {
+export const groupTokens = (
+	tokens: Token[],
+	expressions: Expression[],
+	query: string,
+) => {
 	const groupedTokens: {
 		[start: number]: {
 			tokens: SearchToken[]
@@ -70,7 +73,7 @@ export const groupTokens = (tokens: Token[], expressions: Expression[]) => {
 			const whitespaceStop = whitespaceStart + whitespaceLength
 			const whitespaceToken = {
 				type: 100,
-				text: ' '.repeat(whitespaceLength),
+				text: query.substring(whitespaceStart, whitespaceStop),
 				start: whitespaceStart,
 				stop: whitespaceStop,
 			}

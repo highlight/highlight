@@ -150,16 +150,8 @@ describe('groupTokens', () => {
 				{
 					type: STRING_TYPE,
 					start: 109,
-					stop: 110,
-					text: ' ',
-				},
-			],
-			[
-				{
-					type: SearchGrammarParser.DQUOTE,
-					start: 110,
-					stop: 110,
-					text: '"',
+					stop: 111,
+					text: ' "',
 				},
 			],
 		])

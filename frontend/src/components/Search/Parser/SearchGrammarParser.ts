@@ -41,11 +41,9 @@ export default class SearchGrammarParser extends Parser {
 	public static readonly LPAREN = 10
 	public static readonly RPAREN = 11
 	public static readonly COLON = 12
-	public static readonly DQUOTE = 13
-	public static readonly SQUOTE = 14
-	public static readonly ID = 15
-	public static readonly STRING = 16
-	public static readonly WS = 17
+	public static readonly ID = 13
+	public static readonly STRING = 14
+	public static readonly WS = 15
 	public static readonly EOF = Token.EOF
 	public static readonly RULE_search_query = 0
 	public static readonly RULE_col_expr = 1
@@ -66,8 +64,6 @@ export default class SearchGrammarParser extends Parser {
 		"'('",
 		"')'",
 		"':'",
-		"'\"'",
-		"'''",
 	]
 	public static readonly symbolicNames: (string | null)[] = [
 		null,
@@ -83,8 +79,6 @@ export default class SearchGrammarParser extends Parser {
 		'LPAREN',
 		'RPAREN',
 		'COLON',
-		'DQUOTE',
-		'SQUOTE',
 		'ID',
 		'STRING',
 		'WS',
@@ -150,8 +144,8 @@ export default class SearchGrammarParser extends Parser {
 					break
 				case 3:
 				case 10:
-				case 15:
-				case 16:
+				case 13:
+				case 14:
 					this.enterOuterAlt(localctx, 2)
 					{
 						this.state = 11
@@ -225,13 +219,13 @@ export default class SearchGrammarParser extends Parser {
 							this.col_expr(3)
 						}
 						break
-					case 16:
+					case 14:
 						{
 							this.state = 23
 							this.match(SearchGrammarParser.STRING)
 						}
 						break
-					case 15:
+					case 13:
 						{
 							this.state = 24
 							this.match(SearchGrammarParser.ID)
@@ -635,7 +629,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 
 	public static readonly _serializedATN: number[] = [
-		4, 1, 17, 74, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 15, 74, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 1, 0, 1, 0, 1, 0, 1, 0, 3, 0, 15, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 26, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 5, 1, 34, 8, 1, 10, 1, 12, 1, 37, 9, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,
@@ -648,7 +642,7 @@ export default class SearchGrammarParser extends Parser {
 		0, 14, 10, 1, 0, 0, 0, 14, 11, 1, 0, 0, 0, 15, 1, 1, 0, 0, 0, 16, 17, 6,
 		1, -1, 0, 17, 18, 5, 10, 0, 0, 18, 19, 3, 2, 1, 0, 19, 20, 5, 11, 0, 0,
 		20, 26, 1, 0, 0, 0, 21, 22, 5, 3, 0, 0, 22, 26, 3, 2, 1, 3, 23, 26, 5,
-		16, 0, 0, 24, 26, 5, 15, 0, 0, 25, 16, 1, 0, 0, 0, 25, 21, 1, 0, 0, 0,
+		14, 0, 0, 24, 26, 5, 13, 0, 0, 25, 16, 1, 0, 0, 0, 25, 21, 1, 0, 0, 0,
 		25, 23, 1, 0, 0, 0, 25, 24, 1, 0, 0, 0, 26, 35, 1, 0, 0, 0, 27, 28, 10,
 		5, 0, 0, 28, 29, 5, 1, 0, 0, 29, 34, 3, 2, 1, 6, 30, 31, 10, 4, 0, 0,
 		31, 32, 5, 2, 0, 0, 32, 34, 3, 2, 1, 5, 33, 27, 1, 0, 0, 0, 33, 30, 1,
@@ -664,7 +658,7 @@ export default class SearchGrammarParser extends Parser {
 		4, 2, 6, 61, 62, 10, 4, 0, 0, 62, 63, 5, 2, 0, 0, 63, 65, 3, 4, 2, 5,
 		64, 56, 1, 0, 0, 0, 64, 59, 1, 0, 0, 0, 64, 61, 1, 0, 0, 0, 65, 68, 1,
 		0, 0, 0, 66, 64, 1, 0, 0, 0, 66, 67, 1, 0, 0, 0, 67, 5, 1, 0, 0, 0, 68,
-		66, 1, 0, 0, 0, 69, 70, 5, 15, 0, 0, 70, 7, 1, 0, 0, 0, 71, 72, 7, 0, 0,
+		66, 1, 0, 0, 0, 69, 70, 5, 13, 0, 0, 70, 7, 1, 0, 0, 0, 71, 72, 7, 0, 0,
 		0, 72, 9, 1, 0, 0, 0, 7, 14, 25, 33, 35, 54, 64, 66,
 	]
 
