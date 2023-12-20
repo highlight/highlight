@@ -8,31 +8,40 @@ import { statfsSync } from 'node:fs'
 export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,
 ) {
-	const pgClient = new Client({
-		user: 'postgres',
-		database: 'postgres',
-		port: 5432,
-		host: 'localhost',
-	})
-	await pgClient.connect()
+	const { searchParams } = new URL(request.url)
+	const sql = z.enum(['true', 'false']).parse(searchParams.get('sql'))
+	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
+	let result: { rows: { message: string }[] } = { rows: [{ message: '' }] }
 
-	const result = await pgClient.query('SELECT $1::text as message', [
-		'Hello world!',
-	])
-	await pgClient.end()
+	console.info('Here: /api/app-router-test/route.ts 💘💘💘', { sql, success })
 
-	for (let i = 0; i < 3; i++) {
+	if (sql === 'true') {
 		try {
-			statfsSync(`/tmp/${i}`)
+			console.info('😇 Connecting to Postgres...')
+			const pgClient = new Client({
+				user: 'postgres',
+				database: 'postgres',
+				port: 5432,
+				host: 'localhost',
+			})
+			await pgClient.connect()
+
+			result = await pgClient.query('SELECT $1::text as message', [
+				'Hello world!',
+			])
+			await pgClient.end()
+
+			for (let i = 0; i < 3; i++) {
+				try {
+					statfsSync(`/tmp/${i}`)
+				} catch (e) {
+					console.error(e)
+				}
+			}
 		} catch (e) {
 			console.error(e)
 		}
 	}
-
-	const { searchParams } = new URL(request.url)
-	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
-
-	console.info('Here: /api/app-router-test/route.ts 💘💘💘', { success })
 
 	if (success === 'true') {
 		return new Response(
@@ -42,6 +51,7 @@ export const GET = withAppRouterHighlight(async function GET(
 			}),
 		)
 	} else {
+		console.log('Error: /api/app-router-test (App Router)')
 		throw new Error('Error: /api/app-router-test (App Router)')
 	}
 })

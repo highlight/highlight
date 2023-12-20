@@ -129,13 +129,18 @@ const makeHandler = (
 		}
 		const headers = headersExtractor(args)
 		try {
-			return await H.runWithHeaders(headers, async () => {
-				return await origHandler(...args)
-			})
+			if (headers) {
+				return H.runWithHeaders(headers, async () =>
+					origHandler(...args),
+				)
+			} else {
+				return origHandler(...args)
+			}
 		} catch (e) {
 			try {
 				if (e instanceof Error) {
 					processErrorImpl(options, { headers }, e, metadata)
+
 					await H.flush()
 				}
 			} catch (e) {

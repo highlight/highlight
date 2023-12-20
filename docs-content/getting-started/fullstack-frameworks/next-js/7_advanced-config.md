@@ -33,6 +33,35 @@ all-in-one.
 
 Configure logging for your serverless cloud provider using one of our [cloud provider logging guides](https://www.highlight.io/docs/getting-started/backend-logging/hosting/overview), including [Vercel Log Drain for Highlight](https://vercel.com/integrations/highlight).
 
+## Custom Spans
+
+Follow the [Next.js Open Telemetry docs](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#custom-spans) to use custom span.
+
+Here's a quick example:
+
+```typescript
+// pages/api/page-router-trace.ts
+import { NextApiRequest, NextApiResponse } from 'next'
+
+import { withPageRouterHighlight } from '@/app/_utils/page-router-highlight.config'
+import { H } from '@highlight-run/next/server'
+
+export default withPageRouterHighlight(async function handler(
+	req: NextApiRequest,
+	res: NextApiResponse,
+) {
+	return new Promise<void>(async (resolve) => {
+		const span = await H.startActiveSpan('page-router-span', {})
+
+		console.info('Here: /pages/api/page-router-trace.ts ⌚⌚⌚')
+
+		res.send(`Trace sent! Check out this random number: ${Math.random()}`)
+		span.end()
+		resolve()
+	})
+})
+```
+
 ## Environment variables
 
 > This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing and replace our imports (`import { CONSTANTS } from 'src/constants'`) with your own!

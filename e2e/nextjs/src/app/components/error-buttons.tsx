@@ -39,7 +39,30 @@ export function ErrorButtons() {
 				>
 					Trigger promise error
 				</Button>
+
 				<hr />
+
+				<Button
+					onClick={() =>
+						fetch('/api/page-router-trace')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					Page Router: Trigger Trace
+				</Button>
+				<Button
+					onClick={() =>
+						fetch('/api/app-router-trace')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					App Router: Trigger Trace
+				</Button>
+
+				<hr />
+
 				<Button
 					onClick={() =>
 						fetch('/api/page-router-test?success=true')
@@ -76,10 +99,12 @@ export function ErrorButtons() {
 				>
 					Pages Api (Edge): Error&nbsp;&nbsp;&nbsp;
 				</Button>
+
 				<hr />
+
 				<Button
 					onClick={() =>
-						fetch('/api/app-router-test?success=true')
+						fetch('/api/app-router-test?success=true&sql=true')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}
@@ -88,7 +113,7 @@ export function ErrorButtons() {
 				</Button>
 				<Button
 					onClick={() =>
-						fetch('/api/app-router-test?success=false')
+						fetch('/api/app-router-test?success=false&sql=false')
 							.then((res) => res.text())
 							.then((data) => console.log(data))
 					}

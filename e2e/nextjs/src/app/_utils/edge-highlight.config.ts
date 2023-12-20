@@ -7,6 +7,7 @@ const env: HighlightEnv = {
 	serviceName: 'vercel-edge',
 	environment: 'e2e-test',
 	enableFsInstrumentation: true,
+	disableConsoleRecording: true,
 }
 
 export const withEdgeHighlight = EdgeHighlight(env)
