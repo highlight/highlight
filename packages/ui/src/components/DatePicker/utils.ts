@@ -13,37 +13,49 @@ const subtractHours = (date: Date, hours: number) => {
 	return newDate
 }
 
+export type TimePreset = {
+	unit: moment.DurationInputArg2
+	value: number
+}
+
+export const DEFAULT_TIME_PRESETS: TimePreset[] = [
+	{
+		unit: 'minutes',
+		value: 15,
+	},
+	{
+		unit: 'minutes',
+		value: 60,
+	},
+	{
+		unit: 'hours',
+		value: 4,
+	},
+	{
+		unit: 'hours',
+		value: 24,
+	},
+	{
+		unit: 'days',
+		value: 7,
+	},
+	{
+		unit: 'days',
+		value: 30,
+	},
+]
+
 let now = moment()
 export const getNow = () => now.clone()
 export let defaultPresets: Preset[] = []
 export function resetRelativeDates() {
 	now = moment()
-	defaultPresets = [
-		{
-			label: 'Last 15 minutes',
-			startDate: getNow().subtract(15, 'minutes').toDate(),
-		},
-		{
-			label: 'Last 60 minutes',
-			startDate: getNow().subtract(60, 'minutes').toDate(),
-		},
-		{
-			label: 'Last 4 hours',
-			startDate: getNow().subtract(4, 'hours').toDate(),
-		},
-		{
-			label: 'Last 24 hours',
-			startDate: getNow().subtract(24, 'hours').toDate(),
-		},
-		{
-			label: 'Last 7 days',
-			startDate: getNow().subtract(7, 'days').toDate(),
-		},
-		{
-			label: 'Last 30 days',
-			startDate: getNow().subtract(30, 'days').toDate(),
-		},
-	]
+	defaultPresets = DEFAULT_TIME_PRESETS.map(({ unit, value }) => ({
+		label: `Last ${value} ${unit}`,
+		startDate: getNow().subtract(value, unit).toDate(),
+		unit: unit,
+		value: value,
+	}))
 }
 resetRelativeDates()
 

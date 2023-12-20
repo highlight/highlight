@@ -54,6 +54,7 @@ import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
+import { useSearchTime } from '@/hooks/useSearchTime'
 
 import * as styles from './SearchForm.css'
 
@@ -102,8 +103,6 @@ export type SearchFormProps = {
 
 const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
-	startDate,
-	endDate,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	onDatesChange,
@@ -120,7 +119,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
 
-	const [dateRange, setDateRange] = useState<Date[]>([startDate, endDate])
+	const { startDate, endDate, relativeTime, updateSearchTime } =
+		useSearchTime()
+
+	// relative -> relative_time=last_24_hours
+	// absolute -> end_date=[end_date]&start_date=[start_date]
+	// relative, ignore absolute -> end_date=[end_date]&start_date=[start_date]&relative_time=last_24_hours
 
 	const handleDatesChange = (dates: Date[]) => {
 		setDateRange(dates)

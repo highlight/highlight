@@ -18,8 +18,9 @@ import { TimeInput } from './TimeInput'
 import { DateInput } from './DateInput'
 import { Form } from '../Form/Form'
 import * as Ariakit from '@ariakit/react'
+import { TimePreset } from './utils'
 
-export { defaultPresets, getNow, resetRelativeDates } from './utils'
+export { defaultPresets, getNow, resetRelativeDates, TimePreset } from './utils'
 
 const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
 const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'
@@ -185,7 +186,11 @@ export const getLabel = ({
 
 type Props = {
 	selectedDates: Date[]
-	onDatesChange: (selectedDates: Date[]) => void
+	onDatesChange: (
+		startDate: Date | null,
+		endDate: Date | null,
+		relativeTime: TimePreset | null,
+	) => void
 	presets: Preset[]
 	minDate: Date
 	noCustom?: boolean
@@ -284,10 +289,14 @@ const PreviousDateRangePickerImpl = ({
 		setShowingTime((prevShowingTime) => !prevShowingTime)
 	}
 
-	const handleDatesChange = (dates: Date[]) => {
-		onDatesChange(dates)
+	const handleDatesChange = (
+		startDate: Date | null,
+		endDate: Date | null,
+		preset: TimePreset | null,
+	) => {
+		onDatesChange(startDate, endDate, preset)
 
-		if (dates.length == 2) {
+		if (startDate && endDate) {
 			menu.setOpen(false)
 			setMenuState(MenuState.Default)
 		}
@@ -306,9 +315,7 @@ const PreviousDateRangePickerImpl = ({
 
 		if (isValidDateInput) {
 			const newDate = moment(value).toDate()
-			const newDates = [newDate, selectedDates[1]]
-
-			onDatesChange(newDates)
+			onDatesChange(newDate, selectedDates[1], null)
 		}
 	}
 
@@ -327,9 +334,7 @@ const PreviousDateRangePickerImpl = ({
 
 		if (isValidDateInput) {
 			const newDate = moment(value).toDate()
-			const newDates = [selectedDates[0], newDate]
-
-			onDatesChange(newDates)
+			onDatesChange(selectedDates[0], newDate, null)
 		}
 	}
 
@@ -363,7 +368,7 @@ const PreviousDateRangePickerImpl = ({
 				timeInfo.minute,
 			)
 
-			onDatesChange([startDate, selectedDates[1]])
+			onDatesChange(startDate, selectedDates[1], null)
 
 			return
 		}
@@ -382,7 +387,7 @@ const PreviousDateRangePickerImpl = ({
 			timeInfo.minute,
 		)
 
-		onDatesChange([selectedDates[0], endDate])
+		onDatesChange(selectedDates[0], endDate, null)
 	}
 
 	useEffect(() => {
@@ -402,7 +407,7 @@ const PreviousDateRangePickerImpl = ({
 		<DatePickerStateProvider
 			config={{
 				selectedDates,
-				onDatesChange: handleDatesChange,
+				// onDatesChange: handleDatesChange,
 				dates: { mode: 'range', minDate, maxDate: new Date() },
 			}}
 		>
@@ -427,10 +432,7 @@ const PreviousDateRangePickerImpl = ({
 									onClick={(e) => {
 										e.preventDefault()
 										e.stopPropagation()
-										handleDatesChange([
-											preset.startDate,
-											now,
-										])
+										handleDatesChange(null, null, preset)
 									}}
 								>
 									<Stack

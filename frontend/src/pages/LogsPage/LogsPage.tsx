@@ -64,6 +64,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
 		startDateDefault,
