@@ -17,6 +17,7 @@ import { vars } from '../../css/vars'
 import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
+import type { ComponentTest } from '@reflame/testing'
 
 type Option = {
 	key: string
@@ -209,7 +210,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	)
 }
 
-export const ComboboxSelect_test = () => {
+export const ComboboxSelect_test: ComponentTest = () => {
 	const [value, setValue] = useState('')
 	const options = [
 		{ key: 'red', render: 'Red' },
@@ -232,12 +233,7 @@ export const ComboboxSelect_test = () => {
 	)
 }
 
-// Will add a TS type package for this stuff soon!
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 ComboboxSelect_test.run = async ({ step }) => {
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
 	await step('open dialog', async ({ screen, user }) => {
 		const combobox = await screen.findByRole('combobox')
 		await user.click(combobox)
@@ -249,8 +245,6 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
 	await step('enter filter text', async ({ screen, user }) => {
 		const filterInput = await screen.findByPlaceholderText('Filter...')
 		await user.type(filterInput, 're')
@@ -261,8 +255,6 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
 	await step('select option', async ({ screen, user }) => {
 		const redOption = await screen.findByText('Red')
 		await user.click(redOption)
