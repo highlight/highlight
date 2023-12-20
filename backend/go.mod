@@ -26,6 +26,8 @@ require (
 	github.com/DmitriyVTitov/size v1.1.0
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.0.6
+	github.com/antlr4-go/antlr v0.0.0-20230518091524-98b52378c522
+	github.com/antlr4-go/antlr/v4 v4.13.0
 	github.com/aws/aws-sdk-go-v2 v1.16.15
 	github.com/aws/aws-sdk-go-v2/config v1.8.3
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5
@@ -211,7 +213,7 @@ require (
 	github.com/tdewolff/parse v2.3.4+incompatible
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
-	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea
+	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
