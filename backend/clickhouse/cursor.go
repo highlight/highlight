@@ -47,18 +47,18 @@ func getConnection[T interface{}](edges []*Edge[T], pagination Pagination) *Conn
 		}
 	} else if pagination.After != nil && len(*pagination.After) > 1 {
 		hasPreviousPage = true // implicitly true because the passed in cursor should match
-		if len(edges) == LogsLimit+1 {
+		if len(edges) >= LogsLimit+1 {
 			hasNextPage = true
 			edges = edges[:len(edges)-1]
 		}
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
 		hasNextPage = true // implicitly true because the passed in cursor should match
-		if len(edges) == LogsLimit+1 {
+		if len(edges) >= LogsLimit+1 {
 			hasPreviousPage = true
 			edges = edges[1 : len(edges)-1]
 		}
 	} else {
-		if len(edges) == LogsLimit+1 { // has forward page
+		if len(edges) >= LogsLimit+1 { // has forward page
 			hasNextPage = len(edges) == LogsLimit+1
 			edges = edges[:LogsLimit]
 		}
