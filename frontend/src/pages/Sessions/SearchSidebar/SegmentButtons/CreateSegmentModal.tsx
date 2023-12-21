@@ -1,4 +1,4 @@
-import { SavedSegmentModal } from '@components/SavedSegmentModal/SavedSegmentModal'
+import { SavedSegmentModal } from '@components/SegmentModals/SavedSegmentModal'
 import { useCreateSegmentMutation, useEditSegmentMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Maybe, Segment } from '@graph/schemas'
@@ -54,7 +54,7 @@ const CreateSegmentModal: React.FC<Props> = ({
 					project_id,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					params: { query: queryWithoutTimeRange },
+					query: queryWithoutTimeRange,
 				},
 				onCompleted: () => {
 					message.success(
@@ -78,7 +78,7 @@ const CreateSegmentModal: React.FC<Props> = ({
 				variables: {
 					project_id,
 					name: newSegmentName,
-					params: { query: queryWithoutTimeRange },
+					query: queryWithoutTimeRange,
 				},
 				refetchQueries: [namedOperations.Query.GetSegments],
 				onCompleted: (r) => {

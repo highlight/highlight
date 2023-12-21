@@ -7,10 +7,11 @@ import React, { useEffect, useState } from 'react'
 
 import { Segment } from '@/graph/generated/schemas'
 
+import { ContextType } from '../utils'
 import * as styles from './style.css'
 
 interface Props {
-	context: 'Session' | 'Error'
+	context: ContextType
 	currentSegment?: Maybe<Pick<Segment, 'id' | 'name'>>
 	loading: boolean
 	onHideModal: () => void

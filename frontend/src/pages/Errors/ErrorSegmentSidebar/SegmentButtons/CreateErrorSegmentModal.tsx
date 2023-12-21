@@ -1,4 +1,4 @@
-import { SavedSegmentModal } from '@components/SavedSegmentModal/SavedSegmentModal'
+import { SavedSegmentModal } from '@components/SegmentModals/SavedSegmentModal'
 import {
 	useCreateErrorSegmentMutation,
 	useEditErrorSegmentMutation,
@@ -66,7 +66,7 @@ const CreateErrorSegmentModal = ({
 					project_id: project_id!,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					params: { query: queryWithoutTimeRange },
+					query: queryWithoutTimeRange,
 				},
 				onCompleted: () => {
 					message.success(
@@ -90,7 +90,7 @@ const CreateErrorSegmentModal = ({
 				variables: {
 					project_id: project_id!,
 					name: newSegmentName,
-					params: { query: searchQuery },
+					query: searchQuery,
 				},
 				refetchQueries: [namedOperations.Query.GetErrorSegments],
 				onCompleted: (r) => {
