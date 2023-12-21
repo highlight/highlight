@@ -1607,7 +1607,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 				removeSelectedSegment()
 			}
 		}
-	}, [removeSelectedSegment, setDefault, selectedSegment, readonly])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
