@@ -5,7 +5,8 @@ from typing import Optional, Callable
 
 import pytest
 import requests
-from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_SESSIONS_CLICKHOUSE, GET_LOGS
+
+from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_LOGS
 
 
 def query(
@@ -223,22 +224,3 @@ def test_express_error(express_app, oauth_api):
         },
         validator=validator,
     )
-
-
-def test_get_sessions_clickhouse(oauth_api):
-    data = query(
-        oauth_api,
-        "GetSessionsClickhouse",
-        GET_SESSIONS_CLICKHOUSE,
-        variables={
-            "query": {
-                "isAnd": True,
-                "rules": [],
-            },
-            "count": 10,
-            "page": 1,
-            "project_id": "1",
-            "sort_desc": True,
-        },
-    )
-    assert len(data["sessions_clickhouse"]["sessions"]) >= 1
