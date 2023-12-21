@@ -21,8 +21,8 @@ import QueryBuilder, {
 	SelectOption,
 	TIME_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
-import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
-import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
+import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
+import { DeleteSessionSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/DeleteSessionSegmentModal'
 
 export const InitialSearchParamsForUrl = {
 	browser: undefined,

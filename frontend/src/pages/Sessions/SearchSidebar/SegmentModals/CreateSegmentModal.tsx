@@ -20,7 +20,7 @@ interface Props {
 	currentSegment?: Maybe<Pick<Segment, 'id' | 'name'>>
 }
 
-const CreateSegmentModal: React.FC<Props> = ({
+export const CreateSegmentModal: React.FC<Props> = ({
 	showModal,
 	timeRangeField,
 	onHideModal,
@@ -116,5 +116,3 @@ const CreateSegmentModal: React.FC<Props> = ({
 		/>
 	)
 }
-
-export default CreateSegmentModal
