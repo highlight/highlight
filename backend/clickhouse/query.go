@@ -301,7 +301,7 @@ func makeAntlrSelectBuilder[T ~string](
 			value := strings.ReplaceAll(filter.Value[0], "*", "%")
 			sb.Where(sb.Like(filterKey, value))
 		} else if filter.Op == "!=" {
-			sb.Where(sb.NotEqual(filterKey, filter.Value))
+			sb.Where(sb.NotIn(filterKey, filter.Value))
 		} else if filter.Op == ">=" {
 			sb.Where(sb.GreaterEqualThan(filterKey, filter.Value[0]))
 		} else if filter.Op == "<=" {
@@ -311,7 +311,7 @@ func makeAntlrSelectBuilder[T ~string](
 		} else if filter.Op == "<" {
 			sb.Where(sb.LessThan(filterKey, filter.Value[0]))
 		} else if filter.Op == "=" || filter.Op == ":" {
-			sb.Where(sb.Equal(filterKey, filter.Value))
+			sb.Where(sb.In(filterKey, filter.Value))
 		} else {
 			return nil, fmt.Errorf("unsupported operator: %s", filter.Op)
 		}
