@@ -5184,7 +5184,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSavedSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["entityType"].(model.SavedSearchEntityType), args["query"].(string)), true
+		return e.complexity.Mutation.CreateSavedSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSearchEntityType), args["query"].(string)), true
 
 	case "Mutation.createSegment":
 		if e.complexity.Mutation.CreateSegment == nil {
@@ -5460,7 +5460,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditSavedSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["name"].(string), args["entityType"].(model.SavedSearchEntityType), args["query"].(string)), true
+		return e.complexity.Mutation.EditSavedSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSearchEntityType), args["query"].(string)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -12736,14 +12736,14 @@ type Mutation {
 	createSavedSegment(
 		project_id: ID!
 		name: String!
-		entityType: SavedSearchEntityType!
+		entity_type: SavedSearchEntityType!
 		query: String!
 	): SavedSegment
 	editSavedSegment(
 		id: ID!
 		project_id: ID!
 		name: String!
-		entityType: SavedSearchEntityType!
+		entity_type: SavedSearchEntityType!
 		query: String!
 	): Boolean
 	deleteSavedSegment(segment_id: ID!): Boolean
@@ -13851,14 +13851,14 @@ func (ec *executionContext) field_Mutation_createSavedSegment_args(ctx context.C
 	}
 	args["name"] = arg1
 	var arg2 model.SavedSearchEntityType
-	if tmp, ok := rawArgs["entityType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entityType"))
+	if tmp, ok := rawArgs["entity_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
 		arg2, err = ec.unmarshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["entityType"] = arg2
+	args["entity_type"] = arg2
 	var arg3 string
 	if tmp, ok := rawArgs["query"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
@@ -14727,14 +14727,14 @@ func (ec *executionContext) field_Mutation_editSavedSegment_args(ctx context.Con
 	}
 	args["name"] = arg2
 	var arg3 model.SavedSearchEntityType
-	if tmp, ok := rawArgs["entityType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entityType"))
+	if tmp, ok := rawArgs["entity_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
 		arg3, err = ec.unmarshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["entityType"] = arg3
+	args["entity_type"] = arg3
 	var arg4 string
 	if tmp, ok := rawArgs["query"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
@@ -41605,7 +41605,7 @@ func (ec *executionContext) _Mutation_createSavedSegment(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSavedSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entityType"].(model.SavedSearchEntityType), fc.Args["query"].(string))
+		return ec.resolvers.Mutation().CreateSavedSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSearchEntityType), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41668,7 +41668,7 @@ func (ec *executionContext) _Mutation_editSavedSegment(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSavedSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entityType"].(model.SavedSearchEntityType), fc.Args["query"].(string))
+		return ec.resolvers.Mutation().EditSavedSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSearchEntityType), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

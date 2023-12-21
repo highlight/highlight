@@ -2222,14 +2222,14 @@ type Mutation {
 	createSavedSegment(
 		project_id: ID!
 		name: String!
-		entityType: SavedSearchEntityType!
+		entity_type: SavedSearchEntityType!
 		query: String!
 	): SavedSegment
 	editSavedSegment(
 		id: ID!
 		project_id: ID!
 		name: String!
-		entityType: SavedSearchEntityType!
+		entity_type: SavedSearchEntityType!
 		query: String!
 	): Boolean
 	deleteSavedSegment(segment_id: ID!): Boolean
