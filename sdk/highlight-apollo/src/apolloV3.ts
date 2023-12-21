@@ -22,13 +22,16 @@ export const ApolloServerV3HighlightPlugin = function <T extends BaseContext>(
 			for (const [k, v] of req.request.http?.headers ?? []) {
 				headers[k] = v
 			}
+
 			const { secureSessionId, requestId } = H.parseHeaders(headers)
-			H._debug('processError', 'extracted from headers', {
-				secureSessionId,
-				requestId,
+
+			H.runWithHeaders(headers, () => {
+				H._debug('processError', 'extracted from headers', {
+					secureSessionId,
+					requestId,
+				})
 			})
 
-			H.setHeaders({ secureSessionId, requestId })
 			return {
 				async didEncounterErrors(
 					requestContext: GraphQLRequestContextDidEncounterErrors<T>,

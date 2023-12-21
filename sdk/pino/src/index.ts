@@ -1,6 +1,7 @@
 import build from 'pino-abstract-transport'
 import { H as NodeH } from '@highlight-run/node'
 import type { NodeOptions } from '@highlight-run/node'
+import { Highlight } from '@highlight-run/node'
 
 export type { NodeOptions }
 export default async function (options: NodeOptions) {
@@ -14,6 +15,7 @@ export default async function (options: NodeOptions) {
 
 	return build(
 		async function (source) {
+			const context = NodeH.parseHeaders({})
 			for await (const obj of source) {
 				const { msg, level, ...rest } = obj
 				let levelStr: string
@@ -40,7 +42,13 @@ export default async function (options: NodeOptions) {
 						levelStr = 'info'
 				}
 				try {
-					NodeH.log(msg, levelStr, undefined, undefined, rest)
+					NodeH.log(
+						msg,
+						levelStr,
+						context.secureSessionId,
+						context.requestId,
+						rest,
+					)
 				} catch (error) {
 					console.error(
 						`Failed to ingest logs to highlight: ${error}`,

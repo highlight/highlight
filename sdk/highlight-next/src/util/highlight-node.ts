@@ -14,9 +14,7 @@ export const H: HighlightInterface = {
 	...NodeH,
 	init: (options: NodeOptions) => {
 		if (isNodeJs()) {
-			if (!NodeH.isInitialized()) {
-				NodeH.init(options)
-			}
+			return NodeH.init(options)
 		} else {
 			throw new Error(
 				`Highlight not registered due to unexpected runtime: NEXT_RUNTIME=${process.env.NEXT_RUNTIME}`,

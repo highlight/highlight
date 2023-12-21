@@ -1,4 +1,5 @@
-import type { HighlightOptions } from 'highlight.run'
+import { Attributes } from '@opentelemetry/api'
+import { HighlightOptions } from 'highlight.run'
 
 export interface NodeOptions extends HighlightOptions {
 	/**
@@ -34,6 +35,11 @@ export interface NodeOptions extends HighlightOptions {
 	 * {@link https://opentelemetry.io/docs/instrumentation/js/libraries/#registration}
 	 */
 	enableFsInstrumentation?: boolean
+
+	/**
+	 * Attributes to be added to the OpenTelemetry Resource.
+	 */
+	attributes?: Attributes
 }
 
 export interface HighlightContext {

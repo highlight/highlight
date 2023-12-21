@@ -25,9 +25,9 @@ const KafkaOperationTimeout = 25 * time.Second
 const ConsumerGroupName = "group-default"
 
 const (
-	TaskRetries           = 5
-	prefetchQueueCapacity = 64
-	MaxMessageSizeBytes   = 500 * 1000 * 1000 // MB
+	TaskRetries           = 2
+	prefetchQueueCapacity = 8
+	MaxMessageSizeBytes   = 128 * 1000 * 1000 // MB
 )
 
 var (
@@ -99,7 +99,7 @@ type ConfigOverride struct {
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
-	groupID := ConsumerGroupName
+	groupID := strings.Join([]string{ConsumerGroupName, topic}, "_")
 
 	tlsConfig := &tls.Config{}
 	var mechanism sasl.Mechanism
@@ -442,7 +442,7 @@ func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error
 func (p *Queue) resetConsumerOffset(ctx context.Context, partitionOffsets map[int]int64) (error error) {
 	cfg := p.kafkaC.Config()
 	group, err := kafka.NewConsumerGroup(kafka.ConsumerGroupConfig{
-		ID:      ConsumerGroupName,
+		ID:      strings.Join([]string{ConsumerGroupName, p.Topic}, "_"),
 		Brokers: cfg.Brokers,
 		Dialer:  cfg.Dialer,
 		Topics:  []string{cfg.Topic},
