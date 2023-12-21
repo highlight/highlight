@@ -222,7 +222,7 @@ ComboboxSelect_test.run = async ({ step, screen, user, screenshot }) => {
 	})
 
 	await step('enter filter text', async () => {
-		const filterInput = await screen.findByPlaceholderText('Filtre...')
+		const filterInput = await screen.findByPlaceholderText('Filter...')
 		await user.type(filterInput, 're')
 		return {
 			screenshotOptions: {
