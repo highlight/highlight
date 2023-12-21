@@ -551,98 +551,15 @@ func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID 
 	return nil
 }
 
-func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
-	// Parse the inputType into the regular type.
-	modelParams := &model.SearchParams{
-		Browser:    params.Browser,
-		OS:         params.Os,
-		VisitedURL: params.VisitedURL,
-		Referrer:   params.Referrer,
-	}
-	if params.Identified != nil {
-		modelParams.Identified = *params.Identified
-	}
-	if params.FirstTime != nil {
-		modelParams.FirstTime = *params.FirstTime
-	}
-	if params.HideViewed != nil {
-		modelParams.HideViewed = *params.HideViewed
-	}
-	if params.DeviceID != nil {
-		modelParams.DeviceID = params.DeviceID
-	}
-	if params.ShowLiveSessions != nil {
-		modelParams.ShowLiveSessions = *params.ShowLiveSessions
-	}
-	if params.DateRange != nil {
-		modelParams.DateRange = &model.DateRange{}
-		if params.DateRange.StartDate != nil {
-			modelParams.DateRange.StartDate = *params.DateRange.StartDate
-		}
-		if params.DateRange.EndDate != nil {
-			modelParams.DateRange.EndDate = *params.DateRange.EndDate
-		}
-	}
-	if params.LengthRange != nil {
-		modelParams.LengthRange = &model.LengthRange{}
-		if params.LengthRange.Min != nil {
-			modelParams.LengthRange.Min = *params.LengthRange.Min
-		}
-		if params.LengthRange.Max != nil {
-			modelParams.LengthRange.Max = *params.LengthRange.Max
-		}
-	}
-	for _, property := range params.UserProperties {
-		newProperty := &model.UserProperty{
-			ID:    property.ID,
-			Name:  property.Name,
-			Value: property.Value,
-		}
-		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
-	}
-	for _, property := range params.ExcludedProperties {
-		newProperty := &model.UserProperty{
-			ID:    property.ID,
-			Name:  property.Name,
-			Value: property.Value,
-		}
-		modelParams.ExcludedProperties = append(modelParams.ExcludedProperties, newProperty)
-	}
-	for _, property := range params.TrackProperties {
-		newProperty := &model.UserProperty{
-			ID:    property.ID,
-			Name:  property.Name,
-			Value: property.Value,
-		}
-		modelParams.TrackProperties = append(modelParams.TrackProperties, newProperty)
-	}
-	modelParams.Environments = append(modelParams.Environments, params.Environments...)
-	modelParams.AppVersions = append(modelParams.AppVersions, params.AppVersions...)
-	modelParams.Query = params.Query
-	return modelParams
+type SavedSegmentParams struct {
+	Query string
 }
 
-func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.ErrorSearchParams {
-	// Parse the inputType into the regular type.
-	modelParams := &model.ErrorSearchParams{
-		Browser:    params.Browser,
-		OS:         params.Os,
-		VisitedURL: params.VisitedURL,
-		Event:      params.Event,
-		Query:      params.Query,
+func SavedSegmentQueryToParams(query string) *SavedSegmentParams {
+	modelParams := &SavedSegmentParams{
+		Query: query,
 	}
-	if params.State != nil {
-		modelParams.State = params.State
-	}
-	if params.DateRange != nil {
-		modelParams.DateRange = &model.DateRange{}
-		if params.DateRange.StartDate != nil {
-			modelParams.DateRange.StartDate = *params.DateRange.StartDate
-		}
-		if params.DateRange.EndDate != nil {
-			modelParams.DateRange.EndDate = *params.DateRange.EndDate
-		}
-	}
+
 	return modelParams
 }
 

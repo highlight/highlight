@@ -1663,9 +1663,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				variables: {
 					project_id: projectId!,
 					id: selectedSegment.id,
-					params: {
-						query: searchQuery,
-					},
+					query: searchQuery,
 					name: selectedSegment.name,
 				},
 			})

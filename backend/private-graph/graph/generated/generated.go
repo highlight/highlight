@@ -761,7 +761,7 @@ type ComplexityRoot struct {
 		CreateAdmin                      func(childComplexity int) int
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) int
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
-		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
+		CreateErrorSegment               func(childComplexity int, projectID int, name string, query string) int
 		CreateErrorTag                   func(childComplexity int, title string, description string) int
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
@@ -769,7 +769,7 @@ type ComplexityRoot struct {
 		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
-		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
+		CreateSegment                    func(childComplexity int, projectID int, name string, query string) int
 		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
 		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
 		CreateWorkspace                  func(childComplexity int, name string, promoCode *string) int
@@ -787,10 +787,10 @@ type ComplexityRoot struct {
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
 		DeleteSessions                   func(childComplexity int, projectID int, query model.ClickhouseQuery, sessionCount int) int
-		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
+		EditErrorSegment                 func(childComplexity int, id int, projectID int, query string, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
-		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
+		EditSegment                      func(childComplexity int, id int, projectID int, query string, name string) int
 		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
@@ -1635,12 +1635,12 @@ type MutationResolver interface {
 	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
-	CreateSegment(ctx context.Context, projectID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
+	CreateSegment(ctx context.Context, projectID int, name string, query string) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
-	EditSegment(ctx context.Context, id int, projectID int, params model.SearchParamsInput, name string) (*bool, error)
+	EditSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
-	CreateErrorSegment(ctx context.Context, projectID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
-	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput, name string) (*bool, error)
+	CreateErrorSegment(ctx context.Context, projectID int, name string, query string) (*model1.ErrorSegment, error)
+	EditErrorSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
@@ -5143,7 +5143,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["params"].(model.ErrorSearchParamsInput)), true
+		return e.complexity.Mutation.CreateErrorSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["query"].(string)), true
 
 	case "Mutation.createErrorTag":
 		if e.complexity.Mutation.CreateErrorTag == nil {
@@ -5239,7 +5239,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["params"].(model.SearchParamsInput)), true
+		return e.complexity.Mutation.CreateSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["query"].(string)), true
 
 	case "Mutation.createSessionAlert":
 		if e.complexity.Mutation.CreateSessionAlert == nil {
@@ -5455,7 +5455,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditErrorSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.ErrorSearchParamsInput), args["name"].(string)), true
+		return e.complexity.Mutation.EditErrorSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["query"].(string), args["name"].(string)), true
 
 	case "Mutation.editProject":
 		if e.complexity.Mutation.EditProject == nil {
@@ -5491,7 +5491,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.SearchParamsInput), args["name"].(string)), true
+		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["query"].(string), args["name"].(string)), true
 
 	case "Mutation.editServiceGithubSettings":
 		if e.complexity.Mutation.EditServiceGithubSettings == nil {
@@ -10511,7 +10511,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDateRangeRequiredInput,
 		ec.unmarshalInputDiscordChannelInput,
 		ec.unmarshalInputErrorGroupFrequenciesParamsInput,
-		ec.unmarshalInputErrorSearchParamsInput,
 		ec.unmarshalInputIntegrationProjectMappingInput,
 		ec.unmarshalInputLengthRangeInput,
 		ec.unmarshalInputLogAlertInput,
@@ -10521,7 +10520,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSamplingInput,
 		ec.unmarshalInputSanitizedAdminInput,
 		ec.unmarshalInputSanitizedSlackChannelInput,
-		ec.unmarshalInputSearchParamsInput,
 		ec.unmarshalInputSessionAlertInput,
 		ec.unmarshalInputSessionCommentTagInput,
 		ec.unmarshalInputTrackPropertyInput,
@@ -11674,29 +11672,6 @@ type UserFingerprintCount {
 	count: Int64!
 }
 
-# NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
-# edit both Foo and FooInput
-input SearchParamsInput {
-	user_properties: [UserPropertyInput!]
-	excluded_properties: [UserPropertyInput!]
-	track_properties: [UserPropertyInput!]
-	excluded_track_properties: [UserPropertyInput!]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRangeInput
-	length_range: LengthRangeInput
-	os: String
-	browser: String
-	device_id: String
-	visited_url: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
-}
-
 input DashboardParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
@@ -11814,17 +11789,6 @@ input AdminAndWorkspaceDetails {
 	workspace_name: String!
 	allowed_auto_join_email_origins: String
 	promo_code: String
-}
-
-input ErrorSearchParamsInput {
-	date_range: DateRangeInput
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	type: String
-	query: String
 }
 
 input SessionAlertInput {
@@ -12849,28 +12813,24 @@ type Mutation {
 	): Boolean!
 	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-	createSegment(
-		project_id: ID!
-		name: String!
-		params: SearchParamsInput!
-	): Segment
+	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
 	editSegment(
 		id: ID!
 		project_id: ID!
-		params: SearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
 		name: String!
-		params: ErrorSearchParamsInput!
+		query: String!
 	): ErrorSegment
 	editErrorSegment(
 		id: ID!
 		project_id: ID!
-		params: ErrorSearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
@@ -13551,15 +13511,15 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 		}
 	}
 	args["name"] = arg1
-	var arg2 model.ErrorSearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -13977,15 +13937,15 @@ func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Contex
 		}
 	}
 	args["name"] = arg1
-	var arg2 model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -14526,15 +14486,15 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 		}
 	}
 	args["project_id"] = arg1
-	var arg2 model.ErrorSearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["query"] = arg2
 	var arg3 string
 	if tmp, ok := rawArgs["name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
@@ -14787,15 +14747,15 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 		}
 	}
 	args["project_id"] = arg1
-	var arg2 model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["query"] = arg2
 	var arg3 string
 	if tmp, ok := rawArgs["name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
@@ -41525,7 +41485,7 @@ func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["params"].(model.SearchParamsInput))
+		return ec.resolvers.Mutation().CreateSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41640,7 +41600,7 @@ func (ec *executionContext) _Mutation_editSegment(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.SearchParamsInput), fc.Args["name"].(string))
+		return ec.resolvers.Mutation().EditSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41742,7 +41702,7 @@ func (ec *executionContext) _Mutation_createErrorSegment(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["params"].(model.ErrorSearchParamsInput))
+		return ec.resolvers.Mutation().CreateErrorSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41803,7 +41763,7 @@ func (ec *executionContext) _Mutation_editErrorSegment(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditErrorSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["params"].(model.ErrorSearchParamsInput), fc.Args["name"].(string))
+		return ec.resolvers.Mutation().EditErrorSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -75476,90 +75436,6 @@ func (ec *executionContext) unmarshalInputErrorGroupFrequenciesParamsInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Context, obj interface{}) (model.ErrorSearchParamsInput, error) {
-	var it model.ErrorSearchParamsInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"date_range", "os", "browser", "visited_url", "state", "event", "type", "query"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "date_range":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "os":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("os"))
-			it.Os, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "browser":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("browser"))
-			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "visited_url":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("visited_url"))
-			it.VisitedURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "state":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
-			it.State, err = ec.unmarshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "event":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
-			it.Event, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "type":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "query":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-			it.Query, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputIntegrationProjectMappingInput(ctx context.Context, obj interface{}) (model.IntegrationProjectMappingInput, error) {
 	var it model.IntegrationProjectMappingInput
 	asMap := map[string]interface{}{}
@@ -76059,170 +75935,6 @@ func (ec *executionContext) unmarshalInputSanitizedSlackChannelInput(ctx context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_channel_id"))
 			it.WebhookChannelID, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context, obj interface{}) (model.SearchParamsInput, error) {
-	var it model.SearchParamsInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"user_properties", "excluded_properties", "track_properties", "excluded_track_properties", "environments", "app_versions", "date_range", "length_range", "os", "browser", "device_id", "visited_url", "referrer", "identified", "hide_viewed", "first_time", "show_live_sessions", "query"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "user_properties":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_properties"))
-			it.UserProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "excluded_properties":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_properties"))
-			it.ExcludedProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "track_properties":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track_properties"))
-			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "excluded_track_properties":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_track_properties"))
-			it.ExcludedTrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "environments":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
-			it.Environments, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "app_versions":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("app_versions"))
-			it.AppVersions, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "date_range":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "length_range":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("length_range"))
-			it.LengthRange, err = ec.unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "os":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("os"))
-			it.Os, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "browser":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("browser"))
-			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "device_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("device_id"))
-			it.DeviceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "visited_url":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("visited_url"))
-			it.VisitedURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "referrer":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referrer"))
-			it.Referrer, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "identified":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identified"))
-			it.Identified, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "hide_viewed":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hide_viewed"))
-			it.HideViewed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "first_time":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_time"))
-			it.FirstTime, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "show_live_sessions":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("show_live_sessions"))
-			it.ShowLiveSessions, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "query":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-			it.Query, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -90730,11 +90442,6 @@ func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋhighligh
 	return ec._ErrorSearchParams(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (model.ErrorSearchParamsInput, error) {
-	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, v interface{}) (model.ErrorState, error) {
 	var res model.ErrorState
 	err := res.UnmarshalGQL(v)
@@ -92600,11 +92307,6 @@ func (ec *executionContext) marshalNSearchParams2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._SearchParams(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (model.SearchParamsInput, error) {
-	res, err := ec.unmarshalInputSearchParamsInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNServiceEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceEdge(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceEdge) graphql.Marshaler {
@@ -94647,14 +94349,6 @@ func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrun�
 	return ec._DateRange(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx context.Context, v interface{}) (*model.DateRangeInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputDateRangeInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalOEnhancedUserDetailsResult2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancedUserDetailsResult(ctx context.Context, sel ast.SelectionSet, v *model.EnhancedUserDetailsResult) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -95305,14 +94999,6 @@ func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑru
 		return graphql.Null
 	}
 	return ec._LengthRange(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx context.Context, v interface{}) (*model.LengthRangeInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputLengthRangeInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOLinearTeam2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLinearTeamᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LinearTeam) graphql.Marshaler {
@@ -96388,26 +96074,6 @@ func (ec *executionContext) marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._UserProperty(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx context.Context, v interface{}) ([]*model.UserPropertyInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.UserPropertyInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUserPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {
