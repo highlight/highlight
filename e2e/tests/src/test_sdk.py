@@ -153,9 +153,7 @@ def test_express_log(express_app, oauth_api):
                 if express_app_type == "express_js"
                 else "info"
             )
-            assert item["node"]["secureSessionID"] == (
-                "abc123" if express_app_type == "express_js" else ""
-            )
+            assert item["node"]["secureSessionID"] == "abc123"
             assert (
                 item["node"]["serviceName"] == "e2e-express"
                 if express_app_type == "express_js"
