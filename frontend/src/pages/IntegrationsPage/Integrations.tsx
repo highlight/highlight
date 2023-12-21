@@ -33,7 +33,7 @@ import GitHubLogo from '@/static/integrations/github.svg'
 import HeightLogo from '@/static/integrations/height.svg'
 import JiraLogo from '@/static/integrations/jira.png'
 import LinearLogo from '@/static/integrations/linear.png'
-import SlackLogo from '@/static/integrations/slack.jpg'
+import SlackLogo from '@/static/integrations/slack.png'
 import VercelLogo from '@/static/integrations/vercel-icon-dark.svg'
 import ZapierLogo from '@/static/integrations/zapier.png'
 
