@@ -322,44 +322,16 @@ mutation DeleteSegment($segment_id: ID!) {
 mutation EditSegment(
 	$project_id: ID!
 	$id: ID!
-	$params: SearchParamsInput!
+	$query: String!
 	$name: String!
 ) {
-	editSegment(project_id: $project_id, id: $id, params: $params, name: $name)
+	editSegment(project_id: $project_id, id: $id, query: $query, name: $name)
 }
 
-mutation CreateSegment(
-	$project_id: ID!
-	$name: String!
-	$params: SearchParamsInput!
-) {
-	createSegment(project_id: $project_id, name: $name, params: $params) {
+mutation CreateSegment($project_id: ID!, $name: String!, $query: String!) {
+	createSegment(project_id: $project_id, name: $name, query: $query) {
 		name
 		id
-		params {
-			user_properties {
-				name
-				value
-			}
-			excluded_properties {
-				name
-				value
-			}
-			date_range {
-				start_date
-				end_date
-			}
-			os
-			browser
-			visited_url
-			referrer
-			identified
-			hide_viewed
-			app_versions
-			environments
-			device_id
-			show_live_sessions
-		}
 	}
 }
 
@@ -639,35 +611,21 @@ mutation DeleteErrorSegment($segment_id: ID!) {
 mutation EditErrorSegment(
 	$project_id: ID!
 	$id: ID!
-	$params: ErrorSearchParamsInput!
+	$query: String!
 	$name: String!
 ) {
 	editErrorSegment(
 		project_id: $project_id
 		id: $id
-		params: $params
+		query: $query
 		name: $name
 	)
 }
 
-mutation CreateErrorSegment(
-	$project_id: ID!
-	$name: String!
-	$params: ErrorSearchParamsInput!
-) {
-	createErrorSegment(project_id: $project_id, name: $name, params: $params) {
+mutation CreateErrorSegment($project_id: ID!, $name: String!, $query: String!) {
+	createErrorSegment(project_id: $project_id, name: $name, query: $query) {
 		name
 		id
-		params {
-			date_range {
-				start_date
-				end_date
-			}
-			os
-			browser
-			visited_url
-			state
-		}
 	}
 }
 

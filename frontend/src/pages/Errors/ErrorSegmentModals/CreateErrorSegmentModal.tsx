@@ -1,7 +1,4 @@
-import { Button } from '@components/Button'
-import Input from '@components/Input/Input'
-import Modal from '@components/Modal/Modal'
-import ModalBody from '@components/ModalBody/ModalBody'
+import { SavedSegmentModal } from '@components/SegmentModals/SavedSegmentModal'
 import {
 	useCreateErrorSegmentMutation,
 	useEditErrorSegmentMutation,
@@ -12,12 +9,10 @@ import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSea
 import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 import { SearchOption } from '@/components/Select/SearchSelect/SearchSelect'
 import { removeTimeField } from '@/context/SearchState'
-
-import styles from './SegmentButtons.module.css'
 
 interface Props {
 	showModal: boolean
@@ -28,7 +23,7 @@ interface Props {
 	currentSegment?: Maybe<Pick<ErrorSegment, 'id' | 'name'>>
 }
 
-const CreateErrorSegmentModal = ({
+export const CreateErrorSegmentModal = ({
 	showModal,
 	timeRangeField,
 	onHideModal,
@@ -45,18 +40,7 @@ const CreateErrorSegmentModal = ({
 			refetchQueries: [namedOperations.Query.GetErrorSegments],
 		})
 
-	const [newSegmentName, setNewSegmentName] = useState(
-		currentSegment?.name ?? '',
-	)
-
 	const shouldUpdate = !!currentSegment && !!currentSegment.id
-	useEffect(() => {
-		if (shouldUpdate && currentSegment?.name) {
-			setNewSegmentName(currentSegment?.name)
-		} else {
-			setNewSegmentName('')
-		}
-	}, [currentSegment?.name, shouldUpdate])
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -65,12 +49,7 @@ const CreateErrorSegmentModal = ({
 
 	const { searchQuery } = useErrorSearchContext()
 
-	const onSubmit = (e: { preventDefault: () => void }) => {
-		e.preventDefault()
-		if (!newSegmentName) {
-			return
-		}
-
+	const onSubmit = (newSegmentName: string) => {
 		if (newSegmentName === currentSegment?.name) {
 			onHideModal()
 			return
@@ -87,7 +66,7 @@ const CreateErrorSegmentModal = ({
 					project_id: project_id!,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					params: { query: queryWithoutTimeRange },
+					query: queryWithoutTimeRange,
 				},
 				onCompleted: () => {
 					message.success(
@@ -111,7 +90,7 @@ const CreateErrorSegmentModal = ({
 				variables: {
 					project_id: project_id!,
 					name: newSegmentName,
-					params: { query: searchQuery },
+					query: searchQuery,
 				},
 				refetchQueries: [namedOperations.Query.GetErrorSegments],
 				onCompleted: (r) => {
@@ -136,54 +115,15 @@ const CreateErrorSegmentModal = ({
 
 	const loading = creatingErrorSegment || updatingErrorSegment
 	return (
-		<Modal
-			title={shouldUpdate ? 'Update a Segment' : 'Create a Segment'}
-			visible={showModal}
-			onCancel={onHideModal}
-			style={{ display: 'flex' }}
-			width={500}
-			destroyOnClose
-		>
-			<ModalBody>
-				<form onSubmit={onSubmit}>
-					<p className={styles.modalSubTitle}>
-						Segments allow you to save search queries that target a
-						specific set of errors.
-					</p>
-					<div className={styles.queryBuilderContainer}>
-						<ErrorQueryBuilder readonly />
-					</div>
-					<Input
-						name="name"
-						value={newSegmentName}
-						onChange={(e) => {
-							setNewSegmentName(e.target.value)
-						}}
-						placeholder="Segment Name"
-						autoFocus
-					/>
-					<Button
-						trackingId={
-							shouldUpdate
-								? 'UpdateErrorSegment'
-								: 'SaveErrorSegment'
-						}
-						style={{
-							width: '100%',
-							marginTop: 24,
-							justifyContent: 'center',
-						}}
-						kind="primary"
-						disabled={!newSegmentName}
-						loading={loading}
-						type="submit"
-					>
-						{shouldUpdate ? 'Update Segment' : 'Save As Segment'}
-					</Button>
-				</form>
-			</ModalBody>
-		</Modal>
+		<SavedSegmentModal
+			context="Error"
+			currentSegment={currentSegment}
+			loading={loading}
+			onHideModal={onHideModal}
+			onSubmit={onSubmit}
+			queryBuilder={<ErrorQueryBuilder readonly />}
+			showModal={showModal}
+			shouldUpdate={shouldUpdate}
+		/>
 	)
 }
-
-export default CreateErrorSegmentModal

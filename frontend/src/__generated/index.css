@@ -5620,6 +5620,15 @@ body {
 ._1vb6x0p0:hover {
   color: var(--_1pyqka9y);
 }
+._14kgefq0 {
+  color: var(--color-gray-500) !important;
+  font-size: 16px;
+  line-height: 1.5 !important;
+  margin-top: 0 !important;
+}
+._14kgefq1 {
+  margin-bottom: var(--size-large) !important;
+}
 ._1ukfp2a0 {
   border-radius: 0;
   border: 0 !important;
@@ -5637,6 +5646,21 @@ body {
 ._1ukfp2a2:focus,
 ._1ukfp2a2:active {
   background: var(--_1pyqka9u);
+}
+._1rl378k0 {
+  color: var(--color-gray-500) !important;
+  font-size: 16px;
+  line-height: 1.5 !important;
+  margin-top: 0 !important;
+}
+._1rl378k1 {
+  column-gap: var(--size-medium);
+  display: flex;
+  padding-top: var(--size-medium);
+}
+._1rl378k2 {
+  flex-grow: 1;
+  justify-content: center;
 }
 ._1hht64e1 {
   height: 20px;

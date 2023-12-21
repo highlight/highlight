@@ -1067,29 +1067,6 @@ type UserFingerprintCount {
 	count: Int64!
 }
 
-# NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
-# edit both Foo and FooInput
-input SearchParamsInput {
-	user_properties: [UserPropertyInput!]
-	excluded_properties: [UserPropertyInput!]
-	track_properties: [UserPropertyInput!]
-	excluded_track_properties: [UserPropertyInput!]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRangeInput
-	length_range: LengthRangeInput
-	os: String
-	browser: String
-	device_id: String
-	visited_url: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
-}
-
 input DashboardParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
@@ -1207,17 +1184,6 @@ input AdminAndWorkspaceDetails {
 	workspace_name: String!
 	allowed_auto_join_email_origins: String
 	promo_code: String
-}
-
-input ErrorSearchParamsInput {
-	date_range: DateRangeInput
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	type: String
-	query: String
 }
 
 input SessionAlertInput {
@@ -2242,28 +2208,24 @@ type Mutation {
 	): Boolean!
 	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-	createSegment(
-		project_id: ID!
-		name: String!
-		params: SearchParamsInput!
-	): Segment
+	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
 	editSegment(
 		id: ID!
 		project_id: ID!
-		params: SearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
 		name: String!
-		params: ErrorSearchParamsInput!
+		query: String!
 	): ErrorSegment
 	editErrorSegment(
 		id: ID!
 		project_id: ID!
-		params: ErrorSearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean

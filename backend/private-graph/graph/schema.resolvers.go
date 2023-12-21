@@ -1009,11 +1009,11 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 }
 
 // CreateSegment is the resolver for the createSegment field.
-func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
+func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, query string) (*model.Segment, error) {
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	modelParams := InputToParams(&params)
+	modelParams := SavedSegmentQueryToParams(query)
 	// Convert to json to store in the db.
 	paramBytes, err := json.Marshal(modelParams)
 	if err != nil {
@@ -1071,11 +1071,11 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 }
 
 // EditSegment is the resolver for the editSegment field.
-func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, params modelInputs.SearchParamsInput, name string) (*bool, error) {
+func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error) {
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	modelParams := InputToParams(&params)
+	modelParams := SavedSegmentQueryToParams(query)
 	// Convert to json to store in the db.
 	paramBytes, err := json.Marshal(modelParams)
 	if err != nil {
@@ -1115,11 +1115,11 @@ func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*b
 }
 
 // CreateErrorSegment is the resolver for the createErrorSegment field.
-func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int, name string, params modelInputs.ErrorSearchParamsInput) (*model.ErrorSegment, error) {
+func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int, name string, query string) (*model.ErrorSegment, error) {
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	modelParams := ErrorInputToParams(&params)
+	modelParams := SavedSegmentQueryToParams(query)
 	// Convert to json to store in the db.
 	paramBytes, err := json.Marshal(modelParams)
 	if err != nil {
@@ -1148,11 +1148,11 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int
 }
 
 // EditErrorSegment is the resolver for the editErrorSegment field.
-func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, params modelInputs.ErrorSearchParamsInput, name string) (*bool, error) {
+func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error) {
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	modelParams := ErrorInputToParams(&params)
+	modelParams := SavedSegmentQueryToParams(query)
 	// Convert to json to store in the db.
 	paramBytes, err := json.Marshal(modelParams)
 	if err != nil {

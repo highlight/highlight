@@ -355,17 +355,6 @@ type ErrorObjectNodeSession struct {
 	Excluded    bool    `json:"excluded"`
 }
 
-type ErrorSearchParamsInput struct {
-	DateRange  *DateRangeInput `json:"date_range"`
-	Os         *string         `json:"os"`
-	Browser    *string         `json:"browser"`
-	VisitedURL *string         `json:"visited_url"`
-	State      *ErrorState     `json:"state"`
-	Event      *string         `json:"event"`
-	Type       *string         `json:"type"`
-	Query      *string         `json:"query"`
-}
-
 type ErrorTrace struct {
 	FileName                   *string             `json:"fileName"`
 	LineNumber                 *int                `json:"lineNumber"`
@@ -698,27 +687,6 @@ type SanitizedSlackChannel struct {
 type SanitizedSlackChannelInput struct {
 	WebhookChannelName *string `json:"webhook_channel_name"`
 	WebhookChannelID   *string `json:"webhook_channel_id"`
-}
-
-type SearchParamsInput struct {
-	UserProperties          []*UserPropertyInput `json:"user_properties"`
-	ExcludedProperties      []*UserPropertyInput `json:"excluded_properties"`
-	TrackProperties         []*UserPropertyInput `json:"track_properties"`
-	ExcludedTrackProperties []*UserPropertyInput `json:"excluded_track_properties"`
-	Environments            []*string            `json:"environments"`
-	AppVersions             []*string            `json:"app_versions"`
-	DateRange               *DateRangeInput      `json:"date_range"`
-	LengthRange             *LengthRangeInput    `json:"length_range"`
-	Os                      *string              `json:"os"`
-	Browser                 *string              `json:"browser"`
-	DeviceID                *string              `json:"device_id"`
-	VisitedURL              *string              `json:"visited_url"`
-	Referrer                *string              `json:"referrer"`
-	Identified              *bool                `json:"identified"`
-	HideViewed              *bool                `json:"hide_viewed"`
-	FirstTime               *bool                `json:"first_time"`
-	ShowLiveSessions        *bool                `json:"show_live_sessions"`
-	Query                   *string              `json:"query"`
 }
 
 type ServiceConnection struct {
