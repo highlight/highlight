@@ -1,4 +1,4 @@
-package main
+package parser
 
 import (
 	"github.com/antlr4-go/antlr/v4"
@@ -6,16 +6,14 @@ import (
 	"github.com/highlight-run/highlight/backend/parser/listener"
 )
 
-func Parse(program string) {
-	is := antlr.NewInputStream(program)
+func BuildFiltersForSearchQuery(query string) []listener.Expression {
+	is := antlr.NewInputStream(query)
 	lexer := parser.NewSearchGrammarLexer(is)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := parser.NewSearchGrammarParser(stream)
 	listener := listener.NewSearchListener()
 
 	antlr.ParseTreeWalkerDefault.Walk(listener, p.Search_query())
-}
 
-func main() {
-	Parse("  span_name=\"Chris Schmitz\" source=(backend OR frontend) OR  service_name!=private-graph span_name=gorm.Query testing")
+	return listener.GetExpressions()
 }

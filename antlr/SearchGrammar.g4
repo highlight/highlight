@@ -7,26 +7,34 @@ search_query
 
 col_expr
   : LPAREN col_expr RPAREN
-  | col_expr AND col_expr
-  | col_expr OR col_expr
-  | NOT col_expr
-  | STRING
-  | ID
+  | search_value search_op search_value
+  | search_value search_op search_value
+  | negation_op col_expr
+  | search_value
   ;
 
 search_expr
   : LPAREN search_expr RPAREN
   | LPAREN search_expr RPAREN
-  | search_expr AND search_expr
+  | search_expr search_op search_expr
   | search_expr search_expr
-  | search_expr OR search_expr
-  | NOT search_expr
+  | search_expr search_op search_expr
+  | negation_op search_expr
   | search_key bin_op col_expr
   | col_expr
   ;
 
 search_key
   : ID
+  ;
+
+search_op
+  : AND
+  | OR
+  ;
+
+negation_op
+  : NOT
   ;
 
 bin_op
@@ -37,6 +45,11 @@ bin_op
   | LT
   | LTE
   | COLON
+  ;
+
+search_value
+  : ID
+  | STRING
   ;
 
 AND : 'AND' ;

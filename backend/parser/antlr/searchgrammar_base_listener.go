@@ -45,8 +45,26 @@ func (s *BaseSearchGrammarListener) EnterSearch_key(ctx *Search_keyContext) {}
 // ExitSearch_key is called when production search_key is exited.
 func (s *BaseSearchGrammarListener) ExitSearch_key(ctx *Search_keyContext) {}
 
+// EnterSearch_op is called when production search_op is entered.
+func (s *BaseSearchGrammarListener) EnterSearch_op(ctx *Search_opContext) {}
+
+// ExitSearch_op is called when production search_op is exited.
+func (s *BaseSearchGrammarListener) ExitSearch_op(ctx *Search_opContext) {}
+
+// EnterNegation_op is called when production negation_op is entered.
+func (s *BaseSearchGrammarListener) EnterNegation_op(ctx *Negation_opContext) {}
+
+// ExitNegation_op is called when production negation_op is exited.
+func (s *BaseSearchGrammarListener) ExitNegation_op(ctx *Negation_opContext) {}
+
 // EnterBin_op is called when production bin_op is entered.
 func (s *BaseSearchGrammarListener) EnterBin_op(ctx *Bin_opContext) {}
 
 // ExitBin_op is called when production bin_op is exited.
 func (s *BaseSearchGrammarListener) ExitBin_op(ctx *Bin_opContext) {}
+
+// EnterSearch_value is called when production search_value is entered.
+func (s *BaseSearchGrammarListener) EnterSearch_value(ctx *Search_valueContext) {}
+
+// ExitSearch_value is called when production search_value is exited.
+func (s *BaseSearchGrammarListener) ExitSearch_value(ctx *Search_valueContext) {}

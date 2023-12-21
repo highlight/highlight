@@ -13,6 +13,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/highlight-run/highlight/backend/parser"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/highlight-run/highlight/backend/util"
@@ -60,7 +61,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
-		beforeSb, err := makeSelectBuilder(
+		beforeSb, err := makeAntlrSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -77,7 +78,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		}
 		beforeSb.Limit(LogsLimit/2 + 1)
 
-		atSb, err := makeSelectBuilder(
+		atSb, err := makeAntlrSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -93,7 +94,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			return nil, err
 		}
 
-		afterSb, err := makeSelectBuilder(
+		afterSb, err := makeAntlrSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -117,7 +118,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), ub)).
 			OrderBy(orderForward)
 	} else {
-		fromSb, err := makeSelectBuilder(
+		fromSb, err := makeAntlrSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -141,6 +142,8 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	fmt.Printf("::: SQL: %s\n", sql)
+	fmt.Printf("::: args: %+v\n", args)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
 	span.SetAttribute("Table", config.tableName)
@@ -301,6 +304,151 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 	if len(conditions) > 0 {
 		sb.Where(sb.And(conditions...))
 	}
+
+	return sb, nil
+}
+
+func makeAntlrSelectBuilder[T ~string](
+	config tableConfig[T],
+	selectStr string,
+	selectArgs []any,
+	groupBy []string,
+	projectID int,
+	params modelInputs.QueryInput,
+	pagination Pagination,
+	orderBackward string,
+	orderForward string,
+) (*sqlbuilder.SelectBuilder, error) {
+	antlrFilters := parser.BuildFiltersForSearchQuery(params.Query)
+	sb := sqlbuilder.NewSelectBuilder()
+
+	// selectStr can contain %s format tokens as placeholders for argument placeholders
+	// use `sb.Var` to add those arguments to the sql builder and get the proper placeholder
+	cols := []string{fmt.Sprintf(selectStr, lo.Map(selectArgs, func(arg any, _ int) any {
+		return sb.Var(arg)
+	})...)}
+
+	for idx, group := range groupBy {
+		if col, found := config.keysToColumns[T(group)]; found {
+			cols = append(cols, col)
+		} else {
+			cols = append(cols, sb.As("toString("+config.attributesColumn+"["+sb.Var(group)+"])", fmt.Sprintf("g%d", idx)))
+		}
+	}
+	sb.Select(cols...)
+	sb.From(config.tableName)
+
+	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
+	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
+	// of where to place the raw SQL later when it is being built.
+	// In this case, we are placing the marker after the `FROM` clause
+	// preWheres := []string{}
+	// bodyQuery := ""
+	// // TODO: Update to use new filters
+	// for _, body := range filters.body {
+	// 	if strings.Contains(body, "%") {
+	// 		bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
+	// 	} else {
+	// 		preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
+	// 	}
+	// }
+
+	// if len(preWheres) > 0 {
+	// 	sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
+	// }
+	// if bodyQuery != "" {
+	// 	sb.Where(bodyQuery)
+	// }
+
+	sb.Where(sb.Equal("ProjectId", projectID))
+
+	if pagination.After != nil && len(*pagination.After) > 1 {
+		timestamp, uuid, err := decodeCursor(*pagination.After)
+		if err != nil {
+			return nil, err
+		}
+
+		// See https://dba.stackexchange.com/a/206811
+		sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
+			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
+			Where(
+				sb.Or(
+					sb.LessThan("Timestamp", timestamp),
+					sb.LessThan("UUID", uuid),
+				),
+			).OrderBy(orderForward)
+	} else if pagination.At != nil && len(*pagination.At) > 1 {
+		timestamp, uuid, err := decodeCursor(*pagination.At)
+		if err != nil {
+			return nil, err
+		}
+		sb.Where(sb.Equal("Timestamp", timestamp)).
+			Where(sb.Equal("UUID", uuid))
+	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
+		timestamp, uuid, err := decodeCursor(*pagination.Before)
+		if err != nil {
+			return nil, err
+		}
+
+		sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
+			Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+			Where(
+				sb.Or(
+					sb.GreaterThan("Timestamp", timestamp),
+					sb.GreaterThan("UUID", uuid),
+				),
+			).
+			OrderBy(orderBackward)
+	} else {
+		sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
+
+		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
+			sb.OrderBy(orderForward)
+		}
+	}
+
+	// Parse an object that looks like this:
+	// [
+	//   {Key:span_name Op:= Value:["Chris Schmitz"]}
+	//   {Key:source Op:= Value:[backend frontend]}
+	//   {Key:service_name Op:!= Value:[private-graph]}
+	//   {Key:span_name Op:= Value:[gorm.Query]}
+	//   {Key:message Op:= Value:[testing]}
+	//   {Key:message Op>= Value:[200]}
+	// ]
+	// Apply a SQL statement for each object in the array.
+	// Handle any values with '*' in them as a LIKE statement.
+	for _, filter := range antlrFilters {
+		filterValuesContainWildcard := false
+		for _, value := range filter.Value {
+			if strings.Contains(value, "*") {
+				filterValuesContainWildcard = true
+				break
+			}
+		}
+		filterKey := config.keysToColumns[T(filter.Key)]
+
+		if filterValuesContainWildcard {
+			sb.Where(sb.Like(filterKey, sb.Var("%"+filter.Value[0]+"%")))
+		} else if filter.Op == "!=" {
+			sb.Where(sb.NotEqual(filterKey, filter.Value[0]))
+		} else if filter.Op == ">=" {
+			sb.Where(sb.GreaterEqualThan(filterKey, filter.Value[0]))
+		} else if filter.Op == "<=" {
+			sb.Where(sb.LessEqualThan(filterKey, filter.Value[0]))
+		} else if filter.Op == ">" {
+			sb.Where(sb.GreaterThan(filterKey, filter.Value[0]))
+		} else if filter.Op == "<" {
+			sb.Where(sb.LessThan(filterKey, filter.Value[0]))
+		} else if filter.Op == "=" || filter.Op == ":" {
+			sb.Where(sb.Equal(filterKey, filter.Value[0]))
+		} else {
+			return nil, fmt.Errorf("unsupported operator: %s", filter.Op)
+		}
+	}
+
+	// TODO: Handle TraceAttributes query
 
 	return sb, nil
 }
@@ -643,7 +791,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	var config tableConfig[T]
 	if useSampling {
 		config = sampleableConfig.samplingTableConfig
-		fromSb, err = makeSelectBuilder(
+		fromSb, err = makeAntlrSelectBuilder(
 			config,
 			fmt.Sprintf(
 				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
@@ -663,7 +811,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		)
 	} else {
 		config = sampleableConfig.tableConfig
-		fromSb, err = makeSelectBuilder(
+		fromSb, err = makeAntlrSelectBuilder(
 			config,
 			fmt.Sprintf(
 				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
