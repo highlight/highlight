@@ -1,7 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { logger, withHighlight } from '../../../highlight.config'
-import { useEffect, useState } from 'react'
+import { logger, withHighlight } from './winston.config'
 
 type Data = {
 	name: string

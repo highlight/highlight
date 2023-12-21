@@ -19,14 +19,17 @@ export const ApolloServerHighlightPlugin = function <T extends BaseContext>(
 			}
 
 			const headers: IncomingHttpHeaders = {}
-			req.request.http?.headers?.forEach((k, v) => (headers[k] = v))
+			req.request.http?.headers?.forEach((v, k) => (headers[k] = v))
+
 			const { secureSessionId, requestId } = H.parseHeaders(headers)
-			H._debug('processError', 'extracted from headers', {
-				secureSessionId,
-				requestId,
+
+			H.runWithHeaders(headers, () => {
+				H._debug('processError', 'extracted from headers', {
+					secureSessionId,
+					requestId,
+				})
 			})
 
-			H.setHeaders({ secureSessionId, requestId })
 			return {
 				async didEncounterErrors(
 					requestContext: GraphQLRequestContextDidEncounterErrors<T>,

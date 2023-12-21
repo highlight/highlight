@@ -73,7 +73,9 @@ def query(
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
     r = requests.get(
-        f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
+        f"http://localhost:3005{endpoint}",
+        params={"success": success, "sql": "true"},
+        timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")
     if success == "true":
@@ -145,7 +147,11 @@ def test_express_log(express_app, oauth_api):
         for item in filter(
             lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
         ):
-            assert item["node"]["level"] == "warn"
+            assert (
+                item["node"]["level"] == "warn"
+                if express_app_type == "express_js"
+                else "info"
+            )
             assert item["node"]["secureSessionID"] == "abc123"
             assert (
                 item["node"]["serviceName"] == "e2e-express"
