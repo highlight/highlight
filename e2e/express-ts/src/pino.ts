@@ -3,13 +3,14 @@ import { CONSTANTS } from './constants'
 import { H } from '@highlight-run/node'
 
 export function startPino() {
-	H.init({
+	const config = {
 		projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID ?? '1',
 		debug: true,
 		serviceName: 'e2e-express-pino-manual-init',
 		serviceVersion: 'git-sha',
 		otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
-	})
+	}
+	H.init(config)
 
 	const logger = pino({
 		transport: {
@@ -17,10 +18,7 @@ export function startPino() {
 				{
 					target: '@highlight-run/pino',
 					options: {
-						projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID,
-						debug: true,
-						serviceVersion: 'git-sha',
-						otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
+						...config,
 						serviceName: 'e2e-express-pino',
 					},
 					level: 'info',

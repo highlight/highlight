@@ -44,7 +44,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@v3
               with:
-                  node-version: 18
+                  node-version: lts/*
                   cache: 'yarn'
 
             - name: Install js dependencies
@@ -149,11 +149,11 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-    e2e-frontend-backend-client:
+    e2e-cypress:
         # non-blocking since we will just test prod client
         # needs the client build to be uploaded
         needs: yarn-monorepo
-        name: E2E Client / Frontend / Backend
+        name: E2E Client Cypress
         timeout-minutes: 60
         runs-on: buildjet-4vcpu-ubuntu-2204
 
@@ -166,7 +166,7 @@ jobs:
             - name: Setup Node.js environment
               uses: buildjet/setup-node@v3
               with:
-                  node-version: 18
+                  node-version: lts/*
                   cache: 'yarn'
 
             - name: Setup Golang environment
@@ -174,19 +174,6 @@ jobs:
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
-
-            - name: Install poetry
-              run: pipx install poetry
-
-            - name: Install python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: '3.10'
-                  cache: 'poetry'
-
-            - name: Install dependencies
-              working-directory: ./e2e/tests
-              run: poetry install --all-extras
 
             - name: Login to Docker Hub
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
@@ -235,6 +222,109 @@ jobs:
                   # run cypress tests
                   yarn cy:run;
 
+                  # look for containers that crashed
+                  num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
+                  if [ "$num_crashed" -gt 0 ]; then
+                    echo "$num_crashed containers crashed"
+                    docker ps -a -f status=exited
+                    exit 1
+                  fi
+
+            - name: Dump setup logs on failure
+              if: failure()
+              run: cat /tmp/highlight.log
+
+            - name: Dump docker container logs on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  docker compose logs;
+
+            - name: Dump databases on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  mkdir backups
+
+                  docker compose exec postgres bash -c "mkdir /backups";
+                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres postgres > /backups/postgres.sql";
+                  docker compose exec postgres bash -c "cat /backups/postgres.sql" > ./backups/postgres.sql 2>&1;
+
+                  docker compose exec clickhouse bash -c "mkdir /backups && chmod -R 777 /backups";
+                  docker compose exec clickhouse clickhouse-client --host clickhouse --query "BACKUP DATABASE default TO File('/backups/clickhouse.zip')";
+                  docker compose exec clickhouse bash -c "cat /backups/clickhouse.zip" > ./backups/clickhouse.zip 2>&1;
+
+            - name: Save database artifacts
+              if: failure()
+              uses: actions/upload-artifact@v3
+              with:
+                  name: db-dump
+                  path: docker/backups/*
+
+            - name: Save videos
+              uses: actions/upload-artifact@v3
+              if: failure()
+              with:
+                  name: cypress-videos
+                  path: cypress/videos
+
+    e2e-frontend-backend:
+        name: E2E Frontend / Backend
+        timeout-minutes: 60
+        runs-on: buildjet-4vcpu-ubuntu-2204
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                  submodules: recursive
+
+            - name: Setup Node.js environment
+              uses: buildjet/setup-node@v3
+              with:
+                  node-version: lts/*
+                  cache: 'yarn'
+
+            - name: Setup Golang environment
+              uses: buildjet/setup-go@v4
+              with:
+                  go-version-file: 'backend/go.mod'
+                  cache-dependency-path: '**/go.sum'
+
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
+
+            - name: Login to Docker Hub
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v2
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Start docker containers & run cypress
+              run: |
+                  start_time=$(date -Isecond)
+
+                  # start highlight
+                  pushd docker;
+                  source ./env.sh;
+                  ./start-infra.sh > /tmp/highlight.log 2>&1;
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
+                  ./run-backend.sh >> /tmp/highlight.log 2>&1 &
+                  yarn install >> /tmp/highlight.log 2>&1;
+                  yarn build:sdk >> /tmp/highlight.log 2>&1;
+                  popd;
+                              
                   # run python backend functional tests
                   pushd ./e2e/tests
                   export HIGHLIGHT_OAUTH_CLIENT_ID=abc123

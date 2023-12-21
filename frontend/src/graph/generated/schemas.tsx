@@ -1828,6 +1828,8 @@ export type Query = {
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram_clickhouse: ErrorsHistogram
+	errors_keys: Array<QueryKey>
+	errors_metrics: MetricsBuckets
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
@@ -1899,6 +1901,8 @@ export type Query = {
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
 	sessions_histogram_clickhouse: SessionsHistogram
+	sessions_keys: Array<QueryKey>
+	sessions_metrics: MetricsBuckets
 	sessions_report: Array<SessionsReportRow>
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
@@ -2127,6 +2131,25 @@ export type QueryErrors_Histogram_ClickhouseArgs = {
 	query: ClickhouseQuery
 }
 
+export type QueryErrors_KeysArgs = {
+	date_range: DateRangeRequiredInput
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
+}
+
+export type QueryErrors_MetricsArgs = {
+	bucket_by: Scalars['String']
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
 export type QueryEvent_Chunk_UrlArgs = {
 	index: Scalars['Int']
 	secure_id: Scalars['String']
@@ -2285,7 +2308,7 @@ export type QueryLogs_KeysArgs = {
 }
 
 export type QueryLogs_MetricsArgs = {
-	bucket_by?: InputMaybe<Scalars['String']>
+	bucket_by: Scalars['String']
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2460,6 +2483,25 @@ export type QuerySessions_Histogram_ClickhouseArgs = {
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
 	query: ClickhouseQuery
+}
+
+export type QuerySessions_KeysArgs = {
+	date_range: DateRangeRequiredInput
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
+}
+
+export type QuerySessions_MetricsArgs = {
+	bucket_by: Scalars['String']
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QuerySessions_ReportArgs = {
@@ -2643,9 +2685,12 @@ export type ReferrerTablePayload = {
 }
 
 export enum ReservedErrorObjectKey {
+	Browser = 'browser',
 	Environment = 'environment',
 	Event = 'event',
+	HasSessions = 'has_sessions',
 	LogCursor = 'log_cursor',
+	Os = 'os',
 	Payload = 'payload',
 	RequestId = 'request_id',
 	ServiceName = 'service_name',
@@ -2654,6 +2699,8 @@ export enum ReservedErrorObjectKey {
 	Source = 'source',
 	SpanId = 'span_id',
 	StackTrace = 'stackTrace',
+	Status = 'status',
+	Tag = 'tag',
 	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 	Type = 'type',
