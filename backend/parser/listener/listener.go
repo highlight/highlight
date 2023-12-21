@@ -13,7 +13,7 @@ import (
 // we create a listener we can pass the SQL builder to, and it can build up the
 // query as it walks the tree?
 
-var DefaultFilterKey = "message"
+var DefaultFilterKey = "DEFAULT"
 var DefaultFilterOp = "="
 
 type Expression struct {

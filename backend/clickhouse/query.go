@@ -338,13 +338,13 @@ func makeAntlrSelectBuilder[T ~string](
 	sb.Select(cols...)
 	sb.From(config.tableName)
 
+	// TODO: Figure out what this is fore and if it's still needed.
 	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
 	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
 	// of where to place the raw SQL later when it is being built.
 	// In this case, we are placing the marker after the `FROM` clause
 	// preWheres := []string{}
 	// bodyQuery := ""
-	// // TODO: Update to use new filters
 	// for _, body := range filters.body {
 	// 	if strings.Contains(body, "%") {
 	// 		bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
@@ -408,17 +408,6 @@ func makeAntlrSelectBuilder[T ~string](
 		}
 	}
 
-	// Parse an object that looks like this:
-	// [
-	//   {Key:span_name Op:= Value:["Chris Schmitz"]}
-	//   {Key:source Op:= Value:[backend frontend]}
-	//   {Key:service_name Op:!= Value:[private-graph]}
-	//   {Key:span_name Op:= Value:[gorm.Query]}
-	//   {Key:message Op:= Value:[testing]}
-	//   {Key:message Op>= Value:[200]}
-	// ]
-	// Apply a SQL statement for each object in the array.
-	// Handle any values with '*' in them as a LIKE statement.
 	for _, filter := range antlrFilters {
 		filterValuesContainWildcard := false
 		for _, value := range filter.Value {
@@ -427,10 +416,15 @@ func makeAntlrSelectBuilder[T ~string](
 				break
 			}
 		}
+
 		filterKey := config.keysToColumns[T(filter.Key)]
+		if filter.Key == "DEFAULT" {
+			filterKey = config.bodyColumn
+		}
 
 		if filterValuesContainWildcard {
-			sb.Where(sb.Like(filterKey, sb.Var("%"+filter.Value[0]+"%")))
+			value := strings.ReplaceAll(filter.Value[0], "*", "%")
+			sb.Where(sb.Like(filterKey, value))
 		} else if filter.Op == "!=" {
 			sb.Where(sb.NotEqual(filterKey, filter.Value[0]))
 		} else if filter.Op == ">=" {
