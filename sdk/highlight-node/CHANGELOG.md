@@ -1,5 +1,12 @@
 # @highlight-run/node
 
+## 3.7.0
+
+### Minor Changes
+
+-   e75a480dc: Exposing Node SDK internals and using them to better instrument Next.js API wrappers
+-   e75a480dc: Enable tracing
+
 ## 3.6.6
 
 ### Patch Changes
