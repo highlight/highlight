@@ -12474,7 +12474,7 @@ __metadata:
     autoprefixer: "npm:^10.4.8"
     clsx: "npm:^1.2.1"
     color-hash: "npm:^2.0.1"
-    dexie: "npm:^3.2.2"
+    dexie: "npm:3.2.4"
     dinero.js: "npm:2.0.0-alpha.14"
     esbuild: "npm:0.19.5"
     eslint: "npm:^7.0.0"
@@ -32820,6 +32820,13 @@ __metadata:
   version: 0.0.1159816
   resolution: "devtools-protocol@npm:0.0.1159816"
   checksum: e09d52944a3c5a61ea0bd80244cf323a2ef944527e20f08683e284ccc48b9970ec4cb2ec6dac948662654d58c3bee55c4e3b2896adfa3fe04c03bf626defe052
+  languageName: node
+  linkType: hard
+
+"dexie@npm:3.2.4":
+  version: 3.2.4
+  resolution: "dexie@npm:3.2.4"
+  checksum: 361f7e05fda5db20d9d90ce3e39f4539d1a56acad35a6e4ba26e48ab74c55d81e6daba502a7412be6c0e67ebad3e232e6dbbc1b50426f5743cc0f166cd4e8671
   languageName: node
   linkType: hard
 
