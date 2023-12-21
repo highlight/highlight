@@ -15,7 +15,7 @@ export default async function (options: NodeOptions) {
 
 	return build(
 		async function (source) {
-			const context = Highlight.parseHeaders(undefined)
+			const context = NodeH.parseHeaders({})
 			for await (const obj of source) {
 				const { msg, level, ...rest } = obj
 				let levelStr: string
