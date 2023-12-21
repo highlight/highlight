@@ -17,6 +17,6 @@ const Progress = ({ denominator, numerator, ...props }: Props) => {
 	)
 }
 
-export const Progress_test = <Progress denominator={4} numerator={3} />
+export const Progress_test = <Progress denominator={12} numerator={3} />
 
 export default Progress

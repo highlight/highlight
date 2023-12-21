@@ -18,6 +18,7 @@ import * as styles from './styles.css'
 import { Text } from '../Text/Text'
 import clsx, { ClassValue } from 'clsx'
 import { vars } from '../../css/vars'
+import type { ComponentTest } from '@reflame/testing'
 
 type Option = {
 	key: string
@@ -185,14 +186,14 @@ export const ComboboxSelect = <T extends string | string[]>({
 	)
 }
 
-export const ComboboxSelect_test = () => {
+export const ComboboxSelect_test: ComponentTest = () => {
 	const [value, setValue] = useState('')
 	const options = [
 		{ key: 'red', render: 'Red' },
 		{ key: 'blue', render: 'Blue' },
 		{ key: 'green', render: 'Green' },
 	]
-	const label = 'Select a color!'
+	const label = 'Select a color!!'
 	return (
 		<ComboboxSelect
 			label={label}
@@ -207,13 +208,9 @@ export const ComboboxSelect_test = () => {
 	)
 }
 
-// Will add a TS type package for this stuff soon!
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-ComboboxSelect_test.run = async ({ step }) => {
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	await step('open dialog', async ({ screen, user }) => {
+ComboboxSelect_test.run = async ({ step, screen, user, screenshot }) => {
+	// await screenshot(element)
+	await step('open dialog', async () => {
 		const combobox = await screen.findByRole('combobox')
 		await user.click(combobox)
 		const dialog = await screen.findByRole('dialog')
@@ -224,9 +221,7 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	await step('enter filter text', async ({ screen, user }) => {
+	await step('enter filter text', async () => {
 		const filterInput = await screen.findByPlaceholderText('Filter...')
 		await user.type(filterInput, 're')
 		return {
@@ -236,9 +231,7 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	await step('select option', async ({ screen, user }) => {
+	await step('select option', async () => {
 		const redOption = await screen.findByText('Red')
 		await user.click(redOption)
 	})
