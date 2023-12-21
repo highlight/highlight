@@ -44,7 +44,7 @@
 		"js-cookie": "^3.0.5"
 	},
 	"devDependencies": {
-		"@remix-run/react": "^1.18.1",
+		"@remix-run/react": "^2.4.0",
 		"tsup": "^7.1.0",
 		"typescript": "^5.1.6"
 	}
