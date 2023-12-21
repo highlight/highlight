@@ -205,7 +205,11 @@ export const AnimateCustomerThumbnail = ({
 	const orig = { opacity: 0 }
 	const final = { opacity: 1 }
 	return (
-		<motion.div initial={orig} animate={loaded ? final : orig} className="">
+		<motion.div
+			initial={orig}
+			animate={loaded ? final : orig}
+			className="relative w-full h-full"
+		>
 			{children}
 		</motion.div>
 	)

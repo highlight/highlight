@@ -163,6 +163,11 @@ const CustomerCaseCard = ({
 }) => {
 	const [loaded, setLoaded] = useState(false)
 
+	const loader = () => {
+		setLoaded(true)
+		console.log('loaded')
+	}
+
 	return (
 		<div className={styles.caseCard}>
 			<div className={styles.thumbnail}>
@@ -172,7 +177,7 @@ const CustomerCaseCard = ({
 						layout="fill"
 						objectFit="cover"
 						alt="Case thumbnail"
-						onLoad={() => setLoaded(true)}
+						onLoadingComplete={() => loader()}
 						priority
 					/>
 				</AnimateCustomerThumbnail>
