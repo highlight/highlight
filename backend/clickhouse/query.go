@@ -174,9 +174,18 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	return getConnection(edges, pagination), nil
 }
 
-func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selectArgs []any,
-	groupBy []string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
-	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns), config.defaultFilters)
+func makeAntlrSelectBuilder[T ~string](
+	config tableConfig[T],
+	selectStr string,
+	selectArgs []any,
+	groupBy []string,
+	projectID int,
+	params modelInputs.QueryInput,
+	pagination Pagination,
+	orderBackward string,
+	orderForward string,
+) (*sqlbuilder.SelectBuilder, error) {
+	filters := parser.BuildFiltersForSearchQuery(params.Query)
 	sb := sqlbuilder.NewSelectBuilder()
 
 	// selectStr can contain %s format tokens as placeholders for argument placeholders
@@ -201,11 +210,19 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 	// In this case, we are placing the marker after the `FROM` clause
 	preWheres := []string{}
 	bodyQuery := ""
-	for _, body := range filters.body {
-		if strings.Contains(body, "%") {
-			bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
-		} else {
-			preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
+	for _, filter := range filters {
+		if filter.Key != "DEFAULT" {
+			continue
+		}
+
+		for _, body := range filter.Value {
+			if strings.Contains(body, "*") {
+				value := strings.ReplaceAll(body, "*", "%")
+				bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(value)
+			} else {
+				// TODO: Figure out why this isn't working :thinking:
+				preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
+			}
 		}
 	}
 
@@ -264,151 +281,12 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 		}
 	}
 
-	for key, column := range config.keysToColumns {
-		makeFilterConditions(sb, filters.reserved[key], column)
-	}
-
-	conditions := []string{}
-	for key, values := range filters.attributes {
-		hasNotPrefix := false
-		if len(values) == 1 {
-			value := values[0]
-			if strings.Contains(value, "%") {
-				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
-			} else if strings.HasPrefix(value, "!") || strings.HasPrefix(value, "-") {
-				hasNotPrefix = true
-				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
-			} else {
-				conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
-			}
-		} else {
-			innerConditions := []string{}
-			for _, value := range values {
-				if strings.Contains(value, "%") {
-					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] LIKE %s", key, value)))
-				} else if strings.HasPrefix(value, "!") || strings.HasPrefix(value, "-") {
-					hasNotPrefix = true
-					conditions = append(conditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] != %s", key, value[1:])))
-				} else {
-					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf(config.attributesColumn+"[%s] = %s", key, value)))
-				}
-			}
-
-			if hasNotPrefix {
-				conditions = append(conditions, sb.And(innerConditions...))
-			} else {
-				conditions = append(conditions, sb.Or(innerConditions...))
-			}
-		}
-	}
-	if len(conditions) > 0 {
-		sb.Where(sb.And(conditions...))
-	}
-
-	return sb, nil
-}
-
-func makeAntlrSelectBuilder[T ~string](
-	config tableConfig[T],
-	selectStr string,
-	selectArgs []any,
-	groupBy []string,
-	projectID int,
-	params modelInputs.QueryInput,
-	pagination Pagination,
-	orderBackward string,
-	orderForward string,
-) (*sqlbuilder.SelectBuilder, error) {
-	antlrFilters := parser.BuildFiltersForSearchQuery(params.Query)
-	sb := sqlbuilder.NewSelectBuilder()
-
-	// selectStr can contain %s format tokens as placeholders for argument placeholders
-	// use `sb.Var` to add those arguments to the sql builder and get the proper placeholder
-	cols := []string{fmt.Sprintf(selectStr, lo.Map(selectArgs, func(arg any, _ int) any {
-		return sb.Var(arg)
-	})...)}
-
-	for idx, group := range groupBy {
-		if col, found := config.keysToColumns[T(group)]; found {
-			cols = append(cols, col)
-		} else {
-			cols = append(cols, sb.As("toString("+config.attributesColumn+"["+sb.Var(group)+"])", fmt.Sprintf("g%d", idx)))
-		}
-	}
-	sb.Select(cols...)
-	sb.From(config.tableName)
-
-	// TODO: Figure out what this is fore and if it's still needed.
-	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
-	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
-	// of where to place the raw SQL later when it is being built.
-	// In this case, we are placing the marker after the `FROM` clause
-	// preWheres := []string{}
-	// bodyQuery := ""
-	// for _, body := range filters.body {
-	// 	if strings.Contains(body, "%") {
-	// 		bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
-	// 	} else {
-	// 		preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
-	// 	}
-	// }
-
-	// if len(preWheres) > 0 {
-	// 	sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
-	// }
-	// if bodyQuery != "" {
-	// 	sb.Where(bodyQuery)
-	// }
-
-	sb.Where(sb.Equal("ProjectId", projectID))
-
-	if pagination.After != nil && len(*pagination.After) > 1 {
-		timestamp, uuid, err := decodeCursor(*pagination.After)
-		if err != nil {
-			return nil, err
+	for _, filter := range filters {
+		// Body queries are handled earlier because of the PREWHERE clause
+		if filter.Key == "DEFAULT" {
+			continue
 		}
 
-		// See https://dba.stackexchange.com/a/206811
-		sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
-			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
-			Where(
-				sb.Or(
-					sb.LessThan("Timestamp", timestamp),
-					sb.LessThan("UUID", uuid),
-				),
-			).OrderBy(orderForward)
-	} else if pagination.At != nil && len(*pagination.At) > 1 {
-		timestamp, uuid, err := decodeCursor(*pagination.At)
-		if err != nil {
-			return nil, err
-		}
-		sb.Where(sb.Equal("Timestamp", timestamp)).
-			Where(sb.Equal("UUID", uuid))
-	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
-		timestamp, uuid, err := decodeCursor(*pagination.Before)
-		if err != nil {
-			return nil, err
-		}
-
-		sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
-			Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
-			Where(
-				sb.Or(
-					sb.GreaterThan("Timestamp", timestamp),
-					sb.GreaterThan("UUID", uuid),
-				),
-			).
-			OrderBy(orderBackward)
-	} else {
-		sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
-			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
-
-		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
-			sb.OrderBy(orderForward)
-		}
-	}
-
-	for _, filter := range antlrFilters {
 		filterValuesContainWildcard := false
 		for _, value := range filter.Value {
 			if strings.Contains(value, "*") {
@@ -418,15 +296,12 @@ func makeAntlrSelectBuilder[T ~string](
 		}
 
 		filterKey := config.keysToColumns[T(filter.Key)]
-		if filter.Key == "DEFAULT" {
-			filterKey = config.bodyColumn
-		}
 
 		if filterValuesContainWildcard {
 			value := strings.ReplaceAll(filter.Value[0], "*", "%")
 			sb.Where(sb.Like(filterKey, value))
 		} else if filter.Op == "!=" {
-			sb.Where(sb.NotEqual(filterKey, filter.Value[0]))
+			sb.Where(sb.NotEqual(filterKey, filter.Value))
 		} else if filter.Op == ">=" {
 			sb.Where(sb.GreaterEqualThan(filterKey, filter.Value[0]))
 		} else if filter.Op == "<=" {
@@ -436,13 +311,13 @@ func makeAntlrSelectBuilder[T ~string](
 		} else if filter.Op == "<" {
 			sb.Where(sb.LessThan(filterKey, filter.Value[0]))
 		} else if filter.Op == "=" || filter.Op == ":" {
-			sb.Where(sb.Equal(filterKey, filter.Value[0]))
+			sb.Where(sb.Equal(filterKey, filter.Value))
 		} else {
 			return nil, fmt.Errorf("unsupported operator: %s", filter.Op)
 		}
 	}
 
-	// TODO: Handle TraceAttributes query
+	// TODO: Handle TraceAttributes query (and figure out why we need it)
 
 	return sb, nil
 }
