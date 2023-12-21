@@ -8,7 +8,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
 
 export const JSManualTracesContent: QuickStartContent = {
-	title: 'Tracing from an Node.js App',
+	title: 'Tracing from a Node.js App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Node.js application.',
 	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
@@ -42,6 +42,30 @@ module.exports = function() {
     console.log('hey there!');
     functionToTrace()
 }`,
+					language: 'js',
+				},
+			],
+		},
+		{
+			title: 'Pass HTTP headers to the SDK',
+			content:
+				'`H.runWithHeaders` takes request headers and spreads them across all related spans, automatically relating spans to your session and request headers.',
+			code: [
+				{
+					text: `
+app.get('/', (req, res) => {
+	H.runWithHeaders(req.headers, () => {
+		const span = H.startActiveSpan("custom-span", {})
+		const err = new Error('this is a test error')
+		
+		console.info('Sending error to highlight')
+		H.consumeError(err)
+
+		res.send('Hello World!')
+		span.end()
+	})
+})
+					`,
 					language: 'js',
 				},
 			],

@@ -33,9 +33,17 @@ all-in-one.
 
 Configure logging for your serverless cloud provider using one of our [cloud provider logging guides](https://www.highlight.io/docs/getting-started/backend-logging/hosting/overview), including [Vercel Log Drain for Highlight](https://vercel.com/integrations/highlight).
 
-## Custom Spans
+## Tracing Auto-instrumentation
 
-Follow the [Next.js Open Telemetry docs](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#custom-spans) to use custom span.
+Open Telemetry auto-instrumentation supports a wide array of packages.
+
+Follow the [Open Telemetry Instrumentation Initialization](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node#usage-instrumentation-initialization) guide to initialize any of these [supported library and framework.](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node#supported-instrumentations).
+
+## Custom Tracing Spans
+
+The [Next.js Open Telemetry docs](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#custom-spans) have some tips and patterns for using custom spans.
+
+We went ahead and exposed `H.startActiveSpan` from `@highlight-run/next/server` to automatically integrate into our Next.js SDK. Wrap your API endpoints as always, then kick off spans as needed. Each span will be wrapped under a custom Highlight span that tracks session and request data, automatically tying your custom spans into the broader request context that Highlight is already tracking.
 
 Here's a quick example:
 
@@ -58,6 +66,27 @@ export default withPageRouterHighlight(async function handler(
 		res.send(`Trace sent! Check out this random number: ${Math.random()}`)
 		span.end()
 		resolve()
+	})
+})
+```
+
+```typescript
+// app/api/app-router-trace/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
+import { H } from '@highlight-run/next/server'
+
+export const GET = withAppRouterHighlight(async function GET(
+	request: NextRequest,
+) {
+	return new Promise(async (resolve) => {
+		const span = await H.startActiveSpan('app-router-span', {})
+
+		console.info('Here: /pages/api/app-router-trace/route.ts ⏰⏰⏰')
+
+		span.end()
+
+		resolve(new Response('Success: /api/app-router-trace'))
 	})
 })
 ```
