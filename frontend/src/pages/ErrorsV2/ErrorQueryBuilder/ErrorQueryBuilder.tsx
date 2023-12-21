@@ -15,8 +15,8 @@ import QueryBuilder, {
 	QueryBuilderProps,
 	SelectOption,
 } from '@/components/QueryBuilder/QueryBuilder'
-import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
-import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import { CreateErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/CreateErrorSegmentModal'
+import { DeleteErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/DeleteErrorSegmentModal'
 
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',

@@ -5,7 +5,7 @@ import { message } from 'antd'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useDeleteErrorSegmentMutation } from '../../../../../graph/generated/hooks'
+import { useDeleteErrorSegmentMutation } from '../../../graph/generated/hooks'
 
 const NO_SEGMENT = 'none'
 
@@ -17,12 +17,9 @@ interface Props {
 	afterDeleteHandler?: () => void
 }
 
-const DeleteErrorSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
-	hideModalHandler,
-	showModal,
-	segmentToDelete,
-	afterDeleteHandler,
-}) => {
+export const DeleteErrorSegmentModal: React.FC<
+	React.PropsWithChildren<Props>
+> = ({ hideModalHandler, showModal, segmentToDelete, afterDeleteHandler }) => {
 	const { segment_id, project_id } = useParams<{
 		segment_id: string
 		project_id: string
@@ -77,5 +74,3 @@ const DeleteErrorSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 		/>
 	)
 }
-
-export default DeleteErrorSegmentModal

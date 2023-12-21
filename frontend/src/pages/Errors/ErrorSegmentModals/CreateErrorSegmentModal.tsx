@@ -23,7 +23,7 @@ interface Props {
 	currentSegment?: Maybe<Pick<ErrorSegment, 'id' | 'name'>>
 }
 
-const CreateErrorSegmentModal = ({
+export const CreateErrorSegmentModal = ({
 	showModal,
 	timeRangeField,
 	onHideModal,
@@ -127,5 +127,3 @@ const CreateErrorSegmentModal = ({
 		/>
 	)
 }
-
-export default CreateErrorSegmentModal
