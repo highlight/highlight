@@ -2,8 +2,8 @@ import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from 'antlr4'
 
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import {
-	Expression,
 	SearchErrorListener,
+	SearchExpression,
 	SearchListener,
 } from '@/components/Search/Parser/listener'
 
@@ -23,7 +23,7 @@ export const buildParser = (input: string) => {
 
 export const parseSearch = (input: string) => {
 	const { parser, tokens } = buildParser(input)
-	const queryParts: Expression[] = []
+	const queryParts: SearchExpression[] = []
 
 	// Setup a custom error listener. The default listener prints a lot of noise.
 	parser.removeErrorListeners()
@@ -37,7 +37,7 @@ export const parseSearch = (input: string) => {
 
 	return {
 		queryParts,
-		tokenGroups: groupTokens(tokens.tokens, queryParts, input),
+		tokens: tokens.tokens,
 	}
 }
 
@@ -50,7 +50,7 @@ export type SearchToken = {
 
 export const groupTokens = (
 	tokens: Token[],
-	expressions: Expression[],
+	expressions: SearchExpression[],
 	query: string,
 ) => {
 	const groupedTokens: {

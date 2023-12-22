@@ -34,6 +34,7 @@ import {
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
+import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -41,9 +42,6 @@ import {
 import {
 	BODY_KEY,
 	DEFAULT_OPERATOR,
-	parseSearchQuery,
-	quoteQueryValue,
-	SearchParam,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import { parseSearch, SearchToken } from '@/components/Search/utils'
@@ -53,6 +51,7 @@ import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
+import { KeyType } from '@/graph/generated/schemas'
 
 import * as styles from './SearchForm.css'
 
@@ -235,11 +234,9 @@ export const Search: React.FC<{
 		fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
 
-	// TODO: Remove queryTerms and only use tokenGroups. See #7298 for details.
-	const queryTerms = parseSearchQuery(query)
-	const { tokenGroups } = parseSearch(query)
-	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
-	const activeTerm = queryTerms[activeTermIndex]
+	const { queryParts, tokens } = parseSearch(query)
+	const activeTermIndex = getActiveTermIndex(cursorIndex, queryParts)
+	const activeTerm = queryParts[activeTermIndex] ?? {}
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
 
 	// TODO: code smell, user is not able to use "message" as a search key
@@ -248,13 +245,13 @@ export const Search: React.FC<{
 		activeTerm.key !== BODY_KEY &&
 		!!keysData?.keys?.find((k) => k.name === activeTerm.key)
 	const loading = showValues ? valuesLoading : keysLoading
-	const showTermSelect = !!activeTerm.value.length
+	const showTermSelect = !!activeTerm.value?.length
 
 	const values = data?.key_values
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, values)
-		: getVisibleKeys(query, queryTerms, activeTerm, keysData?.keys)
+		: getVisibleKeys(query, queryParts, activeTerm, keysData?.keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
@@ -331,37 +328,30 @@ export const Search: React.FC<{
 	// TODO: Fix squashing body when selecting key. To repro, type "asdf " and
 	// note how the dropdown opens. If you select a key from the list it
 	// ends up removing the body term.
-	const handleItemSelect = (key: Keys[0] | string, noQuotes?: boolean) => {
+	const handleItemSelect = (key: Keys[0] | string) => {
+		const part = queryParts[activeTermIndex]
 		const isValueSelect = typeof key === 'string'
-		const activeTermKey = queryTerms[activeTermIndex].key
-		const isLastTerm = activeTermIndex === queryTerms.length - 1
-		const prefix = activeTerm.value.startsWith('-') ? '-' : ''
+		const value = isValueSelect ? key : key.name
+		const isLastTerm = activeTermIndex === queryParts.length - 1
 
+		debugger
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = !!noQuotes
-				? key
-				: `${prefix}${quoteQueryValue(key)}`
+			part.value = value
+			part.text = `${part.key}${part.operator}${value}`
 		} else {
-			if (activeTermKey === BODY_KEY && activeTerm.value.endsWith(' ')) {
-				queryTerms[activeTermIndex].value =
-					queryTerms[activeTermIndex].value.trim()
-
-				queryTerms.push({
-					key: key.name,
-					value: '',
-					operator: DEFAULT_OPERATOR,
-					offsetStart: query.length,
-				})
-			} else {
-				queryTerms[activeTermIndex].key = key.name
-				queryTerms[activeTermIndex].value = ''
-			}
+			part.key = value
+			part.operator = DEFAULT_OPERATOR
+			part.text = `${value}${DEFAULT_OPERATOR}`
+			part.value = ''
 		}
 
-		let newQuery = stringifySearchQuery(queryTerms)
+		let newQuery = stringifySearchQuery(queryParts)
+
 		// Add space if it's the last term and a value is selected so people can
 		// start entering the next term.
-		isLastTerm && isValueSelect ? (newQuery += ' ') : null
+		isLastTerm && isValueSelect && !newQuery.endsWith(' ')
+			? (newQuery += ' ')
+			: null
 
 		setQuery(newQuery)
 
@@ -374,14 +364,9 @@ export const Search: React.FC<{
 	}
 
 	const handleRemoveItem = (index: number) => {
-		const groups = [...tokenGroups]
-		const hasTrailingWhitespace = groups[index + 1]?.[0]?.text.trim() === ''
-		const numItemsToRemove = hasTrailingWhitespace ? 2 : 1
-		groups.splice(index, numItemsToRemove)
-		const newQuery = groups
-			.flat()
-			.map((t) => t.text)
-			.join('')
+		const newQueryParts = [...queryParts]
+		newQueryParts.splice(index, 1)
+		const newQuery = stringifySearchQuery(newQueryParts)
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
@@ -415,23 +400,45 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
-					{tokenGroups.map((group, index) => {
-						const term = group.map((token) => token.text).join('')
+					{queryParts.map((part, index) => {
+						const term = part.text ?? ''
+						const prevStop = queryParts[index - 1]?.stop ?? 0
+						const whitespace = part.start - prevStop - 1
+						const termTokens = tokens.filter(
+							(token) =>
+								token.start >= part.start &&
+								token.start <= part.stop,
+						)
+
 						const nextIndex = currentIndex + term.length
 						const active =
 							cursorIndex >= currentIndex &&
 							cursorIndex <= nextIndex
 						currentIndex = nextIndex
 
+						// TODO: whitespace is handled by the token grouping logic, but we
+						// aren't handling it here.
 						return (
-							<TermTag
-								key={index}
-								term={term}
-								index={index}
-								active={active}
-								tokens={group}
-								onRemoveItem={handleRemoveItem}
-							/>
+							<>
+								{whitespace > 0 && (
+									<TermTag
+										key={`${index}-whitespace`}
+										term={' '.repeat(whitespace)}
+										index={-1}
+										active={false}
+										tokens={[]}
+										onRemoveItem={() => null}
+									/>
+								)}
+								<TermTag
+									key={index}
+									term={term}
+									index={index}
+									active={active}
+									tokens={termTokens}
+									onRemoveItem={handleRemoveItem}
+								/>
+							</>
 						)
 					})}
 				</Box>
@@ -502,7 +509,15 @@ export const Search: React.FC<{
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() =>
-										handleItemSelect(activeTerm.value, true)
+										handleItemSelect(
+											showValues
+												? activeTerm.value
+												: {
+														name: activeTerm.value,
+														type: KeyType.String,
+														__typename: 'QueryKey',
+												  },
+										)
 									}
 									store={comboboxStore}
 								>
@@ -690,30 +705,32 @@ const TermTag: React.FC<{
 
 const getActiveTermIndex = (
 	cursorIndex: number,
-	params: SearchParam[],
+	queryParts: SearchExpression[],
 ): number => {
 	let activeTermIndex
 
-	params.find((param, index) => {
-		if (param.offsetStart <= cursorIndex) {
-			activeTermIndex = index
+	queryParts.find((param, index) => {
+		if (param.start <= cursorIndex) {
 			return false
 		}
 
+		activeTermIndex = index
 		return true
 	})
 
-	return activeTermIndex === undefined ? params.length - 1 : activeTermIndex
+	return activeTermIndex === undefined
+		? queryParts.length - 1
+		: activeTermIndex
 }
 
 const getVisibleKeys = (
 	queryText: string,
-	queryTerms: SearchParam[],
-	activeQueryTerm: SearchParam,
+	queryParts: SearchExpression[],
+	activeQueryTerm?: SearchExpression,
 	keys?: Keys,
 ) => {
 	const startingNewTerm = queryText.endsWith(' ')
-	const activeTermKeys = queryTerms.map((term) => term.key)
+	const activeTermKeys = queryParts.map((term) => term.key)
 	keys = keys?.filter((key) => activeTermKeys.indexOf(key.name) === -1)
 
 	return (
@@ -722,9 +739,9 @@ const getVisibleKeys = (
 				// If it's a new term, don't filter results.
 				startingNewTerm ||
 				// Only filter for body queries
-				(activeQueryTerm.key === BODY_KEY &&
+				(activeQueryTerm?.key === BODY_KEY &&
 					// Don't filter if no query term
-					(!activeQueryTerm.value.length ||
+					(!activeQueryTerm.value?.length ||
 						startingNewTerm ||
 						// Filter empty results
 						(key.name.length > 0 &&
@@ -734,8 +751,11 @@ const getVisibleKeys = (
 	)
 }
 
-const getVisibleValues = (activeQueryTerm: SearchParam, values?: string[]) => {
-	const activeTerm = activeQueryTerm.value.replace('-', '')
+const getVisibleValues = (
+	activeQueryTerm?: SearchExpression,
+	values?: string[],
+) => {
+	const activeTerm = activeQueryTerm?.value ?? ''
 
 	return (
 		values?.filter(

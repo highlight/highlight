@@ -136,7 +136,6 @@ func (s *searchListener) EnterId_search_value(ctx *parser.Id_search_valueContext
 func (s *searchListener) ExitId_search_value(ctx *parser.Id_search_valueContext) {}
 
 func (s *searchListener) EnterString_search_value(ctx *parser.String_search_valueContext) {
-	// TODO: Think about removing labels and just doing this to all search values
 	value := strings.Trim(ctx.GetText(), "\"")
 	s.appendRules(value)
 }
@@ -148,7 +147,6 @@ func (s *searchListener) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 func (s *searchListener) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *searchListener) appendRules(value string) {
-	// TODO: Get keys from table config
 	filterKey := s.keysToColumns[s.currentKey]
 
 	switch s.currentOp {
