@@ -17,6 +17,7 @@ import {
 	Stack,
 	Tag,
 	Text,
+	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
@@ -409,9 +410,14 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 			<Stack height="full" px="8" cssClass={style.pageWrapper} gap="0">
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
-					<Box>
-						<Text size="small" weight="medium">
+					<Stack gap="12">
+						<Text size="small" color="weak">
 							Prices are usage based and flexible with your needs.
+						</Text>
+						<TextLink href="/plan-features">
+							Explore features here.
+						</TextLink>
+						<Text size="small" color="weak">
 							Need a custom quote or want to commit to a minimum
 							spend (at a discount)?{' '}
 							<a href="mailto:sales@highlight.run">
@@ -420,7 +426,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 								</Box>
 							</a>
 						</Text>
-					</Box>
+					</Stack>
 					{billingIssue ? (
 						<Callout title="Update payment details" icon={false}>
 							<Box

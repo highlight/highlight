@@ -18,9 +18,11 @@ import {
 	Stack,
 	Tag,
 	Text,
+	TextLink,
 	Tooltip,
 	useFormStore,
 } from '@highlight-run/ui/components'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
@@ -470,6 +472,7 @@ const ProductCard = ({
 type BillingPageProps = {}
 
 const UpdatePlanPage = ({}: BillingPageProps) => {
+	const { allProjects } = useApplicationContext()
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
@@ -989,6 +992,35 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								includedQuantity={includedTraces}
 								planType={planType}
 							/>
+							<Stack
+								border="secondary"
+								borderRadius="8"
+								p="8"
+								gap="8"
+							>
+								<Text color="weak">
+									<b>Use our new filtering functionality</b>{' '}
+									to drop data that is not relevant for your
+									observability setup.
+								</Text>
+								<Box display="flex" alignItems="center" gap="8">
+									<Button
+										trackingId="UpdatePlan Filtering"
+										onClick={() =>
+											navigate(
+												`/${
+													allProjects?.at(0)?.id
+												}/settings/filters`,
+											)
+										}
+									>
+										Go to filtering
+									</Button>
+									<TextLink href="https://www.highlight.io/docs/general/product-features/session-replay/filtering-sessions#set-up-ingestion-filters">
+										Learn more
+									</TextLink>
+								</Box>
+							</Stack>
 							<Box borderBottom="divider" />
 							<Box
 								border="secondary"
