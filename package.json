@@ -15,7 +15,7 @@
 		"sdk/firstload",
 		"sdk/highlight-apollo",
 		"sdk/highlight-cloudflare",
-		"sdk/highlight-grafana-datasource",
+		"sdk/highlightinc-highlight-datasource",
 		"sdk/highlight-nest",
 		"sdk/highlight-next",
 		"sdk/highlight-node",
