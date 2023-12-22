@@ -43,7 +43,6 @@ func NewSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, bodyColumn string, 
 func (s *searchListener) EnterSearch_query(ctx *parser.Search_queryContext) {}
 func (s *searchListener) ExitSearch_query(ctx *parser.Search_queryContext) {
 	s.sb.Where(s.rules...)
-	fmt.Printf("::: RULES: %+v\n", s.rules)
 }
 
 func (s *searchListener) EnterTop_paren_col_expr(ctx *parser.Top_paren_col_exprContext) {}
