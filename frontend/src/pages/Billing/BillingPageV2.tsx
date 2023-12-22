@@ -414,7 +414,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						<Text size="small" color="weak">
 							Prices are usage based and flexible with your needs.
 						</Text>
-						<TextLink href="/plan-features">
+						<TextLink href={`/w/${workspace_id}/plan-features`}>
 							Explore features here.
 						</TextLink>
 						<Text size="small" color="weak">

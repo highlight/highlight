@@ -1,5 +1,6 @@
 import { ProductType } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui/components'
+import PlanComparisonPage from '@pages/Billing/PlanComparisonPage'
 import { ProjectProductFilters } from '@pages/ProjectSettings/ProjectFilters/ProjectFilters'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
@@ -91,6 +92,12 @@ export const SettingsRouter = () => {
 	const updatePlanContent = (
 		<Suspense fallback={null}>
 			<UpdatePlanPage />
+		</Suspense>
+	)
+
+	const planComparisonContent = (
+		<Suspense fallback={null}>
+			<PlanComparisonPage />
 		</Suspense>
 	)
 
@@ -294,6 +301,10 @@ export const SettingsRouter = () => {
 								<Route
 									path="current-plan/update-plan"
 									element={updatePlanContent}
+								/>
+								<Route
+									path="plan-features"
+									element={planComparisonContent}
 								/>
 								<Route
 									path="upgrade-plan"
