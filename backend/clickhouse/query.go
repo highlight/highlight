@@ -142,8 +142,8 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-	fmt.Printf("::: SQL: %s\n", sql)
-	fmt.Printf("::: args: %+v\n", args)
+	sqlStr, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	fmt.Printf("::: SQL: %s\n", sqlStr)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
 	span.SetAttribute("Table", config.tableName)
