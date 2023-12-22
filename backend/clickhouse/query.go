@@ -264,61 +264,6 @@ func makeSelectBuilder[T ~string](
 	return sb, nil
 }
 
-type filtersWithReservedKeys[T ~string] struct {
-	body       []string
-	attributes map[string][]string
-	reserved   map[T][]string
-}
-
-func makeFilters[T ~string](query string, reservedKeys []T, defaultFilters map[string]string) filtersWithReservedKeys[T] {
-	filters := queryparser.Parse(query)
-	filtersWithReservedKeys := filtersWithReservedKeys[T]{
-		reserved:   make(map[T][]string),
-		attributes: make(map[string][]string),
-	}
-
-	filtersWithReservedKeys.body = filters.Body
-
-	for _, key := range reservedKeys {
-		if val, ok := filters.Attributes[string(key)]; ok {
-			filtersWithReservedKeys.reserved[key] = val
-			delete(filters.Attributes, string(key))
-		}
-	}
-	for key, value := range defaultFilters {
-		if filters.Attributes[key] == nil {
-			filters.Attributes[key] = []string{}
-		}
-		filters.Attributes[key] = append(filters.Attributes[key], value)
-	}
-
-	filtersWithReservedKeys.attributes = filters.Attributes
-
-	return filtersWithReservedKeys
-}
-
-func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column string) {
-	orConditions := []string{}
-	andConditions := []string{}
-	for _, filter := range filters {
-		if strings.Contains(filter, "%") {
-			orConditions = append(orConditions, sb.Like(column, filter))
-		} else if strings.HasPrefix(filter, "-") {
-			andConditions = append(andConditions, sb.NotEqual(column, strings.Replace(filter, "-", "", 1)))
-		} else {
-			orConditions = append(orConditions, sb.Equal(column, filter))
-		}
-	}
-
-	if len(andConditions) > 0 {
-		sb.Where(sb.And(andConditions...))
-	}
-
-	if len(orConditions) > 0 {
-		sb.Where(sb.Or(orConditions...))
-	}
-}
-
 func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	gqlLogAttributes := make(map[string]interface{}, len(logAttributes))
 	for i, v := range logAttributes {
