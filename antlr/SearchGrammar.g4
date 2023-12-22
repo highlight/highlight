@@ -5,32 +5,41 @@ search_query
   | search_expr EOF
   ;
 
+top_col_expr
+  : LPAREN col_expr RPAREN # top_paren_col_expr
+  | negation_op top_col_expr # negated_top_col_expr
+  | search_value # top_col_search_value
+  ;
+
+
 col_expr
-  : LPAREN col_expr RPAREN
-  | search_value search_op search_value
-  | search_value search_op search_value
-  | negation_op col_expr
-  | search_value
+  : LPAREN col_expr RPAREN # col_paren_expr
+  | negation_op col_expr # negated_col_expr
+  | col_expr and_op col_expr # and_col_expr
+  | col_expr OR col_expr # or_col_expr
+  | search_value # col_search_value
   ;
 
 search_expr
-  : LPAREN search_expr RPAREN
-  | LPAREN search_expr RPAREN
-  | search_expr search_op search_expr
-  | search_expr search_expr
-  | search_expr search_op search_expr
-  | negation_op search_expr
-  | search_key bin_op col_expr
-  | col_expr
+  : LPAREN search_expr RPAREN # paren_search_expr
+  | negation_op search_expr # negated_search_expr
+  | search_expr and_op search_expr # and_search_expr
+  | search_expr OR search_expr # or_search_expr
+  | search_key bin_op top_col_expr # key_val_search_expr
+  | top_col_expr # body_search_expr
   ;
 
 search_key
   : ID
   ;
 
-search_op
+and_op
   : AND
-  | OR
+  |
+  ;
+
+or_op
+  : OR
   ;
 
 negation_op
@@ -48,8 +57,8 @@ bin_op
   ;
 
 search_value
-  : ID
-  | STRING
+  : ID # id_search_value
+  | STRING # string_search_value
   ;
 
 AND : 'AND' ;

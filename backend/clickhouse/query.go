@@ -185,7 +185,6 @@ func makeAntlrSelectBuilder[T ~string](
 	orderBackward string,
 	orderForward string,
 ) (*sqlbuilder.SelectBuilder, error) {
-	filters := parser.BuildFiltersForSearchQuery(params.Query)
 	sb := sqlbuilder.NewSelectBuilder()
 
 	// selectStr can contain %s format tokens as placeholders for argument placeholders
@@ -201,38 +200,9 @@ func makeAntlrSelectBuilder[T ~string](
 			cols = append(cols, sb.As("toString("+config.attributesColumn+"["+sb.Var(group)+"])", fmt.Sprintf("g%d", idx)))
 		}
 	}
+
 	sb.Select(cols...)
 	sb.From(config.tableName)
-
-	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
-	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
-	// of where to place the raw SQL later when it is being built.
-	// In this case, we are placing the marker after the `FROM` clause
-	preWheres := []string{}
-	bodyQuery := ""
-	for _, filter := range filters {
-		if filter.Key != "DEFAULT" {
-			continue
-		}
-
-		for _, body := range filter.Value {
-			if strings.Contains(body, "*") {
-				value := strings.ReplaceAll(body, "*", "%")
-				bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(value)
-			} else {
-				// TODO: Figure out why this isn't working :thinking:
-				preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
-			}
-		}
-	}
-
-	if len(preWheres) > 0 {
-		sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
-	}
-	if bodyQuery != "" {
-		sb.Where(bodyQuery)
-	}
-
 	sb.Where(sb.Equal("ProjectId", projectID))
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
@@ -281,43 +251,12 @@ func makeAntlrSelectBuilder[T ~string](
 		}
 	}
 
-	for _, filter := range filters {
-		// Body queries are handled earlier because of the PREWHERE clause
-		if filter.Key == "DEFAULT" {
-			continue
-		}
-
-		filterValuesContainWildcard := false
-		for _, value := range filter.Value {
-			if strings.Contains(value, "*") {
-				filterValuesContainWildcard = true
-				break
-			}
-		}
-
-		filterKey := config.keysToColumns[T(filter.Key)]
-
-		if filterValuesContainWildcard {
-			value := strings.ReplaceAll(filter.Value[0], "*", "%")
-			sb.Where(sb.Like(filterKey, value))
-		} else if filter.Op == ">=" {
-			sb.Where(sb.GreaterEqualThan(filterKey, filter.Value[0]))
-		} else if filter.Op == "<=" {
-			sb.Where(sb.LessEqualThan(filterKey, filter.Value[0]))
-		} else if filter.Op == ">" {
-			sb.Where(sb.GreaterThan(filterKey, filter.Value[0]))
-		} else if filter.Op == "<" {
-			sb.Where(sb.LessThan(filterKey, filter.Value[0]))
-		} else if filter.Op == "!=" {
-			// TODO: Confirm using IN doesn't slow things down
-			sb.Where(sb.NotIn(filterKey, filter.Value))
-		} else if filter.Op == "=" || filter.Op == ":" {
-			// TODO: Confirm using IN doesn't slow things down
-			sb.Where(sb.In(filterKey, filter.Value))
-		} else {
-			return nil, fmt.Errorf("unsupported operator: %s", filter.Op)
-		}
+	// TODO: Is there a better way to leverage the tableConfig types?
+	keysToColumns := map[string]string{}
+	for k, v := range config.keysToColumns {
+		keysToColumns[string(k)] = v
 	}
+	parser.AssignSearchFilters(sb, params.Query, config.bodyColumn, keysToColumns)
 
 	// TODO: Handle TraceAttributes query (and figure out why we need it)
 
