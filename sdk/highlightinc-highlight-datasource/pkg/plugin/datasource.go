@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -32,30 +31,29 @@ var (
 
 // NewDatasource creates a new datasource instance.
 func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
-	opts, err := settings.HTTPClientOptions(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("http client options: %w", err)
-	}
-
-	opts.ForwardHTTPHeaders = true
-
 	var dataSourceSettings DataSourceSettings
-	err = json.Unmarshal(settings.JSONData, &dataSourceSettings)
-	if err != nil {
+	if err := json.Unmarshal(settings.JSONData, &dataSourceSettings); err != nil {
 		return nil, err
 	}
 
-	clientSecret := settings.DecryptedSecureJSONData["clientSecret"]
+	var httpClient *http.Client
+	if dataSourceSettings.ClientId == "" {
+		httpClient = http.DefaultClient
+	} else {
+		clientSecret := settings.DecryptedSecureJSONData["clientSecret"]
 
-	config := clientcredentials.Config{
-		ClientID:     dataSourceSettings.ClientId,
-		ClientSecret: clientSecret,
-		TokenURL:     dataSourceSettings.TokenURL,
+		config := clientcredentials.Config{
+			ClientID:     dataSourceSettings.ClientId,
+			ClientSecret: clientSecret,
+			TokenURL:     dataSourceSettings.TokenURL,
+		}
+
+		httpClient = config.Client(context.Background())
 	}
 
-	client := graphql.NewClient(dataSourceSettings.BackendURL, config.Client(context.Background()))
+	graphqlClient := graphql.NewClient(dataSourceSettings.BackendURL, httpClient)
 
-	return &Datasource{Client: client}, nil
+	return &Datasource{Client: graphqlClient}, nil
 }
 
 // Datasource is an example datasource which can respond to data queries, reports
@@ -292,13 +290,13 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	var input queryInput
 	err := json.Unmarshal(query.JSON, &input)
 	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
+		return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
 	}
 
 	var dataSourceSettings DataSourceSettings
 	err = json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &dataSourceSettings)
 	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
+		return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
 	}
 
 	type TracesResult struct {
@@ -419,12 +417,28 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 // datasource configuration page which allows users to verify that
 // a datasource is working as expected.
 func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	var q struct {
-		Admin Admin `graphql:"admin"`
+	var dataSourceSettings DataSourceSettings
+	if err := json.Unmarshal(req.PluginContext.DataSourceInstanceSettings.JSONData, &dataSourceSettings); err != nil {
+		return nil, err
 	}
 
-	err := d.Client.Query(ctx, &q, map[string]interface{}{})
-	if err != nil {
+	var q struct {
+		TracesMetrics MetricsBuckets `graphql:"traces_metrics(project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by)"`
+	}
+
+	if err := d.Client.Query(ctx, &q, map[string]interface{}{
+		"project_id":   ID(strconv.Itoa(dataSourceSettings.ProjectId)),
+		"metric_types": []MetricAggregator{MetricAggregatorCount},
+		"group_by":     []string{},
+		"params": QueryInput{
+			DateRange: &DateRangeRequiredInput{
+				StartDate: time.Now().AddDate(0, 0, -1),
+				EndDate:   time.Now(),
+			},
+		},
+		"column":    "",
+		"bucket_by": "None",
+	}); err != nil {
 		return nil, err
 	}
 

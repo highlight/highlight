@@ -8,5 +8,5 @@ use ./sdk/highlight-go
 
 use (
 	./e2e/go
-	./sdk/highlight-grafana-datasource
+	./sdk/highlightinc-highlight-datasource
 )

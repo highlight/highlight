@@ -1,4 +1,4 @@
-module github.com/highlight/highlight-grafana-datasource
+module github.com/highlight/highlightinc-highlight-datasource
 
 go 1.21
 

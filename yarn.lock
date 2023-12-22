@@ -12554,9 +12554,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/grafana-datasource@workspace:sdk/highlight-grafana-datasource":
+"@highlight-run/grafana-datasource@workspace:sdk/highlightinc-highlight-datasource":
   version: 0.0.0-use.local
-  resolution: "@highlight-run/grafana-datasource@workspace:sdk/highlight-grafana-datasource"
+  resolution: "@highlight-run/grafana-datasource@workspace:sdk/highlightinc-highlight-datasource"
   dependencies:
     "@babel/core": "npm:^7.21.4"
     "@emotion/css": "npm:^11.1.3"

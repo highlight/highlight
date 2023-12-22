@@ -2,7 +2,7 @@ version: '3.0'
 
 services:
   grafana:
-    container_name: 'highlight-grafana-datasource'
+    container_name: 'highlightinc-highlight-datasource'
     platform: 'linux/amd64'
     build:
       context: ./.config
@@ -12,6 +12,6 @@ services:
     ports:
       - 3001:3000/tcp
     volumes:
-      - ./dist:/var/lib/grafana/plugins/highlight-grafana-datasource
+      - ./dist:/var/lib/grafana/plugins/highlightinc-highlight-datasource
       - ./provisioning:/etc/grafana/provisioning
       - ./grafana/data:/var/lib/grafana
