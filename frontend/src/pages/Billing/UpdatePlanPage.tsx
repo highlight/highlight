@@ -22,6 +22,7 @@ import {
 	Tooltip,
 	useFormStore,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
 import { message } from 'antd'
@@ -998,11 +999,20 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								p="8"
 								gap="8"
 							>
-								<Text color="weak">
-									<b>Use our new filtering functionality</b>{' '}
-									to drop data that is not relevant for your
-									observability setup.
-								</Text>
+								<Box>
+									<Text color="weak">
+										<b
+											style={{
+												color: vars.theme.static.content
+													.strong,
+											}}
+										>
+											Use our new filtering functionality
+										</b>{' '}
+										to drop data that is not relevant for
+										your observability setup.
+									</Text>
+								</Box>
 								<Box display="flex" alignItems="center" gap="8">
 									<Button
 										trackingId="UpdatePlan Filtering"
