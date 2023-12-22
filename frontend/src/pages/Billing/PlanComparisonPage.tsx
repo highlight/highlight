@@ -1,5 +1,7 @@
+import { Button } from '@components/Button'
 import {
 	Box,
+	IconSolidGlobe,
 	IconSolidOfficeBuilding,
 	IconSolidPuzzle,
 	IconSolidReceiptTax,
@@ -74,7 +76,6 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
 type PlanComparisonPageProps = {}
 
 const PlanComparisonPage = ({}: PlanComparisonPageProps) => {
-	// TODO(vkorolik) implement
 	return (
 		<Box height="full" style={{ maxWidth: 720 }} margin="auto" py="32">
 			<Stack>
@@ -89,6 +90,37 @@ const PlanComparisonPage = ({}: PlanComparisonPageProps) => {
 					))}
 				</Box>
 			</Stack>
+			<Box
+				p="12"
+				borderRadius="8"
+				border="dividerWeak"
+				width="full"
+				display="flex"
+				gap="12"
+			>
+				<IconSolidGlobe size="24" />
+				<Stack gap="12" width="full">
+					<Text size="large" weight="bold" color="strong">
+						Bring your own Cloud
+					</Text>
+					<Text size="small" weight="medium" color="default">
+						Best for teams who want to manage their own
+						infrastructure and data.
+					</Text>
+				</Stack>
+				<Button
+					kind="secondary"
+					size="small"
+					emphasis="high"
+					trackingId="Plan Comparison Sales"
+					onClick={() => {
+						// TODO(vkorolik)
+					}}
+					style={{ width: 200 }}
+				>
+					Talk to sales
+				</Button>
+			</Box>
 		</Box>
 	)
 }
