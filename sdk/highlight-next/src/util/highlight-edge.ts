@@ -58,7 +58,9 @@ export const H: HighlightInterface = {
 		request.headers.forEach((value, key) => {
 			headers[key] = value
 		})
-		this.setHeaders(headers)
+
+		setHeaders(headers)
+
 		return CloudflareH.init(request, cloudflareEnv, ctx, env.serviceName)
 	},
 	metrics: function (metrics: Metric[], highlightContext?: HighlightContext) {
@@ -120,32 +122,18 @@ export const H: HighlightInterface = {
 		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
 			return highlightCtx
 		} else if (headers) {
-			let requestHeaders: IncomingHttpHeaders = {}
-			if (headers instanceof Headers) {
-				headers.forEach((k, v) => (requestHeaders[k] = v))
-			} else {
-				requestHeaders = headers
-			}
-			if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
-				const [secureSessionId, requestId] =
-					`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-				return { secureSessionId, requestId }
-			}
+			return parseHeaders(headers)
 		}
+
 		return { secureSessionId: undefined, requestId: undefined }
 	},
-	runWithHeaders<T>(
-		headers: Headers | IncomingHttpHeaders | undefined,
+	async runWithHeaders<T>(
+		headers: Headers | IncomingHttpHeaders,
 		cb: () => T,
 	) {
-		this.setHeaders(headers)
+		headers && setHeaders(headers)
+
 		return cb()
-	},
-	setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
-		const highlightCtx = this.parseHeaders(headers)
-		if (highlightCtx) {
-			globalHighlightContext = highlightCtx
-		}
 	},
 }
 
@@ -173,4 +161,30 @@ function polyfillWaitUntil(ctx: ExtendedExecutionContext) {
 			await Promise.allSettled(ctx.__waitUntilPromises)
 		}
 	}
+}
+
+function setHeaders(headers: Headers | IncomingHttpHeaders) {
+	const highlightCtx = parseHeaders(headers)
+	if (highlightCtx) {
+		globalHighlightContext = highlightCtx
+	}
+
+	return highlightCtx
+}
+
+function parseHeaders(headers: IncomingHttpHeaders | Headers) {
+	let requestHeaders: IncomingHttpHeaders = {}
+	if (headers instanceof Headers) {
+		headers.forEach((k, v) => (requestHeaders[k] = v))
+	} else {
+		requestHeaders = headers
+	}
+
+	if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
+		const [secureSessionId, requestId] =
+			`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+		return { secureSessionId, requestId }
+	}
+
+	return { secureSessionId: undefined, requestId: undefined }
 }

@@ -74,11 +74,11 @@ import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
 import { searchesAreEqual } from '@/components/QueryBuilder/utils'
-import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
-import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import { CreateErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/CreateErrorSegmentModal'
+import { DeleteErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
-import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
+import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
+import { DeleteSessionSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/DeleteSessionSegmentModal'
 
 import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
@@ -1607,7 +1607,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 				removeSelectedSegment()
 			}
 		}
-	}, [removeSelectedSegment, setDefault, selectedSegment, readonly])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
@@ -1663,9 +1664,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				variables: {
 					project_id: projectId!,
 					id: selectedSegment.id,
-					params: {
-						query: searchQuery,
-					},
+					query: searchQuery,
 					name: selectedSegment.name,
 				},
 			})

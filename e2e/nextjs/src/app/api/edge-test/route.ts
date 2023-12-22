@@ -4,7 +4,6 @@ import type { NextFetchEvent, NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { withEdgeHighlight } from '@/app/_utils/edge-highlight.config'
 import { z } from 'zod'
-import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
 
 export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url)

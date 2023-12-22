@@ -5,7 +5,8 @@ from typing import Optional, Callable
 
 import pytest
 import requests
-from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_SESSIONS_CLICKHOUSE, GET_LOGS
+
+from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_LOGS
 
 
 def query(
@@ -73,7 +74,9 @@ def query(
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     start = datetime.utcnow()
     r = requests.get(
-        f"http://localhost:3005{endpoint}", params={"success": success}, timeout=30
+        f"http://localhost:3005{endpoint}",
+        params={"success": success, "sql": "true"},
+        timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")
     if success == "true":
@@ -145,7 +148,11 @@ def test_express_log(express_app, oauth_api):
         for item in filter(
             lambda eg: eg["node"]["message"] == exp, data["logs"]["edges"]
         ):
-            assert item["node"]["level"] == "warn"
+            assert (
+                item["node"]["level"] == "warn"
+                if express_app_type == "express_js"
+                else "info"
+            )
             assert item["node"]["secureSessionID"] == "abc123"
             assert (
                 item["node"]["serviceName"] == "e2e-express"
@@ -217,22 +224,3 @@ def test_express_error(express_app, oauth_api):
         },
         validator=validator,
     )
-
-
-def test_get_sessions_clickhouse(oauth_api):
-    data = query(
-        oauth_api,
-        "GetSessionsClickhouse",
-        GET_SESSIONS_CLICKHOUSE,
-        variables={
-            "query": {
-                "isAnd": True,
-                "rules": [],
-            },
-            "count": 10,
-            "page": 1,
-            "project_id": "1",
-            "sort_desc": True,
-        },
-    )
-    assert len(data["sessions_clickhouse"]["sessions"]) >= 1

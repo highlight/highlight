@@ -10,6 +10,7 @@ import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/Sou
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
+import Logo from '@/static/logo.png'
 import analytics from '@/util/analytics'
 
 import commonStyles from '../../Common.module.css'
@@ -116,16 +117,15 @@ export const Buttons = () => {
 					style={{ zIndex: 100 }}
 				/>
 				<div className="highlight-mask">
-					This is masked.{' '}
-					<img src="/images/logo.png" height={16} alt="masked" />
+					This is masked. <img src={Logo} height={16} alt="masked" />
 				</div>
 				<div className="highlight-block">
 					This is blocked.{' '}
-					<img src="/images/logo.png" height={16} alt="blocked" />
+					<img src={Logo} height={16} alt="blocked" />
 				</div>
 				<div className="highlight-ignore">
 					This is ignored.{' '}
-					<img src="/images/logo.png" height={16} alt="ignored" />
+					<img src={Logo} height={16} alt="ignored" />
 				</div>
 			</div>
 			<section id="shadowDOM" className="foo" title="yo">

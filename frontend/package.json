@@ -23,7 +23,7 @@
 		"antlr4": "4.13.1-patch-1",
 		"clsx": "^1.2.1",
 		"color-hash": "^2.0.1",
-		"dexie": "^3.2.2",
+		"dexie": "3.2.4",
 		"dinero.js": "2.0.0-alpha.14",
 		"firebase": "^9.19.1",
 		"framer-motion": "^6.3.15",

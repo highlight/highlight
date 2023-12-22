@@ -1,6 +1,11 @@
-import { BufferConfig, Span } from '@opentelemetry/sdk-trace-base'
+import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import type { Attributes, Tracer } from '@opentelemetry/api'
+import type {
+	Attributes,
+	Tracer,
+	Span as OtelSpan,
+	SpanOptions,
+} from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
@@ -10,7 +15,6 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import type { IncomingHttpHeaders } from 'http'
-import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { clearInterval } from 'timers'
 
@@ -20,13 +24,17 @@ import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
+const FIVE_MINUTES = 1000 * 60 * 5
+
+type TraceMapValue = {
+	attributes: { 'highlight.session_id': string; 'highlight.trace_id': string }
+
+	destroy: () => void
+}
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-pino': {
 		logHook: (span, record, level) => {
-			const context = Highlight.parseHeaders(undefined)
-			record['highlight.session_id'] = context.secureSessionId
-			record['highlight.trace_id'] = context.requestId
 			// @ts-ignore
 			const attrs = span.attributes
 			for (const [key, value] of Object.entries(attrs)) {
@@ -40,11 +48,63 @@ registerInstrumentations({ instrumentations })
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
+	private traceAttributesMap = new Map<string, TraceMapValue>()
+	private finishedSpanNames = new Set<string>()
 
-	constructor(config: any, options: any) {
-		super(config, options)
+	constructor(exporter: any, options: any) {
+		super(exporter, options)
 
 		this._listeners = new Map()
+
+		// @ts-ignore
+		this._exporter = exporter
+	}
+
+	getTraceMetadata(span: ReadableSpan) {
+		return this.traceAttributesMap.get(span.spanContext().traceId)
+	}
+
+	setTraceMetadata(span: OtelSpan, attributes: TraceMapValue['attributes']) {
+		const { traceId } = span.spanContext()
+
+		if (!this.traceAttributesMap.get(traceId)) {
+			const timer = setTimeout(() => destroy(), FIVE_MINUTES)
+			const destroy = () => {
+				this.traceAttributesMap.delete(traceId)
+
+				clearTimeout(timer)
+			}
+
+			return this.traceAttributesMap.set(traceId, { attributes, destroy })
+		}
+	}
+
+	getFinishedSpanNames() {
+		return this.finishedSpanNames
+	}
+
+	clearFinishedSpanNames() {
+		return this.finishedSpanNames.clear()
+	}
+
+	onEnd(span: ReadableSpan) {
+		const traceMetadata = this.getTraceMetadata(span)
+
+		if (traceMetadata) {
+			// @ts-ignore
+			span.resource = span.resource.merge(
+				new Resource(traceMetadata.attributes),
+			)
+		}
+
+		if (!span.parentSpanId && traceMetadata) {
+			traceMetadata.destroy()
+		}
+
+		this.finishedSpanNames.add(span.name)
+
+		// @ts-ignore
+		super.onEnd(span)
 	}
 
 	onShutdown(): void {}
@@ -83,7 +143,6 @@ export class Highlight {
 	otel: NodeSDK
 	private tracer: Tracer
 	private processor: CustomSpanProcessor
-	private static asyncLocalStorage = new AsyncLocalStorage<HighlightContext>()
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -96,17 +155,13 @@ export class Highlight {
 
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
-				const { secureSessionId, requestId } = Highlight.parseHeaders(
-					// look for the context in asyncLocalStorage only
-					{},
-				)
 				this.log(
 					c.date,
 					c.message,
 					c.level,
 					c.stack,
-					secureSessionId,
-					requestId,
+					'',
+					'',
 					c.attributes,
 				)
 			})
@@ -138,7 +193,7 @@ export class Highlight {
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		})
 
-		const attributes: Attributes = {}
+		const attributes: Attributes = options.attributes || {}
 		attributes['highlight.project_id'] = this._projectID
 
 		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
@@ -294,32 +349,48 @@ export class Highlight {
 		}
 	}
 
-	async waitForFlush() {
-		return new Promise<void>(async (resolve) => {
+	async waitForFlush(expectedSpanNames: string[] = []) {
+		return new Promise<string[]>(async (resolve) => {
 			let resolved = false
-			let waitingForFinishedSpans = false
-
-			await this.flush()
+			let finishedSpansCount = this.finishedSpans.length
+			let waitingForFinishedSpans = finishedSpansCount > 0
 
 			let intervalTimer = setInterval(async () => {
-				const finishedSpansCount = this.finishedSpans.length
+				finishedSpansCount = this.finishedSpans.length
+
+				const canFinish =
+					!expectedSpanNames.length ||
+					expectedSpanNames.every((n) =>
+						this.processor.getFinishedSpanNames().has(n),
+					)
 
 				if (finishedSpansCount) {
 					waitingForFinishedSpans = true
-				} else if (waitingForFinishedSpans) {
+				} else if (canFinish && waitingForFinishedSpans) {
 					finish()
+
+					this.processor.clearFinishedSpanNames()
 				}
 			}, 10)
-			let timer = setTimeout(finish, 10000)
-			function finish() {
-				intervalTimer && clearInterval(intervalTimer)
-				timer && clearTimeout(timer)
+
+			this.flush()
+
+			let timer: ReturnType<typeof setTimeout>
+
+			const finish = async () => {
+				clearInterval(intervalTimer)
+				clearTimeout(timer)
 				unlisten()
 
 				if (!resolved) {
 					resolved = true
-					resolve()
+
+					resolve(Array.from(this.processor.getFinishedSpanNames()))
 				}
+			}
+
+			if (!expectedSpanNames.length) {
+				timer = setTimeout(finish, 2000)
 			}
 
 			const unlisten = this.processor.registerListener(finish)
@@ -330,47 +401,95 @@ export class Highlight {
 		return this.otel.addResource(new Resource(attributes))
 	}
 
-	static parseHeaders(
-		headers: Headers | IncomingHttpHeaders | undefined,
-	): HighlightContext {
+	parseHeaders(headers: Headers | IncomingHttpHeaders): HighlightContext {
+		return parseHeaders(headers)
+	}
+
+	async runWithHeaders<T>(
+		headers: Headers | IncomingHttpHeaders,
+		cb: () => T,
+	) {
+		return new Promise<T>((resolve, reject) => {
+			this.tracer.startActiveSpan(
+				'highlight-run-with-headers',
+				async (span) => {
+					const { secureSessionId, requestId } =
+						this.parseHeaders(headers)
+
+					if (secureSessionId && requestId) {
+						this.processor.setTraceMetadata(span, {
+							'highlight.session_id': secureSessionId,
+							'highlight.trace_id': requestId,
+						})
+					}
+
+					try {
+						const result = await cb()
+
+						resolve(result)
+
+						span.end()
+
+						await this.waitForFlush()
+					} catch (error) {
+						if (error instanceof Error) {
+							await this.consumeCustomError(
+								error,
+								secureSessionId,
+								requestId,
+							)
+						}
+
+						span.end()
+
+						await Promise.allSettled([
+							this.waitForFlush(['highlight-run-with-headers']),
+							this.flush(),
+						])
+
+						reject(error)
+					}
+				},
+			)
+		})
+	}
+
+	startActiveSpan(name: string, options?: SpanOptions) {
+		return new Promise<OtelSpan>((resolve) =>
+			this.tracer.startActiveSpan(name, options || {}, resolve),
+		)
+	}
+}
+function parseHeaders(
+	headers: Headers | IncomingHttpHeaders,
+): HighlightContext {
+	const requestHeaders = extractIncomingHttpHeaders(headers)
+
+	if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
+		const [secureSessionId, requestId] =
+			`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+		return { secureSessionId, requestId }
+	}
+	return { secureSessionId: undefined, requestId: undefined }
+}
+
+function extractIncomingHttpHeaders(
+	headers?: Headers | IncomingHttpHeaders,
+): IncomingHttpHeaders {
+	if (headers) {
 		let requestHeaders: IncomingHttpHeaders = {}
 		if (headers instanceof Headers) {
 			headers.forEach((value, key) => (requestHeaders[key] = value))
 		} else if (headers) {
 			requestHeaders = headers
 		}
-		try {
-			const highlightCtx = this.asyncLocalStorage.getStore()
-			if (highlightCtx) {
-				return highlightCtx
-			}
-			if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
-				const [secureSessionId, requestId] =
-					`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-				return { secureSessionId, requestId }
-			}
-		} catch (e) {
-			log('parseHeaders error: ', e)
-		}
+
+		return requestHeaders
+	} else {
 		return { secureSessionId: undefined, requestId: undefined }
 	}
+}
 
-	static runWithHeaders<T>(
-		headers: Headers | IncomingHttpHeaders | undefined,
-		cb: () => T,
-	) {
-		const highlightCtx = Highlight.parseHeaders(headers)
-		if (highlightCtx) {
-			return Highlight.asyncLocalStorage.run(highlightCtx, cb)
-		} else {
-			return cb()
-		}
-	}
-
-	static setHeaders(headers: Headers | IncomingHttpHeaders | undefined) {
-		const highlightCtx = Highlight.parseHeaders(headers)
-		if (highlightCtx) {
-			Highlight.asyncLocalStorage.enterWith(highlightCtx)
-		}
-	}
+async function wait(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }

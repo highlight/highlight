@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/ai",
-	"packageManager": "yarn@3.5.0",
+	"packageManager": "yarn@4.0.2",
 	"private": true,
 	"scripts": {
 		"build": "tsc --build ./",

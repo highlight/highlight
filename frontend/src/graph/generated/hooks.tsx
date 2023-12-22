@@ -1786,13 +1786,13 @@ export const EditSegmentDocument = gql`
 	mutation EditSegment(
 		$project_id: ID!
 		$id: ID!
-		$params: SearchParamsInput!
+		$query: String!
 		$name: String!
 	) {
 		editSegment(
 			project_id: $project_id
 			id: $id
-			params: $params
+			query: $query
 			name: $name
 		)
 	}
@@ -1817,7 +1817,7 @@ export type EditSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *      name: // value for 'name'
  *   },
  * });
@@ -1843,38 +1843,10 @@ export type EditSegmentMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditSegmentMutationVariables
 >
 export const CreateSegmentDocument = gql`
-	mutation CreateSegment(
-		$project_id: ID!
-		$name: String!
-		$params: SearchParamsInput!
-	) {
-		createSegment(project_id: $project_id, name: $name, params: $params) {
+	mutation CreateSegment($project_id: ID!, $name: String!, $query: String!) {
+		createSegment(project_id: $project_id, name: $name, query: $query) {
 			name
 			id
-			params {
-				user_properties {
-					name
-					value
-				}
-				excluded_properties {
-					name
-					value
-				}
-				date_range {
-					start_date
-					end_date
-				}
-				os
-				browser
-				visited_url
-				referrer
-				identified
-				hide_viewed
-				app_versions
-				environments
-				device_id
-				show_live_sessions
-			}
 		}
 	}
 `
@@ -1898,7 +1870,7 @@ export type CreateSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -2736,13 +2708,13 @@ export const EditErrorSegmentDocument = gql`
 	mutation EditErrorSegment(
 		$project_id: ID!
 		$id: ID!
-		$params: ErrorSearchParamsInput!
+		$query: String!
 		$name: String!
 	) {
 		editErrorSegment(
 			project_id: $project_id
 			id: $id
-			params: $params
+			query: $query
 			name: $name
 		)
 	}
@@ -2767,7 +2739,7 @@ export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *      name: // value for 'name'
  *   },
  * });
@@ -2796,25 +2768,15 @@ export const CreateErrorSegmentDocument = gql`
 	mutation CreateErrorSegment(
 		$project_id: ID!
 		$name: String!
-		$params: ErrorSearchParamsInput!
+		$query: String!
 	) {
 		createErrorSegment(
 			project_id: $project_id
 			name: $name
-			params: $params
+			query: $query
 		) {
 			name
 			id
-			params {
-				date_range {
-					start_date
-					end_date
-				}
-				os
-				browser
-				visited_url
-				state
-			}
 		}
 	}
 `
@@ -2838,7 +2800,7 @@ export type CreateErrorSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *   },
  * });
  */
