@@ -53,6 +53,7 @@ require (
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/go-oauth2-redis/v4 v4.1.4
 	github.com/highlight/highlight/sdk/highlight-go v0.9.13
+	github.com/huandu/go-assert v1.1.5
 	github.com/influxdata/go-syslog/v3 v3.0.0
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
