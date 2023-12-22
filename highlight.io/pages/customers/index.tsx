@@ -1,6 +1,8 @@
 import { gql } from 'graphql-request'
 import { GetStaticProps } from 'next'
 import Image from 'next/legacy/image'
+import { useState } from 'react'
+import { AnimateCustomerThumbnail } from '../../components/Animate'
 import { Author } from '../../components/Blog/BlogPost/BlogPost'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
@@ -159,16 +161,21 @@ const CustomerCaseCard = ({
 	role: string
 	slug: string
 }) => {
+	const [loaded, setLoaded] = useState(false)
+
 	return (
 		<div className={styles.caseCard}>
 			<div className={styles.thumbnail}>
-				<Image
-					src={thumbnail}
-					layout="fill"
-					objectFit="cover"
-					alt="Case thumbnail"
-					priority
-				/>
+				<AnimateCustomerThumbnail loaded={loaded}>
+					<Image
+						src={thumbnail}
+						layout="fill"
+						objectFit="cover"
+						alt="Case thumbnail"
+						onLoadingComplete={() => setLoaded(true)}
+						priority
+					/>
+				</AnimateCustomerThumbnail>
 			</div>
 			<div className={styles.caseDetails}>
 				<div>

@@ -342,14 +342,14 @@ jobs:
                   aws-region: us-east-2
 
             - name: Login to Docker Hub
-              uses: docker/login-action@v2
+              uses: docker/login-action@v3
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Login to Amazon ECR
               id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+              uses: aws-actions/amazon-ecr-login@v2
 
             - name: Build, tag, and push arm64 image to Amazon ECR
               env:
@@ -498,7 +498,7 @@ jobs:
                   aws-region: us-east-2
             - name: Login to Amazon ECR
               id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+              uses: aws-actions/amazon-ecr-login@v2
 
             - name: Check out the repo
               uses: actions/checkout@v3

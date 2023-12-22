@@ -607,17 +607,6 @@ export type ErrorSearchParams = {
 	visited_url?: Maybe<Scalars['String']>
 }
 
-export type ErrorSearchParamsInput = {
-	browser?: InputMaybe<Scalars['String']>
-	date_range?: InputMaybe<DateRangeInput>
-	event?: InputMaybe<Scalars['String']>
-	os?: InputMaybe<Scalars['String']>
-	query?: InputMaybe<Scalars['String']>
-	state?: InputMaybe<ErrorState>
-	type?: InputMaybe<Scalars['String']>
-	visited_url?: InputMaybe<Scalars['String']>
-}
-
 export type ErrorSegment = {
 	__typename?: 'ErrorSegment'
 	id: Scalars['ID']
@@ -1188,8 +1177,8 @@ export type MutationCreateErrorCommentArgs = {
 
 export type MutationCreateErrorSegmentArgs = {
 	name: Scalars['String']
-	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
+	query: Scalars['String']
 }
 
 export type MutationCreateErrorTagArgs = {
@@ -1254,8 +1243,8 @@ export type MutationCreateProjectArgs = {
 
 export type MutationCreateSegmentArgs = {
 	name: Scalars['String']
-	params: SearchParamsInput
 	project_id: Scalars['ID']
+	query: Scalars['String']
 }
 
 export type MutationCreateSessionAlertArgs = {
@@ -1358,8 +1347,8 @@ export type MutationDeleteSessionsArgs = {
 export type MutationEditErrorSegmentArgs = {
 	id: Scalars['ID']
 	name: Scalars['String']
-	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
+	query: Scalars['String']
 }
 
 export type MutationEditProjectArgs = {
@@ -1394,8 +1383,8 @@ export type MutationEditProjectSettingsArgs = {
 export type MutationEditSegmentArgs = {
 	id: Scalars['ID']
 	name: Scalars['String']
-	params: SearchParamsInput
 	project_id: Scalars['ID']
+	query: Scalars['String']
 }
 
 export type MutationEditServiceGithubSettingsArgs = {
@@ -2833,27 +2822,6 @@ export type SearchParams = {
 	track_properties?: Maybe<Array<Maybe<UserProperty>>>
 	user_properties?: Maybe<Array<Maybe<UserProperty>>>
 	visited_url?: Maybe<Scalars['String']>
-}
-
-export type SearchParamsInput = {
-	app_versions?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
-	browser?: InputMaybe<Scalars['String']>
-	date_range?: InputMaybe<DateRangeInput>
-	device_id?: InputMaybe<Scalars['String']>
-	environments?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
-	excluded_properties?: InputMaybe<Array<UserPropertyInput>>
-	excluded_track_properties?: InputMaybe<Array<UserPropertyInput>>
-	first_time?: InputMaybe<Scalars['Boolean']>
-	hide_viewed?: InputMaybe<Scalars['Boolean']>
-	identified?: InputMaybe<Scalars['Boolean']>
-	length_range?: InputMaybe<LengthRangeInput>
-	os?: InputMaybe<Scalars['String']>
-	query?: InputMaybe<Scalars['String']>
-	referrer?: InputMaybe<Scalars['String']>
-	show_live_sessions?: InputMaybe<Scalars['Boolean']>
-	track_properties?: InputMaybe<Array<UserPropertyInput>>
-	user_properties?: InputMaybe<Array<UserPropertyInput>>
-	visited_url?: InputMaybe<Scalars['String']>
 }
 
 export type Segment = {

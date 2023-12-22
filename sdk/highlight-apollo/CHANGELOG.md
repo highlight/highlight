@@ -1,5 +1,21 @@
 # @highlight-run/apollo
 
+## 3.4.8
+
+### Patch Changes
+
+-   Updated dependencies [790c83782]
+    -   @highlight-run/node@3.7.1
+
+## 3.4.7
+
+### Patch Changes
+
+-   e75a480dc: Repairing Apollo header translation
+-   Updated dependencies [e75a480dc]
+-   Updated dependencies [e75a480dc]
+    -   @highlight-run/node@3.7.0
+
 ## 3.4.6
 
 ### Patch Changes

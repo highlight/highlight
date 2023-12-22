@@ -25,6 +25,7 @@
 		"e2e-express-ts",
 		"functions",
 		"highlight.io",
+		"mock-otel-server",
 		"nestjs",
 		"nextjs",
 		"react-router",
