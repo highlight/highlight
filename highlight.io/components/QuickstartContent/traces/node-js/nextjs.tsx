@@ -1,4 +1,5 @@
 import { siteUrl } from '../../../../utils/urls'
+import { jsGetSnippet } from '../../backend/js/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
 
@@ -8,16 +9,7 @@ export const NextJsTracesContent: QuickStartContent = {
 		'Learn how to set up highlight.io tracing for your Next.js application.',
 	logoUrl: siteUrl('/images/quickstart/nextjs.svg'),
 	entries: [
-		{
-			title: 'Install the Next.js SDK',
-			content: 'Install the Next.js SDK using your package manger.',
-			code: [
-				{
-					text: `npm install --save @highlight-run/next`,
-					language: 'js',
-				},
-			],
-		},
+		jsGetSnippet(['next']),
 		{
 			title: 'Wrap your Page Router endpoints',
 			content:
