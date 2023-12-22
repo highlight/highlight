@@ -178,7 +178,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
 	selectStr := "Timestamp, UUID, SeverityText, Body"
 
-	sb, err := makeAntlrSelectBuilder(
+	sb, err := makeSelectBuilder(
 		logsTableConfig,
 		selectStr,
 		nil,
@@ -238,7 +238,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 }
 
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
-	sb, err := makeAntlrSelectBuilder(
+	sb, err := makeSelectBuilder(
 		logsTableConfig,
 		"COUNT(*)",
 		nil,
@@ -320,7 +320,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
 	if params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 24*time.Hour {
-		fromSb, err = makeAntlrSelectBuilder(
+		fromSb, err = makeSelectBuilder(
 			logsSamplingTableConfig,
 			fmt.Sprintf(
 				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber), toUInt64(round(count() * any(_sample_factor))), any(_sample_factor)",
@@ -338,7 +338,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 			OrderForwardNatural,
 		)
 	} else {
-		fromSb, err = makeAntlrSelectBuilder(
+		fromSb, err = makeSelectBuilder(
 			logsTableConfig,
 			fmt.Sprintf(
 				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber), count(), 1.0",

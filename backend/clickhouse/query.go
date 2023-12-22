@@ -61,7 +61,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
-		beforeSb, err := makeAntlrSelectBuilder(
+		beforeSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -78,7 +78,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		}
 		beforeSb.Limit(LogsLimit/2 + 1)
 
-		atSb, err := makeAntlrSelectBuilder(
+		atSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -94,7 +94,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			return nil, err
 		}
 
-		afterSb, err := makeAntlrSelectBuilder(
+		afterSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -118,7 +118,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), ub)).
 			OrderBy(orderForward)
 	} else {
-		fromSb, err := makeAntlrSelectBuilder(
+		fromSb, err := makeSelectBuilder(
 			config,
 			innerSelect,
 			nil,
@@ -174,7 +174,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	return getConnection(edges, pagination), nil
 }
 
-func makeAntlrSelectBuilder[T ~string](
+func makeSelectBuilder[T ~string](
 	config tableConfig[T],
 	selectStr string,
 	selectArgs []any,
@@ -251,7 +251,8 @@ func makeAntlrSelectBuilder[T ~string](
 		}
 	}
 
-	// TODO: Is there a better way to leverage the tableConfig types?
+	// TODO: Is there a better way to leverage the tableConfig types and pass this
+	// directly to AssignSearchFilters?
 	keysToColumns := map[string]string{}
 	for k, v := range config.keysToColumns {
 		keysToColumns[string(k)] = v
@@ -601,7 +602,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	var config tableConfig[T]
 	if useSampling {
 		config = sampleableConfig.samplingTableConfig
-		fromSb, err = makeAntlrSelectBuilder(
+		fromSb, err = makeSelectBuilder(
 			config,
 			fmt.Sprintf(
 				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
@@ -621,7 +622,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		)
 	} else {
 		config = sampleableConfig.tableConfig
-		fromSb, err = makeAntlrSelectBuilder(
+		fromSb, err = makeSelectBuilder(
 			config,
 			fmt.Sprintf(
 				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
