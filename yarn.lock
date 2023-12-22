@@ -33611,17 +33611,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dexie@npm:3.2.4":
+"dexie@npm:3.2.4, dexie@npm:^3.2.4":
   version: 3.2.4
   resolution: "dexie@npm:3.2.4"
   checksum: 361f7e05fda5db20d9d90ce3e39f4539d1a56acad35a6e4ba26e48ab74c55d81e6daba502a7412be6c0e67ebad3e232e6dbbc1b50426f5743cc0f166cd4e8671
-  languageName: node
-  linkType: hard
-
-"dexie@npm:^3.2.2":
-  version: 3.2.2
-  resolution: "dexie@npm:3.2.2"
-  checksum: 6c363ac21160fd13be6877848da5c486978f5f08f3a364c86e95c82742c573403117c29ba7dcd1e681d48cf7a57f2e2dbb595711905cfb58f6316727d10a6e93
   languageName: node
   linkType: hard
 
@@ -39506,7 +39499,7 @@ __metadata:
     antd: "npm:^4.24.7"
     autoprefixer: "npm:^10.4.14"
     classnames: "npm:^2.3.1"
-    dexie: "npm:^3.2.2"
+    dexie: "npm:^3.2.4"
     docs-content: "workspace:*"
     embla-carousel-react: "npm:^7.0.5"
     eslint: "npm:8.39.0"
