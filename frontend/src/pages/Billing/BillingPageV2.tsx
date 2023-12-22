@@ -17,7 +17,6 @@ import {
 	Stack,
 	Tag,
 	Text,
-	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
@@ -410,13 +409,16 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 			<Stack height="full" px="8" cssClass={style.pageWrapper} gap="0">
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
-					<Stack gap="12">
+					<Stack gap="10">
 						<Text size="small" color="weak">
-							Prices are usage based and flexible with your needs.
+							Prices are usage based and flexible with your needs.{' '}
+							<IconSolidInformationCircle
+								size={12}
+								onClick={() =>
+									navigate(`/w/${workspace_id}/plan-features`)
+								}
+							/>
 						</Text>
-						<TextLink href={`/w/${workspace_id}/plan-features`}>
-							Explore features here.
-						</TextLink>
 						<Text size="small" color="weak">
 							Need a custom quote or want to commit to a minimum
 							spend (at a discount)?{' '}
@@ -617,7 +619,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 											</Text>
 										</Box>
 									</Box>
-									<Box border="divider" />
+									<Box borderBottom="divider" />
 								</>
 							) : null}
 							<Box

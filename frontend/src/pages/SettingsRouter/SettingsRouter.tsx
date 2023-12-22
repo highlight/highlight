@@ -46,6 +46,8 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Upgrade plan'
 		case 'harold-ai':
 			return 'Harold AI'
+		case 'plan-features':
+			return 'Plan comparison'
 		default:
 			return ''
 	}
@@ -117,6 +119,11 @@ export const SettingsRouter = () => {
 			key: 'current-plan',
 			title: getTitle('current-plan'),
 			panelContent: billingContent,
+		},
+		{
+			key: 'Plan Comparison',
+			title: getTitle('plan-features'),
+			panelContent: planComparisonContent,
 		},
 		{
 			key: 'harold-ai',
