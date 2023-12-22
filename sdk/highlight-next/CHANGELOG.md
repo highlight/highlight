@@ -1,5 +1,13 @@
 # @highlight-run/next
 
+## 7.3.1
+
+### Patch Changes
+
+-   9eeeb5c7d: make next a peer dependency of the sdk to fix import errors
+-   Updated dependencies [790c83782]
+    -   @highlight-run/node@3.7.1
+
 ## 7.3.0
 
 ### Minor Changes

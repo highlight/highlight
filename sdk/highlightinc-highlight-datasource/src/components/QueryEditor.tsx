@@ -117,7 +117,7 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
                   defaultOptions
                   value={{ name: limitColumn, label: limitColumn }}
                   onChange={onLimitColumnChange}
-                  loadOptions={(q) => loadGroupByOptions(table, q)}
+                  loadOptions={(q) => loadColumnOptions(table, q)}
                 />
               </InlineField>
             )}

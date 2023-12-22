@@ -2,9 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
   "name": "Highlight.io",
-  "id": "highlight-grafana-datasource",
+  "id": "highlightinc-highlight-datasource",
   "backend": true,
-  "executable": "gpx_highlight_grafana_backend_datasource",
+  "executable": "gpx_highlightinc_highlight_datasource",
   "alerting": true,
   "metrics": true,
   "info": {
@@ -23,7 +23,10 @@
         "url": "https://www.highlight.io/"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      { "name": "Query Editor", "path": "img/query_editor.png" },
+      { "name": "Configuration", "path": "img/configuration.png" }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
