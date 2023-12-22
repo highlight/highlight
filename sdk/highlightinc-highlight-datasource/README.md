@@ -10,7 +10,7 @@ If you're already self-hosting highlight.io with a [hobby](https://www.highlight
 
 ## Getting Started with the highlight.io data source
 ### Configuration
-![Configuration](https://raw.githubusercontent.com/highlight/highlight/main/sdk/highlight-grafana-datasource/src/img/configuration.png)
+![Configuration](https://raw.githubusercontent.com/highlight/highlight/main/sdk/highlightinc-highlight-datasource/src/img/configuration.png)
 
 Once you have added a highlight.io data source, you can configure it with these fields:
 
