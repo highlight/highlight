@@ -11,9 +11,10 @@ const env: HighlightEnv = {
 	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
 	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	backendUrl: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL,
-	serviceName: 'my-nextjs-backend',
+	serviceName: 'vercel-page-router',
 	environment: 'e2e-test',
 	enableFsInstrumentation: true,
+	disableConsoleRecording: true,
 }
 
 export const withPageRouterHighlight = PageRouterHighlight(env)

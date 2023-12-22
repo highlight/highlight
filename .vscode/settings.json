@@ -3,8 +3,8 @@
 	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": true,
-		"source.fixAll.stylelint": true
+		"source.fixAll.eslint": "explicit",
+		"source.fixAll.stylelint": "explicit"
 	},
 	"go.formatTool": "gofmt",
 	"go.useLanguageServer": true,
@@ -92,11 +92,18 @@
 		"Autoinjected",
 		"Blocklist",
 		"Clickhouse",
+		"Esplin",
 		"incentivizing",
 		"interactable",
 		"munge",
+		"opentelemetry",
+		"otel",
+		"otlp",
+		"pino",
 		"runtimes",
 		"snapshotting",
+		"statfs",
+		"unlisten",
 		"unobfuscated",
 		"Vadim"
 	],
@@ -147,5 +154,8 @@
 			"name": "clickhouse-dev"
 		}
 	],
-	"sort-imports.on-save": false
+	"sort-imports.on-save": false,
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	}
 }

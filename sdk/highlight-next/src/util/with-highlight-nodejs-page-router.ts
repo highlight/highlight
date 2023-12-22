@@ -13,37 +13,41 @@ export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 export const Highlight =
 	(options: NodeOptions) =>
 	<T extends HasHeaders, S extends HasStatus>(
-		origHandler: ApiHandler<T, S>,
+		originalHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
-		H.init(options)
+		const NodeH = H.init(options)
+
 		return async (req, res) => {
-			const { secureSessionId, requestId } = H.parseHeaders(req.headers)
+			if (!NodeH) throw new Error('Highlight not initialized')
+
 			const start = new Date()
+
 			try {
-				return await H.runWithHeaders(req.headers, async () => {
-					return await origHandler(req, res)
-				})
+				const result = await H.runWithHeaders(req.headers, async () =>
+					originalHandler(req, res),
+				)
+
+				recordLatency()
+
+				return result
 			} catch (e) {
-				if (e instanceof Error) {
-					H.consumeAndFlush(e, secureSessionId, requestId)
-				}
-				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
-				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
-				// the transaction was error-free
 				res.statusCode = 500
 				res.statusMessage = 'Internal Server Error'
 
-				// We rethrow here so that nextjs can do with the error whatever it would normally do. (Sometimes "whatever it
-				// would normally do" is to allow the error to bubble up to the global handlers - another reason we need to mark
-				// the error as already having been captured.)
-				await H.stop()
+				recordLatency()
+
 				throw e
-			} finally {
+			}
+
+			function recordLatency() {
 				// convert ms to ns
 				const delta = (new Date().getTime() - start.getTime()) * 1000000
+				const { secureSessionId, requestId } = NodeH.parseHeaders(
+					req.headers,
+				)
+
 				if (secureSessionId && requestId) {
 					H.recordMetric(secureSessionId, 'latency', delta, requestId)
-					await H.flush()
 				}
 			}
 		}

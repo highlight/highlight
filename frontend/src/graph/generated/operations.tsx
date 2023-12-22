@@ -363,7 +363,7 @@ export type DeleteSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type EditSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
-	params: Types.SearchParamsInput
+	query: Types.Scalars['String']
 	name: Types.Scalars['String']
 }>
 
@@ -375,53 +375,12 @@ export type EditSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type CreateSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
-	params: Types.SearchParamsInput
+	query: Types.Scalars['String']
 }>
 
 export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
 	createSegment?: Types.Maybe<
-		{ __typename?: 'Segment' } & Pick<Types.Segment, 'name' | 'id'> & {
-				params: { __typename?: 'SearchParams' } & Pick<
-					Types.SearchParams,
-					| 'os'
-					| 'browser'
-					| 'visited_url'
-					| 'referrer'
-					| 'identified'
-					| 'hide_viewed'
-					| 'app_versions'
-					| 'environments'
-					| 'device_id'
-					| 'show_live_sessions'
-				> & {
-						user_properties?: Types.Maybe<
-							Array<
-								Types.Maybe<
-									{ __typename?: 'UserProperty' } & Pick<
-										Types.UserProperty,
-										'name' | 'value'
-									>
-								>
-							>
-						>
-						excluded_properties?: Types.Maybe<
-							Array<
-								Types.Maybe<
-									{ __typename?: 'UserProperty' } & Pick<
-										Types.UserProperty,
-										'name' | 'value'
-									>
-								>
-							>
-						>
-						date_range?: Types.Maybe<
-							{ __typename?: 'DateRange' } & Pick<
-								Types.DateRange,
-								'start_date' | 'end_date'
-							>
-						>
-					}
-			}
+		{ __typename?: 'Segment' } & Pick<Types.Segment, 'name' | 'id'>
 	>
 }
 
@@ -710,7 +669,7 @@ export type DeleteErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type EditErrorSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
-	params: Types.ErrorSearchParamsInput
+	query: Types.Scalars['String']
 	name: Types.Scalars['String']
 }>
 
@@ -722,7 +681,7 @@ export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type CreateErrorSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
-	params: Types.ErrorSearchParamsInput
+	query: Types.Scalars['String']
 }>
 
 export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
@@ -730,19 +689,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
 		{ __typename?: 'ErrorSegment' } & Pick<
 			Types.ErrorSegment,
 			'name' | 'id'
-		> & {
-				params: { __typename?: 'ErrorSearchParams' } & Pick<
-					Types.ErrorSearchParams,
-					'os' | 'browser' | 'visited_url' | 'state'
-				> & {
-						date_range?: Types.Maybe<
-							{ __typename?: 'DateRange' } & Pick<
-								Types.DateRange,
-								'start_date' | 'end_date'
-							>
-						>
-					}
-			}
+		>
 	>
 }
 

@@ -9,26 +9,39 @@ type NextHandler<Body = unknown> = (
 ) => Promise<Response>
 
 export function Highlight(options: NodeOptions) {
-	H.init(options)
+	const NodeH = H.init(options)
+
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
+			if (!NodeH) throw new Error('Highlight not initialized')
+
+			const start = new Date()
+
 			try {
-				// Must await originalHandler to catch the error at this level
-				return await H.runWithHeaders(request.headers, async () => {
-					return await originalHandler(request, context)
-				})
-			} catch (error) {
-				const { secureSessionId, requestId } = H.parseHeaders(
+				const result = await H.runWithHeaders<Promise<Response>>(
+					request.headers,
+					async () => originalHandler(request, context),
+				)
+
+				recordLatency()
+
+				return result
+			} catch (e) {
+				recordLatency()
+
+				throw e
+			}
+
+			function recordLatency() {
+				// convert ms to ns
+				const delta = (new Date().getTime() - start.getTime()) * 1000000
+				const { secureSessionId, requestId } = NodeH.parseHeaders(
 					request.headers,
 				)
 
-				if (error instanceof Error) {
-					await H.consumeAndFlush(error, secureSessionId, requestId)
+				if (secureSessionId && requestId) {
+					H.recordMetric(secureSessionId, 'latency', delta, requestId)
 				}
-
-				await H.stop()
-
-				throw error
 			}
 		}
 }

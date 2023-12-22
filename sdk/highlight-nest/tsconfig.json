@@ -19,8 +19,5 @@
 		"resolveJsonModule": true,
 		"jsx": "react"
 	},
-	"include": ["src/**/*"],
-	"references": [
-		{ "path": "../highlight-node" },
-	]
+	"include": ["src/**/*"]
 }

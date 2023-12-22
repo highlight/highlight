@@ -6,17 +6,23 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"build": "tsc",
-		"start": "node dist/index.js"
+		"dev": "ts-node src/index.ts",
+		"start": "node dist/index.js",
+		"test:dev": "ts-node src/test.ts"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "Apache-2.0",
 	"dependencies": {
+		"@highlight-run/apollo": "workspace:*",
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/pino": "workspace:*",
+		"dotenv": "^16.3.1",
 		"express": "^4.18.2",
+		"graphql": "^16.8.1",
 		"pino": "^8.16.2",
-		"pino-pretty": "^10.2.3"
+		"pino-pretty": "^10.2.3",
+		"ts-node": "^10.9.1"
 	},
 	"devDependencies": {
 		"typescript": "^5.3.2"

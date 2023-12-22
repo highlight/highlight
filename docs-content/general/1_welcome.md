@@ -7,6 +7,14 @@ updatedAt: 2022-08-18T22:36:12.000Z
 
 [highlight.io](https://highlight.io) is monitoring software for the next generation of developers. And it's all [open source](https://github.com/highlight/highlight) :).
 
+<DocsCardGroup>
+    <DocsCard title="Get Started" href="../getting-started/1_overview.md">
+        {"Get started with highlight.io. Instrument your frontend & backend."}
+    </DocsCard>
+</DocsCardGroup>
+
+## Our product
+
 [highlight.io](https://highlight.io) gives you **fullstack** visibility into your application by pairing session replay, error monitoring, and logging, allowing you to tie frontend issues with backend logs and performance issues.
 
 When highlight.io is fully integrated, this is what it looks like:
@@ -16,14 +24,6 @@ When highlight.io is fully integrated, this is what it looks like:
   title="Youtube Video Player"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />
-
-And to get started:
-
-<DocsCardGroup>
-    <DocsCard title="Get Started" href="../getting-started/1_overview.md">
-        {"Get started with highlight.io. Instrument your frontend & backend."}
-    </DocsCard>
-</DocsCardGroup>
 
 ### About us
 

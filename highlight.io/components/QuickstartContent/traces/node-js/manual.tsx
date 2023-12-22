@@ -1,12 +1,11 @@
 import { siteUrl } from '../../../../utils/urls'
-import { goGetSnippet, initializeGoSdk } from '../../backend/go/shared-snippets'
-import { QuickStartContent } from '../../QuickstartContent'
-import { verifyTraces } from '../shared-snippets'
-import { previousInstallSnippet } from '../../logging/shared-snippets'
 import {
 	initializeNodeSDK,
 	jsGetSnippet,
 } from '../../backend/js/shared-snippets'
+import { previousInstallSnippet } from '../../logging/shared-snippets'
+import { QuickStartContent } from '../../QuickstartContent'
+import { verifyTraces } from '../shared-snippets'
 
 export const JSManualTracesContent: QuickStartContent = {
 	title: 'Tracing from an Node.js App',
@@ -24,8 +23,8 @@ export const JSManualTracesContent: QuickStartContent = {
 			code: [
 				{
 					text: `
-const functionToTrace = (input int) => {
-	const span := H.startSpan("functionToTrace", {custom_property: input}))
+const functionToTrace = async (input int) => {
+	const span = await H.startActiveSpan("functionToTrace", {custom_property: input})
 	// ...
 	anotherFunction()
 	// ...
@@ -33,7 +32,8 @@ const functionToTrace = (input int) => {
 }
 
 const anotherFunction = () => {
-	const span = H.startSpan("anotherFunction")
+	const span = H.startActiveSpan("anotherFunction", {})
+
 	// ...
 	span.end()
 }

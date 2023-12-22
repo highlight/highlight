@@ -93,7 +93,7 @@
 		"readdirp": "^3.6.0",
 		"turbo": "latest"
 	},
-	"packageManager": "yarn@3.5.0",
+	"packageManager": "yarn@4.0.2",
 	"resolutions": {
 		"@opentelemetry/api": "1.6.0",
 		"@opentelemetry/auto-instrumentations-node": "0.39.2",
@@ -105,7 +105,7 @@
 		"@opentelemetry/sdk-trace-base": "1.17.1",
 		"@opentelemetry/semantic-conventions": "1.17.1",
 		"@sideway/formula": "3.0.1",
-		"@types/dom-webcodecs": "0.1.4",
+		"@types/dom-webcodecs": "0.1.5",
 		"ansi-regex": "3.0.1",
 		"cross-fetch": "3.1.5",
 		"deep-object-diff": "1.1.9",
