@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.7.1
+
+### Patch Changes
+
+-   790c83782: fix incorrect publish with internal workspace references
+
 ## 3.7.0
 
 ### Minor Changes
