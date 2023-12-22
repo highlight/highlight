@@ -16,6 +16,6 @@ export const Basic = () => (
 		borderRadius="6"
 		border="primary"
 	>
-		Hello! ?1234👋
+		Hello! ?12345👋
 	</Box>
 )
