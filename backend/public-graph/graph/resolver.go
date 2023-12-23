@@ -2196,16 +2196,26 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 
+	if projectID == 0 {
+		log.WithContext(ctx).
+			WithError(e.New("No project id found for error")).
+			WithField("sessionSecureID", sessionSecureID).
+			WithField("projectVerboseID", projectVerboseID)
+		return
+	}
+
 	querySessionSpan.Finish()
 
 	var project model.Project
-	if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ?", projectID).Take(&project).Error; err != nil {
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
+		return
 	}
 
 	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
+		return
 	}
 
 	// Filter out ignored errors
