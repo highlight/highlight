@@ -152,20 +152,35 @@ func SendNewUserAlert(event SendNewUserAlertEvent) error {
 	})
 
 	g.Go(func() error {
-		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
-			return nil
-		}
-
-		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-		if err != nil {
-			return err
-		}
-
-		for _, channel := range event.SessionAlert.DiscordChannelsToNotify {
-			err = bot.SendNewUserAlert(channel.ID, payload)
-
+		if isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 			if err != nil {
 				return err
+			}
+
+			for _, channel := range event.SessionAlert.DiscordChannelsToNotify {
+				err = bot.SendNewUserAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		if isWorkspaceIntegratedWithMicrosoftTeams(*event.Workspace) {
+			bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.MicrosoftTeamsTenantId)
+			if err != nil {
+				return err
+			}
+
+			channels := event.SessionAlert.MicrosoftTeamsChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendNewUserAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
 			}
 		}
 		return nil
@@ -300,24 +315,40 @@ func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
 	})
 
 	g.Go(func() error {
-		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
-			return nil
-		}
-
-		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-		if err != nil {
-			return err
-		}
-
-		channels := event.SessionAlert.DiscordChannelsToNotify
-
-		for _, channel := range channels {
-			err = bot.SendTrackPropertiesAlert(channel.ID, payload)
-
+		if isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 			if err != nil {
 				return err
 			}
+
+			channels := event.SessionAlert.DiscordChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendTrackPropertiesAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
 		}
+
+		if isWorkspaceIntegratedWithMicrosoftTeams(*event.Workspace) {
+			bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.MicrosoftTeamsTenantId)
+			if err != nil {
+				return err
+			}
+
+			channels := event.SessionAlert.MicrosoftTeamsChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendTrackPropertiesAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		return nil
 	})
 
@@ -358,24 +389,40 @@ func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
 	})
 
 	g.Go(func() error {
-		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
-			return nil
-		}
-
-		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-		if err != nil {
-			return err
-		}
-
-		channels := event.SessionAlert.DiscordChannelsToNotify
-
-		for _, channel := range channels {
-			err = bot.SendUserPropertiesAlert(channel.ID, payload)
-
+		if isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 			if err != nil {
 				return err
 			}
+
+			channels := event.SessionAlert.DiscordChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendUserPropertiesAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
 		}
+
+		if isWorkspaceIntegratedWithMicrosoftTeams(*event.Workspace) {
+			bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.MicrosoftTeamsTenantId)
+			if err != nil {
+				return err
+			}
+
+			channels := event.SessionAlert.MicrosoftTeamsChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendUserPropertiesAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		return nil
 	})
 
@@ -481,24 +528,40 @@ func SendRageClicksAlert(event RageClicksAlertEvent) error {
 	})
 
 	g.Go(func() error {
-		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
-			return nil
-		}
-
-		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-		if err != nil {
-			return err
-		}
-
-		channels := event.SessionAlert.DiscordChannelsToNotify
-
-		for _, channel := range channels {
-			err = bot.SendRageClicksAlert(channel.ID, payload)
-
+		if isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 			if err != nil {
 				return err
 			}
+
+			channels := event.SessionAlert.DiscordChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendRageClicksAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
 		}
+
+		if isWorkspaceIntegratedWithMicrosoftTeams(*event.Workspace) {
+			bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.MicrosoftTeamsTenantId)
+			if err != nil {
+				return err
+			}
+
+			channels := event.SessionAlert.MicrosoftTeamsChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendRageClicksAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		return nil
 	})
 
@@ -535,24 +598,40 @@ func SendMetricMonitorAlert(event MetricMonitorAlertEvent) error {
 	})
 
 	g.Go(func() error {
-		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
-			return nil
-		}
-
-		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-		if err != nil {
-			return err
-		}
-
-		channels := event.MetricMonitor.DiscordChannelsToNotify
-
-		for _, channel := range channels {
-			err = bot.SendMetricMonitorAlert(channel.ID, payload)
-
+		if isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 			if err != nil {
 				return err
 			}
+
+			channels := event.MetricMonitor.DiscordChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendMetricMonitorAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
 		}
+
+		if isWorkspaceIntegratedWithMicrosoftTeams(*event.Workspace) {
+			bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.MicrosoftTeamsTenantId)
+			if err != nil {
+				return err
+			}
+
+			channels := event.MetricMonitor.MicrosoftTeamsChannelsToNotify
+
+			for _, channel := range channels {
+				err = bot.SendMetricMonitorAlert(channel.ID, payload)
+
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		return nil
 	})
 
@@ -603,7 +682,6 @@ func SendLogAlert(event LogAlertEvent) error {
 	}
 
 	if isWorkspaceIntegratedWithMicrosoftTeams(*event.Workspace) {
-		fmt.Println("About to send log alert to teams")
 		bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.MicrosoftTeamsTenantId)
 		if err != nil {
 			return err

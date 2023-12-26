@@ -28,6 +28,25 @@ import (
 	"gorm.io/gorm"
 )
 
+type BotMessages interface {
+	// tested
+	SendNewSessionAlert(string, integrations.NewSessionAlertPayload)
+	// tested
+	SendTrackPropertiesAlert(string, integrations.TrackPropertiesAlertPayload)
+	// tested
+	SendErrorFeedbackAlert(string, integrations.ErrorFeedbackAlertPayload)
+	// tested
+	SendRageClicksAlert(string, integrations.RageClicksAlertPayload)
+
+	SendUserPropertiesAlert(string, integrations.UserPropertiesAlertPayload)
+
+	//UNTESTED (click testing)
+	SendMetricMonitorAlert(string, integrations.MetricMonitorAlertPayload)
+	SendLogAlert(string, integrations.LogAlertPayload)
+	SendErrorAlert(string, integrations.ErrorAlertPayload)
+	SendNewUserAlert(string, integrations.NewUserAlertPayload)
+}
+
 var (
 	authBaseUrl       = "https://login.microsoftonline.com"
 	MicrosoftGraphUrl = "https://microsoft.graph.com"
@@ -278,7 +297,6 @@ func BotHandlerFunc(db *gorm.DB) (*BotHandler, error) {
 
 // RegisterMicrosoftTeamsBotHandler registers a POST url at endpoint/microsoft-teams/bot
 func RegisterMicrosoftTeamsBotHandler(r *chi.Mux, endpoint string, db *gorm.DB) {
-	fmt.Println("Microsoft Teams Bot registeration started")
 	botHandler, err := BotHandlerFunc(db)
 	if err != nil {
 		log.Println("error creating teams bot handler: ", err)
@@ -475,7 +493,7 @@ func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integration
 		ActionTitle: "View Logs",
 	}
 
-	adaptiveCard, err := MakeAdaptiveCard(string(BasicMessageTemplate), templateData)
+	adaptiveCard, err := MakeAdaptiveCard(BasicMessageTemplate, templateData)
 	if err != nil {
 		return errors.Wrap(err, "error making adaptive card")
 	}
@@ -562,12 +580,105 @@ func (bot *MicrosoftTeamsBot) SendNewSessionAlert(channelId string, payload inte
 		newSessionAlertPayload.AvatarURL = *payload.AvatarURL
 	}
 
-	adaptiveCard, err := MakeAdaptiveCard(string(NewSessionAlertMessageTemplate), newSessionAlertPayload)
+	adaptiveCard, err := MakeAdaptiveCard(NewSessionAlertMessageTemplate, newSessionAlertPayload)
 	if err != nil {
 		return errors.Wrap(err, "error making adaptive card")
 	}
 
-	fmt.Println("Prepping to send stuff", bot.makeChannelMessageActivity(channelId))
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
+	return err
+}
+
+func (bot *MicrosoftTeamsBot) SendTrackPropertiesAlert(channelId string, payload integrations.TrackPropertiesAlertPayload) error {
+	matchedValue := []string{}
+	for _, field := range payload.MatchedProperties {
+		matchedValue = append(matchedValue, fmt.Sprintf("**%s**: %s", field.Key, field.Value))
+	}
+
+	templateData := map[string]interface{}{
+		"Title":         "Highlight Track Properties Alert",
+		"Description":   payload.UserIdentifier,
+		"MatchedValues": matchedValue,
+	}
+
+	if len(payload.RelatedProperties) > 0 {
+		relatedValue := []string{}
+		for _, field := range payload.RelatedProperties {
+			relatedValue = append(relatedValue, fmt.Sprintf("**%s**: %s", field.Key, field.Value))
+		}
+
+		templateData["RelatedValues"] = strings.Join(relatedValue, "\n")
+	}
+
+	adaptiveCard, err := MakeAdaptiveCard(TrackPropertiesTemplate, templateData)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
+	}
+
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
+	return err
+}
+
+func (bot *MicrosoftTeamsBot) SendUserPropertiesAlert(channelId string, payload integrations.UserPropertiesAlertPayload) error {
+	matchedValue := []string{}
+	for _, field := range payload.MatchedProperties {
+		matchedValue = append(matchedValue, fmt.Sprintf("**%s**: %s", field.Key, field.Value))
+	}
+
+	templateData := map[string]interface{}{
+		"Title":                 "Highlight Track Properties Alert",
+		"Description":           payload.UserIdentifier,
+		"MatchedUserProperties": matchedValue,
+		"ActionTitle":           "View Session",
+		"ActionURL":             payload.SessionURL,
+	}
+
+	adaptiveCard, err := MakeAdaptiveCard(UserPropertiesTemplate, templateData)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
+	}
+
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
+	return err
+}
+
+func (bot *MicrosoftTeamsBot) SendNewUserAlert(channelId string, payload integrations.NewUserAlertPayload) error {
+
+	facts := []*Fact{}
+
+	for key, value := range payload.UserProperties {
+		facts = append(facts, &Fact{
+			Title: key,
+			Value: value,
+		})
+	}
+
+	jsonFacts, _ := json.Marshal(facts) // no need to handle errors here, we specify the json string - sort of
+
+	newSessionAlertPayload := NewSessionAlertPayload{
+		Title:          "Highlight New User Alert",
+		SessionURL:     payload.SessionURL,
+		UserIdentifier: payload.UserIdentifier,
+		Facts:          string(jsonFacts),
+	}
+
+	if payload.AvatarURL != nil && *payload.AvatarURL != "" {
+		newSessionAlertPayload.AvatarURL = *payload.AvatarURL
+	}
+
+	adaptiveCard, err := MakeAdaptiveCard(NewSessionAlertMessageTemplate, newSessionAlertPayload)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
+	}
 
 	handler := makeAttachmentHandler(adaptiveCard)
 	ctx := context.Background()
@@ -594,7 +705,75 @@ func (bot *MicrosoftTeamsBot) SendErrorFeedbackAlert(channelId string, payload i
 		ActionTitle: "View Comment",
 	}
 
-	adaptiveCard, err := MakeAdaptiveCard(string(BasicMessageTemplate), templateData)
+	adaptiveCard, err := MakeAdaptiveCard(BasicMessageTemplate, templateData)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
+	}
+
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
+	return err
+}
+
+func (bot *MicrosoftTeamsBot) SendRageClicksAlert(channelId string, payload integrations.RageClicksAlertPayload) error {
+	facts := []*Fact{
+		{
+			Title: "User",
+			Value: payload.UserIdentifier,
+		},
+		{
+			Title: "Rage click count",
+			Value: strconv.FormatInt(payload.RageClicksCount, 10),
+		},
+	}
+
+	jsonFacts, _ := json.Marshal(facts)
+
+	templateData := BasicTemplatePayload{
+		Title:       "Highlight Rage Clicks Alert",
+		Description: payload.UserIdentifier,
+		ActionURL:   payload.SessionURL,
+		Facts:       string(jsonFacts),
+		ActionTitle: "View Session",
+	}
+
+	adaptiveCard, err := MakeAdaptiveCard(BasicMessageTemplate, templateData)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
+	}
+
+	handler := makeAttachmentHandler(adaptiveCard)
+	ctx := context.Background()
+
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
+	return err
+}
+
+func (bot *MicrosoftTeamsBot) SendMetricMonitorAlert(channelId string, payload integrations.MetricMonitorAlertPayload) error {
+	facts := []*Fact{
+		{
+			Title: "Value",
+			Value: fmt.Sprintf("%s %s", payload.Value, payload.UnitsFormat),
+		},
+		{
+			Title: "Threshold",
+			Value: fmt.Sprintf("%s %s", payload.Threshold, payload.UnitsFormat),
+		},
+	}
+
+	jsonFacts, _ := json.Marshal(facts)
+
+	templateData := BasicTemplatePayload{
+		Title:       "Highlight Metric Monitor Alert",
+		Description: fmt.Sprintf("*%s* is currently %s %s over the threshold.", payload.MetricToMonitor, payload.DiffOverValue, payload.UnitsFormat),
+		ActionURL:   payload.MonitorURL,
+		Facts:       string(jsonFacts),
+		ActionTitle: "View Monitor",
+	}
+
+	adaptiveCard, err := MakeAdaptiveCard(BasicMessageTemplate, templateData)
 	if err != nil {
 		return errors.Wrap(err, "error making adaptive card")
 	}
