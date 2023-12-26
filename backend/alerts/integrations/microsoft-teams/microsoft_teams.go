@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	authBaseUrl    = "https://login.microsoftonline.com"
-	JiraApiBaseUrl = "https://microsoft.graph.com"
+	authBaseUrl       = "https://login.microsoftonline.com"
+	MicrosoftGraphUrl = "https://microsoft.graph.com"
 )
 
 var oauthEndPoint = oauth2.Endpoint{
@@ -62,6 +62,28 @@ type BotHandler struct {
 type MicrosoftTeamsBot struct {
 	core.Adapter
 	TenantID string
+	BotID    string
+}
+
+func (bot *MicrosoftTeamsBot) makeChannelConversation(channelId string) schema.ConversationAccount {
+	return schema.ConversationAccount{
+		IsGroup:          true,
+		ConversationType: "channel",
+		ID:               channelId,
+		TenantID:         bot.TenantID,
+	}
+}
+
+func (bot *MicrosoftTeamsBot) makeChannelMessageActivity(channelId string) schema.Activity {
+	return schema.Activity{
+		Type:         schema.Message,
+		ChannelID:    "msteams",
+		ServiceURL:   "https://smba.trafficmanager.net/amer/",
+		Conversation: bot.makeChannelConversation(channelId),
+		From: schema.ChannelAccount{
+			ID: bot.BotID,
+		},
+	}
 }
 
 func makeAttachmentHandler(attachments interface{}) activity.HandlerFuncs {
@@ -88,7 +110,10 @@ func makeMessageHandler(message string) activity.HandlerFuncs {
 
 var botMessagesHandler = activity.HandlerFuncs{
 	OnMessageFunc: func(turn *activity.TurnContext) (schema.Activity, error) {
-		return turn.SendActivity(activity.MsgOptionText("POOONGGGG!!!!!!!!!!!!!"))
+		if strings.EqualFold(turn.Activity.Text, "ping") {
+			return turn.SendActivity(activity.MsgOptionText("POOONGGGG!!!!!!!!!!!!!"))
+		}
+		return schema.Activity{}, nil
 	},
 	// this is called whenever our bot or a new member is added/removed from the team.
 	// use this to "uninstall/remove bot/teams integration integration"
@@ -198,7 +223,12 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func MakeBotAdapter() (core.Adapter, error) {
+type BotAdapter struct {
+	Adapter core.Adapter
+	BotID   string
+}
+
+func MakeBotAdapter() (*BotAdapter, error) {
 	var (
 		ok          bool
 		botPassword string
@@ -223,26 +253,26 @@ func MakeBotAdapter() (core.Adapter, error) {
 		return nil, err
 	}
 
-	return adapter, nil
+	return &BotAdapter{Adapter: adapter, BotID: botID}, nil
 }
 
 func NewMicrosoftTeamsBot(tenantID string) (*MicrosoftTeamsBot, error) {
-	adapter, err := MakeBotAdapter()
+	botAdapter, err := MakeBotAdapter()
 	if err != nil {
 		log.Println("Error creating adapter: ", err)
 		return nil, errors.New("error creating microsoft teams bot adapter")
 	}
-	return &MicrosoftTeamsBot{adapter, tenantID}, nil
+	return &MicrosoftTeamsBot{botAdapter.Adapter, tenantID, botAdapter.BotID}, nil
 }
 
 func BotHandlerFunc(db *gorm.DB) (*BotHandler, error) {
-	adapter, err := MakeBotAdapter()
+	botAdapter, err := MakeBotAdapter()
 	if err != nil {
 		log.Println("Error creating adapter: ", err)
 		return nil, err
 	}
 
-	botHandler := &BotHandler{adapter, db}
+	botHandler := &BotHandler{botAdapter.Adapter, db}
 	return botHandler, nil
 }
 
@@ -251,13 +281,11 @@ func RegisterMicrosoftTeamsBotHandler(r *chi.Mux, endpoint string, db *gorm.DB) 
 	fmt.Println("Microsoft Teams Bot registeration started")
 	botHandler, err := BotHandlerFunc(db)
 	if err != nil {
-		log.Println("Microsoft teams bot handler could not be set because of", err)
+		log.Println("error creating teams bot handler: ", err)
 		return
-	} else {
-		fmt.Println("URLL", fmt.Sprintf("%s/%s", endpoint, "microsoft-teams-bot"))
-		r.Post(fmt.Sprintf("%s/%s", endpoint, "microsoft-teams/bot"), http.HandlerFunc(botHandler.ServeHTTP))
-		fmt.Println("Microsoft Teams Bot registered")
 	}
+	r.Post(fmt.Sprintf("%s/%s", endpoint, "microsoft-teams/bot"), http.HandlerFunc(botHandler.ServeHTTP))
+	fmt.Println("Microsoft Teams Bot registered")
 }
 
 func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
@@ -314,7 +342,7 @@ func doRequest[T any](method string, accessToken string, url string, body string
 	client := &http.Client{}
 
 	// code to tell whether we are using absoluteUrl or relative url
-	var finalUrl = fmt.Sprintf("%s%s", JiraApiBaseUrl, url)
+	var finalUrl = fmt.Sprintf("%s%s", MicrosoftGraphUrl, url)
 	parsedUrl, err := nUrl.Parse(url)
 
 	if err != nil {
@@ -344,7 +372,7 @@ func doRequest[T any](method string, accessToken string, url string, body string
 
 	b, err := io.ReadAll(res.Body)
 	if res.StatusCode != 200 && res.StatusCode != 201 {
-		return unmarshalled, errors.New("Jira API responded with error; status_code=" + res.Status + "; body=" + string(b))
+		return unmarshalled, errors.New("Microsoft Graph API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
 	if err != nil {
@@ -406,35 +434,6 @@ type Fact struct {
 }
 
 func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integrations.LogAlertPayload, workspace *model.Workspace) error {
-	if workspace.MicrosoftTeamsConversationRef == nil {
-		return errors.New("microsoft teams bot installation not complete")
-	}
-
-	var conversation schema.ConversationAccount
-	err := workspace.MicrosoftTeamsConversationRef.Scan(conversation)
-
-	fmt.Println("Worskpace conversation restored")
-
-	if err != nil {
-		return errors.New("invalid microsoft teams conversation reference found")
-	}
-
-	/**
-	What could go wrong
-
-	**/
-	fmt.Println("TEST> About to create conversation reference")
-	conversationRef := schema.ConversationReference{
-		Bot: schema.ChannelAccount{
-			ID:   "28:9817330b-7262-42de-bfa9-055b47b67967",
-			Name: "highlight-notifications",
-		},
-		Conversation: conversation,
-		ChannelID:    "msteams",
-		// Locale:       "en-GB",
-		ServiceURL: "https://smba.trafficmanager.net/amer/",
-	}
-	fmt.Println("TEST> Conversation reference cereated")
 	facts := []*Fact{}
 
 	if payload.Query != "" {
@@ -464,57 +463,27 @@ func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integration
 		aboveStr = "below"
 	}
 
-	titleTextBlock := map[string]interface{}{
-		"type":   "TextBlock",
-		"size":   "Medium",
-		"weight": "Bolder",
-		"text":   "Highlight Log Alert",
-	}
-
 	description := fmt.Sprintf("*%s* is currently %s the threshold.", payload.Name, aboveStr)
 
-	descriptionTextBlock := map[string]interface{}{
-		"type": "TextBlock",
-		"text": description,
-		"wrap": true,
+	jsonFacts, _ := json.Marshal(factset)
+
+	templateData := BasicTemplatePayload{
+		Title:       "Highlight Log Alert",
+		Description: description,
+		ActionURL:   payload.AlertURL,
+		Facts:       string(jsonFacts),
+		ActionTitle: "View Logs",
 	}
 
-	columnSet := map[string]interface{}{
-		"type":  "Column",
-		"width": "stretch",
-		"items": []map[string]interface{}{descriptionTextBlock},
-	}
-
-	decriptionTextBlock := map[string]interface{}{
-		"type":    "ColumnSet",
-		"columns": []map[string]interface{}{columnSet},
-	}
-
-	action := map[string]interface{}{
-		"type":  "Action.OpenUrl",
-		"title": "View Logs",
-		"url":   payload.AlertURL,
-	}
-	actions := []map[string]interface{}{action}
-
-	var body []map[string]interface{}
-
-	body = append(body, titleTextBlock)
-	body = append(body, decriptionTextBlock)
-	body = append(body, factset)
-
-	adaptiveCard := map[string]interface{}{
-		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-		"type":    "AdaptiveCard",
-		"version": "1.6",
-		"body":    body,
-		"actions": actions,
+	adaptiveCard, err := MakeAdaptiveCard(string(BasicMessageTemplate), templateData)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
 	}
 
 	handler := makeAttachmentHandler(adaptiveCard)
 	ctx := context.Background()
 
-	err = bot.Adapter.ProactiveMessage(ctx, conversationRef, handler)
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
 	return err
 }
 
@@ -529,56 +498,28 @@ func MakeTemplateString(source string, data map[string]string) (string, error) {
 }
 
 func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, input *WelcomeMessageData) error {
-	workspace := input.Workspace
+	bot, err := NewMicrosoftTeamsBot(*input.Workspace.MicrosoftTeamsTenantId)
+	if err != nil {
+		return errors.New("microsoft teams bot installation not complete")
+	}
 
 	adminName := input.Admin.Name
 
 	if adminName == nil {
 		adminName = input.Admin.Email
 	}
+
 	description := "Log alerts will now be sent to this channel."
+
 	frontendURL := os.Getenv("FRONTEND_URI")
 	alertUrl := fmt.Sprintf("%s/%d/%s/%d", frontendURL, input.Project.Model.ID, "alerts/logs", alert.ID)
 	message := fmt.Sprintf("👋 %s has %s the alert \"%s\". %s %s", *adminName, input.OperationName, alert.GetName(), description, alertUrl)
 
-	channels := alert.MicrosoftTeamsChannelsToNotify
-
-	bot, err := NewMicrosoftTeamsBot(*workspace.MicrosoftTeamsTenantId)
-
-	if err != nil {
-		return errors.New("microsoft teams bot installation not complete")
-	}
-
-	for _, channel := range channels {
-
-		fmt.Println(channel)
-
-		if workspace.MicrosoftTeamsConversationRef == nil {
-			return errors.New("microsoft teams bot installation not complete")
-		}
-
-		conversation := schema.ConversationAccount{
-			IsGroup:          true,
-			ConversationType: "channel",
-			ID:               channel.ID,
-			TenantID:         bot.TenantID,
-		}
-
-		newActivity := schema.Activity{
-			Type:         schema.Message,
-			ChannelID:    "msteams",
-			ServiceURL:   "https://smba.trafficmanager.net/amer/",
-			Conversation: conversation,
-			From: schema.ChannelAccount{
-				// TODO: unhardcode
-				ID: "28:9817330b-7262-42de-bfa9-055b47b67967",
-			},
-		}
-
+	for _, channel := range alert.MicrosoftTeamsChannelsToNotify {
 		handler := makeMessageHandler(message)
 		ctx := context.Background()
 
-		err = bot.Adapter.ProcessActivity(ctx, newActivity, handler)
+		err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channel.ID), handler)
 
 		if err != nil {
 			log.WithContext(ctx).Error(err)
@@ -590,6 +531,7 @@ func SendLogAlertsWelcomeMessage(ctx context.Context, alert *model.LogAlert, inp
 }
 
 func (bot *MicrosoftTeamsBot) SendNewSessionAlert(channelId string, payload integrations.NewSessionAlertPayload) error {
+
 	facts := []*Fact{}
 
 	if payload.VisitedURL != nil && *payload.VisitedURL != "" {
@@ -607,196 +549,59 @@ func (bot *MicrosoftTeamsBot) SendNewSessionAlert(channelId string, payload inte
 		})
 	}
 
-	titleBlock := map[string]interface{}{
-		"type":   "TextBlock",
-		"size":   "Large",
-		"weight": "Bolder",
-		"text":   "Highlight New Session Alert",
+	jsonFacts, _ := json.Marshal(facts) // no need to handle errors here, we specify the json string - sort of
+
+	newSessionAlertPayload := NewSessionAlertPayload{
+		Title:          "Highlight New Session Alert",
+		SessionURL:     payload.SessionURL,
+		UserIdentifier: payload.UserIdentifier,
+		Facts:          string(jsonFacts),
 	}
 
-	if payload.AvatarURL != nil {
-		titleBlock = map[string]interface{}{
-			"type": "ColumnSet",
-			"columns": []interface{}{
-				map[string]interface{}{
-					"type": "Column",
-					"items": []interface{}{
-						map[string]interface{}{
-							"type":  "Image",
-							"style": "Person",
-							"url":   *payload.AvatarURL,
-							"size":  "Small",
-						},
-					},
-					"width": "auto",
-				},
-				map[string]interface{}{
-					"type": "Column",
-					"items": []interface{}{
-						map[string]interface{}{
-							"type":   "TextBlock",
-							"weight": "Bolder",
-							"text":   "Highlight New Session Alert",
-							"wrap":   true,
-						},
-					},
-					"width":                    "stretch",
-					"spacing":                  "Small",
-					"horizontalAlignment":      "Left",
-					"verticalContentAlignment": "Center",
-				},
-			},
-		}
+	if payload.AvatarURL != nil && *payload.AvatarURL != "" {
+		newSessionAlertPayload.AvatarURL = *payload.AvatarURL
 	}
 
-	descriptionTextBlock := map[string]interface{}{
-		"type": "TextBlock",
-		"text": payload.UserIdentifier,
-		"wrap": true,
+	adaptiveCard, err := MakeAdaptiveCard(string(NewSessionAlertMessageTemplate), newSessionAlertPayload)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
 	}
 
-	columnSet := map[string]interface{}{
-		"type":  "Column",
-		"width": "stretch",
-		"items": []map[string]interface{}{descriptionTextBlock},
-	}
-
-	decriptionTextBlock := map[string]interface{}{
-		"type":    "ColumnSet",
-		"columns": []map[string]interface{}{columnSet},
-	}
-
-	action := map[string]interface{}{
-		"type":  "Action.OpenUrl",
-		"title": "View Session",
-		"url":   payload.SessionURL,
-	}
-	actions := []map[string]interface{}{action}
-
-	var body []map[string]interface{}
-
-	body = append(body, titleBlock)
-	body = append(body, decriptionTextBlock)
-
-	factset := map[string]interface{}{
-		"type":  "FactSet",
-		"facts": facts,
-	}
-	body = append(body, factset)
-
-	adaptiveCard := map[string]interface{}{
-		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-		"type":    "AdaptiveCard",
-		"version": "1.6",
-		"body":    body,
-		"actions": actions,
-	}
+	fmt.Println("Prepping to send stuff", bot.makeChannelMessageActivity(channelId))
 
 	handler := makeAttachmentHandler(adaptiveCard)
 	ctx := context.Background()
 
-	conversation := schema.ConversationAccount{
-		IsGroup:          true,
-		ConversationType: "channel",
-		ID:               channelId,
-		TenantID:         bot.TenantID,
-	}
-
-	newActivity := schema.Activity{
-		Type:         schema.Message,
-		ChannelID:    "msteams",
-		ServiceURL:   "https://smba.trafficmanager.net/amer/",
-		Conversation: conversation,
-		From: schema.ChannelAccount{
-			// TODO: unhardcode
-			ID: "28:9817330b-7262-42de-bfa9-055b47b67967",
-		},
-	}
-
-	err := bot.Adapter.ProcessActivity(ctx, newActivity, handler)
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
 	return err
 }
 
 func (bot *MicrosoftTeamsBot) SendErrorFeedbackAlert(channelId string, payload integrations.ErrorFeedbackAlertPayload) error {
-	fmt.Println("About firing the error feedback alert")
-
-	facts := []*Fact{}
-	facts = append(facts, &Fact{
-		Title: "Comment",
-		Value: payload.CommentText,
-	})
-
-	titleBlock := map[string]interface{}{
-		"type":   "TextBlock",
-		"size":   "Medium",
-		"weight": "Bolder",
-		"text":   "Highlight Error Feedback Alert",
+	facts := []*Fact{
+		{
+			Title: "Comment",
+			Value: payload.CommentText,
+		},
 	}
 
-	descriptionTextBlock := map[string]interface{}{
-		"type": "TextBlock",
-		"text": payload.UserIdentifier,
-		"wrap": true,
+	jsonFacts, _ := json.Marshal(facts)
+
+	templateData := BasicTemplatePayload{
+		Title:       "Highlight Error Feedback Alert",
+		Description: payload.UserIdentifier,
+		ActionURL:   payload.SessionCommentURL,
+		Facts:       string(jsonFacts),
+		ActionTitle: "View Comment",
 	}
 
-	columnSet := map[string]interface{}{
-		"type":  "Column",
-		"width": "stretch",
-		"items": []map[string]interface{}{descriptionTextBlock},
-	}
-
-	decriptionTextBlock := map[string]interface{}{
-		"type":    "ColumnSet",
-		"columns": []map[string]interface{}{columnSet},
-	}
-
-	var body []map[string]interface{}
-
-	body = append(body, titleBlock)
-	body = append(body, decriptionTextBlock)
-
-	factset := map[string]interface{}{
-		"type":  "FactSet",
-		"facts": facts,
-	}
-	body = append(body, factset)
-
-	action := map[string]interface{}{
-		"type":  "Action.OpenUrl",
-		"title": "View Comment",
-		"url":   payload.SessionCommentURL,
-	}
-	actions := []map[string]interface{}{action}
-
-	adaptiveCard := map[string]interface{}{
-		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-		"type":    "AdaptiveCard",
-		"version": "1.6",
-		"body":    body,
-		"actions": actions,
+	adaptiveCard, err := MakeAdaptiveCard(string(BasicMessageTemplate), templateData)
+	if err != nil {
+		return errors.Wrap(err, "error making adaptive card")
 	}
 
 	handler := makeAttachmentHandler(adaptiveCard)
 	ctx := context.Background()
 
-	conversation := schema.ConversationAccount{
-		IsGroup:          true,
-		ConversationType: "channel",
-		ID:               channelId,
-		TenantID:         bot.TenantID,
-	}
-
-	newActivity := schema.Activity{
-		Type:         schema.Message,
-		ChannelID:    "msteams",
-		ServiceURL:   "https://smba.trafficmanager.net/amer/",
-		Conversation: conversation,
-		From: schema.ChannelAccount{
-			// TODO: unhardcode
-			ID: "28:9817330b-7262-42de-bfa9-055b47b67967",
-		},
-	}
-
-	err := bot.Adapter.ProcessActivity(ctx, newActivity, handler)
+	err = bot.Adapter.ProcessActivity(ctx, bot.makeChannelMessageActivity(channelId), handler)
 	return err
 }
