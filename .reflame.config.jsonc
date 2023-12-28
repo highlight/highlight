@@ -309,12 +309,18 @@
     },
     "highlight.run": {
       "sourceDirectory": "sdk/firstload/src",
-      "entryPoint": "/index.tsx",
+      "nodejsCompatibility": {
+        "packageJson": {
+          "exportsDetection": {
+            "ignoreTopLevelDirectory": true
+          }
+        },
+      },
       "npmPackages": {},
     },
     "highlight.io": {
       "sourceDirectory": "highlight.io",
-      "entryPoint": "/index.ts",
+      "exports": "./index.ts",
       "filesIgnored": [
         "**/**",
         "!components/**/**",
