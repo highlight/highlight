@@ -316,7 +316,6 @@
           }
         },
       },
-      "npmPackages": {},
     },
     "highlight.io": {
       "sourceDirectory": "highlight.io",
