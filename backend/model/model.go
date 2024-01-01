@@ -264,50 +264,50 @@ type Organization struct {
 
 type Workspace struct {
 	Model
-	Name                          *string
-	Secret                        *string // Needed for workspace-level team
-	Admins                        []Admin `gorm:"many2many:workspace_admins;"`
-	SlackAccessToken              *string
-	MicrosoftTeamsAccessToken     *string
-	SlackWebhookURL               *string
-	SlackWebhookChannel           *string
-	SlackWebhookChannelID         *string
-	JiraDomain                    *string
-	JiraCloudID                   *string
-	MicrosoftTeamsTenantId        *string
-	MicrosoftTeamsConversationRef JSONB `json:"microsoft_teams_conversation_ref" sql:"type:jsonb"`
-	SlackChannels                 *string
-	LinearAccessToken             *string
-	VercelAccessToken             *string
-	VercelTeamID                  *string
-	Projects                      []Project
-	MigratedFromProjectID         *int // Column can be removed after migration is done
-	HubspotCompanyID              *int
-	StripeCustomerID              *string
-	StripePriceID                 *string
-	PlanTier                      string `gorm:"default:Free"`
-	UnlimitedMembers              bool   `gorm:"default:false"`
-	BillingPeriodStart            *time.Time
-	BillingPeriodEnd              *time.Time
-	NextInvoiceDate               *time.Time
-	MonthlySessionLimit           *int
-	MonthlyMembersLimit           *int
-	MonthlyErrorsLimit            *int
-	MonthlyLogsLimit              *int
-	RetentionPeriod               *modelInputs.RetentionPeriod
-	ErrorsRetentionPeriod         *modelInputs.RetentionPeriod
-	SessionsMaxCents              *int
-	ErrorsMaxCents                *int
-	LogsMaxCents                  *int
-	TrialEndDate                  *time.Time `json:"trial_end_date"`
-	AllowMeterOverage             bool       `gorm:"default:true"`
-	AllowedAutoJoinEmailOrigins   *string    `json:"allowed_auto_join_email_origins"`
-	EligibleForTrialExtension     bool       `gorm:"default:false"`
-	TrialExtensionEnabled         bool       `gorm:"default:false"`
-	ClearbitEnabled               bool       `gorm:"default:false"`
-	DiscordGuildId                *string
-	ClickupAccessToken            *string
-	PromoCode                     *string
+	Name                        *string
+	Secret                      *string // Needed for workspace-level team
+	Admins                      []Admin `gorm:"many2many:workspace_admins;"`
+	SlackAccessToken            *string
+	MicrosoftTeamsAccessToken   *string
+	SlackWebhookURL             *string
+	SlackWebhookChannel         *string
+	SlackWebhookChannelID       *string
+	JiraDomain                  *string
+	JiraCloudID                 *string
+	MicrosoftTeamsTenantId      *string
+	MicrosoftTeamsChannels      *string // a mapping of teamId to list of microsoft team channels for the team
+	SlackChannels               *string
+	LinearAccessToken           *string
+	VercelAccessToken           *string
+	VercelTeamID                *string
+	Projects                    []Project
+	MigratedFromProjectID       *int // Column can be removed after migration is done
+	HubspotCompanyID            *int
+	StripeCustomerID            *string
+	StripePriceID               *string
+	PlanTier                    string `gorm:"default:Free"`
+	UnlimitedMembers            bool   `gorm:"default:false"`
+	BillingPeriodStart          *time.Time
+	BillingPeriodEnd            *time.Time
+	NextInvoiceDate             *time.Time
+	MonthlySessionLimit         *int
+	MonthlyMembersLimit         *int
+	MonthlyErrorsLimit          *int
+	MonthlyLogsLimit            *int
+	RetentionPeriod             *modelInputs.RetentionPeriod
+	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
+	SessionsMaxCents            *int
+	ErrorsMaxCents              *int
+	LogsMaxCents                *int
+	TrialEndDate                *time.Time `json:"trial_end_date"`
+	AllowMeterOverage           bool       `gorm:"default:true"`
+	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
+	EligibleForTrialExtension   bool       `gorm:"default:false"`
+	TrialExtensionEnabled       bool       `gorm:"default:false"`
+	ClearbitEnabled             bool       `gorm:"default:false"`
+	DiscordGuildId              *string
+	ClickupAccessToken          *string
+	PromoCode                   *string
 }
 
 type WorkspaceAdmin struct {

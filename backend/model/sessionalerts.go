@@ -31,8 +31,8 @@ func (dc DiscordChannels) Value() (driver.Value, error) {
 }
 
 type MicrosoftTeamsChannel struct {
-	Name string
-	ID   string
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type MicrosoftTeamsChannels []*MicrosoftTeamsChannel

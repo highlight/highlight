@@ -2122,14 +2122,15 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 }
 
 func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace) error {
-	// TODO: UPDATE THIS WHEN WE ADD CHANNELS AND STUFF
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		// remove slack integration from workspace
-		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id, microsoft_teams_conversation_ref").Updates(&model.Workspace{MicrosoftTeamsTenantId: nil, MicrosoftTeamsConversationRef: nil}).Error; err != nil {
-			return e.Wrap(err, "error removing microsoft_teams tenant from workspace")
+		// remove microsoft teams integration from workspace
+		update := model.Workspace{
+			MicrosoftTeamsTenantId: nil,
+			MicrosoftTeamsChannels: nil,
 		}
-
-		// no errors updating DB
+		if err := tx.Where(&workspace).Updates(&update).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams integration from workspace")
+		}
 		return nil
 	}); err != nil {
 		return err

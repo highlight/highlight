@@ -160,6 +160,30 @@ var botMessagesHandler = activity.HandlerFuncs{
 	},
 }
 
+func GetTeamIDFromActivity(activity schema.Activity) string {
+	team, ok := activity.ChannelData["team"]
+	if ok {
+		team, ok := team.(map[string]interface{})
+		if ok {
+			teamID, ok := team["id"].(string)
+			if ok {
+				return teamID
+			}
+		}
+	}
+	return ""
+}
+
+func GetMicrosoftTeamsChannelsFromWorkspace(workspace *model.Workspace) (map[string][]model.MicrosoftTeamsChannel, error) {
+	microsoftTeamsChannels := make(map[string][]model.MicrosoftTeamsChannel)
+	if workspace.MicrosoftTeamsChannels != nil && *workspace.MicrosoftTeamsChannels != "" {
+		err := json.Unmarshal([]byte(*workspace.MicrosoftTeamsChannels), &microsoftTeamsChannels)
+
+		return microsoftTeamsChannels, err
+	}
+	return microsoftTeamsChannels, nil
+}
+
 func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 	act, err := ht.Adapter.ParseRequest(ctx, req)
@@ -180,10 +204,34 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
 					}
 					updates := &model.Workspace{
-						MicrosoftTeamsTenantId:        nil,
-						MicrosoftTeamsConversationRef: nil,
+						MicrosoftTeamsChannels: nil,
+						MicrosoftTeamsTenantId: nil,
 					}
-					if err := ht.DB.Where(query).Select("microsoft_teams_conversation_ref", "microsoft_teams_tenant_id").Updates(updates).Error; err != nil {
+
+					var workspace *model.Workspace
+					if err := ht.DB.Where(&query).Take(&workspace).Error; err != nil {
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+
+					microsoftTeamsChannels, err := GetMicrosoftTeamsChannelsFromWorkspace(workspace)
+					if err != nil {
+						log.Println("error extracting microsoft_teams channels from workspace")
+						break
+					}
+
+					teamID := GetTeamIDFromActivity(act)
+					delete(microsoftTeamsChannels, teamID)
+
+					if len(microsoftTeamsChannels) == 0 {
+						updates.MicrosoftTeamsChannels = nil
+					} else {
+						channelsJson, _ := json.Marshal(microsoftTeamsChannels)
+						channelsUpdate := string(channelsJson)
+						updates.MicrosoftTeamsChannels = &channelsUpdate
+					}
+
+					if err := ht.DB.Where(query).Updates(updates).Error; err != nil {
 						log.Println("error removing microsoft_teams bot from workspace")
 						http.Error(w, err.Error(), http.StatusBadRequest)
 						break
@@ -202,20 +250,42 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
 					}
 
-					conversationReference := activity.GetCoversationReference(act)
-
-					conversation := conversationReference.Conversation
-					conversationReferenceData := map[string]interface{}{
-						"id":               conversation.ID,
-						"isGroup":          conversation.IsGroup,
-						"conversationType": conversation.ConversationType,
-						"tenantID":         conversation.TenantID,
-						"name":             conversation.Name,
-						"aadObjectId":      conversation.AadObjectID,
-						"role":             "bot",
+					var workspace *model.Workspace
+					if err := ht.DB.Where(&query).Take(&workspace).Error; err != nil {
+						fmt.Println("Error fetching workspace")
+						return
 					}
 
-					if err := ht.DB.Where(&query).Select("microsoft_teams_conversation_ref").Updates(&model.Workspace{MicrosoftTeamsConversationRef: conversationReferenceData}).Error; err != nil {
+					microsoftTeamsChannels := make(map[string][]model.MicrosoftTeamsChannel)
+					if workspace.MicrosoftTeamsChannels != nil && *workspace.MicrosoftTeamsChannels != "" {
+						err := json.Unmarshal([]byte(*workspace.MicrosoftTeamsChannels), &microsoftTeamsChannels)
+
+						if err != nil {
+							log.Println("transform ms teams channels into map", err)
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					}
+
+					teamID := GetTeamIDFromActivity(act)
+					if teamID != "" {
+						channels, err := GetMicrosoftTeamsChannels(teamID)
+						if err != nil {
+							fmt.Println("error fetching ms teams channels", err)
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+						microsoftTeamsChannels[teamID] = channels
+					}
+
+					channelsJson, _ := json.Marshal(microsoftTeamsChannels)
+					channelsUpdate := string(channelsJson)
+
+					updates := model.Workspace{
+						MicrosoftTeamsChannels: &channelsUpdate,
+					}
+
+					if err := ht.DB.Where(&query).Updates(&updates).Error; err != nil {
 						fmt.Println("microsoft teams bot installation failed", err)
 						break
 					}
@@ -240,6 +310,19 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+}
+
+func GetMicrosoftTeamsChannels(teamID string) ([]model.MicrosoftTeamsChannel, error) {
+	// get access token
+	// makes the request
+	// do error checking
+	// parse reponse
+	// transform response into appropriate payload
+	// return response
+	return []model.MicrosoftTeamsChannel{
+		{ID: "19:2dbc75ed0f8846a9a6b448afdf909286@thread.tacv2", Name: "General"},
+		{ID: "19:6b49795502b2466db51b004a0de90b9c@thread.tacv2", Name: "Monthly Reports"},
+	}, nil
 }
 
 type BotAdapter struct {
