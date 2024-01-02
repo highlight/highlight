@@ -4,7 +4,6 @@ RUN apk update && apk add --no-cache build-base chromium python3
 
 WORKDIR /highlight
 COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json .yarnrc.yml package.json yarn.lock ./
-COPY ../.yarn/plugins ./.yarn/plugins
 COPY ../.yarn/releases ./.yarn/releases
 COPY ../.yarn/patches ./.yarn/patches
 COPY ../backend/private-graph ./backend/private-graph
