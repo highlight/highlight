@@ -2452,7 +2452,7 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
-		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace); err != nil {
+		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace, projectID); err != nil {
 			return false, err
 		}
 	} else {
@@ -6067,7 +6067,6 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID in
 
 // MicrosoftTeamsChannelSuggestions is the resolver for the microsoft_teams_channel_suggestions field.
 func (r *queryResolver) MicrosoftTeamsChannelSuggestions(ctx context.Context, projectID int) ([]*model.MicrosoftTeamsChannel, error) {
-	// panic(fmt.Errorf("not implemented: MicrosoftTeamsChannelSuggestions - microsoft_teams_channel_suggestions"))
 	ret := []*model.MicrosoftTeamsChannel{}
 
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -6086,7 +6085,7 @@ func (r *queryResolver) MicrosoftTeamsChannelSuggestions(ctx context.Context, pr
 		return ret, nil
 	}
 
-	channels, err := microsoft_teams.GetTeamsChannel(*tenantId)
+	channels, err := microsoft_teams.GetTeamsChannel(workspace)
 
 	if err != nil {
 		return ret, nil

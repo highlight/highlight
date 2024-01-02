@@ -268,7 +268,6 @@ type Workspace struct {
 	Secret                      *string // Needed for workspace-level team
 	Admins                      []Admin `gorm:"many2many:workspace_admins;"`
 	SlackAccessToken            *string
-	MicrosoftTeamsAccessToken   *string
 	SlackWebhookURL             *string
 	SlackWebhookChannel         *string
 	SlackWebhookChannelID       *string

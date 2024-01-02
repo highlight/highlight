@@ -2121,16 +2121,41 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 	return nil
 }
 
-func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace) error {
+func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace, projectID int) error {
+
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
-		// remove microsoft teams integration from workspace
 		update := model.Workspace{
 			MicrosoftTeamsTenantId: nil,
 			MicrosoftTeamsChannels: nil,
 		}
-		if err := tx.Where(&workspace).Updates(&update).Error; err != nil {
+		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id", "microsoft_teams_channels").Updates(&update).Error; err != nil {
 			return e.Wrap(err, "error removing microsoft_teams integration from workspace")
 		}
+
+		microsoftTeamsChannelsToNotify := make(model.MicrosoftTeamsChannels, 0)
+
+		projectAlert := model.Alert{ProjectID: projectID}
+		emptyMicrosoftTeamsChannels := model.AlertIntegrations{
+			MicrosoftTeamsChannelsToNotify: microsoftTeamsChannelsToNotify,
+		}
+
+		if err := tx.Where(&model.SessionAlert{Alert: projectAlert}).Updates(model.SessionAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created SessionAlert's")
+		}
+
+		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created ErrorAlert's")
+		}
+
+		// set existing metric monitors to have empty microsoft_teams channels to notify
+		if err := tx.Where(&model.MetricMonitor{ProjectID: projectID}).Updates(model.MetricMonitor{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created MetricMonitor's")
+		}
+
+		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created LogAlert's")
+		}
+
 		return nil
 	}); err != nil {
 		return err

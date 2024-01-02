@@ -12,9 +12,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 
 	log "github.com/sirupsen/logrus"
 
@@ -49,22 +49,8 @@ type BotMessages interface {
 
 var (
 	authBaseUrl       = "https://login.microsoftonline.com"
-	MicrosoftGraphUrl = "https://microsoft.graph.com"
+	MicrosoftGraphUrl = "https://graph.microsoft.com/v1.0"
 )
-
-var oauthEndPoint = oauth2.Endpoint{
-	AuthURL:   fmt.Sprintf("%s/oauth2/v2.0/authorize", authBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth2/v2.0/token", authBaseUrl),
-	AuthStyle: oauth2.AuthStyleInParams,
-}
-
-type MicrosoftTeamsTokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
-	Scope        string `json:"scope"`
-	TokenType    string `json:"token_type"`
-}
 
 type WelcomeMessageData struct {
 	Workspace     *model.Workspace
@@ -156,16 +142,16 @@ var botMessagesHandler = activity.HandlerFuncs{
 			}
 		}
 
-		return turn.Activity, nil // TODO: I intended to send nothing back here but ...
+		return schema.Activity{}, nil
 	},
 }
 
-func GetTeamIDFromActivity(activity schema.Activity) string {
+func GetAadGroupIDFromActivity(activity schema.Activity) string {
 	team, ok := activity.ChannelData["team"]
 	if ok {
 		team, ok := team.(map[string]interface{})
 		if ok {
-			teamID, ok := team["id"].(string)
+			teamID, ok := team["aadGroupId"].(string)
 			if ok {
 				return teamID
 			}
@@ -174,8 +160,8 @@ func GetTeamIDFromActivity(activity schema.Activity) string {
 	return ""
 }
 
-func GetMicrosoftTeamsChannelsFromWorkspace(workspace *model.Workspace) (map[string][]model.MicrosoftTeamsChannel, error) {
-	microsoftTeamsChannels := make(map[string][]model.MicrosoftTeamsChannel)
+func GetMicrosoftTeamsChannelsFromWorkspace(workspace *model.Workspace) (map[string][]*model.MicrosoftTeamsChannel, error) {
+	microsoftTeamsChannels := make(map[string][]*model.MicrosoftTeamsChannel)
 	if workspace.MicrosoftTeamsChannels != nil && *workspace.MicrosoftTeamsChannels != "" {
 		err := json.Unmarshal([]byte(*workspace.MicrosoftTeamsChannels), &microsoftTeamsChannels)
 
@@ -200,13 +186,10 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			for _, memberRemoved := range act.MembersRemoved {
 				// our bot is the recipient of this message - so we are being removed from the conversation
 				if memberRemoved.ID == act.Recipient.ID {
-					query := &model.Workspace{
+					query := model.Workspace{
 						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
 					}
-					updates := &model.Workspace{
-						MicrosoftTeamsChannels: nil,
-						MicrosoftTeamsTenantId: nil,
-					}
+					updates := model.Workspace{}
 
 					var workspace *model.Workspace
 					if err := ht.DB.Where(&query).Take(&workspace).Error; err != nil {
@@ -220,18 +203,21 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 						break
 					}
 
-					teamID := GetTeamIDFromActivity(act)
-					delete(microsoftTeamsChannels, teamID)
+					groupID := GetAadGroupIDFromActivity(act)
+					delete(microsoftTeamsChannels, groupID)
 
+					updateFields := []string{"microsoft_teams_channels"}
 					if len(microsoftTeamsChannels) == 0 {
 						updates.MicrosoftTeamsChannels = nil
+						updates.MicrosoftTeamsTenantId = nil
+						updateFields = append(updateFields, "microsoft_teams_tenant_id")
 					} else {
 						channelsJson, _ := json.Marshal(microsoftTeamsChannels)
 						channelsUpdate := string(channelsJson)
 						updates.MicrosoftTeamsChannels = &channelsUpdate
 					}
 
-					if err := ht.DB.Where(query).Updates(updates).Error; err != nil {
+					if err := ht.DB.Where(&query).Select(updateFields...).Updates(updates).Error; err != nil {
 						log.Println("error removing microsoft_teams bot from workspace")
 						http.Error(w, err.Error(), http.StatusBadRequest)
 						break
@@ -246,7 +232,7 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			for _, memberAddded := range act.MembersAdded {
 				// our bot is the recipient of this message - so we are being added to the conversation - aka installation
 				if memberAddded.ID == act.Recipient.ID {
-					query := &model.Workspace{
+					query := model.Workspace{
 						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
 					}
 
@@ -261,21 +247,21 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 						err := json.Unmarshal([]byte(*workspace.MicrosoftTeamsChannels), &microsoftTeamsChannels)
 
 						if err != nil {
-							log.Println("transform ms teams channels into map", err)
+							log.Println("error transforming ms teams channels into map", err)
 							http.Error(w, err.Error(), http.StatusBadRequest)
 							return
 						}
 					}
 
-					teamID := GetTeamIDFromActivity(act)
-					if teamID != "" {
-						channels, err := GetMicrosoftTeamsChannels(teamID)
+					groupID := GetAadGroupIDFromActivity(act)
+					if groupID != "" {
+						channels, err := GetMicrosoftTeamsChannels(*query.MicrosoftTeamsTenantId, groupID)
 						if err != nil {
 							fmt.Println("error fetching ms teams channels", err)
 							http.Error(w, err.Error(), http.StatusBadRequest)
 							return
 						}
-						microsoftTeamsChannels[teamID] = channels
+						microsoftTeamsChannels[groupID] = channels
 					}
 
 					channelsJson, _ := json.Marshal(microsoftTeamsChannels)
@@ -312,17 +298,45 @@ func (ht *BotHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func GetMicrosoftTeamsChannels(teamID string) ([]model.MicrosoftTeamsChannel, error) {
-	// get access token
-	// makes the request
-	// do error checking
-	// parse reponse
-	// transform response into appropriate payload
-	// return response
-	return []model.MicrosoftTeamsChannel{
-		{ID: "19:2dbc75ed0f8846a9a6b448afdf909286@thread.tacv2", Name: "General"},
-		{ID: "19:6b49795502b2466db51b004a0de90b9c@thread.tacv2", Name: "Monthly Reports"},
-	}, nil
+type TeamsResponseValue struct {
+	OdataId             string `json:"@odata.id"`
+	ID                  string `json:"id"`
+	CreatedDateTime     string `json:"createdDateTime"`
+	DisplayName         string `json:"displayName"`
+	Description         string `json:"description"`
+	IsFavoriteByDefault bool   `json:"isFavoriteByDefault"`
+	Email               string `json:"email"`
+	TenantID            string `json:"tenantId"`
+	WebUrl              string `json:"webUrl"`
+	MembershipType      string `json:"membershipType"`
+}
+
+type TeamsResponse struct {
+	Context string               `json:"@odata.context"`
+	Count   int                  `json:"@odata.count"`
+	Value   []TeamsResponseValue `json:"value"`
+}
+
+func GetMicrosoftTeamsChannels(tenantID string, teamID string) ([]model.MicrosoftTeamsChannel, error) {
+	ctx := context.Background()
+	accessToken, err := GetAccessToken(ctx, tenantID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/teams/%s/allChannels", MicrosoftGraphUrl, teamID)
+	response, err := doGetRequest[*TeamsResponse](accessToken.AccessToken, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(response.Value, func(team TeamsResponseValue, index int) model.MicrosoftTeamsChannel {
+		return model.MicrosoftTeamsChannel{
+			ID:   team.ID,
+			Name: team.DisplayName,
+		}
+	}), nil
 }
 
 type BotAdapter struct {
@@ -389,7 +403,7 @@ func RegisterMicrosoftTeamsBotHandler(r *chi.Mux, endpoint string, db *gorm.DB) 
 	fmt.Println("Microsoft Teams Bot registered")
 }
 
-func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
+func GetOAuthConfigForTenant(tenantID string) (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 	var (
 		ok           bool
 		clientID     string
@@ -406,37 +420,38 @@ func GetOAuthConfig() (*oauth2.Config, []oauth2.AuthCodeOption, error) {
 		return nil, nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
+	var oauthEndPoint = oauth2.Endpoint{
+		AuthURL:   fmt.Sprintf("%s/oauth2/v2.0/authorize", authBaseUrl),
+		TokenURL:  fmt.Sprintf("%s/%s/oauth2/v2.0/token", authBaseUrl, tenantID),
+		AuthStyle: oauth2.AuthStyleInParams,
+	}
+
+	options := []oauth2.AuthCodeOption{
+		oauth2.SetAuthURLParam("grant_type", "client_credentials"),
+		oauth2.SetAuthURLParam("scope", "https://graph.microsoft.com/.default"),
+	}
+
 	return &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint:     oauthEndPoint,
 		RedirectURL:  fmt.Sprintf("%s/callback/microsoft_teams", frontendUri),
-	}, []oauth2.AuthCodeOption{}, nil
+	}, options, nil
 }
 
-func GetAccessToken(ctx context.Context, code string) (*oauth2.Token, error) {
-	conf, opts, err := GetOAuthConfig()
+func GetAccessToken(ctx context.Context, tenantID string) (*oauth2.Token, error) {
+	conf, opts, err := GetOAuthConfigForTenant(tenantID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return conf.Exchange(ctx, code, opts...)
+	return conf.Exchange(ctx, "", opts...)
 }
 
-func doPostRequest[TOut any, TIn any](accessToken string, url string, input TIn) (TOut, error) {
-	var zero TOut
-	b, err := json.Marshal(input)
-	if err != nil {
-		return zero, err
-	}
-
-	return doRequest[TOut]("POST", accessToken, url, string(b))
+func doGetRequest[T any](accessToken string, url string) (T, error) {
+	return doRequest[T]("GET", accessToken, url, "")
 }
-
-// func doGetRequest[T any](accessToken string, url string) (T, error) {
-// 	return doRequest[T]("GET", accessToken, url, "")
-// }
 
 func doRequest[T any](method string, accessToken string, url string, body string) (T, error) {
 	var unmarshalled T
@@ -488,45 +503,18 @@ func doRequest[T any](method string, accessToken string, url string, body string
 	return unmarshalled, nil
 }
 
-func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token, error) {
-	conf, _, err := GetOAuthConfig()
+func GetTeamsChannel(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
+	allChannels := []*model.MicrosoftTeamsChannel{}
+	teamsChannels, err := GetMicrosoftTeamsChannelsFromWorkspace(workspace)
+
 	if err != nil {
 		return nil, err
 	}
 
-	payload := struct {
-		GrantType    string `json:"grant_type"`
-		ClientId     string `json:"client_id"`
-		ClientSecret string `json:"client_secret"`
-		RefreshToken string `json:"refresh_token"`
-	}{
-		GrantType:    "refresh_token",
-		ClientId:     conf.ClientID,
-		ClientSecret: conf.ClientSecret,
-		RefreshToken: oldToken.RefreshToken,
+	for _, channels := range teamsChannels {
+		allChannels = append(allChannels, channels...)
 	}
-
-	response, err := doPostRequest[*MicrosoftTeamsTokenResponse]("", oauthEndPoint.TokenURL, payload)
-	if err != nil {
-		return nil, err
-	}
-
-	newToken := &oauth2.Token{
-		AccessToken:  response.AccessToken,
-		RefreshToken: response.RefreshToken,
-		Expiry:       time.Now().Add(time.Duration(response.ExpiresIn) * time.Second),
-	}
-
-	return newToken, nil
-}
-
-func GetTeamsChannel(tenantId string) ([]*model.MicrosoftTeamsChannel, error) {
-	// TODO: Implement this
-	channels := []*model.MicrosoftTeamsChannel{
-		{ID: "19:2dbc75ed0f8846a9a6b448afdf909286@thread.tacv2", Name: "General"},
-		{ID: "19:6b49795502b2466db51b004a0de90b9c@thread.tacv2", Name: "Monthly Reports"},
-	}
-	return channels, nil
+	return allChannels, nil
 }
 
 type Fact struct {

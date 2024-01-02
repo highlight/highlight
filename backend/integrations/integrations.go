@@ -6,7 +6,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/highlight-run/highlight/backend/model"
@@ -39,10 +38,6 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 		return jira.GetOAuthConfig()
 	}
 
-	if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
-		return microsoft_teams.GetOAuthConfig()
-	}
-
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
 }
 
@@ -53,10 +48,6 @@ func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrati
 
 	if integrationType == modelInputs.IntegrationTypeJira {
 		return jira.GetRefreshToken(ctx, oldToken)
-	}
-
-	if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
-		return microsoft_teams.GetRefreshToken(ctx, oldToken)
 	}
 
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)
