@@ -167,12 +167,7 @@
     "testStories": true,
   },
   "nodejsCompatibility": {
-    "omitModuleExtension": true,
-    "mapIndexToDirectory": true,
-    "packageJson": {
-      "versionIncluded": true,
-      "dependenciesSynced": true,
-    },
+    "packageJson": true,
   },
   "tailwindCompatibility": {
     "stylesheetPathname": "/style/tailwind.css",
@@ -273,16 +268,9 @@
   "libraries": {
     "@highlight-run/ui": {
       "sourceDirectory": "packages/ui/src",
-      "entryPoints": {
-        "/components": "/components/index.ts",
-        "/css": "/css.ts",
-        "/keyframes": "/keyframes.ts",
-        "/sprinkles": "/sprinkles.ts",
-        "/vars": "/vars.ts",
-        "/theme": "/theme.ts",
-        "/colors": "/colors.ts",
-        "/borders": "/borders.ts",
-        "/styles.css": "/noop.ts",
+      "exports": {
+        "./components": "./components/index.ts",
+        "./styles.css": "./noop.ts",
       },
       "npmPackages": {
         "ariakit": {
@@ -306,10 +294,10 @@
         },
       },
       "nodejsCompatibility": {
-        "omitModuleExtension": true,
-        "mapIndexToDirectory": true,
         "packageJson": {
-          "dependenciesSynced": true,
+          "exportsDetection": {
+            "ignoreTopLevelDirectory": true
+          }
         },
       },
       "filesIgnored": [
@@ -321,20 +309,17 @@
     },
     "highlight.run": {
       "sourceDirectory": "sdk/firstload/src",
-      "entryPoint": "/index.tsx",
       "nodejsCompatibility": {
-        "omitModuleExtension": true,
-        "mapIndexToDirectory": true,
+        "packageJson": {
+          "exportsDetection": {
+            "ignoreTopLevelDirectory": true
+          }
+        },
       },
-      "npmPackages": {},
     },
     "highlight.io": {
       "sourceDirectory": "highlight.io",
-      "entryPoint": "/index.ts",
-      "nodejsCompatibility": {
-        "omitModuleExtension": true,
-        "mapIndexToDirectory": true,
-      },
+      "exports": "./index.ts",
       "filesIgnored": [
         "**/**",
         "!components/**/**",
@@ -346,24 +331,20 @@
     },
     "@highlight-run/client": {
       "sourceDirectory": "sdk/client/src",
-      "entryPoints": {
-        "/src/listeners/first-load-listeners": "/listeners/first-load-listeners.tsx",
-        "/src/listeners/first-load-listeners.js": "/listeners/first-load-listeners.tsx",
-        "/src/listeners/network-listener/utils/utils": "/listeners/network-listener/utils/utils.ts",
-        "/src/utils/secure-id": "/utils/secure-id.ts",
-        "/src/utils/secure-id.js": "/utils/secure-id.ts",
-        "/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts",
-        "/src/utils/sessionStorage/highlightSession.js": "/utils/sessionStorage/highlightSession.ts",
-        "/src/utils/sessionStorage/sessionStorageKeys": "/utils/sessionStorage/sessionStorageKeys.ts",
-        "/src/utils/sessionStorage/sessionStorageKeys.js": "/utils/sessionStorage/sessionStorageKeys.ts",
-        "/src/utils/storage.js": "/utils/storage.ts",
+      "exports": {
+        "./src/listeners/first-load-listeners": "./listeners/first-load-listeners.tsx",
+        "./src/listeners/first-load-listeners.js": "./listeners/first-load-listeners.tsx",
+        "./src/listeners/network-listener/utils/utils": "./listeners/network-listener/utils/utils.ts",
+        "./src/utils/secure-id": "./utils/secure-id.ts",
+        "./src/utils/secure-id.js": "./utils/secure-id.ts",
+        "./src/utils/sessionStorage/highlightSession": "./utils/sessionStorage/highlightSession.ts",
+        "./src/utils/sessionStorage/highlightSession.js": "./utils/sessionStorage/highlightSession.ts",
+        "./src/utils/sessionStorage/sessionStorageKeys": "./utils/sessionStorage/sessionStorageKeys.ts",
+        "./src/utils/sessionStorage/sessionStorageKeys.js": "./utils/sessionStorage/sessionStorageKeys.ts",
+        "./src/utils/storage.js": "./utils/storage.ts",
       },
       "nodejsCompatibility": {
-        "omitModuleExtension": true,
-        "mapIndexToDirectory": true,
-        "packageJson": {
-          "dependenciesSynced": true,
-        },
+        "packageJson": true,
       },
       "specifierTransforms": {
         "/publicGraphURI.ts": "consts:publicGraphURI",
