@@ -1194,7 +1194,7 @@ func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	modelEntityType, err := ConvertSavedSegmentEntityType(entityType)
+	modelEntityType, err := ConvertSavedSegmentEntityTypePrivateToModel(entityType)
 	if err != nil {
 		return nil, err
 	}
@@ -7889,7 +7889,7 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 
 // EntityType is the resolver for the entity_type field.
 func (r *savedSegmentResolver) EntityType(ctx context.Context, obj *model.SavedSegment) (modelInputs.SavedSearchEntityType, error) {
-	return obj.EntityType, nil
+	return ConvertSavedSegmentEntityTypeModelToPrivate(obj.EntityType)
 }
 
 // Params is the resolver for the params field.
