@@ -93,7 +93,8 @@ export const useSavedSegments = ({
 				return
 			}
 		})
-	}, [query, segmentData?.saved_segments, selectedSegment])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [query, segmentData?.saved_segments])
 
 	const selectSegment = useCallback(
 		(segment?: SelectedSegment, duplicateQuery?: boolean) => {
