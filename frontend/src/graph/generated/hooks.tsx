@@ -9862,7 +9862,6 @@ export const GetSavedSegmentsDocument = gql`
 		saved_segments(project_id: $project_id, entity_type: $entity_type) {
 			id
 			name
-			entity_type
 			params {
 				query
 			}

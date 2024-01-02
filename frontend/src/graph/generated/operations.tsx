@@ -3403,7 +3403,7 @@ export type GetSavedSegmentsQuery = { __typename?: 'Query' } & {
 			Types.Maybe<
 				{ __typename?: 'SavedSegment' } & Pick<
 					Types.SavedSegment,
-					'id' | 'name' | 'entity_type'
+					'id' | 'name'
 				> & {
 						params: { __typename?: 'SearchParams' } & Pick<
 							Types.SearchParams,

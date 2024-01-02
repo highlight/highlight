@@ -1248,9 +1248,9 @@ func (r *mutationResolver) EditSavedSegment(ctx context.Context, id int, project
 		return nil, e.New("saved segment with this name already exists")
 	}
 
-	if err := r.DB.WithContext(ctx).Model(&model.SavedSegment{Model: model.Model{ID: id}}).Updates(&model.ErrorSegment{
-		Params: &paramString,
-		Name:   &name,
+	if err := r.DB.WithContext(ctx).Model(&model.SavedSegment{Model: model.Model{ID: id}}).Updates(&model.SavedSegment{
+		Params: paramString,
+		Name:   name,
 	}).Error; err != nil {
 		return nil, err
 	}
