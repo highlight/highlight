@@ -7889,7 +7889,7 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 
 // EntityType is the resolver for the entity_type field.
 func (r *savedSegmentResolver) EntityType(ctx context.Context, obj *model.SavedSegment) (modelInputs.SavedSearchEntityType, error) {
-	panic(fmt.Errorf("not implemented: EntityType - entity_type"))
+	return obj.EntityType, nil
 }
 
 // Params is the resolver for the params field.
