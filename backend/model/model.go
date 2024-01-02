@@ -141,6 +141,7 @@ var Models = []interface{}{
 	&ErrorGroup{},
 	&ErrorField{},
 	&ErrorSegment{},
+	&SavedSegment{},
 	&Organization{},
 	&Segment{},
 	&Admin{},
@@ -2107,6 +2108,21 @@ type LogAlertEvent struct {
 	StartDate  time.Time `gorm:"index:idx_log_alert_event"`
 	EndDate    time.Time `gorm:"index:idx_log_alert_event"`
 	SentAt     time.Time
+}
+
+type SavedSegmentEntityType string
+
+const (
+	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
+	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
+)
+
+type SavedSegment struct {
+	Model
+	Name       string
+	EntityType SavedSegmentEntityType `gorm:"index:idx_saved_segment"`
+	Params     string                 `json:"params"`
+	ProjectID  int                    `gorm:"index:idx_saved_segment" json:"project_id"`
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {

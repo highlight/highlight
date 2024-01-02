@@ -563,6 +563,17 @@ func SavedSegmentQueryToParams(query string) *SavedSegmentParams {
 	return modelParams
 }
 
+func ConvertSavedSegmentEntityType(entityType modelInputs.SavedSearchEntityType) (model.SavedSegmentEntityType, error) {
+	switch entityType {
+	case modelInputs.SavedSearchEntityTypeLog:
+		return model.SavedSegmentEntityTypeLog, nil
+	case modelInputs.SavedSearchEntityTypeTrace:
+		return model.SavedSegmentEntityTypeTrace, nil
+	}
+
+	return "", e.New("invalid entity type")
+}
+
 func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
 	eg := &model.ErrorGroup{}
 
@@ -695,6 +706,20 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	segment := &model.ErrorSegment{}
 	if err := r.DB.WithContext(ctx).Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).Take(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
+	}
+	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	return segment, nil
+}
+
+func (r *Resolver) isAdminSavedSegmentOwner(ctx context.Context, segment_id int) (*model.SavedSegment, error) {
+	authSpan, ctx := util.StartSpanFromContext(ctx, "isAdminSavedSegmentOwner", util.ResourceName("resolver.internal.auth"))
+	defer authSpan.Finish()
+	segment := &model.SavedSegment{}
+	if err := r.DB.WithContext(ctx).Where(&model.SavedSegment{Model: model.Model{ID: segment_id}}).Take(&segment).Error; err != nil {
+		return nil, err
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
