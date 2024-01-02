@@ -1194,10 +1194,6 @@ func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	modelEntityType, err := ConvertSavedSegmentEntityTypePrivateToModel(entityType)
-	if err != nil {
-		return nil, err
-	}
 	modelParams := SavedSegmentQueryToParams(query)
 	// Convert to json to store in the db.
 	paramBytes, err := json.Marshal(modelParams)
@@ -1208,7 +1204,7 @@ func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int
 
 	// check if such a segment exists
 	var count int64
-	if err := r.DB.WithContext(ctx).Model(&model.SavedSegment{}).Where("project_id = ? AND name = ? AND entity_type = ?", projectID, name, modelEntityType).Count(&count).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.SavedSegment{}).Where("project_id = ? AND name = ? AND entity_type = ?", projectID, name, entityType).Count(&count).Error; err != nil {
 		return nil, err
 	}
 	if count > 0 {
@@ -1218,7 +1214,7 @@ func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int
 	savedSegment := &model.SavedSegment{
 		ProjectID:  projectID,
 		Name:       name,
-		EntityType: modelEntityType,
+		EntityType: entityType,
 		Params:     paramString,
 	}
 	if err := r.DB.WithContext(ctx).Create(savedSegment).Error; err != nil {
@@ -7885,11 +7881,6 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 	}
 
 	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketBy, limit, limitAggregator, limitColumn)
-}
-
-// EntityType is the resolver for the entity_type field.
-func (r *savedSegmentResolver) EntityType(ctx context.Context, obj *model.SavedSegment) (modelInputs.SavedSearchEntityType, error) {
-	return ConvertSavedSegmentEntityTypeModelToPrivate(obj.EntityType)
 }
 
 // Params is the resolver for the params field.

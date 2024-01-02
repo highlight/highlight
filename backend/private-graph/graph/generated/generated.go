@@ -1843,7 +1843,6 @@ type QueryResolver interface {
 	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 }
 type SavedSegmentResolver interface {
-	EntityType(ctx context.Context, obj *model1.SavedSegment) (model.SavedSearchEntityType, error)
 	Params(ctx context.Context, obj *model1.SavedSegment) (*model1.SearchParams, error)
 }
 type SegmentResolver interface {
@@ -58973,7 +58972,7 @@ func (ec *executionContext) _SavedSegment_entity_type(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.SavedSegment().EntityType(rctx, obj)
+		return obj.EntityType, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -58994,8 +58993,8 @@ func (ec *executionContext) fieldContext_SavedSegment_entity_type(ctx context.Co
 	fc = &graphql.FieldContext{
 		Object:     "SavedSegment",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type SavedSearchEntityType does not have child fields")
 		},
@@ -84893,25 +84892,12 @@ func (ec *executionContext) _SavedSegment(ctx context.Context, sel ast.Selection
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "entity_type":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._SavedSegment_entity_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._SavedSegment_entity_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "params":
 			field := field
 

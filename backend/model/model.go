@@ -2120,9 +2120,9 @@ const (
 type SavedSegment struct {
 	Model
 	Name       string
-	EntityType SavedSegmentEntityType `gorm:"index:idx_saved_segment"`
-	Params     string                 `json:"params"`
-	ProjectID  int                    `gorm:"index:idx_saved_segment" json:"project_id"`
+	EntityType modelInputs.SavedSearchEntityType `gorm:"index:idx_saved_segment"`
+	Params     string                            `json:"params"`
+	ProjectID  int                               `gorm:"index:idx_saved_segment" json:"project_id"`
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
