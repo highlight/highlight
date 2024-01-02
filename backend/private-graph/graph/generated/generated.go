@@ -760,7 +760,7 @@ type ComplexityRoot struct {
 		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
-		CreateSavedSegment               func(childComplexity int, projectID int, name string, entityType model.SavedSearchEntityType, query string) int
+		CreateSavedSegment               func(childComplexity int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, query string) int
 		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
 		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
@@ -783,7 +783,7 @@ type ComplexityRoot struct {
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, query string, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
-		EditSavedSegment                 func(childComplexity int, id int, projectID int, name string, entityType model.SavedSearchEntityType, query string) int
+		EditSavedSegment                 func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
 		EditSegment                      func(childComplexity int, id int, projectID int, query string, name string) int
 		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
@@ -990,7 +990,7 @@ type ComplexityRoot struct {
 		RageClicksForProject         func(childComplexity int, projectID int, lookbackDays float64) int
 		Referrers                    func(childComplexity int, projectID int, lookbackDays float64) int
 		Resources                    func(childComplexity int, sessionSecureID string) int
-		SavedSegments                func(childComplexity int, projectID int, entityType model.SavedSearchEntityType) int
+		SavedSegments                func(childComplexity int, projectID int, entityType model.SavedSegmentEntityType) int
 		Segments                     func(childComplexity int, projectID int) int
 		ServerIntegration            func(childComplexity int, projectID int) int
 		ServiceByName                func(childComplexity int, projectID int, name string) int
@@ -1628,8 +1628,8 @@ type MutationResolver interface {
 	CreateErrorSegment(ctx context.Context, projectID int, name string, query string) (*model1.ErrorSegment, error)
 	EditErrorSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
-	CreateSavedSegment(ctx context.Context, projectID int, name string, entityType model.SavedSearchEntityType, query string) (*model1.SavedSegment, error)
-	EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType model.SavedSearchEntityType, query string) (*bool, error)
+	CreateSavedSegment(ctx context.Context, projectID int, name string, entityType model.SavedSegmentEntityType, query string) (*model1.SavedSegment, error)
+	EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) (*bool, error)
 	DeleteSavedSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
@@ -1797,7 +1797,7 @@ type QueryResolver interface {
 	AdminRoleByProject(ctx context.Context, projectID int) (*model1.WorkspaceAdminRole, error)
 	Segments(ctx context.Context, projectID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, projectID int) ([]*model1.ErrorSegment, error)
-	SavedSegments(ctx context.Context, projectID int, entityType model.SavedSearchEntityType) ([]*model1.SavedSegment, error)
+	SavedSegments(ctx context.Context, projectID int, entityType model.SavedSegmentEntityType) ([]*model1.SavedSegment, error)
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 	GetSourceMapUploadUrls(ctx context.Context, apiKey string, paths []string) ([]string, error)
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
@@ -5183,7 +5183,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSavedSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSearchEntityType), args["query"].(string)), true
+		return e.complexity.Mutation.CreateSavedSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSegmentEntityType), args["query"].(string)), true
 
 	case "Mutation.createSegment":
 		if e.complexity.Mutation.CreateSegment == nil {
@@ -5459,7 +5459,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditSavedSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSearchEntityType), args["query"].(string)), true
+		return e.complexity.Mutation.EditSavedSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSegmentEntityType), args["query"].(string)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -7481,7 +7481,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SavedSegments(childComplexity, args["project_id"].(int), args["entity_type"].(model.SavedSearchEntityType)), true
+		return e.complexity.Query.SavedSegments(childComplexity, args["project_id"].(int), args["entity_type"].(model.SavedSegmentEntityType)), true
 
 	case "Query.segments":
 		if e.complexity.Query.Segments == nil {
@@ -10987,7 +10987,7 @@ enum SortDirection {
 	DESC
 }
 
-enum SavedSearchEntityType {
+enum SavedSegmentEntityType {
 	Log
 	Trace
 }
@@ -11124,7 +11124,7 @@ type ErrorSegment {
 type SavedSegment {
 	id: ID!
 	name: String!
-	entity_type: SavedSearchEntityType!
+	entity_type: SavedSegmentEntityType!
 	params: SearchParams!
 	project_id: ID!
 }
@@ -12485,7 +12485,7 @@ type Query {
 	error_segments(project_id: ID!): [ErrorSegment]
 	saved_segments(
 		project_id: ID!
-		entity_type: SavedSearchEntityType!
+		entity_type: SavedSegmentEntityType!
 	): [SavedSegment]
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
@@ -12735,14 +12735,14 @@ type Mutation {
 	createSavedSegment(
 		project_id: ID!
 		name: String!
-		entity_type: SavedSearchEntityType!
+		entity_type: SavedSegmentEntityType!
 		query: String!
 	): SavedSegment
 	editSavedSegment(
 		id: ID!
 		project_id: ID!
 		name: String!
-		entity_type: SavedSearchEntityType!
+		entity_type: SavedSegmentEntityType!
 		query: String!
 	): Boolean
 	deleteSavedSegment(segment_id: ID!): Boolean
@@ -13849,10 +13849,10 @@ func (ec *executionContext) field_Mutation_createSavedSegment_args(ctx context.C
 		}
 	}
 	args["name"] = arg1
-	var arg2 model.SavedSearchEntityType
+	var arg2 model.SavedSegmentEntityType
 	if tmp, ok := rawArgs["entity_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
-		arg2, err = ec.unmarshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx, tmp)
+		arg2, err = ec.unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -14725,10 +14725,10 @@ func (ec *executionContext) field_Mutation_editSavedSegment_args(ctx context.Con
 		}
 	}
 	args["name"] = arg2
-	var arg3 model.SavedSearchEntityType
+	var arg3 model.SavedSegmentEntityType
 	if tmp, ok := rawArgs["entity_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
-		arg3, err = ec.unmarshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx, tmp)
+		arg3, err = ec.unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -18664,10 +18664,10 @@ func (ec *executionContext) field_Query_saved_segments_args(ctx context.Context,
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 model.SavedSearchEntityType
+	var arg1 model.SavedSegmentEntityType
 	if tmp, ok := rawArgs["entity_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
-		arg1, err = ec.unmarshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx, tmp)
+		arg1, err = ec.unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -41604,7 +41604,7 @@ func (ec *executionContext) _Mutation_createSavedSegment(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSavedSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSearchEntityType), fc.Args["query"].(string))
+		return ec.resolvers.Mutation().CreateSavedSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSegmentEntityType), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41667,7 +41667,7 @@ func (ec *executionContext) _Mutation_editSavedSegment(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSavedSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSearchEntityType), fc.Args["query"].(string))
+		return ec.resolvers.Mutation().EditSavedSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSegmentEntityType), fc.Args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -54641,7 +54641,7 @@ func (ec *executionContext) _Query_saved_segments(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SavedSegments(rctx, fc.Args["project_id"].(int), fc.Args["entity_type"].(model.SavedSearchEntityType))
+		return ec.resolvers.Query().SavedSegments(rctx, fc.Args["project_id"].(int), fc.Args["entity_type"].(model.SavedSegmentEntityType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -58984,9 +58984,9 @@ func (ec *executionContext) _SavedSegment_entity_type(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.SavedSearchEntityType)
+	res := resTmp.(model.SavedSegmentEntityType)
 	fc.Result = res
-	return ec.marshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx, field.Selections, res)
+	return ec.marshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SavedSegment_entity_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -58996,7 +58996,7 @@ func (ec *executionContext) fieldContext_SavedSegment_entity_type(ctx context.Co
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type SavedSearchEntityType does not have child fields")
+			return nil, errors.New("field of type SavedSegmentEntityType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -91687,13 +91687,13 @@ func (ec *executionContext) unmarshalNSanitizedSlackChannelInput2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx context.Context, v interface{}) (model.SavedSearchEntityType, error) {
-	var res model.SavedSearchEntityType
+func (ec *executionContext) unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx context.Context, v interface{}) (model.SavedSegmentEntityType, error) {
+	var res model.SavedSegmentEntityType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSavedSearchEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSearchEntityType(ctx context.Context, sel ast.SelectionSet, v model.SavedSearchEntityType) graphql.Marshaler {
+func (ec *executionContext) marshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx context.Context, sel ast.SelectionSet, v model.SavedSegmentEntityType) graphql.Marshaler {
 	return v
 }
 

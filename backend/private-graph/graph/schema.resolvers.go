@@ -1190,7 +1190,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 // CreateSavedSegment is the resolver for the createSavedSegment field.
-func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int, name string, entityType modelInputs.SavedSearchEntityType, query string) (*model.SavedSegment, error) {
+func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int, name string, entityType modelInputs.SavedSegmentEntityType, query string) (*model.SavedSegment, error) {
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -1224,7 +1224,7 @@ func (r *mutationResolver) CreateSavedSegment(ctx context.Context, projectID int
 }
 
 // EditSavedSegment is the resolver for the editSavedSegment field.
-func (r *mutationResolver) EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType modelInputs.SavedSearchEntityType, query string) (*bool, error) {
+func (r *mutationResolver) EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType modelInputs.SavedSegmentEntityType, query string) (*bool, error) {
 	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
 		return nil, err
 	}
@@ -7022,7 +7022,7 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, projectID int) ([]*mo
 }
 
 // SavedSegments is the resolver for the saved_segments field.
-func (r *queryResolver) SavedSegments(ctx context.Context, projectID int, entityType modelInputs.SavedSearchEntityType) ([]*model.SavedSegment, error) {
+func (r *queryResolver) SavedSegments(ctx context.Context, projectID int, entityType modelInputs.SavedSegmentEntityType) ([]*model.SavedSegment, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
