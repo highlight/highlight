@@ -3392,29 +3392,6 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetSavedSegmentsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	entity_type: Types.SavedSearchEntityType
-}>
-
-export type GetSavedSegmentsQuery = { __typename?: 'Query' } & {
-	saved_segments?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'SavedSegment' } & Pick<
-					Types.SavedSegment,
-					'id' | 'name'
-				> & {
-						params: { __typename?: 'SearchParams' } & Pick<
-							Types.SearchParams,
-							'query'
-						>
-					}
-			>
-		>
-	>
-}
-
 export type IsIntegratedQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>

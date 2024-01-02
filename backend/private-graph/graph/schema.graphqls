@@ -474,7 +474,7 @@ enum SortDirection {
 	DESC
 }
 
-enum SavedSearchEntityType {
+enum SavedSegmentEntityType {
 	Log
 	Trace
 }
@@ -611,7 +611,7 @@ type ErrorSegment {
 type SavedSegment {
 	id: ID!
 	name: String!
-	entity_type: SavedSearchEntityType!
+	entity_type: SavedSegmentEntityType!
 	params: SearchParams!
 	project_id: ID!
 }
@@ -1972,7 +1972,7 @@ type Query {
 	error_segments(project_id: ID!): [ErrorSegment]
 	saved_segments(
 		project_id: ID!
-		entity_type: SavedSearchEntityType!
+		entity_type: SavedSegmentEntityType!
 	): [SavedSegment]
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
@@ -2222,14 +2222,14 @@ type Mutation {
 	createSavedSegment(
 		project_id: ID!
 		name: String!
-		entity_type: SavedSearchEntityType!
+		entity_type: SavedSegmentEntityType!
 		query: String!
 	): SavedSegment
 	editSavedSegment(
 		id: ID!
 		project_id: ID!
 		name: String!
-		entity_type: SavedSearchEntityType!
+		entity_type: SavedSegmentEntityType!
 		query: String!
 	): Boolean
 	deleteSavedSegment(segment_id: ID!): Boolean

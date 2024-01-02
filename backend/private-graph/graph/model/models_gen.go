@@ -2078,44 +2078,44 @@ func (e RetentionPeriod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type SavedSearchEntityType string
+type SavedSegmentEntityType string
 
 const (
-	SavedSearchEntityTypeLog   SavedSearchEntityType = "Log"
-	SavedSearchEntityTypeTrace SavedSearchEntityType = "Trace"
+	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
+	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
 )
 
-var AllSavedSearchEntityType = []SavedSearchEntityType{
-	SavedSearchEntityTypeLog,
-	SavedSearchEntityTypeTrace,
+var AllSavedSegmentEntityType = []SavedSegmentEntityType{
+	SavedSegmentEntityTypeLog,
+	SavedSegmentEntityTypeTrace,
 }
 
-func (e SavedSearchEntityType) IsValid() bool {
+func (e SavedSegmentEntityType) IsValid() bool {
 	switch e {
-	case SavedSearchEntityTypeLog, SavedSearchEntityTypeTrace:
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace:
 		return true
 	}
 	return false
 }
 
-func (e SavedSearchEntityType) String() string {
+func (e SavedSegmentEntityType) String() string {
 	return string(e)
 }
 
-func (e *SavedSearchEntityType) UnmarshalGQL(v interface{}) error {
+func (e *SavedSegmentEntityType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = SavedSearchEntityType(str)
+	*e = SavedSegmentEntityType(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid SavedSearchEntityType", str)
+		return fmt.Errorf("%s is not a valid SavedSegmentEntityType", str)
 	}
 	return nil
 }
 
-func (e SavedSearchEntityType) MarshalGQL(w io.Writer) {
+func (e SavedSegmentEntityType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

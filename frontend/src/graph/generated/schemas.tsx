@@ -1234,7 +1234,7 @@ export type MutationCreateProjectArgs = {
 }
 
 export type MutationCreateSavedSegmentArgs = {
-	entity_type: SavedSearchEntityType
+	entity_type: SavedSegmentEntityType
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
@@ -1384,7 +1384,7 @@ export type MutationEditProjectSettingsArgs = {
 }
 
 export type MutationEditSavedSegmentArgs = {
-	entity_type: SavedSearchEntityType
+	entity_type: SavedSegmentEntityType
 	id: Scalars['ID']
 	name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2419,7 +2419,7 @@ export type QueryResourcesArgs = {
 }
 
 export type QuerySaved_SegmentsArgs = {
-	entity_type: SavedSearchEntityType
+	entity_type: SavedSegmentEntityType
 	project_id: Scalars['ID']
 }
 
@@ -2819,18 +2819,18 @@ export type SanitizedSlackChannelInput = {
 	webhook_channel_name?: InputMaybe<Scalars['String']>
 }
 
-export enum SavedSearchEntityType {
-	Log = 'Log',
-	Trace = 'Trace',
-}
-
 export type SavedSegment = {
 	__typename?: 'SavedSegment'
-	entity_type: SavedSearchEntityType
+	entity_type: SavedSegmentEntityType
 	id: Scalars['ID']
 	name: Scalars['String']
 	params: SearchParams
 	project_id: Scalars['ID']
+}
+
+export enum SavedSegmentEntityType {
+	Log = 'Log',
+	Trace = 'Trace',
 }
 
 export type SearchParams = {
