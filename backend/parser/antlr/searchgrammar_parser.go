@@ -38,7 +38,7 @@ func searchgrammarParserInit() {
 	}
 	staticData.SymbolicNames = []string{
 		"", "AND", "OR", "NOT", "EQ", "NEQ", "LT", "LTE", "GT", "GTE", "LPAREN",
-		"RPAREN", "COLON", "ID", "STRING", "WS",
+		"RPAREN", "COLON", "ID", "STRING", "WS", "ERROR_CHAR",
 	}
 	staticData.RuleNames = []string{
 		"search_query", "top_col_expr", "col_expr", "search_expr", "search_key",
@@ -46,7 +46,7 @@ func searchgrammarParserInit() {
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 15, 103, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 16, 103, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 1, 0, 1,
 		0, 1, 0, 1, 0, 3, 0, 25, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 3, 1, 35, 8, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
@@ -124,22 +124,23 @@ func NewSearchGrammarParser(input antlr.TokenStream) *SearchGrammarParser {
 
 // SearchGrammarParser tokens.
 const (
-	SearchGrammarParserEOF    = antlr.TokenEOF
-	SearchGrammarParserAND    = 1
-	SearchGrammarParserOR     = 2
-	SearchGrammarParserNOT    = 3
-	SearchGrammarParserEQ     = 4
-	SearchGrammarParserNEQ    = 5
-	SearchGrammarParserLT     = 6
-	SearchGrammarParserLTE    = 7
-	SearchGrammarParserGT     = 8
-	SearchGrammarParserGTE    = 9
-	SearchGrammarParserLPAREN = 10
-	SearchGrammarParserRPAREN = 11
-	SearchGrammarParserCOLON  = 12
-	SearchGrammarParserID     = 13
-	SearchGrammarParserSTRING = 14
-	SearchGrammarParserWS     = 15
+	SearchGrammarParserEOF        = antlr.TokenEOF
+	SearchGrammarParserAND        = 1
+	SearchGrammarParserOR         = 2
+	SearchGrammarParserNOT        = 3
+	SearchGrammarParserEQ         = 4
+	SearchGrammarParserNEQ        = 5
+	SearchGrammarParserLT         = 6
+	SearchGrammarParserLTE        = 7
+	SearchGrammarParserGT         = 8
+	SearchGrammarParserGTE        = 9
+	SearchGrammarParserLPAREN     = 10
+	SearchGrammarParserRPAREN     = 11
+	SearchGrammarParserCOLON      = 12
+	SearchGrammarParserID         = 13
+	SearchGrammarParserSTRING     = 14
+	SearchGrammarParserWS         = 15
+	SearchGrammarParserERROR_CHAR = 16
 )
 
 // SearchGrammarParser rules.

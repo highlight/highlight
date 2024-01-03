@@ -44,6 +44,7 @@ export default class SearchGrammarParser extends Parser {
 	public static readonly ID = 13
 	public static readonly STRING = 14
 	public static readonly WS = 15
+	public static readonly ERROR_CHAR = 16
 	public static readonly EOF = Token.EOF
 	public static readonly RULE_search_query = 0
 	public static readonly RULE_top_col_expr = 1
@@ -87,6 +88,7 @@ export default class SearchGrammarParser extends Parser {
 		'ID',
 		'STRING',
 		'WS',
+		'ERROR_CHAR',
 	]
 	// tslint:disable:no-trailing-whitespace
 	public static readonly ruleNames: string[] = [
@@ -854,7 +856,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 
 	public static readonly _serializedATN: number[] = [
-		4, 1, 15, 103, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 16, 103, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 1, 0, 1,
 		0, 1, 0, 1, 0, 3, 0, 25, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 3, 1, 35, 8, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,

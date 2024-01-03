@@ -1,4 +1,10 @@
-import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4'
+import {
+	CommonTokenStream,
+	ErrorListener,
+	RecognitionException,
+	Recognizer,
+	Token,
+} from 'antlr4'
 
 import SearchGrammarListener from '@/components/Search/Parser/antlr/SearchGrammarListener'
 import {
@@ -7,7 +13,6 @@ import {
 	Id_search_valueContext,
 	Key_val_search_exprContext,
 	Search_keyContext,
-	Search_queryContext,
 } from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 
@@ -15,10 +20,13 @@ export type SearchExpression = {
 	start: number
 	stop: number
 	text: string
-	// adding these keys so we can swap the expressions in for SearchParam
 	key: string
 	operator: string
 	value: string
+	error?: {
+		start: number
+		message: string
+	}
 }
 
 const DEFAULT_EXPRESSION = {
@@ -30,13 +38,12 @@ export class SearchListener extends SearchGrammarListener {
 	private currentExpression = { ...DEFAULT_EXPRESSION }
 
 	constructor(
-		public queryString: string,
-		public expressions: SearchExpression[],
+		private queryString: string,
+		private expressions: SearchExpression[],
+		private tokens: CommonTokenStream,
+		private errors: SearchExpression['error'][],
 	) {
 		super()
-
-		this.queryString = queryString
-		this.expressions = expressions
 	}
 
 	enterKey_val_search_expr = (ctx: Key_val_search_exprContext) => {
@@ -84,19 +91,6 @@ export class SearchListener extends SearchGrammarListener {
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}
-
-	exitSearch_query = (ctx: Search_queryContext) => {
-		console.log('::: exitSearch_query', this.queryString, this.expressions)
-		if (this.queryString.endsWith(' ')) {
-			const trailingWhitespace = this.queryString.match(/ +$/)
-			this.expressions.push({
-				...DEFAULT_EXPRESSION,
-				text: trailingWhitespace ? trailingWhitespace[0] : '',
-				start: ctx.start.start,
-				stop: ctx.start.start + this.queryString.length - 1,
-			})
-		}
-	}
 }
 
 export type SearchError = {
@@ -106,19 +100,25 @@ export type SearchError = {
 	e: RecognitionException | undefined
 }
 
+// Using an error listener rather than visitErrorNode because this seems to
+// catch more errors.
 export class SearchErrorListener extends ErrorListener<Token> {
-	public errors: SearchError[] = []
+	constructor(private errors: SearchExpression['error'][]) {
+		super()
+
+		this.errors = errors
+	}
 
 	syntaxError(
-		_: Recognizer<Token>,
+		_recognizer: Recognizer<Token>,
 		offendingSymbol: Token,
-		line: number,
-		column: number,
+		_line: number,
+		_column: number,
 		msg: string,
-		e: RecognitionException | undefined,
+		_e: RecognitionException | undefined,
 	) {
-		// Assign error propreties to the offendingSymbol so we can access them in
-		// the listener.
-		;(offendingSymbol as any).error = { line, column, msg, e }
+		// Assign error to the expression that contains the offending symbol. Access
+		// this later on in the listener.
+		;(offendingSymbol as any).errorMessage = msg
 	}
 }

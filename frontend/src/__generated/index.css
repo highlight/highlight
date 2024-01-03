@@ -5975,7 +5975,7 @@ body {
   right: -2px;
   width: calc(100% + 4px);
 }
-._10xh0c28 {
+._10xh0c29 {
   color: var(--_1pyqka9b);
   cursor: pointer;
   position: absolute;
@@ -5985,14 +5985,29 @@ body {
   top: 1px;
   z-index: 1;
 }
+._10xh0c2a {
+  color: var(--_1pyqka9g);
+  font-weight: bold;
+  opacity: 1;
+  position: absolute;
+  pointer-events: auto;
+  left: -8px;
+  top: 1px;
+  z-index: 1;
+}
 ._10xh0c27 ._10xh0c26,
 ._10xh0c25:hover ._10xh0c26 {
   background-color: color-mix(in srgb, var(--_1pyqka93) 50%, transparent);
 }
-._10xh0c25:hover ._10xh0c28 {
+._10xh0c28 ._10xh0c26,
+._10xh0c28:hover ._10xh0c26 {
+  background-color: color-mix(in srgb, var(--_1pyqka97) 50%, transparent);
+  border: 1px solid var(--_1pyqka9g);
+}
+._10xh0c25:hover ._10xh0c29 {
   opacity: 1;
 }
-._10xh0c29 {
+._10xh0c2b {
   background: var(--_1pyqka91);
   border: var(--_1pyqka9k) solid 1px;
   border-radius: 8px;
@@ -6005,17 +6020,17 @@ body {
   padding-bottom: 33px;
   z-index: 10;
 }
-._10xh0c2a {
+._10xh0c2c {
   cursor: pointer;
   padding: 12px 10px;
 }
-._10xh0c2a:hover {
+._10xh0c2c:hover {
   background-color: var(--_1pyqka9t);
 }
-._10xh0c2a[data-active-item] {
+._10xh0c2c[data-active-item] {
   background-color: var(--_1pyqka9u);
 }
-._10xh0c2c + ._10xh0c2c {
+._10xh0c2e + ._10xh0c2e {
   border-top: var(--_1pyqka91o) solid 1px;
 }
 ._1tecd1u0 {

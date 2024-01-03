@@ -9,10 +9,6 @@ import {
 
 import SearchGrammarLexer from './Parser/antlr/SearchGrammarLexer'
 
-// We don't have a type from the generated lexer for this token type, so create
-//
-export const STRING_TYPE = 100
-
 export const buildParser = (input: string) => {
 	const chars = new CharStream(input)
 	const lexer = new SearchGrammarLexer(chars)
@@ -24,15 +20,17 @@ export const buildParser = (input: string) => {
 export const parseSearch = (input: string) => {
 	const { parser, tokens } = buildParser(input)
 	const queryParts: SearchExpression[] = []
+	const errors: SearchExpression['error'][] = []
 
-	// Setup a custom error listener. The default listener prints a lot of noise.
+	// The default listener prints a lot of noise, so remove it. We add a custom
+	// error listener below.
 	parser.removeErrorListeners()
-	parser.addErrorListener(new SearchErrorListener())
+	parser.addErrorListener(new SearchErrorListener(errors))
 
-	const tree = parser.search_query()
-	const listener = new SearchListener(input, queryParts)
+	const listener = new SearchListener(input, queryParts, tokens, errors)
 
 	// Walk the tree created during the parse, trigger callbacks
+	const tree = parser.search_query()
 	ParseTreeWalker.DEFAULT.walk(listener, tree)
 
 	return {

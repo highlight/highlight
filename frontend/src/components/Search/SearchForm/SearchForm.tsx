@@ -5,6 +5,7 @@ import {
 	Combobox,
 	defaultPresets,
 	getNow,
+	IconSolidExclamationCircle,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
@@ -14,6 +15,7 @@ import {
 	PreviousDateRangePicker,
 	Stack,
 	Text,
+	Tooltip,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
@@ -22,7 +24,7 @@ import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	DateTimeParam,
@@ -33,6 +35,7 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import SearchGrammarLexer from '@/components/Search/Parser/antlr/SearchGrammarLexer'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
@@ -235,6 +238,9 @@ export const Search: React.FC<{
 	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const { queryParts, tokens } = parseSearch(query)
+	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
+	console.log('::: tokenGroups', tokenGroups)
+	console.log('::: queryParts', queryParts)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryParts)
 	const activeTerm = queryParts[activeTermIndex] ?? {}
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
@@ -334,7 +340,6 @@ export const Search: React.FC<{
 		const value = isValueSelect ? key : key.name
 		const isLastTerm = activeTermIndex === queryParts.length - 1
 
-		debugger
 		if (isValueSelect) {
 			part.value = value
 			part.text = `${part.key}${part.operator}${value}`
@@ -364,14 +369,15 @@ export const Search: React.FC<{
 	}
 
 	const handleRemoveItem = (index: number) => {
-		const newQueryParts = [...queryParts]
-		newQueryParts.splice(index, 1)
-		const newQuery = stringifySearchQuery(newQueryParts)
+		const newTokenGroups = [...tokenGroups]
+		newTokenGroups.splice(index, 1)
+		const newQuery = newTokenGroups
+			.map((tokens) => tokens.map((token) => token.text).join(''))
+			.join(' ')
+			.replace(/\s+/g, ' ')
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
-
-	let currentIndex = 0
 
 	return (
 		<Box
@@ -400,45 +406,31 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
-					{queryParts.map((part, index) => {
-						const term = part.text ?? ''
-						const prevStop = queryParts[index - 1]?.stop ?? 0
-						const whitespace = part.start - prevStop - 1
-						const termTokens = tokens.filter(
+					{tokenGroups.map((tokens, index) => {
+						if (tokens.length === 0) {
+							return null
+						}
+
+						const active = activeTerm.start === tokens[0].start
+						const errorToken = tokens.find(
 							(token) =>
-								token.start >= part.start &&
-								token.start <= part.stop,
+								(token as any).errorMessage !== undefined,
 						)
+						const errorMessage = (errorToken as any)?.errorMessage
 
-						const nextIndex = currentIndex + term.length
-						const active =
-							cursorIndex >= currentIndex &&
-							cursorIndex <= nextIndex
-						currentIndex = nextIndex
+						if (errorMessage) {
+							console.log('::: errorMessage', errorMessage)
+						}
 
-						// TODO: whitespace is handled by the token grouping logic, but we
-						// aren't handling it here.
 						return (
-							<>
-								{whitespace > 0 && (
-									<TermTag
-										key={`${index}-whitespace`}
-										term={' '.repeat(whitespace)}
-										index={-1}
-										active={false}
-										tokens={[]}
-										onRemoveItem={() => null}
-									/>
-								)}
+							<Fragment key={index}>
 								<TermTag
-									key={index}
-									term={term}
 									index={index}
 									active={active}
-									tokens={termTokens}
+									tokens={tokens}
 									onRemoveItem={handleRemoveItem}
 								/>
-							</>
+							</Fragment>
 						)
 					})}
 				</Box>
@@ -652,12 +644,17 @@ const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 const TermTag: React.FC<{
 	active: boolean
 	index: number
-	term: string
 	tokens: SearchToken[]
 	onRemoveItem: (index: number) => void
-}> = ({ active, index, term, tokens, onRemoveItem }) => {
-	if (term.trim().length === 0) {
-		return <span>{term}</span>
+}> = ({ active, index, tokens, onRemoveItem }) => {
+	const errorerToken = tokens.find(
+		(token) => (token as any).errorMessage !== undefined,
+	)
+	const error = (errorerToken as any)?.errorMessage
+
+	const text = tokens.map((token) => token.text).join('')
+	if (text.trim() === '') {
+		return <span>{text}</span>
 	}
 
 	return (
@@ -665,6 +662,7 @@ const TermTag: React.FC<{
 			<Box
 				cssClass={clsx(styles.comboboxTag, {
 					[styles.comboboxTagActive]: active,
+					[styles.comboboxTagError]: !!error,
 				})}
 				py="6"
 				position="relative"
@@ -675,6 +673,22 @@ const TermTag: React.FC<{
 					size={13}
 					onClick={() => onRemoveItem(index)}
 				/>
+
+				{error && (
+					<Tooltip
+						placement="bottom"
+						disabled={!error}
+						trigger={
+							<IconSolidExclamationCircle
+								className={styles.comboboxTagErrorIndicator}
+								size={13}
+							/>
+						}
+					>
+						{error ? <Box>{error}</Box> : null}
+					</Tooltip>
+				)}
+
 				{tokens.map((token, index) => {
 					const { text } = token
 					const key = `${text}-${index}`
@@ -710,7 +724,7 @@ const getActiveTermIndex = (
 	let activeTermIndex
 
 	queryParts.find((param, index) => {
-		if (param.start <= cursorIndex) {
+		if (param.stop < cursorIndex - 1) {
 			return false
 		}
 
@@ -768,4 +782,63 @@ const getVisibleValues = (
 					v.indexOf(activeTerm) > -1),
 		) || []
 	)
+}
+
+const buildTokenGroups = (
+	tokens: SearchToken[],
+	queryParts: SearchExpression[],
+	queryString: string,
+) => {
+	const tokenGroups: SearchToken[][] = [[]]
+	let currentPartIndex = 0
+	let currentGroupIndex = 0
+	let currentTokenIndex = 0
+	let currentToken = tokens[currentTokenIndex]
+	let lastStopIndex = -1
+
+	while (currentToken) {
+		const currentPart = queryParts[currentPartIndex]
+		const stop = currentPart?.stop ?? 0
+		const whitespace = queryString.substring(
+			lastStopIndex + 1,
+			currentToken.start,
+		)
+		const whitespaceToken =
+			whitespace.length > 0
+				? {
+						type: SearchGrammarLexer.WS,
+						text: whitespace,
+						start: lastStopIndex + 1,
+						stop: currentToken.start,
+				  }
+				: undefined
+
+		// If the current token is past the current queryPart, then we need to start
+		// a new group.
+		if (currentToken.stop > stop && currentPartIndex < queryParts.length) {
+			if (whitespaceToken) {
+				currentGroupIndex++
+				tokenGroups[currentGroupIndex] = [whitespaceToken]
+			}
+
+			currentPartIndex++
+			currentGroupIndex++
+			tokenGroups[currentGroupIndex] = []
+		} else {
+			if (whitespaceToken) {
+				tokenGroups[currentGroupIndex].push(whitespaceToken)
+			}
+		}
+
+		// Ignore EOF token
+		if (currentToken.type !== SearchGrammarLexer.EOF) {
+			tokenGroups[currentGroupIndex].push(currentToken)
+		}
+
+		lastStopIndex = currentToken.stop
+		currentTokenIndex++
+		currentToken = tokens[currentTokenIndex]
+	}
+
+	return tokenGroups
 }
