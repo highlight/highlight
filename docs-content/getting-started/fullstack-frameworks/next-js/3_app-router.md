@@ -1,5 +1,5 @@
 ---
-title: Next.js Page Router Guide
+title: Next.js App Router Guide
 slug: environment
 heading: Next.js App Router Guide
 createdAt: 2023-10-03T00:00:00.000Z

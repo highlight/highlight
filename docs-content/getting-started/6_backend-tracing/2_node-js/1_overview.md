@@ -13,6 +13,9 @@ Tracing in Node.JS
         {"Get started with Manual Tracing in any Node script."}
     </DocsCard>
     <DocsCard title="Node.js OpenTelemetry" href="../../7_native-opentelemetry/4_tracing.md">
-        {"Integrate logging with Native OpenTelemetry."}
+        {"Integrate tracing with Native OpenTelemetry."}
+    </DocsCard>
+    <DocsCard title="Next.js OpenTelemetry" href="./3_nextjs.md">
+        {"Integrate tracing with Next.js"}
     </DocsCard>
 </DocsCardGroup>

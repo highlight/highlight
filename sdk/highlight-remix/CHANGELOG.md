@@ -1,5 +1,13 @@
 # @highlight-run/remix
 
+## 2.0.13
+
+### Patch Changes
+
+-   790c83782: fix incorrect publish with internal workspace references
+-   Updated dependencies [790c83782]
+    -   @highlight-run/node@3.7.1
+
 ## 2.0.12
 
 ### Patch Changes
