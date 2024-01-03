@@ -18,6 +18,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
+	"github.com/infracloudio/msbotbuilder-go/schema"
 
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -33,6 +34,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
@@ -3725,4 +3727,142 @@ func (r *Resolver) GetJiraProjects(
 	}
 
 	return jira.GetJiraProjects(workspace, *accessToken)
+}
+
+func (r *Resolver) MicrosoftTeamsBotEndpoint(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Running MSTEAMS Bot")
+	ctx := req.Context()
+
+	bot, err := microsoft_teams.NewMicrosoftTeamsBot("common")
+
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error making ms bot adapter"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	act, err := bot.ParseRequest(ctx, req)
+
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error parsing bot framework request"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if act.Type == schema.ConversationUpdate {
+		if len(act.MembersRemoved) > 0 {
+			// identify if our bot is part of the id
+			for _, memberRemoved := range act.MembersRemoved {
+				// our bot is the recipient of this message - so we are being removed from the conversation
+				if memberRemoved.ID == act.Recipient.ID {
+					query := model.Workspace{
+						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
+					}
+					updates := model.Workspace{}
+
+					var workspace *model.Workspace
+					if err := r.DB.Where(&query).Take(&workspace).Error; err != nil {
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+
+					microsoftTeamsChannels, err := microsoft_teams.GetMicrosoftTeamsChannelsFromWorkspace(workspace)
+					if err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "error extracting microsoft_teams channels from workspace"))
+						break
+					}
+
+					groupID := microsoft_teams.GetAadGroupIDFromActivity(act)
+					delete(microsoftTeamsChannels, groupID)
+
+					updateFields := []string{"microsoft_teams_channels"}
+					if len(microsoftTeamsChannels) == 0 {
+						updates.MicrosoftTeamsChannels = nil
+						updates.MicrosoftTeamsTenantId = nil
+						updateFields = append(updateFields, "microsoft_teams_tenant_id")
+					} else {
+						channelsJson, _ := json.Marshal(microsoftTeamsChannels)
+						channelsUpdate := string(channelsJson)
+						updates.MicrosoftTeamsChannels = &channelsUpdate
+					}
+
+					if err := r.DB.Where(&query).Select(updateFields).Updates(updates).Error; err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "error removing microsoft_teams bot from workspace"))
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						break
+					}
+					break
+				}
+			}
+		}
+
+		if len(act.MembersAdded) > 0 {
+			// identify if our bot is part of the id
+			for _, memberAddded := range act.MembersAdded {
+				// our bot is the recipient of this message - so we are being added to the conversation - aka installation
+				if memberAddded.ID == act.Recipient.ID {
+					query := model.Workspace{
+						MicrosoftTeamsTenantId: &act.Conversation.TenantID,
+					}
+
+					var workspace *model.Workspace
+					if err := r.DB.Where(&query).Take(&workspace).Error; err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "error fetching workspace"))
+						return
+					}
+
+					microsoftTeamsChannels := make(map[string][]model.MicrosoftTeamsChannel)
+					if workspace.MicrosoftTeamsChannels != nil && *workspace.MicrosoftTeamsChannels != "" {
+						err := json.Unmarshal([]byte(*workspace.MicrosoftTeamsChannels), &microsoftTeamsChannels)
+
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "error transforming ms teams channels into map"))
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+					}
+
+					groupID := microsoft_teams.GetAadGroupIDFromActivity(act)
+					if groupID != "" {
+						channels, err := microsoft_teams.GetMicrosoftTeamsChannels(*query.MicrosoftTeamsTenantId, groupID)
+						if err != nil {
+							log.WithContext(ctx).Error(e.Wrap(err, "error fetching ms teams channels"))
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+						microsoftTeamsChannels[groupID] = channels
+					}
+
+					channelsJson, _ := json.Marshal(microsoftTeamsChannels)
+					channelsUpdate := string(channelsJson)
+
+					updates := model.Workspace{
+						MicrosoftTeamsChannels: &channelsUpdate,
+					}
+
+					if err := r.DB.Where(&query).Updates(&updates).Error; err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "microsoft teams bot installation failed"))
+						break
+					}
+
+					err = bot.ProcessActivity(ctx, act, microsoft_teams.BotMessagesHandler)
+					if err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to process bot framework request"))
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+				}
+			}
+		}
+	}
+
+	//TODO: This is for testing only - DELETE IT AFTERWARDS
+	if act.Type == schema.Message {
+		err = bot.ProcessActivity(ctx, act, microsoft_teams.BotMessagesHandler)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error processing bot framework message"))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
 }

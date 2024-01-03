@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/infracloudio/msbotbuilder-go/schema"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 
@@ -117,6 +118,20 @@ func GetAccessToken(ctx context.Context, tenantID string) (*oauth2.Token, error)
 	}
 
 	return conf.Exchange(ctx, "", opts...)
+}
+
+func GetAadGroupIDFromActivity(activity schema.Activity) string {
+	team, ok := activity.ChannelData["team"]
+	if ok {
+		team, ok := team.(map[string]interface{})
+		if ok {
+			teamID, ok := team["aadGroupId"].(string)
+			if ok {
+				return teamID
+			}
+		}
+	}
+	return ""
 }
 
 func doGetRequest[T any](accessToken string, url string) (T, error) {
