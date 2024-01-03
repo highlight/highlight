@@ -2548,16 +2548,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		log.WithContext(ctx).WithField("session_id", sessionID).Info("processing payload")
 	}
 
-	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
-	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
-		if sessionObj.ResumedAfterProcessedTime == nil {
-			now := time.Now()
-			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
-			}
-		}
-	}
-
 	var g errgroup.Group
 
 	payloadIdDeref := 0
@@ -2752,10 +2742,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			r.DB.WithContext(ctx).Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
 
-		var project model.Project
-		if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
-			return e.Wrap(err, "error querying project")
+		project, err := r.Store.GetProject(ctx, projectID)
+		if err != nil {
+			return err
 		}
+
 		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying workspace")
