@@ -38,7 +38,6 @@ class FastAPIMiddleware(BaseHTTPMiddleware):
                     attributes={
                         "http.response.headers": resp.headers,
                         "http.request.headers": request.headers,
-                        "http.request.detail": await request.body(),
                         SpanAttributes.HTTP_METHOD: request.method,
                         SpanAttributes.HTTP_URL: str(request.url),
                     },
