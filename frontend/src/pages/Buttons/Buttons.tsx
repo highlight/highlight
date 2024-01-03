@@ -236,7 +236,7 @@ export const Buttons = () => {
 
 							const promises = []
 							for (let i = 0; i < 100; i++) {
-								new Promise<void>(p)
+								const promise = new Promise<void>(p) as any
 								promises.push(new Promise<void>(p))
 							}
 							await Promise.allSettled(promises)

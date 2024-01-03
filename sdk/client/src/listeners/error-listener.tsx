@@ -16,7 +16,9 @@ function handleError(
 	let res: ErrorStackParser.StackFrame[] = []
 	try {
 		res = ErrorStackParser.parse(error ?? event)
-	} catch (e) {}
+	} catch (e) {
+		res = ErrorStackParser.parse(new Error())
+	}
 	if (event instanceof Error) {
 		event = event.message
 	}
@@ -66,26 +68,25 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		}
 	})
 
-	const initialPromise = window.Promise.constructor
-	window.Promise.constructor = function (
-		executor: (
-			resolve: (value: any | PromiseLike<any>) => void,
-			reject: (reason?: any) => void,
-		) => void,
-	) {
-		// @ts-ignore
-		this.promiseCreationError = new Error()
-		initialPromise(executor)
-	}
-
-	// @ts-ignore
-	window.Promise.prototype.getStack = function () {
-		// @ts-ignore
-		return this.promiseCreationError
+	const initialPromise = window.Promise
+	window.Promise = class Promise<T> extends initialPromise<T> {
+		private readonly promiseCreationError: Error
+		constructor(
+			executor: (
+				resolve: (value: T | PromiseLike<T>) => void,
+				reject: (reason?: Error) => void,
+			) => void,
+		) {
+			super(executor)
+			this.promiseCreationError = new Error()
+		}
+		getStack() {
+			return this.promiseCreationError
+		}
 	}
 
 	return () => {
-		window.Promise.constructor = initialPromise
+		window.Promise = initialPromise
 		window.onunhandledrejection = initialOnUnhandledRejection
 		window.onerror = initialOnError
 	}
