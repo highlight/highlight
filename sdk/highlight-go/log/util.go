@@ -94,6 +94,9 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 			LogSeverityKey.String(row.Type),
 			LogMessageKey.String(message),
 		}
+		for k, v := range row.Attributes {
+			attrs = append(attrs, attribute.String(k, fmt.Sprintf("%+v", v)))
+		}
 		if len(row.Trace) > 0 {
 			traceEnd := &row.Trace[len(row.Trace)-1]
 			attrs = append(

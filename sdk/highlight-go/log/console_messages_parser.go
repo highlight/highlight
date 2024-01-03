@@ -15,10 +15,11 @@ type MessageTrace struct {
 }
 
 type Message struct {
-	Type  string         `json:"type"`
-	Trace []MessageTrace `json:"trace"`
-	Value []string       `json:"value"`
-	Time  int64          `json:"time"`
+	Type       string         `json:"type"`
+	Trace      []MessageTrace `json:"trace"`
+	Value      []string       `json:"value"`
+	Attributes map[string]any `json:"attributes"`
+	Time       int64          `json:"time"`
 }
 
 type Messages struct {
@@ -33,21 +34,28 @@ func ParseConsoleMessages(messages string) ([]*Message, error) {
 
 	var rows []*Message
 	for _, message := range messagesParsed.Messages {
+		msg := &Message{
+			Type:       message.Type,
+			Trace:      message.Trace,
+			Time:       message.Time,
+			Attributes: map[string]any{},
+		}
 		var messageValue []string
 		for _, v := range message.Value {
-			unquotedMessage, err := strconv.Unquote(v)
+			value, err := strconv.Unquote(v)
 			if err != nil {
-				messageValue = append(messageValue, v)
-			} else {
-				messageValue = append(messageValue, unquotedMessage)
+				value = v
 			}
+			attrs := map[string]any{}
+			if err := json.Unmarshal([]byte(value), &attrs); err == nil {
+				for k, v := range attrs {
+					msg.Attributes[k] = v
+				}
+			}
+			messageValue = append(messageValue, value)
 		}
-		rows = append(rows, &Message{
-			Type:  message.Type,
-			Trace: message.Trace,
-			Value: messageValue,
-			Time:  message.Time,
-		})
+		msg.Value = messageValue
+		rows = append(rows, msg)
 	}
 	return rows, nil
 }
