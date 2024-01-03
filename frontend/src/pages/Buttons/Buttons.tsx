@@ -236,7 +236,8 @@ export const Buttons = () => {
 
 							const promises = []
 							for (let i = 0; i < 100; i++) {
-								const promise = new Promise<void>(p) as any
+								// unhandled promise rejection
+								new Promise<void>(p)
 								promises.push(new Promise<void>(p))
 							}
 							await Promise.allSettled(promises)
