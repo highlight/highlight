@@ -2113,9 +2113,9 @@ type LogAlertEvent struct {
 type SavedSegment struct {
 	Model
 	Name       string
-	EntityType modelInputs.SavedSegmentEntityType `gorm:"index:idx_saved_segment"`
+	EntityType modelInputs.SavedSegmentEntityType `gorm:"index:idx_saved_segment,priority:2"`
 	Params     string                             `json:"params"`
-	ProjectID  int                                `gorm:"index:idx_saved_segment" json:"project_id"`
+	ProjectID  int                                `gorm:"index:idx_saved_segment,priority:1" json:"project_id"`
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
