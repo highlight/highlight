@@ -290,7 +290,7 @@ func escapeNodeScriptTags(ctx context.Context, node map[string]interface{}) {
 					log.WithContext(ctx).
 						WithField("node", node).
 						WithField("TextContent", txt).
-						Warnf("potential js attack, dropping script tag in session events")
+						Debugf("potential js attack, dropping script tag in session events")
 				}
 			}
 		}
@@ -315,7 +315,7 @@ func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
 						WithField("tagName", tagName).
 						WithField("disallowedTagAttribute", key).
 						WithField("value", value).
-						Warnf("potential js attack, dropping disallowed attribute on session events tag")
+						Debugf("potential js attack, dropping disallowed attribute on session events tag")
 					a[key] = ScriptPlaceholder
 					break
 				}
