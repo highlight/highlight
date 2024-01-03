@@ -158,7 +158,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={(value) => setQuery(value)}
+						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
@@ -167,6 +167,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						timeMode={timeMode}
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
+						savedSegmentType="Log"
 					/>
 					<LogsCount
 						startDate={startDate}

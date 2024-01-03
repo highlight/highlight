@@ -5628,6 +5628,7 @@ body {
 }
 ._14kgefq1 {
   margin-bottom: var(--size-large) !important;
+  max-width: 500px;
 }
 ._1ukfp2a0 {
   border-radius: 0;
@@ -5845,6 +5846,57 @@ body {
   animation-duration: 1.25s;
   animation-iteration-count: infinite;
   animation-timing-function: ease-out;
+}
+._1wt9z3q0 {
+  font-family:
+    IBM Plex Mono,
+    Menlo,
+    DejaVu Sans Mono,
+    Bitstream Vera Sans Mono,
+    Courier,
+    monospace;
+  font-size: 13px;
+  line-height: 20px;
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+  padding: 4px;
+  width: 100%;
+  white-space: pre;
+}
+._1wt9z3q0::before {
+  content: "";
+  margin-bottom: -0.4462em;
+  display: table;
+}
+._1wt9z3q0::after {
+  content: "";
+  margin-top: -0.3942em;
+  display: table;
+}
+._1wt9z3q1 {
+  display: inline-flex;
+  font-feature-settings: normal;
+  margin: 2px 0;
+  padding: 0;
+  white-space: pre;
+}
+._1wt9z3q2 {
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  height: 20px;
+  letter-spacing: normal;
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  width: calc(100% + 4px);
+}
+._7edxgj0 {
+  overflow: hidden;
+  padding-top: 0;
+  z-index: 5;
 }
 ._14ud0dc0::-webkit-scrollbar {
   width: 9px;
