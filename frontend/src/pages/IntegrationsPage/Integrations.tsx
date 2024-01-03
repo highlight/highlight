@@ -34,6 +34,7 @@ import GitHubLogo from '@/static/integrations/github.svg'
 import HeightLogo from '@/static/integrations/height.svg'
 import JiraLogo from '@/static/integrations/jira.png'
 import LinearLogo from '@/static/integrations/linear.png'
+import MicrosoftTeamsLogo from '@/static/integrations/microsoft-teams.jpeg'
 import SlackLogo from '@/static/integrations/slack.png'
 import VercelLogo from '@/static/integrations/vercel-icon-dark.svg'
 import ZapierLogo from '@/static/integrations/zapier.png'
@@ -79,7 +80,7 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 	configurationPath: 'microsoft_teams',
 	description:
 		'Bring your Highlight comments and alerts to microsoft teams as messages.',
-	icon: '/images/integrations/microsoft-teams.jpeg',
+	icon: MicrosoftTeamsLogo,
 	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
