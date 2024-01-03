@@ -4,7 +4,7 @@ import {
 	useEditSavedSegmentMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Maybe, SavedSearchEntityType, SavedSegment } from '@graph/schemas'
+import { Maybe, SavedSegment, SavedSegmentEntityType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React from 'react'
@@ -15,7 +15,7 @@ interface Props {
 	/** Called after a segment is created. */
 	afterCreateHandler?: (segmentId: string, segmentValue: string) => void
 	currentSegment?: Maybe<Pick<SavedSegment, 'id' | 'name'>>
-	entityType: SavedSearchEntityType
+	entityType: SavedSegmentEntityType
 	onHideModal: () => void
 	query: string
 	showModal: boolean

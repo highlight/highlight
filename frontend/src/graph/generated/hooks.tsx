@@ -5247,7 +5247,7 @@ export const EditSavedSegmentDocument = gql`
 		$id: ID!
 		$query: String!
 		$name: String!
-		$entity_type: SavedSearchEntityType!
+		$entity_type: SavedSegmentEntityType!
 	) {
 		editSavedSegment(
 			project_id: $project_id
@@ -5309,7 +5309,7 @@ export const CreateSavedSegmentDocument = gql`
 		$project_id: ID!
 		$name: String!
 		$query: String!
-		$entity_type: SavedSearchEntityType!
+		$entity_type: SavedSegmentEntityType!
 	) {
 		createSavedSegment(
 			project_id: $project_id
@@ -9857,7 +9857,7 @@ export type GetErrorSegmentsQueryResult = Apollo.QueryResult<
 export const GetSavedSegmentsDocument = gql`
 	query GetSavedSegments(
 		$project_id: ID!
-		$entity_type: SavedSearchEntityType!
+		$entity_type: SavedSegmentEntityType!
 	) {
 		saved_segments(project_id: $project_id, entity_type: $entity_type) {
 			id

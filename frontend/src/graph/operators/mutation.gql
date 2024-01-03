@@ -1222,7 +1222,7 @@ mutation EditSavedSegment(
 	$id: ID!
 	$query: String!
 	$name: String!
-	$entity_type: SavedSearchEntityType!
+	$entity_type: SavedSegmentEntityType!
 ) {
 	editSavedSegment(
 		project_id: $project_id
@@ -1237,7 +1237,7 @@ mutation CreateSavedSegment(
 	$project_id: ID!
 	$name: String!
 	$query: String!
-	$entity_type: SavedSearchEntityType!
+	$entity_type: SavedSegmentEntityType!
 ) {
 	createSavedSegment(
 		project_id: $project_id

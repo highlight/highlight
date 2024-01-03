@@ -1,4 +1,4 @@
-import { SavedSearchEntityType } from '@graph/schemas'
+import { SavedSegmentEntityType } from '@graph/schemas'
 import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
@@ -70,7 +70,7 @@ export const useSavedSegments = ({
 		useGetSavedSegmentsQuery({
 			variables: {
 				project_id: projectId!,
-				entity_type: entityType as SavedSearchEntityType,
+				entity_type: entityType as SavedSegmentEntityType,
 			},
 			skip: !projectId || !entityType,
 		})
@@ -116,7 +116,7 @@ export const useSavedSegments = ({
 			editSegment({
 				variables: {
 					project_id: projectId!,
-					entity_type: entityType as SavedSearchEntityType,
+					entity_type: entityType as SavedSegmentEntityType,
 					id: selectedSegment!.id,
 					query: query,
 					name: selectedSegment!.name,
@@ -426,7 +426,7 @@ export const useSavedSegments = ({
 		return (
 			<>
 				<CreateSavedSegmentModal
-					entityType={entityType as SavedSearchEntityType}
+					entityType={entityType as SavedSegmentEntityType}
 					query={query}
 					showModal={
 						segmentModalState === SegmentModalState.CREATE ||
@@ -447,7 +447,7 @@ export const useSavedSegments = ({
 					currentSegment={selectedSegment}
 				/>
 				<DeleteSavedSegmentModal
-					entityType={entityType as SavedSearchEntityType}
+					entityType={entityType as SavedSegmentEntityType}
 					showModal={segmentModalState === SegmentModalState.DELETE}
 					onHideModal={() => {
 						setSegmentModalState(SegmentModalState.HIDDEN)

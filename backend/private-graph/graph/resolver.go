@@ -563,17 +563,6 @@ func SavedSegmentQueryToParams(query string) *SavedSegmentParams {
 	return modelParams
 }
 
-func ConvertSavedSegmentEntityType(entityType modelInputs.SavedSearchEntityType) (model.SavedSegmentEntityType, error) {
-	switch entityType {
-	case modelInputs.SavedSearchEntityTypeLog:
-		return model.SavedSegmentEntityTypeLog, nil
-	case modelInputs.SavedSearchEntityTypeTrace:
-		return model.SavedSegmentEntityTypeTrace, nil
-	}
-
-	return "", e.New("invalid entity type")
-}
-
 func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
 	eg := &model.ErrorGroup{}
 

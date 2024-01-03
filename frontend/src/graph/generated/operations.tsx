@@ -1432,7 +1432,7 @@ export type EditSavedSegmentMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	query: Types.Scalars['String']
 	name: Types.Scalars['String']
-	entity_type: Types.SavedSearchEntityType
+	entity_type: Types.SavedSegmentEntityType
 }>
 
 export type EditSavedSegmentMutation = { __typename?: 'Mutation' } & Pick<
@@ -1444,7 +1444,7 @@ export type CreateSavedSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
 	query: Types.Scalars['String']
-	entity_type: Types.SavedSearchEntityType
+	entity_type: Types.SavedSegmentEntityType
 }>
 
 export type CreateSavedSegmentMutation = { __typename?: 'Mutation' } & {
@@ -3380,6 +3380,29 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
 			Types.Maybe<
 				{ __typename?: 'ErrorSegment' } & Pick<
 					Types.ErrorSegment,
+					'id' | 'name'
+				> & {
+						params: { __typename?: 'SearchParams' } & Pick<
+							Types.SearchParams,
+							'query'
+						>
+					}
+			>
+		>
+	>
+}
+
+export type GetSavedSegmentsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	entity_type: Types.SavedSegmentEntityType
+}>
+
+export type GetSavedSegmentsQuery = { __typename?: 'Query' } & {
+	saved_segments?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'SavedSegment' } & Pick<
+					Types.SavedSegment,
 					'id' | 'name'
 				> & {
 						params: { __typename?: 'SearchParams' } & Pick<

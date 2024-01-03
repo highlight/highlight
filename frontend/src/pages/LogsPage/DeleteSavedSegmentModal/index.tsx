@@ -1,6 +1,6 @@
 import { DeleteSegmentModal } from '@components/SegmentModals/DeleteSegmentModal'
 import { namedOperations } from '@graph/operations'
-import { Maybe, SavedSearchEntityType, SavedSegment } from '@graph/schemas'
+import { Maybe, SavedSegment, SavedSegmentEntityType } from '@graph/schemas'
 import { message } from 'antd'
 import React from 'react'
 
@@ -11,7 +11,7 @@ const NO_SEGMENT = 'none'
 interface Props {
 	/** Called after a segment is deleted. */
 	afterDeleteHandler?: () => void
-	entityType: SavedSearchEntityType
+	entityType: SavedSegmentEntityType
 	onHideModal: () => void
 	segmentToDelete: Maybe<Pick<SavedSegment, 'id' | 'name'>>
 	showModal: boolean

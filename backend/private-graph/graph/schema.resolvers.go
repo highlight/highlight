@@ -7883,20 +7883,6 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, 48, bucketBy, limit, limitAggregator, limitColumn)
 }
 
-// EntityType is the resolver for the entity_type field.
-func (r *savedSegmentResolver) EntityType(ctx context.Context, obj *model.SavedSegment) (modelInputs.SavedSearchEntityType, error) {
-	panic(fmt.Errorf("not implemented: EntityType - entity_type"))
-}
-
-// Params is the resolver for the params field.
-func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegment) (*model.SearchParams, error) {
-	params := &model.SearchParams{}
-	if err := json.Unmarshal([]byte(obj.Params), params); err != nil {
-		return nil, e.Wrapf(err, "error unmarshaling saved segment params")
-	}
-	return params, nil
-}
-
 // Params is the resolver for the params field.
 func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
