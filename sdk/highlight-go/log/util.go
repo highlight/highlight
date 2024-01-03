@@ -17,7 +17,6 @@ import (
 const TimestampFormat = "2006-01-02T15:04:05.000Z"
 const TimestampFormatNano = "2006-01-02T15:04:05.999999999Z"
 const LogAttributeValueLengthLimit = 2 << 15
-const LogAttributeValueWarningLengthLimit = 2 << 9
 
 type PinoLog struct {
 	Level    uint8  `json:"level"`

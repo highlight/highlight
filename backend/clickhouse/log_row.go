@@ -105,10 +105,6 @@ func WithSource(source modelInputs.LogSource) LogRowOption {
 func WithBody(ctx context.Context, body string) LogRowOption {
 	return func(l *LogRow) {
 		if len(body) > hlog.LogAttributeValueLengthLimit {
-			log.WithContext(ctx).
-				WithField("ValueLength", len(body)).
-				WithField("ValueTrunc", body[:hlog.LogAttributeValueWarningLengthLimit]).
-				Warnf("log body value is too long %d", len(body))
 			body = body[:hlog.LogAttributeValueLengthLimit] + "..."
 		}
 		l.Body = body
