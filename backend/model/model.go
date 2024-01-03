@@ -1698,8 +1698,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		}
 
 		if err := DB.Exec(fmt.Sprintf(`
-			CREATE INDEX ON error_object_embeddings_partitioned_%d
-			USING ivfflat (gte_large_embedding vector_l2_ops) WITH (lists = 1000);
+			CREATE INDEX ON error_object_embeddings_partitioned_%d USING hnsw (gte_large_embedding vector_l2_ops);
 		`, i)).Error; err != nil {
 			return false, e.Wrapf(err, "Error creating index error_object_embeddings for index %d", i)
 		}
