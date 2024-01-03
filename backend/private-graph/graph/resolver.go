@@ -3385,7 +3385,6 @@ func (r *Resolver) GetJiraProjects(
 }
 
 func (r *Resolver) MicrosoftTeamsBotEndpoint(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("Running MSTEAMS Bot")
 	ctx := req.Context()
 
 	bot, err := microsoft_teams.NewMicrosoftTeamsBot("common")
@@ -3508,16 +3507,6 @@ func (r *Resolver) MicrosoftTeamsBotEndpoint(w http.ResponseWriter, req *http.Re
 					}
 				}
 			}
-		}
-	}
-
-	//TODO: This is for testing only - DELETE IT AFTERWARDS
-	if act.Type == schema.Message {
-		err = bot.ProcessActivity(ctx, act, microsoft_teams.BotMessagesHandler)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error processing bot framework message"))
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
 		}
 	}
 }
