@@ -14,8 +14,6 @@ import {
 	Menu,
 	Text,
 } from '@highlight-run/ui/components'
-import { CreateSavedSegmentModal } from '@pages/LogsPage/CreateSavedSegmentModal'
-import { DeleteSavedSegmentModal } from '@pages/LogsPage/DeleteSavedSegmentModal'
 import { message } from 'antd'
 import { forEach } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -26,6 +24,8 @@ import {
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
 
+import { CreateSavedSegmentModal } from '../CreateSavedSegmentModal'
+import { DeleteSavedSegmentModal } from '../DeleteSavedSegmentModal'
 import * as styles from './styles.css'
 
 enum BuilderMode {

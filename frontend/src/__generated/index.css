@@ -5847,7 +5847,7 @@ body {
   animation-iteration-count: infinite;
   animation-timing-function: ease-out;
 }
-._7g52oo0 {
+._1wt9z3q0 {
   font-family:
     IBM Plex Mono,
     Menlo,
@@ -5866,24 +5866,24 @@ body {
   width: 100%;
   white-space: pre;
 }
-._7g52oo0::before {
+._1wt9z3q0::before {
   content: "";
   margin-bottom: -0.4462em;
   display: table;
 }
-._7g52oo0::after {
+._1wt9z3q0::after {
   content: "";
   margin-top: -0.3942em;
   display: table;
 }
-._7g52oo1 {
+._1wt9z3q1 {
   display: inline-flex;
   font-feature-settings: normal;
   margin: 2px 0;
   padding: 0;
   white-space: pre;
 }
-._7g52oo2 {
+._1wt9z3q2 {
   border: var(--_1pyqka91o) solid 1px;
   border-radius: 4px;
   height: 20px;
