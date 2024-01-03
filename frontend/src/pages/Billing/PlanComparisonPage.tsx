@@ -125,4 +125,37 @@ const PlanComparisonPage = ({}: PlanComparisonPageProps) => {
 	)
 }
 
+const Modal: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+	return (
+		<Box
+			width="screen"
+			display="flex"
+			height="screen"
+			position="fixed"
+			alignItems="flex-start"
+			justifyContent="center"
+			style={{
+				top: 0,
+				left: 0,
+				zIndex: '30000',
+				overflow: 'hidden',
+				backgroundColor: '#6F6E777A',
+			}}
+		>
+			<Box
+				display="flex"
+				borderRadius="8"
+				border="secondary"
+				style={{
+					marginTop: 'auto',
+					marginBottom: 'auto',
+					maxWidth: 920,
+				}}
+				backgroundColor="white"
+			>
+				{children}
+			</Box>
+		</Box>
+	)
+}
 export default PlanComparisonPage
