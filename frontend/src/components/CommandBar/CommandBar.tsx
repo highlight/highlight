@@ -1,4 +1,4 @@
-import { last30Days, now, PRESETS } from '@components/CommandBar/constants'
+import { now, PRESETS } from '@components/CommandBar/constants'
 import {
 	Attribute,
 	ATTRIBUTES,
@@ -37,6 +37,7 @@ import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
 import isEqual from 'lodash/isEqual'
+import moment from 'moment'
 import React, { useRef } from 'react'
 
 import * as styles from './style.css'
@@ -105,7 +106,9 @@ const SearchBar = () => {
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const isDirty =
-		!!query || selectedDates[0].getTime() !== last30Days.startDate.getTime()
+		!!query ||
+		selectedDates[0].getTime() !==
+			moment().subtract(30, 'days').toDate().getTime()
 
 	const searchAttribute = useAttributeSearch(formStore)
 
@@ -132,7 +135,7 @@ const SearchBar = () => {
 					newTab: true,
 					withDate:
 						selectedDates[0].getTime() !==
-						last30Days.startDate.getTime(),
+						moment().subtract(30, 'days').toDate().getTime(),
 				})
 			} else {
 				formStore.submit()
@@ -182,14 +185,15 @@ const SearchBar = () => {
 						) : null}
 					</Box>
 					<PreviousDateRangePicker
-						selectedDates={formStore.useValue(
-							formStore.names.selectedDates,
-						)}
-						onDatesChange={(dates) => {
-							formStore.setValue(
-								formStore.names.selectedDates,
-								dates,
-							)
+						selectedValue={{
+							startDate: selectedDates[0],
+							endDate: selectedDates[1],
+						}}
+						onDatesChange={(startDate, endDate) => {
+							formStore.setValue(formStore.names.selectedDates, [
+								startDate,
+								endDate,
+							])
 						}}
 						presets={PRESETS}
 						minDate={now.clone().subtract(2, 'years').toDate()}
@@ -250,7 +254,8 @@ const SectionRow = ({
 					withDate:
 						formStore
 							.getValue(formStore.names.selectedDates)[0]
-							.getTime() !== last30Days.startDate.getTime(),
+							.getTime() !==
+						moment().subtract(30, 'days').toDate().getTime(),
 					newTab: e.metaKey || e.ctrlKey,
 				})
 			}}

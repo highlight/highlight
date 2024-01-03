@@ -1,4 +1,3 @@
-import { last30Days } from '@components/CommandBar/constants'
 import { nextAttribute, useAttributeSearch } from '@components/CommandBar/utils'
 import { FormState, useFormStore } from '@highlight-run/ui/components'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
@@ -100,7 +99,10 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 	const formStore = useFormStore<CommandBarSearch>({
 		defaultValues: {
 			search: '',
-			selectedDates: [last30Days.startDate, moment().toDate()],
+			selectedDates: [
+				moment().subtract(30, 'days').toDate(),
+				moment().toDate(),
+			],
 		},
 	})
 
@@ -113,7 +115,7 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 			searchAttribute(currentAttribute, {
 				withDate:
 					selectedDates[0].getTime() !==
-					last30Days.startDate.getTime(),
+					moment().subtract(30, 'days').toDate().getTime(),
 			})
 		}
 	})

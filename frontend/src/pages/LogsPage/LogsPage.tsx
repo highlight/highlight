@@ -94,7 +94,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}
 
 	const handleAdditionalLogsDateChange = () => {
-		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
+		// TODO(spenny): figure this out
+		handleDatesChange(
+			moment().subtract(15, 'minutes').toDate(),
+			getNow().toDate(),
+		)
 	}
 
 	const handleLevelChange = (level: LogLevel) => {
@@ -160,11 +164,9 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 					<SearchForm
 						initialQuery={query}
 						onFormSubmit={(value) => setQuery(value)}
-						startDate={startDate}
-						endDate={endDate}
-						onDatesChange={handleDatesChange}
 						presets={defaultPresets}
-						minDate={defaultPresets[5].startDate}
+						// TODO(spenny): figure out minDate
+						minDate={moment().subtract(1, 'year').toDate()}
 						timeMode={timeMode}
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}

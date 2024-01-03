@@ -56,7 +56,8 @@ export const TracesPage: React.FC = () => {
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 	const queryTerms = parseSearchQuery(query)
 	const serverQuery = buildSearchQueryForServer(queryTerms)
-	const minDate = defaultPresets[5].startDate
+	// TODO(spenny): figure this out
+	const minDate = moment().subtract(1, 'year').toDate()
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
@@ -65,7 +66,10 @@ export const TracesPage: React.FC = () => {
 	}
 
 	const handleAdditionTracesDateChange = () => {
-		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
+		handleDatesChange(
+			moment().subtract(15, 'minutes').toDate(),
+			getNow().toDate(),
+		)
 	}
 
 	const {
@@ -192,14 +196,11 @@ export const TracesPage: React.FC = () => {
 				>
 					<SearchForm
 						initialQuery={query ?? ''}
-						startDate={startDate}
-						endDate={endDate}
 						presets={defaultPresets}
 						minDate={minDate}
 						timeMode={timeMode}
 						hideCreateAlert
 						onFormSubmit={setQuery}
-						onDatesChange={handleDatesChange}
 						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>

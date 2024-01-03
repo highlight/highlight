@@ -3,17 +3,16 @@ import {
 	Badge,
 	Box,
 	Combobox,
-	defaultPresets,
 	getNow,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
-	Preset,
 	PreviousDateRangePicker,
 	Stack,
 	Text,
+	TimePreset,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
@@ -60,11 +59,13 @@ import * as styles from './SearchForm.css'
 export const QueryParam = withDefault(StringParam, '')
 export const FixedRangeStartDateParam = withDefault(
 	DateTimeParam,
-	defaultPresets[0].startDate,
+	// TODO(spenny): figure this out
+	moment(getNow()).subtract(15, 'minutes').toDate(),
 )
 export const PermalinkStartDateParam = withDefault(
 	DateTimeParam,
-	defaultPresets[5].startDate,
+	// TODO(spenny): figure this out
+	moment(getNow()).subtract(1, 'year').toDate(),
 )
 export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
 
@@ -82,10 +83,7 @@ const MAX_ITEMS = 10
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
-	startDate: Date
-	endDate: Date
-	onDatesChange: (startDate: Date, endDate: Date) => void
-	presets: Preset[]
+	presets: TimePreset[]
 	minDate: Date
 	timeMode: TIME_MODE
 	fetchKeysLazyQuery: FetchKeys
@@ -104,7 +102,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
-	onDatesChange,
 	onFormSubmit,
 	presets,
 	minDate,
@@ -118,19 +115,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
 
-	const { startDate, endDate, relativeTime, updateSearchTime } =
+	const { startDate, endDate, relativeTimePreset, updateSearchTime } =
 		useSearchTime()
-
-	// relative -> relative_time=last_24_hours
-	// absolute -> end_date=[end_date]&start_date=[start_date]
-	// relative, ignore absolute -> end_date=[end_date]&start_date=[start_date]&relative_time=last_24_hours
-
-	const handleDatesChange = (dates: Date[]) => {
-		setDateRange(dates)
-		if (dates.length == 2) {
-			onDatesChange(dates[0], dates[1])
-		}
-	}
 
 	return (
 		<>
@@ -157,8 +143,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					{!hideDatePicker && (
 						<PreviousDateRangePicker
 							emphasis="low"
-							selectedDates={dateRange}
-							onDatesChange={handleDatesChange}
+							selectedValue={{
+								endDate,
+								startDate,
+								selectedPreset: relativeTimePreset,
+							}}
+							onDatesChange={updateSearchTime}
 							presets={presets}
 							minDate={minDate}
 							disabled={timeMode === 'permalink'}

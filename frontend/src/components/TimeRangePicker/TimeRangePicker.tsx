@@ -1,4 +1,7 @@
-import { PreviousDateRangePicker } from '@highlight-run/ui/components'
+import {
+	PreviousDateRangePicker,
+	TimePreset,
+} from '@highlight-run/ui/components'
 import useDataTimeRange, {
 	defaultDataTimeRange,
 	FORMAT,
@@ -6,34 +9,34 @@ import useDataTimeRange, {
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
-const presets = [
+const presets: TimePreset[] = [
 	{
-		label: 'Last 5 minutes',
-		startDate: new Date(moment().subtract(5, 'minutes').format(FORMAT)),
+		quantity: 5,
+		unit: 'minutes',
 	},
 	{
-		label: 'Last 15 minutes',
-		startDate: moment().subtract(15, 'minutes').toDate(),
+		quantity: 15,
+		unit: 'minutes',
 	},
 	{
-		label: 'Last 1 hour',
-		startDate: moment().subtract(1, 'hour').toDate(),
+		quantity: 1,
+		unit: 'hour',
 	},
 	{
-		label: 'Last 6 hours',
-		startDate: moment().subtract(6, 'hours').toDate(),
+		quantity: 6,
+		unit: 'hours',
 	},
 	{
-		label: 'Last 24 hours',
-		startDate: moment().subtract(24, 'hours').toDate(),
+		quantity: 24,
+		unit: 'hours',
 	},
 	{
-		label: 'Last 7 days',
-		startDate: moment().subtract(7, 'days').toDate(),
+		quantity: 7,
+		unit: 'days',
 	},
 	{
-		label: 'Last 30 days',
-		startDate: moment().subtract(30, 'days').toDate(),
+		quantity: 30,
+		unit: 'days',
 	},
 ]
 
@@ -43,7 +46,7 @@ const minDate = moment(defaultDataTimeRange.end_date)
 
 const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
 	const [customDateRange, setCustomDateRange] = useState<Date[]>([
-		presets[5].startDate,
+		moment().subtract(30, 'days').toDate(),
 		moment().toDate(),
 	])
 	const { setTimeRange } = useDataTimeRange()
@@ -59,11 +62,22 @@ const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
 		)
 	}, [customDateRange, setTimeRange])
 
+	const handleDatesChange = (newStartDate?: Date, newEndDate?: Date) => {
+		if (!newStartDate || !newEndDate) {
+			return
+		}
+
+		setCustomDateRange([newStartDate, newEndDate])
+	}
+
 	return (
 		<PreviousDateRangePicker
 			presets={presets}
-			selectedDates={customDateRange}
-			onDatesChange={setCustomDateRange}
+			selectedValue={{
+				startDate: customDateRange[0],
+				endDate: customDateRange[1],
+			}}
+			onDatesChange={handleDatesChange}
 			minDate={minDate}
 		/>
 	)

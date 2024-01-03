@@ -414,8 +414,10 @@ type OpenSearchQuery = {
 const getDefaultTimeRangeRule = (timeRangeField: SelectOption): RuleProps => {
 	const defaultPreset = defaultPresets[5]
 	const period = {
-		label: defaultPreset.label, // Start at 30 days
-		value: `${defaultPreset.startDate.toISOString()}_${getNow().toISOString()}`, // Start at 30 days
+		label: `Last ${defaultPreset.quantity} ${defaultPreset.unit}`, // Start at 30 days
+		value: `${moment()
+			.subtract(defaultPreset.quantity, defaultPreset.unit)
+			.toISOString()}_${getNow().toISOString()}`, // Start at 30 days
 	}
 	return {
 		field: timeRangeField,

@@ -1196,7 +1196,6 @@ enum SegmentModalState {
 }
 
 const defaultMinDate = getNow().subtract(90, 'days').toDate()
-const defaultPreset = defaultPresets[5]
 
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
@@ -1357,7 +1356,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		to = new Date(toStr)
 	}
 	const [dateRange, setDateRange] = useState<Date[]>([
-		from ?? defaultPreset.startDate, // Start at 30days
+		from ?? moment().subtract(30, 'days').toDate(), // Start at 30days
 		to ?? new Date(getNow().toISOString()),
 	])
 
@@ -1749,20 +1748,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 			>
 				<PreviousDateRangePicker
 					presets={defaultPresets}
-					selectedDates={dateRange}
+					selectedValue={{
+						startDate: dateRange[0],
+						endDate: dateRange[1],
+					}}
 					minDate={defaultMinDate}
-					onDatesChange={(dates: Date[]) => {
-						setDateRange(dates)
-						if (!dates[0] || !dates[1]) {
+					onDatesChange={(startDate?: Date, endDate?: Date) => {
+						if (!startDate || !endDate) {
 							return
 						}
+						setDateRange([startDate, endDate])
 						updateRule(timeRangeRule, {
 							val: {
 								kind: 'multi',
 								options: [
 									{
 										label: 'Date Range',
-										value: `${dates[0].toISOString()}_${dates[1].toISOString()}`,
+										value: `${startDate.toISOString()}_${endDate.toISOString()}`,
 									},
 								],
 							} as MultiselectOption,

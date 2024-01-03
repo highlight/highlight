@@ -1,7 +1,8 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Preset, Stack, Text } from '@highlight-run/ui/components'
+import { Box, Stack, Text, TimePreset } from '@highlight-run/ui/components'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
+import moment from 'moment'
 import { useMemo } from 'react'
 
 const LogsCount = ({
@@ -13,13 +14,16 @@ const LogsCount = ({
 }: {
 	startDate: Date
 	endDate: Date
-	presets: Preset[]
+	presets: TimePreset[]
 	totalCount: number | undefined
 	loading: boolean
 }) => {
 	const dateLabel = useMemo(() => {
 		const isPreset = presets.find((preset) => {
-			return preset.startDate.getTime() === startDate.getTime()
+			const presetDate = moment()
+				.subtract(preset.quantity, preset.unit)
+				.toDate()
+			return presetDate.getTime() === startDate.getTime()
 		})
 		if (isPreset) {
 			return `${formatDate(startDate)} to Now`

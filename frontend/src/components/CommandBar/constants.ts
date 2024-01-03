@@ -1,32 +1,34 @@
+import { TimePreset } from '@highlight-run/ui/components'
 import moment from 'moment'
 
 const now = moment().startOf('day')
 
-const last30Days = {
-	startDate: now.clone().subtract(30, 'days').toDate(),
-	label: 'Last 30 days',
+const last30Days: TimePreset = {
+	quantity: 30,
+	unit: 'days',
 }
 
-const PRESETS = [
+const PRESETS: TimePreset[] = [
 	{
-		startDate: now.clone().subtract(60, 'minutes').toDate(),
-		label: 'Last 60 minutes',
+		quantity: 60,
+		unit: 'minutes',
 	},
 	{
-		startDate: now.clone().subtract(24, 'hours').toDate(),
-		label: 'Last 24 hours',
+		quantity: 24,
+		unit: 'hours',
 	},
 	{
-		startDate: now.clone().subtract(7, 'days').toDate(),
-		label: 'Last 7 days',
+		quantity: 7,
+		unit: 'days',
 	},
 	last30Days,
 	{
-		startDate: now.clone().subtract(90, 'days').toDate(),
-		label: 'Last 90 days',
+		quantity: 90,
+		unit: 'days',
 	},
 	{
-		startDate: now.clone().subtract(1, 'y').toDate(),
+		quantity: 1,
+		unit: 'year',
 		label: 'Last year',
 	},
 ]

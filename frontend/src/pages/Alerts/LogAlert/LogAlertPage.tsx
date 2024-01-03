@@ -69,7 +69,7 @@ export const LogAlertPage = () => {
 	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
 
 	const [startDate, setStartDate] = useState(
-		startDateParam ?? defaultPresets[0].startDate,
+		startDateParam ?? moment().subtract(15, 'minutes').toDate(),
 	)
 
 	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())
@@ -77,6 +77,11 @@ export const LogAlertPage = () => {
 		startDate,
 		endDate,
 	])
+
+	const handleDateChange = (startDate?: Date, endDate?: Date) => {
+		if (!startDate || !endDate) return
+		setSelectedDates([startDate, endDate])
+	}
 
 	const { projectId } = useProjectId()
 
@@ -443,12 +448,15 @@ export const LogAlertPage = () => {
 												</Text>
 											</Box>
 											<PreviousDateRangePicker
-												selectedDates={selectedDates}
-												onDatesChange={setSelectedDates}
+												selectedValue={{
+													startDate: selectedDates[0],
+													endDate: selectedDates[1],
+												}}
+												onDatesChange={handleDateChange}
 												presets={defaultPresets}
-												minDate={
-													defaultPresets[5].startDate
-												}
+												minDate={moment()
+													.subtract(30, 'days')
+													.toDate()}
 												kind="secondary"
 												size="medium"
 												emphasis="low"

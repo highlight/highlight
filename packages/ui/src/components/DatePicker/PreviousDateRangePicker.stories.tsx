@@ -25,6 +25,13 @@ export const Basic = () => {
 		now.toDate(),
 	])
 
+	const handleDateChange = (startDate?: Date, endDate?: Date) => {
+		if (!startDate || !endDate) {
+			return
+		}
+		onDatesChange([startDate, endDate])
+	}
+
 	return (
 		<div style={{ minHeight: '300px' }}>
 			<Box display="flex" mb="20" gap={'40'}>
@@ -42,8 +49,11 @@ export const Basic = () => {
 			</Box>
 
 			<PreviousDateRangePicker
-				selectedDates={selectedDates}
-				onDatesChange={onDatesChange}
+				selectedValue={{
+					startDate: selectedDates[0],
+					endDate: selectedDates[1],
+				}}
+				onDatesChange={handleDateChange}
 				presets={defaultPresets}
 				minDate={subtractDays(now.toDate(), 90)}
 			/>

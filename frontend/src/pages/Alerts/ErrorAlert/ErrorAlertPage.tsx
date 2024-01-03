@@ -10,7 +10,6 @@ import {
 	Box,
 	Column,
 	Container,
-	defaultPresets,
 	Form,
 	FormState,
 	getNow,
@@ -57,7 +56,7 @@ export const ErrorAlertPage = () => {
 	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
 
 	const [startDate, setStartDate] = useState(
-		startDateParam ?? defaultPresets[0].startDate,
+		startDateParam ?? getNow().subtract(1, 'day').toDate(),
 	)
 
 	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())

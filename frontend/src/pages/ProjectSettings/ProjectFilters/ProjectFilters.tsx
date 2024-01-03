@@ -141,8 +141,9 @@ export const ProjectProductFilters: React.FC<{
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
+	// TODO(spenny): figure this out
 	const [dateRange, setDateRange] = React.useState<DateRange>({
-		start: defaultPresets[1].startDate,
+		start: moment().subtract(15, 'minutes').toDate(),
 		end: getNow().toDate(),
 	})
 	const { data, loading } = useGetProjectSettingsQuery({
@@ -469,11 +470,11 @@ export const ProjectProductFilters: React.FC<{
 									disableSearch={view}
 									hideDatePicker
 									hideCreateAlert
-									startDate={dateRange.start}
-									endDate={dateRange.end}
-									onDatesChange={() => {}}
 									presets={defaultPresets}
-									minDate={defaultPresets[5].startDate}
+									// TODO(spenny): figure out minDate
+									minDate={moment()
+										.subtract(1, 'year')
+										.toDate()}
 									timeMode="fixed-range"
 									fetchKeysLazyQuery={
 										product === ProductType.Logs
@@ -568,17 +569,23 @@ export const ProjectProductFilters: React.FC<{
 					<Text weight="medium" size="xSmall" color="weak">
 						{label}s
 					</Text>
+					{/* TODO(spenny): figure this out */}
 					<PreviousDateRangePicker
-						selectedDates={[dateRange.start, dateRange.end]}
-						onDatesChange={(dates) =>
-							setDateRange({
-								start: dates[0],
-								end: dates[1],
-							})
-						}
+						selectedValue={{
+							startDate: dateRange.start,
+							endDate: dateRange.end,
+						}}
+						onDatesChange={(startDate, endDate) => {
+							if (startDate && endDate) {
+								setDateRange({
+									start: startDate,
+									end: endDate,
+								})
+							}
+						}}
 						presets={[defaultPresets[1], defaultPresets[3]]}
 						noCustom
-						minDate={defaultPresets[5].startDate}
+						minDate={moment().subtract(1, 'year').toDate()}
 						kind="secondary"
 						size="medium"
 						emphasis="low"
