@@ -9569,37 +9569,6 @@ export const GetSegmentsDocument = gql`
 			id
 			name
 			params {
-				user_properties {
-					name
-					value
-				}
-				excluded_properties {
-					name
-					value
-				}
-				track_properties {
-					name
-					value
-				}
-				date_range {
-					start_date
-					end_date
-				}
-				length_range {
-					min
-					max
-				}
-				os
-				browser
-				visited_url
-				referrer
-				identified
-				hide_viewed
-				first_time
-				app_versions
-				environments
-				device_id
-				show_live_sessions
 				query
 			}
 		}
@@ -9658,15 +9627,6 @@ export const GetErrorSegmentsDocument = gql`
 			id
 			name
 			params {
-				date_range {
-					start_date
-					end_date
-				}
-				os
-				browser
-				visited_url
-				state
-				event
 				query
 			}
 		}

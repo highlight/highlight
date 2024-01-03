@@ -2078,6 +2078,47 @@ func (e RetentionPeriod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type SavedSegmentEntityType string
+
+const (
+	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
+	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
+)
+
+var AllSavedSegmentEntityType = []SavedSegmentEntityType{
+	SavedSegmentEntityTypeLog,
+	SavedSegmentEntityTypeTrace,
+}
+
+func (e SavedSegmentEntityType) IsValid() bool {
+	switch e {
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace:
+		return true
+	}
+	return false
+}
+
+func (e SavedSegmentEntityType) String() string {
+	return string(e)
+}
+
+func (e *SavedSegmentEntityType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SavedSegmentEntityType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SavedSegmentEntityType", str)
+	}
+	return nil
+}
+
+func (e SavedSegmentEntityType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ServiceStatus string
 
 const (

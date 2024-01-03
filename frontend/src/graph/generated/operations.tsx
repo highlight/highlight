@@ -3324,68 +3324,8 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
 				> & {
 						params: { __typename?: 'SearchParams' } & Pick<
 							Types.SearchParams,
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'referrer'
-							| 'identified'
-							| 'hide_viewed'
-							| 'first_time'
-							| 'app_versions'
-							| 'environments'
-							| 'device_id'
-							| 'show_live_sessions'
-							| 'query'
-						> & {
-								user_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								excluded_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								track_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								date_range?: Types.Maybe<
-									{ __typename?: 'DateRange' } & Pick<
-										Types.DateRange,
-										'start_date' | 'end_date'
-									>
-								>
-								length_range?: Types.Maybe<
-									{ __typename?: 'LengthRange' } & Pick<
-										Types.LengthRange,
-										'min' | 'max'
-									>
-								>
-							}
+							'query'
+						>
 					}
 			>
 		>
@@ -3404,22 +3344,10 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
 					Types.ErrorSegment,
 					'id' | 'name'
 				> & {
-						params: { __typename?: 'ErrorSearchParams' } & Pick<
-							Types.ErrorSearchParams,
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'state'
-							| 'event'
-							| 'query'
-						> & {
-								date_range?: Types.Maybe<
-									{ __typename?: 'DateRange' } & Pick<
-										Types.DateRange,
-										'start_date' | 'end_date'
-									>
-								>
-							}
+						params: { __typename?: 'SearchParams' } & Pick<
+							Types.SearchParams,
+							'query'
+						>
 					}
 			>
 		>
