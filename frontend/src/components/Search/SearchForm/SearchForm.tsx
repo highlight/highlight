@@ -239,28 +239,28 @@ export const Search: React.FC<{
 
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
-	const activeTermIndex = getActiveTermIndex(cursorIndex, queryParts)
-	const activeTerm = queryParts[activeTermIndex] ?? {}
-	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
+	const activePartIndex = getActivePartIndex(cursorIndex, queryParts)
+	const activePart = queryParts[activePartIndex] ?? {}
+	const debouncedKeyValue = useDebouncedValue<string>(activePart.value)
 
 	// TODO: code smell, user is not able to use "message" as a search key
 	// because we are reserving it for the body implicitly
 	const showValues =
-		activeTerm.key !== BODY_KEY &&
-		!!keysData?.keys?.find((k) => k.name === activeTerm.key)
+		activePart.key !== BODY_KEY &&
+		!!keysData?.keys?.find((k) => k.name === activePart.key)
 	const loading = showValues ? valuesLoading : keysLoading
-	const showTermSelect = !!activeTerm.value?.length
+	const showPartSelect = !!activePart.value?.length
 
 	const values = data?.key_values
 
 	const visibleItems = showValues
-		? getVisibleValues(activeTerm, values)
-		: getVisibleKeys(query, queryParts, activeTerm, keysData?.keys)
+		? getVisibleValues(activePart, values)
+		: getVisibleKeys(query, queryParts, activePart, keysData?.keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
-	const showResults = loading || visibleItems.length > 0 || showTermSelect
+	const showResults = loading || visibleItems.length > 0 || showPartSelect
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
@@ -296,7 +296,7 @@ export const Search: React.FC<{
 		getKeyValues({
 			variables: {
 				project_id: project_id!,
-				key_name: activeTerm.key,
+				key_name: activePart.key,
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
@@ -304,7 +304,7 @@ export const Search: React.FC<{
 			},
 		})
 	}, [
-		activeTerm.key,
+		activePart.key,
 		endDate,
 		getKeyValues,
 		project_id,
@@ -329,30 +329,34 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	// TODO: Fix squashing body when selecting key. To repro, type "asdf " and
-	// note how the dropdown opens. If you select a key from the list it
-	// ends up removing the body term.
 	const handleItemSelect = (key: Keys[0] | string) => {
-		const part = queryParts[activeTermIndex]
+		const part = queryParts[activePartIndex]
 		const isValueSelect = typeof key === 'string'
 		const value = isValueSelect ? key : key.name
-		const isLastTerm = activeTermIndex === queryParts.length - 1
+		const isLastPart = activePartIndex === queryParts.length - 1
 
 		if (isValueSelect) {
 			part.value = value
 			part.text = `${part.key}${part.operator}${value}`
 		} else {
+			debugger
 			part.key = value
 			part.operator = DEFAULT_OPERATOR
 			part.text = `${value}${DEFAULT_OPERATOR}`
 			part.value = ''
 		}
 
+		const newCursorPosition =
+			part.start +
+			part.key.length +
+			part.operator.length +
+			part.value.length
+
 		let newQuery = stringifySearchQuery(queryParts)
 
-		// Add space if it's the last term and a value is selected so people can
-		// start entering the next term.
-		isLastTerm && isValueSelect && !newQuery.endsWith(' ')
+		// Add space if it's the last part and a value is selected so people can
+		// start entering the next part.
+		isLastPart && isValueSelect && !newQuery.endsWith(' ')
 			? (newQuery += ' ')
 			: null
 
@@ -364,6 +368,16 @@ export const Search: React.FC<{
 
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
+
+		if (!isLastPart) {
+			// Move cursor to end of selected value if not editing the last part.
+			setTimeout(() => {
+				inputRef.current?.setSelectionRange(
+					newCursorPosition,
+					newCursorPosition,
+				)
+			}, 0)
+		}
 	}
 
 	const handleRemoveItem = (index: number) => {
@@ -373,6 +387,7 @@ export const Search: React.FC<{
 			.map((tokens) => tokens.map((token) => token.text).join(''))
 			.join(' ')
 			.replace(/\s+/g, ' ')
+
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
@@ -409,13 +424,11 @@ export const Search: React.FC<{
 							return null
 						}
 
-						const active = activeTerm.start === tokens[0].start
-
 						return (
 							<Fragment key={index}>
-								<TermTag
+								<QueryPart
+									cursorIndex={cursorIndex}
 									index={index}
-									active={active}
 									tokens={tokens}
 									onRemoveItem={handleRemoveItem}
 								/>
@@ -486,15 +499,15 @@ export const Search: React.FC<{
 				>
 					<Box pt="3">
 						<Combobox.GroupLabel store={comboboxStore}>
-							{activeTerm.value && (
+							{activePart.value && (
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() =>
 										handleItemSelect(
 											showValues
-												? activeTerm.value
+												? activePart.value
 												: {
-														name: activeTerm.value,
+														name: activePart.value,
 														type: KeyType.String,
 														__typename: 'QueryKey',
 												  },
@@ -503,18 +516,18 @@ export const Search: React.FC<{
 									store={comboboxStore}
 								>
 									<Stack direction="row" gap="4">
-										{activeTerm.key === BODY_KEY ? (
+										{activePart.key === BODY_KEY ? (
 											<>
 												<Text lines="1" color="weak">
 													Show all results for
 												</Text>{' '}
 												<Text>
-													&lsquo;{activeTerm.value}
+													&lsquo;{activePart.value}
 													&rsquo;
 												</Text>
 											</>
 										) : (
-											<Text>{activeTerm.value}</Text>
+											<Text>{activePart.value}</Text>
 										)}
 									</Stack>
 								</Combobox.Item>
@@ -630,16 +643,19 @@ const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 	name?.replaceAll("'", ''),
 )
 
-const TermTag: React.FC<{
-	active: boolean
+const QueryPart: React.FC<{
+	cursorIndex: number
 	index: number
 	tokens: SearchToken[]
 	onRemoveItem: (index: number) => void
-}> = ({ active, index, tokens, onRemoveItem }) => {
-	const errorerToken = tokens.find(
+}> = ({ cursorIndex, index, tokens, onRemoveItem }) => {
+	const active = !!tokens.find(
+		(token) => cursorIndex >= token.start && cursorIndex <= token.stop + 1,
+	)
+	const errorToken = tokens.find(
 		(token) => (token as any).errorMessage !== undefined,
 	)
-	const error = (errorerToken as any)?.errorMessage
+	const error = (errorToken as any)?.errorMessage
 
 	const text = tokens.map((token) => token.text).join('')
 	if (text.trim() === '') {
@@ -648,127 +664,128 @@ const TermTag: React.FC<{
 
 	return (
 		<>
-			<Box
-				cssClass={clsx(styles.comboboxTag, {
-					[styles.comboboxTagActive]: active,
-					[styles.comboboxTagError]: !!error,
-				})}
-				py="6"
-				position="relative"
-				whiteSpace="nowrap"
-			>
-				<IconSolidXCircle
-					className={styles.comboboxTagClose}
-					size={13}
-					onClick={() => onRemoveItem(index)}
-				/>
+			<Tooltip
+				placement="bottom"
+				open={!!active}
+				disabled={!error}
+				trigger={
+					<Box
+						cssClass={clsx(styles.comboboxTag, {
+							[styles.comboboxTagActive]: active,
+							[styles.comboboxTagError]: !!error,
+						})}
+						py="6"
+						position="relative"
+						whiteSpace="nowrap"
+					>
+						<IconSolidXCircle
+							className={styles.comboboxTagClose}
+							size={13}
+							onClick={() => onRemoveItem(index)}
+						/>
 
-				{error && (
-					<Tooltip
-						placement="bottom"
-						disabled={!error}
-						trigger={
+						{error && (
 							<IconSolidExclamationCircle
 								className={styles.comboboxTagErrorIndicator}
 								size={13}
 							/>
-						}
-					>
-						{error ? <Box>{error}</Box> : null}
-					</Tooltip>
-				)}
+						)}
 
-				{tokens.map((token, index) => {
-					const { text } = token
-					const key = `${text}-${index}`
+						{tokens.map((token, index) => {
+							const { text } = token
+							const key = `${text}-${index}`
 
-					if (SEPARATORS.includes(text)) {
-						return (
-							<Box
-								key={key}
-								style={{ color: '#E93D82', zIndex: 1 }}
-							>
-								{text}
-							</Box>
-						)
-					} else {
-						return (
-							<Box key={key} style={{ zIndex: 1 }}>
-								{text}
-							</Box>
-						)
-					}
-				})}
+							if (SEPARATORS.includes(text)) {
+								return (
+									<Box
+										key={key}
+										style={{ color: '#E93D82', zIndex: 1 }}
+									>
+										{text}
+									</Box>
+								)
+							} else {
+								return (
+									<Box key={key} style={{ zIndex: 1 }}>
+										{text}
+									</Box>
+								)
+							}
+						})}
 
-				<Box cssClass={styles.comboboxTagBackground} />
-			</Box>
+						<Box cssClass={styles.comboboxTagBackground} />
+					</Box>
+				}
+			>
+				{error ? <ErrorRenderer error={error} /> : null}
+			</Tooltip>
 		</>
 	)
 }
 
-const getActiveTermIndex = (
+const getActivePartIndex = (
 	cursorIndex: number,
 	queryParts: SearchExpression[],
 ): number => {
-	let activeTermIndex
+	let activePartIndex
 
 	queryParts.find((param, index) => {
 		if (param.stop < cursorIndex - 1) {
 			return false
 		}
 
-		activeTermIndex = index
+		activePartIndex = index
 		return true
 	})
 
-	return activeTermIndex === undefined
+	return activePartIndex === undefined
 		? queryParts.length - 1
-		: activeTermIndex
+		: activePartIndex
 }
 
 const getVisibleKeys = (
 	queryText: string,
 	queryParts: SearchExpression[],
-	activeQueryTerm?: SearchExpression,
+	activeQueryPart?: SearchExpression,
 	keys?: Keys,
 ) => {
-	const startingNewTerm = queryText.endsWith(' ')
-	const activeTermKeys = queryParts.map((term) => term.key)
-	keys = keys?.filter((key) => activeTermKeys.indexOf(key.name) === -1)
+	const startingNewPart = queryText.endsWith(' ')
+	const activePartKeys = queryParts.map((part) => part.key)
+	keys = keys?.filter((key) => activePartKeys.indexOf(key.name) === -1)
 
 	return (
 		keys?.filter(
 			(key) =>
-				// If it's a new term, don't filter results.
-				startingNewTerm ||
+				// If it's a new part, don't filter results.
+				startingNewPart ||
 				// Only filter for body queries
-				(activeQueryTerm?.key === BODY_KEY &&
-					// Don't filter if no query term
-					(!activeQueryTerm.value?.length ||
-						startingNewTerm ||
+				(activeQueryPart?.key === BODY_KEY &&
+					// Don't filter if no query part
+					(!activeQueryPart.value?.length ||
+						startingNewPart ||
 						// Filter empty results
 						(key.name.length > 0 &&
-							// Only show results that contain the term
-							key.name.indexOf(activeQueryTerm.value) > -1))),
+							// Only show results that contain the part
+							key.name.indexOf(activeQueryPart.value) > -1))),
 		) || []
 	)
 }
 
 const getVisibleValues = (
-	activeQueryTerm?: SearchExpression,
+	activeQueryPart?: SearchExpression,
 	values?: string[],
 ) => {
-	const activeTerm = activeQueryTerm?.value ?? ''
+	const activePart = activeQueryPart?.value ?? ''
 
 	return (
 		values?.filter(
 			(v) =>
 				// Don't filter if no value has been typed
-				!activeTerm.length ||
-				// Exclude the current term since that is given special treatment
-				(v !== activeTerm &&
-					// Return values that match the query term
-					v.indexOf(activeTerm) > -1),
+				!activePart.length ||
+				// Exclude the current part since that is given special treatment
+				(v !== activePart &&
+					// Return values that match the query part
+					v.indexOf(activePart) > -1),
 		) || []
 	)
 }
@@ -830,4 +847,18 @@ const buildTokenGroups = (
 	}
 
 	return tokenGroups
+}
+
+const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
+	if (error.endsWith("expecting ')'") || error.startsWith("missing ')'")) {
+		error = 'Missing closing parenthesis'
+	} else if (error.startsWith("mismatched input '\"'")) {
+		error = 'Missing closing quote'
+	}
+
+	return (
+		<Box p="4">
+			<Text>{error}</Text>
+		</Box>
+	)
 }

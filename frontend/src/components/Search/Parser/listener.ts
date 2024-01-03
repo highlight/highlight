@@ -1,10 +1,4 @@
-import {
-	CommonTokenStream,
-	ErrorListener,
-	RecognitionException,
-	Recognizer,
-	Token,
-} from 'antlr4'
+import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4'
 
 import SearchGrammarListener from '@/components/Search/Parser/antlr/SearchGrammarListener'
 import {
@@ -13,6 +7,7 @@ import {
 	Id_search_valueContext,
 	Key_val_search_exprContext,
 	Search_keyContext,
+	Search_queryContext,
 } from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 
@@ -24,8 +19,9 @@ export type SearchExpression = {
 	operator: string
 	value: string
 	error?: {
-		start: number
 		message: string
+		start: number
+		symbol: Token
 	}
 }
 
@@ -40,7 +36,6 @@ export class SearchListener extends SearchGrammarListener {
 	constructor(
 		private queryString: string,
 		private expressions: SearchExpression[],
-		private tokens: CommonTokenStream,
 		private errors: SearchExpression['error'][],
 	) {
 		super()
@@ -91,6 +86,43 @@ export class SearchListener extends SearchGrammarListener {
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}
+
+	exitSearch_query = (ctx: Search_queryContext) => {
+		const leadingWhitespace = this.queryString.match(/^ +/)
+		const trailingWhitespace = this.queryString.match(/ +$/)
+
+		if (leadingWhitespace) {
+			this.expressions.unshift({
+				...DEFAULT_EXPRESSION,
+				text: leadingWhitespace ? leadingWhitespace[0] : '',
+				start: 0,
+				stop: leadingWhitespace?.length ?? 1,
+			})
+		}
+
+		if (trailingWhitespace) {
+			this.expressions.push({
+				...DEFAULT_EXPRESSION,
+				text: trailingWhitespace ? trailingWhitespace[0] : '',
+				start: ctx.stop?.stop ?? this.queryString.length - 1,
+				stop: ctx.start.start + this.queryString.length - 1,
+			})
+		}
+
+		this.errors.forEach((error) => {
+			const isEoFError = error!.symbol.type === -1
+			const expression = isEoFError
+				? this.expressions[this.expressions.length - 1]
+				: this.expressions.find(
+						({ start, stop }) =>
+							error!.start >= start && error!.start <= stop,
+				  )
+
+			if (expression) {
+				expression.error = error
+			}
+		})
+	}
 }
 
 export type SearchError = {
@@ -105,8 +137,6 @@ export type SearchError = {
 export class SearchErrorListener extends ErrorListener<Token> {
 	constructor(private errors: SearchExpression['error'][]) {
 		super()
-
-		this.errors = errors
 	}
 
 	syntaxError(
@@ -117,8 +147,13 @@ export class SearchErrorListener extends ErrorListener<Token> {
 		msg: string,
 		_e: RecognitionException | undefined,
 	) {
-		// Assign error to the expression that contains the offending symbol. Access
-		// this later on in the listener.
+		console.log('::: syntaxError', offendingSymbol)
 		;(offendingSymbol as any).errorMessage = msg
+
+		this.errors.push({
+			start: offendingSymbol.start,
+			message: msg,
+			symbol: offendingSymbol,
+		})
 	}
 }

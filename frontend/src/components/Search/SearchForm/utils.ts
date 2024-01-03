@@ -7,8 +7,8 @@ export const stringifySearchQuery = (params: SearchExpression[]) => {
 	const querySegments: string[] = []
 	let currentOffset = 0
 
-	params.forEach(({ text, start }) => {
-		const spaces = start - currentOffset
+	params.forEach(({ text, start }, index) => {
+		const spaces = Math.max(start - currentOffset, index === 0 ? 0 : 1)
 		currentOffset = start + text.length
 
 		if (spaces > 0) {

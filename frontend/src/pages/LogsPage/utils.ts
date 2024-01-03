@@ -4,10 +4,7 @@ import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
-import {
-	DEFAULT_OPERATOR,
-	stringifySearchQuery,
-} from '@/components/Search/SearchForm/utils'
+import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import {
 	LogLevel,
 	LogSource,

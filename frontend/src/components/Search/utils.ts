@@ -27,7 +27,7 @@ export const parseSearch = (input: string) => {
 	parser.removeErrorListeners()
 	parser.addErrorListener(new SearchErrorListener(errors))
 
-	const listener = new SearchListener(input, queryParts, tokens, errors)
+	const listener = new SearchListener(input, queryParts, errors)
 
 	// Walk the tree created during the parse, trigger callbacks
 	const tree = parser.search_query()

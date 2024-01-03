@@ -86,6 +86,8 @@ export const comboboxTagActive = style({})
 export const comboboxTagError = style({})
 
 export const comboboxTagClose = style({
+	backgroundColor: vars.color.white,
+	borderRadius: vars.borderRadius.round,
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
 	position: 'absolute',
@@ -97,12 +99,14 @@ export const comboboxTagClose = style({
 })
 
 export const comboboxTagErrorIndicator = style({
+	backgroundColor: vars.color.white,
+	borderRadius: vars.borderRadius.round,
 	color: themeVars.static.content.sentiment.bad,
 	fontWeight: 'bold',
 	opacity: 1,
 	position: 'absolute',
 	pointerEvents: 'auto',
-	left: -7,
+	right: -8,
 	top: 1,
 	zIndex: 1,
 })
@@ -114,16 +118,16 @@ globalStyle(
 	},
 )
 
-globalStyle(
-	`${comboboxTagError} ${comboboxTagBackground}, ${comboboxTagError}:hover ${comboboxTagBackground}`,
-	{
-		backgroundColor: `color-mix(in srgb, ${vars.theme.static.surface.sentiment.bad} 50%, transparent)`,
-		border: `1px solid ${vars.theme.static.content.sentiment.bad}`,
-	},
-)
+globalStyle(`${comboboxTagError} ${comboboxTagBackground}`, {
+	border: `1px solid ${vars.theme.static.content.sentiment.bad}`,
+})
 
 globalStyle(`${comboboxTag}:hover ${comboboxTagClose}`, {
 	opacity: 1,
+})
+
+globalStyle(`${comboboxTag}:hover ${comboboxTagErrorIndicator}`, {
+	display: 'none',
 })
 
 export const comboboxPopover = style({
