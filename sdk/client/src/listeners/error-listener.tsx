@@ -11,9 +11,12 @@ function handleError(
 	callback: (e: ErrorMessage) => void,
 	event: any,
 	source: string | undefined,
-	error: Error,
+	error?: Error,
 ) {
-	const res = ErrorStackParser.parse(error)
+	let res: ErrorStackParser.StackFrame[] = []
+	try {
+		res = ErrorStackParser.parse(error ?? event)
+	} catch (e) {}
 	if (event instanceof Error) {
 		event = event.message
 	}
@@ -42,7 +45,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		colno: number | undefined,
 		error: Error | undefined,
 	): void => {
-		handleError(callback, event, source, error ?? Error())
+		handleError(callback, event, source, error)
 	})
 
 	const initialOnUnhandledRejection = (window.onunhandledrejection = (
@@ -55,10 +58,10 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 					callback,
 					event.reason,
 					event.type,
-					hPromise.getStack() ?? Error(),
+					hPromise.getStack(),
 				)
 			} else {
-				handleError(callback, event.reason, event.type, Error())
+				handleError(callback, event.reason, event.type)
 			}
 		}
 	})
@@ -97,8 +100,8 @@ const removeHighlightFrameIfExists = (
 
 	const firstFrame = frames[0]
 	if (
-		(firstFrame.functionName === 'console.error' &&
-			firstFrame.fileName?.includes('highlight.run')) ||
+		firstFrame.fileName?.includes('highlight.run') ||
+		firstFrame.fileName?.includes('highlight.io') ||
 		firstFrame.functionName === 'new HighlightPromise'
 	) {
 		return frames.slice(1)
