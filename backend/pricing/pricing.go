@@ -1110,12 +1110,6 @@ func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace
 			if paymentMethod.Card.Checks.CVCCheck == stripe.PaymentMethodCardChecksCVCCheckFail {
 				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe cvc check failed")
 				failures += 1
-			} else if paymentMethod.Card.Checks.AddressPostalCodeCheck == stripe.PaymentMethodCardChecksAddressPostalCodeCheckFail {
-				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address postal check failed")
-				failures += 1
-			} else if paymentMethod.Card.Checks.AddressLine1Check == stripe.PaymentMethodCardChecksAddressLine1CheckFail {
-				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address line1 check failed")
-				failures += 1
 			}
 		}
 	}
