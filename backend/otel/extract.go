@@ -12,6 +12,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	e "github.com/pkg/errors"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -163,7 +164,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	}
 
 	for k, v := range originalAttrs {
-		for key, value := range util.FormatLogAttributes(ctx, k, v) {
+		for key, value := range hlog.FormatLogAttributes(ctx, k, v) {
 			if v != "" {
 				fields.attrs[key] = value
 			}
