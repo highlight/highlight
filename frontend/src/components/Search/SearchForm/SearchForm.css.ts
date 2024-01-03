@@ -102,7 +102,7 @@ export const comboboxTagErrorIndicator = style({
 	opacity: 1,
 	position: 'absolute',
 	pointerEvents: 'auto',
-	left: -8,
+	left: -7,
 	top: 1,
 	zIndex: 1,
 })

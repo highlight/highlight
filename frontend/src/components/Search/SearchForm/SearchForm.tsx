@@ -239,8 +239,6 @@ export const Search: React.FC<{
 
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
-	console.log('::: tokenGroups', tokenGroups)
-	console.log('::: queryParts', queryParts)
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryParts)
 	const activeTerm = queryParts[activeTermIndex] ?? {}
 	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
@@ -412,15 +410,6 @@ export const Search: React.FC<{
 						}
 
 						const active = activeTerm.start === tokens[0].start
-						const errorToken = tokens.find(
-							(token) =>
-								(token as any).errorMessage !== undefined,
-						)
-						const errorMessage = (errorToken as any)?.errorMessage
-
-						if (errorMessage) {
-							console.log('::: errorMessage', errorMessage)
-						}
 
 						return (
 							<Fragment key={index}>
