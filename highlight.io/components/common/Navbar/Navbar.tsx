@@ -70,7 +70,7 @@ const Navbar = ({
 			setScrolled(false)
 		}
 
-		if (window.scrollY > 60) {
+		if (window.scrollY > 120) {
 			setAtTop(false)
 		} else {
 			setAtTop(true)
