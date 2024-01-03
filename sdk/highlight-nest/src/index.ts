@@ -93,7 +93,10 @@ export class HighlightInterceptor
 		await NodeH.flush()
 	}
 
-	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+	intercept(
+		context: ExecutionContext,
+		next: CallHandler,
+	): Promise<Observable<any>> {
 		const ctx = context.switchToHttp()
 		const request = ctx.getRequest()
 		const highlightCtx = NodeH.parseHeaders(request.headers)

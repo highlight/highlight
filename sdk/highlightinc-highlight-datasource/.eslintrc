@@ -1,0 +1,6 @@
+{
+  "extends": "./.config/.eslintrc",
+  "rules": {
+    "@typescript-eslint/array-type": ["error", { "default": "array" }]
+  }
+}

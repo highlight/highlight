@@ -54,7 +54,7 @@ export const comboboxTagsContainer = style([
 		fontWeight: '500',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
-		paddingRight: 4,
+		paddingRight: 8,
 		pointerEvents: 'none',
 		position: 'absolute',
 		whiteSpace: 'pre',

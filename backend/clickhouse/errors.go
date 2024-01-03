@@ -582,6 +582,37 @@ var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
 	reservedKeys: modelInputs.AllReservedErrorObjectKey,
 }
 
+var errorsJoinedTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
+	tableName: "errors_joined_vw",
+	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+		modelInputs.ReservedErrorObjectKeyBrowser:        "Browser",
+		modelInputs.ReservedErrorObjectKeyEnvironment:    "Environment",
+		modelInputs.ReservedErrorObjectKeyEvent:          "Event",
+		modelInputs.ReservedErrorObjectKeyHasSessions:    "HasSession",
+		modelInputs.ReservedErrorObjectKeyOs:             "OSName",
+		modelInputs.ReservedErrorObjectKeyServiceName:    "ServiceName",
+		modelInputs.ReservedErrorObjectKeyServiceVersion: "ServiceVersion",
+		modelInputs.ReservedErrorObjectKeyTag:            "ErrorTagTitle",
+		modelInputs.ReservedErrorObjectKeyType:           "Type",
+		modelInputs.ReservedErrorObjectKeyURL:            "VisitedURL",
+		modelInputs.ReservedErrorObjectKeyTimestamp:      "Timestamp",
+		modelInputs.ReservedErrorObjectKeyStatus:         "Status",
+	},
+	bodyColumn:   "Event",
+	reservedKeys: modelInputs.AllReservedErrorObjectKey,
+}
+
+var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErrorObjectKey]{
+	tableConfig: errorsJoinedTableConfig,
+	useSampling: func(time.Duration) bool {
+		return false
+	},
+}
+
 func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters *queryparser.Filters) bool {
 	return matchesQuery(errorObject, errorObjectsTableConfig, filters)
+}
+
+func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readMetrics(ctx, client, errorsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }

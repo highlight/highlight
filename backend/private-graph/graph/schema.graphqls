@@ -474,6 +474,11 @@ enum SortDirection {
 	DESC
 }
 
+enum SavedSegmentEntityType {
+	Log
+	Trace
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -585,6 +590,10 @@ type Workspace {
 	traces_max_cents: Int
 }
 
+type SearchParams {
+	query: String
+}
+
 type Segment {
 	id: ID!
 	name: String!
@@ -595,7 +604,15 @@ type Segment {
 type ErrorSegment {
 	id: ID!
 	name: String!
-	params: ErrorSearchParams!
+	params: SearchParams!
+	project_id: ID!
+}
+
+type SavedSegment {
+	id: ID!
+	name: String!
+	entity_type: SavedSegmentEntityType!
+	params: SearchParams!
 	project_id: ID!
 }
 
@@ -944,9 +961,12 @@ enum ReservedTraceKey {
 }
 
 enum ReservedErrorObjectKey {
+	browser
 	environment
 	event
+	has_sessions
 	log_cursor
+	os
 	payload
 	request_id
 	service_name
@@ -955,6 +975,8 @@ enum ReservedErrorObjectKey {
 	source
 	span_id
 	stackTrace
+	status
+	tag
 	timestamp
 	trace_id
 	type
@@ -1062,29 +1084,6 @@ type UserFingerprintCount {
 	count: Int64!
 }
 
-# NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
-# edit both Foo and FooInput
-input SearchParamsInput {
-	user_properties: [UserPropertyInput!]
-	excluded_properties: [UserPropertyInput!]
-	track_properties: [UserPropertyInput!]
-	excluded_track_properties: [UserPropertyInput!]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRangeInput
-	length_range: LengthRangeInput
-	os: String
-	browser: String
-	device_id: String
-	visited_url: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
-}
-
 input DashboardParamsInput {
 	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
@@ -1155,27 +1154,6 @@ input NetworkHistogramParamsInput {
 	attribute: NetworkRequestAttribute
 }
 
-type SearchParams {
-	user_properties: [UserProperty]
-	excluded_properties: [UserProperty]
-	track_properties: [UserProperty]
-	excluded_track_properties: [UserProperty]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRange
-	length_range: LengthRange
-	os: String
-	browser: String
-	visited_url: String
-	device_id: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
-}
-
 input AdminAboutYouDetails {
 	first_name: String!
 	last_name: String!
@@ -1202,17 +1180,6 @@ input AdminAndWorkspaceDetails {
 	workspace_name: String!
 	allowed_auto_join_email_origins: String
 	promo_code: String
-}
-
-input ErrorSearchParamsInput {
-	date_range: DateRangeInput
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	type: String
-	query: String
 }
 
 input SessionAlertInput {
@@ -1247,16 +1214,6 @@ input LogAlertInput {
 	disabled: Boolean!
 	default: Boolean
 	query: String!
-}
-
-type ErrorSearchParams {
-	date_range: DateRange
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	query: String
 }
 
 type DateRange {
@@ -2013,6 +1970,10 @@ type Query {
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
 	segments(project_id: ID!): [Segment]
 	error_segments(project_id: ID!): [ErrorSegment]
+	saved_segments(
+		project_id: ID!
+		entity_type: SavedSegmentEntityType!
+	): [SavedSegment]
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
@@ -2062,7 +2023,7 @@ type Query {
 		column: String!
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
-		bucket_by: String
+		bucket_by: String!
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2125,6 +2086,40 @@ type Query {
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	errors_keys(
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
+	): [QueryKey!]!
+	errors_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
+	sessions_keys(
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
+	): [QueryKey!]!
+	sessions_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
 }
 
 type Mutation {
@@ -2203,31 +2198,41 @@ type Mutation {
 	): Boolean!
 	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-	createSegment(
-		project_id: ID!
-		name: String!
-		params: SearchParamsInput!
-	): Segment
+	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
 	editSegment(
 		id: ID!
 		project_id: ID!
-		params: SearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
 		name: String!
-		params: ErrorSearchParamsInput!
+		query: String!
 	): ErrorSegment
 	editErrorSegment(
 		id: ID!
 		project_id: ID!
-		params: ErrorSearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
+	createSavedSegment(
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): SavedSegment
+	editSavedSegment(
+		id: ID!
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): Boolean
+	deleteSavedSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
 	createOrUpdateStripeSubscription(workspace_id: ID!): String

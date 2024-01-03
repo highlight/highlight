@@ -26,7 +26,11 @@ router = APIRouter()
 @app.post("/")
 async def root(request: Request):
     logging.info(
-        "hello, world", {"customer": request.headers.get("customer") or "unknown"}
+        "hello, world",
+        {
+            "customer": request.headers.get("customer") or "unknown",
+            "data": await request.json(),
+        },
     )
     for idx in range(100):
         logging.info(f"hello {idx}")

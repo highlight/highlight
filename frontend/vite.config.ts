@@ -88,7 +88,7 @@ export default defineConfig(({ mode }) => {
 			setupFiles: ['./src/setupTests.ts'],
 		},
 		css: {
-			transformer: 'lightningcss',
+			transformer: 'postcss',
 			devSourcemap: true,
 		},
 	}

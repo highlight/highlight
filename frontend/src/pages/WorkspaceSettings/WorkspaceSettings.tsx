@@ -2,7 +2,7 @@ import Alert from '@components/Alert/Alert'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { AdminRole } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
-import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
+import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { Authorization } from '@util/authorization/authorization'
 import React from 'react'
 

@@ -9,7 +9,7 @@ import {
 	Stack,
 } from '@highlight-run/ui/components'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
-import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
+import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal'
 import { PendingInvites } from '@pages/WorkspaceTeam/components/PendingInvites'
 import { Authorization } from '@util/authorization/authorization'
@@ -49,19 +49,7 @@ const WorkspaceTeam = () => {
 						roles!
 					</p>
 					<Authorization allowedRoles={[AdminRole.Admin]}>
-						<AutoJoinForm
-							label="Auto join"
-							labelFirst
-							allowedEmailOrigins={
-								data?.workspace?.allowed_auto_join_email_origins
-									?.length
-									? JSON.parse(
-											data?.workspace
-												?.allowed_auto_join_email_origins,
-									  )
-									: undefined
-							}
-						/>
+						<AutoJoinForm />
 					</Authorization>
 					<InviteMemberModal
 						workspaceId={workspace_id}

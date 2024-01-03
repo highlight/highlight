@@ -2196,16 +2196,26 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 
+	if projectID == 0 {
+		log.WithContext(ctx).
+			WithError(e.New("No project id found for error")).
+			WithField("sessionSecureID", sessionSecureID).
+			WithField("projectVerboseID", projectVerboseID)
+		return
+	}
+
 	querySessionSpan.Finish()
 
 	var project model.Project
-	if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ?", projectID).Take(&project).Error; err != nil {
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
+		return
 	}
 
 	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
+		return
 	}
 
 	// Filter out ignored errors
@@ -2445,6 +2455,14 @@ func (r *Resolver) MoveSessionDataToStorage(ctx context.Context, sessionId int, 
 	}
 
 	return nil
+}
+
+// Returns a variable processing delay based on the session's last processing time
+func getSessionProcessingDelaySeconds(timeElapsed time.Duration) int {
+	if timeElapsed >= time.Minute {
+		return 600 // 10 minutes
+	}
+	return SessionProcessDelaySeconds
 }
 
 func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
@@ -2878,11 +2896,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	defer updateSpan.Finish()
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
+	elapsedSinceUpdate := time.Hour
+	if sessionObj.PayloadUpdatedAt != nil {
+		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
+	}
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
-		now.Sub(*sessionObj.PayloadUpdatedAt) > 15*time.Second ||
+		elapsedSinceUpdate > 15*time.Second ||
 		beaconTime != nil ||
 		hasSessionUnloaded != sessionObj.HasUnloaded ||
 		(sessionObj.Processed != nil && *sessionObj.Processed) ||
@@ -2947,7 +2969,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	if !excluded {
-		if err := r.Redis.AddSessionToProcess(ctx, sessionID, SessionProcessDelaySeconds); err != nil {
+		processingDelay := getSessionProcessingDelaySeconds(elapsedSinceUpdate)
+		if err := r.Redis.AddSessionToProcess(ctx, sessionID, processingDelay); err != nil {
 			return err
 		}
 	}

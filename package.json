@@ -15,7 +15,7 @@
 		"sdk/firstload",
 		"sdk/highlight-apollo",
 		"sdk/highlight-cloudflare",
-		"sdk/highlight-grafana-datasource",
+		"sdk/highlightinc-highlight-datasource",
 		"sdk/highlight-nest",
 		"sdk/highlight-next",
 		"sdk/highlight-node",
@@ -70,7 +70,7 @@
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:react-email-templates": "yarn workspace emails publish",
 		"publish:render": "yarn workspace render publish",
-		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish && yarn workspace @highlight-run/opentelemetry-sdk-workers npm publish --access public --tolerate-republish",
+		"publish:turbo": "yarn workspaces foreach -R --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish && yarn workspace @highlight-run/opentelemetry-sdk-workers npm publish --access public --tolerate-republish",
 		"test:all": "yarn turbo run test --filter=!render --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs --filter=!nextjs",
 		"test:render": "yarn turbo run test --filter=render",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
@@ -93,7 +93,7 @@
 		"readdirp": "^3.6.0",
 		"turbo": "latest"
 	},
-	"packageManager": "yarn@3.5.0",
+	"packageManager": "yarn@4.0.2",
 	"resolutions": {
 		"@opentelemetry/api": "1.6.0",
 		"@opentelemetry/auto-instrumentations-node": "0.39.2",
@@ -105,7 +105,7 @@
 		"@opentelemetry/sdk-trace-base": "1.17.1",
 		"@opentelemetry/semantic-conventions": "1.17.1",
 		"@sideway/formula": "3.0.1",
-		"@types/dom-webcodecs": "0.1.4",
+		"@types/dom-webcodecs": "0.1.5",
 		"ansi-regex": "3.0.1",
 		"cross-fetch": "3.1.5",
 		"deep-object-diff": "1.1.9",
@@ -144,7 +144,6 @@
 		"typescript": "4.9.5",
 		"ua-parser-js": "0.7.33",
 		"undici": "5.19.1",
-		"vite": "4.5.0",
 		"webpack": "5.76.0",
 		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",
 		"@opentelemetry/sdk-node@0.44.0": "patch:@opentelemetry/sdk-node@npm%3A0.44.0#./.yarn/patches/@opentelemetry-sdk-node-npm-0.44.0-88c2c5ddfd.patch",

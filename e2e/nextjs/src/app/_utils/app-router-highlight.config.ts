@@ -8,6 +8,7 @@ const env: HighlightEnv = {
 	serviceName: 'vercel-app-router',
 	environment: 'e2e-test',
 	enableFsInstrumentation: true,
+	disableConsoleRecording: true,
 }
 
 export const withAppRouterHighlight = AppRouterHighlight(env)

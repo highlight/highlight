@@ -16,7 +16,16 @@ export function Highlight(env: HighlightEnv) {
 			request: NextRequest,
 			event: NextFetchEvent & ExtendedExecutionContext,
 		) {
+			if (env.enableFsInstrumentation) {
+				console.warn(
+					'enableFsInstrumentation is incompatible with Edge... disabling now.',
+				)
+
+				env.enableFsInstrumentation = false
+			}
+
 			H.initEdge(request, env, event)
+
 			try {
 				const response = await H.runWithHeaders(
 					request.headers,

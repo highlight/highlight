@@ -355,17 +355,6 @@ type ErrorObjectNodeSession struct {
 	Excluded    bool    `json:"excluded"`
 }
 
-type ErrorSearchParamsInput struct {
-	DateRange  *DateRangeInput `json:"date_range"`
-	Os         *string         `json:"os"`
-	Browser    *string         `json:"browser"`
-	VisitedURL *string         `json:"visited_url"`
-	State      *ErrorState     `json:"state"`
-	Event      *string         `json:"event"`
-	Type       *string         `json:"type"`
-	Query      *string         `json:"query"`
-}
-
 type ErrorTrace struct {
 	FileName                   *string             `json:"fileName"`
 	LineNumber                 *int                `json:"lineNumber"`
@@ -698,27 +687,6 @@ type SanitizedSlackChannel struct {
 type SanitizedSlackChannelInput struct {
 	WebhookChannelName *string `json:"webhook_channel_name"`
 	WebhookChannelID   *string `json:"webhook_channel_id"`
-}
-
-type SearchParamsInput struct {
-	UserProperties          []*UserPropertyInput `json:"user_properties"`
-	ExcludedProperties      []*UserPropertyInput `json:"excluded_properties"`
-	TrackProperties         []*UserPropertyInput `json:"track_properties"`
-	ExcludedTrackProperties []*UserPropertyInput `json:"excluded_track_properties"`
-	Environments            []*string            `json:"environments"`
-	AppVersions             []*string            `json:"app_versions"`
-	DateRange               *DateRangeInput      `json:"date_range"`
-	LengthRange             *LengthRangeInput    `json:"length_range"`
-	Os                      *string              `json:"os"`
-	Browser                 *string              `json:"browser"`
-	DeviceID                *string              `json:"device_id"`
-	VisitedURL              *string              `json:"visited_url"`
-	Referrer                *string              `json:"referrer"`
-	Identified              *bool                `json:"identified"`
-	HideViewed              *bool                `json:"hide_viewed"`
-	FirstTime               *bool                `json:"first_time"`
-	ShowLiveSessions        *bool                `json:"show_live_sessions"`
-	Query                   *string              `json:"query"`
 }
 
 type ServiceConnection struct {
@@ -1823,9 +1791,12 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 type ReservedErrorObjectKey string
 
 const (
+	ReservedErrorObjectKeyBrowser         ReservedErrorObjectKey = "browser"
 	ReservedErrorObjectKeyEnvironment     ReservedErrorObjectKey = "environment"
 	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
+	ReservedErrorObjectKeyHasSessions     ReservedErrorObjectKey = "has_sessions"
 	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
+	ReservedErrorObjectKeyOs              ReservedErrorObjectKey = "os"
 	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
 	ReservedErrorObjectKeyRequestID       ReservedErrorObjectKey = "request_id"
 	ReservedErrorObjectKeyServiceName     ReservedErrorObjectKey = "service_name"
@@ -1834,6 +1805,8 @@ const (
 	ReservedErrorObjectKeySource          ReservedErrorObjectKey = "source"
 	ReservedErrorObjectKeySpanID          ReservedErrorObjectKey = "span_id"
 	ReservedErrorObjectKeyStackTrace      ReservedErrorObjectKey = "stackTrace"
+	ReservedErrorObjectKeyStatus          ReservedErrorObjectKey = "status"
+	ReservedErrorObjectKeyTag             ReservedErrorObjectKey = "tag"
 	ReservedErrorObjectKeyTimestamp       ReservedErrorObjectKey = "timestamp"
 	ReservedErrorObjectKeyTraceID         ReservedErrorObjectKey = "trace_id"
 	ReservedErrorObjectKeyType            ReservedErrorObjectKey = "type"
@@ -1841,9 +1814,12 @@ const (
 )
 
 var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyBrowser,
 	ReservedErrorObjectKeyEnvironment,
 	ReservedErrorObjectKeyEvent,
+	ReservedErrorObjectKeyHasSessions,
 	ReservedErrorObjectKeyLogCursor,
+	ReservedErrorObjectKeyOs,
 	ReservedErrorObjectKeyPayload,
 	ReservedErrorObjectKeyRequestID,
 	ReservedErrorObjectKeyServiceName,
@@ -1852,6 +1828,8 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 	ReservedErrorObjectKeySource,
 	ReservedErrorObjectKeySpanID,
 	ReservedErrorObjectKeyStackTrace,
+	ReservedErrorObjectKeyStatus,
+	ReservedErrorObjectKeyTag,
 	ReservedErrorObjectKeyTimestamp,
 	ReservedErrorObjectKeyTraceID,
 	ReservedErrorObjectKeyType,
@@ -1860,7 +1838,7 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 
 func (e ReservedErrorObjectKey) IsValid() bool {
 	switch e {
-	case ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+	case ReservedErrorObjectKeyBrowser, ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyHasSessions, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyOs, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyStatus, ReservedErrorObjectKeyTag, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
 		return true
 	}
 	return false
@@ -2097,6 +2075,47 @@ func (e *RetentionPeriod) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RetentionPeriod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SavedSegmentEntityType string
+
+const (
+	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
+	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
+)
+
+var AllSavedSegmentEntityType = []SavedSegmentEntityType{
+	SavedSegmentEntityTypeLog,
+	SavedSegmentEntityTypeTrace,
+}
+
+func (e SavedSegmentEntityType) IsValid() bool {
+	switch e {
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace:
+		return true
+	}
+	return false
+}
+
+func (e SavedSegmentEntityType) String() string {
+	return string(e)
+}
+
+func (e *SavedSegmentEntityType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SavedSegmentEntityType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SavedSegmentEntityType", str)
+	}
+	return nil
+}
+
+func (e SavedSegmentEntityType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

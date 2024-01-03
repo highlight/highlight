@@ -1,5 +1,26 @@
 # @highlight-run/next
 
+## 7.3.1
+
+### Patch Changes
+
+-   9eeeb5c7d: make next a peer dependency of the sdk to fix import errors
+-   Updated dependencies [790c83782]
+    -   @highlight-run/node@3.7.1
+
+## 7.3.0
+
+### Minor Changes
+
+-   e75a480dc: Exposing Node SDK internals and using them to better instrument Next.js API wrappers
+-   e75a480dc: Enable tracing
+
+### Patch Changes
+
+-   Updated dependencies [e75a480dc]
+-   Updated dependencies [e75a480dc]
+    -   @highlight-run/node@3.7.0
+
 ## 7.2.6
 
 ### Patch Changes

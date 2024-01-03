@@ -104,7 +104,7 @@ jobs:
                 ports:
                     - 5432:5432
             clickhouse:
-                image: clickhouse/clickhouse-server:23.5.1.3174
+                image: clickhouse/clickhouse-server
                 ports:
                     - 9000:9000
             redis:
