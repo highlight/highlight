@@ -3,17 +3,18 @@ import { Box, BoxProps } from '../../Box/Box'
 
 import * as styles from './styles.css'
 
-export type Props = {
+export interface Props extends Omit<BoxProps, 'cssClass'> {
 	children: React.ReactNode
-	height?: BoxProps['height']
-	overflowY?: BoxProps['overflowY']
 	style?: React.CSSProperties
+	onScroll?: React.UIEventHandler<HTMLDivElement>
 }
 
-export const Body: React.FC<Props> = ({ children, ...props }) => {
-	return (
-		<Box cssClass={styles.body} {...props}>
-			{children}
-		</Box>
-	)
-}
+export const Body = React.forwardRef<unknown, Props>(
+	({ children, ...boxProps }, ref) => {
+		return (
+			<Box ref={ref} cssClass={styles.body} {...boxProps}>
+				{children}
+			</Box>
+		)
+	},
+)

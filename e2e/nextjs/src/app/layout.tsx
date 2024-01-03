@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 import './globals.css'
 
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/constants'
 import { HighlightInit } from '@highlight-run/next/client'
 
 export const metadata = {
@@ -20,11 +20,13 @@ export default function RootLayout({
 				debug={{ clientInteractions: true, domRecording: true }}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
 				serviceName="my-nextjs-frontend"
+				environment="e2e-test"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
 					recordHeadersAndBody: true,
 				}}
+				consoleMethodsToRecord={['log', 'warn']}
 				// inlineImages={false}
 				enableCanvasRecording={true}
 				samplingStrategy={{

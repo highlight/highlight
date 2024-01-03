@@ -1,12 +1,18 @@
 ---
-heading: Changelog Overview
-title: Overview
+toc: Overview
+title: Changelog Overview
 slug: getting-started
 ---
 
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 27" href="./changelog-27.md">
+    {"Grafana support, Graduated pricing, Tracing flame graphs, Server-side environment data"}
+    </DocsCard>
+    <DocsCard title="Changelog 26" href="./changelog-26.md">
+    {"Client-side network sanitizing, Tracing beta improvements, Next.js tracing, Java 11 support."}
+    </DocsCard>
     <DocsCard title="Changelog 25" href="./changelog-25.md">
     {"GitHub stack trace settings, Next.js Edge runtime support, Large session exports"}
     </DocsCard>

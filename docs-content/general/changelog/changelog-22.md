@@ -43,5 +43,5 @@ Shout out to to Kalkidan Betre—[@kalibetre](https://github.com/kalibetre) on G
 
 Thanks Kalkidan!
 
-![Metadata scroll](/images/changelog/22/metadata-scroll.gif)
+![Metadata scroll](/images/changelog/22/metadata-scroll.gif.webp)
 

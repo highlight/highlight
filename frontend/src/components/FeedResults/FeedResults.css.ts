@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/vars'
 import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
 export const variants = recipe({
@@ -8,11 +8,9 @@ export const variants = recipe({
 	},
 	variants: {
 		type: {
-			sessions: {},
-			errors: {},
-			logs: {
-				border: 'none',
-				borderTop: vars.border.dividerWeak,
+			rounded: {},
+			square: {
+				border: 0,
 				borderRadius: 0,
 			},
 		},

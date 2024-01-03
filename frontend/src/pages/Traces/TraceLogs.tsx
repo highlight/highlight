@@ -1,7 +1,12 @@
-import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidExternalLink,
+	Text,
+} from '@highlight-run/ui/components'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { LinkButton } from '@/components/LinkButton'
@@ -14,39 +19,30 @@ import {
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
-import { useParams } from '@/util/react-router/useParams'
+import { useTrace } from '@/pages/Traces/TraceProvider'
 
 const startDate = moment().subtract(30, 'days').toDate()
 const endDate = moment().toDate()
 
 export const TraceLogs: React.FC = () => {
-	const { project_id, trace_id } = useParams<{
-		project_id: string
-		trace_id: string
-	}>()
+	const { traceId } = useTrace()
+	const { projectId } = useProjectId()
 	const [query, setQuery] = useState('')
-	const tableContainerRef = useRef<HTMLDivElement>(null)
 
-	const {
-		logEdges,
-		loading,
-		error,
-		loadingAfter,
-		fetchMoreForward,
-		fetchMoreBackward,
-	} = useGetLogs({
-		query,
-		project_id,
-		logCursor: undefined,
-		startDate,
-		endDate,
-	})
+	const { logEdges, loading, error, loadingAfter, fetchMoreForward } =
+		useGetLogs({
+			query,
+			project_id: projectId,
+			logCursor: undefined,
+			startDate,
+			endDate,
+		})
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
@@ -56,12 +52,10 @@ export const TraceLogs: React.FC = () => {
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
-					fetchMoreBackward()
 				}
 			}
 		},
-		[fetchMoreForward, fetchMoreBackward],
+		[fetchMoreForward],
 	)
 
 	// Making this a noop since there shouldn't be additional logs to fetch
@@ -69,28 +63,26 @@ export const TraceLogs: React.FC = () => {
 
 	useEffect(() => {
 		setQuery(
-			trace_id
+			traceId
 				? stringifySearchQuery([
 						{
 							key: 'trace_id',
 							operator: DEFAULT_OPERATOR,
-							value: trace_id,
+							value: traceId,
 							offsetStart: 0,
 						},
 				  ])
 				: '',
 		)
-	}, [trace_id])
+	}, [traceId])
 
 	return (
 		<>
 			<Box
-				padding="8"
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
 				overflow="hidden"
-				maxHeight="full"
 			>
 				<Box
 					borderRadius="6"
@@ -113,21 +105,11 @@ export const TraceLogs: React.FC = () => {
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
-						fetchKeys={useGetLogsKeysQuery}
+						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
-					<Box
-						height="screen"
-						pt="4"
-						px="12"
-						pb="12"
-						overflowY="auto"
-						onScroll={(e) =>
-							fetchMoreWhenScrolled(e.target as HTMLDivElement)
-						}
-						ref={tableContainerRef}
-					>
-						{(!loading && logEdges.length === 0) || !trace_id ? (
+					<Box height="full" pt="4" px="12" pb="12">
+						{(!loading && logEdges.length === 0) || !traceId ? (
 							<NoLogsFound />
 						) : (
 							<LogsTable
@@ -137,8 +119,9 @@ export const TraceLogs: React.FC = () => {
 								refetch={refetch}
 								loadingAfter={loadingAfter}
 								query={query}
-								tableContainerRef={tableContainerRef}
 								selectedCursor={undefined}
+								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+								bodyHeight="400px"
 							/>
 						)}
 					</Box>

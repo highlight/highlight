@@ -2,6 +2,7 @@ package highlight
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,12 +20,20 @@ type config struct {
 	otlpEndpoint       string
 	projectID          string
 	resourceAttributes []attribute.KeyValue
+	metricSamplingRate float64
+	samplingRateMap    map[trace.SpanKind]float64
 }
 
 var (
 	interruptChan chan bool
 	signalChan    chan os.Signal
-	conf          *config
+	conf          = &config{
+		otlpEndpoint:       OTLPDefaultEndpoint,
+		metricSamplingRate: 1.,
+		samplingRateMap: map[trace.SpanKind]float64{
+			trace.SpanKindUnspecified: 1.,
+		},
+	}
 )
 
 type Option interface {
@@ -37,6 +46,32 @@ func (fn option) apply(conf *config) {
 	fn(conf)
 }
 
+func WithProjectID(projectID string) Option {
+	return option(func(conf *config) {
+		conf.projectID = projectID
+	})
+}
+
+func WithMetricSamplingRate(samplingRate float64) Option {
+	return option(func(conf *config) {
+		conf.metricSamplingRate = samplingRate
+	})
+}
+
+func WithSamplingRate(samplingRate float64) Option {
+	return option(func(conf *config) {
+		conf.samplingRateMap = map[trace.SpanKind]float64{
+			trace.SpanKindUnspecified: samplingRate,
+		}
+	})
+}
+
+func WithSamplingRateMap(rates map[trace.SpanKind]float64) Option {
+	return option(func(conf *config) {
+		conf.samplingRateMap = rates
+	})
+}
+
 func WithServiceName(serviceName string) Option {
 	return option(func(conf *config) {
 		attr := semconv.ServiceNameKey.String(serviceName)
@@ -47,6 +82,13 @@ func WithServiceName(serviceName string) Option {
 func WithServiceVersion(serviceVersion string) Option {
 	return option(func(conf *config) {
 		attr := semconv.ServiceVersionKey.String(serviceVersion)
+		conf.resourceAttributes = append(conf.resourceAttributes, attr)
+	})
+}
+
+func WithEnvironment(environment string) Option {
+	return option(func(conf *config) {
+		attr := semconv.DeploymentEnvironmentKey.String(environment)
 		conf.resourceAttributes = append(conf.resourceAttributes, attr)
 	})
 }
@@ -190,6 +232,10 @@ func SetProjectID(id string) {
 
 func GetProjectID() string {
 	return conf.projectID
+}
+
+func GetMetricSamplingRate() float64 {
+	return conf.metricSamplingRate
 }
 
 // InterceptRequest calls InterceptRequestWithContext using the request object's context

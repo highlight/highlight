@@ -70,7 +70,7 @@ const Navbar = ({
 			setScrolled(false)
 		}
 
-		if (window.scrollY > 60) {
+		if (window.scrollY > 120) {
 			setAtTop(false)
 		} else {
 			setAtTop(true)
@@ -89,11 +89,11 @@ const Navbar = ({
 			<GithubPopup />
 			{!hideBanner && (
 				<Link
-					href="/launch/week-3"
+					href="/startups"
 					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
 				>
 					<Typography type="copy3">
-						It&apos;s Launch Week! Click here to follow along.
+						Got a startup? Apply for free Highlight credits!
 					</Typography>
 				</Link>
 			)}
@@ -115,9 +115,13 @@ const Navbar = ({
 							`bg-${bg ? bg : ''} transition-all ${
 								bg && atTop ? 'bg-opacity-10' : 'bg-opacity-100'
 							}`,
+							`${
+								atTop
+									? 'border-opacity-0'
+									: 'border-opacity-100'
+							} border-b-[1px] border-divider-on-dark transition-color duration-300`,
 							{
 								[styles.openHeader]: isOpen,
-								[styles.headerBorder]: prevY != 0,
 							},
 						)}
 					>

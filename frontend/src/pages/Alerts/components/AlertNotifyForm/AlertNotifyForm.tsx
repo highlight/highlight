@@ -1,5 +1,12 @@
 import Select from '@components/Select/Select'
-import { Box, Form, FormState, Stack, Text, useForm } from '@highlight-run/ui'
+import {
+	Box,
+	Form,
+	FormState,
+	Stack,
+	Text,
+	useForm,
+} from '@highlight-run/ui/components'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 

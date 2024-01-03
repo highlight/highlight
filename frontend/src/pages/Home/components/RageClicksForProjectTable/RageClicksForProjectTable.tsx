@@ -58,7 +58,7 @@ const RageClicksForProjectTable = ({
 	const { loading } = useGetRageClicksForProjectQuery({
 		variables: {
 			project_id: project_id!,
-			lookBackPeriod: moment
+			lookback_days: moment
 				.duration(timeRange.lookback, 'minutes')
 				.as('days'),
 		},

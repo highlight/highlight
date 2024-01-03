@@ -4,7 +4,7 @@ import {
 	IconSolidExternalLink,
 	Stack,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { message } from 'antd'

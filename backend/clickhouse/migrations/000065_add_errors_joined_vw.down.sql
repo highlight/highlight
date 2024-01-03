@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS errors_joined_vw;

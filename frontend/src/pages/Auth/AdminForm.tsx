@@ -19,7 +19,7 @@ import {
 	SwitchButton,
 	Text,
 	useFormStore,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import { INVITE_TEAM_ROUTE } from '@routers/AppRouter/AppRouter'
@@ -51,6 +51,7 @@ enum TeamSize {
 enum HeardAbout {
 	youtube = 'YouTube',
 	linkedin = 'LinkedIn',
+	hackernews = 'Hacker News',
 	twitter = 'Twitter / X',
 	google = 'Google',
 	other = 'Other',

@@ -1,4 +1,4 @@
-import 'antd/dist/antd.css'
+import '/__generated/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
 import './index.css'

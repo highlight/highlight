@@ -1,6 +1,11 @@
-import { Box, Callout, IconSolidExternalLink, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidExternalLink,
+	Text,
+} from '@highlight-run/ui/components'
 import { stringify } from 'query-string'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
@@ -15,7 +20,7 @@ import {
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -29,6 +34,8 @@ import { useParams } from '@/util/react-router/useParams'
 // logs for.
 const TIME_BUFFER = 200000
 
+const SEARCH_AND_HEADER_HEIGHT = 60
+
 export const NetworkResourceLogs: React.FC<{
 	resource: NetworkResource
 	sessionStartTime: number
@@ -38,7 +45,6 @@ export const NetworkResourceLogs: React.FC<{
 	}>()
 	const requestId = resource.requestResponsePairs?.request?.id
 	const [query, setQuery] = useState('')
-	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const startDate = useMemo(
 		() => new Date(sessionStartTime + resource.startTime - TIME_BUFFER),
 		[sessionStartTime, resource.startTime],
@@ -54,7 +60,6 @@ export const NetworkResourceLogs: React.FC<{
 		error,
 		loadingAfter,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	} = useGetLogs({
 		query,
@@ -72,12 +77,10 @@ export const NetworkResourceLogs: React.FC<{
 
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
-					fetchMoreBackward()
 				}
 			}
 		},
-		[fetchMoreForward, fetchMoreBackward],
+		[fetchMoreForward],
 	)
 
 	useEffect(() => {
@@ -103,7 +106,7 @@ export const NetworkResourceLogs: React.FC<{
 				justifyContent="stretch"
 				display="flex"
 				overflow="hidden"
-				maxHeight="full"
+				height="full"
 			>
 				<Box
 					borderRadius="6"
@@ -126,20 +129,10 @@ export const NetworkResourceLogs: React.FC<{
 						actions={SearchFormActions}
 						hideDatePicker
 						hideCreateAlert
-						fetchKeys={useGetLogsKeysQuery}
+						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
-					<Box
-						height="screen"
-						pt="4"
-						px="12"
-						pb="12"
-						overflowY="auto"
-						onScroll={(e) =>
-							fetchMoreWhenScrolled(e.target as HTMLDivElement)
-						}
-						ref={tableContainerRef}
-					>
+					<Box height="full" pt="4" px="12" pb="12">
 						{(!loading && logEdges.length === 0) || !requestId ? (
 							<NoLogsFound />
 						) : (
@@ -150,8 +143,9 @@ export const NetworkResourceLogs: React.FC<{
 								refetch={refetch}
 								loadingAfter={loadingAfter}
 								query={query}
-								tableContainerRef={tableContainerRef}
 								selectedCursor={undefined}
+								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+								bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}
 							/>
 						)}
 					</Box>

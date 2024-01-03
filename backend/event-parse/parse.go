@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
@@ -102,15 +103,24 @@ const (
 )
 
 type fetcher interface {
-	fetchStylesheetData(string) ([]byte, error)
+	fetchStylesheetData(string, *Snapshot) ([]byte, error)
 }
 
 type networkFetcher struct{}
 
-func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
+func (n networkFetcher) fetchStylesheetData(href string, s *Snapshot) ([]byte, error) {
+	u, err := url.Parse(href)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid href for stylesheet")
+	}
+
+	if !u.IsAbs() && s.hostUrl != nil {
+		href = *s.hostUrl + href
+	}
+
 	resp, err := http.Get(href)
 	if err != nil {
-		return nil, errors.Wrap(err, "error fetching styles")
+		return nil, errors.Wrapf(err, "error fetching styles from %s", href)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
@@ -128,13 +138,21 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	return body, nil
 }
 
+func parseHostUrl(urlString string) *string {
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return nil
+	}
+
+	hostUrl := u.Scheme + "://" + u.Host
+	return &hostUrl
+}
+
 func replaceRelativePaths(body []byte, href string) []byte {
-	u, err := url.Parse(href)
+	base := parseHostUrl(href)
 
-	if err == nil {
-		base := u.Scheme + "://" + u.Host
-
-		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, base)))
+	if base != nil {
+		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, *base)))
 	} else {
 		return body
 	}
@@ -197,14 +215,17 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 }
 
 type Snapshot struct {
-	data map[string]interface{}
+	data    map[string]interface{}
+	hostUrl *string
 }
 
-func NewSnapshot(inputData json.RawMessage) (*Snapshot, error) {
+func NewSnapshot(inputData json.RawMessage, hostUrl *string) (*Snapshot, error) {
 	s := &Snapshot{}
 	if err := s.decode(inputData); err != nil {
 		return nil, err
 	}
+
+	s.hostUrl = hostUrl
 	return s, nil
 }
 
@@ -304,7 +325,7 @@ func escapeNodeWithJSAttrs(ctx context.Context, node map[string]interface{}) {
 }
 
 // InjectStylesheets injects custom stylesheets into a given snapshot event.
-func (s *Snapshot) InjectStylesheets() error {
+func (s *Snapshot) InjectStylesheets(ctx context.Context) error {
 	node, ok := s.data["node"].(map[string]interface{})
 	if !ok {
 		return errors.New("error converting to node")
@@ -368,8 +389,9 @@ func (s *Snapshot) InjectStylesheets() error {
 		if !ok || !strings.Contains(href, "css") {
 			continue
 		}
-		data, err := fetch.fetchStylesheetData(href)
+		data, err := fetch.fetchStylesheetData(href, s)
 		if err != nil {
+			log.WithContext(ctx).Error(err)
 			continue
 		}
 		if len(data) <= 0 {
@@ -404,7 +426,7 @@ var excludedMediaURLQueryParams = map[string]bool{
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client) (map[string]string, error) {
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client, retentionPeriod modelInputs.RetentionPeriod) (map[string]string, error) {
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
 	urlMap := make(map[string]string)
 	for _, u := range lo.Uniq(originalUrls) {
@@ -439,7 +461,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			dateTrunc,
 		}
 	})
-	if err := db.Where("(project_id, original_url, date) IN ?", keys).Find(&results).Error; err != nil {
+	if err := db.WithContext(ctx).Where("(project_id, original_url, date) IN ?", keys).Find(&results).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying saved assets")
 	}
 
@@ -516,7 +538,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					hashVal = strings.ReplaceAll(hashVal, "+", "_")
 					hashVal = strings.ReplaceAll(hashVal, "=", "~")
 					contentType := response.Header.Get("Content-Type")
-					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file)
+					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file, retentionPeriod)
 					if err != nil {
 						return errors.Wrap(err, "error uploading asset")
 					}
@@ -635,9 +657,9 @@ lexerLoop:
 	return
 }
 
-func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client) error {
+func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client, retentionPeriod modelInputs.RetentionPeriod) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
-	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis)
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis, retentionPeriod)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}
@@ -794,4 +816,28 @@ func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
 		}
 	}
 	return parsedEvents, nil
+}
+
+func GetHostUrlFromEvents(events []*ReplayEvent) *string {
+	if len(events) == 0 {
+		return nil
+	}
+
+	if events[0].Type != Meta {
+		return nil
+	}
+
+	var metaData map[string]interface{}
+
+	err := json.Unmarshal(events[0].Data, &metaData)
+	if err != nil {
+		return nil
+	}
+
+	pathUrl, ok := metaData["href"].(string)
+	if !ok {
+		return nil
+	}
+
+	return parseHostUrl(pathUrl)
 }

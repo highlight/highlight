@@ -3,7 +3,9 @@ package highlight
 import (
 	"context"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
+	"github.com/samber/lo"
 	"net/url"
 	"reflect"
 	"strings"
@@ -33,6 +35,7 @@ const SessionIDAttribute = "highlight.session_id"
 const RequestIDAttribute = "highlight.trace_id"
 const SourceAttribute = "highlight.source"
 const TraceTypeAttribute = "highlight.type"
+const TraceKeyAttribute = "highlight.key"
 
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
@@ -45,6 +48,7 @@ const MetricEventValue = "metric.value"
 type TraceType string
 
 const TraceTypeNetworkRequest TraceType = "http.request"
+const TraceTypeHighlightInternal TraceType = "highlight.internal"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
@@ -53,6 +57,44 @@ type OTLP struct {
 type ErrorWithStack interface {
 	Error() string
 	StackTrace() errors.StackTrace
+}
+
+type highlightSampler struct {
+	traceIDUpperBounds map[trace.SpanKind]uint64
+	description        string
+}
+
+func (ts highlightSampler) ShouldSample(p sdktrace.SamplingParameters) sdktrace.SamplingResult {
+	psc := trace.SpanContextFromContext(p.ParentContext)
+	x := binary.BigEndian.Uint64(p.TraceID[8:16]) >> 1
+	bound, ok := ts.traceIDUpperBounds[p.Kind]
+	if !ok {
+		bound = ts.traceIDUpperBounds[trace.SpanKindUnspecified]
+	}
+	if x < bound {
+		return sdktrace.SamplingResult{
+			Decision:   sdktrace.RecordAndSample,
+			Tracestate: psc.TraceState(),
+		}
+	}
+	return sdktrace.SamplingResult{
+		Decision:   sdktrace.Drop,
+		Tracestate: psc.TraceState(),
+	}
+}
+
+func (ts highlightSampler) Description() string {
+	return ts.description
+}
+
+// creates a per-span-kind sampler that samples each kind at a provided fraction.
+func getSampler() highlightSampler {
+	return highlightSampler{
+		description: fmt.Sprintf("TraceIDRatioBased{%+v}", conf.samplingRateMap),
+		traceIDUpperBounds: lo.MapEntries(conf.samplingRateMap, func(key trace.SpanKind, value float64) (trace.SpanKind, uint64) {
+			return key, uint64(value * (1 << 63))
+		}),
+	}
 }
 
 var (
@@ -91,7 +133,7 @@ func StartOTLP() (*OTLP, error) {
 	}
 	h := &OTLP{
 		tracerProvider: sdktrace.NewTracerProvider(
-			sdktrace.WithSampler(sdktrace.AlwaysSample()),
+			sdktrace.WithSampler(getSampler()),
 			sdktrace.WithBatcher(
 				exporter,
 				sdktrace.WithBatchTimeout(1000*time.Millisecond),
@@ -115,7 +157,7 @@ func (o *OTLP) shutdown() {
 	}
 }
 
-func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	sessionID, requestID, _ := validateRequest(ctx)
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
@@ -124,7 +166,8 @@ func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags
 		tid, _ := trace.TraceIDFromHex(hex)
 		spanCtx = spanCtx.WithTraceID(tid)
 	}
-	ctx, span := tracer.Start(trace.ContextWithSpanContext(ctx, spanCtx), name, trace.WithTimestamp(t))
+	opts = append(opts, trace.WithTimestamp(t))
+	ctx, span := tracer.Start(trace.ContextWithSpanContext(ctx, spanCtx), name, opts...)
 	span.SetAttributes(
 		attribute.String(ProjectIDAttribute, conf.projectID),
 		attribute.String(SessionIDAttribute, sessionID),
@@ -136,10 +179,10 @@ func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, tags
 }
 
 func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
-	return StartTraceWithTimestamp(ctx, name, time.Now(), tags...)
+	return StartTraceWithTimestamp(ctx, name, time.Now(), nil, tags...)
 }
 
-func StartTraceWithoutResourceAttributes(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+func StartTraceWithoutResourceAttributes(ctx context.Context, name string, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
 	resourceAttributes := []attribute.KeyValue{
 		semconv.ServiceNameKey.String(""),
 		semconv.ServiceVersionKey.String(""),
@@ -158,7 +201,7 @@ func StartTraceWithoutResourceAttributes(ctx context.Context, name string, tags 
 
 	attrs := append(resourceAttributes, tags...)
 
-	return StartTrace(ctx, name, attrs...)
+	return StartTraceWithTimestamp(ctx, name, time.Now(), opts, attrs...)
 }
 
 func EndTrace(span trace.Span) {
@@ -171,7 +214,7 @@ func EndTrace(span trace.Span) {
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	span, _ := StartTrace(ctx, "highlight-ctx", tags...)
+	span, _ := StartTraceWithTimestamp(ctx, "highlight-metric", time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, tags...)
 	defer EndTrace(span)
 	span.AddEvent(MetricEvent, trace.WithAttributes(attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value)))
 }
@@ -180,7 +223,7 @@ func RecordMetric(ctx context.Context, name string, value float64, tags ...attri
 // Highlight session and trace are inferred from the context.
 // If no sessionID is set, then the error is associated with the project without a session context.
 func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) context.Context {
-	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
+	span, ctx := StartTraceWithTimestamp(ctx, "highlight-ctx", time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, tags...)
 	defer EndTrace(span)
 	RecordSpanError(span, err)
 	return ctx

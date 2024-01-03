@@ -9,6 +9,8 @@ on:
             - 'backend/**'
             - 'deploy/**'
             - '.github/workflows/deploy.yml'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     migrate-database:
         runs-on: ubuntu-latest
@@ -19,6 +21,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Migrate database
@@ -38,6 +41,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -125,6 +129,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -176,6 +181,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -239,6 +245,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -290,6 +297,7 @@ jobs:
               uses: actions/setup-go@v4
               with:
                   go-version-file: 'backend/go.mod'
+                  cache-dependency-path: 'backend/go.sum'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
             - name: Build and zip
@@ -334,14 +342,14 @@ jobs:
                   aws-region: us-east-2
 
             - name: Login to Docker Hub
-              uses: docker/login-action@v2
+              uses: docker/login-action@v3
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Login to Amazon ECR
               id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+              uses: aws-actions/amazon-ecr-login@v2
 
             - name: Build, tag, and push arm64 image to Amazon ECR
               env:
@@ -365,7 +373,7 @@ jobs:
               with:
                   task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
                   service: private-graph-service
-                  cluster: highlight-production-cluster
+                  cluster: highlight-ec2-prod
             # Edit and deploy public-graph
             - name: Replace image label for public-graph task
               id: image-public-graph
@@ -392,8 +400,8 @@ jobs:
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
                   task-definition: ${{ steps.image-worker.outputs.task-definition }}
-                  service: worker-service-v2
-                  cluster: highlight-production-cluster
+                  service: session-worker
+                  cluster: highlight-ec2-prod
             # Edit and deploy metric monitors
             - name: Replace image label for metric monitors task
               id: image-metric-monitor
@@ -435,7 +443,7 @@ jobs:
               with:
                   task-definition: ${{ steps.image-public-worker-main.outputs.task-definition }}
                   service: public-worker-main-service
-                  cluster: highlight-production-cluster
+                  cluster: highlight-ec2-prod
             # Edit and deploy public worker (batched topic)
             - name: Replace image label for public worker (batched topic) service
               id: image-public-worker-batched
@@ -449,7 +457,7 @@ jobs:
               with:
                   task-definition: ${{ steps.image-public-worker-batched.outputs.task-definition }}
                   service: public-worker-batched-service
-                  cluster: highlight-production-cluster
+                  cluster: highlight-ec2-prod
             # Edit and deploy public worker (datasync topic)
             - name: Replace image label for public worker (datasync topic) service
               id: image-public-worker-datasync
@@ -463,7 +471,7 @@ jobs:
               with:
                   task-definition: ${{ steps.image-public-worker-datasync.outputs.task-definition }}
                   service: public-worker-datasync-service
-                  cluster: highlight-production-cluster
+                  cluster: highlight-ec2-prod
             # Edit and deploy public worker (traces topic)
             - name: Replace image label for public worker (traces topic) service
               id: image-public-worker-traces
@@ -477,7 +485,7 @@ jobs:
               with:
                   task-definition: ${{ steps.image-public-worker-traces.outputs.task-definition }}
                   service: public-worker-traces-service
-                  cluster: highlight-production-cluster
+                  cluster: highlight-ec2-prod
 
     deploy_opentelemetry_collector:
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
@@ -490,7 +498,7 @@ jobs:
                   aws-region: us-east-2
             - name: Login to Amazon ECR
               id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
+              uses: aws-actions/amazon-ecr-login@v2
 
             - name: Check out the repo
               uses: actions/checkout@v3
@@ -527,4 +535,4 @@ jobs:
               with:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
-                  cluster: highlight-production-cluster
+                  cluster: highlight-ec2-prod

@@ -1,52 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-import { HIGHLIGHT_REQUEST_HEADER, H, NodeOptions } from '@highlight-run/node'
-import { HighlightGlobal } from './types'
+import { H, NodeOptions } from '@highlight-run/node'
 
 type NextContext = { params: Record<string, string> }
 type NextHandler<Body = unknown> = (
 	request: NextRequest,
 	context: NextContext,
-) => Promise<Response | NextResponse<Body>>
+) => Promise<Response>
 
 export function Highlight(options: NodeOptions) {
+	const NodeH = H.init(options)
+
 	return (originalHandler: NextHandler) =>
 		async (request: NextRequest, context: NextContext) => {
+			if (!NodeH) throw new Error('Highlight not initialized')
+
+			const start = new Date()
+
 			try {
-				H.init(options)
+				const result = await H.runWithHeaders<Promise<Response>>(
+					request.headers,
+					async () => originalHandler(request, context),
+				)
 
-				// Must await originalHandler to catch the error at this level
-				return await originalHandler(request, context)
-			} catch (error) {
-				const { secureSessionId, requestId } =
-					processHighlightHeaders(request)
+				recordLatency()
 
-				if (error instanceof Error) {
-					await H.consumeAndFlush(error, secureSessionId, requestId)
+				return result
+			} catch (e) {
+				recordLatency()
+
+				throw e
+			}
+
+			function recordLatency() {
+				// convert ms to ns
+				const delta = (new Date().getTime() - start.getTime()) * 1000000
+				const { secureSessionId, requestId } = NodeH.parseHeaders(
+					request.headers,
+				)
+
+				if (secureSessionId && requestId) {
+					H.recordMetric(secureSessionId, 'latency', delta, requestId)
 				}
-
-				await H.stop()
-
-				throw error
 			}
 		}
-}
-
-function processHighlightHeaders(request: NextRequest) {
-	const header = request.headers.get(HIGHLIGHT_REQUEST_HEADER)
-
-	if (header) {
-		const [secureSessionId, requestId] = header.split('/')
-
-		if (secureSessionId && requestId) {
-			;(global as typeof globalThis & HighlightGlobal).__HIGHLIGHT__ = {
-				secureSessionId,
-				requestId,
-			}
-
-			return { secureSessionId, requestId }
-		}
-	}
-
-	return { secureSessionId: undefined, requestId: undefined }
 }

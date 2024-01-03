@@ -31,6 +31,7 @@ H = highlight_io.H(
 	instrument_logging=True,
 	service_name="my-django-app",
 	service_version="git-sha",
+	environment="production",
 )`,
 					language: 'python',
 				},

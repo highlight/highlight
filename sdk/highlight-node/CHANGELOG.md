@@ -1,5 +1,105 @@
 # @highlight-run/node
 
+## 3.7.1
+
+### Patch Changes
+
+-   790c83782: fix incorrect publish with internal workspace references
+
+## 3.7.0
+
+### Minor Changes
+
+-   e75a480dc: Exposing Node SDK internals and using them to better instrument Next.js API wrappers
+-   e75a480dc: Enable tracing
+
+## 3.6.6
+
+### Patch Changes
+
+-   352641cf7: fix incorrect reporting of log level for pino
+-   8f0b8de6b: Repairing a circular dependency in @highlight-run/node and a bad export from @highlight-run/next's Edge runtime support
+-   46ed85c91: Support environment attribute to be passed in natively.
+
+## 3.6.5
+
+### Patch Changes
+
+-   bd5021a6c: remove @highlight-run/node dependency on highlight.run for types
+-   2fce77c13: fix opentelemetry auto instrumentation in next.js, update opentelemetry dependencies
+
+## 3.6.4
+
+### Patch Changes
+
+-   7c35f7d78: ensure header parsing is compatible with IncomingHTTPHeaders and Headers types
+-   Updated dependencies [84110aca1]
+-   Updated dependencies [c1773fa66]
+    -   highlight.run@8.3.0
+
+## 3.6.3
+
+### Patch Changes
+
+-   f966390c1: ensure compatibility for JS SDKs in ES and CJS environments
+-   66b94f3f7: change serialization for node to avoid reporting objects as the message
+-   Updated dependencies [f966390c1]
+    -   highlight.run@8.2.3
+
+## 3.6.2
+
+### Patch Changes
+
+-   e3590078e: fix @highlight-run/node crashing due to encoding not being polyfilled
+-   8e91dbe55: allow arbitrarily waiting for flush to wait for logs to be sent to highlight
+-   Updated dependencies [b6172b0da]
+    -   highlight.run@8.2.2
+
+## 3.6.1
+
+### Patch Changes
+
+-   9ad2c786c: Remove circular dependency
+
+## 3.6.0
+
+### Minor Changes
+
+-   7355c73f8: Support highlight request context globally to associate async console logs / errors with highlight sessions.
+
+### Patch Changes
+
+-   747903c88: Repaired a bad resource merge to persist Highlight session data across all spans.
+-   d452bb1b6: refactor types for highlight session context
+
+## 3.5.3
+
+### Patch Changes
+
+-   Updated dependencies [7c20f8c44]
+    -   highlight.run@8.2.1
+
+## 3.5.2
+
+### Patch Changes
+
+-   4f535a839: ensure that console methods record structured attributes on logs
+-   107f2fbd2: Npm publish cleanup. Export only dist folder.
+-   4f535a839: make object stringification more robust to prevent recursion errors
+-   4f535a839: bundle all dependencies into @highlight-run/node
+-   4f535a839: ensure opentelemetry export does not time out
+-   Updated dependencies [8142463b5]
+    -   highlight.run@8.2.0
+
+## 3.5.1
+
+### Patch Changes
+
+-   Updated dependencies [7b931c336]
+-   Updated dependencies [b03039b6b]
+-   Updated dependencies [be3f51f45]
+    -   highlight.run@8.1.0
+
 ## 3.5.0
 
 ### Minor Changes

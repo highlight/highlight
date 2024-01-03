@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const pageWrapper = style({
@@ -30,6 +30,10 @@ export const usageTitle = style({
 	height: 20,
 })
 
-export const totalBox = style({
-	height: 20,
+export const totalBox = style({})
+
+export const issueText = style({
+	maxWidth: 340,
+	paddingTop: 5.5,
+	paddingBottom: 5.5,
 })

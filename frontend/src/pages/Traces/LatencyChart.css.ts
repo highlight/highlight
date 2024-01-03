@@ -1,15 +1,5 @@
 import { style } from '@vanilla-extract/css'
 
-export const legendValue = style({
-	color: 'var(--color-gray-500) !important',
-	overflow: 'hidden',
-	textOverflow: 'ellipsis',
-})
-
-export const notShowingValue = style({
-	textDecoration: 'line-through',
-})
-
 export const legendIcon = style({
 	borderRadius: '50%',
 	flexShrink: 0,

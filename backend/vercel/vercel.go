@@ -371,11 +371,10 @@ func HandleLog(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if l.Message != "" {
-			logs = append(logs, l)
-		} else {
-			log.WithContext(r.Context()).WithField("log", l).Warn("received empty log message from vercel")
+		if l.Message == "" {
+			l.Message = fmt.Sprintf("%s %s://%s/%s", l.Proxy.Method, l.Proxy.Scheme, l.Proxy.Host, l.Proxy.Path)
 		}
+		logs = append(logs, l)
 	}
 
 	projectVerboseID := r.Header.Get(LogDrainProjectHeader)

@@ -10,6 +10,7 @@
 	<artifactId>highlight-log-api</artifactId>
 
 	<name>Highlight Java Log API</name>
+	<description>highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)</description>
 	<url>https://github.com/highlight/highlight</url>
 	<inceptionYear>2023</inceptionYear>
 

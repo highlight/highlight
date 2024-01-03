@@ -383,6 +383,7 @@ input BackendErrorObjectInput {
 	timestamp: Timestamp!
 	payload: String
 	service: ServiceInput!
+	environment: String!
 }
 
 input MetricTag {
@@ -392,6 +393,9 @@ input MetricTag {
 
 input MetricInput {
 	session_secure_id: String!
+	span_id: String
+	parent_span_id: String
+	trace_id: String
 	group: String
 	name: String!
 	value: Float!
@@ -3637,7 +3641,7 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload", "service"}
+	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload", "service", "environment"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3748,6 +3752,14 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 			if err != nil {
 				return it, err
 			}
+		case "environment":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environment"))
+			it.Environment, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -3853,7 +3865,7 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_secure_id", "group", "name", "value", "category", "timestamp", "tags"}
+	fieldsInOrder := [...]string{"session_secure_id", "span_id", "parent_span_id", "trace_id", "group", "name", "value", "category", "timestamp", "tags"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3865,6 +3877,30 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
 			it.SessionSecureID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "span_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("span_id"))
+			it.SpanID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "parent_span_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent_span_id"))
+			it.ParentSpanID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "trace_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace_id"))
+			it.TraceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

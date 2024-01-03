@@ -2,7 +2,7 @@ import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui'
+import { Form, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { useState } from 'react'
@@ -67,7 +67,7 @@ export const ExcludedUsersForm = () => {
 			<Form store={formStore}>
 				<Stack gap="8">
 					<BoxLabel
-						label="Filtered sessions"
+						label="Excluded users"
 						info="
 					Enter user identifiers or emails to filter (regular
 					expressions are accepted). On completion, sessions from

@@ -9,13 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/samber/lo"
-	"github.com/segmentio/kafka-go/sasl"
-
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
 )
@@ -26,9 +25,9 @@ const KafkaOperationTimeout = 25 * time.Second
 const ConsumerGroupName = "group-default"
 
 const (
-	TaskRetries           = 5
-	prefetchQueueCapacity = 64
-	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
+	TaskRetries           = 2
+	prefetchQueueCapacity = 8
+	MaxMessageSizeBytes   = 128 * 1000 * 1000 // MB
 )
 
 var (
@@ -50,11 +49,12 @@ const (
 )
 
 type Queue struct {
-	Topic         string
-	ConsumerGroup string
-	Client        *kafka.Client
-	kafkaP        *kafka.Writer
-	kafkaC        *kafka.Reader
+	Topic            string
+	ConsumerGroup    string
+	MessageSizeBytes int64
+	Client           *kafka.Client
+	kafkaP           *kafka.Writer
+	kafkaC           *kafka.Reader
 }
 
 type MessageQueue interface {
@@ -89,16 +89,17 @@ func GetTopic(options GetTopicOptions) string {
 }
 
 type ConfigOverride struct {
-	Async         *bool
-	QueueCapacity *int
-	MinBytes      *int
-	MaxWait       *time.Duration
+	Async            *bool
+	QueueCapacity    *int
+	MinBytes         *int
+	MaxWait          *time.Duration
+	MessageSizeBytes *int64
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
-	groupID := ConsumerGroupName
+	groupID := strings.Join([]string{ConsumerGroupName, topic}, "_")
 
 	tlsConfig := &tls.Config{}
 	var mechanism sasl.Mechanism
@@ -160,7 +161,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 		}
 	}
 
-	pool := &Queue{Topic: topic, ConsumerGroup: groupID, Client: client}
+	pool := &Queue{Topic: topic, ConsumerGroup: groupID, Client: client, MessageSizeBytes: MaxMessageSizeBytes}
 	if mode&1 == 1 {
 		pool.kafkaP = &kafka.Writer{
 			Addr:         kafka.TCP(brokers...),
@@ -169,15 +170,13 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			// synchronous mode so that we can ensure messages are sent before we return
-			Async: false,
+			Async:        true,
 			// override batch limit to be our message max size
-			BatchBytes:   messageSizeBytes,
-			BatchSize:    1,
+			BatchBytes:   MaxMessageSizeBytes,
+			BatchSize:    1_000,
+			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
-			// low timeout because we don't want to block WriteMessage calls since we are sync mode
-			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
 
@@ -185,6 +184,11 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			deref := *configOverride
 			if deref.Async != nil {
 				pool.kafkaP.Async = *deref.Async
+				pool.kafkaP.BatchSize = 100
+			}
+			if deref.MessageSizeBytes != nil {
+				pool.kafkaP.BatchBytes = *deref.MessageSizeBytes
+				pool.MessageSizeBytes = *deref.MessageSizeBytes
 			}
 		}
 
@@ -205,7 +209,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			ReadBatchTimeout:  KafkaOperationTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
-			MaxBytes:          messageSizeBytes,
+			MaxBytes:          MaxMessageSizeBytes,
 			MaxWait:           time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
@@ -229,6 +233,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			}
 			if deref.MaxWait != nil {
 				config.MaxWait = *deref.MaxWait
+			}
+			if deref.MessageSizeBytes != nil {
+				config.MaxBytes = int(*deref.MessageSizeBytes)
+				pool.MessageSizeBytes = *deref.MessageSizeBytes
 			}
 		}
 
@@ -285,21 +293,24 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
 			return err
 		}
+		if int64(len(msgBytes)) >= p.MessageSizeBytes/2 {
+			log.WithContext(ctx).WithField("topic", p.Topic).WithField("partitionKey", partitionKey).WithField("msgBytes", len(msgBytes)).WithField("msg", string(msgBytes)).Warn("large kafka message")
+		}
 		kMessages = append(kMessages, kafka.Message{
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
 		})
-		hlog.Incr(p.metricPrefix()+"produceMessageCount", nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"produceMessageCount", nil, 1)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
 	defer cancel()
 	err := p.kafkaP.WriteMessages(ctx, kMessages...)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
+		log.WithContext(ctx).WithError(err).WithField("topic", p.Topic).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
-	hlog.Histogram(p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
 
@@ -320,8 +331,8 @@ func (p *Queue) Receive(ctx context.Context) (msg *Message) {
 		return nil
 	}
 	msg.KafkaMessage = &m
-	hlog.Incr(p.metricPrefix()+"consumeMessageCount", nil, 1)
-	hlog.Histogram(p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Incr(ctx, p.metricPrefix()+"consumeMessageCount", nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
 }
 
@@ -377,38 +388,39 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "failed to commit message"))
 	} else {
-		hlog.Incr(p.metricPrefix()+"commitMessageCount", nil, 1)
-		hlog.Histogram(p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"commitMessageCount", nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
 	}
 }
 
 func (p *Queue) LogStats() {
+	ctx := context.Background()
 	if p.kafkaP != nil {
 		stats := p.kafkaP.Stats()
-		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
+		log.WithContext(ctx).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
 
-		hlog.Histogram(p.metricPrefix()+"produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceQueueLength", float64(stats.QueueLength), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceBytes", float64(stats.Bytes), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"produceErrors", float64(stats.Errors), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceQueueLength", float64(stats.QueueLength), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceBytes", float64(stats.Bytes), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"produceErrors", float64(stats.Errors), nil, 1)
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
 		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats).Debug("Kafka Consumer Stats")
 
-		hlog.Histogram(p.metricPrefix()+"consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeQueueLength", float64(stats.QueueLength), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeBytes", float64(stats.Bytes), nil, 1)
-		hlog.Histogram(p.metricPrefix()+"consumeErrors", float64(stats.Errors), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeQueueLength", float64(stats.QueueLength), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeBytes", float64(stats.Bytes), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"consumeErrors", float64(stats.Errors), nil, 1)
 	}
 }
 
@@ -430,7 +442,7 @@ func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error
 func (p *Queue) resetConsumerOffset(ctx context.Context, partitionOffsets map[int]int64) (error error) {
 	cfg := p.kafkaC.Config()
 	group, err := kafka.NewConsumerGroup(kafka.ConsumerGroupConfig{
-		ID:      ConsumerGroupName,
+		ID:      strings.Join([]string{ConsumerGroupName, p.Topic}, "_"),
 		Brokers: cfg.Brokers,
 		Dialer:  cfg.Dialer,
 		Topics:  []string{cfg.Topic},

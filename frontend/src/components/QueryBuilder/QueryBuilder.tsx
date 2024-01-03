@@ -14,6 +14,7 @@ import {
 	namedOperations,
 } from '@graph/operations'
 import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
+import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
 	ButtonIcon,
@@ -58,8 +59,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { formatNumber } from '@util/numbers'
@@ -73,11 +73,12 @@ import { useLocation } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
-import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
-import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import { searchesAreEqual } from '@/components/QueryBuilder/utils'
+import { CreateErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/CreateErrorSegmentModal'
+import { DeleteErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
-import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
+import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
+import { DeleteSessionSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/DeleteSessionSegmentModal'
 
 import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
@@ -126,6 +127,7 @@ type PopoutType =
 	| 'select'
 	| 'multiselect'
 	| 'creatable'
+	| 'editable'
 	| 'date_range'
 	| 'time_range'
 	| 'range'
@@ -500,6 +502,39 @@ const MultiselectPopout = ({
 					loadingRender={loadingBox}
 				/>
 			)
+		case 'editable':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={options?.map((o) => ({
+						key: o.value,
+						render: getOption(o, lastQuery),
+					}))}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					creatableRender={(query) =>
+						getOption({ label: query, value: query }, '')
+					}
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender={loadingBox}
+				/>
+			)
 		case 'date_range':
 		case 'time_range':
 		case 'range':
@@ -591,6 +626,8 @@ const SelectPopout = ({
 
 const getPopoutType = (op: Operator | undefined): PopoutType => {
 	switch (op) {
+		case 'is_editable':
+			return 'editable'
 		case 'contains':
 		case 'not_contains':
 		case 'matches':
@@ -615,7 +652,6 @@ const QueryRule = ({
 	removeRule,
 	updateRule,
 	readonly,
-	minimal,
 	getCustomFieldOptions,
 	getDefaultOperator,
 }: { rule: RuleProps } & RuleSettings) => {
@@ -706,7 +742,7 @@ const QueryRule = ({
 					]}
 				/>
 			)}
-			{!readonly && !minimal ? (
+			{!readonly ? (
 				<Tag
 					size="medium"
 					kind="secondary"
@@ -728,6 +764,7 @@ export const hasArguments = (op: Operator): boolean =>
 const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 	is: 'is',
 	is_not: 'is not',
+	is_editable: 'is',
 	contains: 'contains',
 	not_contains: 'does not contain',
 	exists: 'exists',
@@ -745,6 +782,7 @@ const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 const LABEL_MAP_MULTI: { [K in Operator]: string } = {
 	is: 'is any of',
 	is_not: 'is not any of',
+	is_editable: 'is any of',
 	contains: 'contains any of',
 	not_contains: 'does not contain any of',
 	exists: 'exists',
@@ -772,6 +810,7 @@ const TOOLTIP_MESSAGES: { [K in string]: string } = {
 
 export type Operator =
 	| 'is'
+	| 'is_editable'
 	| 'is_not'
 	| 'contains'
 	| 'not_contains'
@@ -843,6 +882,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	has_comments: 'Has Comments',
 	service_name: 'Service',
 	service_version: 'Service Version',
+	sample: 'Sample',
 }
 
 const getOperator = (
@@ -866,7 +906,7 @@ const isSingle = (val: MultiselectOption | undefined) =>
 
 interface FieldOptions {
 	operators?: Operator[]
-	type?: string
+	type?: 'text' | 'long' | 'boolean' | 'sample'
 }
 
 interface HasOptions {
@@ -1000,6 +1040,8 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidLightningBolt />
 		case 'custom_has_rage_clicks':
 			return <IconSolidCursorClick />
+		case 'custom_sample':
+			return <IconSolidPencil />
 		case 'session_landing_page':
 			return <IconSolidDocumentAdd />
 		case 'custom_active_length':
@@ -1120,7 +1162,11 @@ export interface QueryBuilderProps {
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesClickhouseQuery
 	errorTagData?: GetErrorTagsQuery
+	operators?: Operator[]
+	droppedFieldTypes?: string[]
+
 	readonly?: boolean
+	onlyAnd?: boolean
 	minimal?: boolean
 	setDefault?: boolean
 	useEditAnySegmentMutation:
@@ -1160,7 +1206,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fetchFields,
 		fieldData,
 		errorTagData,
+		droppedFieldTypes,
 		readonly,
+		onlyAnd,
+		operators,
 		minimal,
 		setDefault,
 		useEditAnySegmentMutation,
@@ -1168,6 +1217,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		CreateAnySegmentModal,
 		DeleteAnySegmentModal,
 	} = props
+	const ops = operators ?? OPERATORS
 
 	const {
 		searchQuery,
@@ -1278,7 +1328,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const getDefaultOperator = (field: SelectOption | undefined) =>
-		((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0]
+		((field && getCustomFieldOptions(field)?.operators) ?? ops)[0]
 
 	const { data: appVersionData } = useGetAppVersionsQuery({
 		variables: { project_id: projectId! },
@@ -1377,6 +1427,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		async (input: string) => {
 			return customFields
 				.concat(fieldData?.field_types ?? [])
+				.filter(
+					(ft) =>
+						!droppedFieldTypes ||
+						!droppedFieldTypes.includes(ft.type ?? ''),
+				)
 				.map((ft) => ({
 					label: ft.name,
 					value: ft.type + '_' + ft.name,
@@ -1398,7 +1453,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}
 				})
 		},
-		[customFields, fieldData?.field_types],
+		[customFields, droppedFieldTypes, fieldData?.field_types],
 	)
 
 	const getOperatorOptionsCallback = (
@@ -1406,7 +1461,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		val: MultiselectOption | undefined,
 	) => {
 		return async (input: string) => {
-			return (options?.operators ?? OPERATORS)
+			return (options?.operators ?? ops)
 				.map((op) => getOperator(op, val))
 				.filter((op) => op !== undefined)
 				.filter((op) =>
@@ -1462,6 +1517,17 @@ function QueryBuilder(props: QueryBuilderProps) {
 						label: v,
 						value: v,
 					}))
+				} else if (getCustomFieldOptions(field)?.type === 'sample') {
+					options = [
+						{
+							label: 'New Random Seed',
+							value: [...Array(16)]
+								.map(() =>
+									Math.floor(Math.random() * 16).toString(16),
+								)
+								.join(''),
+						},
+					]
 				}
 
 				if (options.length > 0) {
@@ -1536,21 +1602,22 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// Not sure if this is desired behavior in the long term, but
 	// this matches the current prod behavior.
 	useEffect(() => {
-		if (setDefault !== false) {
-			return () => {
+		return () => {
+			if (selectedSegment && !readonly && setDefault !== false) {
 				removeSelectedSegment()
 			}
 		}
-	}, [removeSelectedSegment, setDefault])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const mode = (() => {
 		if (selectedSegment !== undefined) {
-			if (searchQuery !== existingQuery) {
-				return QueryBuilderMode.SEGMENT_UPDATE
-			} else {
+			if (searchesAreEqual(searchQuery, existingQuery, timeRangeField)) {
 				return QueryBuilderMode.SEGMENT
+			} else {
+				return QueryBuilderMode.SEGMENT_UPDATE
 			}
 		}
 		return QueryBuilderMode.CUSTOM
@@ -1597,9 +1664,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				variables: {
 					project_id: projectId!,
 					id: selectedSegment.id,
-					params: {
-						query: searchQuery,
-					},
+					query: searchQuery,
 					name: selectedSegment.name,
 				},
 			})
@@ -1704,12 +1769,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 						})
 					}}
 				/>
-				<Box marginLeft="auto" display="flex" gap="4">
+				<Box marginLeft="auto" display="flex" gap="0">
 					{!isOnErrorsPage && (
-						<DropdownMenu
-							sessionCount={searchResultsCount || 0}
-							sessionQuery={JSON.parse(searchQuery)}
-						/>
+						<DropdownMenu sessionQuery={JSON.parse(searchQuery)} />
 					)}
 
 					<ButtonIcon
@@ -1726,7 +1788,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [
 		dateRange,
 		isOnErrorsPage,
-		searchResultsCount,
 		searchQuery,
 		updateRule,
 		timeRangeRule,
@@ -1803,6 +1864,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		<>
 			<CreateAnySegmentModal
 				showModal={segmentModalState !== SegmentModalState.HIDDEN}
+				timeRangeField={timeRangeField}
 				onHideModal={() => {
 					setSegmentModalState(SegmentModalState.HIDDEN)
 				}}
@@ -1848,6 +1910,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				flexShrink={0}
 				m={readonly || minimal ? undefined : '8'}
 				shadow={minimal ? undefined : 'medium'}
+				style={minimal ? { minHeight: 28 } : undefined}
 			>
 				<Box
 					p="4"
@@ -1867,7 +1930,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										emphasis="low"
 										onClick={toggleIsAndImpl}
 										key={`separator-${index}`}
-										disabled={readonly}
+										disabled={onlyAnd ? true : readonly}
 									>
 										{isAnd ? 'and' : 'or'}
 									</Tag>,

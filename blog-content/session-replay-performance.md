@@ -14,11 +14,16 @@ tags: Highlight Engineering
 metaTitle: An open-source session replay benchmark
 ---
 
-At [highlight.io](https://highlight.io), our first product was an open-source session replay tool built on [rrweb](https://github.com/rrweb-io/rrweb). Session Replay enables our customers to replay user sessions to analyze performance regressions and understand how users interact with a site.
+Replaying user sessions is useful for analyzing performance regressions and understanding how users interact with your site. At highlight.io, our core product is an open-source session replay tool built on [rrweb](https://github.com/rrweb-io/rrweb). One obvious question, though, is about the performance implications of using such a tool on your site. After all, additional computation must happen to record dom interactions.
 
-Despite the benefits, as our customer base grew, more and more teams asked about the performance implications of using this technology on their site. After all, additional computation must happen to record exactly what is shown in the browser. In this post, we'll discuss the overhead of session replay with respect to resource consumption and interaction latency in several scenarios.
+In this post, we'll discuss the overhead of session replay with respect to resource consumption and interaction latency in several scenarios.
 
-It is important to note that we did not measure Web Vitals, as these metrics can easily be manipulated by changing when javascript is executed on the client. Instead, we focused on metrics that affect the browser WHILE session replay records data. If you’re interested in reproducing the experiment detailed below or want to learn more about how it works, you can find it [here](https://github.com/highlight/session-replay-performance-benchmark).
+In all of our test cases, we found that when session replay was enabled there was a slight increase in the browser’s resource consumption as well as time to interaction, however, these changes were so minor that they didn’t yield a perceivable difference in the user experience.
+
+It is important to note that we did not measure SEO-esque metrics such as Web Vitals, as these metrics can easily be manipulated by delaying the execution of javascript on the client. Instead, we focused on metrics that affect the browser while session replay is actually recording data (e.g. resource consumption and “time to interaction”). 
+
+If you’re interested in reproducing the experiment detailed below or want to learn more about how it works, you can find it [here](https://github.com/highlight/session-replay-performance-benchmark).
+
 
 ## The Setup
 

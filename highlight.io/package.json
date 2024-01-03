@@ -20,9 +20,11 @@
 		"@headlessui/react": "^1.7.4",
 		"@heroicons/react": "^2.0.13",
 		"@highlight-run/next": "workspace:*",
+		"@highlight-run/pino": "workspace:*",
 		"@radix-ui/react-slider": "^1.1.0",
 		"@supabase/supabase-js": "^2.7.1",
-		"@vercel/og": "^0.0.27",
+		"@vercel/og": "^0.5.20",
+		"@vercel/speed-insights": "^1.0.0",
 		"antd": "^4.24.7",
 		"classnames": "^2.3.1",
 		"dexie": "^3.2.2",
@@ -40,7 +42,6 @@
 		"markdown-to-jsx": "^7.1.8",
 		"match-sorter": "^6.3.1",
 		"next": "^13.5.4",
-		"next-axiom": "^0.16.0",
 		"next-mdx-remote": "^4.3.0",
 		"nextjs-cors": "latest",
 		"npm-run-all": "^4.1.5",
@@ -59,7 +60,7 @@
 		"react-device-detect": "^2.2.3",
 		"react-dom": "^18.2.0",
 		"react-github-btn": "^1.4.0",
-		"react-highlight-words": "^0.18.0",
+		"react-highlight-words": "^0.20.0",
 		"react-icons": "^4.7.1",
 		"react-is": "^18.2.0",
 		"react-markdown": "^8.0.4",
@@ -70,7 +71,7 @@
 		"remove-markdown": "^0.5.0",
 		"rudder-sdk-js": "^2.20.0",
 		"sass": "^1.56.1",
-		"sharp": "^0.31.3",
+		"sharp": "^0.32.6",
 		"uuidv4": "^6.2.13"
 	},
 	"devDependencies": {
@@ -99,5 +100,5 @@
 		"typed-scss-modules": "^7.0.1",
 		"typescript": "^4.9.4"
 	},
-	"packageManager": "yarn@3.4.1"
+	"packageManager": "yarn@4.0.2"
 }

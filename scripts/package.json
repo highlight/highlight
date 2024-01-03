@@ -1,17 +1,17 @@
 {
 	"name": "scripts",
 	"private": true,
-	"packageManager": "yarn@3.2.3",
+	"packageManager": "yarn@4.0.2",
 	"type": "module",
 	"scripts": {
-		"validate:client": "ts-node --esm upload.ts publish sdk/client --validate",
-		"publish:client": "ts-node --esm upload.ts publish sdk/client"
+		"validate:client": "tsx upload.ts publish sdk/client --validate",
+		"publish:client": "tsx upload.ts publish sdk/client"
 	},
 	"devDependencies": {
 		"@aws-sdk/client-s3": "^3.198.0",
 		"@types/yargs": "^17.0.13",
 		"semver": "^7.3.8",
-		"ts-node": "^10.9.1",
+		"tsx": "^4.7.0",
 		"yargs": "^17.6.0"
 	}
 }

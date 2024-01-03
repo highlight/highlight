@@ -1,3 +1,5 @@
+import { RequestResponsePair } from '../listeners/network-listener/utils/models'
+
 export const ALL_CONSOLE_METHODS = [
 	'assert',
 	'count',
@@ -111,6 +113,29 @@ export declare type NetworkRecordingOptions = {
 	 * // if your frontend makes requests to `backend.example.com` that you would like to record
 	 */
 	destinationDomains?: string[]
+	/**
+	 * Function to edit/remove data in request/response pairs or ignore the pair entirely.
+	 * @example
+	 * ```
+	 * requestResponseSanitizer: pair => {
+	 *   if (pair.request.url.toLowerCase().indexOf('ignore') !== -1) {
+	 *      // ignore the entire request/response pair (no network logs)
+	 *      return null
+	 *    }
+	 *
+	 *    if (pair.response.body.indexOf('secret') !== -1) {
+	 *        // remove the body in the response
+	 * 				delete pair.response.body;
+	 *    }
+	 *
+	 *    return pair
+	 * }
+	 * ```
+	 *
+	 */
+	requestResponseSanitizer?: (
+		pair: RequestResponsePair,
+	) => RequestResponsePair | null
 }
 
 export declare type IntegrationOptions = {

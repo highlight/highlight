@@ -188,6 +188,7 @@ type Props = {
 	onDatesChange: (selectedDates: Date[]) => void
 	presets: Preset[]
 	minDate: Date
+	noCustom?: boolean
 } & Omit<MenuButtonProps, 'ref' | 'store'>
 
 export const PreviousDateRangePicker: React.FC<Props> = (props) => (
@@ -215,6 +216,7 @@ const PreviousDateRangePickerImpl = ({
 	selectedDates,
 	onDatesChange,
 	presets,
+	noCustom,
 	minDate,
 	...props
 }: Props) => {
@@ -450,32 +452,38 @@ const PreviousDateRangePickerImpl = ({
 								</Menu.Item>
 							)
 						})}
-						<Menu.Item
-							onClick={(e) => {
-								e.preventDefault()
-								e.stopPropagation()
-								setMenuState(MenuState.Custom)
-							}}
-						>
-							<Stack
-								width={'full'}
-								display={'flex'}
-								direction={'row'}
-								alignItems={'center'}
-								justifyContent={'space-between'}
+						{noCustom ? null : (
+							<Menu.Item
+								onClick={(e) => {
+									e.preventDefault()
+									e.stopPropagation()
+									setMenuState(MenuState.Custom)
+								}}
 							>
-								<Stack direction="row" align="center" gap="4">
-									<CheckboxIconIfSelected
-										isSelected={isCustomSelected({
-											presets,
-											selectedDates,
-										})}
-									/>
-									<Text userSelect="none">Custom</Text>
+								<Stack
+									width={'full'}
+									display={'flex'}
+									direction={'row'}
+									alignItems={'center'}
+									justifyContent={'space-between'}
+								>
+									<Stack
+										direction="row"
+										align="center"
+										gap="4"
+									>
+										<CheckboxIconIfSelected
+											isSelected={isCustomSelected({
+												presets,
+												selectedDates,
+											})}
+										/>
+										<Text userSelect="none">Custom</Text>
+									</Stack>
+									<IconSolidCheveronRight size={16} />
 								</Stack>
-								<IconSolidCheveronRight size={16} />
-							</Stack>
-						</Menu.Item>
+							</Menu.Item>
+						)}
 					</>
 				) : (
 					<Form store={formStore}>

@@ -7,10 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/private-graph/graph"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/openlyinc/pointy"
 
 	"github.com/pkg/errors"
@@ -28,13 +30,13 @@ const (
 	sigFigs = 4
 )
 
-func WatchMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook) {
+func WatchMetricMonitors(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, MailClient *sendgrid.Client, rh *resthooks.Resthook) {
 	log.WithContext(ctx).Info("Starting to watch Metric Monitors")
 
 	for range time.Tick(time.Minute * 1) {
 		go func() {
 			metricMonitors := getMetricMonitors(ctx, DB)
-			processMetricMonitors(ctx, DB, TDB, MailClient, metricMonitors, rh)
+			processMetricMonitors(ctx, DB, ccClient, MailClient, metricMonitors, rh)
 		}()
 	}
 }
@@ -50,7 +52,7 @@ func getMetricMonitors(ctx context.Context, DB *gorm.DB) []*model.MetricMonitor 
 	return metricMonitors
 }
 
-func processMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor, rh *resthooks.Resthook) {
+func processMetricMonitors(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor, rh *resthooks.Resthook) {
 	log.WithContext(ctx).Info("Number of Metric Monitors to Process: ", len(metricMonitors))
 	for _, metricMonitor := range metricMonitors {
 		var value float64
@@ -68,13 +70,13 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, 
 				Value: f.Value,
 			})
 		}
-		payload, err := graph.GetMetricTimeline(context.Background(), TDB, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
-			DateRange: &modelInputs.DateRangeInput{
-				StartDate: &start,
-				EndDate:   &end,
+		payload, err := graph.GetMetricTimeline(context.Background(), ccClient, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
+			DateRange: &modelInputs.DateRangeRequiredInput{
+				StartDate: start,
+				EndDate:   end,
 			},
 			ResolutionMinutes: pointy.Int(resMins),
-			Aggregator:        &metricMonitor.Aggregator,
+			Aggregator:        metricMonitor.Aggregator,
 			Units:             metricMonitor.Units,
 			Filters:           filters,
 		})
@@ -134,7 +136,7 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, 
 
 			log.WithContext(ctx).Info(message)
 
-			if err := metricMonitor.SendSlackAlert(ctx, &model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
+			if err := tempalerts.SendSlackMetricMonitorAlert(ctx, metricMonitor, &tempalerts.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
 			}
 

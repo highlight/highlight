@@ -1,5 +1,5 @@
 import { LogLevel as Level } from '@graph/schemas'
-import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
+import { Box, BoxProps, Popover, Text } from '@highlight-run/ui/components'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
@@ -34,6 +34,7 @@ type LogsHistogramProps = Omit<
 	histogramBuckets: { bucketId: number; counts: LogCount[] }[] | undefined
 	bucketCount: number
 	loading: boolean
+	loadingState?: LoadingState
 	outline?: boolean
 	legend?: boolean
 	threshold?: number
@@ -72,6 +73,7 @@ const LogsHistogram = ({
 	histogramBuckets,
 	bucketCount,
 	loading,
+	loadingState,
 	barColor,
 	noPadding,
 	...props
@@ -216,13 +218,16 @@ const LogsHistogram = ({
 		)
 	}
 
-	let loadingState: LoadingState | undefined
 	if (showLoadingState) {
-		if (outline) {
-			loadingState = 'spinner'
-		} else {
-			loadingState = 'skeleton'
+		if (!loadingState) {
+			if (outline) {
+				loadingState = 'spinner'
+			} else {
+				loadingState = 'skeleton'
+			}
 		}
+	} else {
+		loadingState = undefined
 	}
 
 	return (
@@ -494,7 +499,10 @@ const LogBucketBar = ({
 				width="full"
 				p="2"
 				gap="2"
-				cssClass={{ [styles.hover]: !loading && !isDragging }}
+				cssClass={{
+					[styles.hover]: !loading && !isDragging,
+					[styles.barsLoading]: loading,
+				}}
 				style={{
 					width: width,
 					height: '100%',

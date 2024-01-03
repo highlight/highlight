@@ -1,4 +1,4 @@
-import { IconProps } from '@highlight-run/ui'
+import { IconProps } from '@highlight-run/ui/components'
 import {
 	CLICKUP_INTEGRATION,
 	GITHUB_INTEGRATION,
@@ -11,6 +11,7 @@ import React from 'react'
 
 export interface ContainerSelectionProps {
 	setSelectionId: (id: string) => void
+	setIssueTypeId?: (id: string) => void
 	disabled: boolean
 }
 

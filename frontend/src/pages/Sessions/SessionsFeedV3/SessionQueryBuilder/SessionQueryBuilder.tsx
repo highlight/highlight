@@ -21,8 +21,8 @@ import QueryBuilder, {
 	SelectOption,
 	TIME_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
-import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
-import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
+import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
+import { DeleteSessionSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/DeleteSessionSegmentModal'
 
 export const InitialSearchParamsForUrl = {
 	browser: undefined,
@@ -130,6 +130,14 @@ export const CUSTOM_FIELDS: CustomField[] = [
 			operators: BOOLEAN_OPERATORS,
 		},
 	},
+	{
+		type: CUSTOM_TYPE,
+		name: 'sample',
+		options: {
+			type: 'sample',
+			operators: ['is_editable'],
+		},
+	},
 ]
 
 const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
@@ -170,10 +178,10 @@ const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 	return (
 		<QueryBuilder
 			searchContext={searchContext}
-			timeRangeField={TIME_RANGE_FIELD}
-			customFields={CUSTOM_FIELDS}
-			fetchFields={fetchFields}
-			fieldData={fieldData}
+			timeRangeField={props.timeRangeField ?? TIME_RANGE_FIELD}
+			customFields={props.customFields ?? CUSTOM_FIELDS}
+			fetchFields={props.fetchFields ?? fetchFields}
+			fieldData={props.fieldData ?? fieldData}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}
 			CreateAnySegmentModal={CreateSegmentModal}

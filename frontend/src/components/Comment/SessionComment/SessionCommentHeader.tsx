@@ -10,8 +10,8 @@ import {
 	Menu,
 	Stack,
 	Text,
-} from '@highlight-run/ui'
-import { vars } from '@highlight-run/ui/src/css/vars'
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
@@ -81,6 +81,10 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 		[jiraSettings.isIntegrated, JIRA_INTEGRATION],
 		[isHeightIntegrated, HEIGHT_INTEGRATION],
 	]
+
+	const anyIssueTrackerIntegrated = issueTrackers.some(
+		([isIntegrated]) => isIntegrated,
+	)
 
 	const createIssueMenuItems = (
 		<>
@@ -229,8 +233,12 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 										Delete comment
 									</Stack>
 								</Menu.Item>
-								<Menu.Divider />
-								{session && createIssueMenuItems}
+								{session && anyIssueTrackerIntegrated && (
+									<>
+										<Menu.Divider />
+										{createIssueMenuItems}
+									</>
+								)}
 							</Menu.List>
 						</Menu>
 					</Box>

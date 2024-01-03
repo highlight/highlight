@@ -17,11 +17,12 @@ import {
 	Stack,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
+import analytics from '@util/analytics'
 import { copyToClipboard } from '@util/string'
 import clsx from 'clsx'
 import React from 'react'
@@ -211,6 +212,17 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 }) => {
 	const [expanded, setExpanded] = React.useState(isFirst)
 
+	const handleExpandedChange = (value: boolean) => {
+		setExpanded(value)
+
+		const trackingProperties = {
+			expanded: value,
+			errorObjectId,
+			enhancementSource: enhancementSource ?? 'none',
+		}
+		analytics.track('error-stack-trace-clicked', trackingProperties)
+	}
+
 	const trigger = (
 		<Box p="12" backgroundColor="n2">
 			{!!lineContent ? (
@@ -316,18 +328,26 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						<IconSolidExternalLink size={16} />
 					</LinkButton>
 				)}
-				<Text cssClass={styles.name} color="n11" as="span">
-					{functionName ? ' in ' : ''}
-				</Text>
-				<Text cssClass={styles.name} as="span">
-					{functionName}
-				</Text>
-				<Text cssClass={styles.name} color="n11" as="span">
-					{lineNumber ? ' at line ' : ''}
-				</Text>
-				<Text cssClass={styles.name} as="span">
-					{lineNumber}
-				</Text>
+				{!!functionName && (
+					<>
+						<Text cssClass={styles.name} color="n11" as="span">
+							{' in '}
+						</Text>
+						<Text cssClass={styles.name} as="span">
+							{functionName}
+						</Text>
+					</>
+				)}
+				{!!lineNumber && (
+					<>
+						<Text cssClass={styles.name} color="n11" as="span">
+							{' at line '}
+						</Text>
+						<Text cssClass={styles.name} as="span">
+							{lineNumber}
+						</Text>
+					</>
+				)}
 			</Box>
 
 			<Box display="flex" gap="4" alignItems="center">
@@ -372,7 +392,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			<StackTraceSectionCollapsible
 				title={stackTraceTitle}
 				expanded={expanded}
-				setExpanded={setExpanded}
+				setExpanded={handleExpandedChange}
 				isLast={isLast}
 			>
 				{trigger}

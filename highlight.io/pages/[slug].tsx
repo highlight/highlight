@@ -33,6 +33,7 @@ import loggingscreenshot from '../public/images/loggingscreenshot.png'
 import monitoringscreenshot from '../public/images/monitoringscreenshot.png'
 import sessionscreenshot from '../public/images/sessionscreenshot.png'
 
+import { FaPlay } from 'react-icons/fa'
 import {
 	AnimateFeatureHeroRight,
 	AnimateFeatureHeroXL,
@@ -115,14 +116,20 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 									</Typography>
 								</PrimaryButton>
 								<PrimaryButton
-									href={feature.docsLink}
+									href={'https://app.highlight.io/demo'}
 									className={classNames(
 										homeStyles.hollowButton,
 									)}
 								>
-									<Typography type="copy2" emphasis={true}>
-										Read our docs
-									</Typography>
+									<div className="flex items-center gap-2">
+										<FaPlay />
+										<Typography
+											type="copy2"
+											emphasis={true}
+										>
+											Live demo
+										</Typography>
+									</div>
 								</PrimaryButton>
 							</div>
 							<div className="-ml-3 justify-self-start">
@@ -136,7 +143,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0 lg:w-[550px] xl:w-[650px]`}
 								src={IMAGE_MAP[feature.slantedImage]}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroRight>
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
@@ -144,14 +151,14 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 								className={`hidden ultra:flex w-[500px]`}
 								src={IMAGE_MAP[feature.regularImage]}
 								alt="Feature Spotlight"
-								onLoadingComplete={() => setImageLoaded(true)}
+								onLoad={() => setImageLoaded(true)}
 							/>
 						</AnimateFeatureHeroXL>
 						<Image
 							className={`lg:hidden right-0 object-contain bottom-0 md:w-[500px]`}
 							src={IMAGE_MAP[feature.regularImage]}
 							alt="Feature Spotlight"
-							onLoadingComplete={() => setImageLoaded(true)}
+							onLoad={() => setImageLoaded(true)}
 						/>
 					</div>
 				</div>

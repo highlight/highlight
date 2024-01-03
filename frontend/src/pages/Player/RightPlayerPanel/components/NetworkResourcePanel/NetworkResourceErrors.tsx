@@ -1,4 +1,4 @@
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useGetErrorGroupsClickhouseQuery } from '@/graph/generated/hooks'

@@ -1,4 +1,4 @@
-import { Form, Stack, Text, useFormStore } from '@highlight-run/ui'
+import { Form, Stack, Text, useFormStore } from '@highlight-run/ui/components'
 import { message } from 'antd'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -18,7 +18,7 @@ import {
 import { AuthBody, AuthFooter, AuthHeader } from '@/pages/Auth/Layout'
 import { Landing } from '@/pages/Landing/Landing'
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
-import { showIntercomMessage } from '@/util/window'
+import { showSupportMessage } from '@/util/window'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -27,7 +27,14 @@ export const DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY =
 	'highlightDismissedJoinWorkspace'
 
 export const JoinWorkspace = () => {
-	const { data, loading } = useGetWorkspacesQuery()
+	const { data, loading } = useGetWorkspacesQuery({
+		onCompleted: (data) => {
+			formStore.setValue(
+				formStore.names.workspaceId,
+				data?.joinable_workspaces?.[0]?.id,
+			)
+		},
+	})
 	const { data: adminData } = useGetAdminQuery()
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
@@ -59,7 +66,7 @@ export const JoinWorkspace = () => {
 			const error = response.errors[0].message
 			message.error(response.errors[0].message, 1)
 
-			showIntercomMessage(
+			showSupportMessage(
 				`I can't join a workspace. This is the error I'm getting: "${error}"`,
 			)
 		}
@@ -145,7 +152,7 @@ export const JoinWorkspace = () => {
 							navigate(ABOUT_YOU_ROUTE, { replace: true })
 						}}
 					>
-						<Text color="moderate">Cancel</Text>
+						<Text color="moderate">Create My Own Workspace</Text>
 					</Button>
 				</AuthFooter>
 			</Form>

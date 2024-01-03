@@ -1,4 +1,4 @@
-import { sprinkles } from '@highlight-run/ui'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { style } from '@vanilla-extract/css'
 
 export const dialog = style([
@@ -9,7 +9,6 @@ export const dialog = style([
 		border: 'dividerWeak',
 		borderRadius: '6',
 		boxShadow: 'small',
-		padding: '8',
 		overflow: 'scroll',
 	}),
 	{

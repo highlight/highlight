@@ -353,18 +353,8 @@ export type MuteSessionCommentThreadMutationOptions =
 		Types.MuteSessionCommentThreadMutationVariables
 	>
 export const CreateOrUpdateStripeSubscriptionDocument = gql`
-	mutation CreateOrUpdateStripeSubscription(
-		$workspace_id: ID!
-		$plan_type: PlanType!
-		$interval: SubscriptionInterval!
-		$retention_period: RetentionPeriod!
-	) {
-		createOrUpdateStripeSubscription(
-			workspace_id: $workspace_id
-			plan_type: $plan_type
-			interval: $interval
-			retention_period: $retention_period
-		)
+	mutation CreateOrUpdateStripeSubscription($workspace_id: ID!) {
+		createOrUpdateStripeSubscription(workspace_id: $workspace_id)
 	}
 `
 export type CreateOrUpdateStripeSubscriptionMutationFn =
@@ -387,9 +377,6 @@ export type CreateOrUpdateStripeSubscriptionMutationFn =
  * const [createOrUpdateStripeSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateStripeSubscriptionMutation({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
- *      plan_type: // value for 'plan_type'
- *      interval: // value for 'interval'
- *      retention_period: // value for 'retention_period'
  *   },
  * });
  */
@@ -423,6 +410,8 @@ export const SaveBillingPlanDocument = gql`
 		$errorsRetention: RetentionPeriod!
 		$logsLimitCents: Int
 		$logsRetention: RetentionPeriod!
+		$tracesLimitCents: Int
+		$tracesRetention: RetentionPeriod!
 	) {
 		saveBillingPlan(
 			workspace_id: $workspace_id
@@ -432,6 +421,8 @@ export const SaveBillingPlanDocument = gql`
 			errorsRetention: $errorsRetention
 			logsLimitCents: $logsLimitCents
 			logsRetention: $logsRetention
+			tracesLimitCents: $tracesLimitCents
+			tracesRetention: $tracesRetention
 		)
 	}
 `
@@ -460,6 +451,8 @@ export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
  *      errorsRetention: // value for 'errorsRetention'
  *      logsLimitCents: // value for 'logsLimitCents'
  *      logsRetention: // value for 'logsRetention'
+ *      tracesLimitCents: // value for 'tracesLimitCents'
+ *      tracesRetention: // value for 'tracesRetention'
  *   },
  * });
  */
@@ -1527,6 +1520,10 @@ export const EditProjectSettingsDocument = gql`
 				error_sampling_rate
 				log_sampling_rate
 				trace_sampling_rate
+				session_minute_rate_limit
+				error_minute_rate_limit
+				log_minute_rate_limit
+				trace_minute_rate_limit
 				session_exclusion_query
 				error_exclusion_query
 				log_exclusion_query
@@ -1799,13 +1796,13 @@ export const EditSegmentDocument = gql`
 	mutation EditSegment(
 		$project_id: ID!
 		$id: ID!
-		$params: SearchParamsInput!
+		$query: String!
 		$name: String!
 	) {
 		editSegment(
 			project_id: $project_id
 			id: $id
-			params: $params
+			query: $query
 			name: $name
 		)
 	}
@@ -1830,7 +1827,7 @@ export type EditSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *      name: // value for 'name'
  *   },
  * });
@@ -1856,38 +1853,10 @@ export type EditSegmentMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditSegmentMutationVariables
 >
 export const CreateSegmentDocument = gql`
-	mutation CreateSegment(
-		$project_id: ID!
-		$name: String!
-		$params: SearchParamsInput!
-	) {
-		createSegment(project_id: $project_id, name: $name, params: $params) {
+	mutation CreateSegment($project_id: ID!, $name: String!, $query: String!) {
+		createSegment(project_id: $project_id, name: $name, query: $query) {
 			name
 			id
-			params {
-				user_properties {
-					name
-					value
-				}
-				excluded_properties {
-					name
-					value
-				}
-				date_range {
-					start_date
-					end_date
-				}
-				os
-				browser
-				visited_url
-				referrer
-				identified
-				hide_viewed
-				app_versions
-				environments
-				device_id
-				show_live_sessions
-			}
 		}
 	}
 `
@@ -1911,7 +1880,7 @@ export type CreateSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -1956,6 +1925,7 @@ export const CreateSessionCommentDocument = gql`
 		$issue_team_id: String
 		$issue_description: String
 		$additional_context: String
+		$issue_type_id: String
 	) {
 		createSessionComment(
 			project_id: $project_id
@@ -1977,6 +1947,7 @@ export const CreateSessionCommentDocument = gql`
 			issue_team_id: $issue_team_id
 			issue_description: $issue_description
 			additional_context: $additional_context
+			issue_type_id: $issue_type_id
 		) {
 			id
 			timestamp
@@ -2036,6 +2007,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
  *      additional_context: // value for 'additional_context'
+ *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -2071,6 +2043,7 @@ export const CreateIssueForSessionCommentDocument = gql`
 		$issue_title: String
 		$issue_team_id: String
 		$issue_description: String
+		$issue_type_id: String
 	) {
 		createIssueForSessionComment(
 			project_id: $project_id
@@ -2083,6 +2056,7 @@ export const CreateIssueForSessionCommentDocument = gql`
 			issue_description: $issue_description
 			issue_team_id: $issue_team_id
 			integrations: $integrations
+			issue_type_id: $issue_type_id
 		) {
 			id
 			timestamp
@@ -2133,6 +2107,7 @@ export type CreateIssueForSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
+ *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -2295,6 +2270,7 @@ export const CreateErrorCommentDocument = gql`
 		$issue_title: String
 		$issue_team_id: String
 		$issue_description: String
+		$issue_type_id: String
 	) {
 		createErrorComment(
 			project_id: $project_id
@@ -2309,6 +2285,7 @@ export const CreateErrorCommentDocument = gql`
 			issue_title: $issue_title
 			issue_team_id: $issue_team_id
 			issue_description: $issue_description
+			issue_type_id: $issue_type_id
 		) {
 			id
 			created_at
@@ -2352,6 +2329,7 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
+ *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -2386,6 +2364,7 @@ export const CreateIssueForErrorCommentDocument = gql`
 		$issue_title: String
 		$issue_team_id: String
 		$issue_description: String
+		$issue_type_id: String
 	) {
 		createIssueForErrorComment(
 			project_id: $project_id
@@ -2397,6 +2376,7 @@ export const CreateIssueForErrorCommentDocument = gql`
 			issue_team_id: $issue_team_id
 			issue_description: $issue_description
 			integrations: $integrations
+			issue_type_id: $issue_type_id
 		) {
 			id
 			created_at
@@ -2443,6 +2423,7 @@ export type CreateIssueForErrorCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
+ *      issue_type_id: // value for 'issue_type_id'
  *   },
  * });
  */
@@ -2737,13 +2718,13 @@ export const EditErrorSegmentDocument = gql`
 	mutation EditErrorSegment(
 		$project_id: ID!
 		$id: ID!
-		$params: ErrorSearchParamsInput!
+		$query: String!
 		$name: String!
 	) {
 		editErrorSegment(
 			project_id: $project_id
 			id: $id
-			params: $params
+			query: $query
 			name: $name
 		)
 	}
@@ -2768,7 +2749,7 @@ export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      id: // value for 'id'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *      name: // value for 'name'
  *   },
  * });
@@ -2797,25 +2778,15 @@ export const CreateErrorSegmentDocument = gql`
 	mutation CreateErrorSegment(
 		$project_id: ID!
 		$name: String!
-		$params: ErrorSearchParamsInput!
+		$query: String!
 	) {
 		createErrorSegment(
 			project_id: $project_id
 			name: $name
-			params: $params
+			query: $query
 		) {
 			name
 			id
-			params {
-				date_range {
-					start_date
-					end_date
-				}
-				os
-				browser
-				visited_url
-				state
-			}
 		}
 	}
 `
@@ -2839,7 +2810,7 @@ export type CreateErrorSegmentMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      name: // value for 'name'
- *      params: // value for 'params'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -5312,79 +5283,6 @@ export type GetMetricsTimelineQueryResult = Apollo.QueryResult<
 	Types.GetMetricsTimelineQuery,
 	Types.GetMetricsTimelineQueryVariables
 >
-export const GetMetricsHistogramDocument = gql`
-	query GetMetricsHistogram(
-		$project_id: ID!
-		$metric_name: String!
-		$params: HistogramParamsInput!
-	) {
-		metrics_histogram(
-			project_id: $project_id
-			metric_name: $metric_name
-			params: $params
-		) {
-			buckets {
-				bucket
-				range_start
-				range_end
-				count
-			}
-			min
-			max
-		}
-	}
-`
-
-/**
- * __useGetMetricsHistogramQuery__
- *
- * To run a query within a React component, call `useGetMetricsHistogramQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMetricsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetMetricsHistogramQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      metric_name: // value for 'metric_name'
- *      params: // value for 'params'
- *   },
- * });
- */
-export function useGetMetricsHistogramQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetMetricsHistogramQuery,
-		Types.GetMetricsHistogramQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetMetricsHistogramQuery,
-		Types.GetMetricsHistogramQueryVariables
-	>(GetMetricsHistogramDocument, baseOptions)
-}
-export function useGetMetricsHistogramLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetMetricsHistogramQuery,
-		Types.GetMetricsHistogramQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetMetricsHistogramQuery,
-		Types.GetMetricsHistogramQueryVariables
-	>(GetMetricsHistogramDocument, baseOptions)
-}
-export type GetMetricsHistogramQueryHookResult = ReturnType<
-	typeof useGetMetricsHistogramQuery
->
-export type GetMetricsHistogramLazyQueryHookResult = ReturnType<
-	typeof useGetMetricsHistogramLazyQuery
->
-export type GetMetricsHistogramQueryResult = Apollo.QueryResult<
-	Types.GetMetricsHistogramQuery,
-	Types.GetMetricsHistogramQueryVariables
->
 export const GetNetworkHistogramDocument = gql`
 	query GetNetworkHistogram(
 		$project_id: ID!
@@ -7352,6 +7250,74 @@ export type GetSessionsHistogramClickhouseQueryResult = Apollo.QueryResult<
 	Types.GetSessionsHistogramClickhouseQuery,
 	Types.GetSessionsHistogramClickhouseQueryVariables
 >
+export const GetSessionsReportDocument = gql`
+	query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
+		sessions_report(project_id: $project_id, query: $query) {
+			key
+			user_properties
+			num_sessions
+			num_days_visited
+			num_months_visited
+			avg_active_length_mins
+			max_active_length_mins
+			total_active_length_mins
+			avg_length_mins
+			max_length_mins
+			total_length_mins
+			location
+		}
+	}
+`
+
+/**
+ * __useGetSessionsReportQuery__
+ *
+ * To run a query within a React component, call `useGetSessionsReportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionsReportQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetSessionsReportQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>(GetSessionsReportDocument, baseOptions)
+}
+export function useGetSessionsReportLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionsReportQuery,
+		Types.GetSessionsReportQueryVariables
+	>(GetSessionsReportDocument, baseOptions)
+}
+export type GetSessionsReportQueryHookResult = ReturnType<
+	typeof useGetSessionsReportQuery
+>
+export type GetSessionsReportLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsReportLazyQuery
+>
+export type GetSessionsReportQueryResult = Apollo.QueryResult<
+	Types.GetSessionsReportQuery,
+	Types.GetSessionsReportQueryVariables
+>
 export const GetErrorGroupsClickhouseDocument = gql`
 	query GetErrorGroupsClickhouse(
 		$project_id: ID!
@@ -8430,12 +8396,16 @@ export const GetBillingDetailsForProjectDocument = gql`
 		billingDetailsForProject(project_id: $project_id) {
 			plan {
 				type
-				quota
 				interval
 				membersLimit
+				sessionsLimit
 				errorsLimit
 				logsLimit
 				tracesLimit
+				sessionsRate
+				errorsRate
+				logsRate
+				tracesRate
 			}
 			meter
 			membersMeter
@@ -8512,27 +8482,39 @@ export const GetBillingDetailsDocument = gql`
 		billingDetails(workspace_id: $workspace_id) {
 			plan {
 				type
-				quota
 				interval
 				membersLimit
+				sessionsLimit
 				errorsLimit
 				logsLimit
+				tracesLimit
+				sessionsRate
+				errorsRate
+				logsRate
+				tracesRate
+				enableBillingLimits
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
+			tracesMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
 			sessionsDailyAverage
 			errorsDailyAverage
 			logsDailyAverage
+			tracesDailyAverage
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
@@ -8541,6 +8523,8 @@ export const GetBillingDetailsDocument = gql`
 				url
 				status
 			}
+			billingIssue
+			billingIngestBlocked
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -8554,6 +8538,7 @@ export const GetBillingDetailsDocument = gql`
 			sessions_max_cents
 			errors_max_cents
 			logs_max_cents
+			traces_max_cents
 		}
 	}
 `
@@ -8610,8 +8595,12 @@ export const GetSubscriptionDetailsDocument = gql`
 	query GetSubscriptionDetails($workspace_id: ID!) {
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
-			discountAmount
-			discountPercent
+			discount {
+				name
+				amount
+				percent
+				until
+			}
 			lastInvoice {
 				amountDue
 				amountPaid
@@ -8621,6 +8610,7 @@ export const GetSubscriptionDetailsDocument = gql`
 				status
 			}
 			billingIssue
+			billingIngestBlocked
 		}
 	}
 `
@@ -9599,37 +9589,6 @@ export const GetSegmentsDocument = gql`
 			id
 			name
 			params {
-				user_properties {
-					name
-					value
-				}
-				excluded_properties {
-					name
-					value
-				}
-				track_properties {
-					name
-					value
-				}
-				date_range {
-					start_date
-					end_date
-				}
-				length_range {
-					min
-					max
-				}
-				os
-				browser
-				visited_url
-				referrer
-				identified
-				hide_viewed
-				first_time
-				app_versions
-				environments
-				device_id
-				show_live_sessions
 				query
 			}
 		}
@@ -9688,15 +9647,6 @@ export const GetErrorSegmentsDocument = gql`
 			id
 			name
 			params {
-				date_range {
-					start_date
-					end_date
-				}
-				os
-				browser
-				visited_url
-				state
-				event
 				query
 			}
 		}
@@ -10092,24 +10042,24 @@ export type GetTracesIntegrationQueryResult = Apollo.QueryResult<
 	Types.GetTracesIntegrationQueryVariables
 >
 export const GetKeyPerformanceIndicatorsDocument = gql`
-	query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
+	query GetKeyPerformanceIndicators(
+		$project_id: ID!
+		$lookback_days: Float!
+	) {
 		unprocessedSessionsCount(project_id: $project_id)
 		liveUsersCount(project_id: $project_id)
-		newUsersCount(
-			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
-		) {
+		newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 			count
 		}
 		averageSessionLength(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			length
 		}
 		userFingerprintCount(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			count
 		}
@@ -10129,7 +10079,7 @@ export const GetKeyPerformanceIndicatorsDocument = gql`
  * const { data, loading, error } = useGetKeyPerformanceIndicatorsQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10166,8 +10116,8 @@ export type GetKeyPerformanceIndicatorsQueryResult = Apollo.QueryResult<
 	Types.GetKeyPerformanceIndicatorsQueryVariables
 >
 export const GetReferrersCountDocument = gql`
-	query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
-		referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+	query GetReferrersCount($project_id: ID!, $lookback_days: Float!) {
+		referrers(project_id: $project_id, lookback_days: $lookback_days) {
 			host
 			count
 			percent
@@ -10188,7 +10138,7 @@ export const GetReferrersCountDocument = gql`
  * const { data, loading, error } = useGetReferrersCountQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10225,11 +10175,8 @@ export type GetReferrersCountQueryResult = Apollo.QueryResult<
 	Types.GetReferrersCountQueryVariables
 >
 export const GetNewUsersCountDocument = gql`
-	query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
-		newUsersCount(
-			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
-		) {
+	query GetNewUsersCount($project_id: ID!, $lookback_days: Float!) {
+		newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 			count
 		}
 	}
@@ -10248,7 +10195,7 @@ export const GetNewUsersCountDocument = gql`
  * const { data, loading, error } = useGetNewUsersCountQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10285,10 +10232,10 @@ export type GetNewUsersCountQueryResult = Apollo.QueryResult<
 	Types.GetNewUsersCountQueryVariables
 >
 export const GetAverageSessionLengthDocument = gql`
-	query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
+	query GetAverageSessionLength($project_id: ID!, $lookback_days: Float!) {
 		averageSessionLength(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			length
 		}
@@ -10308,7 +10255,7 @@ export const GetAverageSessionLengthDocument = gql`
  * const { data, loading, error } = useGetAverageSessionLengthQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10345,8 +10292,8 @@ export type GetAverageSessionLengthQueryResult = Apollo.QueryResult<
 	Types.GetAverageSessionLengthQueryVariables
 >
 export const GetTopUsersDocument = gql`
-	query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
-		topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+	query GetTopUsers($project_id: ID!, $lookback_days: Float!) {
+		topUsers(project_id: $project_id, lookback_days: $lookback_days) {
 			identifier
 			total_active_time
 			active_time_percentage
@@ -10369,7 +10316,7 @@ export const GetTopUsersDocument = gql`
  * const { data, loading, error } = useGetTopUsersQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -10523,10 +10470,10 @@ export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
 	Types.GetDailyErrorsCountQueryVariables
 >
 export const GetRageClicksForProjectDocument = gql`
-	query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+	query GetRageClicksForProject($project_id: ID!, $lookback_days: Float!) {
 		rageClicksForProject(
 			project_id: $project_id
-			lookBackPeriod: $lookBackPeriod
+			lookback_days: $lookback_days
 		) {
 			identifier
 			session_secure_id
@@ -10549,7 +10496,7 @@ export const GetRageClicksForProjectDocument = gql`
  * const { data, loading, error } = useGetRageClicksForProjectQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      lookBackPeriod: // value for 'lookBackPeriod'
+ *      lookback_days: // value for 'lookback_days'
  *   },
  * });
  */
@@ -11184,6 +11131,11 @@ export const GetJiraIntegrationSettingsDocument = gql`
 			id
 			name
 			key
+			issueTypes {
+				id
+				name
+				description
+			}
 		}
 	}
 `
@@ -12574,8 +12526,16 @@ export type GetSuggestedMetricsQueryResult = Apollo.QueryResult<
 	Types.GetSuggestedMetricsQueryVariables
 >
 export const GetMetricTagsDocument = gql`
-	query GetMetricTags($project_id: ID!, $metric_name: String!) {
-		metric_tags(project_id: $project_id, metric_name: $metric_name)
+	query GetMetricTags(
+		$project_id: ID!
+		$metric_name: String!
+		$query: String
+	) {
+		metric_tags(
+			project_id: $project_id
+			metric_name: $metric_name
+			query: $query
+		)
 	}
 `
 
@@ -12593,6 +12553,7 @@ export const GetMetricTagsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      metric_name: // value for 'metric_name'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -13089,6 +13050,7 @@ export const GetLogsDocument = gql`
 					source
 					serviceName
 					serviceVersion
+					environment
 				}
 			}
 			pageInfo {
@@ -13334,8 +13296,16 @@ export type GetLogsHistogramQueryResult = Apollo.QueryResult<
 	Types.GetLogsHistogramQueryVariables
 >
 export const GetLogsKeysDocument = gql`
-	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-		keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+	query GetLogsKeys(
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+		$query: String
+	) {
+		keys: logs_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -13356,6 +13326,7 @@ export const GetLogsKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */
@@ -13714,7 +13685,8 @@ export const GetWorkspaceSettingsDocument = gql`
 			ai_insights
 			enable_session_export
 			enable_unlisted_sharing
-			enable_ingest_filters
+			enable_ingest_sampling
+			enable_data_deletion
 		}
 	}
 `
@@ -14255,7 +14227,9 @@ export const GetTraceDocument = gql`
 				duration
 				serviceName
 				serviceVersion
+				environment
 				traceAttributes
+				startTime
 				statusCode
 				statusMessage
 			}
@@ -14353,6 +14327,7 @@ export const GetTracesDocument = gql`
 					duration
 					serviceName
 					serviceVersion
+					environment
 					traceAttributes
 					statusCode
 					statusMessage
@@ -14423,14 +14398,24 @@ export const GetTracesMetricsDocument = gql`
 	query GetTracesMetrics(
 		$project_id: ID!
 		$params: QueryInput!
-		$metric_types: [TracesMetricType!]!
+		$column: String!
+		$metric_types: [MetricAggregator!]!
 		$group_by: [String!]!
+		$bucket_by: String
+		$limit: Int
+		$limit_aggregator: MetricAggregator
+		$limit_column: String
 	) {
 		traces_metrics(
 			project_id: $project_id
 			params: $params
+			column: $column
 			metric_types: $metric_types
 			group_by: $group_by
+			bucket_by: $bucket_by
+			limit: $limit
+			limit_aggregator: $limit_aggregator
+			limit_column: $limit_column
 		) {
 			buckets {
 				bucket_id
@@ -14458,8 +14443,13 @@ export const GetTracesMetricsDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      column: // value for 'column'
  *      metric_types: // value for 'metric_types'
  *      group_by: // value for 'group_by'
+ *      bucket_by: // value for 'bucket_by'
+ *      limit: // value for 'limit'
+ *      limit_aggregator: // value for 'limit_aggregator'
+ *      limit_column: // value for 'limit_column'
  *   },
  * });
  */
@@ -14499,8 +14489,13 @@ export const GetTracesKeysDocument = gql`
 	query GetTracesKeys(
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
+		$query: String
 	) {
-		keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+		keys: traces_keys(
+			project_id: $project_id
+			date_range: $date_range
+			query: $query
+		) {
 			name
 			type
 		}
@@ -14521,6 +14516,7 @@ export const GetTracesKeysDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
  *   },
  * });
  */

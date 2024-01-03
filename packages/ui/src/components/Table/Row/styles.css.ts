@@ -41,3 +41,7 @@ export const row = style({
 			},
 	},
 })
+
+export const selected = style({
+	background: vars.theme.static.surface.raised,
+})

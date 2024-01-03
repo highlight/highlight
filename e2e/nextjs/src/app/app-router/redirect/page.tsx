@@ -6,7 +6,7 @@ type Props = {
 
 export default function RedirectPage({ searchParams }: Props) {
 	if (searchParams.shouldRedirect) {
-		return redirect(`/isr`)
+		return redirect(`/ssr`)
 	}
 
 	return (

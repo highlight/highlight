@@ -1,12 +1,12 @@
 import {
 	AmplitudeAPI,
 	setupAmplitudeIntegration,
-} from './integrations/amplitude'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
+} from './integrations/amplitude.js'
+import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
 import type {
 	Highlight,
 	HighlightClassOptions,
-} from '@highlight-run/client/src'
+} from '@highlight-run/client/src/index.js'
 import {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -14,21 +14,25 @@ import {
 	Metric,
 	OnHighlightReadyOptions,
 	SessionDetails,
-} from '@highlight-run/client/src/types/types'
-import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
-
-import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
-import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
-import { HighlightSegmentMiddleware } from './integrations/segment'
-import configureElectronHighlight from './environments/electron'
-import firstloadVersion from './__generated/version'
+} from '@highlight-run/client/src/types/types.js'
 import {
-	SessionData,
+	MixpanelAPI,
+	setupMixpanelIntegration,
+} from './integrations/mixpanel.js'
+
+import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners.js'
+import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
+import { HighlightSegmentMiddleware } from './integrations/segment.js'
+import configureElectronHighlight from './environments/electron.js'
+import firstloadVersion from './__generated/version.js'
+import {
 	getPreviousSessionData,
-} from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
-import { initializeFetchListener } from './listeners/fetch'
-import { initializeWebSocketListener } from './listeners/web-socket'
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
+	SessionData,
+} from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
+import { initializeFetchListener } from './listeners/fetch/index.js'
+import { initializeWebSocketListener } from './listeners/web-socket/index.js'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
+import { setItem } from '@highlight-run/client/src/utils/storage.js'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -99,7 +103,7 @@ const H: HighlightPublicInterface = {
 					sessionSecureID,
 				}
 
-				window.sessionStorage.setItem(
+				setItem(
 					SESSION_STORAGE_KEYS.SESSION_DATA,
 					JSON.stringify(sessionData),
 				)
@@ -146,6 +150,7 @@ const H: HighlightPublicInterface = {
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
 				storageMode: options?.storageMode,
+				sendMode: options?.sendMode,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {

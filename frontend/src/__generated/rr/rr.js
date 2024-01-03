@@ -222,20 +222,18 @@ function shouldObfuscateTextByDefault(text) {
   });
 }
 var maskedInputType = function(_a2) {
-  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, inputId = _a2.inputId, inputName = _a2.inputName, autocomplete = _a2.autocomplete;
+  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, overwriteRecord = _a2.overwriteRecord;
   var actualType = type && type.toLowerCase();
-  return maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType] || inputId && maskInputOptions[inputId] || inputName && maskInputOptions[inputName] || !!autocomplete && typeof autocomplete === "string" && !!maskInputOptions[autocomplete];
+  return overwriteRecord !== "true" && (!!maskInputOptions[tagName.toLowerCase()] || !!(actualType && maskInputOptions[actualType]));
 };
 function maskInputValue(_a2) {
-  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, inputId = _a2.inputId, inputName = _a2.inputName, autocomplete = _a2.autocomplete, value = _a2.value, maskInputFn = _a2.maskInputFn;
+  var maskInputOptions = _a2.maskInputOptions, tagName = _a2.tagName, type = _a2.type, value = _a2.value, overwriteRecord = _a2.overwriteRecord, maskInputFn = _a2.maskInputFn;
   var text = value || "";
   if (maskedInputType({
     maskInputOptions,
     tagName,
     type,
-    inputId,
-    inputName,
-    autocomplete
+    overwriteRecord
   })) {
     if (maskInputFn) {
       text = maskInputFn(text);
@@ -599,7 +597,7 @@ function getRootId(doc, mirror2) {
   return docId === 1 ? void 0 : docId;
 }
 function serializeTextNode(n2, options) {
-  var _a2;
+  var _a2, _b2;
   var maskTextClass = options.maskTextClass, maskTextSelector = options.maskTextSelector, maskTextFn = options.maskTextFn, privacySetting = options.privacySetting, rootId = options.rootId;
   var parentTagName = n2.parentNode && n2.parentNode.tagName;
   var textContent = n2.textContent;
@@ -629,8 +627,9 @@ function serializeTextNode(n2, options) {
     textContent = maskTextFn ? maskTextFn(textContent) : textContent.replace(/[\S]/g, "*");
   }
   var enableStrictPrivacy = privacySetting === "strict";
+  var highlightOverwriteRecord = (_b2 = n2.parentElement) === null || _b2 === void 0 ? void 0 : _b2.getAttribute("data-hl-record");
   var obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(textContent);
-  if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !textContentHandled && parentTagName) {
+  if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && !textContentHandled && parentTagName) {
     var IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
       "TITLE",
@@ -694,9 +693,7 @@ function serializeElementNode(n2, options) {
         type,
         tagName,
         value,
-        inputId: n2.id,
-        inputName: n2.name,
-        autocomplete: n2.autocomplete,
+        overwriteRecord: n2.getAttribute("data-hl-record"),
         maskInputOptions,
         maskInputFn
       });
@@ -1105,7 +1102,7 @@ function parse(css, options) {
       return node;
     };
   }
-  var Position = function() {
+  var Position = /* @__PURE__ */ function() {
     function Position2(start) {
       this.start = start;
       this.end = { line: lineno, column };
@@ -2572,10 +2569,12 @@ var MutationBuffer = class {
       }
       const payload = {
         texts: this.texts.map((text) => {
+          var _a2, _b2;
           let value = text.value;
           const enableStrictPrivacy = this.privacySetting === "strict";
           const obfuscateDefaultPrivacy = this.privacySetting === "default" && shouldObfuscateTextByDefault(value);
-          if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && value) {
+          const highlightOverwriteRecord = (_b2 = (_a2 = text.node) === null || _a2 === void 0 ? void 0 : _a2.parentElement) === null || _b2 === void 0 ? void 0 : _b2.getAttribute("data-hl-record");
+          if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && highlightOverwriteRecord && value) {
             value = obfuscateText(value);
           }
           return {
@@ -2628,9 +2627,7 @@ var MutationBuffer = class {
               tagName: target.tagName,
               type,
               value,
-              inputId: target.id,
-              inputName: target.getAttribute("name"),
-              autocomplete: target.getAttribute("autocomplete"),
+              overwriteRecord: target.getAttribute("data-hl-record"),
               maskInputFn: this.maskInputFn
             });
           }
@@ -3053,25 +3050,21 @@ function initInputObserver({ inputCb, doc, mirror: mirror2, blockClass, blockSel
     let text = target.value;
     let isChecked = false;
     const type = getInputType(target) || "";
-    const { id: inputId, name: inputName, autocomplete } = target;
+    const overwriteRecord = target.getAttribute("data-hl-record");
     if (type === "radio" || type === "checkbox") {
       isChecked = target.checked;
     } else if (maskedInputType({
       maskInputOptions,
       type,
       tagName,
-      inputId,
-      inputName,
-      autocomplete
+      overwriteRecord
     })) {
       text = maskInputValue({
         maskInputOptions,
         tagName,
         type,
         value: text,
-        inputId,
-        inputName,
-        autocomplete,
+        overwriteRecord,
         maskInputFn
       });
     }
@@ -5203,7 +5196,7 @@ var hyphenateRE = /\B([A-Z])/g;
 var hyphenate = (str) => {
   return str.replace(hyphenateRE, "-$1").toLowerCase();
 };
-var BaseRRNode = class {
+var BaseRRNode = class _BaseRRNode {
   constructor(..._args) {
     this.parentElement = null;
     this.parentNode = null;
@@ -5224,7 +5217,7 @@ var BaseRRNode = class {
     return childNodes;
   }
   contains(node) {
-    if (!(node instanceof BaseRRNode))
+    if (!(node instanceof _BaseRRNode))
       return false;
     else if (node.ownerDocument !== this.ownerDocument)
       return false;
@@ -5987,7 +5980,7 @@ function nodeMatching(node1, node2, domMirror, rrdomMirror) {
     return false;
   return sameNodeType(node1, node2);
 }
-var RRDocument = class extends BaseRRDocumentImpl(BaseRRNode) {
+var RRDocument = class _RRDocument extends BaseRRDocumentImpl(BaseRRNode) {
   get unserializedId() {
     return this._unserializedId--;
   }
@@ -6002,7 +5995,7 @@ var RRDocument = class extends BaseRRDocumentImpl(BaseRRNode) {
     }
   }
   createDocument(_namespace, _qualifiedName, _doctype) {
-    return new RRDocument();
+    return new _RRDocument();
   }
   createDocumentType(qualifiedName, publicId, systemId) {
     const documentTypeNode = new RRDocumentType(qualifiedName, publicId, systemId);

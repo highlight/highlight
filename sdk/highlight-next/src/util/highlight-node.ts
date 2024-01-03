@@ -1,5 +1,6 @@
-import { H as NodeH, NodeOptions } from '@highlight-run/node'
-import { HighlightInterface, HighlightGlobal, RequestMetadata } from './types'
+import { H as NodeH } from '@highlight-run/node'
+import type { HighlightContext, NodeOptions } from '@highlight-run/node'
+import { HighlightInterface } from './types'
 
 export type HighlightEnv = NodeOptions
 
@@ -13,9 +14,7 @@ export const H: HighlightInterface = {
 	...NodeH,
 	init: (options: NodeOptions) => {
 		if (isNodeJs()) {
-			if (!NodeH.isInitialized()) {
-				NodeH.init(options)
-			}
+			return NodeH.init(options)
 		} else {
 			throw new Error(
 				`Highlight not registered due to unexpected runtime: NEXT_RUNTIME=${process.env.NEXT_RUNTIME}`,
@@ -28,11 +27,7 @@ export const H: HighlightInterface = {
 		)
 	},
 	isInitialized: () => NodeH.isInitialized(),
-	metrics: (metrics: Metric[], opts?: RequestMetadata) => {
-		const h = (global as typeof globalThis & HighlightGlobal).__HIGHLIGHT__
-		if (h && !opts) {
-			opts = h
-		}
+	metrics: (metrics: Metric[], opts?: HighlightContext) => {
 		if (!opts?.secureSessionId) {
 			return console.warn(
 				'H.metrics session could not be inferred the handler context.',

@@ -13,7 +13,7 @@ func (store *Store) GetWorkspace(ctx context.Context, id int) (*model.Workspace,
 	return redis.CachedEval(ctx, store.redis, fmt.Sprintf("workspace-id-%d", id), 150*time.Millisecond, time.Minute, func() (*model.Workspace, error) {
 		var workspace model.Workspace
 
-		err := store.db.Where(&model.Workspace{
+		err := store.db.WithContext(ctx).Where(&model.Workspace{
 			Model: model.Model{
 				ID: id,
 			},

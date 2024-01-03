@@ -1,6 +1,6 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
-import { Stack } from '@highlight-run/ui'
+import { Stack } from '@highlight-run/ui/components'
 import { message } from 'antd'
 import { Text } from 'recharts'
 

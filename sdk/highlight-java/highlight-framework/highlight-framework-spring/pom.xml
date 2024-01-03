@@ -9,6 +9,9 @@
 
 	<artifactId>highlight-framework-spring</artifactId>
 
+	<name>Highlight Java Spring SDK</name>
+	<description>highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)</description>
+
 	<properties>
 		<maven.install.skip>false</maven.install.skip>
 		<maven.deploy.skip>false</maven.deploy.skip>

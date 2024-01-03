@@ -1,15 +1,14 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
-import { logoOnDark, bug2, font, fontLight, bug1 } from '../util'
+import { bug1, bug2, font, fontLight, logoOnDark } from '../util'
 import 'fs'
-import path from 'path'
-import { getGithubDoc } from '../../docs/github'
+import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
 
 export const config = {
 	runtime: 'edge',
 }
 
-export default async function handler(req: NextRequest) {
+const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 	const fontData = await font
 	const fontLightData = await fontLight
 	const logoData = await logoOnDark
@@ -43,6 +42,7 @@ export default async function handler(req: NextRequest) {
 	)
 	const crumbs = readablePaths?.slice(-3, -1)
 	const title = readablePaths?.at(-1)
+	console.log('highlight og image for doc', { title, crumbs, docPath })
 
 	return new ImageResponse(
 		(
@@ -146,4 +146,5 @@ export default async function handler(req: NextRequest) {
 			],
 		},
 	)
-}
+})
+export default handler

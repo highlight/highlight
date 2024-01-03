@@ -1,25 +1,24 @@
 import {
 	H as CloudflareH,
 	HighlightEnv as CloudflareHighlightEnv,
-	extractRequestMetadata,
 } from '@highlight-run/cloudflare'
-import type { NodeOptions } from '@highlight-run/node'
-import type { ExecutionContext } from '@cloudflare/workers-types'
-import { HighlightInterface, Metric, RequestMetadata } from './types'
+import type { HighlightContext, NodeOptions } from '@highlight-run/node'
+import {
+	ExtendedExecutionContext,
+	HIGHLIGHT_REQUEST_HEADER,
+	HighlightInterface,
+	Metric,
+} from './types'
+import { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
-type ExtendedExecutionContext = ExecutionContext & {
-	__waitUntilTimer?: ReturnType<typeof setInterval>
-	__waitUntilPromises?: Promise<void>[]
-	waitUntilFinished?: () => Promise<void>
-}
+let executionContext: ExtendedExecutionContext
 
-let globalRequestMetadata: RequestMetadata = {
+let globalHighlightContext: HighlightContext = {
 	secureSessionId: '',
 	requestId: '',
 }
-let executionContext: ExtendedExecutionContext
 
 export const H: HighlightInterface = {
 	...CloudflareH,
@@ -55,37 +54,48 @@ export const H: HighlightInterface = {
 			)
 		}
 
-		globalRequestMetadata = extractRequestMetadata(request)
+		const headers: { [key: string]: string } = {}
+		request.headers.forEach((value, key) => {
+			headers[key] = value
+		})
+
+		setHeaders(headers)
 
 		return CloudflareH.init(request, cloudflareEnv, ctx, env.serviceName)
 	},
-	metrics: (metrics: Metric[], requestMetadata?: RequestMetadata) => {
-		const localRequestMetadata = requestMetadata || globalRequestMetadata
+	metrics: function (metrics: Metric[], highlightContext?: HighlightContext) {
+		const localHighlightContext = highlightContext ?? this.parseHeaders({})
 
-		if (!localRequestMetadata.secureSessionId) {
+		if (!localHighlightContext.secureSessionId) {
 			return console.warn(
 				'H.metrics session could not be inferred the handler context. Consider passing the request metadata explicitly as a second argument to this function.',
 			)
 		}
 
 		for (const m of metrics) {
-			CloudflareH.recordMetric({ ...localRequestMetadata, ...m })
+			if (
+				localHighlightContext.secureSessionId &&
+				localHighlightContext.requestId
+			) {
+				CloudflareH.recordMetric({
+					secureSessionId: localHighlightContext.secureSessionId,
+					requestId: localHighlightContext.requestId,
+					...m,
+				})
+			}
 		}
 	},
-	consumeAndFlush: async (error: Error) => {
-		CloudflareH.consumeError(error)
-
+	flush: async () => {
 		if (executionContext?.waitUntilFinished) {
 			await executionContext.waitUntilFinished()
 		}
 	},
+	consumeAndFlush: async function (error: Error) {
+		CloudflareH.consumeError(error)
+		await this.flush()
+	},
 	stop: async () => {
 		throw new Error('H.stop is not supported by the Edge runtime.')
-	},
-	flush: async () => {
-		throw new Error(
-			'H.flush is not supported by the Edge runtime. try H.consumeAndFlush instead.',
-		)
 	},
 	recordMetric: (
 		secureSessionId: string,
@@ -104,6 +114,26 @@ export const H: HighlightInterface = {
 			requestId,
 			tags,
 		})
+	},
+	parseHeaders(
+		headers: Headers | IncomingHttpHeaders | undefined,
+	): HighlightContext {
+		const highlightCtx = globalHighlightContext
+		if (highlightCtx?.secureSessionId && highlightCtx?.requestId) {
+			return highlightCtx
+		} else if (headers) {
+			return parseHeaders(headers)
+		}
+
+		return { secureSessionId: undefined, requestId: undefined }
+	},
+	async runWithHeaders<T>(
+		headers: Headers | IncomingHttpHeaders,
+		cb: () => T,
+	) {
+		headers && setHeaders(headers)
+
+		return cb()
 	},
 }
 
@@ -131,4 +161,30 @@ function polyfillWaitUntil(ctx: ExtendedExecutionContext) {
 			await Promise.allSettled(ctx.__waitUntilPromises)
 		}
 	}
+}
+
+function setHeaders(headers: Headers | IncomingHttpHeaders) {
+	const highlightCtx = parseHeaders(headers)
+	if (highlightCtx) {
+		globalHighlightContext = highlightCtx
+	}
+
+	return highlightCtx
+}
+
+function parseHeaders(headers: IncomingHttpHeaders | Headers) {
+	let requestHeaders: IncomingHttpHeaders = {}
+	if (headers instanceof Headers) {
+		headers.forEach((k, v) => (requestHeaders[k] = v))
+	} else {
+		requestHeaders = headers
+	}
+
+	if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
+		const [secureSessionId, requestId] =
+			`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+		return { secureSessionId, requestId }
+	}
+
+	return { secureSessionId: undefined, requestId: undefined }
 }

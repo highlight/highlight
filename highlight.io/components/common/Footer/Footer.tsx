@@ -51,7 +51,7 @@ const Footer = () => {
 								</Link>
 							</li>
 							<li>
-								<Link href="/#customers">Customers</Link>
+								<Link href="/customers">Customers</Link>
 							</li>
 							<li>
 								<Link href="/session-replay">
@@ -119,7 +119,7 @@ const Footer = () => {
 						<ul className={styles.footerList}>
 							{Object.entries(PRODUCTS).map(([key, value]) => {
 								return (
-									<li key={value.docsLink}>
+									<li key={value.slug}>
 										<Link href={`/for/${value.slug}`}>
 											{value.title}
 										</Link>

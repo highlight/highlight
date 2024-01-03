@@ -1,20 +1,22 @@
 // pages/_error.tsx
 import NextError from 'next/error'
 import {
-	H,
-	getHighlightErrorInitialProps,
-	HighlightErrorProps,
-} from '@highlight-run/next/client'
-import CONSTANTS from '@/app/constants'
+	pageRouterCustomErrorHandler,
+	PageRouterErrorProps,
+} from '@highlight-run/next/ssr'
+import { CONSTANTS } from '@/constants'
 
-export default function CustomError({
-	errorMessage,
-	statusCode,
-}: HighlightErrorProps) {
-	H.init(CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID)
-	H.consumeError(new Error(errorMessage))
-
-	return <NextError statusCode={statusCode} /> // Render default Next error page
-}
-
-CustomError.getInitialProps = getHighlightErrorInitialProps
+export default pageRouterCustomErrorHandler(
+	{
+		projectId: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+		// ...otherHighlightOptions
+	},
+	/**
+	 *
+	 * This second argument is purely optional.
+	 * If you don't pass it, we'll use the default Next.js error page.
+	 *
+	 * Go ahead and pass in your own error page.
+	 */
+	(props: PageRouterErrorProps) => <NextError {...props} />,
+)

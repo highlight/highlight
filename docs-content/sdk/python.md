@@ -39,6 +39,17 @@ slug: python
       </article>
     </aside>
     <aside className="parameter">
+      <h5>disabled_integrations<code>List[Integration]</code> <code>optional</code></h5>
+      <p>A list of integrations to disable.</p>
+      <article className="innerParameterContainer">
+        <aside className="innerParameterHeading">Default integrations</aside>
+        <aside className="parameter">
+          <h5><code>highlight_io.integrations.Integration</code> <code>optional</code></h5>
+          <p>RequestsIntegration() for the [Requests](https://requests.readthedocs.io/en/latest/) library.</p>
+        </aside>
+      </article>
+    </aside>
+    <aside className="parameter">
       <h5>instrument_logging<code>boolean</code> <code>optional</code></h5>
       <p>If enabled, Highlight will record log output from the logging module.</p>
     </aside>
@@ -49,6 +60,10 @@ slug: python
     <aside className="parameter">
       <h5>service_version<code>string</code> <code>optional</code></h5>
       <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+    </aside>
+    <aside className="parameter">
+      <h5>environment<code>string</code> <code>optional</code></h5>
+      <p>Specifies the environment your application is running in. This helpful to differentiate if your project is running in production or locally.</p>
     </aside>
   </div>
   <div className="right">
@@ -63,6 +78,7 @@ slug: python
           instrument_logging=True,
           service_name="my-flask-app",
           service_version="git-sha", 
+          environment="production"
         )
     </code>
     In Django, you'll add Highlight to your settings.py file:
@@ -74,7 +90,8 @@ slug: python
           integrations=[DjangoIntegration()],
           instrument_logging=True,
           service_name="my-django-app",
-          service_version="git-sha", 
+          service_version="git-sha",
+          environment="production"
         )
     </code>
     In FastAPI, you'll add Highlight as a middleware:
@@ -85,7 +102,8 @@ slug: python
           "<YOUR_PROJECT_ID>",
           instrument_logging=True,
           service_name="my-fastapi-app",
-          service_version="git-sha", 
+          service_version="git-sha",
+          environment="production"
         )
         app = FastAPI()
         app.add_middleware(FastAPIMiddleware)

@@ -1,1 +1,5 @@
-var t="_1j4w14w0";export{t as backButton};
+// src/pages/Auth/ResetPassword.css.ts
+var backButton = "_1j4w14w0";
+export {
+  backButton
+};

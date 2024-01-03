@@ -1,4 +1,4 @@
-import { vars } from '@highlight-run/ui/src'
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const line = style({
@@ -13,7 +13,8 @@ export const logAttributeLine = style({})
 
 export const attributeActions = style({
 	alignItems: 'center',
-	display: 'none',
+	display: 'flex',
+	visibility: 'hidden',
 	flexDirection: 'row',
 	gap: 4,
 	opacity: 0.5,
@@ -22,7 +23,7 @@ export const attributeActions = style({
 			opacity: 1,
 		},
 		[`${logAttributeLine}:hover &`]: {
-			display: 'flex',
+			visibility: 'visible',
 		},
 	},
 })

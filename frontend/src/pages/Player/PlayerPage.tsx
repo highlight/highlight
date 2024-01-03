@@ -6,7 +6,7 @@ import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
-import { Box, Callout, Text } from '@highlight-run/ui'
+import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { CompleteSetup } from '@pages/Player/components/CompleteSetup/CompleteSetup'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
@@ -123,9 +123,12 @@ const PlayerPage = () => {
 		setSelectedDevToolsTab,
 		setShowDevTools,
 		showLeftPanel: showLeftPanelPreference,
-		showRightPanel,
+		showRightPanel: showRightPanelPreference,
 	} = usePlayerConfiguration()
-	const { setRightPanelView, setActiveError } = usePlayerUIContext()
+	const { rightPanelView, setRightPanelView, setActiveError } =
+		usePlayerUIContext()
+	const showRightPanel =
+		showRightPanelPreference || rightPanelView === RightPanelView.Comments
 
 	const { errorObject } = useLinkErrorInstance()
 	useEffect(() => {

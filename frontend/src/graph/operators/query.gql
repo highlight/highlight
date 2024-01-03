@@ -118,27 +118,6 @@ query GetMetricsTimeline(
 	}
 }
 
-query GetMetricsHistogram(
-	$project_id: ID!
-	$metric_name: String!
-	$params: HistogramParamsInput!
-) {
-	metrics_histogram(
-		project_id: $project_id
-		metric_name: $metric_name
-		params: $params
-	) {
-		buckets {
-			bucket
-			range_start
-			range_end
-			count
-		}
-		min
-		max
-	}
-}
-
 query GetNetworkHistogram(
 	$project_id: ID!
 	$params: NetworkHistogramParamsInput!
@@ -688,6 +667,23 @@ query GetSessionsHistogramClickhouse(
 	}
 }
 
+query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
+	sessions_report(project_id: $project_id, query: $query) {
+		key
+		user_properties
+		num_sessions
+		num_days_visited
+		num_months_visited
+		avg_active_length_mins
+		max_active_length_mins
+		total_active_length_mins
+		avg_length_mins
+		max_length_mins
+		total_length_mins
+		location
+	}
+}
+
 query GetErrorGroupsClickhouse(
 	$project_id: ID!
 	$count: Int!
@@ -970,12 +966,16 @@ query GetBillingDetailsForProject($project_id: ID!) {
 	billingDetailsForProject(project_id: $project_id) {
 		plan {
 			type
-			quota
 			interval
 			membersLimit
+			sessionsLimit
 			errorsLimit
 			logsLimit
 			tracesLimit
+			sessionsRate
+			errorsRate
+			logsRate
+			tracesRate
 		}
 		meter
 		membersMeter
@@ -1002,27 +1002,39 @@ query GetBillingDetails($workspace_id: ID!) {
 	billingDetails(workspace_id: $workspace_id) {
 		plan {
 			type
-			quota
 			interval
 			membersLimit
+			sessionsLimit
 			errorsLimit
 			logsLimit
+			tracesLimit
+			sessionsRate
+			errorsRate
+			logsRate
+			tracesRate
+			enableBillingLimits
 		}
 		meter
 		membersMeter
 		errorsMeter
 		logsMeter
+		tracesMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
 		sessionsDailyAverage
 		errorsDailyAverage
 		logsDailyAverage
+		tracesDailyAverage
 	}
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
-		discountAmount
-		discountPercent
+		discount {
+			name
+			amount
+			percent
+			until
+		}
 		lastInvoice {
 			amountDue
 			amountPaid
@@ -1031,6 +1043,8 @@ query GetBillingDetails($workspace_id: ID!) {
 			url
 			status
 		}
+		billingIssue
+		billingIngestBlocked
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -1044,14 +1058,19 @@ query GetBillingDetails($workspace_id: ID!) {
 		sessions_max_cents
 		errors_max_cents
 		logs_max_cents
+		traces_max_cents
 	}
 }
 
 query GetSubscriptionDetails($workspace_id: ID!) {
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
-		discountAmount
-		discountPercent
+		discount {
+			name
+			amount
+			percent
+			until
+		}
 		lastInvoice {
 			amountDue
 			amountPaid
@@ -1061,6 +1080,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 			status
 		}
 		billingIssue
+		billingIngestBlocked
 	}
 }
 
@@ -1337,37 +1357,6 @@ query GetSegments($project_id: ID!) {
 		id
 		name
 		params {
-			user_properties {
-				name
-				value
-			}
-			excluded_properties {
-				name
-				value
-			}
-			track_properties {
-				name
-				value
-			}
-			date_range {
-				start_date
-				end_date
-			}
-			length_range {
-				min
-				max
-			}
-			os
-			browser
-			visited_url
-			referrer
-			identified
-			hide_viewed
-			first_time
-			app_versions
-			environments
-			device_id
-			show_live_sessions
 			query
 		}
 	}
@@ -1378,15 +1367,6 @@ query GetErrorSegments($project_id: ID!) {
 		id
 		name
 		params {
-			date_range {
-				start_date
-				end_date
-			}
-			os
-			browser
-			visited_url
-			state
-			event
 			query
 		}
 	}
@@ -1432,51 +1412,51 @@ query GetTracesIntegration($project_id: ID!) {
 	}
 }
 
-query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
+query GetKeyPerformanceIndicators($project_id: ID!, $lookback_days: Float!) {
 	unprocessedSessionsCount(project_id: $project_id)
 	liveUsersCount(project_id: $project_id)
-	newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+	newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 		count
 	}
 	averageSessionLength(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		length
 	}
 	userFingerprintCount(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		count
 	}
 }
 
-query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
-	referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetReferrersCount($project_id: ID!, $lookback_days: Float!) {
+	referrers(project_id: $project_id, lookback_days: $lookback_days) {
 		host
 		count
 		percent
 	}
 }
 
-query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
-	newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetNewUsersCount($project_id: ID!, $lookback_days: Float!) {
+	newUsersCount(project_id: $project_id, lookback_days: $lookback_days) {
 		count
 	}
 }
 
-query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
+query GetAverageSessionLength($project_id: ID!, $lookback_days: Float!) {
 	averageSessionLength(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		length
 	}
 }
 
-query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
-	topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+query GetTopUsers($project_id: ID!, $lookback_days: Float!) {
+	topUsers(project_id: $project_id, lookback_days: $lookback_days) {
 		identifier
 		total_active_time
 		active_time_percentage
@@ -1499,10 +1479,10 @@ query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
 	}
 }
 
-query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+query GetRageClicksForProject($project_id: ID!, $lookback_days: Float!) {
 	rageClicksForProject(
 		project_id: $project_id
-		lookBackPeriod: $lookBackPeriod
+		lookback_days: $lookback_days
 	) {
 		identifier
 		session_secure_id
@@ -1607,6 +1587,11 @@ query GetJiraIntegrationSettings($workspace_id: ID!) {
 		id
 		name
 		key
+		issueTypes {
+			id
+			name
+			description
+		}
 	}
 }
 
@@ -1996,8 +1981,12 @@ query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
 	suggested_metrics(project_id: $project_id, prefix: $prefix)
 }
 
-query GetMetricTags($project_id: ID!, $metric_name: String!) {
-	metric_tags(project_id: $project_id, metric_name: $metric_name)
+query GetMetricTags($project_id: ID!, $metric_name: String!, $query: String) {
+	metric_tags(
+		project_id: $project_id
+		metric_name: $metric_name
+		query: $query
+	)
 }
 
 query GetMetricTagValues(
@@ -2101,6 +2090,7 @@ query GetLogs(
 				source
 				serviceName
 				serviceVersion
+				environment
 			}
 		}
 		pageInfo {
@@ -2142,8 +2132,16 @@ query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	}
 }
 
-query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: logs_keys(project_id: $project_id, date_range: $date_range) {
+query GetLogsKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: logs_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}
@@ -2221,7 +2219,8 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		ai_insights
 		enable_session_export
 		enable_unlisted_sharing
-		enable_ingest_filters
+		enable_ingest_sampling
+		enable_data_deletion
 	}
 }
 
@@ -2365,7 +2364,9 @@ query GetTrace($project_id: ID!, $trace_id: String!) {
 			duration
 			serviceName
 			serviceVersion
+			environment
 			traceAttributes
+			startTime
 			statusCode
 			statusMessage
 		}
@@ -2414,6 +2415,7 @@ query GetTraces(
 				duration
 				serviceName
 				serviceVersion
+				environment
 				traceAttributes
 				statusCode
 				statusMessage
@@ -2431,14 +2433,24 @@ query GetTraces(
 query GetTracesMetrics(
 	$project_id: ID!
 	$params: QueryInput!
-	$metric_types: [TracesMetricType!]!
+	$column: String!
+	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
+	$bucket_by: String
+	$limit: Int
+	$limit_aggregator: MetricAggregator
+	$limit_column: String
 ) {
 	traces_metrics(
 		project_id: $project_id
 		params: $params
+		column: $column
 		metric_types: $metric_types
 		group_by: $group_by
+		bucket_by: $bucket_by
+		limit: $limit
+		limit_aggregator: $limit_aggregator
+		limit_column: $limit_column
 	) {
 		buckets {
 			bucket_id
@@ -2451,8 +2463,16 @@ query GetTracesMetrics(
 	}
 }
 
-query GetTracesKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-	keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+query GetTracesKeys(
+	$project_id: ID!
+	$date_range: DateRangeRequiredInput!
+	$query: String
+) {
+	keys: traces_keys(
+		project_id: $project_id
+		date_range: $date_range
+		query: $query
+	) {
 		name
 		type
 	}

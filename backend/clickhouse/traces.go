@@ -3,10 +3,12 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
+	"github.com/highlight/highlight/sdk/highlight-go"
+
 	"github.com/highlight-run/highlight/backend/queryparser"
+	"golang.org/x/exp/slices"
 
 	"github.com/huandu/go-sqlbuilder"
 	e "github.com/pkg/errors"
@@ -22,6 +24,8 @@ const TracesTable = "traces"
 const TracesSamplingTable = "traces_sampling"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
+const TraceMetricsTable = "trace_metrics"
+const TracesByIdTable = "traces_by_id"
 
 var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
@@ -34,39 +38,62 @@ var traceKeysToColumns = map[modelInputs.ReservedTraceKey]string{
 	modelInputs.ReservedTraceKeyDuration:        "Duration",
 	modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
 	modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
+	modelInputs.ReservedTraceKeyMetric:          "Events.Attributes[1]['metric.name']",
+	modelInputs.ReservedTraceKeyEnvironment:     "Environment",
+}
+
+var traceColumns = []string{
+	"Timestamp",
+	"UUID",
+	"TraceId",
+	"SpanId",
+	"ParentSpanId",
+	"ProjectId",
+	"SecureSessionId",
+	"TraceState",
+	"SpanName",
+	"SpanKind",
+	"Duration",
+	"ServiceName",
+	"ServiceVersion",
+	"TraceAttributes",
+	"StatusCode",
+	"StatusMessage",
+	"Environment",
+}
+
+var defaultTraceKeys = []*modelInputs.QueryKey{
+	{Name: "trace_id", Type: modelInputs.KeyTypeString},
+	{Name: "span_id", Type: modelInputs.KeyTypeString},
 }
 
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        TracesTable,
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
-	bodyColumn:       "Body",
+	bodyColumn:       "SpanName",
 	attributesColumn: "TraceAttributes",
-	selectColumns: []string{
-		"Timestamp",
-		"UUID",
-		"TraceId",
-		"SpanId",
-		"ParentSpanId",
-		"ProjectId",
-		"SecureSessionId",
-		"TraceState",
-		"SpanName",
-		"SpanKind",
-		"Duration",
-		"ServiceName",
-		"ServiceVersion",
-		"TraceAttributes",
-		"StatusCode",
-		"StatusMessage",
+	selectColumns:    traceColumns,
+	defaultFilters: map[string]string{
+		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
 	},
 }
 
 var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	bodyColumn:       "SpanName",
 	keysToColumns:    traceKeysToColumns,
 	reservedKeys:     modelInputs.AllReservedTraceKey,
 	attributesColumn: "TraceAttributes",
+	selectColumns:    traceColumns,
+}
+
+var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
+	tableConfig:         tracesTableConfig,
+	samplingTableConfig: tracesSamplingTableConfig,
+	useSampling: func(d time.Duration) bool {
+		return d >= time.Hour
+	},
 }
 
 type ClickhouseTraceRow struct {
@@ -86,6 +113,7 @@ type ClickhouseTraceRow struct {
 	TraceAttributes  map[string]string
 	StatusCode       string
 	StatusMessage    string
+	Environment      string
 	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp"`
 	EventsName       clickhouse.ArraySet `ch:"Events.Name"`
 	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes"`
@@ -123,6 +151,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 			TraceAttributes:  traceRow.TraceAttributes,
 			StatusCode:       traceRow.StatusCode,
 			StatusMessage:    traceRow.StatusMessage,
+			Environment:      traceRow.Environment,
 			EventsTimestamp:  traceTimes,
 			EventsName:       traceNames,
 			EventsAttributes: traceAttrs,
@@ -206,6 +235,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 				Duration:        int(result.Duration),
 				ServiceName:     result.ServiceName,
 				ServiceVersion:  result.ServiceVersion,
+				Environment:     result.Environment,
 				TraceAttributes: expandJSON(result.TraceAttributes),
 				StatusCode:      result.StatusCode,
 				StatusMessage:   result.StatusMessage,
@@ -237,11 +267,10 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	var err error
 	var args []interface{}
 
-	sb.From("traces").
-		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
+	sb.From(TracesByIdTable).
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, Environment, TraceAttributes, StatusCode, StatusMessage").
 		Where(sb.Equal("ProjectId", projectID)).
-		Where(sb.Equal("TraceId", traceID)).
-		OrderBy("Timestamp ASC")
+		Where(sb.Equal("TraceId", traceID))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -278,154 +307,44 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 			Duration:        int(result.Duration),
 			ServiceName:     result.ServiceName,
 			ServiceVersion:  result.ServiceVersion,
+			Environment:     result.Environment,
 			TraceAttributes: expandJSON(result.TraceAttributes),
 			StatusCode:      result.StatusCode,
 			StatusMessage:   result.StatusMessage,
 		})
 	}
 
-	rows.Close()
+	// Order by timestamp
+	// Doing this in code rather than Clickhouse so Clickhouse will use the `traceId` projection
+	slices.SortFunc(traces, func(a *modelInputs.Trace, b *modelInputs.Trace) bool {
+		return a.Timestamp.Before(b.Timestamp)
+	})
+
 	span.Finish(rows.Err())
 
 	return traces, rows.Err()
 }
 
-func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, metricTypes []modelInputs.TracesMetricType, groupBy []string, nBuckets int) (*modelInputs.TracesMetrics, error) {
-	startTimestamp := uint64(params.DateRange.StartDate.Unix())
-	endTimestamp := uint64(params.DateRange.EndDate.Unix())
-	useSampling := params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= time.Hour
-
-	fnStr := ""
-	for _, metricType := range metricTypes {
-		switch metricType {
-		case modelInputs.TracesMetricTypeCount:
-			if useSampling {
-				fnStr += ", round(count() * any(_sample_factor))"
-			} else {
-				fnStr += ", toFloat64(count())"
-			}
-		case modelInputs.TracesMetricTypeP50:
-			fnStr += ", quantile(.5)(Duration)"
-		case modelInputs.TracesMetricTypeP90:
-			fnStr += ", quantile(.9)(Duration)"
-		}
-	}
-
-	var fromSb *sqlbuilder.SelectBuilder
-	var err error
-	if useSampling {
-		fromSb, err = makeSelectBuilder(
-			tracesSamplingTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-				fnStr,
-			),
-			groupBy,
-			projectID,
-			params,
-			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
-		)
-	} else {
-		fromSb, err = makeSelectBuilder(
-			tracesTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-				fnStr,
-			),
-			groupBy,
-			projectID,
-			params,
-			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
-		)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	groupByCols := []string{"1"}
-	for i := 4; i < 4+len(groupBy); i++ {
-		groupByCols = append(groupByCols, strconv.Itoa(i))
-	}
-	fromSb.GroupBy(groupByCols...)
-	fromSb.OrderBy(groupByCols...)
-
-	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	metrics := &modelInputs.TracesMetrics{
-		Buckets: []*modelInputs.TracesMetricBucket{},
-	}
-
-	rows, err := client.conn.Query(
-		ctx,
-		sql,
-		args...,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		groupKey     uint64
-		sampleFactor float64
-	)
-
-	groupByColResults := make([]string, len(groupBy))
-	metricResults := make([]float64, len(metricTypes))
-	scanResults := make([]interface{}, 2+len(groupByColResults) + +len(metricResults))
-	scanResults[0] = &groupKey
-	scanResults[1] = &sampleFactor
-	for idx := range metricTypes {
-		scanResults[2+idx] = &metricResults[idx]
-	}
-	for idx := range groupByColResults {
-		scanResults[2+len(metricTypes)+idx] = &groupByColResults[idx]
-	}
-
-	for rows.Next() {
-		if err := rows.Scan(scanResults...); err != nil {
-			return nil, err
-		}
-
-		bucketId := groupKey
-		if bucketId >= uint64(nBuckets) {
-			continue
-		}
-
-		for idx, metricType := range metricTypes {
-			metrics.Buckets = append(metrics.Buckets, &modelInputs.TracesMetricBucket{
-				BucketID:    bucketId,
-				Group:       groupByColResults,
-				MetricType:  metricType,
-				MetricValue: metricResults[idx],
-			})
-		}
-	}
-
-	metrics.SampleFactor = sampleFactor
-	metrics.BucketCount = uint64(nBuckets)
-
-	return metrics, err
+func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readMetrics(ctx, client, tracesSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 
-func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate)
+func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate, query, typeArg)
+	if err != nil {
+		return nil, err
+	}
+
+	traceKeys = append(traceKeys, defaultTraceKeys...)
+	return traceKeys, nil
 }
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+}
+
+func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query, nil)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {

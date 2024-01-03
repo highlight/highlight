@@ -4,7 +4,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetAdminQuery } from '@graph/hooks'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
 import { auth } from '@util/auth'
@@ -13,7 +13,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
-import { showIntercomBubble } from '@/util/window'
+import { showSupportBubble } from '@/util/window'
 
 import * as styles from './AuthRouter.css'
 
@@ -42,7 +42,7 @@ export const VerifyEmail: React.FC = () => {
 
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
-			showIntercomBubble()
+			showSupportBubble()
 		}, 5000)
 	}, [setLoadingState])
 

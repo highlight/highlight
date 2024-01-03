@@ -1,5 +1,5 @@
 import Tabs from '@components/Tabs/Tabs'
-import { Box, Heading, Stack, Text } from '@highlight-run/ui'
+import { Box, Heading, Stack, Text } from '@highlight-run/ui/components'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
@@ -34,10 +34,10 @@ import {
 	namedOperations,
 } from '@/graph/generated/operations'
 import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveStaleErrorsForm/AutoresolveStaleErrorsForm'
-import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 import styles from './ProjectSettings.module.css'
+import { SessionFiltersCallout } from './SessionFiltersCallout/SessionFiltersCallout'
 
 const ProjectSettings = () => {
 	const navigate = useNavigate()
@@ -163,7 +163,7 @@ const ProjectSettings = () => {
 												</Button>
 											</Box>
 											<ExcludedUsersForm />
-											<FilterSessionsWithoutErrorForm />
+											<SessionFiltersCallout />
 											<RageClicksForm />
 											{workspaceSettingsData
 												?.workspaceSettings

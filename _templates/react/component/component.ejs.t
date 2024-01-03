@@ -2,7 +2,7 @@
 to: frontend/src/<%= name %>.tsx
 ---
 
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui/components'
 
 import * as styles from './<%= componentName %>.css'
 

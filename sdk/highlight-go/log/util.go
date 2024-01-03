@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -84,8 +83,9 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 
 	for _, row := range logRows {
 		span, _ := highlight.StartTraceWithoutResourceAttributes(
-			ctx, "highlight-ctx",
-			attribute.String(highlight.SourceAttribute, modelInputs.LogSourceFrontend.String()),
+			ctx, "highlight-ctx", []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+			// modelInputs.LogSourceFrontend
+			attribute.String(highlight.SourceAttribute, "frontend"),
 			attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 			attribute.String(highlight.SessionIDAttribute, sessionSecureID),
 		)
@@ -149,7 +149,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 
 func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, "highlight-ctx",
+		ctx, "highlight-ctx", []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)
@@ -195,7 +195,7 @@ func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
 
 func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
 	span, _ := highlight.StartTraceWithoutResourceAttributes(
-		ctx, "highlight-ctx",
+		ctx, "highlight-ctx", []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)

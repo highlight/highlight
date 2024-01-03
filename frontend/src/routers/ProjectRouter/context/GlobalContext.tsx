@@ -1,4 +1,4 @@
-import { Ariakit } from '@highlight-run/ui'
+import { Ariakit } from '@highlight-run/ui/components'
 import { createContext } from '@util/context/context'
 
 interface GlobalContext {

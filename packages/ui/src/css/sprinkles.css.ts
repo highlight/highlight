@@ -59,6 +59,7 @@ export const backgroundColors = {
 		vars.theme.interactive.overlay.secondary.selected.default,
 	secondarySelectedHover:
 		vars.theme.interactive.overlay.secondary.selected.hover,
+	surfaceNeutral: vars.theme.static.surface.sentiment.neutral,
 	primaryDisabled: vars.theme.interactive.overlay.primary.disabled,
 	primaryEnabled: vars.theme.interactive.overlay.primary.enabled,
 	primaryHover: vars.theme.interactive.overlay.primary.hover,
@@ -150,6 +151,7 @@ const staticProperties = defineProperties({
 			normal: 'normal',
 			breakWord: 'break-word',
 		},
+		textDecoration: ['none', 'underline', 'line-through'],
 		textTransform: [
 			'none',
 			'capitalize',

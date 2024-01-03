@@ -20,7 +20,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import AffectedUserCount from '@pages/ErrorsV2/ErrorBody/components/AffectedUserCount'
 import ErrorBodyText from '@pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
@@ -307,10 +307,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 							<JsonViewer
 								src={context}
 								collapsed
-								style={{
-									maxHeight: 224,
-									fontSize: 11,
-								}}
+								style={{ fontSize: 11 }}
 							/>
 						</Stat>
 					) : null}

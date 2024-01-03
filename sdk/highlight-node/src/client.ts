@@ -1,29 +1,110 @@
-import { BufferConfig, Span } from '@opentelemetry/sdk-trace-base'
+import { BufferConfig, ReadableSpan, Span } from '@opentelemetry/sdk-trace-base'
 import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
-import type { Attributes, Tracer } from '@opentelemetry/api'
+import type {
+	Attributes,
+	Tracer,
+	Span as OtelSpan,
+	SpanOptions,
+} from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
+import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import type { IncomingHttpHeaders } from 'http'
 
 import { clearInterval } from 'timers'
 
-import { NodeOptions } from './types'
-import { hookConsole } from './hooks'
-import log from './log'
+import type { HighlightContext, NodeOptions } from './types.js'
+import { hookConsole } from './hooks.js'
+import log from './log.js'
+import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
+const FIVE_MINUTES = 1000 * 60 * 5
+
+type TraceMapValue = {
+	attributes: { 'highlight.session_id': string; 'highlight.trace_id': string }
+
+	destroy: () => void
+}
+
+const instrumentations = getNodeAutoInstrumentations({
+	'@opentelemetry/instrumentation-pino': {
+		logHook: (span, record, level) => {
+			// @ts-ignore
+			const attrs = span.attributes
+			for (const [key, value] of Object.entries(attrs)) {
+				record[key] = value
+			}
+		},
+	},
+})
+registerInstrumentations({ instrumentations })
 
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
+	private traceAttributesMap = new Map<string, TraceMapValue>()
+	private finishedSpanNames = new Set<string>()
 
-	constructor(config: any, options: any) {
-		super(config, options)
+	constructor(exporter: any, options: any) {
+		super(exporter, options)
 
 		this._listeners = new Map()
+
+		// @ts-ignore
+		this._exporter = exporter
+	}
+
+	getTraceMetadata(span: ReadableSpan) {
+		return this.traceAttributesMap.get(span.spanContext().traceId)
+	}
+
+	setTraceMetadata(span: OtelSpan, attributes: TraceMapValue['attributes']) {
+		const { traceId } = span.spanContext()
+
+		if (!this.traceAttributesMap.get(traceId)) {
+			const timer = setTimeout(() => destroy(), FIVE_MINUTES)
+			const destroy = () => {
+				this.traceAttributesMap.delete(traceId)
+
+				clearTimeout(timer)
+			}
+
+			return this.traceAttributesMap.set(traceId, { attributes, destroy })
+		}
+	}
+
+	getFinishedSpanNames() {
+		return this.finishedSpanNames
+	}
+
+	clearFinishedSpanNames() {
+		return this.finishedSpanNames.clear()
+	}
+
+	onEnd(span: ReadableSpan) {
+		const traceMetadata = this.getTraceMetadata(span)
+
+		if (traceMetadata) {
+			// @ts-ignore
+			span.resource = span.resource.merge(
+				new Resource(traceMetadata.attributes),
+			)
+		}
+
+		if (!span.parentSpanId && traceMetadata) {
+			traceMetadata.destroy()
+		}
+
+		this.finishedSpanNames.add(span.name)
+
+		// @ts-ignore
+		super.onEnd(span)
 	}
 
 	onShutdown(): void {}
@@ -49,9 +130,14 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	}
 }
 
+const OTEL_TO_OPTIONS = {
+	[SemanticResourceAttributes.SERVICE_NAME]: 'serviceName',
+	[SemanticResourceAttributes.SERVICE_VERSION]: 'serviceVersion',
+	[SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: 'environment',
+} as const
+
 export class Highlight {
-	readonly FLUSH_TIMEOUT = 10
-	_intervalFunction: ReturnType<typeof setInterval>
+	readonly FLUSH_TIMEOUT_MS = 30 * 1000
 	_projectID: string
 	_debug: boolean
 	otel: NodeSDK
@@ -61,70 +147,70 @@ export class Highlight {
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
-		if (!options.disableConsoleRecording) {
-			hookConsole(options.consoleMethodsToRecord, (c) => {
-				this.log(c.date, c.message, c.level, c.stack)
-			})
-		}
-
 		if (!this._projectID) {
 			console.warn(
 				'Highlight project id was not provided. Data will not be recorded.',
 			)
 		}
 
+		if (!options.disableConsoleRecording) {
+			hookConsole(options.consoleMethodsToRecord, (c) => {
+				this.log(
+					c.date,
+					c.message,
+					c.level,
+					c.stack,
+					'',
+					'',
+					c.attributes,
+				)
+			})
+		}
+
 		this.tracer = trace.getTracer('highlight-node')
 
-		const exporter = new OTLPTraceExporter({
+		const config = {
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
-		})
+			compression:
+				!process.env.NEXT_RUNTIME ||
+				process.env.NEXT_RUNTIME === 'nodejs'
+					? CompressionAlgorithm.GZIP
+					: undefined,
+			keepAlive: true,
+			timeoutMillis: this.FLUSH_TIMEOUT_MS,
+			httpAgentOptions: {
+				timeout: this.FLUSH_TIMEOUT_MS,
+				keepAlive: true,
+			},
+		}
+		this._log('using otlp exporter settings', config)
+		const exporter = new OTLPTraceExporter(config)
 
 		this.processor = new CustomSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 128,
 			maxQueueSize: 1024,
+			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		})
 
-		const attributes: Attributes = {}
+		const attributes: Attributes = options.attributes || {}
 		attributes['highlight.project_id'] = this._projectID
 
-		if (options.serviceName) {
-			attributes[SemanticResourceAttributes.SERVICE_NAME] =
-				options.serviceName
-		}
-
-		if (options.serviceVersion) {
-			attributes[SemanticResourceAttributes.SERVICE_VERSION] =
-				options.serviceVersion
+		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
+			if (options[option]) {
+				attributes[otelAttr] = options[option]
+			}
 		}
 
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			resourceDetectors: [processDetectorSync],
-			resource: {
-				attributes,
-				merge: (resource) =>
-					new Resource({
-						...(resource?.attributes ?? {}),
-						...attributes,
-					}),
-			},
+			resource: new Resource(attributes),
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [
-				getNodeAutoInstrumentations({
-					'@opentelemetry/instrumentation-fs': {
-						enabled: options.enableFsInstrumentation ?? false,
-					},
-				}),
-			],
+			instrumentations,
 		})
 		this.otel.start()
-
-		this._intervalFunction = setInterval(
-			() => this.flush(),
-			this.FLUSH_TIMEOUT * 1000,
-		)
 
 		for (const event of [
 			'beforeExit',
@@ -159,9 +245,6 @@ export class Highlight {
 	async stop() {
 		await this.flush()
 		await this.otel.shutdown()
-		if (this._intervalFunction) {
-			clearInterval(this._intervalFunction)
-		}
 	}
 
 	_log(...data: any[]) {
@@ -259,37 +342,55 @@ export class Highlight {
 	}
 
 	async flush() {
-		await this.processor
-			.forceFlush()
-			.catch((e) => console.warn('highlight-node failed to flush: ', e))
+		try {
+			await this.processor.forceFlush()
+		} catch (e) {
+			this._log('failed to flush: ', e)
+		}
 	}
 
-	async waitForFlush() {
-		return new Promise<void>(async (resolve) => {
+	async waitForFlush(expectedSpanNames: string[] = []) {
+		return new Promise<string[]>(async (resolve) => {
 			let resolved = false
-			let waitingForFinishedSpans = false
-
-			await this.flush()
+			let finishedSpansCount = this.finishedSpans.length
+			let waitingForFinishedSpans = finishedSpansCount > 0
 
 			let intervalTimer = setInterval(async () => {
-				const finishedSpansCount = this.finishedSpans.length
+				finishedSpansCount = this.finishedSpans.length
+
+				const canFinish =
+					!expectedSpanNames.length ||
+					expectedSpanNames.every((n) =>
+						this.processor.getFinishedSpanNames().has(n),
+					)
 
 				if (finishedSpansCount) {
 					waitingForFinishedSpans = true
-				} else if (waitingForFinishedSpans) {
+				} else if (canFinish && waitingForFinishedSpans) {
 					finish()
+
+					this.processor.clearFinishedSpanNames()
 				}
 			}, 10)
-			let timer = setTimeout(finish, 10000)
-			function finish() {
-				intervalTimer && clearInterval(intervalTimer)
-				timer && clearTimeout(timer)
+
+			this.flush()
+
+			let timer: ReturnType<typeof setTimeout>
+
+			const finish = async () => {
+				clearInterval(intervalTimer)
+				clearTimeout(timer)
 				unlisten()
 
 				if (!resolved) {
 					resolved = true
-					resolve()
+
+					resolve(Array.from(this.processor.getFinishedSpanNames()))
 				}
+			}
+
+			if (!expectedSpanNames.length) {
+				timer = setTimeout(finish, 2000)
 			}
 
 			const unlisten = this.processor.registerListener(finish)
@@ -299,4 +400,96 @@ export class Highlight {
 	setAttributes(attributes: Attributes) {
 		return this.otel.addResource(new Resource(attributes))
 	}
+
+	parseHeaders(headers: Headers | IncomingHttpHeaders): HighlightContext {
+		return parseHeaders(headers)
+	}
+
+	async runWithHeaders<T>(
+		headers: Headers | IncomingHttpHeaders,
+		cb: () => T,
+	) {
+		return new Promise<T>((resolve, reject) => {
+			this.tracer.startActiveSpan(
+				'highlight-run-with-headers',
+				async (span) => {
+					const { secureSessionId, requestId } =
+						this.parseHeaders(headers)
+
+					if (secureSessionId && requestId) {
+						this.processor.setTraceMetadata(span, {
+							'highlight.session_id': secureSessionId,
+							'highlight.trace_id': requestId,
+						})
+					}
+
+					try {
+						const result = await cb()
+
+						resolve(result)
+
+						span.end()
+
+						await this.waitForFlush()
+					} catch (error) {
+						if (error instanceof Error) {
+							await this.consumeCustomError(
+								error,
+								secureSessionId,
+								requestId,
+							)
+						}
+
+						span.end()
+
+						await Promise.allSettled([
+							this.waitForFlush(['highlight-run-with-headers']),
+							this.flush(),
+						])
+
+						reject(error)
+					}
+				},
+			)
+		})
+	}
+
+	startActiveSpan(name: string, options?: SpanOptions) {
+		return new Promise<OtelSpan>((resolve) =>
+			this.tracer.startActiveSpan(name, options || {}, resolve),
+		)
+	}
+}
+function parseHeaders(
+	headers: Headers | IncomingHttpHeaders,
+): HighlightContext {
+	const requestHeaders = extractIncomingHttpHeaders(headers)
+
+	if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
+		const [secureSessionId, requestId] =
+			`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+		return { secureSessionId, requestId }
+	}
+	return { secureSessionId: undefined, requestId: undefined }
+}
+
+function extractIncomingHttpHeaders(
+	headers?: Headers | IncomingHttpHeaders,
+): IncomingHttpHeaders {
+	if (headers) {
+		let requestHeaders: IncomingHttpHeaders = {}
+		if (headers instanceof Headers) {
+			headers.forEach((value, key) => (requestHeaders[key] = value))
+		} else if (headers) {
+			requestHeaders = headers
+		}
+
+		return requestHeaders
+	} else {
+		return { secureSessionId: undefined, requestId: undefined }
+	}
+}
+
+async function wait(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }

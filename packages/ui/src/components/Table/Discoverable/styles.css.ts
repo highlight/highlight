@@ -1,13 +1,25 @@
 import { style } from '@vanilla-extract/css'
 
 import { cell } from '../Cell/styles.css'
+import { row } from '../Row/styles.css'
 
 export const discoverable = style({
-	display: 'none',
+	display: 'flex',
+	visibility: 'hidden',
+})
 
+export const rowTrigger = style({
+	selectors: {
+		[`${row}:hover &`]: {
+			visibility: 'visible',
+		},
+	},
+})
+
+export const cellTrigger = style({
 	selectors: {
 		[`${cell}:hover &`]: {
-			display: 'flex',
+			visibility: 'visible',
 		},
 	},
 })

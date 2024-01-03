@@ -231,20 +231,20 @@ type DashboardMetricConfigInput struct {
 }
 
 type DashboardParamsInput struct {
-	DateRange         *DateRangeInput         `json:"date_range"`
+	DateRange         *DateRangeRequiredInput `json:"date_range"`
 	ResolutionMinutes *int                    `json:"resolution_minutes"`
 	Timezone          *string                 `json:"timezone"`
 	Units             *string                 `json:"units"`
-	Aggregator        *MetricAggregator       `json:"aggregator"`
+	Aggregator        MetricAggregator        `json:"aggregator"`
 	Filters           []*MetricTagFilterInput `json:"filters"`
 	Groups            []string                `json:"groups"`
 }
 
 type DashboardPayload struct {
-	Date       string            `json:"date"`
-	Value      float64           `json:"value"`
-	Aggregator *MetricAggregator `json:"aggregator"`
-	Group      *string           `json:"group"`
+	Date       string           `json:"date"`
+	Value      float64          `json:"value"`
+	Aggregator MetricAggregator `json:"aggregator"`
+	Group      *string          `json:"group"`
 }
 
 type DateHistogramBucketSize struct {
@@ -355,17 +355,6 @@ type ErrorObjectNodeSession struct {
 	Excluded    bool    `json:"excluded"`
 }
 
-type ErrorSearchParamsInput struct {
-	DateRange  *DateRangeInput `json:"date_range"`
-	Os         *string         `json:"os"`
-	Browser    *string         `json:"browser"`
-	VisitedURL *string         `json:"visited_url"`
-	State      *ErrorState     `json:"state"`
-	Event      *string         `json:"event"`
-	Type       *string         `json:"type"`
-	Query      *string         `json:"query"`
-}
-
 type ErrorTrace struct {
 	FileName                   *string             `json:"fileName"`
 	LineNumber                 *int                `json:"lineNumber"`
@@ -410,23 +399,6 @@ type HistogramBucket struct {
 	RangeStart float64 `json:"range_start"`
 	RangeEnd   float64 `json:"range_end"`
 	Count      int     `json:"count"`
-}
-
-type HistogramParamsInput struct {
-	DateRange     *DateRangeInput         `json:"date_range"`
-	Buckets       *int                    `json:"buckets"`
-	MinValue      *float64                `json:"min_value"`
-	MinPercentile *float64                `json:"min_percentile"`
-	MaxValue      *float64                `json:"max_value"`
-	MaxPercentile *float64                `json:"max_percentile"`
-	Units         *string                 `json:"units"`
-	Filters       []*MetricTagFilterInput `json:"filters"`
-}
-
-type HistogramPayload struct {
-	Buckets []*HistogramBucket `json:"buckets"`
-	Min     float64            `json:"min"`
-	Max     float64            `json:"max"`
 }
 
 type IntegrationProjectMappingInput struct {
@@ -505,6 +477,7 @@ type Log struct {
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
 	ServiceVersion  *string                `json:"serviceVersion"`
+	Environment     *string                `json:"environment"`
 }
 
 type LogAlertInput struct {
@@ -564,6 +537,14 @@ type MatchedErrorTag struct {
 	Score       float64 `json:"score"`
 }
 
+type MetricBucket struct {
+	BucketID    uint64           `json:"bucket_id"`
+	Group       []string         `json:"group"`
+	Column      MetricColumn     `json:"column"`
+	MetricType  MetricAggregator `json:"metric_type"`
+	MetricValue float64          `json:"metric_value"`
+}
+
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`
@@ -586,13 +567,19 @@ type MicrosoftTeamsChannelInput struct {
 	ID   string `json:"id"`
 }
 
+type MetricsBuckets struct {
+	Buckets      []*MetricBucket `json:"buckets"`
+	BucketCount  uint64          `json:"bucket_count"`
+	SampleFactor float64         `json:"sample_factor"`
+}
+
 type NamedCount struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
 }
 
 type NetworkHistogramParamsInput struct {
-	LookbackDays *int                     `json:"lookback_days"`
+	LookbackDays float64                  `json:"lookback_days"`
 	Attribute    *NetworkRequestAttribute `json:"attribute"`
 }
 
@@ -614,13 +601,18 @@ type PageInfo struct {
 }
 
 type Plan struct {
-	Type         PlanType             `json:"type"`
-	Interval     SubscriptionInterval `json:"interval"`
-	Quota        int                  `json:"quota"`
-	MembersLimit *int                 `json:"membersLimit"`
-	ErrorsLimit  int                  `json:"errorsLimit"`
-	LogsLimit    int                  `json:"logsLimit"`
-	TracesLimit  int                  `json:"tracesLimit"`
+	Type                PlanType             `json:"type"`
+	Interval            SubscriptionInterval `json:"interval"`
+	MembersLimit        *int64               `json:"membersLimit"`
+	EnableBillingLimits bool                 `json:"enableBillingLimits"`
+	SessionsLimit       int64                `json:"sessionsLimit"`
+	ErrorsLimit         int64                `json:"errorsLimit"`
+	LogsLimit           int64                `json:"logsLimit"`
+	TracesLimit         int64                `json:"tracesLimit"`
+	SessionsRate        float64              `json:"sessionsRate"`
+	ErrorsRate          float64              `json:"errorsRate"`
+	LogsRate            float64              `json:"logsRate"`
+	TracesRate          float64              `json:"tracesRate"`
 }
 
 type QueryInput struct {
@@ -655,10 +647,10 @@ type Sampling struct {
 	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
 	LogSamplingRate        float64 `json:"log_sampling_rate"`
 	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
-	SessionMinuteRateLimit int64   `json:"session_minute_rate_limit"`
-	ErrorMinuteRateLimit   int64   `json:"error_minute_rate_limit"`
-	LogMinuteRateLimit     int64   `json:"log_minute_rate_limit"`
-	TraceMinuteRateLimit   int64   `json:"trace_minute_rate_limit"`
+	SessionMinuteRateLimit *int64  `json:"session_minute_rate_limit"`
+	ErrorMinuteRateLimit   *int64  `json:"error_minute_rate_limit"`
+	LogMinuteRateLimit     *int64  `json:"log_minute_rate_limit"`
+	TraceMinuteRateLimit   *int64  `json:"trace_minute_rate_limit"`
 	SessionExclusionQuery  *string `json:"session_exclusion_query"`
 	ErrorExclusionQuery    *string `json:"error_exclusion_query"`
 	LogExclusionQuery      *string `json:"log_exclusion_query"`
@@ -701,27 +693,6 @@ type SanitizedSlackChannel struct {
 type SanitizedSlackChannelInput struct {
 	WebhookChannelName *string `json:"webhook_channel_name"`
 	WebhookChannelID   *string `json:"webhook_channel_id"`
-}
-
-type SearchParamsInput struct {
-	UserProperties          []*UserPropertyInput `json:"user_properties"`
-	ExcludedProperties      []*UserPropertyInput `json:"excluded_properties"`
-	TrackProperties         []*UserPropertyInput `json:"track_properties"`
-	ExcludedTrackProperties []*UserPropertyInput `json:"excluded_track_properties"`
-	Environments            []*string            `json:"environments"`
-	AppVersions             []*string            `json:"app_versions"`
-	DateRange               *DateRangeInput      `json:"date_range"`
-	LengthRange             *LengthRangeInput    `json:"length_range"`
-	Os                      *string              `json:"os"`
-	Browser                 *string              `json:"browser"`
-	DeviceID                *string              `json:"device_id"`
-	VisitedURL              *string              `json:"visited_url"`
-	Referrer                *string              `json:"referrer"`
-	Identified              *bool                `json:"identified"`
-	HideViewed              *bool                `json:"hide_viewed"`
-	FirstTime               *bool                `json:"first_time"`
-	ShowLiveSessions        *bool                `json:"show_live_sessions"`
-	Query                   *string              `json:"query"`
 }
 
 type ServiceConnection struct {
@@ -790,6 +761,21 @@ type SessionQuery struct {
 	ProjectID int `json:"project_id"`
 }
 
+type SessionsReportRow struct {
+	Key                   string  `json:"key"`
+	NumSessions           int     `json:"num_sessions"`
+	NumDaysVisited        int     `json:"num_days_visited"`
+	NumMonthsVisited      int     `json:"num_months_visited"`
+	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
+	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
+	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
+	AvgLengthMins         float64 `json:"avg_length_mins"`
+	MaxLengthMins         float64 `json:"max_length_mins"`
+	TotalLengthMins       float64 `json:"total_length_mins"`
+	Location              string  `json:"location"`
+	UserProperties        *string `json:"user_properties"`
+}
+
 type SlackSyncResponse struct {
 	Success               bool `json:"success"`
 	NewChannelsAddedCount int  `json:"newChannelsAddedCount"`
@@ -817,11 +803,18 @@ type SourceMappingError struct {
 }
 
 type SubscriptionDetails struct {
-	BaseAmount      int64    `json:"baseAmount"`
-	DiscountPercent float64  `json:"discountPercent"`
-	DiscountAmount  int64    `json:"discountAmount"`
-	LastInvoice     *Invoice `json:"lastInvoice"`
-	BillingIssue    bool     `json:"billingIssue"`
+	BaseAmount           int64                 `json:"baseAmount"`
+	Discount             *SubscriptionDiscount `json:"discount"`
+	LastInvoice          *Invoice              `json:"lastInvoice"`
+	BillingIssue         bool                  `json:"billingIssue"`
+	BillingIngestBlocked bool                  `json:"billingIngestBlocked"`
+}
+
+type SubscriptionDiscount struct {
+	Name    string     `json:"name"`
+	Percent float64    `json:"percent"`
+	Amount  int64      `json:"amount"`
+	Until   *time.Time `json:"until"`
 }
 
 type TopUsersPayload struct {
@@ -843,8 +836,10 @@ type Trace struct {
 	SpanName        string                 `json:"spanName"`
 	SpanKind        string                 `json:"spanKind"`
 	Duration        int                    `json:"duration"`
+	StartTime       int                    `json:"startTime"`
 	ServiceName     string                 `json:"serviceName"`
 	ServiceVersion  string                 `json:"serviceVersion"`
+	Environment     string                 `json:"environment"`
 	TraceAttributes map[string]interface{} `json:"traceAttributes"`
 	StatusCode      string                 `json:"statusCode"`
 	StatusMessage   string                 `json:"statusMessage"`
@@ -896,19 +891,6 @@ type TraceLink struct {
 type TracePayload struct {
 	Trace  []*Trace      `json:"trace"`
 	Errors []*TraceError `json:"errors"`
-}
-
-type TracesMetricBucket struct {
-	BucketID    uint64           `json:"bucket_id"`
-	Group       []string         `json:"group"`
-	MetricType  TracesMetricType `json:"metric_type"`
-	MetricValue float64          `json:"metric_value"`
-}
-
-type TracesMetrics struct {
-	Buckets      []*TracesMetricBucket `json:"buckets"`
-	BucketCount  uint64                `json:"bucket_count"`
-	SampleFactor float64               `json:"sample_factor"`
 }
 
 type TrackPropertyInput struct {
@@ -1254,16 +1236,18 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 type KeyType string
 
 const (
-	KeyTypeString KeyType = "String"
+	KeyTypeString  KeyType = "String"
+	KeyTypeNumeric KeyType = "Numeric"
 )
 
 var AllKeyType = []KeyType{
 	KeyTypeString,
+	KeyTypeNumeric,
 }
 
 func (e KeyType) IsValid() bool {
 	switch e {
-	case KeyTypeString:
+	case KeyTypeString, KeyTypeNumeric:
 		return true
 	}
 	return false
@@ -1383,32 +1367,34 @@ func (e LogSource) MarshalGQL(w io.Writer) {
 type MetricAggregator string
 
 const (
-	MetricAggregatorAvg   MetricAggregator = "Avg"
-	MetricAggregatorP50   MetricAggregator = "P50"
-	MetricAggregatorP75   MetricAggregator = "P75"
-	MetricAggregatorP90   MetricAggregator = "P90"
-	MetricAggregatorP95   MetricAggregator = "P95"
-	MetricAggregatorP99   MetricAggregator = "P99"
-	MetricAggregatorMax   MetricAggregator = "Max"
-	MetricAggregatorCount MetricAggregator = "Count"
-	MetricAggregatorSum   MetricAggregator = "Sum"
+	MetricAggregatorCount            MetricAggregator = "Count"
+	MetricAggregatorCountDistinctKey MetricAggregator = "CountDistinctKey"
+	MetricAggregatorMin              MetricAggregator = "Min"
+	MetricAggregatorAvg              MetricAggregator = "Avg"
+	MetricAggregatorP50              MetricAggregator = "P50"
+	MetricAggregatorP90              MetricAggregator = "P90"
+	MetricAggregatorP95              MetricAggregator = "P95"
+	MetricAggregatorP99              MetricAggregator = "P99"
+	MetricAggregatorMax              MetricAggregator = "Max"
+	MetricAggregatorSum              MetricAggregator = "Sum"
 )
 
 var AllMetricAggregator = []MetricAggregator{
+	MetricAggregatorCount,
+	MetricAggregatorCountDistinctKey,
+	MetricAggregatorMin,
 	MetricAggregatorAvg,
 	MetricAggregatorP50,
-	MetricAggregatorP75,
 	MetricAggregatorP90,
 	MetricAggregatorP95,
 	MetricAggregatorP99,
 	MetricAggregatorMax,
-	MetricAggregatorCount,
 	MetricAggregatorSum,
 }
 
 func (e MetricAggregator) IsValid() bool {
 	switch e {
-	case MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP75, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorCount, MetricAggregatorSum:
+	case MetricAggregatorCount, MetricAggregatorCountDistinctKey, MetricAggregatorMin, MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorSum:
 		return true
 	}
 	return false
@@ -1432,6 +1418,88 @@ func (e *MetricAggregator) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricAggregator) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricBucketBy string
+
+const (
+	MetricBucketByNone      MetricBucketBy = "None"
+	MetricBucketByTimestamp MetricBucketBy = "Timestamp"
+)
+
+var AllMetricBucketBy = []MetricBucketBy{
+	MetricBucketByNone,
+	MetricBucketByTimestamp,
+}
+
+func (e MetricBucketBy) IsValid() bool {
+	switch e {
+	case MetricBucketByNone, MetricBucketByTimestamp:
+		return true
+	}
+	return false
+}
+
+func (e MetricBucketBy) String() string {
+	return string(e)
+}
+
+func (e *MetricBucketBy) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricBucketBy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricBucketBy", str)
+	}
+	return nil
+}
+
+func (e MetricBucketBy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricColumn string
+
+const (
+	MetricColumnDuration    MetricColumn = "Duration"
+	MetricColumnMetricValue MetricColumn = "MetricValue"
+)
+
+var AllMetricColumn = []MetricColumn{
+	MetricColumnDuration,
+	MetricColumnMetricValue,
+}
+
+func (e MetricColumn) IsValid() bool {
+	switch e {
+	case MetricColumnDuration, MetricColumnMetricValue:
+		return true
+	}
+	return false
+}
+
+func (e MetricColumn) String() string {
+	return string(e)
+}
+
+func (e *MetricColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricColumn", str)
+	}
+	return nil
+}
+
+func (e MetricColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1642,6 +1710,7 @@ const (
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
 	PlanTypeUsageBased PlanType = "UsageBased"
+	PlanTypeGraduated  PlanType = "Graduated"
 )
 
 var AllPlanType = []PlanType{
@@ -1651,11 +1720,12 @@ var AllPlanType = []PlanType{
 	PlanTypeStartup,
 	PlanTypeEnterprise,
 	PlanTypeUsageBased,
+	PlanTypeGraduated,
 }
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased, PlanTypeGraduated:
 		return true
 	}
 	return false
@@ -1730,8 +1800,12 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 type ReservedErrorObjectKey string
 
 const (
+	ReservedErrorObjectKeyBrowser         ReservedErrorObjectKey = "browser"
+	ReservedErrorObjectKeyEnvironment     ReservedErrorObjectKey = "environment"
 	ReservedErrorObjectKeyEvent           ReservedErrorObjectKey = "event"
+	ReservedErrorObjectKeyHasSessions     ReservedErrorObjectKey = "has_sessions"
 	ReservedErrorObjectKeyLogCursor       ReservedErrorObjectKey = "log_cursor"
+	ReservedErrorObjectKeyOs              ReservedErrorObjectKey = "os"
 	ReservedErrorObjectKeyPayload         ReservedErrorObjectKey = "payload"
 	ReservedErrorObjectKeyRequestID       ReservedErrorObjectKey = "request_id"
 	ReservedErrorObjectKeyServiceName     ReservedErrorObjectKey = "service_name"
@@ -1740,6 +1814,8 @@ const (
 	ReservedErrorObjectKeySource          ReservedErrorObjectKey = "source"
 	ReservedErrorObjectKeySpanID          ReservedErrorObjectKey = "span_id"
 	ReservedErrorObjectKeyStackTrace      ReservedErrorObjectKey = "stackTrace"
+	ReservedErrorObjectKeyStatus          ReservedErrorObjectKey = "status"
+	ReservedErrorObjectKeyTag             ReservedErrorObjectKey = "tag"
 	ReservedErrorObjectKeyTimestamp       ReservedErrorObjectKey = "timestamp"
 	ReservedErrorObjectKeyTraceID         ReservedErrorObjectKey = "trace_id"
 	ReservedErrorObjectKeyType            ReservedErrorObjectKey = "type"
@@ -1747,8 +1823,12 @@ const (
 )
 
 var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
+	ReservedErrorObjectKeyBrowser,
+	ReservedErrorObjectKeyEnvironment,
 	ReservedErrorObjectKeyEvent,
+	ReservedErrorObjectKeyHasSessions,
 	ReservedErrorObjectKeyLogCursor,
+	ReservedErrorObjectKeyOs,
 	ReservedErrorObjectKeyPayload,
 	ReservedErrorObjectKeyRequestID,
 	ReservedErrorObjectKeyServiceName,
@@ -1757,6 +1837,8 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 	ReservedErrorObjectKeySource,
 	ReservedErrorObjectKeySpanID,
 	ReservedErrorObjectKeyStackTrace,
+	ReservedErrorObjectKeyStatus,
+	ReservedErrorObjectKeyTag,
 	ReservedErrorObjectKeyTimestamp,
 	ReservedErrorObjectKeyTraceID,
 	ReservedErrorObjectKeyType,
@@ -1765,7 +1847,7 @@ var AllReservedErrorObjectKey = []ReservedErrorObjectKey{
 
 func (e ReservedErrorObjectKey) IsValid() bool {
 	switch e {
-	case ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
+	case ReservedErrorObjectKeyBrowser, ReservedErrorObjectKeyEnvironment, ReservedErrorObjectKeyEvent, ReservedErrorObjectKeyHasSessions, ReservedErrorObjectKeyLogCursor, ReservedErrorObjectKeyOs, ReservedErrorObjectKeyPayload, ReservedErrorObjectKeyRequestID, ReservedErrorObjectKeyServiceName, ReservedErrorObjectKeyServiceVersion, ReservedErrorObjectKeySessionSecureID, ReservedErrorObjectKeySource, ReservedErrorObjectKeySpanID, ReservedErrorObjectKeyStackTrace, ReservedErrorObjectKeyStatus, ReservedErrorObjectKeyTag, ReservedErrorObjectKeyTimestamp, ReservedErrorObjectKeyTraceID, ReservedErrorObjectKeyType, ReservedErrorObjectKeyURL:
 		return true
 	}
 	return false
@@ -1796,6 +1878,7 @@ type ReservedLogKey string
 
 const (
 	// Keep this in alpha order
+	ReservedLogKeyEnvironment     ReservedLogKey = "environment"
 	ReservedLogKeyLevel           ReservedLogKey = "level"
 	ReservedLogKeyMessage         ReservedLogKey = "message"
 	ReservedLogKeySecureSessionID ReservedLogKey = "secure_session_id"
@@ -1807,6 +1890,7 @@ const (
 )
 
 var AllReservedLogKey = []ReservedLogKey{
+	ReservedLogKeyEnvironment,
 	ReservedLogKeyLevel,
 	ReservedLogKeyMessage,
 	ReservedLogKeySecureSessionID,
@@ -1819,7 +1903,7 @@ var AllReservedLogKey = []ReservedLogKey{
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
+	case ReservedLogKeyEnvironment, ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false
@@ -1892,8 +1976,10 @@ func (e ReservedSessionKey) MarshalGQL(w io.Writer) {
 type ReservedTraceKey string
 
 const (
+	ReservedTraceKeyEnvironment     ReservedTraceKey = "environment"
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
+	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
 	ReservedTraceKeySecureSessionID ReservedTraceKey = "secure_session_id"
 	ReservedTraceKeySpanID          ReservedTraceKey = "span_id"
 	ReservedTraceKeyTraceID         ReservedTraceKey = "trace_id"
@@ -1907,8 +1993,10 @@ const (
 )
 
 var AllReservedTraceKey = []ReservedTraceKey{
+	ReservedTraceKeyEnvironment,
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
+	ReservedTraceKeyMetric,
 	ReservedTraceKeySecureSessionID,
 	ReservedTraceKeySpanID,
 	ReservedTraceKeyTraceID,
@@ -1923,7 +2011,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false
@@ -1958,6 +2046,7 @@ const (
 	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
 	RetentionPeriodTwelveMonths RetentionPeriod = "TwelveMonths"
 	RetentionPeriodTwoYears     RetentionPeriod = "TwoYears"
+	RetentionPeriodThreeYears   RetentionPeriod = "ThreeYears"
 )
 
 var AllRetentionPeriod = []RetentionPeriod{
@@ -1966,11 +2055,12 @@ var AllRetentionPeriod = []RetentionPeriod{
 	RetentionPeriodSixMonths,
 	RetentionPeriodTwelveMonths,
 	RetentionPeriodTwoYears,
+	RetentionPeriodThreeYears,
 }
 
 func (e RetentionPeriod) IsValid() bool {
 	switch e {
-	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
+	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears, RetentionPeriodThreeYears:
 		return true
 	}
 	return false
@@ -1994,6 +2084,47 @@ func (e *RetentionPeriod) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RetentionPeriod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SavedSegmentEntityType string
+
+const (
+	SavedSegmentEntityTypeLog   SavedSegmentEntityType = "Log"
+	SavedSegmentEntityTypeTrace SavedSegmentEntityType = "Trace"
+)
+
+var AllSavedSegmentEntityType = []SavedSegmentEntityType{
+	SavedSegmentEntityTypeLog,
+	SavedSegmentEntityTypeTrace,
+}
+
+func (e SavedSegmentEntityType) IsValid() bool {
+	switch e {
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace:
+		return true
+	}
+	return false
+}
+
+func (e SavedSegmentEntityType) String() string {
+	return string(e)
+}
+
+func (e *SavedSegmentEntityType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SavedSegmentEntityType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SavedSegmentEntityType", str)
+	}
+	return nil
+}
+
+func (e SavedSegmentEntityType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -2419,48 +2550,5 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TracesMetricType string
-
-const (
-	TracesMetricTypeCount TracesMetricType = "count"
-	TracesMetricTypeP50   TracesMetricType = "p50"
-	TracesMetricTypeP90   TracesMetricType = "p90"
-)
-
-var AllTracesMetricType = []TracesMetricType{
-	TracesMetricTypeCount,
-	TracesMetricTypeP50,
-	TracesMetricTypeP90,
-}
-
-func (e TracesMetricType) IsValid() bool {
-	switch e {
-	case TracesMetricTypeCount, TracesMetricTypeP50, TracesMetricTypeP90:
-		return true
-	}
-	return false
-}
-
-func (e TracesMetricType) String() string {
-	return string(e)
-}
-
-func (e *TracesMetricType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TracesMetricType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TracesMetricType", str)
-	}
-	return nil
-}
-
-func (e TracesMetricType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

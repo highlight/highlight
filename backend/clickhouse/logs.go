@@ -3,9 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"math"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	e "github.com/pkg/errors"
@@ -31,6 +32,7 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeySource:          "Source",
 	modelInputs.ReservedLogKeyServiceName:     "ServiceName",
 	modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
+	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 }
 
 var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
@@ -51,6 +53,7 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 		"Source",
 		"ServiceName",
 		"ServiceVersion",
+		"Environment",
 	},
 }
 
@@ -60,6 +63,14 @@ var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	reservedKeys:     modelInputs.AllReservedLogKey,
 	bodyColumn:       "Body",
 	attributesColumn: "LogAttributes",
+}
+
+var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{
+	tableConfig:         logsTableConfig,
+	samplingTableConfig: logsSamplingTableConfig,
+	useSampling: func(d time.Duration) bool {
+		return d >= 24*time.Hour
+	},
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
@@ -120,6 +131,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			Source          string
 			ServiceName     string
 			ServiceVersion  string
+			Environment     string
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
@@ -138,6 +150,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 				Source:          &result.Source,
 				ServiceName:     &result.ServiceName,
 				ServiceVersion:  &result.ServiceVersion,
+				Environment:     &result.Environment,
 			},
 		}, nil
 	}
@@ -168,6 +181,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 	sb, err := makeSelectBuilder(
 		logsTableConfig,
 		selectStr,
+		nil,
 		nil,
 		projectID,
 		params,
@@ -228,6 +242,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 		logsTableConfig,
 		"COUNT(*)",
 		nil,
+		nil,
 		projectID,
 		params,
 		Pagination{CountOnly: true},
@@ -253,18 +268,26 @@ type number interface {
 	uint64 | float64
 }
 
+func (client *Client) ReadTracesDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
+	return readDailyImpl[uint64](ctx, client, "trace_count_daily_mv", "sum", projectIds, dateRange)
+}
+
+func (client *Client) ReadTracesDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
+	return readDailyImpl[float64](ctx, client, "trace_count_daily_mv", "avg", projectIds, dateRange)
+}
+
 func (client *Client) ReadLogsDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
-	return readLogsDailyImpl[uint64](ctx, client, "sum", projectIds, dateRange)
+	return readDailyImpl[uint64](ctx, client, "log_count_daily_mv", "sum", projectIds, dateRange)
 }
 
 func (client *Client) ReadLogsDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
-	return readLogsDailyImpl[float64](ctx, client, "avg", projectIds, dateRange)
+	return readDailyImpl[float64](ctx, client, "log_count_daily_mv", "avg", projectIds, dateRange)
 }
 
-func readLogsDailyImpl[N number](ctx context.Context, client *Client, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (N, error) {
+func readDailyImpl[N number](ctx context.Context, client *Client, table string, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (N, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(fmt.Sprintf("COALESCE(%s(Count), 0) AS Count", aggFn)).
-		From("log_count_daily_mv").
+		From(table).
 		Where(sb.In("ProjectId", projectIds)).
 		Where(sb.LessThan("toUInt64(Day)", uint64(dateRange.EndDate.Unix()))).
 		Where(sb.GreaterEqualThan("toUInt64(Day)", uint64(dateRange.StartDate.Unix())))
@@ -307,6 +330,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 				startTimestamp,
 			),
 			nil,
+			nil,
 			projectID,
 			params,
 			Pagination{CountOnly: true},
@@ -323,6 +347,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 				endTimestamp,
 				startTimestamp,
 			),
+			nil,
 			nil,
 			projectID,
 			params,
@@ -414,8 +439,12 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate)
+func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readMetrics(ctx, client, logsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate, query, typeArg)
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {

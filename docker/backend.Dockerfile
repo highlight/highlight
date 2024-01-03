@@ -7,6 +7,7 @@ COPY ../go.work .
 COPY ../go.work.sum .
 COPY ../backend ./backend
 COPY ../sdk/highlight-go ./sdk/highlight-go
+COPY ../sdk/highlightinc-highlight-datasource ./sdk/highlightinc-highlight-datasource
 COPY ../e2e/go ./e2e/go
 RUN go work sync
 

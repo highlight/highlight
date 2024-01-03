@@ -122,7 +122,7 @@ function Login(username: string, password: string) {
 export const verifySnippet: QuickStartStep = {
 	title: 'Verify installation',
 	content:
-		"Check your [dashboard](https://app.highlight.io/sessions) for a new session. Don't see anything? Send us a message in [our community](https://highlight.io/community) and we can help debug.",
+		"Check your [dashboard](https://app.highlight.io/sessions) for a new session. Make sure to remove the `Status is Completed` filter to see ongoing sessions. Don't see anything? Send us a message in [our community](https://highlight.io/community) and we can help debug.",
 }
 
 export const setupBackendSnippet: QuickStartStep = {

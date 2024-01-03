@@ -8,6 +8,7 @@ const (
 	PricingProductTypeSessions PricingProductType = "SESSIONS"
 	PricingProductTypeErrors   PricingProductType = "ERRORS"
 	PricingProductTypeLogs     PricingProductType = "LOGS"
+	PricingProductTypeTraces   PricingProductType = "TRACES"
 )
 
 type PricingSubscriptionInterval string

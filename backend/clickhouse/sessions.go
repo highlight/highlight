@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
 
@@ -14,7 +17,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
-	"github.com/samber/lo"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -65,8 +67,8 @@ type ClickhouseSession struct {
 	ViewedByAdmins     clickhouse.ArraySet
 	FieldKeys          clickhouse.ArraySet
 	FieldKeyValues     clickhouse.ArraySet
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	CreatedAt          int64
+	UpdatedAt          int64
 	SecureID           string
 	Identified         bool
 	Identifier         string
@@ -96,14 +98,16 @@ type ClickhouseField struct {
 	ProjectID        int32
 	Type             string
 	Name             string
-	SessionCreatedAt time.Time
+	SessionCreatedAt int64
 	SessionID        int64
 	Value            string
 }
 
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
+const SessionKeysTable = "session_keys"
 const timeRangeField = "custom_created_at"
+const sampleField = "custom_sample"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
 	chFields := []interface{}{}
@@ -136,7 +140,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				Name:             field.Name,
 				Value:            field.Value,
 				SessionID:        int64(session.ID),
-				SessionCreatedAt: session.CreatedAt,
+				SessionCreatedAt: session.CreatedAt.UnixMicro(),
 			}
 			chFields = append(chFields, &chf)
 		}
@@ -154,8 +158,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			ViewedByAdmins:     viewedByAdmins,
 			FieldKeys:          fieldKeys,
 			FieldKeyValues:     fieldKeyValues,
-			CreatedAt:          session.CreatedAt,
-			UpdatedAt:          session.UpdatedAt,
+			CreatedAt:          session.CreatedAt.UnixMicro(),
+			UpdatedAt:          session.UpdatedAt.UnixMicro(),
 			SecureID:           session.SecureID,
 			Identified:         session.Identified,
 			Identifier:         session.Identifier,
@@ -192,22 +196,23 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	var g errgroup.Group
 
 	if len(chSessions) > 0 {
-		sessionsSql, sessionsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseSession)).
-			InsertInto(SessionsTable, chSessions...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
 		g.Go(func() error {
+			sessionsSql, sessionsArgs := sqlbuilder.
+				NewStruct(new(ClickhouseSession)).
+				InsertInto(SessionsTable, chSessions...).
+				BuildWithFlavor(sqlbuilder.ClickHouse)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, 32, map[int]bool{7: true, 8: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
 
 	if len(chFields) > 0 {
-		fieldsSql, fieldsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseField)).
-			InsertInto(FieldsTable, chFields...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
-
 		g.Go(func() error {
+			fieldsSql, fieldsArgs := sqlbuilder.
+				NewStruct(new(ClickhouseField)).
+				InsertInto(FieldsTable, chFields...).
+				BuildWithFlavor(sqlbuilder.ClickHouse)
+			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, 6, map[int]bool{3: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
 		})
 	}
@@ -215,18 +220,26 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	return g.Wait()
 }
 
-func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
+
+	sampleRule, sampleRuleIdx, sampleRuleFound := lo.FindIndexOf(rules, func(r Rule) bool {
+		return r.Field == sampleField
+	})
+	if sampleRuleFound {
+		rules = append(rules[:sampleRuleIdx], rules[sampleRuleIdx+1:]...)
+	}
+	useRandomSample := sampleRuleFound && groupBy == nil
 
 	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
 		return r.Field == timeRangeField
 	})
 	if !found {
 		end := time.Now().UTC()
-		start := end.AddDate(0, 0, -30).UTC()
+		start := end.AddDate(0, 0, -30)
 		timeRangeRule = Rule{
 			Field: timeRangeField,
 			Op:    BetweenDate,
@@ -235,21 +248,29 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		rules = append(rules, timeRangeRule)
 	}
 	if len(timeRangeRule.Val) != 1 {
-		return "", nil, fmt.Errorf("unexpected length of time range value: %s", timeRangeRule.Val)
+		return "", nil, false, fmt.Errorf("unexpected length of time range value: %s", timeRangeRule.Val)
 	}
 	start, end, found := strings.Cut(timeRangeRule.Val[0], "_")
 	if !found {
-		return "", nil, fmt.Errorf("separator not found for time range: %s", timeRangeRule.Val[0])
+		return "", nil, false, fmt.Errorf("separator not found for time range: %s", timeRangeRule.Val[0])
 	}
 	startTime, err := time.Parse(timeFormat, start)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 	endTime, err := time.Parse(timeFormat, end)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 
+	if useRandomSample {
+		salt, err := strconv.ParseUint(sampleRule.Val[0], 16, 64)
+		if err != nil {
+			return "", nil, false, err
+		}
+		selectColumns = fmt.Sprintf("%s, toUInt64(farmHash64(SecureID) %% %d) as hash", selectColumns, salt)
+		orderBy = pointy.String("hash")
+	}
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectColumns).
 		From("sessions FINAL").
@@ -264,7 +285,7 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 
 	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 
 	sb = sb.Where(conditions)
@@ -281,39 +302,50 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		sb = sb.Offset(*offset)
 	}
 
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	if useRandomSample {
+		sbOuter := sqlbuilder.NewSelectBuilder()
+		sb = sbOuter.
+			Select("*").
+			From(sbOuter.BuilderAs(sb, "inner"))
+	}
 
-	return sql, args, nil
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	return sql, args, useRandomSample, nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, error) {
+func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, sampleRuleFound, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, false, err
 	}
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, false, err
 	}
 
-	ids := []int64{}
+	var ids []int64
 	var total uint64
 	for rows.Next() {
 		var id int64
-		if err := rows.Scan(&id, &total); err != nil {
-			return nil, 0, err
+		columns := []interface{}{&id, &total}
+		if sampleRuleFound {
+			var hash uint64
+			columns = append(columns, &hash)
+		}
+		if err := rows.Scan(columns...); err != nil {
+			return nil, 0, false, err
 		}
 		ids = append(ids, id)
 	}
 
-	return ids, int64(total), nil
+	return ids, int64(total), sampleRuleFound, nil
 }
 
 func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Admin, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
@@ -326,7 +358,7 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Ad
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, _, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -429,17 +461,36 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	return client.conn.Exec(ctx, sql, args...)
 }
 
-var sessionsTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
-	tableName: SessionsTable,
-	keysToColumns: map[modelInputs.ReservedSessionKey]string{
-		modelInputs.ReservedSessionKeyEnvironment: "Environment",
-		modelInputs.ReservedSessionKeyServiceName: "ServiceName",
-		modelInputs.ReservedSessionKeyAppVersion:  "AppVersion",
-	},
+var sessionsTableConfig = tableConfig[string]{
+	tableName:        SessionsTable,
+	keysToColumns:    fieldMap,
 	attributesColumn: "Fields",
-	reservedKeys:     modelInputs.AllReservedSessionKey,
+	reservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
+		return item.String()
+	}),
 }
 
 func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) bool {
 	return matchesQuery(session, sessionsTableConfig, filters)
+}
+
+var sessionsJoinedTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
+	tableName:        "sessions_joined_vw",
+	attributesColumn: "SessionAttributes",
+	reservedKeys:     modelInputs.AllReservedSessionKey,
+}
+
+var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
+	tableConfig: sessionsJoinedTableConfig,
+	useSampling: func(time.Duration) bool {
+		return false
+	},
+}
+
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return readMetrics(ctx, client, sessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+}
+
+func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	return KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
 }

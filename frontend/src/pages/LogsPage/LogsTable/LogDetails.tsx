@@ -14,7 +14,7 @@ import {
 	Stack,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import {
 	IconCollapsed,
@@ -78,6 +78,7 @@ export const LogDetails: React.FC<Props> = ({
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
 	const {
+		environment,
 		traceID,
 		spanID,
 		secureSessionID,
@@ -98,6 +99,7 @@ export const LogDetails: React.FC<Props> = ({
 	} & {
 		[key in ReservedLogKey]: Maybe<string> | undefined
 	} = {
+		environment,
 		level,
 		message,
 		trace_id: traceID,

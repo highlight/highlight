@@ -1,7 +1,7 @@
 import { H } from './highlight-edge'
 import type { NodeOptions } from '@highlight-run/node'
-import type { ExecutionContext } from '@cloudflare/workers-types'
 import type { NextFetchEvent, NextRequest } from 'next/server'
+import { ExtendedExecutionContext } from './types'
 
 export type HighlightEnv = NodeOptions
 
@@ -10,29 +10,39 @@ export type EdgeHandler = (
 	event: NextFetchEvent,
 ) => Promise<Response>
 
-export type ExtendedExecutionContext = ExecutionContext & {
-	__waitUntilTimer?: ReturnType<typeof setInterval>
-	__waitUntilPromises?: Promise<void>[]
-	waitUntilFinished?: () => Promise<void>
-}
-
 export function Highlight(env: HighlightEnv) {
 	return function withHighlight(handler: EdgeHandler) {
 		return async function (
 			request: NextRequest,
 			event: NextFetchEvent & ExtendedExecutionContext,
 		) {
+			if (env.enableFsInstrumentation) {
+				console.warn(
+					'enableFsInstrumentation is incompatible with Edge... disabling now.',
+				)
+
+				env.enableFsInstrumentation = false
+			}
+
 			H.initEdge(request, env, event)
 
 			try {
-				const response = await handler(request, event)
+				const response = await H.runWithHeaders(
+					request.headers,
+					async () => {
+						return await handler(request, event)
+					},
+				)
 
 				H.sendResponse(response)
 
 				return response
 			} catch (error) {
+				const { secureSessionId, requestId } = H.parseHeaders(
+					request.headers,
+				)
 				if (error instanceof Error) {
-					H.consumeError(error)
+					H.consumeError(error, secureSessionId, requestId)
 				}
 
 				/**

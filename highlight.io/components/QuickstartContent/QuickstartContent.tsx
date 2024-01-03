@@ -7,12 +7,14 @@ import { GoGqlgenContent } from './backend/go/go-gqlgen'
 import { GoMuxContent } from './backend/go/mux'
 import { JavaOtherContent } from './backend/java/other'
 import { JSApolloContent } from './backend/js/apollo'
+import { JSAWSLambdaContent } from './backend/js/aws-lambda'
 import { JSCloudflareContent } from './backend/js/cloudflare'
 import { JSExpressContent } from './backend/js/express'
 import { JSFirebaseContent } from './backend/js/firebase'
 import { JSNestContent } from './backend/js/nestjs'
 import { JSNodeContent } from './backend/js/nodejs'
 import { JStRPCContent } from './backend/js/trpc'
+import { OTLPErrorMonitoringContent } from './backend/otlp'
 import { PythonAWSContext } from './backend/python/aws'
 import { PythonAzureContext } from './backend/python/azure'
 import { PythonDjangoContext } from './backend/python/django'
@@ -30,23 +32,22 @@ import { ReactContent } from './frontend/react'
 import { RemixContent } from './frontend/remix'
 import { SvelteKitContent } from './frontend/sveltekit'
 import { VueContent } from './frontend/vue'
-import { GoFiberLogContent } from './logging/go/fiber'
-import { GoOtherLogContent } from './logging/go/other'
-import { HostingVercelLogContent } from './logging/hosting/vercel'
-import { HTTPContent } from './logging/http'
-import { JSNestLogContent } from './logging/js/nestjs'
-import { JSOtherLogContent } from './logging/js/other'
-
-import { JSAWSLambdaContent } from './backend/js/aws-lambda'
 import { DockerContent } from './logging/docker'
 import { FileContent } from './logging/file'
 import { FluentForwardContent } from './logging/fluentd'
+import { GoFiberLogContent } from './logging/go/fiber'
+import { GoOtherLogContent } from './logging/go/other'
 import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
 import { HostingRenderLogContent } from './logging/hosting/render'
+import { HostingVercelLogContent } from './logging/hosting/vercel'
+import { HTTPContent } from './logging/http'
 import { JavaOtherLogContent } from './logging/java/other'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
+import { JSNestLogContent } from './logging/js/nestjs'
+import { JSOtherLogContent } from './logging/js/other'
 import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
+import { OTLPLoggingContent } from './logging/otlp'
 import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
@@ -56,10 +57,14 @@ import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { GoTracesContent } from './traces/go/go'
+import { GormTracesContent } from './traces/go/gorm'
+import { JSManualTracesContent } from './traces/node-js/manual'
+import { NextJsTracesContent } from './traces/node-js/nextjs'
 import { OTLPTracesContent } from './traces/otlp'
 
 export type QuickStartOptions = {
 	title: string
+	metaTitle?: string
 	subtitle: string
 	logoUrl: string
 } & {
@@ -68,6 +73,7 @@ export type QuickStartOptions = {
 
 export type QuickStartContent = {
 	title: string
+	metaTitle?: string
 	subtitle: string
 	logoUrl?: string
 	entries: Array<QuickStartStep>
@@ -112,6 +118,7 @@ export enum QuickStartType {
 	GoEcho = 'echo',
 	GoMux = 'mux',
 	GoGin = 'gin',
+	GoGorm = 'gorm',
 	GoLogrus = 'logrus',
 	GoOther = 'other',
 	JSApollo = 'apollo',
@@ -120,6 +127,8 @@ export enum QuickStartType {
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
+	JSNextjs = 'nextjs',
+	JSManual = 'manual',
 	JSNestjs = 'nestjs',
 	JSWinston = 'winston',
 	JSPino = 'pino',
@@ -217,6 +226,11 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/java.svg'),
 			[QuickStartType.JavaOther]: JavaOtherContent,
 		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
+		},
 	},
 	'backend-logging': {
 		title: 'Select your language',
@@ -284,19 +298,38 @@ export const quickStartContent = {
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
 		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPLoggingContent,
+		},
 	},
 	traces: {
 		title: 'Select your language',
 		subtitle:
-			'Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).',
+			'Tracing is supported with the Highlight SDKs or via the OpenTelemetry protocol (OTLP).',
+		'node-js': {
+			title: 'Node.js',
+			subtitle: 'Manually trace your Node.js application.',
+			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			[QuickStartType.JSManual]: JSManualTracesContent,
+		},
+		'next-js': {
+			title: 'Next.js',
+			subtitle: 'Trace your Next.js application.',
+			logoUrl: siteUrl('/images/quickstart/nextjs.svg'),
+			[QuickStartType.JSNextjs]: NextJsTracesContent,
+		},
 		go: {
 			title: 'Go',
 			subtitle: 'Install tracing in your Go application.',
 			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoOther]: GoTracesContent,
+			[QuickStartType.GoGorm]: GormTracesContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry Protocol (OTLP)',
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
 		},
 	},

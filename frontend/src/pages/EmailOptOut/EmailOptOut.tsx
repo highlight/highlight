@@ -8,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Ariakit, Heading, Stack, Text } from '@highlight-run/ui'
+import { Ariakit, Heading, Stack, Text } from '@highlight-run/ui/components'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useEffect } from 'react'
@@ -18,7 +18,7 @@ import BorderBox from '@/components/BorderBox/BorderBox'
 import { Header } from '@/components/Header/Header'
 import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
-import { showIntercomBubble } from '@/util/window'
+import { showSupportBubble } from '@/util/window'
 
 type Props = {
 	token?: string | null
@@ -176,7 +176,7 @@ export const EmailOptOutPage = () => {
 	useEffect(() => {
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
-			showIntercomBubble()
+			showSupportBubble()
 		}, 5000)
 	}, [])
 

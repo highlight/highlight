@@ -1,5 +1,5 @@
-import { vars } from '@highlight-run/ui'
-import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
+import { sprinkles } from '@highlight-run/ui/sprinkles'
+import { vars } from '@highlight-run/ui/vars'
 import { globalStyle, style } from '@vanilla-extract/css'
 
 export const header = style({
@@ -20,29 +20,6 @@ export const queryContainer = style([
 		border: 'secondary',
 		pr: '4',
 	}),
-])
-
-export const combobox = style([
-	sprinkles({
-		py: '4',
-		pl: '6',
-	}),
-	{
-		border: 0,
-		background: 'transparent',
-		color: vars.theme.static.content.default,
-		display: 'flex',
-		fontSize: 13,
-		width: '100%',
-		selectors: {
-			'&:focus': {
-				outline: 0,
-			},
-			'&::placeholder': {
-				color: vars.theme.interactive.fill.secondary.content.onDisabled,
-			},
-		},
-	},
 ])
 
 export const sectionHeader = style([

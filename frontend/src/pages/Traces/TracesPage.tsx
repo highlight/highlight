@@ -1,11 +1,13 @@
-import { Box, defaultPresets, Text } from '@highlight-run/ui'
+import { Box, defaultPresets, getNow, Text } from '@highlight-run/ui/components'
+import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import LoadingBox from '@/components/LoadingBox'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
@@ -21,22 +23,31 @@ import {
 	parseSearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
-	useGetTracesKeysQuery,
+	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 	useGetTracesMetricsQuery,
-	useGetTracesQuery,
 } from '@/graph/generated/hooks'
-import { SortDirection, TracesMetricType } from '@/graph/generated/schemas'
+import {
+	MetricAggregator,
+	MetricColumn,
+	Trace,
+} from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
+import { useGetTraces } from '@/pages/Traces/useGetTraces'
 import { formatNumber } from '@/util/numbers'
 
 import * as styles from './TracesPage.css'
 
+export type TracesOutletContext = Partial<Trace>[]
+
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
+	const { trace_cursor: traceCursor } = useParams<{
+		trace_cursor: string
+	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [startDate, setStartDate] = useQueryParam(
 		'start_date',
@@ -53,24 +64,30 @@ export const TracesPage: React.FC = () => {
 		setEndDate(newEndDate)
 	}
 
-	const { data, loading } = useGetTracesQuery({
-		variables: {
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: moment(startDate).format(TIME_FORMAT),
-					end_date: moment(endDate).format(TIME_FORMAT),
-				},
-				query: serverQuery,
-			},
-			direction: SortDirection.Desc,
-		},
+	const handleAdditionTracesDateChange = () => {
+		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
+	}
+
+	const {
+		traceEdges,
+		moreTraces,
+		clearMoreTraces,
+		loading,
+		loadingAfter,
+		fetchMoreForward,
+	} = useGetTraces({
+		query,
+		projectId,
+		traceCursor,
+		startDate,
+		endDate,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =
 		useGetTracesMetricsQuery({
 			variables: {
 				project_id: projectId!,
+				column: MetricColumn.Duration,
 				group_by: [],
 				params: {
 					query: serverQuery,
@@ -80,16 +97,32 @@ export const TracesPage: React.FC = () => {
 					},
 				},
 				metric_types: [
-					TracesMetricType.Count,
-					TracesMetricType.P50,
-					TracesMetricType.P90,
+					MetricAggregator.Count,
+					MetricAggregator.Avg,
+					MetricAggregator.P50,
+					MetricAggregator.P90,
 				],
 			},
 			skip: !projectId,
+			fetchPolicy: 'cache-and-network',
 		})
 
+	const fetchMoreWhenScrolled = React.useCallback(
+		(containerRefElement?: HTMLDivElement | null) => {
+			if (containerRefElement) {
+				const { scrollHeight, scrollTop, clientHeight } =
+					containerRefElement
+				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
+				if (scrollHeight - scrollTop - clientHeight < 100) {
+					fetchMoreForward()
+				}
+			}
+		},
+		[fetchMoreForward],
+	)
+
 	const histogramBuckets = metricsData?.traces_metrics.buckets
-		.filter((b) => b.metric_type === TracesMetricType.Count)
+		.filter((b) => b.metric_type === MetricAggregator.Count)
 		.map((b) => ({
 			bucketId: b.bucket_id,
 			counts: [{ level: 'traces', count: b.metric_value }],
@@ -97,29 +130,41 @@ export const TracesPage: React.FC = () => {
 
 	const totalCount = _.sumBy(
 		metricsData?.traces_metrics.buckets.filter(
-			(b) => b.metric_type === TracesMetricType.Count,
+			(b) => b.metric_type === MetricAggregator.Count,
 		),
 		(b) => b.metric_value,
 	)
 
 	const metricsBuckets: {
+		avg: number | undefined
 		p50: number | undefined
 		p90: number | undefined
 	}[] = []
 	for (let i = 0; i < metricsData?.traces_metrics.bucket_count; i++) {
-		metricsBuckets.push({ p50: undefined, p90: undefined })
+		metricsBuckets.push({ avg: undefined, p50: undefined, p90: undefined })
 	}
 
 	metricsData?.traces_metrics.buckets.forEach((b) => {
 		switch (b.metric_type) {
-			case TracesMetricType.P50:
+			case MetricAggregator.Avg:
+				metricsBuckets[b.bucket_id].avg = b.metric_value / 1_000_000
+				break
+			case MetricAggregator.P50:
 				metricsBuckets[b.bucket_id].p50 = b.metric_value / 1_000_000
 				break
-			case TracesMetricType.P90:
+			case MetricAggregator.P90:
 				metricsBuckets[b.bucket_id].p90 = b.metric_value / 1_000_000
 				break
 		}
 	})
+
+	const outletContext = useMemo<TracesOutletContext>(() => {
+		if (!traceEdges) {
+			return []
+		}
+
+		return traceEdges.map((edge) => edge.node)
+	}, [traceEdges])
 
 	return (
 		<>
@@ -155,15 +200,20 @@ export const TracesPage: React.FC = () => {
 						hideCreateAlert
 						onFormSubmit={setQuery}
 						onDatesChange={handleDatesChange}
-						fetchKeys={useGetTracesKeysQuery}
+						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 					/>
-					<Box display="flex" borderBottom="dividerWeak">
+					<Box
+						display="flex"
+						borderBottom="dividerWeak"
+						style={{ height: 92 }}
+					>
 						<Box
 							width="full"
 							padding="8"
 							paddingBottom="4"
 							borderRight="dividerWeak"
+							position="relative"
 						>
 							<Box
 								display="flex"
@@ -171,11 +221,23 @@ export const TracesPage: React.FC = () => {
 								gap="4"
 								paddingBottom="4"
 							>
-								<Text size="xSmall">Traces</Text>
-								{!metricsLoading && (
-									<Text size="xSmall" color="weak">
-										{formatNumber(totalCount)} total
-									</Text>
+								{metricsLoading ? (
+									<LoadingBox
+										height="auto"
+										width="auto"
+										position="absolute"
+										size="xSmall"
+										style={{ top: 0, left: 0, zIndex: 1 }}
+									/>
+								) : (
+									<>
+										<Text size="xSmall" color="strong">
+											Traces
+										</Text>
+										<Text size="xSmall" color="weak">
+											{formatNumber(totalCount)} total
+										</Text>
+									</>
 								)}
 							</Box>
 							<LogsHistogram
@@ -196,19 +258,43 @@ export const TracesPage: React.FC = () => {
 							padding="8"
 							paddingBottom="4"
 							cssClass={styles.chart}
+							position="relative"
 						>
-							<Text cssClass={styles.chartText} size="xSmall">
-								Latency
-							</Text>
-							<LatencyChart metricsBuckets={metricsBuckets} />
+							{metricsLoading ? (
+								<LoadingBox
+									height="auto"
+									width="auto"
+									position="absolute"
+									size="xSmall"
+									style={{ top: 0, left: 0, zIndex: 1 }}
+								/>
+							) : (
+								<Text cssClass={styles.chartText} size="xSmall">
+									Latency
+								</Text>
+							)}
+							<LatencyChart
+								loading={metricsLoading}
+								metricsBuckets={metricsBuckets}
+							/>
 						</Box>
 					</Box>
 
-					<TracesList traces={data?.traces} loading={loading} />
+					<TracesList
+						loading={loading}
+						numMoreTraces={moreTraces}
+						traceEdges={traceEdges}
+						handleAdditionalTracesDateChange={
+							handleAdditionTracesDateChange
+						}
+						resetMoreTraces={clearMoreTraces}
+						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+						loadingAfter={loadingAfter}
+					/>
 				</Box>
 			</Box>
 
-			<Outlet />
+			<Outlet context={outletContext} />
 		</>
 	)
 }

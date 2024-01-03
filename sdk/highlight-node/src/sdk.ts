@@ -1,19 +1,31 @@
 import { IncomingHttpHeaders } from 'http'
-import { Highlight } from '.'
-import { NodeOptions } from './types.js'
+import { Highlight } from './client'
 import log from './log'
-import type { Attributes } from '@opentelemetry/api'
 import { ResourceAttributes } from '@opentelemetry/resources'
+import type { NodeOptions, HighlightContext } from './types.js'
+import type {
+	Attributes,
+	Tracer,
+	Span as OtelSpan,
+	SpanOptions,
+} from '@opentelemetry/api'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
 export interface HighlightInterface {
-	init: (options: NodeOptions) => void
+	init: (options: NodeOptions) => Highlight
 	stop: () => Promise<void>
 	isInitialized: () => boolean
-	parseHeaders: (
-		headers: IncomingHttpHeaders,
-	) => { secureSessionId: string; requestId: string } | undefined
+
+	// Use parseHeaders to extract the headers from the current context or from the headers.
+	parseHeaders: (headers: Headers | IncomingHttpHeaders) => HighlightContext
+
+	// Use runWithHeaders to execute a method with a highlight context
+	runWithHeaders: <T>(
+		headers: Headers | IncomingHttpHeaders,
+		cb: () => T,
+	) => Promise<T>
+
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
@@ -42,6 +54,7 @@ export interface HighlightInterface {
 		metadata?: Attributes,
 	) => Promise<void>
 	setAttributes: (attributes: ResourceAttributes) => void
+	startActiveSpan: (name: string, options: SpanOptions) => Promise<OtelSpan>
 	_debug: (...data: any[]) => void
 }
 
@@ -50,11 +63,16 @@ let highlight_obj: Highlight
 export const H: HighlightInterface = {
 	init: (options: NodeOptions) => {
 		_debug = !!options.debug
-		try {
-			highlight_obj = new Highlight(options)
-		} catch (e) {
-			console.warn('highlight-node init error: ', e)
+
+		if (!highlight_obj) {
+			try {
+				highlight_obj = new Highlight(options)
+			} catch (e) {
+				console.warn('highlight-node init error: ', e)
+			}
 		}
+
+		return highlight_obj
 	},
 	stop: async () => {
 		if (!highlight_obj) {
@@ -105,7 +123,10 @@ export const H: HighlightInterface = {
 	},
 	flush: async () => {
 		try {
-			await highlight_obj.flush()
+			await Promise.allSettled([
+				highlight_obj.waitForFlush(),
+				highlight_obj.flush(),
+			])
 		} catch (e) {
 			console.warn('highlight-node flush error: ', e)
 		}
@@ -133,34 +154,27 @@ export const H: HighlightInterface = {
 			console.warn('highlight-node log error: ', e)
 		}
 	},
-	parseHeaders: (
-		headers: IncomingHttpHeaders,
-	): { secureSessionId: string; requestId: string } | undefined => {
-		try {
-			if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
-				const [secureSessionId, requestId] =
-					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
-				return { secureSessionId, requestId }
-			} else {
-				H._debug(
-					`request headers do not contain ${HIGHLIGHT_REQUEST_HEADER}`,
-				)
-			}
-		} catch (e) {
-			console.warn('highlight-node parseHeaders error: ', e)
-		}
-		return undefined
+	parseHeaders: (headers): HighlightContext => {
+		return highlight_obj.parseHeaders(headers)
+	},
+
+	runWithHeaders: (headers, cb) => {
+		return highlight_obj.runWithHeaders(headers, cb)
 	},
 	consumeAndFlush: async function (...args) {
-		const waitPromise = highlight_obj.waitForFlush()
+		try {
+			this.consumeError(...args)
 
-		this.consumeError(...args)
-		const flushPromise = this.flush()
-
-		await Promise.allSettled([waitPromise, flushPromise])
+			await this.flush()
+		} catch (e) {
+			console.warn('highlight-node consumeAndFlush error: ', e)
+		}
 	},
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)
+	},
+	startActiveSpan: (name: string, options: SpanOptions) => {
+		return highlight_obj.startActiveSpan(name, options)
 	},
 
 	_debug: (...data: any[]) => {

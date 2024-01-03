@@ -1,3 +1,4 @@
+import { Attributes } from '@opentelemetry/api'
 import { HighlightOptions } from 'highlight.run'
 
 export interface NodeOptions extends HighlightOptions {
@@ -21,10 +22,27 @@ export interface NodeOptions extends HighlightOptions {
 	 * This app's version ideally set to the latest deployed git SHA.
 	 */
 	serviceVersion?: string
+
+	/**
+	 * Specifies the environment your application is running in.
+	 * This is useful to distinguish whether your session was recorded on localhost or in production.
+	 */
+	environment?: 'development' | 'staging' | 'production' | string
+
 	/**
 	 * Enables node fs instrumentation @default false
 	 * see .
 	 * {@link https://opentelemetry.io/docs/instrumentation/js/libraries/#registration}
 	 */
 	enableFsInstrumentation?: boolean
+
+	/**
+	 * Attributes to be added to the OpenTelemetry Resource.
+	 */
+	attributes?: Attributes
+}
+
+export interface HighlightContext {
+	secureSessionId: string | undefined
+	requestId: string | undefined
 }

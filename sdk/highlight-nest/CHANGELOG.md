@@ -1,5 +1,104 @@
 # @highlight-run/nest
 
+## 3.4.8
+
+### Patch Changes
+
+-   Updated dependencies [790c83782]
+    -   @highlight-run/node@3.7.1
+
+## 3.4.7
+
+### Patch Changes
+
+-   Updated dependencies [e75a480dc]
+-   Updated dependencies [e75a480dc]
+    -   @highlight-run/node@3.7.0
+
+## 3.4.6
+
+### Patch Changes
+
+-   Updated dependencies [352641cf7]
+-   Updated dependencies [8f0b8de6b]
+-   Updated dependencies [46ed85c91]
+    -   @highlight-run/node@3.6.6
+
+## 3.4.5
+
+### Patch Changes
+
+-   Updated dependencies [bd5021a6c]
+-   Updated dependencies [2fce77c13]
+    -   @highlight-run/node@3.6.5
+
+## 3.4.4
+
+### Patch Changes
+
+-   Updated dependencies [7c35f7d78]
+    -   @highlight-run/node@3.6.4
+
+## 3.4.3
+
+### Patch Changes
+
+-   Updated dependencies [f966390c1]
+-   Updated dependencies [66b94f3f7]
+    -   @highlight-run/node@3.6.3
+
+## 3.4.2
+
+### Patch Changes
+
+-   Updated dependencies [e3590078e]
+-   Updated dependencies [8e91dbe55]
+    -   @highlight-run/node@3.6.2
+
+## 3.4.1
+
+### Patch Changes
+
+-   Updated dependencies [9ad2c786c]
+    -   @highlight-run/node@3.6.1
+
+## 3.4.0
+
+### Minor Changes
+
+-   7355c73f8: Support highlight request context globally to associate async console logs / errors with highlight sessions.
+
+### Patch Changes
+
+-   d452bb1b6: refactor types for highlight session context
+-   Updated dependencies [7355c73f8]
+-   Updated dependencies [747903c88]
+-   Updated dependencies [d452bb1b6]
+    -   @highlight-run/node@3.6.0
+
+## 3.3.8
+
+### Patch Changes
+
+-   @highlight-run/node@3.5.3
+
+## 3.3.7
+
+### Patch Changes
+
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [107f2fbd2]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [4f535a839]
+    -   @highlight-run/node@3.5.2
+
+## 3.3.6
+
+### Patch Changes
+
+-   @highlight-run/node@3.5.1
+
 ## 3.3.5
 
 ### Patch Changes

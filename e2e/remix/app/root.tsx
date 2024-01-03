@@ -8,13 +8,13 @@ import {
 	useLoaderData,
 } from '@remix-run/react'
 
-import { CONSTANTS } from '~/constants'
+import { CONSTANTS } from './constants.js'
 import { HighlightInit } from '@highlight-run/remix/client'
 import type { LinksFunction } from '@remix-run/node'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import { json } from '@remix-run/node'
 
-export { ErrorBoundary } from '~/components/error-boundary'
+export { ErrorBoundary } from './components/error-boundary.js'
 
 export const links: LinksFunction = () => [
 	...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
@@ -37,6 +37,7 @@ export default function App() {
 				projectId={ENV.HIGHLIGHT_PROJECT_ID}
 				// backendUrl="https://localhost:8082/public"
 				serviceName="my-remix-frontend"
+				environment="e2e-test"
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}
 				// scriptUrl="http://localhost:8080/dist/index.js"

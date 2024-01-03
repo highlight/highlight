@@ -1,5 +1,5 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import { Box } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui/components'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { parseOptionalJSON } from '@util/string'
 import React from 'react'

@@ -22,7 +22,7 @@ module Highlight
       @@instance
     end
 
-    def initialize(project_id, otlp_endpoint = OTLP_HTTP)
+    def initialize(project_id, environment: '', otlp_endpoint: OTLP_HTTP)
       @@instance = self # rubocop:disable Style/ClassVars
 
       @project_id = project_id
@@ -34,6 +34,11 @@ module Highlight
                                  endpoint: "#{@otlp_endpoint}/v1/traces", compression: 'gzip'
                                ), schedule_delay: 1000, max_export_batch_size: 128, max_queue_size: 1024
                              ))
+
+        c.resource = OpenTelemetry::SDK::Resources::Resource.create(
+          OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment
+        )
+
         yield c if block_given?
       end
 

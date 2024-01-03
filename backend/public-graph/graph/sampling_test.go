@@ -107,7 +107,7 @@ func Test_IsSessionExcluded(t *testing.T) {
 	workspace := model.Workspace{}
 	resolver.DB.Create(&workspace)
 
-	settings := model.AllWorkspaceSettings{WorkspaceID: workspace.ID, EnableIngestFilters: true}
+	settings := model.AllWorkspaceSettings{WorkspaceID: workspace.ID, EnableIngestSampling: true}
 	resolver.DB.Create(&settings)
 
 	project := model.Project{WorkspaceID: workspace.ID}

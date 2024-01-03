@@ -9,6 +9,7 @@ import {
 	useGetAlertsPagePayloadQuery,
 	useGetSessionsClickhouseQuery,
 } from '@graph/hooks'
+import { colors } from '@highlight-run/ui/colors'
 import {
 	Badge,
 	Box,
@@ -22,8 +23,7 @@ import {
 	Stack,
 	SwitchButton,
 	TextLink,
-} from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import {
 	RightPanelView,
@@ -315,8 +315,16 @@ export const SessionLevelBarV2: React.FC<
 										!showRightPanel || !isDefaultView,
 									)
 								}}
-								checked={showRightPanel && isDefaultView}
+								checked={
+									showRightPanel &&
+									(isDefaultView ||
+										rightPanelView ===
+											RightPanelView.Comments)
+								}
 								iconLeft={<IconSolidMenuAlt_3 size={14} />}
+								disabled={
+									rightPanelView === RightPanelView.Comments
+								}
 							/>
 						</>
 					)}

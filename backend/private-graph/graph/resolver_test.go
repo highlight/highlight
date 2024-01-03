@@ -17,7 +17,6 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/workerpool"
-	"github.com/leonelquinteros/hubspot"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
@@ -86,30 +85,6 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 	})
 }
 
-type HubspotMock struct{}
-
-func (h *HubspotMock) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) error {
-	return nil
-}
-
-func (h *HubspotMock) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
-	return nil
-}
-
-func (h *HubspotMock) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error {
-	return nil
-}
-
-func (h *HubspotMock) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
-	return nil
-
-}
-
-func (h *HubspotMock) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
-	return nil
-
-}
-
 // ensure that invite link email is checked case-insensitively with admin email
 func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 	tests := map[string]struct {
@@ -165,7 +140,7 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 			// test logic
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
-			r := &mutationResolver{Resolver: &Resolver{DB: DB, HubspotApi: &HubspotMock{}, PrivateWorkerPool: workerpool.New(1)}}
+			r := &mutationResolver{Resolver: &Resolver{DB: DB, PrivateWorkerPool: workerpool.New(1)}}
 
 			t.Logf("workspace id: %v", workspace.ID)
 			t.Logf("invite link: %v", *inviteLink.Secret)
@@ -272,7 +247,7 @@ func TestMutationResolver_ChangeAdminRole(t *testing.T) {
 			// test logic
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, model.ContextKeys.UID, *currentAdmin.UID)
-			r := &mutationResolver{Resolver: &Resolver{DB: DB, HubspotApi: &HubspotMock{}, PrivateWorkerPool: workerpool.New(1)}}
+			r := &mutationResolver{Resolver: &Resolver{DB: DB, PrivateWorkerPool: workerpool.New(1)}}
 
 			_, err := r.ChangeAdminRole(ctx, workspace.ID, updatedAdmin.ID, "MEMBER")
 			if v.errorExpected != (err != nil) {
@@ -375,7 +350,7 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 			// test logic
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, model.ContextKeys.UID, *currentAdmin.UID)
-			r := &mutationResolver{Resolver: &Resolver{DB: DB, HubspotApi: &HubspotMock{}, PrivateWorkerPool: workerpool.New(1)}}
+			r := &mutationResolver{Resolver: &Resolver{DB: DB, PrivateWorkerPool: workerpool.New(1)}}
 
 			response, err := r.DeleteInviteLinkFromWorkspace(ctx, workspace.ID, inviteLink.ID)
 			if v.errorExpected != (err != nil) {

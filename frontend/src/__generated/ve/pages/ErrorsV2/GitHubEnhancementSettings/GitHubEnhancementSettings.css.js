@@ -1,1 +1,7 @@
-var a="_124ax691",r="_124ax690";export{a as cardStep,r as container};
+// src/pages/ErrorsV2/GitHubEnhancementSettings/GitHubEnhancementSettings.css.ts
+var cardStep = "_124ax691";
+var container = "_124ax690";
+export {
+  cardStep,
+  container
+};

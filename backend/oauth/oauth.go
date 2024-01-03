@@ -12,12 +12,12 @@ import (
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
-	oredis "github.com/go-oauth2/redis/v4"
-	"github.com/go-redis/redis/v8"
 	"github.com/highlight-run/highlight/backend/model"
 	hredis "github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/util"
+	oredis "github.com/highlight/go-oauth2-redis/v4"
 	e "github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"net/http"
@@ -43,18 +43,14 @@ type Token struct {
 	RefreshToken string
 }
 
-func getTokenStore() *oredis.TokenStore {
+func getTokenStore(rd *hredis.Client) *oredis.TokenStore {
 	// use redis token store
 	if util.IsDevOrTestEnv() {
-		return oredis.NewRedisStore(&redis.Options{
-			Addr: hredis.ServerAddr,
-		})
+		return oredis.NewRedisStoreWithCli(rd.Client.(*redis.Client))
 	}
 
 	// use redis cluster store
-	return oredis.NewRedisClusterStore(&redis.ClusterOptions{
-		Addrs: []string{hredis.ServerAddr},
-	})
+	return oredis.NewRedisClusterStoreWithCli(rd.Client.(*redis.ClusterClient))
 }
 
 func (s *Server) getClientSecret(clientID string) (clientSecret string, err error) {
@@ -86,11 +82,11 @@ func (s *Server) getTokenFromCookie(ctx context.Context, cookie *http.Cookie) (o
 	return tokenInfo, nil
 }
 
-func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
+func CreateServer(ctx context.Context, db *gorm.DB, rd *hredis.Client) (*Server, error) {
 	manager := manage.NewDefaultManager()
 
 	// token redis store
-	manager.MapTokenStorage(getTokenStore())
+	manager.MapTokenStorage(getTokenStore(rd))
 
 	// client memory store
 	clientStore := store.NewClientStore()
@@ -160,6 +156,11 @@ func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret stri
 	if clientID, clientSecret, err = server.ClientBasicHandler(r); err == nil {
 		return
 	}
+
+	if clientID, clientSecret, err = server.ClientFormHandler(r); err == nil {
+		return
+	}
+
 	// single-page auth flow, per https://www.oauth.com/oauth2-servers/single-page-apps/
 	clientID = r.URL.Query().Get("client_id")
 	if clientID == "" {

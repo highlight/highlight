@@ -1,4 +1,5 @@
 import logging
+import time
 
 import pytest
 from opentelemetry.sdk._logs._internal.export import BatchLogRecordProcessor
@@ -35,11 +36,18 @@ def mock_otlp(mocker, request, integrations):
 @pytest.mark.parametrize("project_id", [None, "", "a123"])
 @pytest.mark.parametrize("session_id", ["", "a1b2c3d4e5"])
 @pytest.mark.parametrize("request_id", ["", "a123"])
-def test_record_exception(mock_otlp, project_id, session_id, request_id):
+@pytest.mark.parametrize("environment", ["", "ci-test"])
+def test_record_exception(
+    mocker, mock_otlp, project_id, session_id, request_id, environment
+):
     integrations, instrument_logging = mock_otlp
     h = highlight_io.H(
-        project_id, integrations=integrations, instrument_logging=instrument_logging
+        project_id,
+        integrations=integrations,
+        instrument_logging=instrument_logging,
+        environment=environment,
     )
+    spy = mocker.spy(h.tracer, "start_as_current_span")
 
     for i in range(10):
         logging.info(f"hey there! {i}")
@@ -48,6 +56,8 @@ def test_record_exception(mock_otlp, project_id, session_id, request_id):
         h.record_exception(
             FileNotFoundError(f"test! {i}"), attributes={"hello": "there"}
         )
+
+    assert len(spy.call_args_list) == 10
 
 
 def test_log_no_trace(mocker):

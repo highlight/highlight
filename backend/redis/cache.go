@@ -8,9 +8,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type Config struct {
+	BypassCache bool
+}
+
+type Option func(cfg *Config)
+
+func WithBypassCache(bypass bool) Option {
+	return func(cfg *Config) {
+		cfg.BypassCache = bypass
+	}
+}
+
 // CachedEval will return the value at cacheKey if it exists.
 // If it does not exist or is nil, CachedEval calls `fn()` to evaluate the result, and stores it at the cache key.
-func CachedEval[T any](ctx context.Context, redis *Client, cacheKey string, lockTimeout, cacheExpiration time.Duration, fn func() (*T, error)) (value *T, err error) {
+func CachedEval[T any](ctx context.Context, redis *Client, cacheKey string, lockTimeout, cacheExpiration time.Duration, fn func() (*T, error), opts ...Option) (value *T, err error) {
+	var cfg Config
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	if cfg.BypassCache {
+		return fn()
+	}
 	// tests can pass `nil` here to bypass the cache
 	if redis == nil {
 		return fn()

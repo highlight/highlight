@@ -11,7 +11,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
@@ -94,6 +94,14 @@ export const MetadataBox = React.memo(() => {
 				keyDisplayValue: 'Location',
 				valueDisplayValue: geoData,
 			},
+			...(session?.ip?.length
+				? [
+						{
+							keyDisplayValue: 'IP',
+							valueDisplayValue: session?.ip,
+						},
+				  ]
+				: []),
 			{
 				keyDisplayValue: 'Browser',
 				valueDisplayValue:
@@ -189,12 +197,16 @@ export const MetadataBox = React.memo(() => {
 		const displayName = getDisplayName(session)
 		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
 
-		setSearchQuery((query) =>
-			buildQueryStateString({
+		setSearchQuery((query) => {
+			const params = session.identified
+				? { [`user_${userParam}`]: displayName }
+				: { session_device_id: String(session.fingerprint) }
+
+			return buildQueryStateString({
 				query,
-				[`user_${userParam}`]: displayName,
-			}),
-		)
+				...params,
+			})
+		})
 
 		setShowLeftPanel(true)
 	}, [session, setSearchQuery, setShowLeftPanel])

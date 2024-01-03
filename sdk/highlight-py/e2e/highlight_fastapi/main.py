@@ -13,6 +13,7 @@ H = highlight_io.H(
     otlp_endpoint="http://localhost:4318",
     service_name="my-fastapi-app",
     service_version="1.0.0",
+    environment="e2e-test",
 )
 
 app = FastAPI()
@@ -22,9 +23,14 @@ router = APIRouter()
 
 
 @app.get("/")
+@app.post("/")
 async def root(request: Request):
     logging.info(
-        "hello, world", {"customer": request.headers.get("customer") or "unknown"}
+        "hello, world",
+        {
+            "customer": request.headers.get("customer") or "unknown",
+            "data": await request.json(),
+        },
     )
     for idx in range(100):
         logging.info(f"hello {idx}")

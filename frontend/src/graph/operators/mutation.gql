@@ -16,18 +16,8 @@ mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
 	muteSessionCommentThread(id: $id, has_muted: $has_muted)
 }
 
-mutation CreateOrUpdateStripeSubscription(
-	$workspace_id: ID!
-	$plan_type: PlanType!
-	$interval: SubscriptionInterval!
-	$retention_period: RetentionPeriod!
-) {
-	createOrUpdateStripeSubscription(
-		workspace_id: $workspace_id
-		plan_type: $plan_type
-		interval: $interval
-		retention_period: $retention_period
-	)
+mutation CreateOrUpdateStripeSubscription($workspace_id: ID!) {
+	createOrUpdateStripeSubscription(workspace_id: $workspace_id)
 }
 
 mutation SaveBillingPlan(
@@ -38,6 +28,8 @@ mutation SaveBillingPlan(
 	$errorsRetention: RetentionPeriod!
 	$logsLimitCents: Int
 	$logsRetention: RetentionPeriod!
+	$tracesLimitCents: Int
+	$tracesRetention: RetentionPeriod!
 ) {
 	saveBillingPlan(
 		workspace_id: $workspace_id
@@ -47,6 +39,8 @@ mutation SaveBillingPlan(
 		errorsRetention: $errorsRetention
 		logsLimitCents: $logsLimitCents
 		logsRetention: $logsRetention
+		tracesLimitCents: $tracesLimitCents
+		tracesRetention: $tracesRetention
 	)
 }
 
@@ -282,6 +276,10 @@ mutation EditProjectSettings(
 			error_sampling_rate
 			log_sampling_rate
 			trace_sampling_rate
+			session_minute_rate_limit
+			error_minute_rate_limit
+			log_minute_rate_limit
+			trace_minute_rate_limit
 			session_exclusion_query
 			error_exclusion_query
 			log_exclusion_query
@@ -324,44 +322,16 @@ mutation DeleteSegment($segment_id: ID!) {
 mutation EditSegment(
 	$project_id: ID!
 	$id: ID!
-	$params: SearchParamsInput!
+	$query: String!
 	$name: String!
 ) {
-	editSegment(project_id: $project_id, id: $id, params: $params, name: $name)
+	editSegment(project_id: $project_id, id: $id, query: $query, name: $name)
 }
 
-mutation CreateSegment(
-	$project_id: ID!
-	$name: String!
-	$params: SearchParamsInput!
-) {
-	createSegment(project_id: $project_id, name: $name, params: $params) {
+mutation CreateSegment($project_id: ID!, $name: String!, $query: String!) {
+	createSegment(project_id: $project_id, name: $name, query: $query) {
 		name
 		id
-		params {
-			user_properties {
-				name
-				value
-			}
-			excluded_properties {
-				name
-				value
-			}
-			date_range {
-				start_date
-				end_date
-			}
-			os
-			browser
-			visited_url
-			referrer
-			identified
-			hide_viewed
-			app_versions
-			environments
-			device_id
-			show_live_sessions
-		}
 	}
 }
 
@@ -385,6 +355,7 @@ mutation CreateSessionComment(
 	$issue_team_id: String
 	$issue_description: String
 	$additional_context: String
+	$issue_type_id: String
 ) {
 	createSessionComment(
 		project_id: $project_id
@@ -406,6 +377,7 @@ mutation CreateSessionComment(
 		issue_team_id: $issue_team_id
 		issue_description: $issue_description
 		additional_context: $additional_context
+		issue_type_id: $issue_type_id
 	) {
 		id
 		timestamp
@@ -439,6 +411,7 @@ mutation CreateIssueForSessionComment(
 	$issue_title: String
 	$issue_team_id: String
 	$issue_description: String
+	$issue_type_id: String
 ) {
 	createIssueForSessionComment(
 		project_id: $project_id
@@ -451,6 +424,7 @@ mutation CreateIssueForSessionComment(
 		issue_description: $issue_description
 		issue_team_id: $issue_team_id
 		integrations: $integrations
+		issue_type_id: $issue_type_id
 	) {
 		id
 		timestamp
@@ -519,6 +493,7 @@ mutation CreateErrorComment(
 	$issue_title: String
 	$issue_team_id: String
 	$issue_description: String
+	$issue_type_id: String
 ) {
 	createErrorComment(
 		project_id: $project_id
@@ -533,6 +508,7 @@ mutation CreateErrorComment(
 		issue_title: $issue_title
 		issue_team_id: $issue_team_id
 		issue_description: $issue_description
+		issue_type_id: $issue_type_id
 	) {
 		id
 		created_at
@@ -555,6 +531,7 @@ mutation CreateIssueForErrorComment(
 	$issue_title: String
 	$issue_team_id: String
 	$issue_description: String
+	$issue_type_id: String
 ) {
 	createIssueForErrorComment(
 		project_id: $project_id
@@ -566,6 +543,7 @@ mutation CreateIssueForErrorComment(
 		issue_team_id: $issue_team_id
 		issue_description: $issue_description
 		integrations: $integrations
+		issue_type_id: $issue_type_id
 	) {
 		id
 		created_at
@@ -633,35 +611,21 @@ mutation DeleteErrorSegment($segment_id: ID!) {
 mutation EditErrorSegment(
 	$project_id: ID!
 	$id: ID!
-	$params: ErrorSearchParamsInput!
+	$query: String!
 	$name: String!
 ) {
 	editErrorSegment(
 		project_id: $project_id
 		id: $id
-		params: $params
+		query: $query
 		name: $name
 	)
 }
 
-mutation CreateErrorSegment(
-	$project_id: ID!
-	$name: String!
-	$params: ErrorSearchParamsInput!
-) {
-	createErrorSegment(project_id: $project_id, name: $name, params: $params) {
+mutation CreateErrorSegment($project_id: ID!, $name: String!, $query: String!) {
+	createErrorSegment(project_id: $project_id, name: $name, query: $query) {
 		name
 		id
-		params {
-			date_range {
-				start_date
-				end_date
-			}
-			os
-			browser
-			visited_url
-			state
-		}
 	}
 }
 

@@ -1,5 +1,141 @@
 # @highlight-run/next
 
+## 7.3.1
+
+### Patch Changes
+
+-   9eeeb5c7d: make next a peer dependency of the sdk to fix import errors
+-   Updated dependencies [790c83782]
+    -   @highlight-run/node@3.7.1
+
+## 7.3.0
+
+### Minor Changes
+
+-   e75a480dc: Exposing Node SDK internals and using them to better instrument Next.js API wrappers
+-   e75a480dc: Enable tracing
+
+### Patch Changes
+
+-   Updated dependencies [e75a480dc]
+-   Updated dependencies [e75a480dc]
+    -   @highlight-run/node@3.7.0
+
+## 7.2.6
+
+### Patch Changes
+
+-   38678a9c9: Make Next a peer dependency to @highlight-run/next
+-   8f0b8de6b: Repairing a circular dependency in @highlight-run/node and a bad export from @highlight-run/next's Edge runtime support
+-   46ed85c91: Support environment attribute to be passed in natively.
+-   Updated dependencies [85ea62d0c]
+-   Updated dependencies [352641cf7]
+-   Updated dependencies [8f0b8de6b]
+-   Updated dependencies [46ed85c91]
+    -   highlight.run@8.3.1
+    -   @highlight-run/node@3.6.6
+
+## 7.2.5
+
+### Patch Changes
+
+-   2fce77c13: fix opentelemetry auto instrumentation in next.js, update opentelemetry dependencies
+-   Updated dependencies [bd5021a6c]
+-   Updated dependencies [2fce77c13]
+    -   @highlight-run/node@3.6.5
+
+## 7.2.4
+
+### Patch Changes
+
+-   7c35f7d78: ensure header parsing is compatible with IncomingHTTPHeaders and Headers types
+-   Updated dependencies [84110aca1]
+-   Updated dependencies [c1773fa66]
+-   Updated dependencies [7c35f7d78]
+    -   highlight.run@8.3.0
+    -   @highlight-run/node@3.6.4
+
+## 7.2.3
+
+### Patch Changes
+
+-   f966390c1: ensure compatibility for JS SDKs in ES and CJS environments
+-   Updated dependencies [f966390c1]
+-   Updated dependencies [66b94f3f7]
+    -   @highlight-run/node@3.6.3
+    -   highlight.run@8.2.3
+
+## 7.2.2
+
+### Patch Changes
+
+-   8e91dbe55: allow arbitrarily waiting for flush to wait for logs to be sent to highlight
+-   Updated dependencies [e3590078e]
+-   Updated dependencies [8e91dbe55]
+-   Updated dependencies [b6172b0da]
+    -   @highlight-run/node@3.6.2
+    -   highlight.run@8.2.2
+
+## 7.2.1
+
+### Patch Changes
+
+-   9ad2c786c: Externalize next package
+-   Updated dependencies [9ad2c786c]
+    -   @highlight-run/node@3.6.1
+
+## 7.2.0
+
+### Minor Changes
+
+-   7355c73f8: Support highlight request context globally to associate async console logs / errors with highlight sessions.
+
+### Patch Changes
+
+-   d452bb1b6: refactor types for highlight session context
+-   d20cbee8b: Using AsyncLocalStorage in Edge Runtime to track headers.
+-   Updated dependencies [7355c73f8]
+-   Updated dependencies [747903c88]
+-   Updated dependencies [d452bb1b6]
+    -   @highlight-run/node@3.6.0
+
+## 7.1.1
+
+### Patch Changes
+
+-   Updated dependencies [7c20f8c44]
+    -   highlight.run@8.2.1
+    -   @highlight-run/node@3.5.3
+
+## 7.1.0
+
+### Minor Changes
+
+-   107f2fbd2: Adding @highlight-run/next/ssr export.
+
+### Patch Changes
+
+-   107f2fbd2: Exported new pageRouterCustomErrorHandler and appRouterSsrErrorHandler
+-   Updated dependencies [8142463b5]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [107f2fbd2]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [4f535a839]
+-   Updated dependencies [4f535a839]
+    -   highlight.run@8.2.0
+    -   @highlight-run/node@3.5.2
+
+## 7.0.2
+
+### Patch Changes
+
+-   ed0776f43: fix type definitions for edge wrapper for @vercel/og responses
+-   Updated dependencies [7b931c336]
+-   Updated dependencies [b03039b6b]
+-   Updated dependencies [be3f51f45]
+    -   highlight.run@8.1.0
+    -   @highlight-run/node@3.5.1
+
 ## 7.0.1
 
 ### Patch Changes

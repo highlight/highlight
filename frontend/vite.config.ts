@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react-swc'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { defineConfig, loadEnv } from 'vite'
-import vitePluginImp from 'vite-plugin-imp'
 import svgr from 'vite-plugin-svgr'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
@@ -46,30 +45,7 @@ export default defineConfig(({ mode }) => {
 	validateSafeAllowList(env)
 
 	return {
-		plugins: [
-			react(),
-			vanillaExtractPlugin(),
-			tsconfigPaths(),
-			svgr(),
-			vitePluginImp({
-				// Seems to result in this error:
-				// > Rollup failed to resolve import "lodash/default" from "src/pages/Player/PlayerHook/PlayerHook.tsx"
-				// Likely due to some custom resolution algorithm that doesn't support hoisted monorepos?
-				exclude: ['lodash'],
-				libList: [
-					{
-						libName: 'antd',
-						style: (name) => `antd/es/${name}/style/index.js`,
-					},
-					// TODO: enable this later to reduce bundle size
-					// {
-					// 	libName: 'lodash',
-					// 	libDirectory: '',
-					// 	camel2DashComponentName: false,
-					// },
-				],
-			}),
-		],
+		plugins: [react(), vanillaExtractPlugin(), tsconfigPaths(), svgr()],
 		envPrefix: ['VITE_', ...ENVVAR_ALLOWLIST],
 		server: {
 			host: '0.0.0.0',
@@ -89,10 +65,9 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			minify: 'esbuild',
+			cssMinify: 'esbuild',
 			outDir: 'build',
-			// Vite sourcemaps are broken in development
-			// https://github.com/highlight-run/highlight/pull/3171
-			sourcemap: env.RENDER_PREVIEW !== 'true' && mode !== 'development',
+			sourcemap: true,
 			rollupOptions: {
 				output: {
 					manualChunks: (id: string) => {
@@ -113,18 +88,8 @@ export default defineConfig(({ mode }) => {
 			setupFiles: ['./src/setupTests.ts'],
 		},
 		css: {
+			transformer: 'postcss',
 			devSourcemap: true,
-			preprocessorOptions: {
-				less: {
-					javascriptEnabled: true,
-					modifyVars: {
-						hack: `true; @import "${join(
-							__dirname,
-							'src/style/AntDesign/antd.overrides.less',
-						)}";`,
-					},
-				},
-			},
 		},
 	}
 })

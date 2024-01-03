@@ -26,7 +26,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
  * @see HighlightErrorRecord
  * @see Severity
  */
-public sealed class HighlightRecord permits HighlightErrorRecord, HighlightLogRecord {
+public class HighlightRecord {
 
 	/**
 	 * Returns a builder for creating a new error record.

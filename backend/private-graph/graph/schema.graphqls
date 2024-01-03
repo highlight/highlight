@@ -93,6 +93,21 @@ type SessionInterval {
 	active: Boolean!
 }
 
+type SessionsReportRow {
+	key: String!
+	num_sessions: Int!
+	num_days_visited: Int!
+	num_months_visited: Int!
+	avg_active_length_mins: Float!
+	max_active_length_mins: Float!
+	total_active_length_mins: Float!
+	avg_length_mins: Float!
+	max_length_mins: Float!
+	total_length_mins: Float!
+	location: String!
+	user_properties: String
+}
+
 type TimelineIndicatorEvent {
 	session_secure_id: String!
 	timestamp: Float!
@@ -152,22 +167,36 @@ type Invoice {
 	status: String
 }
 
+type SubscriptionDiscount {
+	name: String!
+	percent: Float!
+	amount: Int64!
+	until: Timestamp
+}
+
 type SubscriptionDetails {
 	baseAmount: Int64!
-	discountPercent: Float!
-	discountAmount: Int64!
+	discount: SubscriptionDiscount
 	lastInvoice: Invoice
 	billingIssue: Boolean!
+	billingIngestBlocked: Boolean!
 }
 
 type Plan {
 	type: PlanType!
 	interval: SubscriptionInterval!
-	quota: Int!
-	membersLimit: Int
-	errorsLimit: Int!
-	logsLimit: Int!
-	tracesLimit: Int!
+	membersLimit: Int64
+	enableBillingLimits: Boolean!
+
+	sessionsLimit: Int64!
+	errorsLimit: Int64!
+	logsLimit: Int64!
+	tracesLimit: Int64!
+
+	sessionsRate: Float!
+	errorsRate: Float!
+	logsRate: Float!
+	tracesRate: Float!
 }
 
 enum PlanType {
@@ -177,6 +206,7 @@ enum PlanType {
 	Startup
 	Enterprise
 	UsageBased
+	Graduated
 }
 
 enum ProductType {
@@ -203,6 +233,7 @@ enum RetentionPeriod {
 	SixMonths
 	TwelveMonths
 	TwoYears
+	ThreeYears
 }
 
 enum OpenSearchCalendarInterval {
@@ -339,10 +370,10 @@ type Sampling {
 	error_sampling_rate: Float!
 	log_sampling_rate: Float!
 	trace_sampling_rate: Float!
-	session_minute_rate_limit: Int64!
-	error_minute_rate_limit: Int64!
-	log_minute_rate_limit: Int64!
-	trace_minute_rate_limit: Int64!
+	session_minute_rate_limit: Int64
+	error_minute_rate_limit: Int64
+	log_minute_rate_limit: Int64
+	trace_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
@@ -444,6 +475,11 @@ enum SortDirection {
 	DESC
 }
 
+enum SavedSegmentEntityType {
+	Log
+	Trace
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -485,7 +521,8 @@ type AllWorkspaceSettings {
 	ai_insights: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
-	enable_ingest_filters: Boolean!
+	enable_ingest_sampling: Boolean!
+	enable_data_deletion: Boolean!
 }
 
 type Account {
@@ -551,6 +588,11 @@ type Workspace {
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
+	traces_max_cents: Int
+}
+
+type SearchParams {
+	query: String
 }
 
 type Segment {
@@ -563,7 +605,15 @@ type Segment {
 type ErrorSegment {
 	id: ID!
 	name: String!
-	params: ErrorSearchParams!
+	params: SearchParams!
+	project_id: ID!
+}
+
+type SavedSegment {
+	id: ID!
+	name: String!
+	entity_type: SavedSegmentEntityType!
+	params: SearchParams!
 	project_id: ID!
 }
 
@@ -738,6 +788,7 @@ type Log {
 	source: String
 	serviceName: String
 	serviceVersion: String
+	environment: String
 }
 
 type LogEdge implements Edge {
@@ -761,8 +812,10 @@ type Trace {
 	spanName: String!
 	spanKind: String!
 	duration: Int!
+	startTime: Int!
 	serviceName: String!
 	serviceVersion: String!
+	environment: String!
 	traceAttributes: Map!
 	statusCode: String!
 	statusMessage: String!
@@ -880,6 +933,7 @@ enum ReservedLogKey {
 	"""
 	Keep this in alpha order
 	"""
+	environment
 	level
 	message
 	secure_session_id
@@ -891,8 +945,10 @@ enum ReservedLogKey {
 }
 
 enum ReservedTraceKey {
+	environment
 	level
 	message
+	metric
 	secure_session_id
 	span_id
 	trace_id
@@ -906,8 +962,12 @@ enum ReservedTraceKey {
 }
 
 enum ReservedErrorObjectKey {
+	browser
+	environment
 	event
+	has_sessions
 	log_cursor
+	os
 	payload
 	request_id
 	service_name
@@ -916,6 +976,8 @@ enum ReservedErrorObjectKey {
 	source
 	span_id
 	stackTrace
+	status
+	tag
 	timestamp
 	trace_id
 	type
@@ -935,6 +997,7 @@ enum LogSource {
 
 enum KeyType {
 	String
+	Numeric
 }
 
 type LogsHistogramBucketCount {
@@ -954,21 +1017,39 @@ type LogsHistogram {
 	sampleFactor: Float!
 }
 
-enum TracesMetricType {
-	count
-	p50
-	p90
+enum MetricAggregator {
+	Count
+	CountDistinctKey
+	Min
+	Avg
+	P50
+	P90
+	P95
+	P99
+	Max
+	Sum
 }
 
-type TracesMetricBucket {
+enum MetricColumn {
+	Duration
+	MetricValue
+}
+
+enum MetricBucketBy {
+	None
+	Timestamp
+}
+
+type MetricBucket {
 	bucket_id: UInt64!
 	group: [String!]!
-	metric_type: TracesMetricType!
+	column: MetricColumn!
+	metric_type: MetricAggregator!
 	metric_value: Float!
 }
 
-type TracesMetrics {
-	buckets: [TracesMetricBucket!]!
+type MetricsBuckets {
+	buckets: [MetricBucket!]!
 	bucket_count: UInt64!
 	sample_factor: Float!
 }
@@ -1004,48 +1085,14 @@ type UserFingerprintCount {
 	count: Int64!
 }
 
-# NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
-# edit both Foo and FooInput
-input SearchParamsInput {
-	user_properties: [UserPropertyInput!]
-	excluded_properties: [UserPropertyInput!]
-	track_properties: [UserPropertyInput!]
-	excluded_track_properties: [UserPropertyInput!]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRangeInput
-	length_range: LengthRangeInput
-	os: String
-	browser: String
-	device_id: String
-	visited_url: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
-}
-
 input DashboardParamsInput {
-	date_range: DateRangeInput
+	date_range: DateRangeRequiredInput!
 	resolution_minutes: Int
 	timezone: String
 	units: String
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	filters: [MetricTagFilterInput!]
 	groups: [String!]
-}
-
-input HistogramParamsInput {
-	date_range: DateRangeInput
-	buckets: Int
-	min_value: Float
-	min_percentile: Float
-	max_value: Float
-	max_percentile: Float
-	units: String
-	filters: [MetricTagFilterInput!]
 }
 
 input ErrorGroupFrequenciesParamsInput {
@@ -1104,29 +1151,8 @@ enum NetworkRequestAttribute {
 }
 
 input NetworkHistogramParamsInput {
-	lookback_days: Int
+	lookback_days: Float!
 	attribute: NetworkRequestAttribute
-}
-
-type SearchParams {
-	user_properties: [UserProperty]
-	excluded_properties: [UserProperty]
-	track_properties: [UserProperty]
-	excluded_track_properties: [UserProperty]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRange
-	length_range: LengthRange
-	os: String
-	browser: String
-	visited_url: String
-	device_id: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
 }
 
 input AdminAboutYouDetails {
@@ -1155,17 +1181,6 @@ input AdminAndWorkspaceDetails {
 	workspace_name: String!
 	allowed_auto_join_email_origins: String
 	promo_code: String
-}
-
-input ErrorSearchParamsInput {
-	date_range: DateRangeInput
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	type: String
-	query: String
 }
 
 input SessionAlertInput {
@@ -1202,16 +1217,6 @@ input LogAlertInput {
 	disabled: Boolean!
 	default: Boolean
 	query: String!
-}
-
-type ErrorSearchParams {
-	date_range: DateRange
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	query: String
 }
 
 type DateRange {
@@ -1588,7 +1593,7 @@ type Metric {
 type DashboardPayload {
 	date: String!
 	value: Float!
-	aggregator: MetricAggregator
+	aggregator: MetricAggregator!
 	group: String
 }
 
@@ -1597,12 +1602,6 @@ type HistogramBucket {
 	range_start: Float!
 	range_end: Float!
 	count: Int!
-}
-
-type HistogramPayload {
-	buckets: [HistogramBucket!]!
-	min: Float!
-	max: Float!
 }
 
 type CategoryHistogramBucket {
@@ -1624,18 +1623,6 @@ enum DashboardChartType {
 	Timeline
 	TimelineBar
 	Histogram
-}
-
-enum MetricAggregator {
-	Avg
-	P50
-	P75
-	P90
-	P95
-	P99
-	Max
-	Count
-	Sum
 }
 
 input DashboardMetricConfigInput {
@@ -1802,7 +1789,7 @@ type Query {
 	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
 	rageClicksForProject(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): [RageClickEventForProject!]!
 	error_groups_clickhouse(
 		project_id: ID!
@@ -1878,16 +1865,16 @@ type Query {
 		use_clickhouse: Boolean
 	): [ErrorGroupTagAggregation!]!
 
-	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
-	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
-	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+	referrers(project_id: ID!, lookback_days: Float!): [ReferrerTablePayload]!
+	newUsersCount(project_id: ID!, lookback_days: Float!): NewUsersCount
+	topUsers(project_id: ID!, lookback_days: Float!): [TopUsersPayload]!
 	averageSessionLength(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): AverageSessionLength
 	userFingerprintCount(
 		project_id: ID!
-		lookBackPeriod: Int!
+		lookback_days: Float!
 	): UserFingerprintCount
 	sessions_clickhouse(
 		project_id: ID!
@@ -1902,6 +1889,10 @@ type Query {
 		query: ClickhouseQuery!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
+	sessions_report(
+		project_id: ID!
+		query: ClickhouseQuery!
+	): [SessionsReportRow!]!
 	field_types_clickhouse(
 		project_id: ID!
 		start_date: Timestamp!
@@ -1998,13 +1989,21 @@ type Query {
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
 	segments(project_id: ID!): [Segment]
 	error_segments(project_id: ID!): [ErrorSegment]
+	saved_segments(
+		project_id: ID!
+		entity_type: SavedSegmentEntityType!
+	): [SavedSegment]
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
-	metric_tags(project_id: ID!, metric_name: String!): [String!]!
+	metric_tags(
+		project_id: ID!
+		metric_name: String!
+		query: String
+	): [String!]!
 	metric_tag_values(
 		project_id: ID!
 		metric_name: String!
@@ -2015,11 +2014,6 @@ type Query {
 		metric_name: String!
 		params: DashboardParamsInput!
 	): [DashboardPayload]!
-	metrics_histogram(
-		project_id: ID!
-		metric_name: String!
-		params: HistogramParamsInput!
-	): HistogramPayload
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!
@@ -2042,9 +2036,22 @@ type Query {
 	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: QueryInput!): UInt64!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
+	logs_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
 	logs_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
 	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
@@ -2079,18 +2086,59 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		metric_types: [TracesMetricType!]!
+		column: String!
+		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
-	): TracesMetrics!
+		bucket_by: String
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
 	traces_keys(
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
 	): [QueryKey!]!
 	traces_key_values(
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
 	): [String!]!
+	errors_keys(
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
+	): [QueryKey!]!
+	errors_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
+	sessions_keys(
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
+	): [QueryKey!]!
+	sessions_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
 }
 
 type Mutation {
@@ -2169,39 +2217,44 @@ type Mutation {
 	): Boolean!
 	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
 	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-	createSegment(
-		project_id: ID!
-		name: String!
-		params: SearchParamsInput!
-	): Segment
+	createSegment(project_id: ID!, name: String!, query: String!): Segment
 	emailSignup(email: String!): String!
 	editSegment(
 		id: ID!
 		project_id: ID!
-		params: SearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteSegment(segment_id: ID!): Boolean
 	createErrorSegment(
 		project_id: ID!
 		name: String!
-		params: ErrorSearchParamsInput!
+		query: String!
 	): ErrorSegment
 	editErrorSegment(
 		id: ID!
 		project_id: ID!
-		params: ErrorSearchParamsInput!
+		query: String!
 		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
+	createSavedSegment(
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): SavedSegment
+	editSavedSegment(
+		id: ID!
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): Boolean
+	deleteSavedSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
-	createOrUpdateStripeSubscription(
-		workspace_id: ID!
-		plan_type: PlanType!
-		interval: SubscriptionInterval!
-		retention_period: RetentionPeriod!
-	): String
+	createOrUpdateStripeSubscription(workspace_id: ID!): String
 	updateBillingDetails(workspace_id: ID!): Boolean
 	saveBillingPlan(
 		workspace_id: ID!
@@ -2211,6 +2264,8 @@ type Mutation {
 		errorsRetention: RetentionPeriod!
 		logsLimitCents: Int
 		logsRetention: RetentionPeriod!
+		tracesLimitCents: Int
+		tracesRetention: RetentionPeriod!
 	): Boolean
 	createSessionComment(
 		project_id: ID!
@@ -2229,6 +2284,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 		tags: [SessionCommentTagInput]!
 		additional_context: String
@@ -2243,6 +2299,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
@@ -2267,6 +2324,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	removeErrorIssue(error_issue_id: ID!): Boolean
@@ -2280,6 +2338,7 @@ type Mutation {
 		issue_title: String
 		issue_description: String
 		issue_team_id: String
+		issue_type_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
 	deleteErrorComment(id: ID!): Boolean

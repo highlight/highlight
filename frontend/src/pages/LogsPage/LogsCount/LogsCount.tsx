@@ -1,23 +1,21 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Preset, Stack, Text } from '@highlight-run/ui'
+import { Box, Preset, Stack, Text } from '@highlight-run/ui/components'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
 import { useMemo } from 'react'
-
-import * as styles from './LogsCount.css'
 
 const LogsCount = ({
 	startDate,
 	endDate,
 	presets,
 	totalCount,
-	logCountLoading,
+	loading,
 }: {
 	startDate: Date
 	endDate: Date
 	presets: Preset[]
 	totalCount: number | undefined
-	logCountLoading: boolean
+	loading: boolean
 }) => {
 	const dateLabel = useMemo(() => {
 		const isPreset = presets.find((preset) => {
@@ -29,31 +27,28 @@ const LogsCount = ({
 		return `${formatDate(startDate)} to ${formatDate(endDate)}`
 	}, [endDate, presets, startDate])
 
-	if (logCountLoading) {
+	if (loading) {
 		return (
-			<Box px="12" py="2">
-				<LoadingBox justifyContent="flex-start" />
+			<Box>
+				<LoadingBox justifyContent="flex-start" size="xSmall" />
 			</Box>
 		)
 	}
 
 	return (
-		<Stack direction="row" gap="8" px="12" py="8" align="center">
+		<Stack direction="row" gap="8" p="8" align="center">
 			{totalCount !== undefined ? (
 				<>
-					<Text
-						size="xSmall"
-						color="weak"
-						cssClass={styles.countText}
-					>
-						{formatNumber(totalCount)} logs
-					</Text>
+					<Box display="flex" gap="4" flexDirection="row">
+						<Text size="xSmall" color="strong">
+							Logs
+						</Text>
+						<Text size="xSmall" color="weak">
+							{formatNumber(totalCount)} total
+						</Text>
+					</Box>
 					<Box br="dividerWeak" height="full" />
-					<Text
-						size="xSmall"
-						color="weak"
-						cssClass={styles.countText}
-					>
+					<Text size="xSmall" color="weak">
 						{dateLabel}
 					</Text>
 				</>

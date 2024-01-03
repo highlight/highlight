@@ -9,7 +9,7 @@ x-logging: &highlight-logging
 services:
     zookeeper:
         logging: *highlight-logging
-        image: confluentinc/cp-zookeeper:7.3.0
+        image: confluentinc/cp-zookeeper
         container_name: zookeeper
         volumes:
             - zoo-data:/var/lib/zookeeper/data
@@ -20,7 +20,7 @@ services:
 
     kafka:
         logging: *highlight-logging
-        image: confluentinc/cp-kafka:7.3.0
+        image: confluentinc/cp-kafka
         container_name: kafka
         volumes:
             - kafka-data:/var/lib/kafka/data
@@ -75,28 +75,14 @@ services:
     clickhouse:
         logging: *highlight-logging
         container_name: clickhouse
-        image: clickhouse/clickhouse-server:23.5.1.3174
+        image: clickhouse/clickhouse-server
         ports:
             - 8123:8123
             - 9000:9000
         volumes:
+            - ./backup_disk.xml:/etc/clickhouse-server/config.d/backup_disk.xml
             - clickhouse-data:/var/lib/clickhouse
             - clickhouse-logs:/var/log/clickhouse-server
-
-    influxdb:
-        logging: *highlight-logging
-        container_name: influxdb
-        image: influxdb:latest
-        ports:
-            - 8086:8086
-        volumes:
-            - influxdb-data:/var/lib/influxdb
-        healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:8086/ping']
-            start_period: 180s
-            interval: 5s
-            timeout: 5s
-            retries: 5
 
     collector:
         logging: *highlight-logging
@@ -121,7 +107,6 @@ volumes:
     clickhouse-data:
     clickhouse-logs:
     redis-data:
-    influxdb-data:
     kafka-data:
     zoo-log:
     zoo-data:

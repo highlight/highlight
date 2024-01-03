@@ -5,7 +5,7 @@ import {
 	IconSolidSparkles,
 	Tag,
 	Text,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 

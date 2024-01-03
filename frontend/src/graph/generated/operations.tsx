@@ -36,9 +36,6 @@ export type MuteSessionCommentThreadMutation = {
 
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
-	plan_type: Types.PlanType
-	interval: Types.SubscriptionInterval
-	retention_period: Types.RetentionPeriod
 }>
 
 export type CreateOrUpdateStripeSubscriptionMutation = {
@@ -53,6 +50,8 @@ export type SaveBillingPlanMutationVariables = Types.Exact<{
 	errorsRetention: Types.RetentionPeriod
 	logsLimitCents?: Types.Maybe<Types.Scalars['Int']>
 	logsRetention: Types.RetentionPeriod
+	tracesLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	tracesRetention: Types.RetentionPeriod
 }>
 
 export type SaveBillingPlanMutation = { __typename?: 'Mutation' } & Pick<
@@ -304,6 +303,10 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 					| 'error_sampling_rate'
 					| 'log_sampling_rate'
 					| 'trace_sampling_rate'
+					| 'session_minute_rate_limit'
+					| 'error_minute_rate_limit'
+					| 'log_minute_rate_limit'
+					| 'trace_minute_rate_limit'
 					| 'session_exclusion_query'
 					| 'error_exclusion_query'
 					| 'log_exclusion_query'
@@ -360,7 +363,7 @@ export type DeleteSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type EditSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
-	params: Types.SearchParamsInput
+	query: Types.Scalars['String']
 	name: Types.Scalars['String']
 }>
 
@@ -372,53 +375,12 @@ export type EditSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type CreateSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
-	params: Types.SearchParamsInput
+	query: Types.Scalars['String']
 }>
 
 export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
 	createSegment?: Types.Maybe<
-		{ __typename?: 'Segment' } & Pick<Types.Segment, 'name' | 'id'> & {
-				params: { __typename?: 'SearchParams' } & Pick<
-					Types.SearchParams,
-					| 'os'
-					| 'browser'
-					| 'visited_url'
-					| 'referrer'
-					| 'identified'
-					| 'hide_viewed'
-					| 'app_versions'
-					| 'environments'
-					| 'device_id'
-					| 'show_live_sessions'
-				> & {
-						user_properties?: Types.Maybe<
-							Array<
-								Types.Maybe<
-									{ __typename?: 'UserProperty' } & Pick<
-										Types.UserProperty,
-										'name' | 'value'
-									>
-								>
-							>
-						>
-						excluded_properties?: Types.Maybe<
-							Array<
-								Types.Maybe<
-									{ __typename?: 'UserProperty' } & Pick<
-										Types.UserProperty,
-										'name' | 'value'
-									>
-								>
-							>
-						>
-						date_range?: Types.Maybe<
-							{ __typename?: 'DateRange' } & Pick<
-								Types.DateRange,
-								'start_date' | 'end_date'
-							>
-						>
-					}
-			}
+		{ __typename?: 'Segment' } & Pick<Types.Segment, 'name' | 'id'>
 	>
 }
 
@@ -450,6 +412,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
 	additional_context?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -495,6 +458,7 @@ export type CreateIssueForSessionCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForSessionCommentMutation = {
@@ -584,6 +548,7 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -612,6 +577,7 @@ export type CreateIssueForErrorCommentMutationVariables = Types.Exact<{
 	issue_title?: Types.Maybe<Types.Scalars['String']>
 	issue_team_id?: Types.Maybe<Types.Scalars['String']>
 	issue_description?: Types.Maybe<Types.Scalars['String']>
+	issue_type_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateIssueForErrorCommentMutation = { __typename?: 'Mutation' } & {
@@ -703,7 +669,7 @@ export type DeleteErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type EditErrorSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
-	params: Types.ErrorSearchParamsInput
+	query: Types.Scalars['String']
 	name: Types.Scalars['String']
 }>
 
@@ -715,7 +681,7 @@ export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
 export type CreateErrorSegmentMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
-	params: Types.ErrorSearchParamsInput
+	query: Types.Scalars['String']
 }>
 
 export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
@@ -723,19 +689,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
 		{ __typename?: 'ErrorSegment' } & Pick<
 			Types.ErrorSegment,
 			'name' | 'id'
-		> & {
-				params: { __typename?: 'ErrorSearchParams' } & Pick<
-					Types.ErrorSearchParams,
-					'os' | 'browser' | 'visited_url' | 'state'
-				> & {
-						date_range?: Types.Maybe<
-							{ __typename?: 'DateRange' } & Pick<
-								Types.DateRange,
-								'start_date' | 'end_date'
-							>
-						>
-					}
-			}
+		>
 	>
 }
 
@@ -1633,28 +1587,6 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetMetricsHistogramQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	metric_name: Types.Scalars['String']
-	params: Types.HistogramParamsInput
-}>
-
-export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
-	metrics_histogram?: Types.Maybe<
-		{ __typename?: 'HistogramPayload' } & Pick<
-			Types.HistogramPayload,
-			'min' | 'max'
-		> & {
-				buckets: Array<
-					{ __typename?: 'HistogramBucket' } & Pick<
-						Types.HistogramBucket,
-						'bucket' | 'range_start' | 'range_end' | 'count'
-					>
-				>
-			}
-	>
-}
-
 export type GetNetworkHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.NetworkHistogramParamsInput
@@ -2385,6 +2317,31 @@ export type GetSessionsHistogramClickhouseQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetSessionsReportQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.ClickhouseQuery
+}>
+
+export type GetSessionsReportQuery = { __typename?: 'Query' } & {
+	sessions_report: Array<
+		{ __typename?: 'SessionsReportRow' } & Pick<
+			Types.SessionsReportRow,
+			| 'key'
+			| 'user_properties'
+			| 'num_sessions'
+			| 'num_days_visited'
+			| 'num_months_visited'
+			| 'avg_active_length_mins'
+			| 'max_active_length_mins'
+			| 'total_active_length_mins'
+			| 'avg_length_mins'
+			| 'max_length_mins'
+			| 'total_length_mins'
+			| 'location'
+		>
+	>
+}
+
 export type GetErrorGroupsClickhouseQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
@@ -2844,12 +2801,16 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
 					| 'type'
-					| 'quota'
 					| 'interval'
 					| 'membersLimit'
+					| 'sessionsLimit'
 					| 'errorsLimit'
 					| 'logsLimit'
 					| 'tracesLimit'
+					| 'sessionsRate'
+					| 'errorsRate'
+					| 'logsRate'
+					| 'tracesRate'
 				>
 			}
 	>
@@ -2878,27 +2839,41 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'membersMeter'
 		| 'errorsMeter'
 		| 'logsMeter'
+		| 'tracesMeter'
 		| 'sessionsBillingLimit'
 		| 'errorsBillingLimit'
 		| 'logsBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'
+		| 'tracesDailyAverage'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
 				| 'type'
-				| 'quota'
 				| 'interval'
 				| 'membersLimit'
+				| 'sessionsLimit'
 				| 'errorsLimit'
 				| 'logsLimit'
+				| 'tracesLimit'
+				| 'sessionsRate'
+				| 'errorsRate'
+				| 'logsRate'
+				| 'tracesRate'
+				| 'enableBillingLimits'
 			>
 		}
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'discountAmount' | 'discountPercent'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
+			discount?: Types.Maybe<
+				{ __typename?: 'SubscriptionDiscount' } & Pick<
+					Types.SubscriptionDiscount,
+					'name' | 'amount' | 'percent' | 'until'
+				>
+			>
 			lastInvoice?: Types.Maybe<
 				{ __typename?: 'Invoice' } & Pick<
 					Types.Invoice,
@@ -2925,6 +2900,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'sessions_max_cents'
 			| 'errors_max_cents'
 			| 'logs_max_cents'
+			| 'traces_max_cents'
 		>
 	>
 }
@@ -2936,8 +2912,14 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
 		Types.SubscriptionDetails,
-		'baseAmount' | 'discountAmount' | 'discountPercent' | 'billingIssue'
+		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
 	> & {
+			discount?: Types.Maybe<
+				{ __typename?: 'SubscriptionDiscount' } & Pick<
+					Types.SubscriptionDiscount,
+					'name' | 'amount' | 'percent' | 'until'
+				>
+			>
 			lastInvoice?: Types.Maybe<
 				{ __typename?: 'Invoice' } & Pick<
 					Types.Invoice,
@@ -3363,68 +3345,8 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
 				> & {
 						params: { __typename?: 'SearchParams' } & Pick<
 							Types.SearchParams,
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'referrer'
-							| 'identified'
-							| 'hide_viewed'
-							| 'first_time'
-							| 'app_versions'
-							| 'environments'
-							| 'device_id'
-							| 'show_live_sessions'
-							| 'query'
-						> & {
-								user_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								excluded_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								track_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								date_range?: Types.Maybe<
-									{ __typename?: 'DateRange' } & Pick<
-										Types.DateRange,
-										'start_date' | 'end_date'
-									>
-								>
-								length_range?: Types.Maybe<
-									{ __typename?: 'LengthRange' } & Pick<
-										Types.LengthRange,
-										'min' | 'max'
-									>
-								>
-							}
+							'query'
+						>
 					}
 			>
 		>
@@ -3443,22 +3365,10 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
 					Types.ErrorSegment,
 					'id' | 'name'
 				> & {
-						params: { __typename?: 'ErrorSearchParams' } & Pick<
-							Types.ErrorSearchParams,
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'state'
-							| 'event'
-							| 'query'
-						> & {
-								date_range?: Types.Maybe<
-									{ __typename?: 'DateRange' } & Pick<
-										Types.DateRange,
-										'start_date' | 'end_date'
-									>
-								>
-							}
+						params: { __typename?: 'SearchParams' } & Pick<
+							Types.SearchParams,
+							'query'
+						>
 					}
 			>
 		>
@@ -3529,7 +3439,7 @@ export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
 
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
@@ -3558,7 +3468,7 @@ export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetReferrersCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetReferrersCountQuery = { __typename?: 'Query' } & {
@@ -3574,7 +3484,7 @@ export type GetReferrersCountQuery = { __typename?: 'Query' } & {
 
 export type GetNewUsersCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
@@ -3585,7 +3495,7 @@ export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
 
 export type GetAverageSessionLengthQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
@@ -3599,7 +3509,7 @@ export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
 
 export type GetTopUsersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetTopUsersQuery = { __typename?: 'Query' } & {
@@ -3651,7 +3561,7 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
 
 export type GetRageClicksForProjectQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	lookBackPeriod: Types.Scalars['Int']
+	lookback_days: Types.Scalars['Float']
 }>
 
 export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {
@@ -3795,7 +3705,18 @@ export type GetJiraIntegrationSettingsQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'JiraProject' } & Pick<
 				Types.JiraProject,
 				'id' | 'name' | 'key'
-			>
+			> & {
+					issueTypes?: Types.Maybe<
+						Array<
+							Types.Maybe<
+								{ __typename?: 'JiraIssueType' } & Pick<
+									Types.JiraIssueType,
+									'id' | 'name' | 'description'
+								>
+							>
+						>
+					>
+				}
 		>
 	>
 }
@@ -4355,6 +4276,7 @@ export type GetSuggestedMetricsQuery = { __typename?: 'Query' } & Pick<
 export type GetMetricTagsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetMetricTagsQuery = { __typename?: 'Query' } & Pick<
@@ -4483,6 +4405,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'source'
 						| 'serviceName'
 						| 'serviceVersion'
+						| 'environment'
 					>
 				}
 		>
@@ -4548,6 +4471,7 @@ export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
 export type GetLogsKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
@@ -4657,7 +4581,8 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_insights'
 			| 'enable_session_export'
 			| 'enable_unlisted_sharing'
-			| 'enable_ingest_filters'
+			| 'enable_ingest_sampling'
+			| 'enable_data_deletion'
 		>
 	>
 }
@@ -4847,7 +4772,9 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'duration'
 					| 'serviceName'
 					| 'serviceVersion'
+					| 'environment'
 					| 'traceAttributes'
+					| 'startTime'
 					| 'statusCode'
 					| 'statusMessage'
 				>
@@ -4897,6 +4824,7 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 						| 'duration'
 						| 'serviceName'
 						| 'serviceVersion'
+						| 'environment'
 						| 'traceAttributes'
 						| 'statusCode'
 						| 'statusMessage'
@@ -4913,18 +4841,23 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 export type GetTracesMetricsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	metric_types: Array<Types.TracesMetricType> | Types.TracesMetricType
+	column: Types.Scalars['String']
+	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
+	bucket_by?: Types.Maybe<Types.Scalars['String']>
+	limit?: Types.Maybe<Types.Scalars['Int']>
+	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
+	limit_column?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
-	traces_metrics: { __typename?: 'TracesMetrics' } & Pick<
-		Types.TracesMetrics,
+	traces_metrics: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
 		'bucket_count' | 'sample_factor'
 	> & {
 			buckets: Array<
-				{ __typename?: 'TracesMetricBucket' } & Pick<
-					Types.TracesMetricBucket,
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
 					'bucket_id' | 'group' | 'metric_type' | 'metric_value'
 				>
 			>
@@ -4934,6 +4867,7 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 export type GetTracesKeysQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTracesKeysQuery = { __typename?: 'Query' } & {
@@ -4955,7 +4889,6 @@ export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
-		GetMetricsHistogram: 'GetMetricsHistogram' as const,
 		GetNetworkHistogram: 'GetNetworkHistogram' as const,
 		GetSessionPayload: 'GetSessionPayload' as const,
 		GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
@@ -4984,6 +4917,7 @@ export const namedOperations = {
 		GetSessionsClickhouse: 'GetSessionsClickhouse' as const,
 		GetSessionsHistogramClickhouse:
 			'GetSessionsHistogramClickhouse' as const,
+		GetSessionsReport: 'GetSessionsReport' as const,
 		GetErrorGroupsClickhouse: 'GetErrorGroupsClickhouse' as const,
 		GetErrorsHistogramClickhouse: 'GetErrorsHistogramClickhouse' as const,
 		GetProjects: 'GetProjects' as const,

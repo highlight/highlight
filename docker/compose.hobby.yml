@@ -8,8 +8,6 @@ x-depends-infra: &depends-infra
             condition: service_healthy
         clickhouse:
             condition: service_started
-        influxdb:
-            condition: service_healthy
         collector:
             condition: service_started
 
@@ -27,10 +25,6 @@ x-backend-env: &backend-env
         - FRONTEND_URI
         - IN_DOCKER=true
         - IN_DOCKER_GO=true
-        - INFLUXDB_BUCKET
-        - INFLUXDB_ORG
-        - INFLUXDB_SERVER
-        - INFLUXDB_TOKEN
         - KAFKA_SERVERS
         - KAFKA_TOPIC
         - OBJECT_STORAGE_FS=/highlight-data

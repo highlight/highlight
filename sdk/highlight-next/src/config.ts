@@ -1,1 +1,1 @@
-export { withHighlightConfig } from './util/withHighlightConfig'
+export { withHighlightConfig } from './util/with-highlight-config'

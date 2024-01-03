@@ -1,6 +1,5 @@
-import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { LogLevel, ProductType } from '@graph/schemas'
-import { Box, defaultPresets, getNow } from '@highlight-run/ui'
+import { Box, defaultPresets, getNow } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -8,7 +7,7 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useRef } from 'react'
+import React from 'react'
 import { Helmet } from 'react-helmet'
 import { QueryParamConfig, useQueryParam } from 'use-query-params'
 
@@ -25,7 +24,7 @@ import {
 } from '@/components/Search/SearchForm/SearchForm'
 import {
 	useGetLogsHistogramQuery,
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -57,8 +56,10 @@ type Props = {
 	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
 }
 
+const HEADERS_AND_CHARTS_HEIGHT = 228
+const LOAD_MORE_HEIGHT = 28
+
 const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
-	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -77,7 +78,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		error,
 		loadingAfter,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	} = useGetLogs({
 		query,
@@ -92,6 +92,10 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		setEndDate(newEndDate)
 	}
 
+	const handleAdditionalLogsDateChange = () => {
+		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
+	}
+
 	const handleLevelChange = (level: LogLevel) => {
 		setQuery(`${query} level:${level}`)
 	}
@@ -104,12 +108,10 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
-				} else if (scrollTop === 0) {
-					fetchMoreBackward()
 				}
 			}
 		},
-		[fetchMoreForward, fetchMoreBackward],
+		[fetchMoreForward],
 	)
 
 	const { projectId } = useNumericProjectId()
@@ -127,6 +129,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 			},
 			skip: !projectId,
 		})
+
+	let otherElementsHeight = HEADERS_AND_CHARTS_HEIGHT
+	if (moreLogs) {
+		otherElementsHeight += LOAD_MORE_HEIGHT
+	}
 
 	return (
 		<>
@@ -158,7 +165,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						presets={defaultPresets}
 						minDate={defaultPresets[5].startDate}
 						timeMode={timeMode}
-						fetchKeys={useGetLogsKeysQuery}
+						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<LogsCount
@@ -166,7 +173,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						endDate={endDate}
 						presets={defaultPresets}
 						totalCount={histogramData?.logs_histogram.objectCount}
-						logCountLoading={histogramLoading}
+						loading={histogramLoading}
 					/>
 					<LogsHistogram
 						startDate={startDate}
@@ -177,32 +184,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						histogramBuckets={histogramData?.logs_histogram.buckets}
 						bucketCount={histogramData?.logs_histogram.totalCount}
 					/>
-					<Box width="full">
-						<AdditionalFeedResults
-							more={moreLogs}
-							type="logs"
-							onClick={() => {
-								clearMoreLogs()
-								handleDatesChange(
-									defaultPresets[0].startDate,
-									getNow().toDate(),
-								)
-							}}
-						/>
-					</Box>
-					<Box
-						borderTop="dividerWeak"
-						height="screen"
-						pt="4"
-						px="12"
-						pb="12"
-						overflowY="auto"
-						onScroll={(e) =>
-							fetchMoreWhenScrolled(e.target as HTMLDivElement)
-						}
-						ref={tableContainerRef}
-					>
-						<Box my="4">
+					<Box borderTop="dividerWeak" height="full">
+						<Box my="4" px="12">
 							<OverageCard productType={ProductType.Logs} />
 						</Box>
 						<IntegrationCta />
@@ -213,8 +196,14 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							refetch={refetch}
 							loadingAfter={loadingAfter}
 							query={query}
-							tableContainerRef={tableContainerRef}
 							selectedCursor={logCursor}
+							moreLogs={moreLogs}
+							clearMoreLogs={clearMoreLogs}
+							handleAdditionalLogsDateChange={
+								handleAdditionalLogsDateChange
+							}
+							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 						/>
 					</Box>
 				</Box>

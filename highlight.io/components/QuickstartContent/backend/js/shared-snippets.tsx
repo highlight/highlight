@@ -15,20 +15,7 @@ export const jsGetSnippet: (slugs: string[]) => QuickStartStep = (slugs) => {
 		code: [
 			{
 				key: 'npm',
-				text: `# with npm
-npm install --save ${packages}`,
-				language: 'bash',
-			},
-			{
-				key: 'yarn',
-				text: `# with yarn
-yarn add ${packages}`,
-				language: 'bash',
-			},
-			{
-				key: 'pnpm',
-				text: `# with pnpm
-pnpm add ${packages}`,
+				text: `npm install --save ${packages}`,
 				language: 'bash',
 			},
 		],
@@ -44,7 +31,11 @@ export const initializeNodeSDK: (slug: string) => QuickStartStep = (slug) => ({
 		{
 			text: `import { H } from '@highlight-run/${slug}'
 
-H.init({projectID: '<YOUR_PROJECT_ID>'})`,
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: '<YOUR_SERVICE_NAME>',
+	environment: 'production',
+})`,
 			language: 'js',
 		},
 	],

@@ -1,7 +1,12 @@
-go 1.20
+go 1.21
+
+toolchain go1.21.3
 
 use ./backend
 
 use ./sdk/highlight-go
 
-use ./e2e/go
+use (
+	./e2e/go
+	./sdk/highlightinc-highlight-datasource
+)

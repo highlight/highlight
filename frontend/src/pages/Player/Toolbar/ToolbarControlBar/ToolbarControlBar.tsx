@@ -33,7 +33,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
@@ -62,7 +62,7 @@ import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import { showIntercomMessage } from '@util/window'
+import { showSupportMessage } from '@util/window'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useCallback } from 'react'
@@ -441,9 +441,9 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				workspaceId: currentWorkspace?.id,
 			})
 			await message.warn(
-				'Downloading sessions is only available on annual commitment plans.',
+				'Downloading sessions is only available on enterprise plans.',
 			)
-			showIntercomMessage(
+			showSupportMessage(
 				'Hi! I would like to use the session export feature.',
 			)
 			return

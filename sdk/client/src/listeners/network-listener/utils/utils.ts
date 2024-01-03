@@ -1,4 +1,5 @@
 import { RequestResponsePair } from './models'
+import { sanitizeResource } from './network-sanitizer'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
@@ -31,10 +32,50 @@ type PerformanceResourceTimingWithRequestResponsePair =
 		requestResponsePair: RequestResponsePair
 	}
 
+type SanitizeOptions = {
+	headersToRedact: string[]
+	headersToRecord?: string[]
+	requestResponseSanitizer?: (
+		pair: RequestResponsePair,
+	) => RequestResponsePair | null
+}
+
+const sanitizeRequestResponsePair = (
+	pair: RequestResponsePair,
+	{
+		headersToRedact,
+		headersToRecord,
+		requestResponseSanitizer,
+	}: SanitizeOptions,
+): RequestResponsePair | null => {
+	let sanitizedPair: RequestResponsePair | null = pair
+
+	// step 1: pass through user defined sanitizer
+	if (requestResponseSanitizer) {
+		try {
+			sanitizedPair = requestResponseSanitizer(sanitizedPair)
+		} catch (err) {}
+
+		if (!sanitizedPair) {
+			return null
+		}
+	}
+
+	// step 2: redact any specified headers
+	const { request, response, ...rest } = sanitizedPair
+
+	return {
+		request: sanitizeResource(request, headersToRedact, headersToRecord),
+		response: sanitizeResource(response, headersToRedact, headersToRecord),
+		...rest,
+	}
+}
+
 export const matchPerformanceTimingsWithRequestResponsePair = (
 	performanceTimings: PerformanceResourceTiming[],
 	requestResponsePairs: RequestResponsePair[],
 	type: 'xmlhttprequest' | 'fetch',
+	sanitizeOptions: SanitizeOptions,
 ) => {
 	// Request response pairs are sorted by end time; sort performance timings the same way
 	performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd)
@@ -108,26 +149,49 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 
 	return result
 		.sort((a, b) => a.fetchStart - b.fetchStart)
-		.map((performanceTiming) => {
-			performanceTiming.toJSON = function () {
-				return {
-					initiatorType: this.initiatorType,
-					// deprecated, use the absolute versions instead
-					startTime: this.startTime,
-					responseEnd: this.responseEnd,
-					// offset by `window.performance.timeOrigin` to get absolute timestamps
-					startTimeAbs:
-						window.performance.timeOrigin + this.startTime,
-					responseEndAbs:
-						window.performance.timeOrigin + this.responseEnd,
-					name: this.name,
-					transferSize: this.transferSize,
-					encodedBodySize: this.encodedBodySize,
-					requestResponsePairs: this.requestResponsePair,
+		.reduce(
+			(
+				resources: PerformanceResourceTimingWithRequestResponsePair[],
+				performanceTiming: PerformanceResourceTimingWithRequestResponsePair,
+			) => {
+				let requestResponsePair: RequestResponsePair | null =
+					performanceTiming.requestResponsePair
+
+				if (requestResponsePair) {
+					requestResponsePair = sanitizeRequestResponsePair(
+						performanceTiming.requestResponsePair,
+						sanitizeOptions,
+					)
+
+					// ignore request if it was filtered out by the user defined sanitizer
+					if (!requestResponsePair) {
+						return resources
+					}
 				}
-			}
-			return performanceTiming
-		})
+
+				performanceTiming.toJSON = function () {
+					return {
+						initiatorType: this.initiatorType,
+						// deprecated, use the absolute versions instead
+						startTime: this.startTime,
+						responseEnd: this.responseEnd,
+						// offset by `window.performance.timeOrigin` to get absolute timestamps
+						startTimeAbs:
+							window.performance.timeOrigin + this.startTime,
+						responseEndAbs:
+							window.performance.timeOrigin + this.responseEnd,
+						name: this.name,
+						transferSize: this.transferSize,
+						encodedBodySize: this.encodedBodySize,
+						requestResponsePairs: requestResponsePair,
+					}
+				}
+
+				resources.push(performanceTiming)
+				return resources
+			},
+			[],
+		)
 }
 
 /**

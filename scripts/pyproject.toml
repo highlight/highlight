@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "scripts"
+version = "0.1.0"
+description = ""
+authors = ["Vadim Korolik <vkorolik@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+boto3 = {version = ">=1.23,<2.0", extras = ["crt"]}
+brotli = ">=1.0,<2.0"
+tqdm = "^4.66.1"
+stripe = "^6.7.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+pytest-mock = "^3.11.1"
+pytest = "^7.4.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

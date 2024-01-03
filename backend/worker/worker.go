@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"math"
 	"math/rand"
 	"os"
@@ -14,11 +13,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/samber/lo"
+
 	"github.com/aws/smithy-go/ptr"
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
-	"github.com/highlight-run/highlight/backend/hlog"
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -33,11 +33,12 @@ import (
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
+	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	"github.com/leonelquinteros/hubspot"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
@@ -63,6 +64,8 @@ const EVENTS_READ_TIMEOUT = 300000
 // cancel refreshing materialized views after 30 minutes
 const REFRESH_MATERIALIZED_VIEW_TIMEOUT = 30 * 60 * 1000
 
+const processSessionLimit = 200
+
 type Worker struct {
 	Resolver       *mgraph.Resolver
 	PublicResolver *pubgraph.Resolver
@@ -70,14 +73,22 @@ type Worker struct {
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payloadManager *payload.PayloadManager) error {
-	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
+	project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+	if err != nil {
+		return err
+	}
+	workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager, workspace.GetRetentionPeriod())
 	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing files to s3")
 	}
 
 	// Mark this session as stored in S3.
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
+	if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		&model.Session{ObjectStorageEnabled: &model.T, Chunked: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true, AllObjectsCompressed: true},
@@ -127,8 +138,17 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 			}
 			curChunkedFile := manager.GetFile(payload.EventsChunked)
 			if curChunkedFile != nil {
+				project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+				if err != nil {
+					return err
+				}
+				workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+				if err != nil {
+					return err
+				}
+
 				curOffset := manager.ChunkIndex
-				_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset))
+				_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, curChunkedFile, storage.GetChunkedPayloadType(curOffset), workspace.GetRetentionPeriod())
 				if err != nil {
 					return errors.Wrap(err, "error pushing event chunk file to s3")
 				}
@@ -174,6 +194,10 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 	}
 
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
+
+	if err := w.PublicResolver.MoveSessionDataToStorage(ctx, s.ID, nil, s.ProjectID, payloadType); err != nil {
+		return err
+	}
 
 	s3Events, err := w.Resolver.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, payloadType)
 	if err != nil {
@@ -224,11 +248,20 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 
 	// If the last event chunk file hasn't been closed / written to s3, do that here
 	if manager.EventsChunked != nil {
+		project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
+		if err != nil {
+			return err
+		}
+		workspace, err := w.Resolver.Store.GetWorkspace(ctx, project.WorkspaceID)
+		if err != nil {
+			return err
+		}
+
 		if err := manager.EventsChunked.Close(); err != nil {
 			return errors.Wrap(err, "error closing compressed events chunk writer")
 		}
 		curOffset := manager.ChunkIndex
-		_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset))
+		_, err = w.StorageClient.PushCompressedFile(ctx, s.ID, s.ProjectID, manager.GetFile(payload.EventsChunked), storage.GetChunkedPayloadType(curOffset), workspace.GetRetentionPeriod())
 		if err != nil {
 			return errors.Wrap(err, "error pushing event chunk file to s3")
 		}
@@ -244,7 +277,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	if len(accumulator.EventChunks) > 0 {
-		if err := w.Resolver.DB.Create(accumulator.EventChunks).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Create(accumulator.EventChunks).Error; err != nil {
 			return errors.Wrap(err, "error saving event chunk metadata")
 		}
 	}
@@ -304,11 +337,13 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		s, err := w.PublicResolver.InitializeSessionImpl(ctx, task.InitializeSession)
-		tags := []string{fmt.Sprintf("success:%t", err == nil)}
-		if s != nil {
-			tags = append(tags, fmt.Sprintf("secure_id:%q", s.SecureID), fmt.Sprintf("project_id:%d", s.ProjectID))
+		tags := []attribute.KeyValue{
+			attribute.Bool("success", err == nil),
 		}
-		hlog.Incr("worker.initializeSession.count", tags, 1)
+		if s != nil {
+			tags = append(tags, attribute.String("secure_id", s.SecureID), attribute.Int("project_id", s.ProjectID))
+		}
+		hmetric.Incr(ctx, "worker.initializeSession.count", tags, 1)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
@@ -354,7 +389,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.PushMetrics == nil {
 			break
 		}
-		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
+		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.ProjectVerboseID, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
@@ -366,70 +401,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
-	case kafkaqueue.HubSpotCreateContactForAdmin:
-		if task.HubSpotCreateContactForAdmin == nil {
-			break
-		}
-		if _, err := w.PublicResolver.HubspotApi.CreateContactForAdminImpl(ctx,
-			task.HubSpotCreateContactForAdmin.AdminID,
-			task.HubSpotCreateContactForAdmin.Email,
-			task.HubSpotCreateContactForAdmin.UserDefinedRole,
-			task.HubSpotCreateContactForAdmin.UserDefinedPersona,
-			task.HubSpotCreateContactForAdmin.UserDefinedTeamSize,
-			task.HubSpotCreateContactForAdmin.HeardAbout,
-			task.HubSpotCreateContactForAdmin.First,
-			task.HubSpotCreateContactForAdmin.Last,
-			task.HubSpotCreateContactForAdmin.Phone,
-			task.HubSpotCreateContactForAdmin.Referral,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotCreateCompanyForWorkspace:
-		if task.HubSpotCreateCompanyForWorkspace == nil {
-			break
-		}
-		if _, err := w.PublicResolver.HubspotApi.CreateCompanyForWorkspaceImpl(ctx,
-			task.HubSpotCreateCompanyForWorkspace.WorkspaceID,
-			task.HubSpotCreateCompanyForWorkspace.AdminEmail,
-			task.HubSpotCreateCompanyForWorkspace.Name,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotUpdateContactProperty:
-		if task.HubSpotUpdateContactProperty == nil {
-			break
-		}
-		if err := w.PublicResolver.HubspotApi.UpdateContactPropertyImpl(ctx,
-			task.HubSpotUpdateContactProperty.AdminID,
-			task.HubSpotUpdateContactProperty.Properties,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotUpdateCompanyProperty:
-		if task.HubSpotUpdateCompanyProperty == nil {
-			break
-		}
-		if err := w.PublicResolver.HubspotApi.UpdateCompanyPropertyImpl(ctx,
-			task.HubSpotUpdateCompanyProperty.WorkspaceID,
-			task.HubSpotUpdateCompanyProperty.Properties,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HubSpotCreateContactCompanyAssociation:
-		if task.HubSpotCreateContactCompanyAssociation == nil {
-			break
-		}
-		if err := w.PublicResolver.HubspotApi.CreateContactCompanyAssociationImpl(ctx,
-			task.HubSpotCreateContactCompanyAssociation.AdminID,
-			task.HubSpotCreateContactCompanyAssociation.WorkspaceID,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
 	case kafkaqueue.HealthCheck:
 	default:
 		log.WithContext(ctx).Errorf("Unknown task type %+v", task.Type)
@@ -438,12 +409,13 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 type WorkerConfig struct {
-	Workers         int
-	FlushSize       int
-	QueueSize       int
-	FlushTimeout    time.Duration
-	Topic           kafkaqueue.TopicType
-	TracingDisabled bool
+	Workers          int
+	FlushSize        int
+	QueueSize        int
+	MessageSizeBytes *int64
+	FlushTimeout     time.Duration
+	Topic            kafkaqueue.TopicType
+	TracingDisabled  bool
 }
 
 func (w *Worker) GetPublicWorker(topic kafkaqueue.TopicType) func(context.Context) {
@@ -458,15 +430,14 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
 	// is processed serially, so messages in that slice are processed in order.
 
-	mainWorkers := 64
-	sys, cfgErr := w.PublicResolver.Store.GetSystemConfiguration(ctx)
-	if cfgErr == nil {
-		mainWorkers = sys.MainWorkers
+	sys, err := w.PublicResolver.Store.GetSystemConfiguration(ctx)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get config for public workers")
 	}
 
 	mainConfig := WorkerConfig{
 		Topic:   kafkaqueue.TopicTypeDefault,
-		Workers: mainWorkers,
+		Workers: sys.MainWorkers,
 	}
 	logsConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeBatched,
@@ -509,15 +480,16 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		wg.Add(cfg.Workers)
 		for i := 0; i < cfg.Workers; i++ {
 			if cfg.Topic == kafkaqueue.TopicTypeDefault {
-				go func(workerId int) {
+				go func(config WorkerConfig, workerId int) {
+					ctx := context.Background()
 					k := KafkaWorker{
-						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil),
+						KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{MessageSizeBytes: config.MessageSizeBytes}),
 						Worker:       w,
 						WorkerThread: workerId,
 					}
 					k.ProcessMessages(ctx)
 					wg.Done()
-				}(i)
+				}(cfg, i)
 			} else {
 				go func(config WorkerConfig, workerId int) {
 					ctx := context.Background()
@@ -561,7 +533,7 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 	for _, table := range []string{"resources_objects", "messages_objects"} {
 		deleteSpan, ctx := util.StartSpanFromContext(ctx, "worker.deleteObjects",
 			util.ResourceName("worker.deleteObjects"), util.Tag("table", table))
-		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error deleting expired objects from %s", table))
 		}
 		deleteSpan.Finish()
@@ -578,7 +550,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 	s.Excluded = true
 	s.ExcludedReason = &reason
 	s.Processed = &model.T
-	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
@@ -591,8 +563,12 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+	if s.Excluded {
+		return nil
+	}
+
 	project := &model.Project{}
-	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).Take(&project).Error; err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).Take(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
 	}
 
@@ -614,26 +590,26 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	if !s.AvoidPostgresStorage {
 		// Delete any timeline indicator events which were previously written for this session
-		if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+		if err := w.Resolver.DB.WithContext(ctx).Where("session_secure_id = ?", s.SecureID).
 			Delete(&model.TimelineIndicatorEvent{}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated timeline indicator events"))
 		}
 	}
 
 	// Delete any event chunks which were previously written for this session
-	if err := w.Resolver.DB.Where("session_id = ?", s.ID).
+	if err := w.Resolver.DB.WithContext(ctx).Where("session_id = ?", s.ID).
 		Delete(&model.EventChunk{}).Error; err != nil {
 		return errors.Wrap(err, "failed to delete existing event chunks")
 	}
 
 	// Delete any rage click events which were previously written for this session
-	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+	if err := w.Resolver.DB.WithContext(ctx).Where("session_secure_id = ?", s.SecureID).
 		Delete(&model.RageClickEvent{}).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated rage click events"))
 	}
 
 	// Delete any session intervals which were previously written for this session
-	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).
+	if err := w.Resolver.DB.WithContext(ctx).Where("session_secure_id = ?", s.SecureID).
 		Delete(&model.SessionInterval{}).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error deleting outdated session intervals"))
 	}
@@ -688,11 +664,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err != nil {
 				return err
 			}
-			if err := w.Resolver.DB.Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
+			if err := w.Resolver.DB.WithContext(ctx).Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
 				return err
 			}
 		} else {
-			if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
+			if err := w.Resolver.DB.WithContext(ctx).Create(eventsForTimelineIndicator).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error creating events for timeline indicator"))
 			}
 		}
@@ -705,7 +681,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 	hasRageClicks := len(accumulator.RageClickSets) > 0
 	if hasRageClicks {
-		if err := w.Resolver.DB.Create(&accumulator.RageClickSets).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Create(&accumulator.RageClickSets).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
@@ -807,7 +783,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		})
 	}
 
-	if err := w.Resolver.DB.Create(finalIntervals).Error; err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Create(finalIntervals).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error creating session activity intervals"))
 	}
 
@@ -841,7 +817,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	visitFields := []model.Field{}
-	if err := w.Resolver.DB.Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
+	if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
 		return e.Wrap(err, "error querying session fields for determining landing/exit pages")
 	}
 
@@ -853,7 +829,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now())
 
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
+	if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
@@ -891,6 +867,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Bool("Processed", true),
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	highlight.RecordMetric(
 		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
@@ -898,8 +876,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		attribute.Bool("Processed", true),
 		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
-	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
+	if err := w.PublicResolver.PushMetricsImpl(ctx, nil, &s.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: s.SecureID,
 			Timestamp:       s.CreatedAt,
@@ -926,24 +906,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.WithContext(ctx).Errorf("failed to submit session processing metric for %s: %s", s.SecureID, err)
 	}
 
-	// Update session count on dailydb
-	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	dailySession := &model.DailySessionCount{}
-	if err := w.Resolver.DB.
-		Where(&model.DailySessionCount{
-			ProjectID: s.ProjectID,
-			Date:      &currentDate,
-		}).Attrs(&model.DailySessionCount{Count: 0}).
-		FirstOrCreate(&dailySession).Error; err != nil {
-		return e.Wrap(err, "Error creating new daily session")
-	}
-
-	if err := w.Resolver.DB.
-		Where(&model.DailySessionCount{Model: model.Model{ID: dailySession.ID}}).
-		Updates(&model.DailySessionCount{Count: dailySession.Count + 1}).Error; err != nil {
-		return e.Wrap(err, "Error incrementing session count in db")
-	}
-
 	var g errgroup.Group
 	projectID := s.ProjectID
 
@@ -953,7 +915,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		// Sending Rage Click Alert
 		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching rage click alert", projectID)
 		}
 
@@ -987,7 +949,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				sessionAlert.ThresholdWindow = ptr.Int(30)
 			}
 			var count int
-			if err := w.Resolver.DB.Raw(`
+			if err := w.Resolver.DB.WithContext(ctx).Raw(`
 				SELECT COUNT(*)
 				FROM rage_click_events
 				WHERE
@@ -1001,8 +963,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			count64 := int64(count)
-			slackAlertPayload := model.SendSlackAlertInput{
+			slackAlertPayload := tempalerts.SendSlackAlertInput{
 				Workspace:       workspace,
+				Project:         project,
 				SessionSecureID: s.SecureID,
 				SessionExcluded: s.Excluded && *s.Processed,
 				UserIdentifier:  s.Identifier,
@@ -1018,7 +981,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err := w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
 			}
-			sessionAlert.SendAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
+			tempalerts.SendSessionAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.LambdaClient, sessionAlert, &slackAlertPayload)
 
 			if err = alerts.SendRageClicksAlert(alerts.RageClicksAlertEvent{
 				Session:         s,
@@ -1047,86 +1010,51 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	return nil
 }
 
-// Start begins the worker's tasks.
-func (w *Worker) Start(ctx context.Context) {
-	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
-	lockPeriod := 30            // time in minutes
+func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod int, lockPeriod int, limit int) ([]*model.Session, error) {
+	sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
+	defer sessionsSpan.Finish()
 
-	if util.IsDevEnv() {
-		payloadLookbackPeriod = 8
-		lockPeriod = 1
+	sessionIds, err := w.Resolver.Redis.GetSessionsToProcess(ctx, lockPeriod, limit)
+	if err != nil {
+		return nil, err
 	}
 
-	go reportProcessSessionCount(ctx, w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
+	sessions := []*model.Session{}
+	if err := w.Resolver.DB.Model(&model.Session{}).Where("id in ?", sessionIds).Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	rand.Shuffle(len(sessions), func(i, j int) {
+		sessions[i], sessions[j] = sessions[j], sessions[i]
+	})
+
+	// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
+	hmetric.Histogram(ctx, "worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1)
+
+	return sessions, nil
+}
+
+// Start begins the worker's tasks.
+func (w *Worker) Start(ctx context.Context) {
+	go reportProcessSessionCount(ctx, w.Resolver.DB, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes)
 	maxWorkerCount := 10
-	processSessionLimit := 200
 	wp := workerpool.New(maxWorkerCount)
 	wp.SetPanicHandler(util.Recover)
 	for {
 		time.Sleep(1 * time.Second)
-		sessions := []*model.Session{}
+
+		limit := processSessionLimit + rand.Intn(100)
 		sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
-		sessionLimitJitter := rand.Intn(100)
-		limit := processSessionLimit + sessionLimitJitter
-		txStart := time.Now()
-		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
-			defer cancel()
-
-			errs := make(chan error, 1)
-			go func() {
-				defer util.Recover()
-				if err := tx.Raw(`
-						WITH t AS (
-							UPDATE sessions
-							SET lock=NOW()
-							WHERE id in (
-								SELECT ID FROM (
-									SELECT id
-									FROM sessions
-									WHERE (processed = false)
-										AND (excluded = false)
-										AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
-										AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
-										AND (retry_count < ?)
-									LIMIT ?
-									FOR UPDATE SKIP LOCKED
-								) s
-								ORDER BY id
-								FOR UPDATE SKIP LOCKED
-							)
-							RETURNING *
-						)
-						SELECT * FROM t;
-					`, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, limit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Error; err != nil {
-					errs <- err
-					return
-				}
-				errs <- nil
-			}()
-
-			select {
-			case <-transactionCtx.Done():
-				return e.New("transaction timeout occurred")
-			case err := <-errs:
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		}); err != nil {
-			log.WithContext(ctx).Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
-			sessionsSpan.Finish()
+		sessions, err := w.GetSessionsToProcess(ctx, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes, limit)
+		sessionsSpan.Finish(err)
+		if err != nil {
+			log.WithContext(ctx).Error(err)
 			continue
 		}
-		rand.New(rand.NewSource(time.Now().UnixNano()))
-		rand.Shuffle(len(sessions), func(i, j int) {
-			sessions[i], sessions[j] = sessions[j], sessions[i]
-		})
-		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
-		hlog.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
-		sessionsSpan.Finish()
+		// Sends a "count" metric so that we can see how many sessions are being queried.
+		hmetric.Histogram(ctx, "worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
+
 		type SessionLog struct {
 			SessionID int
 			ProjectID int
@@ -1164,9 +1092,12 @@ func (w *Worker) Start(ctx context.Context) {
 					var excluded bool
 					if nextCount >= MAX_RETRIES {
 						excluded = true
+						if err := w.Resolver.Redis.RemoveSessionToProcess(ctx, session.ID); err != nil {
+							log.WithContext(ctx).Error(err)
+						}
 					}
 
-					if err := w.Resolver.DB.Model(&model.Session{}).
+					if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{}).
 						Where(&model.Session{Model: model.Model{ID: session.ID}}).
 						Updates(&model.Session{RetryCount: nextCount, Excluded: excluded}).Error; err != nil {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
@@ -1187,7 +1118,11 @@ func (w *Worker) Start(ctx context.Context) {
 
 					return
 				}
-				hlog.Incr("sessionsProcessed", nil, 1)
+
+				if err := w.Resolver.Redis.RemoveSessionToProcess(ctx, session.ID); err != nil {
+					log.WithContext(ctx).Error(err)
+				}
+				hmetric.Incr(ctx, "sessionsProcessed", nil, 1)
 				span.Finish()
 			})
 		}
@@ -1200,7 +1135,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.NewWorker(w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient, w.Resolver.HubspotApi).ReportAllUsage(ctx)
+	pricing.NewWorker(w.Resolver.DB, w.Resolver.Redis, w.Resolver.Store, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient).ReportAllUsage(ctx)
 }
 
 func (w *Worker) MigrateDB(ctx context.Context) {
@@ -1212,11 +1147,11 @@ func (w *Worker) MigrateDB(ctx context.Context) {
 }
 
 func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
-	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
+	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.MailClient, w.Resolver.RH)
 }
 
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
-	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient)
+	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
@@ -1271,7 +1206,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 	var counts []*AggregateSessionCount
 
-	if err := w.Resolver.DB.Raw(`
+	if err := w.Resolver.DB.WithContext(ctx).Raw(`
 		SELECT p.workspace_id,
 		       sum(dsc.count) as session_count,
 		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 week' ) as session_count_last_week,
@@ -1283,7 +1218,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	var errorResults []*AggregateSessionCount
-	if err := w.Resolver.DB.Raw(`
+	if err := w.Resolver.DB.WithContext(ctx).Raw(`
 		SELECT p.workspace_id,
 			   sum(dec.count) as error_count,
 			   sum(dec.count) filter ( where dec.date > NOW() - interval '1 week' ) as error_count_last_week,
@@ -1300,7 +1235,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		c.ErrorCountLastDay += errorResults[idx].ErrorCountLastDay
 
 		workspace := &model.Workspace{}
-		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
+		if err := w.Resolver.DB.WithContext(ctx).Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
 		c.TrialEndDate = workspace.TrialEndDate
@@ -1311,7 +1246,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			model.MarkBackendSetupTypeLogs:    &c.BackendLoggingIntegrated,
 		} {
 			setupEvent := model.SetupEvent{}
-			if err := w.Resolver.DB.Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err == nil {
+			if err := w.Resolver.DB.WithContext(ctx).Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err == nil {
 				*ptr = setupEvent.ID != 0
 			}
 		}
@@ -1343,90 +1278,16 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	for _, c := range counts {
-		// See HIG-2743
-		// Skip updating session count for demo workspace because we exclude it from Hubspot
-		if c.WorkspaceID == 0 {
-			continue
-		}
-
-		if util.IsHubspotEnabled() {
-			properties := []hubspot.Property{{
-				Name:     "highlight_session_count",
-				Property: "highlight_session_count",
-				Value:    c.SessionCount,
-			}, {
-				Name:     "highlight_error_count",
-				Property: "highlight_error_count",
-				Value:    c.ErrorCount,
-			}, {
-				Name:     "highlight_logs_count",
-				Property: "highlight_logs_count",
-				Value:    c.LogCount,
-			}, {
-				Name:     "session_last_week",
-				Property: "session_last_week",
-				Value:    c.SessionCountLastWeek,
-			}, {
-				Name:     "errors_last_week",
-				Property: "errors_last_week",
-				Value:    c.ErrorCountLastWeek,
-			}, {
-				Name:     "logs_last_week",
-				Property: "logs_last_week",
-				Value:    c.LogCountLastWeek,
-			}, {
-				Name:     "sessions_last_day",
-				Property: "sessions_last_day",
-				Value:    c.SessionCountLastDay,
-			}, {
-				Name:     "errors_last_day",
-				Property: "errors_last_day",
-				Value:    c.ErrorCountLastDay,
-			}, {
-				Name:     "logs_last_day",
-				Property: "logs_last_day",
-				Value:    c.LogCountLastDay,
-			}, {
-				Name:     "plan_tier",
-				Property: "plan_tier",
-				Value:    c.PlanTier,
-			}, {
-				Name:     "is_session_replay_integrated",
-				Property: "is_session_replay_integrated",
-				Value:    c.SessionReplayIntegrated,
-			}, {
-				Name:     "is_backend_error_monitoring_integrated",
-				Property: "is_backend_error_monitoring_integrated",
-				Value:    c.BackendErrorMonitoringIntegrated,
-			}, {
-				Name:     "is_backend_logging_integrated",
-				Property: "is_backend_logging_integrated",
-				Value:    c.BackendLoggingIntegrated,
-			}}
-			if c.TrialEndDate != nil {
-				properties = append(properties, hubspot.Property{
-					Property: "date_of_trial_end",
-					Name:     "date_of_trial_end",
-					Value:    c.TrialEndDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
-				})
-			}
-			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, properties); err != nil {
-				log.WithContext(ctx).WithField("data", *c).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
-			}
-		}
-
 		phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, c.WorkspaceID, []attribute.KeyValue{
 			attribute.Int64(phonehome.SessionCount, c.SessionCount),
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
 			attribute.Int64(phonehome.LogCount, c.LogCount),
 		})
-
-		time.Sleep(150 * time.Millisecond)
 	}
 }
 
 func (w *Worker) BackfillStackFrames(ctx context.Context) {
-	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
+	rows, err := w.Resolver.DB.WithContext(ctx).Model(&model.ErrorObject{}).
 		Where(`
 			type <> 'Backend'
 			AND stack_trace is not null
@@ -1457,7 +1318,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 				return
 			}
 
-			version := w.PublicResolver.GetErrorAppVersion(modelObj)
+			version := w.PublicResolver.GetErrorAppVersion(ctx, modelObj)
 			mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
@@ -1472,7 +1333,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 
 			mappedStackTraceString := string(mappedStackTraceBytes)
 
-			if err := w.Resolver.DB.Model(&model.ErrorObject{}).
+			if err := w.Resolver.DB.WithContext(ctx).Model(&model.ErrorObject{}).
 				Where("id = ?", modelObj.ID).
 				Updates(&model.ErrorObject{MappedStackTrace: &mappedStackTraceString}).Error; err != nil {
 				log.WithContext(ctx).Errorf("error updating stack trace string: %+v", err)
@@ -1730,7 +1591,7 @@ func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod,
 	for {
 		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
 		var count int64
-		if err := db.Raw(`
+		if err := db.WithContext(ctx).Raw(`
 			SELECT COUNT(*)
 			FROM sessions
 			WHERE (processed = false)
@@ -1742,6 +1603,6 @@ func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod,
 			log.WithContext(ctx).Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue
 		}
-		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
+		hmetric.Histogram(ctx, "processSessionsCount", float64(count), nil, 1)
 	}
 }

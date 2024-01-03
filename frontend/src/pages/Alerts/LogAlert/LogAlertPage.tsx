@@ -5,7 +5,7 @@ import {
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetLogsHistogramQuery,
-	useGetLogsKeysQuery,
+	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
@@ -30,7 +30,7 @@ import {
 	useForm,
 	useFormStore,
 	useMenu,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSlackSync } from '@hooks/useSlackSync'
 import {
@@ -79,15 +79,6 @@ export const LogAlertPage = () => {
 	])
 
 	const { projectId } = useProjectId()
-	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
-		variables: {
-			project_id: projectId,
-			date_range: {
-				start_date: moment(startDate).format(TIME_FORMAT),
-				end_date: moment(endDate).format(TIME_FORMAT),
-			},
-		},
-	})
 
 	const [queryParam] = useQueryParam('query', StringParam)
 	const [initialQuery, setInitialQuery] = useState(queryParam ?? '')
@@ -489,12 +480,9 @@ export const LogAlertPage = () => {
 										>
 											<Search
 												initialQuery={initialQuery}
-												keys={keysData?.keys ?? []}
 												startDate={startDate}
 												endDate={endDate}
 												hideIcon
-												className={styles.combobox}
-												keysLoading={keysLoading}
 												placeholder="Define query..."
 												query={query}
 												setQuery={setQuery}
@@ -503,6 +491,9 @@ export const LogAlertPage = () => {
 												}
 												fetchValuesLazyQuery={
 													useGetLogsKeyValuesLazyQuery
+												}
+												fetchKeysLazyQuery={
+													useGetLogsKeysLazyQuery
 												}
 											/>
 										</Box>

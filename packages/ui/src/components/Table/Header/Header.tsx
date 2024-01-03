@@ -5,7 +5,7 @@ import * as styles from './styles.css'
 import { Text } from '../../../components/Text/Text'
 
 export type Props = {
-	children: React.ReactNode
+	children?: React.ReactNode
 }
 
 export const Header: React.FC<Props> = ({ children }) => {

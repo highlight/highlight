@@ -8,7 +8,7 @@
 		"allowSyntheticDefaultImports": true,
 		"strict": true,
 		"forceConsistentCasingInFileNames": true,
-		"incremental": true,
+		"incremental": false,
 		"esModuleInterop": true,
 		"module": "esnext",
 		"moduleResolution": "node",

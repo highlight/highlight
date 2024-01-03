@@ -13,7 +13,7 @@
 		"strict": true,
 		"outDir": "./dist",
 		"baseUrl": "./",
-		"incremental": true,
+		"incremental": false,
 		"noImplicitAny": true,
 		"skipLibCheck": true
 	}

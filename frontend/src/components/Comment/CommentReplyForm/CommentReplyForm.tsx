@@ -19,7 +19,7 @@ import {
 	Form,
 	IconSolidPaperAirplane,
 	Stack,
-} from '@highlight-run/ui'
+} from '@highlight-run/ui/components'
 import { CommentTextBody } from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'

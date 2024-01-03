@@ -1,6 +1,7 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
 import { backdrop, font, fontLight } from '../util'
+import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
 
 export const config = {
 	runtime: 'edge',
@@ -8,7 +9,7 @@ export const config = {
 
 //Example query: https://highlight.io/api/og/blog/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
 //This query is sent from each blog slug to generate the og image
-export default async function handler(req: NextRequest) {
+const handler = async function (req: NextRequest) {
 	const query = req.nextUrl.href
 	const fontData = await font
 	const fontLightData = await fontLight
@@ -28,6 +29,12 @@ export default async function handler(req: NextRequest) {
 	const firstName = url.searchParams.get('fname')
 	const lastName = url.searchParams.get('lname')
 	const role = url.searchParams.get('role')
+	console.log('highlight og image for blog', {
+		title,
+		firstName,
+		lastName,
+		role,
+	})
 
 	return new ImageResponse(
 		(
@@ -149,3 +156,4 @@ export default async function handler(req: NextRequest) {
 		},
 	)
 }
+export default withEdgeRouterHighlight(handler)
