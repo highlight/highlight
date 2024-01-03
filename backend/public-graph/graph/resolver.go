@@ -2548,6 +2548,16 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		log.WithContext(ctx).WithField("session_id", sessionID).Info("processing payload")
 	}
 
+	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
+	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
+		if sessionObj.ResumedAfterProcessedTime == nil {
+			now := time.Now()
+			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
+			}
+		}
+	}
+
 	var g errgroup.Group
 
 	payloadIdDeref := 0
