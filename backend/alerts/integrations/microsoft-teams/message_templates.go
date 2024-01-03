@@ -43,12 +43,13 @@ var NewSessionAlertMessageTemplate = []byte(`{
 						"type": "Column",
 						"items": [
 							{
-								"type": "AvatarURL",
+								"type": "Image",
 								"url": "{{.AvatarURL}}",
 								"size": "Small",
 								"style": "Person"
 							}
-						]
+						],
+						"width": "auto"
 					},
 					{
 						"type": "Column",
@@ -184,9 +185,9 @@ var TrackPropertiesTemplate = []byte(`{
 							{
 								"type":   "TextBlock",
 								"text":   "{{.RelatedValues}}",
-								"wrap": true
+								"wrap": true,
 								"width":                    "stretch",
-								"spacing":                  "Small",
+								"spacing":                  "Small"
 							}
 						]
 					}

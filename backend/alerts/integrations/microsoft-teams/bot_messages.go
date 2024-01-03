@@ -19,22 +19,15 @@ import (
 )
 
 type BotMessages interface {
-	// tested
 	SendNewSessionAlert(string, integrations.NewSessionAlertPayload)
-	// tested
 	SendTrackPropertiesAlert(string, integrations.TrackPropertiesAlertPayload)
-	// tested
 	SendErrorFeedbackAlert(string, integrations.ErrorFeedbackAlertPayload)
-	// tested
 	SendRageClicksAlert(string, integrations.RageClicksAlertPayload)
-
 	SendUserPropertiesAlert(string, integrations.UserPropertiesAlertPayload)
-
-	//UNTESTED (click testing)
+	SendNewUserAlert(string, integrations.NewUserAlertPayload)
 	SendMetricMonitorAlert(string, integrations.MetricMonitorAlertPayload)
 	SendLogAlert(string, integrations.LogAlertPayload)
 	SendErrorAlert(string, integrations.ErrorAlertPayload)
-	SendNewUserAlert(string, integrations.NewUserAlertPayload)
 }
 
 type WelcomeMessageData struct {
@@ -90,8 +83,8 @@ func MakeAdaptiveCard(templateString []byte, payload interface{}) (map[string]in
 	return adaptiveCard, nil
 }
 
-func (bot *MicrosoftTeamsBot) SendMessageWithAdaptiveCard(channelId string, template []byte, templateData interface{}) error {
-	adaptiveCard, err := MakeAdaptiveCard(NewSessionAlertMessageTemplate, templateData)
+func (bot *MicrosoftTeamsBot) SendMessageWithAdaptiveCard(channelId string, rawTemplate []byte, templateData interface{}) error {
+	adaptiveCard, err := MakeAdaptiveCard(rawTemplate, templateData)
 	if err != nil {
 		return errors.Wrap(err, "error making adaptive card")
 	}
@@ -198,7 +191,7 @@ func (bot *MicrosoftTeamsBot) SendErrorAlert(channelId string, payload integrati
 	return bot.SendMessageWithAdaptiveCard(channelId, ErrorAlertMessageTemplate, templateData)
 }
 
-func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integrations.LogAlertPayload, workspace *model.Workspace) error {
+func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integrations.LogAlertPayload) error {
 	facts := []*Fact{}
 
 	if payload.Query != "" {
@@ -218,11 +211,6 @@ func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integration
 		Value: strconv.Itoa(payload.Threshold),
 	})
 
-	factset := map[string]interface{}{
-		"type":  "FactSet",
-		"facts": facts,
-	}
-
 	aboveStr := "above"
 	if payload.BelowThreshold {
 		aboveStr = "below"
@@ -230,7 +218,7 @@ func (bot *MicrosoftTeamsBot) SendLogAlert(channelId string, payload integration
 
 	description := fmt.Sprintf("*%s* is currently %s the threshold.", payload.Name, aboveStr)
 
-	jsonFacts, _ := json.Marshal(factset)
+	jsonFacts, _ := json.Marshal(facts)
 
 	templateData := BasicTemplatePayload{
 		Title:       "Highlight Log Alert",
