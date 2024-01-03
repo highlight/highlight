@@ -1,11 +1,5 @@
 package microsoft_teams
 
-import (
-	"bytes"
-	"encoding/json"
-	"text/template"
-)
-
 type NewSessionAlertPayload struct {
 	Title          string
 	SessionURL     string
@@ -22,23 +16,18 @@ type BasicTemplatePayload struct {
 	Facts       string
 }
 
-func MakeAdaptiveCard(templateString []byte, payload interface{}) (map[string]interface{}, error) {
-	var output bytes.Buffer
-
-	tmpl := template.Must(template.New("user").Parse(string(templateString)))
-
-	err := tmpl.Execute(&output, payload)
-	if err != nil {
-		return nil, err
-	}
-
-	var adaptiveCard map[string]interface{}
-
-	err = json.Unmarshal(output.Bytes(), &adaptiveCard)
-	if err != nil {
-		return nil, err
-	}
-	return adaptiveCard, nil
+type ErrorAlertTemplatePayload struct {
+	Title                      string
+	Description                string
+	Facts                      string
+	SessionLabel               string
+	SessionURL                 string
+	ErrorURL                   string
+	ErrorResolveURL            string
+	ErrorIgnoreURL             string
+	ErrorSnoozeURL             string
+	ContainerStyle             string
+	DisplayMissingSessionLabel bool
 }
 
 var NewSessionAlertMessageTemplate = []byte(`{
@@ -254,3 +243,106 @@ var UserPropertiesTemplate = []byte(`{
 		}
 	]
 }`)
+
+var ErrorAlertMessageTemplate = []byte(`{
+	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+	"type": "AdaptiveCard",
+	"version": "1.0",
+	"body": [
+	  {
+		"type": "Container",
+		"style": "{{.ContainerStyle}}",
+		"items": [
+		  {
+			"type": "TextBlock",
+			"size": "Large",
+			"weight": "Bolder",
+			"text": "{{.Title}}",
+			"spacing": "Small",
+			"horizontalAlignment": "Left",
+			"verticalContentAlignment": "Center"
+		  },
+		  {
+			"type": "TextBlock",
+			"text": "{{.Description}}",
+			"wrap": true,
+			"spacing": "Small",
+			"horizontalAlignment": "Left",
+			"verticalContentAlignment": "Center"
+		  },
+		  {
+			"type": "FactSet",
+			"facts": {{.Facts}}
+		  },
+		  {
+			"type": "Container",
+			"items": [
+			  {
+				"type": "ColumnSet",
+				"columns": [
+				  {
+					"type": "Column",
+					"width": "stretch",
+					"items": [
+					  {
+						"type": "ActionSet",
+						"actions": [
+						  {
+							"type": "Action.OpenUrl",
+							"title": "{{.SessionLabel}}",
+							"url": "{{.SessionURL}}",
+							"isEnabled": {{.DisplayMissingSessionLabel}}
+						  },
+						  {
+							"type": "Action.OpenUrl",
+							"title": "View Error",
+							"url": "{{.ErrorURL}}"
+						  }
+						]
+					  }
+					]
+				  }
+				]
+			  }
+			]
+		  },
+		  {
+			"type": "Container",
+			"items": [
+			  {
+				"type": "ColumnSet",
+				"columns": [
+				  {
+					"type": "Column",
+					"width": "stretch",
+					"items": [
+					  {
+						"type": "ActionSet",
+						"actions": [
+						  {
+							"type": "Action.OpenUrl",
+							"title": "Resolve Error",
+							"url": "{{.ErrorResolveURL}}"
+						  },
+						  {
+							"type": "Action.OpenUrl",
+							"title": "Ignore Error",
+							"url": "{{.ErrorIgnoreURL}}"
+						  },
+						  {
+							"type": "Action.OpenUrl",
+							"title": "Snooze Error",
+							"url": "{{.ErrorSnoozeURL}}"
+						  }
+						]
+					  }
+					]
+				  }
+				]
+			  }
+			]
+		  }
+		]
+	  }
+	]
+  }`)
