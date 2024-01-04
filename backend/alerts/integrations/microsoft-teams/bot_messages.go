@@ -18,18 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type BotMessages interface {
-	SendNewSessionAlert(string, integrations.NewSessionAlertPayload)
-	SendTrackPropertiesAlert(string, integrations.TrackPropertiesAlertPayload)
-	SendErrorFeedbackAlert(string, integrations.ErrorFeedbackAlertPayload)
-	SendRageClicksAlert(string, integrations.RageClicksAlertPayload)
-	SendUserPropertiesAlert(string, integrations.UserPropertiesAlertPayload)
-	SendNewUserAlert(string, integrations.NewUserAlertPayload)
-	SendMetricMonitorAlert(string, integrations.MetricMonitorAlertPayload)
-	SendLogAlert(string, integrations.LogAlertPayload)
-	SendErrorAlert(string, integrations.ErrorAlertPayload)
-}
-
 type WelcomeMessageData struct {
 	Workspace     *model.Workspace
 	Admin         *model.Admin

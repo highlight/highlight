@@ -737,7 +737,7 @@ func SendLogAlert(event LogAlertEvent) error {
 		channels := event.LogAlert.MicrosoftTeamsChannelsToNotify
 
 		for _, channel := range channels {
-			err = bot.SendLogAlert(channel.ID, payload, event.Workspace)
+			err = bot.SendLogAlert(channel.ID, payload)
 
 			if err != nil {
 				return err
