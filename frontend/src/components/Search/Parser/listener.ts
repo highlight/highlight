@@ -36,7 +36,6 @@ export class SearchListener extends SearchGrammarListener {
 	constructor(
 		private queryString: string,
 		private expressions: SearchExpression[],
-		private errors: SearchExpression['error'][],
 	) {
 		super()
 	}
@@ -108,20 +107,6 @@ export class SearchListener extends SearchGrammarListener {
 				stop: ctx.start.start + this.queryString.length - 1,
 			})
 		}
-
-		this.errors.forEach((error) => {
-			const isEoFError = error!.symbol.type === -1
-			const expression = isEoFError
-				? this.expressions[this.expressions.length - 1]
-				: this.expressions.find(
-						({ start, stop }) =>
-							error!.start >= start && error!.start <= stop,
-				  )
-
-			if (expression) {
-				expression.error = error
-			}
-		})
 	}
 }
 
@@ -135,10 +120,6 @@ export type SearchError = {
 // Using an error listener rather than visitErrorNode because this seems to
 // catch more errors.
 export class SearchErrorListener extends ErrorListener<Token> {
-	constructor(private errors: SearchExpression['error'][]) {
-		super()
-	}
-
 	syntaxError(
 		_recognizer: Recognizer<Token>,
 		symbol: Token & { errorMessage?: string },
@@ -148,11 +129,5 @@ export class SearchErrorListener extends ErrorListener<Token> {
 		_e: RecognitionException | undefined,
 	) {
 		symbol.errorMessage = msg
-
-		this.errors.push({
-			start: symbol.start,
-			message: msg,
-			symbol: symbol,
-		})
 	}
 }

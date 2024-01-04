@@ -384,9 +384,9 @@ export const Search: React.FC<{
 		const newTokenGroups = [...tokenGroups]
 		newTokenGroups.splice(index, 1)
 		const newQuery = newTokenGroups
-			.map((tokens) => tokens.map((token) => token.text).join(''))
-			.join(' ')
-			.replace(/\s+/g, ' ')
+			.map((tokenGroup) => tokenGroup.tokens.map((token) => token.text))
+			.join('')
+			.trim()
 
 		setQuery(newQuery)
 		submitQuery(newQuery)
@@ -419,8 +419,8 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
-					{tokenGroups.map((tokens, index) => {
-						if (tokens.length === 0) {
+					{tokenGroups.map((tokenGroup, index) => {
+						if (tokenGroup.tokens.length === 0) {
 							return null
 						}
 
@@ -429,7 +429,7 @@ export const Search: React.FC<{
 								<QueryPart
 									cursorIndex={cursorIndex}
 									index={index}
-									tokens={tokens}
+									tokenGroup={tokenGroup}
 									onRemoveItem={handleRemoveItem}
 								/>
 							</Fragment>
@@ -646,20 +646,27 @@ const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 const QueryPart: React.FC<{
 	cursorIndex: number
 	index: number
-	tokens: SearchToken[]
+	tokenGroup: TokenGroup
 	onRemoveItem: (index: number) => void
-}> = ({ cursorIndex, index, tokens, onRemoveItem }) => {
-	const active = !!tokens.find(
-		(token) => cursorIndex >= token.start && cursorIndex <= token.stop + 1,
-	)
-	const errorToken = tokens.find(
+}> = ({ cursorIndex, index, tokenGroup, onRemoveItem }) => {
+	const active =
+		cursorIndex >= tokenGroup.start && cursorIndex <= tokenGroup.stop + 1
+	const errorToken = tokenGroup.tokens.find(
 		(token) => (token as any).errorMessage !== undefined,
 	)
 	const error = (errorToken as any)?.errorMessage
 
-	const text = tokens.map((token) => token.text).join('')
-	if (text.trim() === '') {
-		return <span>{text}</span>
+	if (tokenGroup.type !== 'expression') {
+		return (
+			<>
+				{tokenGroup.tokens.map((token, index) => {
+					const { text } = token
+					const key = `${text}-${index}`
+
+					return <Token key={key} text={text} />
+				})}
+			</>
+		)
 	}
 
 	return (
@@ -691,26 +698,11 @@ const QueryPart: React.FC<{
 							/>
 						)}
 
-						{tokens.map((token, index) => {
+						{tokenGroup.tokens.map((token, index) => {
 							const { text } = token
 							const key = `${text}-${index}`
 
-							if (SEPARATORS.includes(text)) {
-								return (
-									<Box
-										key={key}
-										style={{ color: '#E93D82', zIndex: 1 }}
-									>
-										{text}
-									</Box>
-								)
-							} else {
-								return (
-									<Box key={key} style={{ zIndex: 1 }}>
-										{text}
-									</Box>
-								)
-							}
+							return <Token key={key} text={text} />
 						})}
 
 						<Box cssClass={styles.comboboxTagBackground} />
@@ -721,6 +713,14 @@ const QueryPart: React.FC<{
 			</Tooltip>
 		</>
 	)
+}
+
+const Token = ({ text }: { text: string; error?: string }): JSX.Element => {
+	if (SEPARATORS.includes(text)) {
+		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
+	} else {
+		return <Box style={{ zIndex: 1 }}>{text}</Box>
+	}
 }
 
 const getActivePartIndex = (
@@ -790,21 +790,39 @@ const getVisibleValues = (
 	)
 }
 
+type TokenGroup = {
+	tokens: SearchToken[]
+	start: number
+	stop: number
+	type: 'expression' | 'separator'
+	expression?: SearchExpression
+}
+
+const SEPARATOR_TOKENS = [SearchGrammarLexer.AND, SearchGrammarLexer.OR]
+
 const buildTokenGroups = (
 	tokens: SearchToken[],
 	queryParts: SearchExpression[],
 	queryString: string,
 ) => {
-	const tokenGroups: SearchToken[][] = [[]]
-	let currentPartIndex = 0
+	const tokenGroups: TokenGroup[] = [
+		{ tokens: [], start: 0, stop: 0, type: 'separator' },
+	]
 	let currentGroupIndex = 0
 	let currentTokenIndex = 0
 	let currentToken = tokens[currentTokenIndex]
 	let lastStopIndex = -1
 
 	while (currentToken) {
+		const numExpressions = tokenGroups.filter(
+			(tokenGroup) => tokenGroup.type === 'expression',
+		).length
+		const currentPartIndex = queryParts.findIndex(
+			(part) =>
+				currentToken.start >= part.start &&
+				currentToken.stop <= part.stop,
+		)
 		const currentPart = queryParts[currentPartIndex]
-		const stop = currentPart?.stop ?? 0
 		const whitespace = queryString.substring(
 			lastStopIndex + 1,
 			currentToken.start,
@@ -819,26 +837,44 @@ const buildTokenGroups = (
 				  }
 				: undefined
 
-		// If the current token is past the current queryPart, then we need to start
-		// a new group.
-		if (currentToken.stop > stop && currentPartIndex < queryParts.length) {
+		if (
+			(currentToken.start === currentPart?.start ||
+				currentToken.stop > lastStopIndex) &&
+			numExpressions <= queryParts.length
+		) {
 			if (whitespaceToken) {
 				currentGroupIndex++
-				tokenGroups[currentGroupIndex] = [whitespaceToken]
+				tokenGroups[currentGroupIndex] = {
+					tokens: [whitespaceToken],
+					start: whitespaceToken.start,
+					stop: whitespaceToken.stop,
+					type: 'separator',
+				}
 			}
 
-			currentPartIndex++
 			currentGroupIndex++
-			tokenGroups[currentGroupIndex] = []
+			tokenGroups[currentGroupIndex] = {
+				tokens: [],
+				start: currentToken.start,
+				stop: currentToken.stop,
+				type: 'separator',
+			}
 		} else {
 			if (whitespaceToken) {
-				tokenGroups[currentGroupIndex].push(whitespaceToken)
+				tokenGroups[currentGroupIndex].tokens.push(whitespaceToken)
 			}
 		}
 
 		// Ignore EOF token
 		if (currentToken.type !== SearchGrammarLexer.EOF) {
-			tokenGroups[currentGroupIndex].push(currentToken)
+			tokenGroups[currentGroupIndex].tokens.push(currentToken)
+			tokenGroups[currentGroupIndex].stop = currentToken.stop
+
+			const isExpression = !SEPARATOR_TOKENS.includes(currentToken.type)
+			if (isExpression) {
+				tokenGroups[currentGroupIndex].type = 'expression'
+				tokenGroups[currentGroupIndex].expression = currentPart
+			}
 		}
 
 		lastStopIndex = currentToken.stop

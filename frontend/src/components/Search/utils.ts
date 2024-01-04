@@ -20,16 +20,15 @@ export const buildParser = (input: string) => {
 export const parseSearch = (input: string) => {
 	const { parser, tokens } = buildParser(input)
 	const queryParts: SearchExpression[] = []
-	const errors: SearchExpression['error'][] = []
 
-	// The default listener prints a lot of noise, so remove it. We add a custom
-	// error listener below.
+	// The default listener prints a lot of noise, so remove it and set up a
+	// custom listener.
 	parser.removeErrorListeners()
-	parser.addErrorListener(new SearchErrorListener(errors))
+	parser.addErrorListener(new SearchErrorListener())
 
-	const listener = new SearchListener(input, queryParts, errors)
+	const listener = new SearchListener(input, queryParts)
 
-	// Walk the tree created during the parse, trigger callbacks
+	// Walk the tree created during the parse + trigger callbacks.
 	const tree = parser.search_query()
 	ParseTreeWalker.DEFAULT.walk(listener, tree)
 
