@@ -89,7 +89,7 @@ export const Buttons = () => {
 	}, [])
 
 	const messageListener = (message: MessageEvent) => {
-		console.log('Highlight[iframe]', message.data)
+		console.log('Highlight[iframe]', { eventData: message.data })
 	}
 	useEffect(() => {
 		window.addEventListener('message', messageListener)

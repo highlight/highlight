@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	log "github.com/sirupsen/logrus"
@@ -251,7 +250,7 @@ func HandlePinoLogs(w http.ResponseWriter, r *http.Request, lgJson []byte, logs 
 			if has := map[string]bool{"level": true, "time": true, "msg": true}[k]; has {
 				continue
 			}
-			for key, value := range util.FormatLogAttributes(r.Context(), k, v) {
+			for key, value := range hlog.FormatLogAttributes(r.Context(), k, v) {
 				lg.Attributes[key] = value
 			}
 		}
@@ -294,7 +293,7 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for k, v := range lgAttrs {
-			for key, value := range util.FormatLogAttributes(r.Context(), k, v) {
+			for key, value := range hlog.FormatLogAttributes(r.Context(), k, v) {
 				lg.Attributes[key] = value
 			}
 		}

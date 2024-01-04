@@ -2,10 +2,9 @@ package clickhouse
 
 import (
 	"context"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"strings"
 	"time"
-
-	"github.com/highlight-run/highlight/backend/util"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -105,12 +104,8 @@ func WithSource(source modelInputs.LogSource) LogRowOption {
 
 func WithBody(ctx context.Context, body string) LogRowOption {
 	return func(l *LogRow) {
-		if len(body) > util.LogAttributeValueLengthLimit {
-			log.WithContext(ctx).
-				WithField("ValueLength", len(body)).
-				WithField("ValueTrunc", body[:util.LogAttributeValueWarningLengthLimit]).
-				Warnf("log body value is too long %d", len(body))
-			body = body[:util.LogAttributeValueLengthLimit] + "..."
+		if len(body) > hlog.LogAttributeValueLengthLimit {
+			body = body[:hlog.LogAttributeValueLengthLimit] + "..."
 		}
 		l.Body = body
 	}

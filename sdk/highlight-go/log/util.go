@@ -16,6 +16,7 @@ import (
 
 const TimestampFormat = "2006-01-02T15:04:05.000Z"
 const TimestampFormatNano = "2006-01-02T15:04:05.999999999Z"
+const LogAttributeValueLengthLimit = 2 << 15
 
 type PinoLog struct {
 	Level    uint8  `json:"level"`
@@ -93,6 +94,13 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 		attrs := []attribute.KeyValue{
 			LogSeverityKey.String(row.Type),
 			LogMessageKey.String(message),
+		}
+		for k, v := range row.Attributes {
+			for key, value := range FormatLogAttributes(ctx, k, v) {
+				if v != "" {
+					attrs = append(attrs, attribute.String(key, value))
+				}
+			}
 		}
 		if len(row.Trace) > 0 {
 			traceEnd := &row.Trace[len(row.Trace)-1]
@@ -220,6 +228,31 @@ func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
 	if lg.Level == "error" {
 		span.SetStatus(codes.Error, lg.Message)
+	}
+	return nil
+}
+
+func FormatLogAttributes(ctx context.Context, k string, v interface{}) map[string]string {
+	if vStr, ok := v.(string); ok {
+		if len(vStr) > LogAttributeValueLengthLimit {
+			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
+		}
+		return map[string]string{k: vStr}
+	}
+	if vInt, ok := v.(int64); ok {
+		return map[string]string{k: strconv.FormatInt(vInt, 10)}
+	}
+	if vFlt, ok := v.(float64); ok {
+		return map[string]string{k: strconv.FormatFloat(vFlt, 'f', -1, 64)}
+	}
+	if vMap, ok := v.(map[string]interface{}); ok {
+		m := make(map[string]string)
+		for mapKey, mapV := range vMap {
+			for k2, v2 := range FormatLogAttributes(ctx, mapKey, mapV) {
+				m[fmt.Sprintf("%s.%s", k, k2)] = v2
+			}
+		}
+		return m
 	}
 	return nil
 }
