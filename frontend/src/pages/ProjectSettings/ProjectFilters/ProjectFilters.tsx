@@ -142,9 +142,8 @@ export const ProjectProductFilters: React.FC<{
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
-	// TODO(spenny): figure this out
 	const [dateRange, setDateRange] = React.useState<DateRange>({
-		start: moment().subtract(15, 'minutes').toDate(),
+		start: presetStartDate(defaultPresets[1]),
 		end: getNow().toDate(),
 	})
 	const { data, loading } = useGetProjectSettingsQuery({
@@ -462,6 +461,8 @@ export const ProjectProductFilters: React.FC<{
 							product === ProductType.Traces ? (
 								<SearchForm
 									initialQuery={query}
+									startDate={dateRange.start}
+									endDate={dateRange.end}
 									onFormSubmit={(value: string) => {
 										formStore.setValue(
 											'exclusionQuery',
@@ -472,6 +473,7 @@ export const ProjectProductFilters: React.FC<{
 									hideDatePicker
 									hideCreateAlert
 									onDatesChange={() => {}}
+									datePickerValue={{}}
 									presets={defaultPresets}
 									minDate={presetStartDate(defaultPresets[5])}
 									timeMode="fixed-range"
@@ -584,7 +586,7 @@ export const ProjectProductFilters: React.FC<{
 						}}
 						presets={[defaultPresets[1], defaultPresets[3]]}
 						noCustom
-						minDate={moment().subtract(1, 'year').toDate()}
+						minDate={presetStartDate(defaultPresets[5])}
 						kind="secondary"
 						size="medium"
 						emphasis="low"

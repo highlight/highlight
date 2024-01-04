@@ -67,6 +67,7 @@ export const NetworkResourceLogs: React.FC<{
 		logCursor: undefined,
 		startDate,
 		endDate,
+		disablePolling: true,
 	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
@@ -118,8 +119,11 @@ export const NetworkResourceLogs: React.FC<{
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={(value) => setQuery(value)}
+						startDate={startDate}
+						endDate={endDate}
+						onFormSubmit={setQuery}
 						onDatesChange={() => null}
+						datePickerValue={{}}
 						presets={[]}
 						minDate={new Date(sessionStartTime)}
 						timeMode="permalink"

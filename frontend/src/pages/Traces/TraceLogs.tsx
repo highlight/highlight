@@ -94,8 +94,11 @@ export const TraceLogs: React.FC = () => {
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={(value) => setQuery(value)}
+						startDate={startDate}
+						endDate={endDate}
+						onFormSubmit={setQuery}
 						onDatesChange={() => null}
+						datePickerValue={{}}
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
