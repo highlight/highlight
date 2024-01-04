@@ -2,7 +2,6 @@ import { LogLevel, ProductType } from '@graph/schemas'
 import {
 	Box,
 	defaultPresets,
-	getNow,
 	presetStartDate,
 } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
@@ -12,7 +11,7 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useState } from 'react'
+import React from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
@@ -21,7 +20,6 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
-	EndDate,
 	FixedRangeStartDate,
 	PermalinkStartDate,
 	QueryParam,
@@ -33,6 +31,7 @@ import {
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 
 const LogsPage = () => {
@@ -62,14 +61,23 @@ type Props = {
 const HEADERS_AND_CHARTS_HEIGHT = 228
 const LOAD_MORE_HEIGHT = 28
 
-const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
+const LogsPageInner = ({ timeMode, logCursor }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 
-	const [startDate, setStartDate] = useState<Date>(startDateDefault)
-	const [endDate, setEndDate] = useState<Date>(EndDate)
+	const {
+		startDate,
+		endDate,
+		datePickerValue,
+		rebaseSearchTime,
+		updateSearchTime,
+	} = useSearchTime({ presets: defaultPresets })
+
+	// TODO(spenny): figure out default dates
+	// const [startDate, setStartDate] = useState<Date>(startDateDefault)
+	// const [endDate, setEndDate] = useState<Date>(EndDate)
 
 	const {
 		logEdges,
@@ -86,16 +94,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		logCursor,
 		startDate,
 		endDate,
+		disablePolling: !datePickerValue.selectedPreset,
 	})
-
-	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
-		setStartDate(newStartDate)
-		setEndDate(newEndDate)
-	}
-
-	const handleAdditionalLogsDateChange = () => {
-		handleDatesChange(presetStartDate(defaultPresets[0]), getNow().toDate())
-	}
 
 	const handleLevelChange = (level: LogLevel) => {
 		setQuery(`${query} level:${level}`)
@@ -159,8 +159,11 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				>
 					<SearchForm
 						initialQuery={query}
+						startDate={startDate}
+						endDate={endDate}
+						datePickerValue={datePickerValue}
 						onFormSubmit={setQuery}
-						onDatesChange={handleDatesChange}
+						onDatesChange={updateSearchTime}
 						presets={defaultPresets}
 						minDate={presetStartDate(defaultPresets[5])}
 						timeMode={timeMode}
@@ -171,14 +174,14 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 					<LogsCount
 						startDate={startDate}
 						endDate={endDate}
-						presets={defaultPresets}
+						presetSelected={!!datePickerValue.selectedPreset}
 						totalCount={histogramData?.logs_histogram.objectCount}
 						loading={histogramLoading}
 					/>
 					<LogsHistogram
 						startDate={startDate}
 						endDate={endDate}
-						onDatesChange={handleDatesChange}
+						onDatesChange={updateSearchTime}
 						onLevelChange={handleLevelChange}
 						loading={histogramLoading}
 						histogramBuckets={histogramData?.logs_histogram.buckets}
@@ -199,9 +202,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							selectedCursor={logCursor}
 							moreLogs={moreLogs}
 							clearMoreLogs={clearMoreLogs}
-							handleAdditionalLogsDateChange={
-								handleAdditionalLogsDateChange
-							}
+							handleAdditionalLogsDateChange={rebaseSearchTime}
 							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 						/>

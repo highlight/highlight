@@ -4,6 +4,7 @@ import {
 	Badge,
 	Box,
 	Combobox,
+	DatePickerSelectedValue,
 	defaultPresets,
 	getNow,
 	IconSolidExternalLink,
@@ -55,7 +56,6 @@ import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
-import { useSearchTime } from '@/hooks/useSearchTime'
 
 import * as styles from './SearchForm.css'
 
@@ -78,7 +78,10 @@ const MAX_ITEMS = 10
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
-	onDatesChange: (startDate: Date, endDate: Date) => void
+	startDate: Date
+	endDate: Date
+	datePickerValue: DatePickerSelectedValue
+	onDatesChange: (startDate?: Date, endDate?: Date, preset?: Preset) => void
 	presets: Preset[]
 	minDate: Date
 	timeMode: TIME_MODE
@@ -97,6 +100,9 @@ export type SearchFormProps = {
 
 const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
+	startDate,
+	endDate,
+	datePickerValue,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	onDatesChange,
@@ -113,9 +119,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
-
-	const { startDate, endDate, datePickerValue, updateSearchTime } =
-		useSearchTime({ presets, onDatesChange })
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
@@ -157,7 +160,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 						<PreviousDateRangePicker
 							emphasis="low"
 							selectedValue={datePickerValue}
-							onDatesChange={updateSearchTime}
+							onDatesChange={onDatesChange}
 							presets={presets}
 							minDate={minDate}
 							disabled={timeMode === 'permalink'}
