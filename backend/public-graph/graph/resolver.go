@@ -2752,10 +2752,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			r.DB.WithContext(ctx).Where(&model.ErrorObject{SessionID: &sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
 
-		var project model.Project
-		if err := r.DB.WithContext(ctx).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
-			return e.Wrap(err, "error querying project")
+		project, err := r.Store.GetProject(ctx, projectID)
+		if err != nil {
+			return err
 		}
+
 		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying workspace")
