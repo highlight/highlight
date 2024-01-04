@@ -18,9 +18,8 @@ import { TimeInput } from './TimeInput'
 import { DateInput } from './DateInput'
 import { Form } from '../Form/Form'
 import * as Ariakit from '@ariakit/react'
-import { TimePreset } from './utils'
 
-export { defaultPresets, getNow, resetRelativeDates, TimePreset } from './utils'
+export { defaultPresets, getNow, resetRelativeDates } from './utils'
 
 const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
 const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'
@@ -45,20 +44,27 @@ const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM_24_HOUR = 'HH'
 
 const TIME_DISPLAY_FORMAT = 'hh:mm a'
 
+export type Preset = {
+	unit: moment.DurationInputArg2
+	quantity: number
+	label?: string // defaults to `Last ${quantity} ${unit}`
+	value?: string // defaults to `last_${quantity}_${unit}`
+}
+
 enum MenuState {
 	Default,
 	Custom,
 }
 
-const presetLabel = (preset: TimePreset) => {
-	return preset.label || `Last ${preset.value} ${preset.quantity}`
+const presetLabel = (preset: Preset) => {
+	return preset.label || `Last ${preset.quantity} ${preset.unit}`
 }
 
-const presetValue = (preset: TimePreset) => {
-	return preset.value || `last_${preset.value}_${preset.quantity}`
+const presetValue = (preset: Preset) => {
+	return preset.value || `last_${preset.quantity}_${preset.unit}`
 }
 
-const isPresetSelected = (preset: TimePreset, selectedPreset?: string) => {
+const isPresetSelected = (preset: Preset, selectedPreset?: string) => {
 	if (!selectedPreset) {
 		return false
 	}
@@ -70,7 +76,7 @@ const isCustomSelected = ({
 	presets,
 	selectedValue,
 }: {
-	presets: TimePreset[]
+	presets: Preset[]
 	selectedValue: SelectedValue
 }) => {
 	const foundPreset = presets.find((preset) => {
@@ -160,7 +166,7 @@ export const getLabel = ({
 	presets,
 }: {
 	selectedValue: SelectedValue
-	presets: TimePreset[]
+	presets: Preset[]
 }) => {
 	const foundPreset = presets.find((preset) => {
 		return isPresetSelected(preset, selectedValue.selectedPreset)
@@ -193,7 +199,7 @@ type SelectedValue = {
 type Props = {
 	selectedValue: SelectedValue
 	onDatesChange: (startDate?: Date, endDate?: Date, presetId?: string) => void
-	presets: TimePreset[]
+	presets: Preset[]
 	minDate: Date
 	noCustom?: boolean
 } & Omit<MenuButtonProps, 'ref' | 'store'>

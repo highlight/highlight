@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, Stack, Text, TimePreset } from '@highlight-run/ui/components'
+import { Box, Preset, Stack, Text } from '@highlight-run/ui/components'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
 import moment from 'moment'
@@ -14,7 +14,7 @@ const LogsCount = ({
 }: {
 	startDate: Date
 	endDate: Date
-	presets: TimePreset[]
+	presets: Preset[]
 	totalCount: number | undefined
 	loading: boolean
 }) => {

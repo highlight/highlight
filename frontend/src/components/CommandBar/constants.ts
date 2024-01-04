@@ -1,14 +1,14 @@
-import { TimePreset } from '@highlight-run/ui/components'
+import { Preset } from '@highlight-run/ui/components'
 import moment from 'moment'
 
 const now = moment().startOf('day')
 
-const last30Days: TimePreset = {
+const last30Days: Preset = {
 	quantity: 30,
 	unit: 'days',
 }
 
-const PRESETS: TimePreset[] = [
+const PRESETS: Preset[] = [
 	{
 		quantity: 60,
 		unit: 'minutes',

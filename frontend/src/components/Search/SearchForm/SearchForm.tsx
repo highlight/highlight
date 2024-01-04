@@ -9,10 +9,10 @@ import {
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
+	Preset,
 	PreviousDateRangePicker,
 	Stack,
 	Text,
-	TimePreset,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
@@ -83,7 +83,7 @@ const MAX_ITEMS = 10
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
-	presets: TimePreset[]
+	presets: Preset[]
 	minDate: Date
 	timeMode: TIME_MODE
 	fetchKeysLazyQuery: FetchKeys

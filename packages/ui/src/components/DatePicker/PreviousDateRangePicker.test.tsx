@@ -1,10 +1,10 @@
-import { TimePreset, getLabel } from './PreviousDateRangePicker'
+import { Preset, getLabel } from './PreviousDateRangePicker'
 import { subtractDays, subtractHours } from './utils'
 
 const now = new Date(1676410246855) // Feb 14 2023
 const fourHoursAgo = subtractHours(now, 4)
 
-const presets: TimePreset[] = [
+const presets: Preset[] = [
 	{
 		quantity: 4,
 		unit: 'hours',

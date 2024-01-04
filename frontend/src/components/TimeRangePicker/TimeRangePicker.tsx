@@ -1,7 +1,4 @@
-import {
-	PreviousDateRangePicker,
-	TimePreset,
-} from '@highlight-run/ui/components'
+import { Preset, PreviousDateRangePicker } from '@highlight-run/ui/components'
 import useDataTimeRange, {
 	defaultDataTimeRange,
 	FORMAT,
@@ -9,7 +6,7 @@ import useDataTimeRange, {
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
-const presets: TimePreset[] = [
+const presets: Preset[] = [
 	{
 		quantity: 5,
 		unit: 'minutes',
