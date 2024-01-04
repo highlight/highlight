@@ -114,7 +114,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
 
-	const { startDate, endDate, selectedPreset, updateSearchTime } =
+	const { startDate, endDate, datePickerValue, updateSearchTime } =
 		useSearchTime({ presets, onDatesChange })
 
 	const handleQueryChange = (query?: string) => {
@@ -156,11 +156,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					{!hideDatePicker && (
 						<PreviousDateRangePicker
 							emphasis="low"
-							selectedValue={{
-								endDate,
-								startDate,
-								selectedPreset,
-							}}
+							selectedValue={datePickerValue}
 							onDatesChange={updateSearchTime}
 							presets={presets}
 							minDate={minDate}

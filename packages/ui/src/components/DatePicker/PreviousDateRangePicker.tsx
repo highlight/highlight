@@ -82,7 +82,7 @@ const isCustomSelected = ({
 	selectedValue,
 }: {
 	presets: Preset[]
-	selectedValue: SelectedValue
+	selectedValue: DatePickerSelectedValue
 }) => {
 	const foundPreset = presets.find((preset) => {
 		return isPresetSelected(preset, selectedValue.selectedPreset)
@@ -105,12 +105,7 @@ function toDateTimeString(date: Date, showYear: boolean) {
 	return date.toLocaleDateString('en-us', options)
 }
 
-/**
- * Takes in a time string in the format HH:mm aa or HH:mmaa and returns	an object with the hour, minute, time of day, and 24 hour time
- * @param timeString
- * @returns {	hour: number, minute: number, timeOfDay: string, hour24: number}
- */
-export const getTimeInfo = (timeString: string) => {
+const getTimeInfo = (timeString: string) => {
 	const date = moment(timeString, TIME_INPUT_FORMAT)
 	return {
 		hour: date.format('HH'),
@@ -120,13 +115,6 @@ export const getTimeInfo = (timeString: string) => {
 	}
 }
 
-/**
- * Takes in a date and a time string in the format HH:mm aa or HH:mmaa and returns a new date with the time set
- * @param date Date
- * @param hour number
- * @param minute number
- * @returns new date	with time set
- */
 const setTimeOnDate = (date: Date, hour: number, minute: number) => {
 	const newDate = new Date(date)
 
@@ -170,7 +158,7 @@ export const getLabel = ({
 	selectedValue,
 	presets,
 }: {
-	selectedValue: SelectedValue
+	selectedValue: DatePickerSelectedValue
 	presets: Preset[]
 }) => {
 	const foundPreset = presets.find((preset) => {
@@ -195,14 +183,14 @@ export const getLabel = ({
 	return ''
 }
 
-type SelectedValue = {
+export type DatePickerSelectedValue = {
 	startDate?: Date
 	endDate?: Date
 	selectedPreset?: Preset
 }
 
 type Props = {
-	selectedValue: SelectedValue
+	selectedValue: DatePickerSelectedValue
 	onDatesChange: (startDate?: Date, endDate?: Date, presetId?: Preset) => void
 	presets: Preset[]
 	minDate: Date
@@ -238,6 +226,7 @@ const PreviousDateRangePickerImpl = ({
 	minDate,
 	...props
 }: Props) => {
+	const maxDate = moment()
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
@@ -307,7 +296,7 @@ const PreviousDateRangePickerImpl = ({
 		startDate,
 		endDate,
 		selectedPreset,
-	}: SelectedValue) => {
+	}: DatePickerSelectedValue) => {
 		onDatesChange(startDate, endDate, selectedPreset)
 
 		if (startDate && endDate) {
@@ -405,10 +394,13 @@ const PreviousDateRangePickerImpl = ({
 	}
 
 	useEffect(() => {
-		if (selectedValue.startDate && selectedValue.endDate) {
+		if (
+			selectedValue.selectedPreset ||
+			(selectedValue.startDate && selectedValue.endDate)
+		) {
 			setButtonLabel(getLabel({ selectedValue, presets }))
 		}
-	}, [selectedValue.startDate?.getTime(), selectedValue.endDate?.getTime()])
+	}, [selectedValue])
 
 	const hasSelectedRange = useMemo(
 		() =>
@@ -431,11 +423,20 @@ const PreviousDateRangePickerImpl = ({
 		})
 	}, [presets])
 
-	const handleAbsoluteDateChange = (selectedDates: Date[]) =>
-		handleDatesChange({
-			startDate: selectedDates[0],
-			endDate: selectedDates[1],
-		})
+	const handleAbsoluteDateChange = (selectedDates: Date[]) => {
+		let startDate = selectedDates[0]
+		let endDate = selectedDates[1]
+		if (startDate) {
+			startDate = moment
+				.max(moment(startDate).startOf('day'), moment(minDate))
+				.toDate()
+		}
+		if (endDate) {
+			endDate = moment.min(moment(endDate).endOf('day'), maxDate).toDate()
+		}
+
+		handleDatesChange({ startDate, endDate })
+	}
 
 	const handlePresetSelected = (preset: Preset) => {
 		handleDatesChange({
@@ -443,16 +444,21 @@ const PreviousDateRangePickerImpl = ({
 		})
 	}
 
+	const dateValues = [selectedValue.startDate, selectedValue.endDate].filter(
+		(date) => !!date,
+	) as Date[]
+
 	return (
 		<DatePickerStateProvider
-			// TODO(spenny): check this config / maybe calc dates based on preset
 			config={{
-				selectedDates: [
-					selectedValue.startDate || new Date(),
-					selectedValue.endDate || new Date(),
-				],
+				selectedDates: dateValues,
 				onDatesChange: handleAbsoluteDateChange,
-				dates: { mode: 'range', minDate, maxDate: new Date() },
+				dates: {
+					mode: 'range',
+					minDate,
+					maxDate: maxDate.toDate(),
+					selectSameDate: true,
+				},
 			}}
 		>
 			<Menu.Button

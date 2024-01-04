@@ -1,16 +1,19 @@
-import { Preset, presetValue } from '@highlight-run/ui/components'
+import {
+	DatePickerSelectedValue,
+	getNow,
+	Preset,
+	presetValue,
+} from '@highlight-run/ui/components'
 import moment from 'moment'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DateTimeParam, useQueryParam } from 'use-query-params'
 
 export interface UseSearchTimeReturnValue {
 	startDate: Date
 	endDate: Date
-	selectedPreset?: Preset
+	datePickerValue: DatePickerSelectedValue
 	updateSearchTime: (start?: Date, end?: Date, preset?: Preset) => void
 }
-
-const now = moment()
 
 type UseSearchTimeProps = {
 	presets: Preset[]
@@ -23,9 +26,9 @@ export function useSearchTime({
 }: UseSearchTimeProps): UseSearchTimeReturnValue {
 	const defaultPreset = presets[0]
 	const [selectedPreset, setSelectedPreset] = useState<Preset>(defaultPreset)
-	const [endDate, setEndDate] = useState<Date>(now.toDate())
+	const [endDate, setEndDate] = useState<Date>(getNow().toDate())
 	const [startDate, setStartDate] = useState<Date>(
-		moment(now)
+		moment(getNow())
 			.subtract(defaultPreset.quantity, defaultPreset.unit)
 			.toDate(),
 	)
@@ -38,17 +41,17 @@ export function useSearchTime({
 		'end_date',
 		DateTimeParam,
 	)
-	const [relativeTimePreset, setRelativeTimePreset] = useQueryParam<
-		string | undefined
-	>('relative_time')
+	const [presetParam, setPresetParam] = useQueryParam<string | undefined>(
+		'relative_time',
+	)
 
 	const updateSearchTime = (start?: Date, end?: Date, preset?: Preset) => {
 		if (preset) {
-			setRelativeTimePreset(presetValue(preset))
+			setPresetParam(presetValue(preset))
 			setStartDateParam(undefined)
 			setEndDateParam(undefined)
 		} else {
-			setRelativeTimePreset(undefined)
+			setPresetParam(undefined)
 			setStartDateParam(start)
 			setEndDateParam(end)
 		}
@@ -72,15 +75,19 @@ export function useSearchTime({
 	// keep state values in sync with query params
 	useEffect(() => {
 		// use absolute time if both provided
-		if (startDateParam && endDateParam) {
-			setStartDate(startDateParam as Date)
-			setEndDate(endDateParam as Date)
-			setRelativeTimePreset(undefined)
+		if (startDateParam || endDateParam) {
+			if (startDateParam) {
+				setStartDate(startDateParam as Date)
+			}
+			if (endDateParam) {
+				setEndDate(endDateParam as Date)
+			}
+			setPresetParam(undefined)
 			return
 		}
 
 		// default to relative time
-		const foundPreset = findPreset(relativeTimePreset)
+		const foundPreset = findPreset(presetParam)
 		const relativeStartDate = moment()
 			.subtract(foundPreset.quantity, foundPreset.unit)
 			.toDate()
@@ -89,13 +96,7 @@ export function useSearchTime({
 		setSelectedPreset(foundPreset)
 		setStartDate(relativeStartDate)
 		setEndDate(relativeEndDate)
-	}, [
-		relativeTimePreset,
-		startDateParam,
-		endDateParam,
-		findPreset,
-		setRelativeTimePreset,
-	])
+	}, [presetParam, startDateParam, endDateParam, findPreset, setPresetParam])
 
 	useEffect(() => {
 		if (onDatesChange) {
@@ -103,5 +104,21 @@ export function useSearchTime({
 		}
 	}, [onDatesChange, startDate, endDate])
 
-	return { startDate, endDate, selectedPreset, updateSearchTime }
+	const datePickerValue = useMemo(() => {
+		return {
+			startDate: startDateParam ?? undefined,
+			endDate: endDateParam ?? undefined,
+			selectedPreset:
+				presetParam || !(startDateParam || endDateParam)
+					? selectedPreset
+					: undefined,
+		}
+	}, [endDateParam, presetParam, selectedPreset, startDateParam])
+
+	return {
+		startDate,
+		endDate,
+		datePickerValue,
+		updateSearchTime,
+	}
 }
