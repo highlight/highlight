@@ -141,19 +141,18 @@ export class SearchErrorListener extends ErrorListener<Token> {
 
 	syntaxError(
 		_recognizer: Recognizer<Token>,
-		offendingSymbol: Token,
+		symbol: Token & { errorMessage?: string },
 		_line: number,
 		_column: number,
 		msg: string,
 		_e: RecognitionException | undefined,
 	) {
-		console.log('::: syntaxError', offendingSymbol)
-		;(offendingSymbol as any).errorMessage = msg
+		symbol.errorMessage = msg
 
 		this.errors.push({
-			start: offendingSymbol.start,
+			start: symbol.start,
 			message: msg,
-			symbol: offendingSymbol,
+			symbol: symbol,
 		})
 	}
 }
