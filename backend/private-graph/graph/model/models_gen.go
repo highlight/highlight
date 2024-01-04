@@ -562,15 +562,15 @@ type MetricTagFilterInput struct {
 	Value string            `json:"value"`
 }
 
-type MicrosoftTeamsChannelInput struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
-}
-
 type MetricsBuckets struct {
 	Buckets      []*MetricBucket `json:"buckets"`
 	BucketCount  uint64          `json:"bucket_count"`
 	SampleFactor float64         `json:"sample_factor"`
+}
+
+type MicrosoftTeamsChannelInput struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
 }
 
 type NamedCount struct {
