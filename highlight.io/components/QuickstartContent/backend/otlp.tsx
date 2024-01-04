@@ -8,7 +8,7 @@ export const OTLPErrorMonitoringContent: QuickStartContent = {
 		{
 			title: 'Export your errors to the highlight.io collector.',
 			content:
-				'We host an OpenTelemetry collector endpoint at https://otel.highlight.io:4318/v1/traces. Configure your OpenTelemetry SDK to send errors via OTLP HTTPS to this endpoint. Your Highlight Project ID should be included as an attribute with the `highlight.project_id` key. This configuration will depend on which SDK you use in your app.',
+				'We host an OpenTelemetry collector endpoint at https://otel.highlight.io:4318/v1/traces and https://otel.highlight.io:4318/v1/logs. Configure your OpenTelemetry SDK to send errors via OTLP HTTPS to this endpoint. Your Highlight Project ID should be included as an attribute with the `highlight.project_id` key. This configuration will depend on which SDK you use in your app.',
 			code: [
 				{
 					text: `import { NodeSDK } from '@opentelemetry/sdk-node'
