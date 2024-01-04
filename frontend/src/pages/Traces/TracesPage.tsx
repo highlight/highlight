@@ -18,6 +18,7 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
+	FixedRangePreset,
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
@@ -59,7 +60,10 @@ export const TracesPage: React.FC = () => {
 		datePickerValue,
 		updateSearchTime,
 		rebaseSearchTime,
-	} = useSearchTime({ presets: defaultPresets })
+	} = useSearchTime({
+		presets: defaultPresets,
+		initialPreset: FixedRangePreset,
+	})
 	const queryTerms = parseSearchQuery(query)
 	const serverQuery = buildSearchQueryForServer(queryTerms)
 	const minDate = presetStartDate(defaultPresets[5])

@@ -6,14 +6,12 @@ import {
 	Combobox,
 	DatePickerSelectedValue,
 	defaultPresets,
-	getNow,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
 	Preset,
-	presetStartDate,
 	PreviousDateRangePicker,
 	Stack,
 	Text,
@@ -60,9 +58,8 @@ import {
 import * as styles from './SearchForm.css'
 
 export const QueryParam = withDefault(StringParam, '')
-export const FixedRangeStartDate = presetStartDate(defaultPresets[0])
-export const PermalinkStartDate = presetStartDate(defaultPresets[5])
-export const EndDate = getNow().toDate()
+export const FixedRangePreset = defaultPresets[0]
+export const PermalinkPreset = defaultPresets[5]
 
 type FetchKeys =
 	| typeof useGetLogsKeysLazyQuery

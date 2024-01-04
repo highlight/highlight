@@ -2,6 +2,7 @@ import { LogLevel, ProductType } from '@graph/schemas'
 import {
 	Box,
 	defaultPresets,
+	Preset,
 	presetStartDate,
 } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
@@ -20,8 +21,8 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
-	FixedRangeStartDate,
-	PermalinkStartDate,
+	FixedRangePreset,
+	PermalinkPreset,
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
@@ -40,14 +41,14 @@ const LogsPage = () => {
 	}>()
 
 	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
-	const startDateDefault =
-		timeMode === 'permalink' ? PermalinkStartDate : FixedRangeStartDate
+	const presetDefault =
+		timeMode === 'permalink' ? PermalinkPreset : FixedRangePreset
 
 	return (
 		<LogsPageInner
 			logCursor={log_cursor}
 			timeMode={timeMode}
-			startDateDefault={startDateDefault}
+			presetDefault={presetDefault}
 		/>
 	)
 }
@@ -55,13 +56,13 @@ const LogsPage = () => {
 type Props = {
 	timeMode: TIME_MODE
 	logCursor: string | undefined
-	startDateDefault: Date
+	presetDefault: Preset
 }
 
 const HEADERS_AND_CHARTS_HEIGHT = 228
 const LOAD_MORE_HEIGHT = 28
 
-const LogsPageInner = ({ timeMode, logCursor }: Props) => {
+const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -73,11 +74,7 @@ const LogsPageInner = ({ timeMode, logCursor }: Props) => {
 		datePickerValue,
 		rebaseSearchTime,
 		updateSearchTime,
-	} = useSearchTime({ presets: defaultPresets })
-
-	// TODO(spenny): figure out default dates
-	// const [startDate, setStartDate] = useState<Date>(startDateDefault)
-	// const [endDate, setEndDate] = useState<Date>(EndDate)
+	} = useSearchTime({ presets: defaultPresets, initialPreset: presetDefault })
 
 	const {
 		logEdges,

@@ -19,12 +19,14 @@ export interface UseSearchTimeReturnValue {
 
 type UseSearchTimeProps = {
 	presets: Preset[]
+	initialPreset?: Preset
 }
 
 export function useSearchTime({
 	presets,
+	initialPreset,
 }: UseSearchTimeProps): UseSearchTimeReturnValue {
-	const defaultPreset = presets[0]
+	const defaultPreset = initialPreset ?? presets[0]
 	const [selectedPreset, setSelectedPreset] = useState<Preset | undefined>(
 		defaultPreset,
 	)
