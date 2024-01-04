@@ -1,14 +1,13 @@
 import {
 	Box,
 	defaultPresets,
-	getNow,
 	presetStartDate,
 	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -19,8 +18,6 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
-	EndDate,
-	FixedRangeStartDate,
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
@@ -39,6 +36,7 @@ import {
 	Trace,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
@@ -55,21 +53,17 @@ export const TracesPage: React.FC = () => {
 		trace_cursor: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const [startDate, setStartDate] = useState<Date>(FixedRangeStartDate)
-	const [endDate, setEndDate] = useState<Date>(EndDate)
+	const {
+		startDate,
+		endDate,
+		datePickerValue,
+		updateSearchTime,
+		rebaseSearchTime,
+	} = useSearchTime({ presets: defaultPresets })
 	const queryTerms = parseSearchQuery(query)
 	const serverQuery = buildSearchQueryForServer(queryTerms)
 	const minDate = presetStartDate(defaultPresets[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
-
-	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
-		setStartDate(newStartDate)
-		setEndDate(newEndDate)
-	}
-
-	const handleAdditionTracesDateChange = () => {
-		handleDatesChange(presetStartDate(defaultPresets[0]), getNow().toDate())
-	}
 
 	const {
 		traceEdges,
@@ -84,6 +78,7 @@ export const TracesPage: React.FC = () => {
 		traceCursor,
 		startDate,
 		endDate,
+		skipPolling: !datePickerValue.selectedPreset,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =
@@ -195,12 +190,15 @@ export const TracesPage: React.FC = () => {
 				>
 					<SearchForm
 						initialQuery={query ?? ''}
+						startDate={startDate}
+						endDate={endDate}
+						datePickerValue={datePickerValue}
 						presets={defaultPresets}
 						minDate={minDate}
 						timeMode={timeMode}
 						hideCreateAlert
 						onFormSubmit={setQuery}
-						onDatesChange={handleDatesChange}
+						onDatesChange={updateSearchTime}
 						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 						savedSegmentType="Trace"
@@ -245,7 +243,7 @@ export const TracesPage: React.FC = () => {
 							<LogsHistogram
 								startDate={startDate}
 								endDate={endDate}
-								onDatesChange={handleDatesChange}
+								onDatesChange={updateSearchTime}
 								histogramBuckets={histogramBuckets}
 								bucketCount={
 									metricsData?.traces_metrics.bucket_count
@@ -286,9 +284,7 @@ export const TracesPage: React.FC = () => {
 						loading={loading}
 						numMoreTraces={moreTraces}
 						traceEdges={traceEdges}
-						handleAdditionalTracesDateChange={
-							handleAdditionTracesDateChange
-						}
+						handleAdditionalTracesDateChange={rebaseSearchTime}
 						resetMoreTraces={clearMoreTraces}
 						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 						loadingAfter={loadingAfter}
