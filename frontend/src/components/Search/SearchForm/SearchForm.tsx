@@ -1,3 +1,4 @@
+import { useSavedSegments } from '@components/Search/useSavedSegments'
 import { GetLogsKeysQuery, GetTracesKeysQuery } from '@graph/operations'
 import {
 	Badge,
@@ -96,6 +97,7 @@ export type SearchFormProps = {
 	}>
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
+	savedSegmentType?: 'Trace' | 'Log'
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -110,6 +112,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	actions,
 	hideDatePicker,
 	hideCreateAlert,
+	savedSegmentType,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -118,8 +121,22 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const { startDate, endDate, relativeTimePreset, updateSearchTime } =
 		useSearchTime()
 
+	const handleQueryChange = (query?: string) => {
+		const updatedQuery = query ?? ''
+		setQuery(updatedQuery)
+		onFormSubmit(updatedQuery)
+	}
+
+	const { SegmentMenu, SegmentModals } = useSavedSegments({
+		query,
+		setQuery: handleQueryChange,
+		entityType: savedSegmentType,
+		projectId,
+	})
+
 	return (
 		<>
+			{SegmentModals}
 			<Box
 				alignItems="stretch"
 				display="flex"
@@ -184,6 +201,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							Create alert
 						</Button>
 					)}
+					{SegmentMenu}
 				</Box>
 			</Box>
 		</>

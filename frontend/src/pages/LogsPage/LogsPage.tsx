@@ -163,13 +163,14 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={(value) => setQuery(value)}
+						onFormSubmit={setQuery}
 						presets={defaultPresets}
 						// TODO(spenny): figure out minDate
 						minDate={moment().subtract(1, 'year').toDate()}
 						timeMode={timeMode}
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
+						savedSegmentType="Log"
 					/>
 					<LogsCount
 						startDate={startDate}

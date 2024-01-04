@@ -1364,6 +1364,19 @@ query GetErrorSegments($project_id: ID!) {
 	}
 }
 
+query GetSavedSegments(
+	$project_id: ID!
+	$entity_type: SavedSegmentEntityType!
+) {
+	saved_segments(project_id: $project_id, entity_type: $entity_type) {
+		id
+		name
+		params {
+			query
+		}
+	}
+}
+
 query IsIntegrated($project_id: ID!) {
 	isIntegrated(project_id: $project_id)
 }

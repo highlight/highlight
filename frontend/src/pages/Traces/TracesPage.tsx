@@ -203,6 +203,7 @@ export const TracesPage: React.FC = () => {
 						onFormSubmit={setQuery}
 						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
+						savedSegmentType="Trace"
 					/>
 					<Box
 						display="flex"

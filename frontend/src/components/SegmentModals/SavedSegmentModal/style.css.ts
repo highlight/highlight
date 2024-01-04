@@ -9,4 +9,5 @@ export const modalSubTitle = style({
 
 export const queryBuilderContainer = style({
 	marginBottom: 'var(--size-large) !important',
+	maxWidth: 500,
 })

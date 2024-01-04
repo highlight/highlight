@@ -1212,3 +1212,40 @@ mutation testErrorEnhancement(
 		}
 	}
 }
+
+mutation DeleteSavedSegment($segment_id: ID!) {
+	deleteSavedSegment(segment_id: $segment_id)
+}
+
+mutation EditSavedSegment(
+	$project_id: ID!
+	$id: ID!
+	$query: String!
+	$name: String!
+	$entity_type: SavedSegmentEntityType!
+) {
+	editSavedSegment(
+		project_id: $project_id
+		id: $id
+		query: $query
+		name: $name
+		entity_type: $entity_type
+	)
+}
+
+mutation CreateSavedSegment(
+	$project_id: ID!
+	$name: String!
+	$query: String!
+	$entity_type: SavedSegmentEntityType!
+) {
+	createSavedSegment(
+		project_id: $project_id
+		entity_type: $entity_type
+		name: $name
+		query: $query
+	) {
+		name
+		id
+	}
+}
