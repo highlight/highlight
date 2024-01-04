@@ -470,6 +470,36 @@ const ProductCard = ({
 	)
 }
 
+type PlanSelectStep = 'Select plan' | 'Configure plan' | 'Enter payment details'
+
+export const PlanSelectSteps = ({ step }: { step: PlanSelectStep }) => {
+	return (
+		<Box mb="24" display="flex" gap="4">
+			{['Select plan', 'Configure plan', 'Enter payment details'].map(
+				(p, idx) => (
+					<Box
+						key={p}
+						border="secondary"
+						borderRadius="6"
+						cssClass={style.step}
+						textAlign="center"
+						flex="stretch"
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						color={p === step ? 'p11' : 'n8'}
+						borderColor={p === step ? 'p6' : 'n3'}
+					>
+						<Text>
+							{idx + 1}. {p}
+						</Text>
+					</Box>
+				),
+			)}
+		</Box>
+	)
+}
+
 type BillingPageProps = {}
 
 const UpdatePlanPage = ({}: BillingPageProps) => {
@@ -798,38 +828,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 					display="flex"
 					flexDirection="column"
 				>
-					{!isPaying && (
-						<Box mb="24" display="flex" gap="4">
-							<Box
-								border="secondary"
-								borderRadius="6"
-								cssClass={style.step}
-								textAlign="center"
-								flex="stretch"
-								display="flex"
-								alignItems="center"
-								justifyContent="center"
-								color="p11"
-								borderColor="p6"
-							>
-								<Text>1. Update plan</Text>
-							</Box>
-							<Box
-								border="secondary"
-								borderRadius="6"
-								cssClass={style.step}
-								textAlign="center"
-								flex="stretch"
-								display="flex"
-								alignItems="center"
-								justifyContent="center"
-								color="n8"
-								borderColor="n3"
-							>
-								<Text>2. Enter payment details</Text>
-							</Box>
-						</Box>
-					)}
+					{!isPaying && <PlanSelectSteps step="Configure plan" />}
 					<Box display="flex" alignItems="center">
 						<Tag
 							kind="secondary"

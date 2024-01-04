@@ -42,6 +42,8 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Properties'
 		case 'current-plan':
 			return 'Billing plans'
+		case 'select-plan':
+			return 'Select plan'
 		case 'upgrade-plan':
 			return 'Upgrade plan'
 		case 'harold-ai':
@@ -119,11 +121,6 @@ export const SettingsRouter = () => {
 			key: 'current-plan',
 			title: getTitle('current-plan'),
 			panelContent: billingContent,
-		},
-		{
-			key: 'Plan Comparison',
-			title: getTitle('plan-features'),
-			panelContent: planComparisonContent,
 		},
 		{
 			key: 'harold-ai',
@@ -310,7 +307,7 @@ export const SettingsRouter = () => {
 									element={updatePlanContent}
 								/>
 								<Route
-									path="plan-features"
+									path="select-plan"
 									element={planComparisonContent}
 								/>
 								<Route

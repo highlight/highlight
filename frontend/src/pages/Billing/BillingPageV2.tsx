@@ -415,7 +415,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							<IconSolidInformationCircle
 								size={12}
 								onClick={() =>
-									navigate(`/w/${workspace_id}/plan-features`)
+									navigate(`/w/${workspace_id}/select-plan`)
 								}
 							/>
 						</Text>
@@ -487,7 +487,11 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							kind="primary"
 							onClick={() => {
 								navigate(
-									`/w/${workspace_id}/current-plan/update-plan`,
+									`/w/${workspace_id}/${
+										isPaying
+											? 'current-plan/update-plan'
+											: 'select-plan'
+									}`,
 								)
 							}}
 						>
