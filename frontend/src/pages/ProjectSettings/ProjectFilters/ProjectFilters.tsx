@@ -35,6 +35,7 @@ import {
 	Heading,
 	IconSolidCheveronRight,
 	IconSolidPencil,
+	presetStartDate,
 	PreviousDateRangePicker,
 	Stack,
 	Tag,
@@ -470,11 +471,9 @@ export const ProjectProductFilters: React.FC<{
 									disableSearch={view}
 									hideDatePicker
 									hideCreateAlert
+									onDatesChange={() => {}}
 									presets={defaultPresets}
-									// TODO(spenny): figure out minDate
-									minDate={moment()
-										.subtract(1, 'year')
-										.toDate()}
+									minDate={presetStartDate(defaultPresets[5])}
 									timeMode="fixed-range"
 									fetchKeysLazyQuery={
 										product === ProductType.Logs

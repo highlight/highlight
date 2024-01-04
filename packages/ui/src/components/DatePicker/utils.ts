@@ -13,6 +13,10 @@ const subtractHours = (date: Date, hours: number) => {
 	return newDate
 }
 
+const presetStartDate = (preset: Preset): Date => {
+	return moment().subtract(preset.quantity, preset.unit).toDate()
+}
+
 export const DEFAULT_TIME_PRESETS: Preset[] = [
 	{
 		unit: 'minutes',
@@ -49,4 +53,4 @@ export function resetRelativeDates() {
 }
 resetRelativeDates()
 
-export { subtractDays, subtractHours }
+export { subtractDays, subtractHours, presetStartDate }

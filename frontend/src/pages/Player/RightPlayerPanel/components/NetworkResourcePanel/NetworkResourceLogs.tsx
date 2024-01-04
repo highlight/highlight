@@ -119,6 +119,7 @@ export const NetworkResourceLogs: React.FC<{
 					<SearchForm
 						initialQuery={query}
 						onFormSubmit={(value) => setQuery(value)}
+						onDatesChange={() => null}
 						presets={[]}
 						minDate={new Date(sessionStartTime)}
 						timeMode="permalink"

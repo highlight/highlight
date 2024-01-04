@@ -1,5 +1,10 @@
 import { LogLevel, ProductType } from '@graph/schemas'
-import { Box, defaultPresets, getNow } from '@highlight-run/ui/components'
+import {
+	Box,
+	defaultPresets,
+	getNow,
+	presetStartDate,
+} from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -7,18 +12,18 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React from 'react'
+import React, { useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { QueryParamConfig, useQueryParam } from 'use-query-params'
+import { useQueryParam } from 'use-query-params'
 
 import {
 	TIME_FORMAT,
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
-	EndDateParam,
-	FixedRangeStartDateParam,
-	PermalinkStartDateParam,
+	EndDate,
+	FixedRangeStartDate,
+	PermalinkStartDate,
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
@@ -37,9 +42,7 @@ const LogsPage = () => {
 
 	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
 	const startDateDefault =
-		timeMode === 'permalink'
-			? PermalinkStartDateParam
-			: FixedRangeStartDateParam
+		timeMode === 'permalink' ? PermalinkStartDate : FixedRangeStartDate
 
 	return (
 		<LogsPageInner
@@ -53,7 +56,7 @@ const LogsPage = () => {
 type Props = {
 	timeMode: TIME_MODE
 	logCursor: string | undefined
-	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
+	startDateDefault: Date
 }
 
 const HEADERS_AND_CHARTS_HEIGHT = 228
@@ -65,11 +68,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 
-	const [startDate, setStartDate] = useQueryParam(
-		'start_date',
-		startDateDefault,
-	)
-	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
+	const [startDate, setStartDate] = useState<Date>(startDateDefault)
+	const [endDate, setEndDate] = useState<Date>(EndDate)
 
 	const {
 		logEdges,
@@ -94,11 +94,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	}
 
 	const handleAdditionalLogsDateChange = () => {
-		// TODO(spenny): figure this out
-		handleDatesChange(
-			moment().subtract(15, 'minutes').toDate(),
-			getNow().toDate(),
-		)
+		handleDatesChange(presetStartDate(defaultPresets[0]), getNow().toDate())
 	}
 
 	const handleLevelChange = (level: LogLevel) => {
@@ -164,9 +160,9 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 					<SearchForm
 						initialQuery={query}
 						onFormSubmit={setQuery}
+						onDatesChange={handleDatesChange}
 						presets={defaultPresets}
-						// TODO(spenny): figure out minDate
-						minDate={moment().subtract(1, 'year').toDate()}
+						minDate={presetStartDate(defaultPresets[5])}
 						timeMode={timeMode}
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}

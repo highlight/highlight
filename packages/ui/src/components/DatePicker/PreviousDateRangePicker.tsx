@@ -19,7 +19,12 @@ import { DateInput } from './DateInput'
 import { Form } from '../Form/Form'
 import * as Ariakit from '@ariakit/react'
 
-export { defaultPresets, getNow, resetRelativeDates } from './utils'
+export {
+	defaultPresets,
+	getNow,
+	resetRelativeDates,
+	presetStartDate,
+} from './utils'
 
 const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
 const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'
@@ -60,16 +65,16 @@ const presetLabel = (preset: Preset) => {
 	return preset.label || `Last ${preset.quantity} ${preset.unit}`
 }
 
-const presetValue = (preset: Preset) => {
+export const presetValue = (preset: Preset) => {
 	return preset.value || `last_${preset.quantity}_${preset.unit}`
 }
 
-const isPresetSelected = (preset: Preset, selectedPreset?: string) => {
+const isPresetSelected = (preset: Preset, selectedPreset?: Preset) => {
 	if (!selectedPreset) {
 		return false
 	}
 
-	return selectedPreset === presetValue(preset)
+	return presetValue(selectedPreset) === presetValue(preset)
 }
 
 const isCustomSelected = ({
@@ -193,12 +198,12 @@ export const getLabel = ({
 type SelectedValue = {
 	startDate?: Date
 	endDate?: Date
-	selectedPreset?: string
+	selectedPreset?: Preset
 }
 
 type Props = {
 	selectedValue: SelectedValue
-	onDatesChange: (startDate?: Date, endDate?: Date, presetId?: string) => void
+	onDatesChange: (startDate?: Date, endDate?: Date, presetId?: Preset) => void
 	presets: Preset[]
 	minDate: Date
 	noCustom?: boolean
@@ -426,6 +431,18 @@ const PreviousDateRangePickerImpl = ({
 		})
 	}, [presets])
 
+	const handleAbsoluteDateChange = (selectedDates: Date[]) =>
+		handleDatesChange({
+			startDate: selectedDates[0],
+			endDate: selectedDates[1],
+		})
+
+	const handlePresetSelected = (preset: Preset) => {
+		handleDatesChange({
+			selectedPreset: preset,
+		})
+	}
+
 	return (
 		<DatePickerStateProvider
 			// TODO(spenny): check this config / maybe calc dates based on preset
@@ -434,7 +451,7 @@ const PreviousDateRangePickerImpl = ({
 					selectedValue.startDate || new Date(),
 					selectedValue.endDate || new Date(),
 				],
-				// onDatesChange: handleDatesChange,
+				onDatesChange: handleAbsoluteDateChange,
 				dates: { mode: 'range', minDate, maxDate: new Date() },
 			}}
 		>
@@ -459,9 +476,7 @@ const PreviousDateRangePickerImpl = ({
 									onClick={(e) => {
 										e.preventDefault()
 										e.stopPropagation()
-										handleDatesChange({
-											selectedPreset: preset.value,
-										})
+										handlePresetSelected(preset)
 									}}
 								>
 									<Stack

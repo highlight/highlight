@@ -4,6 +4,7 @@ import {
 	Badge,
 	Box,
 	Combobox,
+	defaultPresets,
 	getNow,
 	IconSolidExternalLink,
 	IconSolidPlus,
@@ -11,6 +12,7 @@ import {
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
 	Preset,
+	presetStartDate,
 	PreviousDateRangePicker,
 	Stack,
 	Text,
@@ -58,17 +60,9 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import * as styles from './SearchForm.css'
 
 export const QueryParam = withDefault(StringParam, '')
-export const FixedRangeStartDateParam = withDefault(
-	DateTimeParam,
-	// TODO(spenny): figure this out
-	moment(getNow()).subtract(15, 'minutes').toDate(),
-)
-export const PermalinkStartDateParam = withDefault(
-	DateTimeParam,
-	// TODO(spenny): figure this out
-	moment(getNow()).subtract(1, 'year').toDate(),
-)
-export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
+export const FixedRangeStartDate = presetStartDate(defaultPresets[0])
+export const PermalinkStartDate = presetStartDate(defaultPresets[5])
+export const EndDate = getNow().toDate()
 
 type FetchKeys =
 	| typeof useGetLogsKeysLazyQuery
@@ -84,6 +78,7 @@ const MAX_ITEMS = 10
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
+	onDatesChange: (startDate: Date, endDate: Date) => void
 	presets: Preset[]
 	minDate: Date
 	timeMode: TIME_MODE
@@ -104,6 +99,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
+	onDatesChange,
 	onFormSubmit,
 	presets,
 	minDate,
@@ -118,8 +114,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
 
-	const { startDate, endDate, relativeTimePreset, updateSearchTime } =
-		useSearchTime()
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({ presets, onDatesChange })
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
@@ -163,7 +159,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							selectedValue={{
 								endDate,
 								startDate,
-								selectedPreset: relativeTimePreset,
+								selectedPreset,
 							}}
 							onDatesChange={updateSearchTime}
 							presets={presets}

@@ -1,8 +1,14 @@
-import { Box, defaultPresets, getNow, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	defaultPresets,
+	getNow,
+	presetStartDate,
+	Text,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -13,8 +19,8 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
-	EndDateParam,
-	FixedRangeStartDateParam,
+	EndDate,
+	FixedRangeStartDate,
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
@@ -49,15 +55,11 @@ export const TracesPage: React.FC = () => {
 		trace_cursor: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const [startDate, setStartDate] = useQueryParam(
-		'start_date',
-		FixedRangeStartDateParam,
-	)
-	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
+	const [startDate, setStartDate] = useState<Date>(FixedRangeStartDate)
+	const [endDate, setEndDate] = useState<Date>(EndDate)
 	const queryTerms = parseSearchQuery(query)
 	const serverQuery = buildSearchQueryForServer(queryTerms)
-	// TODO(spenny): figure this out
-	const minDate = moment().subtract(1, 'year').toDate()
+	const minDate = presetStartDate(defaultPresets[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
@@ -66,10 +68,7 @@ export const TracesPage: React.FC = () => {
 	}
 
 	const handleAdditionTracesDateChange = () => {
-		handleDatesChange(
-			moment().subtract(15, 'minutes').toDate(),
-			getNow().toDate(),
-		)
+		handleDatesChange(presetStartDate(defaultPresets[0]), getNow().toDate())
 	}
 
 	const {
@@ -201,6 +200,7 @@ export const TracesPage: React.FC = () => {
 						timeMode={timeMode}
 						hideCreateAlert
 						onFormSubmit={setQuery}
+						onDatesChange={handleDatesChange}
 						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
 						savedSegmentType="Trace"
