@@ -1418,6 +1418,44 @@ export type TestErrorEnhancementMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type DeleteSavedSegmentMutationVariables = Types.Exact<{
+	segment_id: Types.Scalars['ID']
+}>
+
+export type DeleteSavedSegmentMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteSavedSegment'
+>
+
+export type EditSavedSegmentMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	name: Types.Scalars['String']
+	entity_type: Types.SavedSegmentEntityType
+}>
+
+export type EditSavedSegmentMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'editSavedSegment'
+>
+
+export type CreateSavedSegmentMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+	query: Types.Scalars['String']
+	entity_type: Types.SavedSegmentEntityType
+}>
+
+export type CreateSavedSegmentMutation = { __typename?: 'Mutation' } & {
+	createSavedSegment?: Types.Maybe<
+		{ __typename?: 'SavedSegment' } & Pick<
+			Types.SavedSegment,
+			'name' | 'id'
+		>
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -3324,68 +3362,8 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
 				> & {
 						params: { __typename?: 'SearchParams' } & Pick<
 							Types.SearchParams,
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'referrer'
-							| 'identified'
-							| 'hide_viewed'
-							| 'first_time'
-							| 'app_versions'
-							| 'environments'
-							| 'device_id'
-							| 'show_live_sessions'
-							| 'query'
-						> & {
-								user_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								excluded_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								track_properties?: Types.Maybe<
-									Array<
-										Types.Maybe<
-											{
-												__typename?: 'UserProperty'
-											} & Pick<
-												Types.UserProperty,
-												'name' | 'value'
-											>
-										>
-									>
-								>
-								date_range?: Types.Maybe<
-									{ __typename?: 'DateRange' } & Pick<
-										Types.DateRange,
-										'start_date' | 'end_date'
-									>
-								>
-								length_range?: Types.Maybe<
-									{ __typename?: 'LengthRange' } & Pick<
-										Types.LengthRange,
-										'min' | 'max'
-									>
-								>
-							}
+							'query'
+						>
 					}
 			>
 		>
@@ -3404,22 +3382,33 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
 					Types.ErrorSegment,
 					'id' | 'name'
 				> & {
-						params: { __typename?: 'ErrorSearchParams' } & Pick<
-							Types.ErrorSearchParams,
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'state'
-							| 'event'
-							| 'query'
-						> & {
-								date_range?: Types.Maybe<
-									{ __typename?: 'DateRange' } & Pick<
-										Types.DateRange,
-										'start_date' | 'end_date'
-									>
-								>
-							}
+						params: { __typename?: 'SearchParams' } & Pick<
+							Types.SearchParams,
+							'query'
+						>
+					}
+			>
+		>
+	>
+}
+
+export type GetSavedSegmentsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	entity_type: Types.SavedSegmentEntityType
+}>
+
+export type GetSavedSegmentsQuery = { __typename?: 'Query' } & {
+	saved_segments?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'SavedSegment' } & Pick<
+					Types.SavedSegment,
+					'id' | 'name'
+				> & {
+						params: { __typename?: 'SearchParams' } & Pick<
+							Types.SearchParams,
+							'query'
+						>
 					}
 			>
 		>
@@ -4954,6 +4943,7 @@ export const namedOperations = {
 		GetUserSuggestion: 'GetUserSuggestion' as const,
 		GetSegments: 'GetSegments' as const,
 		GetErrorSegments: 'GetErrorSegments' as const,
+		GetSavedSegments: 'GetSavedSegments' as const,
 		IsIntegrated: 'IsIntegrated' as const,
 		IsBackendIntegrated: 'IsBackendIntegrated' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
@@ -5120,6 +5110,9 @@ export const namedOperations = {
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		testErrorEnhancement: 'testErrorEnhancement' as const,
+		DeleteSavedSegment: 'DeleteSavedSegment' as const,
+		EditSavedSegment: 'EditSavedSegment' as const,
+		CreateSavedSegment: 'CreateSavedSegment' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

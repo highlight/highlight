@@ -51,6 +51,7 @@ type ResolverRoot interface {
 	MetricMonitor() MetricMonitorResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	SavedSegment() SavedSegmentResolver
 	Segment() SegmentResolver
 	Service() ServiceResolver
 	Session() SessionResolver
@@ -467,16 +468,6 @@ type ComplexityRoot struct {
 		TotalCount  func(childComplexity int) int
 	}
 
-	ErrorSearchParams struct {
-		Browser    func(childComplexity int) int
-		DateRange  func(childComplexity int) int
-		Event      func(childComplexity int) int
-		OS         func(childComplexity int) int
-		Query      func(childComplexity int) int
-		State      func(childComplexity int) int
-		VisitedURL func(childComplexity int) int
-	}
-
 	ErrorSegment struct {
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
@@ -769,6 +760,7 @@ type ComplexityRoot struct {
 		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
+		CreateSavedSegment               func(childComplexity int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, query string) int
 		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
 		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
@@ -783,6 +775,7 @@ type ComplexityRoot struct {
 		DeleteLogAlert                   func(childComplexity int, projectID int, id int) int
 		DeleteMetricMonitor              func(childComplexity int, projectID int, metricMonitorID int) int
 		DeleteProject                    func(childComplexity int, id int) int
+		DeleteSavedSegment               func(childComplexity int, segmentID int) int
 		DeleteSegment                    func(childComplexity int, segmentID int) int
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
@@ -790,6 +783,7 @@ type ComplexityRoot struct {
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, query string, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
+		EditSavedSegment                 func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
 		EditSegment                      func(childComplexity int, id int, projectID int, query string, name string) int
 		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
@@ -996,6 +990,7 @@ type ComplexityRoot struct {
 		RageClicksForProject         func(childComplexity int, projectID int, lookbackDays float64) int
 		Referrers                    func(childComplexity int, projectID int, lookbackDays float64) int
 		Resources                    func(childComplexity int, sessionSecureID string) int
+		SavedSegments                func(childComplexity int, projectID int, entityType model.SavedSegmentEntityType) int
 		Segments                     func(childComplexity int, projectID int) int
 		ServerIntegration            func(childComplexity int, projectID int) int
 		ServiceByName                func(childComplexity int, projectID int, name string) int
@@ -1106,25 +1101,16 @@ type ComplexityRoot struct {
 		WebhookChannelID func(childComplexity int) int
 	}
 
+	SavedSegment struct {
+		EntityType func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Params     func(childComplexity int) int
+		ProjectID  func(childComplexity int) int
+	}
+
 	SearchParams struct {
-		AppVersions             func(childComplexity int) int
-		Browser                 func(childComplexity int) int
-		DateRange               func(childComplexity int) int
-		DeviceID                func(childComplexity int) int
-		Environments            func(childComplexity int) int
-		ExcludedProperties      func(childComplexity int) int
-		ExcludedTrackProperties func(childComplexity int) int
-		FirstTime               func(childComplexity int) int
-		HideViewed              func(childComplexity int) int
-		Identified              func(childComplexity int) int
-		LengthRange             func(childComplexity int) int
-		OS                      func(childComplexity int) int
-		Query                   func(childComplexity int) int
-		Referrer                func(childComplexity int) int
-		ShowLiveSessions        func(childComplexity int) int
-		TrackProperties         func(childComplexity int) int
-		UserProperties          func(childComplexity int) int
-		VisitedURL              func(childComplexity int) int
+		Query func(childComplexity int) int
 	}
 
 	Segment struct {
@@ -1590,7 +1576,7 @@ type ErrorObjectResolver interface {
 	Session(ctx context.Context, obj *model1.ErrorObject) (*model1.Session, error)
 }
 type ErrorSegmentResolver interface {
-	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
+	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.SearchParams, error)
 }
 type LogAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.LogAlert) ([]*model.SanitizedSlackChannel, error)
@@ -1642,6 +1628,9 @@ type MutationResolver interface {
 	CreateErrorSegment(ctx context.Context, projectID int, name string, query string) (*model1.ErrorSegment, error)
 	EditErrorSegment(ctx context.Context, id int, projectID int, query string, name string) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
+	CreateSavedSegment(ctx context.Context, projectID int, name string, entityType model.SavedSegmentEntityType, query string) (*model1.SavedSegment, error)
+	EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) (*bool, error)
+	DeleteSavedSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
 	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) (*bool, error)
@@ -1808,6 +1797,7 @@ type QueryResolver interface {
 	AdminRoleByProject(ctx context.Context, projectID int) (*model1.WorkspaceAdminRole, error)
 	Segments(ctx context.Context, projectID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, projectID int) ([]*model1.ErrorSegment, error)
+	SavedSegments(ctx context.Context, projectID int, entityType model.SavedSegmentEntityType) ([]*model1.SavedSegment, error)
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 	GetSourceMapUploadUrls(ctx context.Context, apiKey string, paths []string) ([]string, error)
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
@@ -1851,6 +1841,9 @@ type QueryResolver interface {
 	ErrorsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	SessionsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+}
+type SavedSegmentResolver interface {
+	Params(ctx context.Context, obj *model1.SavedSegment) (*model1.SearchParams, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -3850,55 +3843,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorResults.TotalCount(childComplexity), true
 
-	case "ErrorSearchParams.browser":
-		if e.complexity.ErrorSearchParams.Browser == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.Browser(childComplexity), true
-
-	case "ErrorSearchParams.date_range":
-		if e.complexity.ErrorSearchParams.DateRange == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.DateRange(childComplexity), true
-
-	case "ErrorSearchParams.event":
-		if e.complexity.ErrorSearchParams.Event == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.Event(childComplexity), true
-
-	case "ErrorSearchParams.os":
-		if e.complexity.ErrorSearchParams.OS == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.OS(childComplexity), true
-
-	case "ErrorSearchParams.query":
-		if e.complexity.ErrorSearchParams.Query == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.Query(childComplexity), true
-
-	case "ErrorSearchParams.state":
-		if e.complexity.ErrorSearchParams.State == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.State(childComplexity), true
-
-	case "ErrorSearchParams.visited_url":
-		if e.complexity.ErrorSearchParams.VisitedURL == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.VisitedURL(childComplexity), true
-
 	case "ErrorSegment.id":
 		if e.complexity.ErrorSegment.ID == nil {
 			break
@@ -5229,6 +5173,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateProject(childComplexity, args["name"].(string), args["workspace_id"].(int)), true
 
+	case "Mutation.createSavedSegment":
+		if e.complexity.Mutation.CreateSavedSegment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createSavedSegment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateSavedSegment(childComplexity, args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSegmentEntityType), args["query"].(string)), true
+
 	case "Mutation.createSegment":
 		if e.complexity.Mutation.CreateSegment == nil {
 			break
@@ -5397,6 +5353,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteProject(childComplexity, args["id"].(int)), true
 
+	case "Mutation.deleteSavedSegment":
+		if e.complexity.Mutation.DeleteSavedSegment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteSavedSegment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteSavedSegment(childComplexity, args["segment_id"].(int)), true
+
 	case "Mutation.deleteSegment":
 		if e.complexity.Mutation.DeleteSegment == nil {
 			break
@@ -5480,6 +5448,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int), args["sampling"].(*model.SamplingInput)), true
+
+	case "Mutation.editSavedSegment":
+		if e.complexity.Mutation.EditSavedSegment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editSavedSegment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditSavedSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["name"].(string), args["entity_type"].(model.SavedSegmentEntityType), args["query"].(string)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -7491,6 +7471,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Resources(childComplexity, args["session_secure_id"].(string)), true
 
+	case "Query.saved_segments":
+		if e.complexity.Query.SavedSegments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_saved_segments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SavedSegments(childComplexity, args["project_id"].(int), args["entity_type"].(model.SavedSegmentEntityType)), true
+
 	case "Query.segments":
 		if e.complexity.Query.Segments == nil {
 			break
@@ -8309,89 +8301,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SanitizedSlackChannel.WebhookChannelID(childComplexity), true
 
-	case "SearchParams.app_versions":
-		if e.complexity.SearchParams.AppVersions == nil {
+	case "SavedSegment.entity_type":
+		if e.complexity.SavedSegment.EntityType == nil {
 			break
 		}
 
-		return e.complexity.SearchParams.AppVersions(childComplexity), true
+		return e.complexity.SavedSegment.EntityType(childComplexity), true
 
-	case "SearchParams.browser":
-		if e.complexity.SearchParams.Browser == nil {
+	case "SavedSegment.id":
+		if e.complexity.SavedSegment.ID == nil {
 			break
 		}
 
-		return e.complexity.SearchParams.Browser(childComplexity), true
+		return e.complexity.SavedSegment.ID(childComplexity), true
 
-	case "SearchParams.date_range":
-		if e.complexity.SearchParams.DateRange == nil {
+	case "SavedSegment.name":
+		if e.complexity.SavedSegment.Name == nil {
 			break
 		}
 
-		return e.complexity.SearchParams.DateRange(childComplexity), true
+		return e.complexity.SavedSegment.Name(childComplexity), true
 
-	case "SearchParams.device_id":
-		if e.complexity.SearchParams.DeviceID == nil {
+	case "SavedSegment.params":
+		if e.complexity.SavedSegment.Params == nil {
 			break
 		}
 
-		return e.complexity.SearchParams.DeviceID(childComplexity), true
+		return e.complexity.SavedSegment.Params(childComplexity), true
 
-	case "SearchParams.environments":
-		if e.complexity.SearchParams.Environments == nil {
+	case "SavedSegment.project_id":
+		if e.complexity.SavedSegment.ProjectID == nil {
 			break
 		}
 
-		return e.complexity.SearchParams.Environments(childComplexity), true
-
-	case "SearchParams.excluded_properties":
-		if e.complexity.SearchParams.ExcludedProperties == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.ExcludedProperties(childComplexity), true
-
-	case "SearchParams.excluded_track_properties":
-		if e.complexity.SearchParams.ExcludedTrackProperties == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.ExcludedTrackProperties(childComplexity), true
-
-	case "SearchParams.first_time":
-		if e.complexity.SearchParams.FirstTime == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.FirstTime(childComplexity), true
-
-	case "SearchParams.hide_viewed":
-		if e.complexity.SearchParams.HideViewed == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.HideViewed(childComplexity), true
-
-	case "SearchParams.identified":
-		if e.complexity.SearchParams.Identified == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.Identified(childComplexity), true
-
-	case "SearchParams.length_range":
-		if e.complexity.SearchParams.LengthRange == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.LengthRange(childComplexity), true
-
-	case "SearchParams.os":
-		if e.complexity.SearchParams.OS == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.OS(childComplexity), true
+		return e.complexity.SavedSegment.ProjectID(childComplexity), true
 
 	case "SearchParams.query":
 		if e.complexity.SearchParams.Query == nil {
@@ -8399,41 +8342,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchParams.Query(childComplexity), true
-
-	case "SearchParams.referrer":
-		if e.complexity.SearchParams.Referrer == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.Referrer(childComplexity), true
-
-	case "SearchParams.show_live_sessions":
-		if e.complexity.SearchParams.ShowLiveSessions == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.ShowLiveSessions(childComplexity), true
-
-	case "SearchParams.track_properties":
-		if e.complexity.SearchParams.TrackProperties == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.TrackProperties(childComplexity), true
-
-	case "SearchParams.user_properties":
-		if e.complexity.SearchParams.UserProperties == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.UserProperties(childComplexity), true
-
-	case "SearchParams.visited_url":
-		if e.complexity.SearchParams.VisitedURL == nil {
-			break
-		}
-
-		return e.complexity.SearchParams.VisitedURL(childComplexity), true
 
 	case "Segment.id":
 		if e.complexity.Segment.ID == nil {
@@ -11079,6 +10987,11 @@ enum SortDirection {
 	DESC
 }
 
+enum SavedSegmentEntityType {
+	Log
+	Trace
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -11190,6 +11103,10 @@ type Workspace {
 	traces_max_cents: Int
 }
 
+type SearchParams {
+	query: String
+}
+
 type Segment {
 	id: ID!
 	name: String!
@@ -11200,7 +11117,15 @@ type Segment {
 type ErrorSegment {
 	id: ID!
 	name: String!
-	params: ErrorSearchParams!
+	params: SearchParams!
+	project_id: ID!
+}
+
+type SavedSegment {
+	id: ID!
+	name: String!
+	entity_type: SavedSegmentEntityType!
+	params: SearchParams!
 	project_id: ID!
 }
 
@@ -11742,27 +11667,6 @@ input NetworkHistogramParamsInput {
 	attribute: NetworkRequestAttribute
 }
 
-type SearchParams {
-	user_properties: [UserProperty]
-	excluded_properties: [UserProperty]
-	track_properties: [UserProperty]
-	excluded_track_properties: [UserProperty]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRange
-	length_range: LengthRange
-	os: String
-	browser: String
-	visited_url: String
-	device_id: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
-}
-
 input AdminAboutYouDetails {
 	first_name: String!
 	last_name: String!
@@ -11823,16 +11727,6 @@ input LogAlertInput {
 	disabled: Boolean!
 	default: Boolean
 	query: String!
-}
-
-type ErrorSearchParams {
-	date_range: DateRange
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	query: String
 }
 
 type DateRange {
@@ -12589,6 +12483,10 @@ type Query {
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
 	segments(project_id: ID!): [Segment]
 	error_segments(project_id: ID!): [ErrorSegment]
+	saved_segments(
+		project_id: ID!
+		entity_type: SavedSegmentEntityType!
+	): [SavedSegment]
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
@@ -12834,6 +12732,20 @@ type Mutation {
 		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
+	createSavedSegment(
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): SavedSegment
+	editSavedSegment(
+		id: ID!
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): Boolean
+	deleteSavedSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
 	createOrUpdateStripeSubscription(workspace_id: ID!): String
@@ -13916,6 +13828,48 @@ func (ec *executionContext) field_Mutation_createProject_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createSavedSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	var arg2 model.SavedSegmentEntityType
+	if tmp, ok := rawArgs["entity_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
+		arg2, err = ec.unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["entity_type"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -14378,6 +14332,21 @@ func (ec *executionContext) field_Mutation_deleteProject_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteSavedSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["segment_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segment_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["segment_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -14723,6 +14692,57 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["filter_chrome_extension"] = arg9
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editSavedSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
+	var arg3 model.SavedSegmentEntityType
+	if tmp, ok := rawArgs["entity_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
+		arg3, err = ec.unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["entity_type"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg4
 	return args, nil
 }
 
@@ -18629,6 +18649,30 @@ func (ec *executionContext) field_Query_resources_args(ctx context.Context, rawA
 		}
 	}
 	args["session_secure_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_saved_segments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 model.SavedSegmentEntityType
+	if tmp, ok := rawArgs["entity_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_type"))
+		arg1, err = ec.unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["entity_type"] = arg1
 	return args, nil
 }
 
@@ -32275,299 +32319,6 @@ func (ec *executionContext) fieldContext_ErrorResults_totalCount(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _ErrorSearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorSearchParams_date_range(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DateRange, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.DateRange)
-	fc.Result = res
-	return ec.marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorSearchParams_date_range(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorSearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "start_date":
-				return ec.fieldContext_DateRange_start_date(ctx, field)
-			case "end_date":
-				return ec.fieldContext_DateRange_end_date(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DateRange", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorSearchParams_os(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorSearchParams_os(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OS, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorSearchParams_os(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorSearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorSearchParams_browser(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorSearchParams_browser(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Browser, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorSearchParams_browser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorSearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorSearchParams_visited_url(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorSearchParams_visited_url(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VisitedURL, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorSearchParams_visited_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorSearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorSearchParams_state(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorSearchParams_state(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.State, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.ErrorState)
-	fc.Result = res
-	return ec.marshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorSearchParams_state(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorSearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ErrorState does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorSearchParams_event(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorSearchParams_event(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Event, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorSearchParams_event(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorSearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorSearchParams_query(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorSearchParams_query(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Query, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorSearchParams_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorSearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ErrorSegment_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSegment) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorSegment_id(ctx, field)
 	if err != nil {
@@ -32682,9 +32433,9 @@ func (ec *executionContext) _ErrorSegment_params(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model1.ErrorSearchParams)
+	res := resTmp.(*model1.SearchParams)
 	fc.Result = res
-	return ec.marshalNErrorSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSearchParams(ctx, field.Selections, res)
+	return ec.marshalNSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorSegment_params(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -32695,22 +32446,10 @@ func (ec *executionContext) fieldContext_ErrorSegment_params(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "date_range":
-				return ec.fieldContext_ErrorSearchParams_date_range(ctx, field)
-			case "os":
-				return ec.fieldContext_ErrorSearchParams_os(ctx, field)
-			case "browser":
-				return ec.fieldContext_ErrorSearchParams_browser(ctx, field)
-			case "visited_url":
-				return ec.fieldContext_ErrorSearchParams_visited_url(ctx, field)
-			case "state":
-				return ec.fieldContext_ErrorSearchParams_state(ctx, field)
-			case "event":
-				return ec.fieldContext_ErrorSearchParams_event(ctx, field)
 			case "query":
-				return ec.fieldContext_ErrorSearchParams_query(ctx, field)
+				return ec.fieldContext_SearchParams_query(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorSearchParams", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SearchParams", field.Name)
 		},
 	}
 	return fc, nil
@@ -41845,6 +41584,171 @@ func (ec *executionContext) fieldContext_Mutation_deleteErrorSegment(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteErrorSegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createSavedSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createSavedSegment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateSavedSegment(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSegmentEntityType), fc.Args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SavedSegment)
+	fc.Result = res
+	return ec.marshalOSavedSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSavedSegment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createSavedSegment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SavedSegment_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SavedSegment_name(ctx, field)
+			case "entity_type":
+				return ec.fieldContext_SavedSegment_entity_type(ctx, field)
+			case "params":
+				return ec.fieldContext_SavedSegment_params(ctx, field)
+			case "project_id":
+				return ec.fieldContext_SavedSegment_project_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SavedSegment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createSavedSegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_editSavedSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_editSavedSegment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditSavedSegment(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["entity_type"].(model.SavedSegmentEntityType), fc.Args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_editSavedSegment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_editSavedSegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteSavedSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteSavedSegment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteSavedSegment(rctx, fc.Args["segment_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteSavedSegment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteSavedSegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -54723,6 +54627,69 @@ func (ec *executionContext) fieldContext_Query_error_segments(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_saved_segments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_saved_segments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SavedSegments(rctx, fc.Args["project_id"].(int), fc.Args["entity_type"].(model.SavedSegmentEntityType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.SavedSegment)
+	fc.Result = res
+	return ec.marshalOSavedSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSavedSegment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_saved_segments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SavedSegment_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SavedSegment_name(ctx, field)
+			case "entity_type":
+				return ec.fieldContext_SavedSegment_entity_type(ctx, field)
+			case "params":
+				return ec.fieldContext_SavedSegment_params(ctx, field)
+			case "project_id":
+				return ec.fieldContext_SavedSegment_project_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SavedSegment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_saved_segments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_api_key_to_org_id(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_api_key_to_org_id(ctx, field)
 	if err != nil {
@@ -58903,8 +58870,8 @@ func (ec *executionContext) fieldContext_SanitizedSlackChannel_webhook_channel_i
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchParams_user_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_user_properties(ctx, field)
+func (ec *executionContext) _SavedSegment_id(ctx context.Context, field graphql.CollectedField, obj *model1.SavedSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SavedSegment_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -58917,43 +58884,174 @@ func (ec *executionContext) _SearchParams_user_properties(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserProperties, nil
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.UserProperty)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SearchParams_user_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SavedSegment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
+		Object:     "SavedSegment",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SavedSegment_name(ctx context.Context, field graphql.CollectedField, obj *model1.SavedSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SavedSegment_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SavedSegment_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SavedSegment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SavedSegment_entity_type(ctx context.Context, field graphql.CollectedField, obj *model1.SavedSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SavedSegment_entity_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EntityType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.SavedSegmentEntityType)
+	fc.Result = res
+	return ec.marshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SavedSegment_entity_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SavedSegment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SavedSegmentEntityType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SavedSegment_params(ctx context.Context, field graphql.CollectedField, obj *model1.SavedSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SavedSegment_params(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SavedSegment().Params(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SearchParams)
+	fc.Result = res
+	return ec.marshalNSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SavedSegment_params(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SavedSegment",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_UserProperty_id(ctx, field)
-			case "name":
-				return ec.fieldContext_UserProperty_name(ctx, field)
-			case "value":
-				return ec.fieldContext_UserProperty_value(ctx, field)
+			case "query":
+				return ec.fieldContext_SearchParams_query(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type UserProperty", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SearchParams", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchParams_excluded_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_excluded_properties(ctx, field)
+func (ec *executionContext) _SavedSegment_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.SavedSegment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SavedSegment_project_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -58966,679 +59064,31 @@ func (ec *executionContext) _SearchParams_excluded_properties(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ExcludedProperties, nil
+		return obj.ProjectID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.UserProperty)
-	fc.Result = res
-	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_excluded_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_UserProperty_id(ctx, field)
-			case "name":
-				return ec.fieldContext_UserProperty_name(ctx, field)
-			case "value":
-				return ec.fieldContext_UserProperty_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type UserProperty", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_track_properties(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
 		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TrackProperties, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
 		return graphql.Null
 	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.UserProperty)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SearchParams_track_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SavedSegment_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
+		Object:     "SavedSegment",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_UserProperty_id(ctx, field)
-			case "name":
-				return ec.fieldContext_UserProperty_name(ctx, field)
-			case "value":
-				return ec.fieldContext_UserProperty_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type UserProperty", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_excluded_track_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_excluded_track_properties(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ExcludedTrackProperties, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.UserProperty)
-	fc.Result = res
-	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_excluded_track_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_UserProperty_id(ctx, field)
-			case "name":
-				return ec.fieldContext_UserProperty_name(ctx, field)
-			case "value":
-				return ec.fieldContext_UserProperty_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type UserProperty", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_environments(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_environments(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Environments, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_environments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_app_versions(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_app_versions(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AppVersions, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_app_versions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_date_range(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DateRange, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.DateRange)
-	fc.Result = res
-	return ec.marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_date_range(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "start_date":
-				return ec.fieldContext_DateRange_start_date(ctx, field)
-			case "end_date":
-				return ec.fieldContext_DateRange_end_date(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DateRange", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_length_range(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_length_range(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LengthRange, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.LengthRange)
-	fc.Result = res
-	return ec.marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_length_range(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "min":
-				return ec.fieldContext_LengthRange_min(ctx, field)
-			case "max":
-				return ec.fieldContext_LengthRange_max(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type LengthRange", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_os(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_os(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OS, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_os(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_browser(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_browser(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Browser, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_browser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_visited_url(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_visited_url(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VisitedURL, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_visited_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_device_id(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_device_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeviceID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_device_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_referrer(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_referrer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Referrer, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_referrer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_identified(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_identified(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Identified, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_identified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_hide_viewed(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_hide_viewed(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HideViewed, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_hide_viewed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_first_time(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_first_time(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FirstTime, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_first_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SearchParams_show_live_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchParams_show_live_sessions(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ShowLiveSessions, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SearchParams_show_live_sessions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SearchParams",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -59812,40 +59262,6 @@ func (ec *executionContext) fieldContext_Segment_params(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "user_properties":
-				return ec.fieldContext_SearchParams_user_properties(ctx, field)
-			case "excluded_properties":
-				return ec.fieldContext_SearchParams_excluded_properties(ctx, field)
-			case "track_properties":
-				return ec.fieldContext_SearchParams_track_properties(ctx, field)
-			case "excluded_track_properties":
-				return ec.fieldContext_SearchParams_excluded_track_properties(ctx, field)
-			case "environments":
-				return ec.fieldContext_SearchParams_environments(ctx, field)
-			case "app_versions":
-				return ec.fieldContext_SearchParams_app_versions(ctx, field)
-			case "date_range":
-				return ec.fieldContext_SearchParams_date_range(ctx, field)
-			case "length_range":
-				return ec.fieldContext_SearchParams_length_range(ctx, field)
-			case "os":
-				return ec.fieldContext_SearchParams_os(ctx, field)
-			case "browser":
-				return ec.fieldContext_SearchParams_browser(ctx, field)
-			case "visited_url":
-				return ec.fieldContext_SearchParams_visited_url(ctx, field)
-			case "device_id":
-				return ec.fieldContext_SearchParams_device_id(ctx, field)
-			case "referrer":
-				return ec.fieldContext_SearchParams_referrer(ctx, field)
-			case "identified":
-				return ec.fieldContext_SearchParams_identified(ctx, field)
-			case "hide_viewed":
-				return ec.fieldContext_SearchParams_hide_viewed(ctx, field)
-			case "first_time":
-				return ec.fieldContext_SearchParams_first_time(ctx, field)
-			case "show_live_sessions":
-				return ec.fieldContext_SearchParams_show_live_sessions(ctx, field)
 			case "query":
 				return ec.fieldContext_SearchParams_query(ctx, field)
 			}
@@ -79105,55 +78521,6 @@ func (ec *executionContext) _ErrorResults(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var errorSearchParamsImplementors = []string{"ErrorSearchParams"}
-
-func (ec *executionContext) _ErrorSearchParams(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorSearchParams) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, errorSearchParamsImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ErrorSearchParams")
-		case "date_range":
-
-			out.Values[i] = ec._ErrorSearchParams_date_range(ctx, field, obj)
-
-		case "os":
-
-			out.Values[i] = ec._ErrorSearchParams_os(ctx, field, obj)
-
-		case "browser":
-
-			out.Values[i] = ec._ErrorSearchParams_browser(ctx, field, obj)
-
-		case "visited_url":
-
-			out.Values[i] = ec._ErrorSearchParams_visited_url(ctx, field, obj)
-
-		case "state":
-
-			out.Values[i] = ec._ErrorSearchParams_state(ctx, field, obj)
-
-		case "event":
-
-			out.Values[i] = ec._ErrorSearchParams_event(ctx, field, obj)
-
-		case "query":
-
-			out.Values[i] = ec._ErrorSearchParams_query(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var errorSegmentImplementors = []string{"ErrorSegment"}
 
 func (ec *executionContext) _ErrorSegment(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorSegment) graphql.Marshaler {
@@ -81322,6 +80689,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteErrorSegment(ctx, field)
+			})
+
+		case "createSavedSegment":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createSavedSegment(ctx, field)
+			})
+
+		case "editSavedSegment":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_editSavedSegment(ctx, field)
+			})
+
+		case "deleteSavedSegment":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteSavedSegment(ctx, field)
 			})
 
 		case "createOrUpdateStripeSubscription":
@@ -84215,6 +83600,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "saved_segments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_saved_segments(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "api_key_to_org_id":
 			field := field
 
@@ -85462,6 +84867,75 @@ func (ec *executionContext) _SanitizedSlackChannel(ctx context.Context, sel ast.
 	return out
 }
 
+var savedSegmentImplementors = []string{"SavedSegment"}
+
+func (ec *executionContext) _SavedSegment(ctx context.Context, sel ast.SelectionSet, obj *model1.SavedSegment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, savedSegmentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SavedSegment")
+		case "id":
+
+			out.Values[i] = ec._SavedSegment_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+
+			out.Values[i] = ec._SavedSegment_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "entity_type":
+
+			out.Values[i] = ec._SavedSegment_entity_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "params":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SavedSegment_params(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "project_id":
+
+			out.Values[i] = ec._SavedSegment_project_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var searchParamsImplementors = []string{"SearchParams"}
 
 func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.SelectionSet, obj *model1.SearchParams) graphql.Marshaler {
@@ -85472,74 +84946,6 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SearchParams")
-		case "user_properties":
-
-			out.Values[i] = ec._SearchParams_user_properties(ctx, field, obj)
-
-		case "excluded_properties":
-
-			out.Values[i] = ec._SearchParams_excluded_properties(ctx, field, obj)
-
-		case "track_properties":
-
-			out.Values[i] = ec._SearchParams_track_properties(ctx, field, obj)
-
-		case "excluded_track_properties":
-
-			out.Values[i] = ec._SearchParams_excluded_track_properties(ctx, field, obj)
-
-		case "environments":
-
-			out.Values[i] = ec._SearchParams_environments(ctx, field, obj)
-
-		case "app_versions":
-
-			out.Values[i] = ec._SearchParams_app_versions(ctx, field, obj)
-
-		case "date_range":
-
-			out.Values[i] = ec._SearchParams_date_range(ctx, field, obj)
-
-		case "length_range":
-
-			out.Values[i] = ec._SearchParams_length_range(ctx, field, obj)
-
-		case "os":
-
-			out.Values[i] = ec._SearchParams_os(ctx, field, obj)
-
-		case "browser":
-
-			out.Values[i] = ec._SearchParams_browser(ctx, field, obj)
-
-		case "visited_url":
-
-			out.Values[i] = ec._SearchParams_visited_url(ctx, field, obj)
-
-		case "device_id":
-
-			out.Values[i] = ec._SearchParams_device_id(ctx, field, obj)
-
-		case "referrer":
-
-			out.Values[i] = ec._SearchParams_referrer(ctx, field, obj)
-
-		case "identified":
-
-			out.Values[i] = ec._SearchParams_identified(ctx, field, obj)
-
-		case "hide_viewed":
-
-			out.Values[i] = ec._SearchParams_hide_viewed(ctx, field, obj)
-
-		case "first_time":
-
-			out.Values[i] = ec._SearchParams_first_time(ctx, field, obj)
-
-		case "show_live_sessions":
-
-			out.Values[i] = ec._SearchParams_show_live_sessions(ctx, field, obj)
-
 		case "query":
 
 			out.Values[i] = ec._SearchParams_query(ctx, field, obj)
@@ -90428,20 +89834,6 @@ func (ec *executionContext) marshalNErrorResults2ᚖgithubᚗcomᚋhighlightᚑr
 	return ec._ErrorResults(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNErrorSearchParams2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.ErrorSearchParams) graphql.Marshaler {
-	return ec._ErrorSearchParams(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSearchParams(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorSearchParams) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ErrorSearchParams(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, v interface{}) (model.ErrorState, error) {
 	var res model.ErrorState
 	err := res.UnmarshalGQL(v)
@@ -92293,6 +91685,16 @@ func (ec *executionContext) unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗ
 func (ec *executionContext) unmarshalNSanitizedSlackChannelInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx context.Context, v interface{}) (*model.SanitizedSlackChannelInput, error) {
 	res, err := ec.unmarshalInputSanitizedSlackChannelInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx context.Context, v interface{}) (model.SavedSegmentEntityType, error) {
+	var res model.SavedSegmentEntityType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSavedSegmentEntityType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSavedSegmentEntityType(ctx context.Context, sel ast.SelectionSet, v model.SavedSegmentEntityType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {
@@ -94342,13 +93744,6 @@ func (ec *executionContext) marshalODashboardPayload2ᚖgithubᚗcomᚋhighlight
 	return ec._DashboardPayload(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx context.Context, sel ast.SelectionSet, v *model1.DateRange) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._DateRange(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOEnhancedUserDetailsResult2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancedUserDetailsResult(ctx context.Context, sel ast.SelectionSet, v *model.EnhancedUserDetailsResult) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -94567,22 +93962,6 @@ func (ec *executionContext) marshalOErrorSegment2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._ErrorSegment(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, v interface{}) (*model.ErrorState, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.ErrorState)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, sel ast.SelectionSet, v *model.ErrorState) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) marshalOErrorTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorTag(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorTag) graphql.Marshaler {
@@ -94992,13 +94371,6 @@ func (ec *executionContext) marshalOKeyType2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._LengthRange(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOLinearTeam2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLinearTeamᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LinearTeam) graphql.Marshaler {
@@ -95466,6 +94838,54 @@ func (ec *executionContext) unmarshalOSanitizedSlackChannelInput2ᚖgithubᚗcom
 	}
 	res, err := ec.unmarshalInputSanitizedSlackChannelInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSavedSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSavedSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.SavedSegment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSavedSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSavedSegment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOSavedSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSavedSegment(ctx context.Context, sel ast.SelectionSet, v *model1.SavedSegment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SavedSegment(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.Segment) graphql.Marshaler {
@@ -96026,47 +95446,6 @@ func (ec *executionContext) marshalOUserFingerprintCount2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._UserFingerprintCount(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
 }
 
 func (ec *executionContext) marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v *model1.UserProperty) graphql.Marshaler {

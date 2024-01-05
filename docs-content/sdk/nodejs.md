@@ -177,7 +177,7 @@ slug: nodejs
   </div>
   <div className="right">
     <code>
-      import * as http from 'http';
+      import * as http from "http";
       import { H } from "@highlight-run/node";
 
       const onError = (request: http.IncomingMessage, error: Error): void => {
@@ -186,6 +186,135 @@ slug: nodejs
           H.consumeError(error, parsed.secureSessionId, parsed.requestId)
         }
       };
+    </code>
+  </div>
+</section>
+
+<section className="section">
+  <div className="left">
+    <h3>H.runWithHeaders</h3>
+    <p>H.runWithHeaders() wraps its callback with a span named highlight-run-with-headers, and spreads Highlight's secureSessionId and requestId across all spans with matching a traceId.</p>
+    <h6>Method Parameters</h6>
+    <aside className="parameter">
+      <h5>headers<code>IncomingHttpHeaders</code> <code>required</code></h5>
+      <p>The headers sent with your network request.</p>
+    </aside>
+    <aside className="parameter">
+      <h5>callback <code>required</code></h5>
+      <p>Code to execute</p>
+    </aside>
+
+    <h6>Method Return</h6>
+    <aside className="parameter">
+      <h5>callback return value</h5>
+      <p>Returns a Promise that resolves to the callback's return value.</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+import * as http from "http";
+import { H } from "@highlight-run/node";
+
+const onError = async (request: http.IncomingMessage, error: Error): void => {
+    const callbackResult = await H.runWithHeaders&lt;ReturnType&gt;(req.headers, async () => {
+        const span = await H.startActiveSpan("custom-span-name", {});
+        // do work
+        span.end();
+      });
+};
+    </code>
+  </div>
+</section>
+
+<section className="section">
+  <div className="left">
+    <h3>H.startActiveSpan</h3>
+    <p>H.startActiveSpan() returns a Promise, which resolves to a span that carries all of the current Open Telemetry context as its parent span.</p>
+    <h6>Method Parameters</h6>
+    <aside className="parameter">
+      <h5>name<code>string</code> <code>required</code></h5>
+      <p>Custom span name</p>
+    </aside>
+    <aside className="parameter">
+      <h5>options <code>optional</code></h5>
+      <p>SpanOptions as exported from @opentelemetry/api</p>
+      <article className="innerParameterContainer">
+        <aside className="innerParameterHeading">options properties</aside>
+        <aside className="parameter">
+          <h5>kind <code>SpanKind</code> <code>optional</code></h5>
+          <p>import { SpanKind } from @opentelemetry/api</p>
+        </aside>
+        
+        <aside className="parameter">
+          <h5>attributes <code>SpanAttributes</code> <code>optional</code></h5>
+          <p>import { SpanAttributes } from @opentelemetry/api</p>
+        </aside>
+        
+        <aside className="parameter">
+          <h5>links <code>Link[]</code> <code>optional</code></h5>
+          <p>import { Link } from @opentelemetry/api</p>
+        </aside>
+        
+        <aside className="parameter">
+          <h5>startTime <code>TimeInput</code> <code>optional</code></h5>
+          <p>import { TimeInput } from @opentelemetry/api</p>
+        </aside>
+        
+        <aside className="parameter">
+          <h5>root <code>boolean</code> <code>optional</code></h5>
+          <p>The new span should be a root span</p>
+        </aside>
+        
+      </article>
+    </aside>
+
+    <h6>Method Return</h6>
+    <aside className="parameter">
+      <h5>span</h5>
+      <p>Returns a Promise that resolves to a custom span</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+import * as http from "http";
+import { H } from "@highlight-run/node";
+
+const span = await H.startActiveSpan("custom-span-name", {});
+        // do work
+        span.end();
+});
+    </code>
+  </div>
+</section>
+
+<section className="section">
+  <div className="left">
+    <h3>H.waitForFlush</h3>
+    <p>H.waitForFlush() waits for spans to be added to the queue and for the queue to empty.</p>
+    <h6>Method Parameters</h6>
+    <aside className="parameter">
+      <h5>expectedSpanNames<code>string[]</code> <code>optional</code></h5>
+      <p>Span names to wait for</p>
+    </aside>
+
+    <h6>Method Return</h6>
+    <aside className="parameter">
+      <h5>Promise</h5>
+      <p>Returns a Promise that resolves upon a successful flush</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+import * as http from "http";
+import { H } from "@highlight-run/node";
+
+const span = await H.startActiveSpan('my-custom-span-name');
+
+// do work
+
+span.end();
+
+await H.waitForFlush(['my-custom-span-name']);
     </code>
   </div>
 </section>

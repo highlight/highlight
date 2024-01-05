@@ -53,7 +53,7 @@ async def test_fastapi(mocker, highlight_setup, exception, response):
     request.url = "https://localhost:8080/api/foo"
 
     async def body():
-        return b"hello, world!"
+        yield "foo"
 
     request.body = body
 
@@ -81,7 +81,6 @@ async def test_fastapi(mocker, highlight_setup, exception, response):
             "http.request.headers.hello",
             "http.response.headers.hey",
             "http.response.headers.content-length",
-            "http.request.detail",
             "http.response.detail",
             "http.method",
             "http.url",

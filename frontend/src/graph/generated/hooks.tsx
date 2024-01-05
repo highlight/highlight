@@ -5194,6 +5194,179 @@ export type TestErrorEnhancementMutationOptions = Apollo.BaseMutationOptions<
 	Types.TestErrorEnhancementMutation,
 	Types.TestErrorEnhancementMutationVariables
 >
+export const DeleteSavedSegmentDocument = gql`
+	mutation DeleteSavedSegment($segment_id: ID!) {
+		deleteSavedSegment(segment_id: $segment_id)
+	}
+`
+export type DeleteSavedSegmentMutationFn = Apollo.MutationFunction<
+	Types.DeleteSavedSegmentMutation,
+	Types.DeleteSavedSegmentMutationVariables
+>
+
+/**
+ * __useDeleteSavedSegmentMutation__
+ *
+ * To run a mutation, you first call `useDeleteSavedSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSavedSegmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSavedSegmentMutation, { data, loading, error }] = useDeleteSavedSegmentMutation({
+ *   variables: {
+ *      segment_id: // value for 'segment_id'
+ *   },
+ * });
+ */
+export function useDeleteSavedSegmentMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteSavedSegmentMutation,
+		Types.DeleteSavedSegmentMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteSavedSegmentMutation,
+		Types.DeleteSavedSegmentMutationVariables
+	>(DeleteSavedSegmentDocument, baseOptions)
+}
+export type DeleteSavedSegmentMutationHookResult = ReturnType<
+	typeof useDeleteSavedSegmentMutation
+>
+export type DeleteSavedSegmentMutationResult =
+	Apollo.MutationResult<Types.DeleteSavedSegmentMutation>
+export type DeleteSavedSegmentMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteSavedSegmentMutation,
+	Types.DeleteSavedSegmentMutationVariables
+>
+export const EditSavedSegmentDocument = gql`
+	mutation EditSavedSegment(
+		$project_id: ID!
+		$id: ID!
+		$query: String!
+		$name: String!
+		$entity_type: SavedSegmentEntityType!
+	) {
+		editSavedSegment(
+			project_id: $project_id
+			id: $id
+			query: $query
+			name: $name
+			entity_type: $entity_type
+		)
+	}
+`
+export type EditSavedSegmentMutationFn = Apollo.MutationFunction<
+	Types.EditSavedSegmentMutation,
+	Types.EditSavedSegmentMutationVariables
+>
+
+/**
+ * __useEditSavedSegmentMutation__
+ *
+ * To run a mutation, you first call `useEditSavedSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditSavedSegmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editSavedSegmentMutation, { data, loading, error }] = useEditSavedSegmentMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      id: // value for 'id'
+ *      query: // value for 'query'
+ *      name: // value for 'name'
+ *      entity_type: // value for 'entity_type'
+ *   },
+ * });
+ */
+export function useEditSavedSegmentMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditSavedSegmentMutation,
+		Types.EditSavedSegmentMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditSavedSegmentMutation,
+		Types.EditSavedSegmentMutationVariables
+	>(EditSavedSegmentDocument, baseOptions)
+}
+export type EditSavedSegmentMutationHookResult = ReturnType<
+	typeof useEditSavedSegmentMutation
+>
+export type EditSavedSegmentMutationResult =
+	Apollo.MutationResult<Types.EditSavedSegmentMutation>
+export type EditSavedSegmentMutationOptions = Apollo.BaseMutationOptions<
+	Types.EditSavedSegmentMutation,
+	Types.EditSavedSegmentMutationVariables
+>
+export const CreateSavedSegmentDocument = gql`
+	mutation CreateSavedSegment(
+		$project_id: ID!
+		$name: String!
+		$query: String!
+		$entity_type: SavedSegmentEntityType!
+	) {
+		createSavedSegment(
+			project_id: $project_id
+			entity_type: $entity_type
+			name: $name
+			query: $query
+		) {
+			name
+			id
+		}
+	}
+`
+export type CreateSavedSegmentMutationFn = Apollo.MutationFunction<
+	Types.CreateSavedSegmentMutation,
+	Types.CreateSavedSegmentMutationVariables
+>
+
+/**
+ * __useCreateSavedSegmentMutation__
+ *
+ * To run a mutation, you first call `useCreateSavedSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSavedSegmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSavedSegmentMutation, { data, loading, error }] = useCreateSavedSegmentMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      query: // value for 'query'
+ *      entity_type: // value for 'entity_type'
+ *   },
+ * });
+ */
+export function useCreateSavedSegmentMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateSavedSegmentMutation,
+		Types.CreateSavedSegmentMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateSavedSegmentMutation,
+		Types.CreateSavedSegmentMutationVariables
+	>(CreateSavedSegmentDocument, baseOptions)
+}
+export type CreateSavedSegmentMutationHookResult = ReturnType<
+	typeof useCreateSavedSegmentMutation
+>
+export type CreateSavedSegmentMutationResult =
+	Apollo.MutationResult<Types.CreateSavedSegmentMutation>
+export type CreateSavedSegmentMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateSavedSegmentMutation,
+	Types.CreateSavedSegmentMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -9569,37 +9742,6 @@ export const GetSegmentsDocument = gql`
 			id
 			name
 			params {
-				user_properties {
-					name
-					value
-				}
-				excluded_properties {
-					name
-					value
-				}
-				track_properties {
-					name
-					value
-				}
-				date_range {
-					start_date
-					end_date
-				}
-				length_range {
-					min
-					max
-				}
-				os
-				browser
-				visited_url
-				referrer
-				identified
-				hide_viewed
-				first_time
-				app_versions
-				environments
-				device_id
-				show_live_sessions
 				query
 			}
 		}
@@ -9658,15 +9800,6 @@ export const GetErrorSegmentsDocument = gql`
 			id
 			name
 			params {
-				date_range {
-					start_date
-					end_date
-				}
-				os
-				browser
-				visited_url
-				state
-				event
 				query
 			}
 		}
@@ -9720,6 +9853,70 @@ export type GetErrorSegmentsLazyQueryHookResult = ReturnType<
 export type GetErrorSegmentsQueryResult = Apollo.QueryResult<
 	Types.GetErrorSegmentsQuery,
 	Types.GetErrorSegmentsQueryVariables
+>
+export const GetSavedSegmentsDocument = gql`
+	query GetSavedSegments(
+		$project_id: ID!
+		$entity_type: SavedSegmentEntityType!
+	) {
+		saved_segments(project_id: $project_id, entity_type: $entity_type) {
+			id
+			name
+			params {
+				query
+			}
+		}
+	}
+`
+
+/**
+ * __useGetSavedSegmentsQuery__
+ *
+ * To run a query within a React component, call `useGetSavedSegmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSavedSegmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSavedSegmentsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      entity_type: // value for 'entity_type'
+ *   },
+ * });
+ */
+export function useGetSavedSegmentsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSavedSegmentsQuery,
+		Types.GetSavedSegmentsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSavedSegmentsQuery,
+		Types.GetSavedSegmentsQueryVariables
+	>(GetSavedSegmentsDocument, baseOptions)
+}
+export function useGetSavedSegmentsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSavedSegmentsQuery,
+		Types.GetSavedSegmentsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSavedSegmentsQuery,
+		Types.GetSavedSegmentsQueryVariables
+	>(GetSavedSegmentsDocument, baseOptions)
+}
+export type GetSavedSegmentsQueryHookResult = ReturnType<
+	typeof useGetSavedSegmentsQuery
+>
+export type GetSavedSegmentsLazyQueryHookResult = ReturnType<
+	typeof useGetSavedSegmentsLazyQuery
+>
+export type GetSavedSegmentsQueryResult = Apollo.QueryResult<
+	Types.GetSavedSegmentsQuery,
+	Types.GetSavedSegmentsQueryVariables
 >
 export const IsIntegratedDocument = gql`
 	query IsIntegrated($project_id: ID!) {

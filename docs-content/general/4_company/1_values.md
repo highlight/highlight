@@ -22,6 +22,6 @@ Given that most of the things we build are zero to one, there's often no better 
 
 ## ABC: Always be chilling....
 
-Though working at highlight.io can be fast-paced at times, we keep it chill. This means aking time for social events, taking time off, and learning about each other beyond just work. We're all humans, and we all have lives outside of work.
+Though working at highlight.io can be fast-paced at times, we keep it chill. This means taking time for social events, taking time off, and learning about each other beyond just work. We're all humans, and we all have lives outside of work.
 
 ![](/images/ohyeah.gif.webp)

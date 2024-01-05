@@ -1,1 +1,1 @@
-export type ContextType = 'Session' | 'Error'
+export type ContextType = 'Session' | 'Error' | 'Log' | 'Trace'

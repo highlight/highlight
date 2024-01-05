@@ -11,9 +11,14 @@ function handleError(
 	callback: (e: ErrorMessage) => void,
 	event: any,
 	source: string | undefined,
-	error: Error,
+	error?: Error,
 ) {
-	const res = ErrorStackParser.parse(error)
+	let res: ErrorStackParser.StackFrame[] = []
+	try {
+		res = ErrorStackParser.parse(error ?? event)
+	} catch (e) {
+		res = ErrorStackParser.parse(new Error())
+	}
 	if (event instanceof Error) {
 		event = event.message
 	}
@@ -42,7 +47,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		colno: number | undefined,
 		error: Error | undefined,
 	): void => {
-		handleError(callback, event, source, error ?? Error())
+		handleError(callback, event, source, error)
 	})
 
 	const initialOnUnhandledRejection = (window.onunhandledrejection = (
@@ -55,34 +60,33 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 					callback,
 					event.reason,
 					event.type,
-					hPromise.getStack() ?? Error(),
+					hPromise.getStack(),
 				)
 			} else {
-				handleError(callback, event.reason, event.type, Error())
+				handleError(callback, event.reason, event.type)
 			}
 		}
 	})
 
-	const initialPromise = window.Promise.constructor
-	window.Promise.constructor = function (
-		executor: (
-			resolve: (value: any | PromiseLike<any>) => void,
-			reject: (reason?: any) => void,
-		) => void,
-	) {
-		// @ts-ignore
-		this.promiseCreationError = new Error()
-		initialPromise(executor)
-	}
-
-	// @ts-ignore
-	window.Promise.prototype.getStack = function () {
-		// @ts-ignore
-		return this.promiseCreationError
+	const initialPromise = window.Promise
+	window.Promise = class Promise<T> extends initialPromise<T> {
+		private readonly promiseCreationError: Error
+		constructor(
+			executor: (
+				resolve: (value: T | PromiseLike<T>) => void,
+				reject: (reason?: Error) => void,
+			) => void,
+		) {
+			super(executor)
+			this.promiseCreationError = new Error()
+		}
+		getStack() {
+			return this.promiseCreationError
+		}
 	}
 
 	return () => {
-		window.Promise.constructor = initialPromise
+		window.Promise = initialPromise
 		window.onunhandledrejection = initialOnUnhandledRejection
 		window.onerror = initialOnError
 	}
@@ -97,8 +101,8 @@ const removeHighlightFrameIfExists = (
 
 	const firstFrame = frames[0]
 	if (
-		(firstFrame.functionName === 'console.error' &&
-			firstFrame.fileName?.includes('highlight.run')) ||
+		firstFrame.fileName?.includes('highlight.run') ||
+		firstFrame.fileName?.includes('highlight.io') ||
 		firstFrame.functionName === 'new HighlightPromise'
 	) {
 		return frames.slice(1)

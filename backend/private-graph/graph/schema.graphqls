@@ -474,6 +474,11 @@ enum SortDirection {
 	DESC
 }
 
+enum SavedSegmentEntityType {
+	Log
+	Trace
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -585,6 +590,10 @@ type Workspace {
 	traces_max_cents: Int
 }
 
+type SearchParams {
+	query: String
+}
+
 type Segment {
 	id: ID!
 	name: String!
@@ -595,7 +604,15 @@ type Segment {
 type ErrorSegment {
 	id: ID!
 	name: String!
-	params: ErrorSearchParams!
+	params: SearchParams!
+	project_id: ID!
+}
+
+type SavedSegment {
+	id: ID!
+	name: String!
+	entity_type: SavedSegmentEntityType!
+	params: SearchParams!
 	project_id: ID!
 }
 
@@ -1137,27 +1154,6 @@ input NetworkHistogramParamsInput {
 	attribute: NetworkRequestAttribute
 }
 
-type SearchParams {
-	user_properties: [UserProperty]
-	excluded_properties: [UserProperty]
-	track_properties: [UserProperty]
-	excluded_track_properties: [UserProperty]
-	environments: [String]
-	app_versions: [String]
-	date_range: DateRange
-	length_range: LengthRange
-	os: String
-	browser: String
-	visited_url: String
-	device_id: String
-	referrer: String
-	identified: Boolean
-	hide_viewed: Boolean
-	first_time: Boolean
-	show_live_sessions: Boolean
-	query: String
-}
-
 input AdminAboutYouDetails {
 	first_name: String!
 	last_name: String!
@@ -1218,16 +1214,6 @@ input LogAlertInput {
 	disabled: Boolean!
 	default: Boolean
 	query: String!
-}
-
-type ErrorSearchParams {
-	date_range: DateRange
-	os: String
-	browser: String
-	visited_url: String
-	state: ErrorState
-	event: String
-	query: String
 }
 
 type DateRange {
@@ -1984,6 +1970,10 @@ type Query {
 	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
 	segments(project_id: ID!): [Segment]
 	error_segments(project_id: ID!): [ErrorSegment]
+	saved_segments(
+		project_id: ID!
+		entity_type: SavedSegmentEntityType!
+	): [SavedSegment]
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
@@ -2229,6 +2219,20 @@ type Mutation {
 		name: String!
 	): Boolean
 	deleteErrorSegment(segment_id: ID!): Boolean
+	createSavedSegment(
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): SavedSegment
+	editSavedSegment(
+		id: ID!
+		project_id: ID!
+		name: String!
+		entity_type: SavedSegmentEntityType!
+		query: String!
+	): Boolean
+	deleteSavedSegment(segment_id: ID!): Boolean
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
 	createOrUpdateStripeSubscription(workspace_id: ID!): String

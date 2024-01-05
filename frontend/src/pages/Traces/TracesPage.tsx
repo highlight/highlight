@@ -196,6 +196,7 @@ export const TracesPage: React.FC = () => {
 						onDatesChange={handleDatesChange}
 						fetchKeysLazyQuery={useGetTracesKeysLazyQuery}
 						fetchValuesLazyQuery={useGetTracesKeyValuesLazyQuery}
+						savedSegmentType="Trace"
 					/>
 					<Box
 						display="flex"

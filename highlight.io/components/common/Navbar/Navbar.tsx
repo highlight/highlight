@@ -70,7 +70,7 @@ const Navbar = ({
 			setScrolled(false)
 		}
 
-		if (window.scrollY > 60) {
+		if (window.scrollY > 120) {
 			setAtTop(false)
 		} else {
 			setAtTop(true)
@@ -115,9 +115,13 @@ const Navbar = ({
 							`bg-${bg ? bg : ''} transition-all ${
 								bg && atTop ? 'bg-opacity-10' : 'bg-opacity-100'
 							}`,
+							`${
+								atTop
+									? 'border-opacity-0'
+									: 'border-opacity-100'
+							} border-b-[1px] border-divider-on-dark transition-color duration-300`,
 							{
 								[styles.openHeader]: isOpen,
-								[styles.headerBorder]: prevY != 0,
 							},
 						)}
 					>

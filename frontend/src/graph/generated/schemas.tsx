@@ -596,22 +596,11 @@ export type ErrorResults = {
 	totalCount: Scalars['Int64']
 }
 
-export type ErrorSearchParams = {
-	__typename?: 'ErrorSearchParams'
-	browser?: Maybe<Scalars['String']>
-	date_range?: Maybe<DateRange>
-	event?: Maybe<Scalars['String']>
-	os?: Maybe<Scalars['String']>
-	query?: Maybe<Scalars['String']>
-	state?: Maybe<ErrorState>
-	visited_url?: Maybe<Scalars['String']>
-}
-
 export type ErrorSegment = {
 	__typename?: 'ErrorSegment'
 	id: Scalars['ID']
 	name: Scalars['String']
-	params: ErrorSearchParams
+	params: SearchParams
 	project_id: Scalars['ID']
 }
 
@@ -1051,6 +1040,7 @@ export type Mutation = {
 	createMetricMonitor?: Maybe<MetricMonitor>
 	createOrUpdateStripeSubscription?: Maybe<Scalars['String']>
 	createProject?: Maybe<Project>
+	createSavedSegment?: Maybe<SavedSegment>
 	createSegment?: Maybe<Segment>
 	createSessionAlert?: Maybe<SessionAlert>
 	createSessionComment?: Maybe<SessionComment>
@@ -1065,6 +1055,7 @@ export type Mutation = {
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	deleteProject?: Maybe<Scalars['Boolean']>
+	deleteSavedSegment?: Maybe<Scalars['Boolean']>
 	deleteSegment?: Maybe<Scalars['Boolean']>
 	deleteSessionAlert?: Maybe<SessionAlert>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
@@ -1072,6 +1063,7 @@ export type Mutation = {
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
+	editSavedSegment?: Maybe<Scalars['Boolean']>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editServiceGithubSettings?: Maybe<Service>
 	editWorkspace?: Maybe<Workspace>
@@ -1241,6 +1233,13 @@ export type MutationCreateProjectArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type MutationCreateSavedSegmentArgs = {
+	entity_type: SavedSegmentEntityType
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
+}
+
 export type MutationCreateSegmentArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
@@ -1325,6 +1324,10 @@ export type MutationDeleteProjectArgs = {
 	id: Scalars['ID']
 }
 
+export type MutationDeleteSavedSegmentArgs = {
+	segment_id: Scalars['ID']
+}
+
 export type MutationDeleteSegmentArgs = {
 	segment_id: Scalars['ID']
 }
@@ -1378,6 +1381,14 @@ export type MutationEditProjectSettingsArgs = {
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
 	sampling?: InputMaybe<SamplingInput>
+}
+
+export type MutationEditSavedSegmentArgs = {
+	entity_type: SavedSegmentEntityType
+	id: Scalars['ID']
+	name: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
 }
 
 export type MutationEditSegmentArgs = {
@@ -1875,6 +1886,7 @@ export type Query = {
 	rage_clicks: Array<RageClickEvent>
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
+	saved_segments?: Maybe<Array<Maybe<SavedSegment>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
 	serviceByName?: Maybe<Service>
@@ -2406,6 +2418,11 @@ export type QueryResourcesArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QuerySaved_SegmentsArgs = {
+	entity_type: SavedSegmentEntityType
+	project_id: Scalars['ID']
+}
+
 export type QuerySegmentsArgs = {
 	project_id: Scalars['ID']
 }
@@ -2802,26 +2819,23 @@ export type SanitizedSlackChannelInput = {
 	webhook_channel_name?: InputMaybe<Scalars['String']>
 }
 
+export type SavedSegment = {
+	__typename?: 'SavedSegment'
+	entity_type: SavedSegmentEntityType
+	id: Scalars['ID']
+	name: Scalars['String']
+	params: SearchParams
+	project_id: Scalars['ID']
+}
+
+export enum SavedSegmentEntityType {
+	Log = 'Log',
+	Trace = 'Trace',
+}
+
 export type SearchParams = {
 	__typename?: 'SearchParams'
-	app_versions?: Maybe<Array<Maybe<Scalars['String']>>>
-	browser?: Maybe<Scalars['String']>
-	date_range?: Maybe<DateRange>
-	device_id?: Maybe<Scalars['String']>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	excluded_properties?: Maybe<Array<Maybe<UserProperty>>>
-	excluded_track_properties?: Maybe<Array<Maybe<UserProperty>>>
-	first_time?: Maybe<Scalars['Boolean']>
-	hide_viewed?: Maybe<Scalars['Boolean']>
-	identified?: Maybe<Scalars['Boolean']>
-	length_range?: Maybe<LengthRange>
-	os?: Maybe<Scalars['String']>
 	query?: Maybe<Scalars['String']>
-	referrer?: Maybe<Scalars['String']>
-	show_live_sessions?: Maybe<Scalars['Boolean']>
-	track_properties?: Maybe<Array<Maybe<UserProperty>>>
-	user_properties?: Maybe<Array<Maybe<UserProperty>>>
-	visited_url?: Maybe<Scalars['String']>
 }
 
 export type Segment = {
