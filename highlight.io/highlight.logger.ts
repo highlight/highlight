@@ -8,7 +8,10 @@ let pinoConfig = {
 	level: 'debug',
 } as LoggerOptions
 
-if (process.env.NEXT_RUNTIME === 'nodejs') {
+if (
+	typeof process.env.NEXT_RUNTIME === 'undefined' ||
+	process.env.NEXT_RUNTIME === 'nodejs'
+) {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
 	pinoConfig = {
