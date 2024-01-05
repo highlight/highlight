@@ -27,7 +27,7 @@ export const GraphQLRequest = async <T extends any>(
 	}
 	if (process.env.NODE_ENV !== 'development' && delay) {
 		// delay hygraph requests during prerendering to avoid too many concurrent requests
-		await new Promise((r) => setTimeout(r, Math.random() * 5000))
+		await new Promise((r) => setTimeout(r, Math.random() * 1000))
 	}
 	return await graphcms.request<T>(doc, variables)
 }
