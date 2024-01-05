@@ -27,7 +27,7 @@ func TestCoimplexSqlForSearch(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"SELECT * FROM t WHERE ((((SpanName = 'Chris Schmitz' AND Duration > '1000') AND Level = 'info') AND (Source = 'backend' OR Source = 'frontend')) OR ((((ServiceName <> 'private-graph' AND SpanName = 'gorm.Query') AND (SpanName <> 'testing' OR SpanName <> 'testing2')) AND SpanName <> 'body query') AND SpanName <> 'asdf'))",
+		"SELECT * FROM t WHERE ((((SpanName = 'Chris Schmitz' AND Duration > '1000') AND Level = 'info') AND (Source = 'backend' OR Source = 'frontend')) OR ((((ServiceName <> 'private-graph' AND SpanName = 'gorm.Query') AND (SpanName <> 'testing' OR SpanName <> 'testing2')) AND SpanName = 'body query') AND SpanName = 'asdf'))",
 		sql,
 	)
 }

@@ -90,6 +90,7 @@ func (s *searchListener) ExitNegated_search_expr(ctx *parser.Negated_search_expr
 
 func (s *searchListener) EnterBody_search_expr(ctx *parser.Body_search_exprContext) {
 	s.currentKey = s.bodyColumn
+	s.currentOp = "="
 }
 func (s *searchListener) ExitBody_search_expr(ctx *parser.Body_search_exprContext) {}
 
