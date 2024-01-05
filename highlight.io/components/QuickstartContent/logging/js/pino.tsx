@@ -21,20 +21,21 @@ export const JSPinoHTTPJSONLogContent: QuickStartContent = {
   serviceVersion: 'git-sha',
 } as NodeOptions
 
-let pinoConfig = {
+
+const pinoConfig = {
   level: 'debug',
+  transport: {
+    target: '@highlight-run/pino',
+    options: highlightConfig,
+  },
 } as LoggerOptions
 
-if (process.env.NEXT_RUNTIME === 'nodejs') {
+if (
+  typeof process.env.NEXT_RUNTIME === 'undefined' ||
+  process.env.NEXT_RUNTIME === 'nodejs'
+) {
   const { H } = require('@highlight-run/node')
   H.init(highlightConfig)
-  pinoConfig = {
-    ...pinoConfig,
-    transport: {
-      target: '@highlight-run/pino',
-      options: highlightConfig,
-    },
-  }
 }
 
 import type { LoggerOptions } from 'pino'

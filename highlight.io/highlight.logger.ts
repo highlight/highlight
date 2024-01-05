@@ -6,6 +6,10 @@ const highlightConfig = {
 
 let pinoConfig = {
 	level: 'debug',
+	transport: {
+		target: '@highlight-run/pino',
+		options: highlightConfig,
+	},
 } as LoggerOptions
 
 if (
@@ -14,13 +18,6 @@ if (
 ) {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
-	pinoConfig = {
-		...pinoConfig,
-		transport: {
-			target: '@highlight-run/pino',
-			options: highlightConfig,
-		},
-	}
 }
 
 import type { LoggerOptions } from 'pino'
