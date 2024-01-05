@@ -11,7 +11,7 @@ from highlight_io.integrations.requests import RequestsIntegration
 
 app = Flask(__name__)
 H = highlight_io.H(
-    "3",
+    "1",
     integrations=[FlaskIntegration()],
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",

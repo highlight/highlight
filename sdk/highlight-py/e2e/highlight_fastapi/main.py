@@ -1,5 +1,7 @@
 """ Run with `poetry run uvicorn main:app` """
 import logging
+import random
+
 from fastapi import FastAPI, Request, HTTPException, APIRouter
 from e2e.highlight_fastapi.work import add
 
@@ -11,7 +13,6 @@ H = highlight_io.H(
     "1",
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
-    integrations=[CeleryIntegration()],
     service_name="my-fastapi-app",
     service_version="1.0.0",
     environment="e2e-test",
@@ -49,6 +50,7 @@ async def celery(request: Request):
     task = add.delay(1, 2)
     value = task.get()
     return {"message": f"Celery job - {value}"}
+
 
 @router.get("/not-found")
 def health_check():

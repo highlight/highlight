@@ -6,7 +6,6 @@ H = highlight_io.H(
     "1",
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
-    integrations=[CeleryIntegration()],
     service_name="my-celery-worker",
     service_version="1.0.0",
     environment="e2e-test",
