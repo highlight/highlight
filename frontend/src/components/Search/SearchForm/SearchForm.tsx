@@ -369,7 +369,6 @@ export const Search: React.FC<{
 			activePart.operator.length +
 			activePart.value.length
 
-		debugger
 		let newQuery = stringifySearchQuery(queryParts)
 
 		// Add space if it's the last part and a value is selected so people can
@@ -659,11 +658,11 @@ export const Search: React.FC<{
 	)
 }
 
-const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
+export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 	name?.replaceAll("'", ''),
 )
 
-const QueryPart: React.FC<{
+export const QueryPart: React.FC<{
 	cursorIndex: number
 	index: number
 	tokenGroup: TokenGroup
@@ -734,7 +733,12 @@ const QueryPart: React.FC<{
 	)
 }
 
-const Token = ({ text }: { text: string; error?: string }): JSX.Element => {
+export const Token = ({
+	text,
+}: {
+	text: string
+	error?: string
+}): JSX.Element => {
 	if (SEPARATORS.includes(text)) {
 		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
 	} else {
