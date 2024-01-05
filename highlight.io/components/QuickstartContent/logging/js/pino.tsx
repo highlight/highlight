@@ -15,31 +15,34 @@ export const JSPinoHTTPJSONLogContent: QuickStartContent = {
 				'Make sure to set the `project` and `service` query string parameters.',
 			code: [
 				{
-					text: `import { H, Handlers } from '@highlight-run/node'
-
-/** @type {import('@highlight-run/node').NodeOptions} */
-const config = {
+					text: `const highlightConfig = {
   projectID: '<YOUR_PROJECT_ID>',
-  serviceName: 'my-pino-app',
-  serviceVersion: 'git-sha'
-}
-// the H.init call must be invoked before importing pino to attribute logs to the current context
-H.init(config)
+  serviceName: 'my-pino-logger',
+  serviceVersion: 'git-sha',
+} as NodeOptions
 
-import pino from 'pino'
+let pinoConfig = {
+  level: 'debug',
+} as LoggerOptions
 
-const logger = pino({
-    level: 'info',
+if (process.env.NEXT_RUNTIME === 'nodejs') {
+  const { H } = require('@highlight-run/node')
+  H.init(highlightConfig)
+  pinoConfig = {
+    ...pinoConfig,
     transport: {
-        targets: [
-            {
-                target: '@highlight-run/pino',
-                options: config,
-                level: 'info'
-            },
-        ],
+      target: '@highlight-run/pino',
+      options: highlightConfig,
     },
-})
+  }
+}
+
+import type { LoggerOptions } from 'pino'
+import pino from 'pino'
+import type { NodeOptions } from '@highlight-run/node'
+
+const logger = pino(pinoConfig)
+
 
 logger.info({ key: 'my-value' }, 'hello, highlight.io!')`,
 					language: 'js',
