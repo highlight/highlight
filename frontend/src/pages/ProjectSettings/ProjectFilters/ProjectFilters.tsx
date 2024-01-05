@@ -29,13 +29,14 @@ import {
 	Badge,
 	Box,
 	Callout,
-	defaultPresets,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	Form,
 	getNow,
 	Heading,
 	IconSolidCheveronRight,
 	IconSolidPencil,
-	PreviousDateRangePicker,
+	presetStartDate,
 	Stack,
 	Tag,
 	Text,
@@ -142,7 +143,7 @@ export const ProjectProductFilters: React.FC<{
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
 	const [dateRange, setDateRange] = React.useState<DateRange>({
-		start: defaultPresets[1].startDate,
+		start: presetStartDate(DEFAULT_TIME_PRESETS[1]),
 		end: getNow().toDate(),
 	})
 	const { data, loading } = useGetProjectSettingsQuery({
@@ -460,6 +461,8 @@ export const ProjectProductFilters: React.FC<{
 							product === ProductType.Traces ? (
 								<SearchForm
 									initialQuery={query}
+									startDate={dateRange.start}
+									endDate={dateRange.end}
 									onFormSubmit={(value: string) => {
 										formStore.setValue(
 											'exclusionQuery',
@@ -469,11 +472,12 @@ export const ProjectProductFilters: React.FC<{
 									disableSearch={view}
 									hideDatePicker
 									hideCreateAlert
-									startDate={dateRange.start}
-									endDate={dateRange.end}
 									onDatesChange={() => {}}
-									presets={defaultPresets}
-									minDate={defaultPresets[5].startDate}
+									datePickerValue={{}}
+									presets={DEFAULT_TIME_PRESETS}
+									minDate={presetStartDate(
+										DEFAULT_TIME_PRESETS[5],
+									)}
 									timeMode="fixed-range"
 									fetchKeysLazyQuery={
 										product === ProductType.Logs
@@ -568,17 +572,26 @@ export const ProjectProductFilters: React.FC<{
 					<Text weight="medium" size="xSmall" color="weak">
 						{label}s
 					</Text>
-					<PreviousDateRangePicker
-						selectedDates={[dateRange.start, dateRange.end]}
-						onDatesChange={(dates) =>
-							setDateRange({
-								start: dates[0],
-								end: dates[1],
-							})
-						}
-						presets={[defaultPresets[1], defaultPresets[3]]}
+					{/* TODO(spenny): figure this out */}
+					<DateRangePicker
+						selectedValue={{
+							startDate: dateRange.start,
+							endDate: dateRange.end,
+						}}
+						onDatesChange={(startDate, endDate) => {
+							if (startDate && endDate) {
+								setDateRange({
+									start: startDate,
+									end: endDate,
+								})
+							}
+						}}
+						presets={[
+							DEFAULT_TIME_PRESETS[1],
+							DEFAULT_TIME_PRESETS[3],
+						]}
 						noCustom
-						minDate={defaultPresets[5].startDate}
+						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
 						kind="secondary"
 						size="medium"
 						emphasis="low"
