@@ -71,6 +71,7 @@ const TimeRangePicker: React.FC<React.PropsWithChildren<unknown>> = () => {
 		setCustomDateRange([newStartDate, newEndDate])
 	}
 
+	// TODO(spenny): should this use some sort of preset state?
 	return (
 		<PreviousDateRangePicker
 			presets={presets}

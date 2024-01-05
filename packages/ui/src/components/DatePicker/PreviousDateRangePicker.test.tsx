@@ -23,6 +23,7 @@ const presets: Preset[] = [
 	},
 ]
 
+// TODO(spenny): add relevant tests
 describe('getLabel', () => {
 	it('finds the matching preset', async () => {
 		const selectedValue = { startDate: fourHoursAgo, endDate: now }

@@ -23,6 +23,7 @@ import {
 	IconSolidCheveronUp,
 	IconSolidSpeakerphone,
 	Menu,
+	presetStartDate,
 	PreviousDateRangePicker,
 	Stack,
 	Tag,
@@ -68,8 +69,9 @@ export const LogAlertPage = () => {
 	const [startDateParam] = useQueryParam('start_date', DateTimeParam)
 	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
 
+	// TODO(spenny): should we use search state
 	const [startDate, setStartDate] = useState(
-		startDateParam ?? moment().subtract(15, 'minutes').toDate(),
+		startDateParam ?? presetStartDate(defaultPresets[0]),
 	)
 
 	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())
@@ -447,6 +449,7 @@ export const LogAlertPage = () => {
 													Log monitor
 												</Text>
 											</Box>
+											{/* TODO(spenny): update with preset state */}
 											<PreviousDateRangePicker
 												selectedValue={{
 													startDate: selectedDates[0],
@@ -454,9 +457,9 @@ export const LogAlertPage = () => {
 												}}
 												onDatesChange={handleDateChange}
 												presets={defaultPresets}
-												minDate={moment()
-													.subtract(30, 'days')
-													.toDate()}
+												minDate={presetStartDate(
+													defaultPresets[5],
+												)}
 												kind="secondary"
 												size="medium"
 												emphasis="low"

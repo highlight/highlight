@@ -55,6 +55,7 @@ import {
 	IconSolidX,
 	Menu,
 	Popover,
+	presetStartDate,
 	PreviousDateRangePicker,
 	Tag,
 	Text,
@@ -1196,6 +1197,7 @@ enum SegmentModalState {
 }
 
 const defaultMinDate = getNow().subtract(90, 'days').toDate()
+const defaultPreset = defaultPresets[5]
 
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
@@ -1355,8 +1357,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		from = new Date(fromStr)
 		to = new Date(toStr)
 	}
+	// TODO(spenny): check to use presets
 	const [dateRange, setDateRange] = useState<Date[]>([
-		from ?? moment().subtract(30, 'days').toDate(), // Start at 30days
+		from ?? presetStartDate(defaultPreset), // Start at 30days
 		to ?? new Date(getNow().toISOString()),
 	])
 
@@ -1746,6 +1749,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				borderBottom="secondary"
 				cssClass={styles.controlBar}
 			>
+				{/* TODO(spenny): convert this to search time */}
 				<PreviousDateRangePicker
 					presets={defaultPresets}
 					selectedValue={{

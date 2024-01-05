@@ -94,9 +94,9 @@ export const TraceLogs: React.FC = () => {
 				>
 					<SearchForm
 						initialQuery={query}
+						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
-						onFormSubmit={setQuery}
 						onDatesChange={() => null}
 						datePickerValue={{}}
 						presets={[]}

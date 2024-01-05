@@ -10,6 +10,7 @@ import {
 	Box,
 	Column,
 	Container,
+	defaultPresets,
 	Form,
 	FormState,
 	getNow,
@@ -18,6 +19,7 @@ import {
 	IconSolidCheveronUp,
 	IconSolidSpeakerphone,
 	Menu,
+	presetStartDate,
 	Stack,
 	Tag,
 	Text,
@@ -52,11 +54,12 @@ import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitl
 import * as styles from './styles.css'
 
 export const ErrorAlertPage = () => {
+	// TODO(spenny): should we use search time?
 	const [startDateParam] = useQueryParam('start_date', DateTimeParam)
 	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
 
 	const [startDate, setStartDate] = useState(
-		startDateParam ?? getNow().subtract(1, 'day').toDate(),
+		startDateParam ?? presetStartDate(defaultPresets[0]),
 	)
 
 	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())

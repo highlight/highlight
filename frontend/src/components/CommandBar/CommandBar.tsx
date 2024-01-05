@@ -1,4 +1,4 @@
-import { now, PRESETS } from '@components/CommandBar/constants'
+import { last30Days, now, PRESETS } from '@components/CommandBar/constants'
 import {
 	Attribute,
 	ATTRIBUTES,
@@ -29,6 +29,7 @@ import {
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
+	presetStartDate,
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
@@ -37,7 +38,6 @@ import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
 import isEqual from 'lodash/isEqual'
-import moment from 'moment'
 import React, { useRef } from 'react'
 
 import * as styles from './style.css'
@@ -105,10 +105,10 @@ const SearchBar = () => {
 	)
 
 	const inputRef = useRef<HTMLInputElement>(null)
+	// TODO(spenny): use selected preset here
 	const isDirty =
 		!!query ||
-		selectedDates[0].getTime() !==
-			moment().subtract(30, 'days').toDate().getTime()
+		selectedDates[0].getTime() !== presetStartDate(last30Days).getTime()
 
 	const searchAttribute = useAttributeSearch(formStore)
 
@@ -133,9 +133,10 @@ const SearchBar = () => {
 			if (e.metaKey || e.ctrlKey) {
 				searchAttribute(currentAttribute, {
 					newTab: true,
+					// TODO(spenny): use selected preset here
 					withDate:
 						selectedDates[0].getTime() !==
-						moment().subtract(30, 'days').toDate().getTime(),
+						presetStartDate(last30Days).getTime(),
 				})
 			} else {
 				formStore.submit()
@@ -184,6 +185,7 @@ const SearchBar = () => {
 							/>
 						) : null}
 					</Box>
+					{/* TODO(spenny): update to use relative time, doesn't use url params */}
 					<PreviousDateRangePicker
 						selectedValue={{
 							startDate: selectedDates[0],
@@ -251,11 +253,12 @@ const SectionRow = ({
 			onClick={(e) => {
 				setTouched(true)
 				searchAttribute(attribute, {
+					// TODO: use selected preset here
 					withDate:
 						formStore
 							.getValue(formStore.names.selectedDates)[0]
 							.getTime() !==
-						moment().subtract(30, 'days').toDate().getTime(),
+						presetStartDate(last30Days).getTime(),
 					newTab: e.metaKey || e.ctrlKey,
 				})
 			}}

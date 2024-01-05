@@ -411,6 +411,7 @@ type OpenSearchQuery = {
 	childQuery?: any
 }
 
+// TODO(spenny): make sure this works
 const getDefaultTimeRangeRule = (timeRangeField: SelectOption): RuleProps => {
 	const defaultPreset = defaultPresets[5]
 	const period = {
