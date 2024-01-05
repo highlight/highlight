@@ -15,7 +15,7 @@ const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
 const CLEANUP_THRESHOLD_MB = 4000
 export const INDEXEDDB_ENABLED_LOCAL_STORAGE_PREFIX =
-	'highlight-indexeddb-enabled-'
+	'highlight-indexeddb-enabled-v2-'
 
 const getLocalStorage = function (): Storage | undefined {
 	try {
@@ -34,7 +34,7 @@ export const isIndexedDBEnabled = function () {
 	if (!navigator?.storage?.estimate) {
 		return false
 	}
-	const defaultEnabled = import.meta.env.MODE !== 'development'
+	const defaultEnabled = false
 	const storage = getLocalStorage()
 	if (!storage) {
 		return defaultEnabled
