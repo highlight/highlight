@@ -1,0 +1,129 @@
+import {
+	Box,
+	IconSolidExclamationCircle,
+	IconSolidXCircle,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
+import clsx from 'clsx'
+
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
+import { TokenGroup } from '@/components/Search/SearchForm/utils'
+
+import * as styles from './SearchForm.css'
+
+export const QueryPart: React.FC<{
+	cursorIndex: number
+	index: number
+	tokenGroup: TokenGroup
+	onRemoveItem: (index: number) => void
+}> = ({ cursorIndex, index, tokenGroup, onRemoveItem }) => {
+	const active =
+		cursorIndex >= tokenGroup.start && cursorIndex <= tokenGroup.stop + 1
+	const errorToken = tokenGroup.tokens.find(
+		(token) => (token as any).errorMessage !== undefined,
+	)
+	const error = (errorToken as any)?.errorMessage
+
+	if (
+		tokenGroup.tokens.length === 1 &&
+		tokenGroup.tokens[0].type === SearchGrammarParser.EOF
+	) {
+		return null
+	}
+
+	if (tokenGroup.type !== 'expression') {
+		return (
+			<>
+				{tokenGroup.tokens.map((token, index) => {
+					const { text } = token
+					const key = `${text}-${index}`
+
+					return <Token key={key} text={text} />
+				})}
+			</>
+		)
+	}
+
+	return (
+		<>
+			<Tooltip
+				placement="bottom"
+				open={active && !!error}
+				trigger={
+					<Box
+						cssClass={clsx(styles.comboboxTag, {
+							[styles.comboboxTagActive]: active,
+							[styles.comboboxTagError]: !!error,
+						})}
+						py="6"
+						position="relative"
+						whiteSpace="nowrap"
+					>
+						<IconSolidXCircle
+							className={styles.comboboxTagClose}
+							size={13}
+							onClick={() => onRemoveItem(index)}
+						/>
+
+						{error && (
+							<IconSolidExclamationCircle
+								className={styles.comboboxTagErrorIndicator}
+								size={13}
+							/>
+						)}
+
+						{tokenGroup.tokens.map((token, index) => {
+							const { text, type } = token
+							const key = `${text}-${index}`
+
+							if (type === SearchGrammarParser.EOF) {
+								return null
+							}
+
+							return <Token key={key} text={text} />
+						})}
+
+						<Box cssClass={styles.comboboxTagBackground} />
+					</Box>
+				}
+			>
+				{error ? <ErrorRenderer error={error} /> : null}
+			</Tooltip>
+		</>
+	)
+}
+
+export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
+	name?.replaceAll("'", ''),
+)
+
+export const Token = ({
+	text,
+}: {
+	text: string
+	error?: string
+}): JSX.Element => {
+	if (SEPARATORS.includes(text)) {
+		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
+	} else {
+		return <Box style={{ zIndex: 1 }}>{text}</Box>
+	}
+}
+
+const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
+	if (error.endsWith("expecting ')'") || error.startsWith("missing ')'")) {
+		error = 'Missing closing parenthesis'
+	} else if (
+		error.startsWith("mismatched input '\"'") ||
+		error.startsWith("extraneous input '\"' expecting")
+	) {
+		error = 'Missing closing quote'
+	}
+
+	return (
+		<Box p="4">
+			<Text>{error}</Text>
+		</Box>
+	)
+}

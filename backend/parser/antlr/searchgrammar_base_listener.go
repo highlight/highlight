@@ -141,14 +141,8 @@ func (s *BaseSearchGrammarListener) EnterBin_op(ctx *Bin_opContext) {}
 // ExitBin_op is called when production bin_op is exited.
 func (s *BaseSearchGrammarListener) ExitBin_op(ctx *Bin_opContext) {}
 
-// EnterId_search_value is called when production id_search_value is entered.
-func (s *BaseSearchGrammarListener) EnterId_search_value(ctx *Id_search_valueContext) {}
+// EnterSearch_value is called when production search_value is entered.
+func (s *BaseSearchGrammarListener) EnterSearch_value(ctx *Search_valueContext) {}
 
-// ExitId_search_value is called when production id_search_value is exited.
-func (s *BaseSearchGrammarListener) ExitId_search_value(ctx *Id_search_valueContext) {}
-
-// EnterString_search_value is called when production string_search_value is entered.
-func (s *BaseSearchGrammarListener) EnterString_search_value(ctx *String_search_valueContext) {}
-
-// ExitString_search_value is called when production string_search_value is exited.
-func (s *BaseSearchGrammarListener) ExitString_search_value(ctx *String_search_valueContext) {}
+// ExitSearch_value is called when production search_value is exited.
+func (s *BaseSearchGrammarListener) ExitSearch_value(ctx *Search_valueContext) {}

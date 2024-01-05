@@ -68,11 +68,8 @@ type SearchGrammarListener interface {
 	// EnterBin_op is called when entering the bin_op production.
 	EnterBin_op(c *Bin_opContext)
 
-	// EnterId_search_value is called when entering the id_search_value production.
-	EnterId_search_value(c *Id_search_valueContext)
-
-	// EnterString_search_value is called when entering the string_search_value production.
-	EnterString_search_value(c *String_search_valueContext)
+	// EnterSearch_value is called when entering the search_value production.
+	EnterSearch_value(c *Search_valueContext)
 
 	// ExitSearch_query is called when exiting the search_query production.
 	ExitSearch_query(c *Search_queryContext)
@@ -134,9 +131,6 @@ type SearchGrammarListener interface {
 	// ExitBin_op is called when exiting the bin_op production.
 	ExitBin_op(c *Bin_opContext)
 
-	// ExitId_search_value is called when exiting the id_search_value production.
-	ExitId_search_value(c *Id_search_valueContext)
-
-	// ExitString_search_value is called when exiting the string_search_value production.
-	ExitString_search_value(c *String_search_valueContext)
+	// ExitSearch_value is called when exiting the search_value production.
+	ExitSearch_value(c *Search_valueContext)
 }

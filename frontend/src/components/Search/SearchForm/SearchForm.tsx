@@ -6,7 +6,6 @@ import {
 	Combobox,
 	defaultPresets,
 	getNow,
-	IconSolidExclamationCircle,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
@@ -16,7 +15,6 @@ import {
 	PreviousDateRangePicker,
 	Stack,
 	Text,
-	Tooltip,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
@@ -36,18 +34,17 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
-import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
+import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
 import {
 	BODY_KEY,
 	buildTokenGroups,
 	DEFAULT_OPERATOR,
 	stringifySearchQuery,
-	TokenGroup,
 } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
 import {
@@ -521,7 +518,7 @@ export const Search: React.FC<{
 							{activePart.value && (
 								<Combobox.Item
 									className={styles.comboboxItem}
-									onClick={() =>
+									onClick={() => {
 										handleItemSelect(
 											showValues
 												? activePart.value
@@ -531,7 +528,7 @@ export const Search: React.FC<{
 														__typename: 'QueryKey',
 												  },
 										)
-									}
+									}}
 									store={comboboxStore}
 								>
 									<Stack direction="row" gap="4">
@@ -658,94 +655,6 @@ export const Search: React.FC<{
 	)
 }
 
-export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
-	name?.replaceAll("'", ''),
-)
-
-export const QueryPart: React.FC<{
-	cursorIndex: number
-	index: number
-	tokenGroup: TokenGroup
-	onRemoveItem: (index: number) => void
-}> = ({ cursorIndex, index, tokenGroup, onRemoveItem }) => {
-	const active =
-		cursorIndex >= tokenGroup.start && cursorIndex <= tokenGroup.stop + 1
-	const errorToken = tokenGroup.tokens.find(
-		(token) => (token as any).errorMessage !== undefined,
-	)
-	const error = (errorToken as any)?.errorMessage
-
-	if (tokenGroup.type !== 'expression') {
-		return (
-			<>
-				{tokenGroup.tokens.map((token, index) => {
-					const { text } = token
-					const key = `${text}-${index}`
-
-					return <Token key={key} text={text} />
-				})}
-			</>
-		)
-	}
-
-	return (
-		<>
-			<Tooltip
-				placement="bottom"
-				open={active && !!error}
-				trigger={
-					<Box
-						cssClass={clsx(styles.comboboxTag, {
-							[styles.comboboxTagActive]: active,
-							[styles.comboboxTagError]: !!error,
-						})}
-						py="6"
-						position="relative"
-						whiteSpace="nowrap"
-					>
-						<IconSolidXCircle
-							className={styles.comboboxTagClose}
-							size={13}
-							onClick={() => onRemoveItem(index)}
-						/>
-
-						{error && (
-							<IconSolidExclamationCircle
-								className={styles.comboboxTagErrorIndicator}
-								size={13}
-							/>
-						)}
-
-						{tokenGroup.tokens.map((token, index) => {
-							const { text } = token
-							const key = `${text}-${index}`
-
-							return <Token key={key} text={text} />
-						})}
-
-						<Box cssClass={styles.comboboxTagBackground} />
-					</Box>
-				}
-			>
-				{error ? <ErrorRenderer error={error} /> : null}
-			</Tooltip>
-		</>
-	)
-}
-
-export const Token = ({
-	text,
-}: {
-	text: string
-	error?: string
-}): JSX.Element => {
-	if (SEPARATORS.includes(text)) {
-		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
-	} else {
-		return <Box style={{ zIndex: 1 }}>{text}</Box>
-	}
-}
-
 const getActivePart = (
 	cursorIndex: number,
 	queryParts: SearchExpression[],
@@ -821,22 +730,5 @@ const getVisibleValues = (
 					// Return values that match the query part
 					v.indexOf(activePart) > -1),
 		) || []
-	)
-}
-
-const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
-	if (error.endsWith("expecting ')'") || error.startsWith("missing ')'")) {
-		error = 'Missing closing parenthesis'
-	} else if (
-		error.startsWith("mismatched input '\"'") ||
-		error === "extraneous input '\"' expecting <EOF>"
-	) {
-		error = 'Missing closing quote'
-	}
-
-	return (
-		<Box p="4">
-			<Text>{error}</Text>
-		</Box>
 	)
 }

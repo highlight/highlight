@@ -66,6 +66,7 @@ var traceColumns = []string{
 var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: "trace_id", Type: modelInputs.KeyTypeString},
 	{Name: "span_id", Type: modelInputs.KeyTypeString},
+	{Name: "duration", Type: modelInputs.KeyTypeNumeric},
 }
 
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{

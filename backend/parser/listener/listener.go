@@ -133,16 +133,11 @@ func (s *searchListener) EnterBin_op(ctx *parser.Bin_opContext) {
 }
 func (s *searchListener) ExitBin_op(ctx *parser.Bin_opContext) {}
 
-func (s *searchListener) EnterId_search_value(ctx *parser.Id_search_valueContext) {
-	s.appendRules(ctx.GetText())
-}
-func (s *searchListener) ExitId_search_value(ctx *parser.Id_search_valueContext) {}
-
-func (s *searchListener) EnterString_search_value(ctx *parser.String_search_valueContext) {
+func (s *searchListener) EnterSearch_value(ctx *parser.Search_valueContext) {
 	value := strings.Trim(ctx.GetText(), "\"")
 	s.appendRules(value)
 }
-func (s *searchListener) ExitString_search_value(ctx *parser.String_search_valueContext) {}
+func (s *searchListener) ExitString_search_value(ctx *parser.Search_valueContext) {}
 
 func (s *searchListener) VisitTerminal(node antlr.TerminalNode)      {}
 func (s *searchListener) VisitErrorNode(node antlr.ErrorNode)        {}

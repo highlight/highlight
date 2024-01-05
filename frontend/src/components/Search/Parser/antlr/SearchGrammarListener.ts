@@ -22,8 +22,7 @@ import { And_opContext } from './SearchGrammarParser'
 import { Or_opContext } from './SearchGrammarParser'
 import { Negation_opContext } from './SearchGrammarParser'
 import { Bin_opContext } from './SearchGrammarParser'
-import { Id_search_valueContext } from './SearchGrammarParser'
-import { String_search_valueContext } from './SearchGrammarParser'
+import { Search_valueContext } from './SearchGrammarParser'
 
 /**
  * This interface defines a complete listener for a parse tree produced by
@@ -259,27 +258,13 @@ export default class SearchGrammarListener extends ParseTreeListener {
 	 */
 	exitBin_op?: (ctx: Bin_opContext) => void
 	/**
-	 * Enter a parse tree produced by the `id_search_value`
-	 * labeled alternative in `SearchGrammarParser.search_value`.
+	 * Enter a parse tree produced by `SearchGrammarParser.search_value`.
 	 * @param ctx the parse tree
 	 */
-	enterId_search_value?: (ctx: Id_search_valueContext) => void
+	enterSearch_value?: (ctx: Search_valueContext) => void
 	/**
-	 * Exit a parse tree produced by the `id_search_value`
-	 * labeled alternative in `SearchGrammarParser.search_value`.
+	 * Exit a parse tree produced by `SearchGrammarParser.search_value`.
 	 * @param ctx the parse tree
 	 */
-	exitId_search_value?: (ctx: Id_search_valueContext) => void
-	/**
-	 * Enter a parse tree produced by the `string_search_value`
-	 * labeled alternative in `SearchGrammarParser.search_value`.
-	 * @param ctx the parse tree
-	 */
-	enterString_search_value?: (ctx: String_search_valueContext) => void
-	/**
-	 * Exit a parse tree produced by the `string_search_value`
-	 * labeled alternative in `SearchGrammarParser.search_value`.
-	 * @param ctx the parse tree
-	 */
-	exitString_search_value?: (ctx: String_search_valueContext) => void
+	exitSearch_value?: (ctx: Search_valueContext) => void
 }

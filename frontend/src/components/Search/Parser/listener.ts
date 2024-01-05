@@ -104,6 +104,7 @@ export class SearchErrorListener extends ErrorListener<Token> {
 		msg: string,
 		_e: RecognitionException | undefined,
 	) {
+		console.log('::: syntaxError', msg, symbol)
 		symbol.errorMessage = msg
 	}
 }

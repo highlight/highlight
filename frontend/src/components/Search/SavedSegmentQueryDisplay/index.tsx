@@ -1,7 +1,7 @@
 import { Box } from '@highlight-run/ui/components'
 import React from 'react'
 
-import { Token } from '@/components/Search/SearchForm/SearchForm'
+import { Token } from '@/components/Search/SearchForm/QueryPart'
 import { buildTokenGroups } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
 

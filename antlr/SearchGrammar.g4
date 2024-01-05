@@ -57,8 +57,8 @@ bin_op
   ;
 
 search_value
-  : ID # id_search_value
-  | STRING # string_search_value
+  : ID
+  | VALUE
   ;
 
 AND : 'AND' ;
@@ -74,6 +74,6 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 COLON : ':' ;
 ID : [a-zA-Z_0-9.\-*]+ ;
-STRING : '"'.*?'"' ;
+STRING : '"' .*? '"' ;
+VALUE: ~[ \t\n\r\f=><:!)(]+ ;
 WS : [ \t\n\r\f]+ -> skip ;
-ERROR_CHAR : . ;

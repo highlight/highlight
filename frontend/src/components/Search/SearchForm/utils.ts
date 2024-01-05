@@ -121,10 +121,8 @@ export const buildTokenGroups = (
 			}
 		}
 
-		if (currentToken.type !== SearchGrammarLexer.EOF) {
-			tokenGroups[currentGroupIndex].tokens.push(currentToken)
-			tokenGroups[currentGroupIndex].stop = currentToken.stop
-		}
+		tokenGroups[currentGroupIndex].tokens.push(currentToken)
+		tokenGroups[currentGroupIndex].stop = currentToken.stop
 
 		const isExpression = !SEPARATOR_TOKENS.includes(currentToken.type)
 		if (isExpression) {

@@ -43,8 +43,8 @@ export default class SearchGrammarParser extends Parser {
 	public static readonly COLON = 12
 	public static readonly ID = 13
 	public static readonly STRING = 14
-	public static readonly WS = 15
-	public static readonly ERROR_CHAR = 16
+	public static readonly VALUE = 15
+	public static readonly WS = 16
 	public static readonly EOF = Token.EOF
 	public static readonly RULE_search_query = 0
 	public static readonly RULE_top_col_expr = 1
@@ -87,8 +87,8 @@ export default class SearchGrammarParser extends Parser {
 		'COLON',
 		'ID',
 		'STRING',
+		'VALUE',
 		'WS',
-		'ERROR_CHAR',
 	]
 	// tslint:disable:no-trailing-whitespace
 	public static readonly ruleNames: string[] = [
@@ -157,7 +157,7 @@ export default class SearchGrammarParser extends Parser {
 				case 3:
 				case 10:
 				case 13:
-				case 14:
+				case 15:
 					this.enterOuterAlt(localctx, 2)
 					{
 						this.state = 21
@@ -217,7 +217,7 @@ export default class SearchGrammarParser extends Parser {
 					}
 					break
 				case 13:
-				case 14:
+				case 15:
 					localctx = new Top_col_search_valueContext(this, localctx)
 					this.enterOuterAlt(localctx, 3)
 					{
@@ -301,7 +301,7 @@ export default class SearchGrammarParser extends Parser {
 						}
 						break
 					case 13:
-					case 14:
+					case 15:
 						{
 							localctx = new Col_search_valueContext(
 								this,
@@ -656,7 +656,7 @@ export default class SearchGrammarParser extends Parser {
 				case 3:
 				case 10:
 				case 13:
-				case 14:
+				case 15:
 					this.enterOuterAlt(localctx, 2)
 					// tslint:disable-next-line:no-empty
 					{
@@ -774,28 +774,18 @@ export default class SearchGrammarParser extends Parser {
 			this.state,
 		)
 		this.enterRule(localctx, 18, SearchGrammarParser.RULE_search_value)
+		let _la: number
 		try {
-			this.state = 100
-			this._errHandler.sync(this)
-			switch (this._input.LA(1)) {
-				case 13:
-					localctx = new Id_search_valueContext(this, localctx)
-					this.enterOuterAlt(localctx, 1)
-					{
-						this.state = 98
-						this.match(SearchGrammarParser.ID)
-					}
-					break
-				case 14:
-					localctx = new String_search_valueContext(this, localctx)
-					this.enterOuterAlt(localctx, 2)
-					{
-						this.state = 99
-						this.match(SearchGrammarParser.STRING)
-					}
-					break
-				default:
-					throw new NoViableAltException(this)
+			this.enterOuterAlt(localctx, 1)
+			{
+				this.state = 98
+				_la = this._input.LA(1)
+				if (!(_la === 13 || _la === 15)) {
+					this._errHandler.recoverInline(this)
+				} else {
+					this._errHandler.reportMatch(this)
+					this.consume()
+				}
 			}
 		} catch (re) {
 			if (re instanceof RecognitionException) {
@@ -856,7 +846,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 
 	public static readonly _serializedATN: number[] = [
-		4, 1, 16, 103, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 16, 101, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 1, 0, 1,
 		0, 1, 0, 1, 0, 3, 0, 25, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 3, 1, 35, 8, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
@@ -865,38 +855,38 @@ export default class SearchGrammarParser extends Parser {
 		1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 73, 8, 3, 1, 3, 1, 3, 1, 3, 1,
 		3, 1, 3, 1, 3, 1, 3, 5, 3, 82, 8, 3, 10, 3, 12, 3, 85, 9, 3, 1, 4, 1, 4,
 		1, 5, 1, 5, 3, 5, 91, 8, 5, 1, 6, 1, 6, 1, 7, 1, 7, 1, 8, 1, 8, 1, 9, 1,
-		9, 3, 9, 101, 8, 9, 1, 9, 0, 2, 4, 6, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16,
-		18, 0, 1, 2, 0, 4, 9, 12, 12, 106, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0, 0, 0,
-		4, 45, 1, 0, 0, 0, 6, 72, 1, 0, 0, 0, 8, 86, 1, 0, 0, 0, 10, 90, 1, 0,
-		0, 0, 12, 92, 1, 0, 0, 0, 14, 94, 1, 0, 0, 0, 16, 96, 1, 0, 0, 0, 18,
-		100, 1, 0, 0, 0, 20, 25, 5, 0, 0, 1, 21, 22, 3, 6, 3, 0, 22, 23, 5, 0,
-		0, 1, 23, 25, 1, 0, 0, 0, 24, 20, 1, 0, 0, 0, 24, 21, 1, 0, 0, 0, 25, 1,
-		1, 0, 0, 0, 26, 27, 5, 10, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 11, 0,
-		0, 29, 35, 1, 0, 0, 0, 30, 31, 3, 14, 7, 0, 31, 32, 3, 2, 1, 0, 32, 35,
-		1, 0, 0, 0, 33, 35, 3, 18, 9, 0, 34, 26, 1, 0, 0, 0, 34, 30, 1, 0, 0, 0,
-		34, 33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37, 38, 5,
-		10, 0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 11, 0, 0, 40, 46, 1, 0, 0, 0,
-		41, 42, 3, 14, 7, 0, 42, 43, 3, 4, 2, 4, 43, 46, 1, 0, 0, 0, 44, 46, 3,
-		18, 9, 0, 45, 36, 1, 0, 0, 0, 45, 41, 1, 0, 0, 0, 45, 44, 1, 0, 0, 0,
-		46, 56, 1, 0, 0, 0, 47, 48, 10, 3, 0, 0, 48, 49, 3, 10, 5, 0, 49, 50, 3,
-		4, 2, 4, 50, 55, 1, 0, 0, 0, 51, 52, 10, 2, 0, 0, 52, 53, 5, 2, 0, 0,
-		53, 55, 3, 4, 2, 3, 54, 47, 1, 0, 0, 0, 54, 51, 1, 0, 0, 0, 55, 58, 1,
-		0, 0, 0, 56, 54, 1, 0, 0, 0, 56, 57, 1, 0, 0, 0, 57, 5, 1, 0, 0, 0, 58,
-		56, 1, 0, 0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 10, 0, 0, 61, 62, 3, 6,
-		3, 0, 62, 63, 5, 11, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65,
-		66, 3, 6, 3, 5, 66, 73, 1, 0, 0, 0, 67, 68, 3, 8, 4, 0, 68, 69, 3, 16,
-		8, 0, 69, 70, 3, 2, 1, 0, 70, 73, 1, 0, 0, 0, 71, 73, 3, 2, 1, 0, 72,
-		59, 1, 0, 0, 0, 72, 64, 1, 0, 0, 0, 72, 67, 1, 0, 0, 0, 72, 71, 1, 0, 0,
-		0, 73, 83, 1, 0, 0, 0, 74, 75, 10, 4, 0, 0, 75, 76, 3, 10, 5, 0, 76, 77,
-		3, 6, 3, 5, 77, 82, 1, 0, 0, 0, 78, 79, 10, 3, 0, 0, 79, 80, 5, 2, 0, 0,
-		80, 82, 3, 6, 3, 4, 81, 74, 1, 0, 0, 0, 81, 78, 1, 0, 0, 0, 82, 85, 1,
-		0, 0, 0, 83, 81, 1, 0, 0, 0, 83, 84, 1, 0, 0, 0, 84, 7, 1, 0, 0, 0, 85,
-		83, 1, 0, 0, 0, 86, 87, 5, 13, 0, 0, 87, 9, 1, 0, 0, 0, 88, 91, 5, 1, 0,
-		0, 89, 91, 1, 0, 0, 0, 90, 88, 1, 0, 0, 0, 90, 89, 1, 0, 0, 0, 91, 11,
-		1, 0, 0, 0, 92, 93, 5, 2, 0, 0, 93, 13, 1, 0, 0, 0, 94, 95, 5, 3, 0, 0,
-		95, 15, 1, 0, 0, 0, 96, 97, 7, 0, 0, 0, 97, 17, 1, 0, 0, 0, 98, 101, 5,
-		13, 0, 0, 99, 101, 5, 14, 0, 0, 100, 98, 1, 0, 0, 0, 100, 99, 1, 0, 0,
-		0, 101, 19, 1, 0, 0, 0, 10, 24, 34, 45, 54, 56, 72, 81, 83, 90, 100,
+		9, 1, 9, 0, 2, 4, 6, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 0, 2, 2, 0,
+		4, 9, 12, 12, 2, 0, 13, 13, 15, 15, 103, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0,
+		0, 0, 4, 45, 1, 0, 0, 0, 6, 72, 1, 0, 0, 0, 8, 86, 1, 0, 0, 0, 10, 90,
+		1, 0, 0, 0, 12, 92, 1, 0, 0, 0, 14, 94, 1, 0, 0, 0, 16, 96, 1, 0, 0, 0,
+		18, 98, 1, 0, 0, 0, 20, 25, 5, 0, 0, 1, 21, 22, 3, 6, 3, 0, 22, 23, 5,
+		0, 0, 1, 23, 25, 1, 0, 0, 0, 24, 20, 1, 0, 0, 0, 24, 21, 1, 0, 0, 0, 25,
+		1, 1, 0, 0, 0, 26, 27, 5, 10, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 11,
+		0, 0, 29, 35, 1, 0, 0, 0, 30, 31, 3, 14, 7, 0, 31, 32, 3, 2, 1, 0, 32,
+		35, 1, 0, 0, 0, 33, 35, 3, 18, 9, 0, 34, 26, 1, 0, 0, 0, 34, 30, 1, 0,
+		0, 0, 34, 33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37,
+		38, 5, 10, 0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 11, 0, 0, 40, 46, 1, 0,
+		0, 0, 41, 42, 3, 14, 7, 0, 42, 43, 3, 4, 2, 4, 43, 46, 1, 0, 0, 0, 44,
+		46, 3, 18, 9, 0, 45, 36, 1, 0, 0, 0, 45, 41, 1, 0, 0, 0, 45, 44, 1, 0,
+		0, 0, 46, 56, 1, 0, 0, 0, 47, 48, 10, 3, 0, 0, 48, 49, 3, 10, 5, 0, 49,
+		50, 3, 4, 2, 4, 50, 55, 1, 0, 0, 0, 51, 52, 10, 2, 0, 0, 52, 53, 5, 2,
+		0, 0, 53, 55, 3, 4, 2, 3, 54, 47, 1, 0, 0, 0, 54, 51, 1, 0, 0, 0, 55,
+		58, 1, 0, 0, 0, 56, 54, 1, 0, 0, 0, 56, 57, 1, 0, 0, 0, 57, 5, 1, 0, 0,
+		0, 58, 56, 1, 0, 0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 10, 0, 0, 61, 62,
+		3, 6, 3, 0, 62, 63, 5, 11, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7,
+		0, 65, 66, 3, 6, 3, 5, 66, 73, 1, 0, 0, 0, 67, 68, 3, 8, 4, 0, 68, 69,
+		3, 16, 8, 0, 69, 70, 3, 2, 1, 0, 70, 73, 1, 0, 0, 0, 71, 73, 3, 2, 1, 0,
+		72, 59, 1, 0, 0, 0, 72, 64, 1, 0, 0, 0, 72, 67, 1, 0, 0, 0, 72, 71, 1,
+		0, 0, 0, 73, 83, 1, 0, 0, 0, 74, 75, 10, 4, 0, 0, 75, 76, 3, 10, 5, 0,
+		76, 77, 3, 6, 3, 5, 77, 82, 1, 0, 0, 0, 78, 79, 10, 3, 0, 0, 79, 80, 5,
+		2, 0, 0, 80, 82, 3, 6, 3, 4, 81, 74, 1, 0, 0, 0, 81, 78, 1, 0, 0, 0, 82,
+		85, 1, 0, 0, 0, 83, 81, 1, 0, 0, 0, 83, 84, 1, 0, 0, 0, 84, 7, 1, 0, 0,
+		0, 85, 83, 1, 0, 0, 0, 86, 87, 5, 13, 0, 0, 87, 9, 1, 0, 0, 0, 88, 91,
+		5, 1, 0, 0, 89, 91, 1, 0, 0, 0, 90, 88, 1, 0, 0, 0, 90, 89, 1, 0, 0, 0,
+		91, 11, 1, 0, 0, 0, 92, 93, 5, 2, 0, 0, 93, 13, 1, 0, 0, 0, 94, 95, 5,
+		3, 0, 0, 95, 15, 1, 0, 0, 0, 96, 97, 7, 0, 0, 0, 97, 17, 1, 0, 0, 0, 98,
+		99, 7, 1, 0, 0, 99, 19, 1, 0, 0, 0, 9, 24, 34, 45, 54, 56, 72, 81, 83,
+		90,
 	]
 
 	private static __ATN: ATN
@@ -1527,48 +1517,23 @@ export class Search_valueContext extends ParserRuleContext {
 		super(parent, invokingState)
 		this.parser = parser
 	}
-	public get ruleIndex(): number {
-		return SearchGrammarParser.RULE_search_value
-	}
-	public copyFrom(ctx: Search_valueContext): void {
-		super.copyFrom(ctx)
-	}
-}
-export class String_search_valueContext extends Search_valueContext {
-	constructor(parser: SearchGrammarParser, ctx: Search_valueContext) {
-		super(parser, ctx.parentCtx, ctx.invokingState)
-		super.copyFrom(ctx)
-	}
-	public STRING(): TerminalNode {
-		return this.getToken(SearchGrammarParser.STRING, 0)
-	}
-	public enterRule(listener: SearchGrammarListener): void {
-		if (listener.enterString_search_value) {
-			listener.enterString_search_value(this)
-		}
-	}
-	public exitRule(listener: SearchGrammarListener): void {
-		if (listener.exitString_search_value) {
-			listener.exitString_search_value(this)
-		}
-	}
-}
-export class Id_search_valueContext extends Search_valueContext {
-	constructor(parser: SearchGrammarParser, ctx: Search_valueContext) {
-		super(parser, ctx.parentCtx, ctx.invokingState)
-		super.copyFrom(ctx)
-	}
 	public ID(): TerminalNode {
 		return this.getToken(SearchGrammarParser.ID, 0)
 	}
+	public VALUE(): TerminalNode {
+		return this.getToken(SearchGrammarParser.VALUE, 0)
+	}
+	public get ruleIndex(): number {
+		return SearchGrammarParser.RULE_search_value
+	}
 	public enterRule(listener: SearchGrammarListener): void {
-		if (listener.enterId_search_value) {
-			listener.enterId_search_value(this)
+		if (listener.enterSearch_value) {
+			listener.enterSearch_value(this)
 		}
 	}
 	public exitRule(listener: SearchGrammarListener): void {
-		if (listener.exitId_search_value) {
-			listener.exitId_search_value(this)
+		if (listener.exitSearch_value) {
+			listener.exitSearch_value(this)
 		}
 	}
 }
