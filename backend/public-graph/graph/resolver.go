@@ -2485,6 +2485,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 	}
 
+	var lastUserInteractionTimestamp time.Time
 	g.Go(func() error {
 		defer util.Recover()
 		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
@@ -2506,7 +2507,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to add track properties"))
 			}
 
-			var lastUserInteractionTimestamp time.Time
 			hasFullSnapshot := false
 			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
 
@@ -2590,14 +2590,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeEvents, b); err != nil {
 				return e.Wrap(err, "error saving events data")
-			}
-
-			if !lastUserInteractionTimestamp.IsZero() {
-				if err := r.DB.WithContext(ctx).Model(&sessionObj).Updates(&model.Session{
-					LastUserInteractionTime: lastUserInteractionTimestamp,
-				}).Error; err != nil {
-					return e.Wrap(err, "error updating LastUserInteractionTime")
-				}
 			}
 		}
 		return nil
@@ -2810,63 +2802,77 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	defer updateSpan.Finish()
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
+
 	elapsedSinceUpdate := time.Hour
 	if sessionObj.PayloadUpdatedAt != nil {
 		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
 	}
 
-	// Update only if any of these fields are changing
-	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
-	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
-		elapsedSinceUpdate > 15*time.Second ||
-		beaconTime != nil ||
-		hasSessionUnloaded != sessionObj.HasUnloaded ||
-		(sessionObj.Processed != nil && *sessionObj.Processed) ||
-		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
-		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
-		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
+	updateColumns := []string{}
+	updates := &model.Session{}
+	if sessionObj.PayloadUpdatedAt == nil || elapsedSinceUpdate > 15*time.Second {
+		updateColumns = append(updateColumns, "PayloadUpdatedAt")
+		updates.PayloadUpdatedAt = &now
+	}
 
-	if doUpdate && !excluded {
-		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
-		// By explicitly specifying the columns to update, we can override the behavior.
-		// See https://gorm.io/docs/update.html#Updates-multiple-columns
+	if beaconTime != nil {
+		updateColumns = append(updateColumns, "BeaconTime")
+		updates.BeaconTime = beaconTime
+	}
+
+	if !lastUserInteractionTimestamp.IsZero() {
+		updateColumns = append(updateColumns, "LastUserInteractionTime")
+		updates.LastUserInteractionTime = lastUserInteractionTimestamp
+	}
+
+	if hasSessionUnloaded != sessionObj.HasUnloaded {
+		updateColumns = append(updateColumns, "HasUnloaded")
+		updates.HasUnloaded = hasSessionUnloaded
+	}
+
+	if sessionObj.Processed != nil && *sessionObj.Processed {
+		updateColumns = append(updateColumns, "Processed")
+		updates.Processed = &model.F
+	}
+
+	if sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled {
+		updateColumns = append(updateColumns, "ObjectStorageEnabled", "DirectDownloadEnabled")
+		updates.ObjectStorageEnabled = &model.F
+		updates.DirectDownloadEnabled = false
+	}
+
+	if sessionObj.Chunked != nil && *sessionObj.Chunked {
+		updateColumns = append(updateColumns, "Chunked")
+		updates.Chunked = &model.F
+	}
+
+	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
+		updateColumns = append(updateColumns, "HasErrors")
+		updates.HasErrors = &model.T
+	}
+
+	if sessionObj.Excluded != excluded {
+		updateColumns = append(updateColumns, "Excluded")
+		updates.Excluded = excluded
+	}
+
+	var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
+	if sessionObj.ExcludedReason != nil {
+		reasonDeref = *sessionObj.ExcludedReason
+	}
+	if reason != nil {
+		newReasonDeref = *reason
+	}
+	if reasonDeref != newReasonDeref {
+		updateColumns = append(updateColumns, "ExcludedReason")
+		updates.ExcludedReason = reason
+	}
+
+	if len(updateColumns) > 0 {
 		if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors").
-			Updates(&model.Session{
-				PayloadUpdatedAt:      &now,
-				BeaconTime:            beaconTime,
-				HasUnloaded:           hasSessionUnloaded,
-				Processed:             &model.F,
-				ObjectStorageEnabled:  &model.F,
-				DirectDownloadEnabled: false,
-				Chunked:               &model.F,
-				Excluded:              false,
-				ExcludedReason:        nil,
-				HasErrors:             &sessionHasErrors,
-			}).Error; err != nil {
+			Select(updateColumns).UpdateColumns(updates).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
 			return err
-		}
-	} else if excluded {
-		// Only update the excluded flag and reason if either have changed
-		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
-		if sessionObj.ExcludedReason != nil {
-			reasonDeref = *sessionObj.ExcludedReason
-		}
-		if reason != nil {
-			newReasonDeref = *reason
-		}
-		if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
-			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("Excluded", "ExcludedReason").Updates(&model.Session{
-				Excluded:       excluded,
-				ExcludedReason: reason,
-			}).Error; err != nil {
-				return err
-			}
-			if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
-				return err
-			}
 		}
 	}
 
