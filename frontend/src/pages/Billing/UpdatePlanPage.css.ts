@@ -2,15 +2,15 @@ import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const pageWrapper = style({
-	width: 560,
-	marginTop: 64,
-	marginBottom: 12,
+	width: 960,
+	marginTop: 32,
+	marginBottom: 32,
 })
 
 export const pageHeader = style({
 	height: 40,
-	top: 0,
-	backgroundColor: vars.color.white,
+	bottom: 0,
+	right: 0,
 })
 
 export const progressBarBackground = style({

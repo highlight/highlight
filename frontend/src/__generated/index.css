@@ -7236,14 +7236,14 @@ body {
   background: var(--_1pyqka91x);
 }
 ._1xxy0on0 {
-  width: 560px;
-  margin-top: 64px;
-  margin-bottom: 12px;
+  width: 960px;
+  margin-top: 32px;
+  margin-bottom: 32px;
 }
 ._1xxy0on1 {
   height: 40px;
-  top: 0;
-  background-color: #ffffff;
+  bottom: 0;
+  right: 0;
 }
 ._1xxy0on2 {
   height: 4px;
@@ -7327,9 +7327,9 @@ body {
   border-top: var(--_1pyqka91o) solid 1px;
 }
 ._1q3ayoh0 {
-  width: 560px;
-  margin-top: 36px;
-  margin-bottom: 12px;
+  width: 960px;
+  margin-top: 32px;
+  margin-bottom: 32px;
 }
 ._1q3ayoh1 {
   height: 4px;

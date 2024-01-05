@@ -6,7 +6,6 @@ import {
 	Heading,
 	IconProps,
 	IconSolidArrowSmRight,
-	IconSolidCheveronRight,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -16,7 +15,6 @@ import {
 	IconSolidX,
 	Input,
 	Stack,
-	Tag,
 	Text,
 	TextLink,
 	Tooltip,
@@ -473,6 +471,7 @@ const ProductCard = ({
 type PlanSelectStep = 'Select plan' | 'Configure plan' | 'Enter payment details'
 
 export const PlanSelectSteps = ({ step }: { step: PlanSelectStep }) => {
+	// TODO(vkorolik) on click select step
 	return (
 		<Box mb="24" display="flex" gap="4">
 			{['Select plan', 'Configure plan', 'Enter payment details'].map(
@@ -750,103 +749,13 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			justifyContent="center"
 			flexDirection="column"
 		>
-			<Box
-				cssClass={style.pageHeader}
-				display="flex"
-				px="8"
-				py="6"
-				justifyContent="space-between"
-				width="full"
-				borderBottom="divider"
-				position="absolute"
-			>
-				<Button
-					trackingId="UpdatePlanClose"
-					kind="secondary"
-					emphasis="low"
-					onClick={() => {
-						navigate('../current-plan')
-					}}
-				>
-					<IconSolidX />
-				</Button>
-				<Box display="flex" flexDirection="row" gap="6">
-					<Button
-						trackingId="UpdatePlanSave"
-						onClick={() => {
-							saveBillingPlan({
-								variables: {
-									workspace_id: workspace_id!,
-									sessionsLimitCents:
-										formState.values.sessionsLimitCents,
-									sessionsRetention:
-										formState.values.sessionsRetention,
-									errorsLimitCents:
-										formState.values.errorsLimitCents,
-									errorsRetention:
-										formState.values.errorsRetention,
-									logsLimitCents:
-										formState.values.logsLimitCents,
-									logsRetention:
-										formState.values.logsRetention,
-									tracesLimitCents:
-										formState.values.tracesLimitCents,
-									tracesRetention:
-										formState.values.tracesRetention,
-								},
-							})
-								.then(() => {
-									if (!isPaying) {
-										createOrUpdateStripeSubscription({
-											variables: {
-												workspace_id: workspace_id!,
-											},
-										})
-									} else {
-										message.success('Billing plan saved!')
-										navigate('../current-plan')
-									}
-								})
-								.catch(() => {
-									message.error(
-										'Failed to save billing plan details',
-									)
-								})
-						}}
-						disabled={billingPlanLoading || stripeLoading}
-					>
-						{isPaying
-							? 'Save billing plan'
-							: 'Enter payment details'}
-					</Button>
-				</Box>
-			</Box>
 			<Box display="flex" justifyContent="center">
 				<Box
-					px="8"
 					cssClass={style.pageWrapper}
 					display="flex"
 					flexDirection="column"
 				>
 					{!isPaying && <PlanSelectSteps step="Configure plan" />}
-					<Box display="flex" alignItems="center">
-						<Tag
-							kind="secondary"
-							shape="basic"
-							onClick={() => {
-								navigate('../current-plan')
-							}}
-						>
-							Billing plans
-						</Tag>
-						<IconSolidCheveronRight />
-						<Badge
-							kind="secondary"
-							shape="basic"
-							label="Update plan details"
-							size="medium"
-						/>
-					</Box>
 					<Stack mt="12">
 						<Box>
 							<Heading level="h4">Update plan details</Heading>
@@ -1096,6 +1005,71 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										</Tooltip>
 									</Box>
 								</Box>
+							</Box>
+							<Box display="flex" justifyContent="flex-end">
+								<Button
+									trackingId="UpdatePlanSave"
+									onClick={() => {
+										saveBillingPlan({
+											variables: {
+												workspace_id: workspace_id!,
+												sessionsLimitCents:
+													formState.values
+														.sessionsLimitCents,
+												sessionsRetention:
+													formState.values
+														.sessionsRetention,
+												errorsLimitCents:
+													formState.values
+														.errorsLimitCents,
+												errorsRetention:
+													formState.values
+														.errorsRetention,
+												logsLimitCents:
+													formState.values
+														.logsLimitCents,
+												logsRetention:
+													formState.values
+														.logsRetention,
+												tracesLimitCents:
+													formState.values
+														.tracesLimitCents,
+												tracesRetention:
+													formState.values
+														.tracesRetention,
+											},
+										})
+											.then(() => {
+												if (!isPaying) {
+													createOrUpdateStripeSubscription(
+														{
+															variables: {
+																workspace_id:
+																	workspace_id!,
+															},
+														},
+													)
+												} else {
+													message.success(
+														'Billing plan saved!',
+													)
+													navigate('../current-plan')
+												}
+											})
+											.catch(() => {
+												message.error(
+													'Failed to save billing plan details',
+												)
+											})
+									}}
+									disabled={
+										billingPlanLoading || stripeLoading
+									}
+								>
+									{isPaying
+										? 'Save billing plan'
+										: 'Enter payment details'}
+								</Button>
 							</Box>
 						</Box>
 					</Form>
