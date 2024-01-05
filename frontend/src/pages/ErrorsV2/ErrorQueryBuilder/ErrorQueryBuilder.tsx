@@ -109,6 +109,7 @@ const ErrorQueryBuilder = (props: Partial<QueryBuilderProps>) => {
 	const { data } = useGetErrorTagsQuery()
 	const { refetch } = useGetErrorFieldsClickhouseQuery({
 		skip: true,
+		fetchPolicy: 'cache-and-network',
 	})
 	const fetchFields = useCallback(
 		(variables: FetchFieldVariables) =>

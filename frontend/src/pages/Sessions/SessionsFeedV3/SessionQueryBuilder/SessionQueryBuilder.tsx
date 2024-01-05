@@ -4,8 +4,8 @@ import {
 	useGetFieldTypesClickhouseQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
+import { useProjectId } from '@hooks/useProjectId'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { useParams } from '@util/react-router/useParams'
 import React, { useCallback } from 'react'
 
 import QueryBuilder, {
@@ -143,6 +143,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 	const { refetch } = useGetFieldsClickhouseQuery({
 		skip: true,
+		fetchPolicy: 'cache-and-network',
 	})
 	const fetchFields = useCallback(
 		(variables: FetchFieldVariables) =>
@@ -150,9 +151,7 @@ const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 		[refetch],
 	)
 
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+	const { projectId } = useProjectId()
 
 	const searchContext = useSearchContext()
 
@@ -168,11 +167,12 @@ const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
 	const { data: fieldData } = useGetFieldTypesClickhouseQuery({
 		variables: {
-			project_id: project_id!,
+			project_id: projectId,
 			start_date: startDate!,
 			end_date: endDate!,
 		},
-		skip: !project_id,
+		skip: !projectId,
+		fetchPolicy: 'cache-and-network',
 	})
 
 	return (
