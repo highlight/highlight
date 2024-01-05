@@ -252,7 +252,9 @@ func makeSelectBuilder[T ~string](
 	}
 
 	// TODO: Is there a better way to leverage the tableConfig types and pass this
-	// directly to AssignSearchFilters?
+	// directly to AssignSearchFilters? Problem is that I can't reuse the
+	// tableConfig type inside the parser class, so I can pass tableConfig as an
+	// argument to AssignSearchFilters.
 	keysToColumns := map[string]string{}
 	for k, v := range config.keysToColumns {
 		keysToColumns[string(k)] = v

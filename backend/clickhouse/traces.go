@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -335,7 +336,16 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 		return nil, err
 	}
 
-	traceKeys = append(traceKeys, defaultTraceKeys...)
+	if query == nil || *query == "" {
+		traceKeys = append(traceKeys, defaultTraceKeys...)
+	} else {
+		for _, key := range defaultTraceKeys {
+			if !strings.Contains(key.Name, *query) {
+				traceKeys = append(traceKeys, key)
+			}
+		}
+	}
+
 	return traceKeys, nil
 }
 

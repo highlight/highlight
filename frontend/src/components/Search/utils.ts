@@ -6,6 +6,10 @@ import {
 	SearchExpression,
 	SearchListener,
 } from '@/components/Search/Parser/listener'
+import {
+	BODY_KEY,
+	DEFAULT_OPERATOR,
+} from '@/components/Search/SearchForm/utils'
 
 import SearchGrammarLexer from './Parser/antlr/SearchGrammarLexer'
 
@@ -31,6 +35,17 @@ export const parseSearch = (input: string) => {
 	// Walk the tree created during the parse + trigger callbacks.
 	const tree = parser.search_query()
 	ParseTreeWalker.DEFAULT.walk(listener, tree)
+
+	if (input.trim() === '') {
+		queryParts.push({
+			key: BODY_KEY,
+			operator: DEFAULT_OPERATOR,
+			value: '',
+			text: '',
+			start: input.length - 1,
+			stop: input.length - 1,
+		})
+	}
 
 	return {
 		queryParts,

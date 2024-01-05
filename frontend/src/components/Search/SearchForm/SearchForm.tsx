@@ -333,7 +333,7 @@ export const Search: React.FC<{
 		const isValueSelect = typeof key === 'string'
 		const value = isValueSelect ? key : key.name
 		const isLastPart =
-			activePart.stop >= queryParts[queryParts.length - 1].stop
+			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
 		if (isValueSelect) {
 			activePart.value = value
@@ -376,6 +376,8 @@ export const Search: React.FC<{
 					newCursorPosition,
 					newCursorPosition,
 				)
+
+				setCursorIndex(newCursorPosition)
 			}, 0)
 		}
 	}
@@ -737,18 +739,20 @@ const getActivePart = (
 		return true
 	})
 
-	const lastPart = queryParts[queryParts.length - 1] ?? { stop: 0 }
-
-	return activePartIndex === undefined
-		? {
-				key: BODY_KEY,
-				operator: DEFAULT_OPERATOR,
-				value: '',
-				text: '',
-				start: lastPart.stop + 1,
-				stop: lastPart.stop + 1,
-		  }
-		: queryParts[activePartIndex]
+	if (activePartIndex === undefined) {
+		const activePart = {
+			key: BODY_KEY,
+			operator: DEFAULT_OPERATOR,
+			value: '',
+			text: '',
+			start: 1,
+			stop: 1,
+		}
+		queryParts.push(activePart)
+		return activePart
+	} else {
+		return queryParts[activePartIndex]
+	}
 }
 
 const getVisibleKeys = (
