@@ -87,7 +87,7 @@ export const buildTokenGroups = (
 				: undefined
 
 		if (stopIndex === -1) {
-			stopIndex = currentPart.stop ?? 0
+			stopIndex = currentPart?.stop ?? 0
 		}
 
 		if (

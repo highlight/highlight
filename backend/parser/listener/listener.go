@@ -88,8 +88,10 @@ func (s *searchListener) ExitNegated_search_expr(ctx *parser.Negated_search_expr
 	s.rules = append(s.rules, fmt.Sprintf("NOT (%s)", rule))
 }
 
-func (s *searchListener) EnterBody_search_expr(ctx *parser.Body_search_exprContext) {}
-func (s *searchListener) ExitBody_search_expr(ctx *parser.Body_search_exprContext)  {}
+func (s *searchListener) EnterBody_search_expr(ctx *parser.Body_search_exprContext) {
+	s.currentKey = s.bodyColumn
+}
+func (s *searchListener) ExitBody_search_expr(ctx *parser.Body_search_exprContext) {}
 
 func (s *searchListener) EnterAnd_search_expr(ctx *parser.And_search_exprContext) {}
 func (s *searchListener) ExitAnd_search_expr(ctx *parser.And_search_exprContext) {
@@ -147,7 +149,10 @@ func (s *searchListener) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 func (s *searchListener) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *searchListener) appendRules(value string) {
-	filterKey := s.keysToColumns[s.currentKey]
+	filterKey, ok := s.keysToColumns[s.currentKey]
+	if !ok {
+		filterKey = s.currentKey
+	}
 
 	switch s.currentOp {
 	case "=":
