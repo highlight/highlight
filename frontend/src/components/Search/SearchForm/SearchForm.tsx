@@ -35,7 +35,6 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
-import SearchGrammarLexer from '@/components/Search/Parser/antlr/SearchGrammarLexer'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
@@ -44,10 +43,12 @@ import {
 } from '@/components/Search/SearchForm/constants'
 import {
 	BODY_KEY,
+	buildTokenGroups,
 	DEFAULT_OPERATOR,
 	stringifySearchQuery,
+	TokenGroup,
 } from '@/components/Search/SearchForm/utils'
-import { parseSearch, SearchToken } from '@/components/Search/utils'
+import { parseSearch } from '@/components/Search/utils'
 import {
 	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
@@ -239,8 +240,7 @@ export const Search: React.FC<{
 
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
-	const activePartIndex = getActivePartIndex(cursorIndex, queryParts)
-	const activePart = queryParts[activePartIndex] ?? {}
+	const activePart = getActivePart(cursorIndex, queryParts)
 	const debouncedKeyValue = useDebouncedValue<string>(activePart.value)
 
 	// TODO: code smell, user is not able to use "message" as a search key
@@ -330,28 +330,28 @@ export const Search: React.FC<{
 	}, [query])
 
 	const handleItemSelect = (key: Keys[0] | string) => {
-		const part = queryParts[activePartIndex]
 		const isValueSelect = typeof key === 'string'
 		const value = isValueSelect ? key : key.name
-		const isLastPart = activePartIndex === queryParts.length - 1
+		const isLastPart =
+			activePart.stop >= queryParts[queryParts.length - 1].stop
 
 		if (isValueSelect) {
-			part.value = value
-			part.text = `${part.key}${part.operator}${value}`
+			activePart.value = value
+			activePart.text = `${activePart.key}${activePart.operator}${value}`
 		} else {
-			debugger
-			part.key = value
-			part.operator = DEFAULT_OPERATOR
-			part.text = `${value}${DEFAULT_OPERATOR}`
-			part.value = ''
+			activePart.key = value
+			activePart.operator = DEFAULT_OPERATOR
+			activePart.text = `${value}${DEFAULT_OPERATOR}`
+			activePart.value = ''
 		}
 
 		const newCursorPosition =
-			part.start +
-			part.key.length +
-			part.operator.length +
-			part.value.length
+			activePart.start +
+			activePart.key.length +
+			activePart.operator.length +
+			activePart.value.length
 
+		debugger
 		let newQuery = stringifySearchQuery(queryParts)
 
 		// Add space if it's the last part and a value is selected so people can
@@ -673,8 +673,7 @@ const QueryPart: React.FC<{
 		<>
 			<Tooltip
 				placement="bottom"
-				open={!!active}
-				disabled={!error}
+				open={active && !!error}
 				trigger={
 					<Box
 						cssClass={clsx(styles.comboboxTag, {
@@ -723,10 +722,10 @@ const Token = ({ text }: { text: string; error?: string }): JSX.Element => {
 	}
 }
 
-const getActivePartIndex = (
+const getActivePart = (
 	cursorIndex: number,
 	queryParts: SearchExpression[],
-): number => {
+): SearchExpression => {
 	let activePartIndex
 
 	queryParts.find((param, index) => {
@@ -738,9 +737,18 @@ const getActivePartIndex = (
 		return true
 	})
 
+	const lastPart = queryParts[queryParts.length - 1] ?? { stop: 0 }
+
 	return activePartIndex === undefined
-		? queryParts.length - 1
-		: activePartIndex
+		? {
+				key: BODY_KEY,
+				operator: DEFAULT_OPERATOR,
+				value: '',
+				text: '',
+				start: lastPart.stop + 1,
+				stop: lastPart.stop + 1,
+		  }
+		: queryParts[activePartIndex]
 }
 
 const getVisibleKeys = (
@@ -788,101 +796,6 @@ const getVisibleValues = (
 					v.indexOf(activePart) > -1),
 		) || []
 	)
-}
-
-type TokenGroup = {
-	tokens: SearchToken[]
-	start: number
-	stop: number
-	type: 'expression' | 'separator'
-	expression?: SearchExpression
-}
-
-const SEPARATOR_TOKENS = [SearchGrammarLexer.AND, SearchGrammarLexer.OR]
-
-const buildTokenGroups = (
-	tokens: SearchToken[],
-	queryParts: SearchExpression[],
-	queryString: string,
-) => {
-	const tokenGroups: TokenGroup[] = [
-		{ tokens: [], start: 0, stop: 0, type: 'separator' },
-	]
-	let currentGroupIndex = 0
-	let currentTokenIndex = 0
-	let currentToken = tokens[currentTokenIndex]
-	let lastStopIndex = -1
-
-	while (currentToken) {
-		const numExpressions = tokenGroups.filter(
-			(tokenGroup) => tokenGroup.type === 'expression',
-		).length
-		const currentPartIndex = queryParts.findIndex(
-			(part) =>
-				currentToken.start >= part.start &&
-				currentToken.stop <= part.stop,
-		)
-		const currentPart = queryParts[currentPartIndex]
-		const whitespace = queryString.substring(
-			lastStopIndex + 1,
-			currentToken.start,
-		)
-		const whitespaceToken =
-			whitespace.length > 0
-				? {
-						type: SearchGrammarLexer.WS,
-						text: whitespace,
-						start: lastStopIndex + 1,
-						stop: currentToken.start,
-				  }
-				: undefined
-
-		if (
-			(currentToken.start === currentPart?.start ||
-				currentToken.stop > lastStopIndex) &&
-			numExpressions <= queryParts.length
-		) {
-			if (whitespaceToken) {
-				currentGroupIndex++
-				tokenGroups[currentGroupIndex] = {
-					tokens: [whitespaceToken],
-					start: whitespaceToken.start,
-					stop: whitespaceToken.stop,
-					type: 'separator',
-				}
-			}
-
-			currentGroupIndex++
-			tokenGroups[currentGroupIndex] = {
-				tokens: [],
-				start: currentToken.start,
-				stop: currentToken.stop,
-				type: 'separator',
-			}
-		} else {
-			if (whitespaceToken) {
-				tokenGroups[currentGroupIndex].tokens.push(whitespaceToken)
-			}
-		}
-
-		// Ignore EOF token
-		if (currentToken.type !== SearchGrammarLexer.EOF) {
-			tokenGroups[currentGroupIndex].tokens.push(currentToken)
-			tokenGroups[currentGroupIndex].stop = currentToken.stop
-
-			const isExpression = !SEPARATOR_TOKENS.includes(currentToken.type)
-			if (isExpression) {
-				tokenGroups[currentGroupIndex].type = 'expression'
-				tokenGroups[currentGroupIndex].expression = currentPart
-			}
-		}
-
-		lastStopIndex = currentToken.stop
-		currentTokenIndex++
-		currentToken = tokens[currentTokenIndex]
-	}
-
-	return tokenGroups
 }
 
 const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {

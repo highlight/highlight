@@ -7,7 +7,6 @@ import {
 	Id_search_valueContext,
 	Key_val_search_exprContext,
 	Search_keyContext,
-	Search_queryContext,
 } from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 
@@ -84,29 +83,6 @@ export class SearchListener extends SearchGrammarListener {
 		this.currentExpression.value = this.currentExpression.text
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
-	}
-
-	exitSearch_query = (ctx: Search_queryContext) => {
-		const leadingWhitespace = this.queryString.match(/^ +/)
-		const trailingWhitespace = this.queryString.match(/ +$/)
-
-		if (leadingWhitespace) {
-			this.expressions.unshift({
-				...DEFAULT_EXPRESSION,
-				text: leadingWhitespace ? leadingWhitespace[0] : '',
-				start: 0,
-				stop: leadingWhitespace?.length ?? 1,
-			})
-		}
-
-		if (trailingWhitespace) {
-			this.expressions.push({
-				...DEFAULT_EXPRESSION,
-				text: trailingWhitespace ? trailingWhitespace[0] : '',
-				start: ctx.stop?.stop ?? this.queryString.length - 1,
-				stop: ctx.start.start + this.queryString.length - 1,
-			})
-		}
 	}
 }
 
