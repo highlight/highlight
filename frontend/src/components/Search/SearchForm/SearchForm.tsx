@@ -827,7 +827,10 @@ const getVisibleValues = (
 const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 	if (error.endsWith("expecting ')'") || error.startsWith("missing ')'")) {
 		error = 'Missing closing parenthesis'
-	} else if (error.startsWith("mismatched input '\"'")) {
+	} else if (
+		error.startsWith("mismatched input '\"'") ||
+		error === "extraneous input '\"' expecting <EOF>"
+	) {
 		error = 'Missing closing quote'
 	}
 
