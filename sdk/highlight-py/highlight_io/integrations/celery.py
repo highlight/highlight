@@ -16,9 +16,6 @@ except ImportError:
 class CeleryIntegration(Integration):
     INTEGRATION_KEY = "celery"
 
-    def __init__(self, tracing_origins: t.Optional[t.List[str] | bool] = None):
-        self._trace_origins = tracing_origins or False
-
     def enable(self):
         if instrumentation_available:
             CeleryInstrumentor().instrument()
