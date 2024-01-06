@@ -1,5 +1,12 @@
 # @highlight-run/pino
 
+## 0.1.6
+
+### Patch Changes
+
+-   2c3cead99: ensure pino transport works correctly in non-node environments
+    -   @highlight-run/node@3.7.1
+
 ## 0.1.5
 
 ### Patch Changes
