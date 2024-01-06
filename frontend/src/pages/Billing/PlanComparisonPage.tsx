@@ -1,7 +1,9 @@
 import { Button } from '@components/Button'
 import {
 	Box,
+	IconSolidChatAlt,
 	IconSolidCheck,
+	IconSolidCheveronDown,
 	IconSolidOfficeBuilding,
 	IconSolidPuzzle,
 	IconSolidReceiptTax,
@@ -79,6 +81,13 @@ const PLANS = [
 	},
 ] as Plan[]
 
+const FAQ = [
+	{
+		question: 'Do you offer discounts for non-profit organizations?',
+		answer: 'We love supporting non-profits and offer a 75% discount for the lifetime of the account. To activate the discount, create a workplace on a paying plan. Then reach out to us over email requesting the discount.',
+	},
+] as const
+
 const PlanCard = ({
 	plan,
 	currentPlanType,
@@ -117,21 +126,16 @@ const PlanCard = ({
 				trackingId={`planSelect-${plan.name}`}
 				kind="secondary"
 				size="small"
-				emphasis={enterprise || current ? 'medium' : 'high'}
+				emphasis="high"
 				disabled={current}
+				iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
 				onClick={() => {
 					if (enterprise) {
+						// TODO(vkorolik)
 					} else {
 						navigate(`/w/${workspace_id}/current-plan/update-plan`)
 					}
 				}}
-				style={
-					enterprise
-						? {
-								border: vars.border.secondaryHover,
-						  }
-						: undefined
-				}
 			>
 				{enterprise
 					? 'Talk to sales'
@@ -190,6 +194,43 @@ const PlanComparisonPage: React.FC = () => {
 							plan={plan}
 							key={plan.name}
 						/>
+					))}
+				</Box>
+				<Text size="large" weight="bold" color="strong">
+					FAQ
+				</Text>
+				<Box
+					display="flex"
+					flexDirection="column"
+					border="dividerWeak"
+					borderRadius="8"
+					px="8"
+					paddingTop="4"
+					paddingBottom="12"
+				>
+					{FAQ.map((faq) => (
+						<Box
+							key={faq.question}
+							style={{
+								display: 'grid',
+								gap: 4,
+								gridTemplateColumns: '24px 1fr',
+							}}
+						>
+							<IconSolidCheveronDown
+								size={24}
+								color={
+									vars.theme.interactive.fill.secondary
+										.content.text
+								}
+							/>
+							<Stack gap="12" paddingTop="6">
+								<Text>{faq.question}</Text>
+								<Text size="small" color="weak">
+									{faq.answer}
+								</Text>
+							</Stack>
+						</Box>
 					))}
 				</Box>
 			</Stack>
