@@ -1,12 +1,18 @@
 import build from 'pino-abstract-transport'
-import { H as NodeH } from '@highlight-run/node'
 import type { NodeOptions } from '@highlight-run/node'
-import { Highlight } from '@highlight-run/node'
 
 export type { NodeOptions }
 export default async function (options: NodeOptions) {
-	if (!NodeH.isInitialized()) {
-		NodeH.init(options)
+	// do nothing in next.js non-node runtimes
+	if (
+		typeof process.env.NEXT_RUNTIME !== 'undefined' &&
+		process.env.NEXT_RUNTIME !== 'nodejs'
+	) {
+		return build(async () => {})
+	}
+	const { H } = await import('@highlight-run/node')
+	if (!H.isInitialized()) {
+		H.init(options)
 	}
 
 	if (!options.projectID) {
@@ -15,7 +21,7 @@ export default async function (options: NodeOptions) {
 
 	return build(
 		async function (source) {
-			const context = NodeH.parseHeaders({})
+			const context = H.parseHeaders({})
 			for await (const obj of source) {
 				const { msg, level, ...rest } = obj
 				let levelStr: string
@@ -42,7 +48,7 @@ export default async function (options: NodeOptions) {
 						levelStr = 'info'
 				}
 				try {
-					NodeH.log(
+					H.log(
 						msg,
 						levelStr,
 						context.secureSessionId,
@@ -59,7 +65,7 @@ export default async function (options: NodeOptions) {
 		{
 			async close(err) {
 				try {
-					await NodeH.flush()
+					await H.flush()
 				} catch (error) {
 					console.error(`Failed to flush logs to highlight: ${error}`)
 				}
