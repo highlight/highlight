@@ -24,6 +24,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import {
 	CLICKUP_INTEGRATION,
 	GITHUB_INTEGRATION,
+	GITLAB_INTEGRATION,
 	HEIGHT_INTEGRATION,
 	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
@@ -34,6 +35,7 @@ import { copyToClipboard } from '@util/string'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 import * as style from './style.css'
@@ -49,6 +51,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 		useLinearIntegration()
 
 	const { settings: jiraSettings } = useJiraIntegration()
+	const { settings: gitlabSettings } = useGitlabIntegration()
 
 	const { isIntegrated: isClickupIntegrated, loading: isLoadingClickUp } =
 		useIsProjectIntegratedWith(IntegrationType.ClickUp)
@@ -76,6 +79,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 			() => [
 				[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
 				[jiraSettings.isIntegrated, JIRA_INTEGRATION],
+				[gitlabSettings.isIntegrated, GITLAB_INTEGRATION],
 				[isClickupIntegrated, CLICKUP_INTEGRATION],
 				[isHeightIntegrated, HEIGHT_INTEGRATION],
 				[githubSettings.isIntegrated, GITHUB_INTEGRATION],
@@ -86,6 +90,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				jiraSettings.isIntegrated,
 				isHeightIntegrated,
 				githubSettings.isIntegrated,
+				gitlabSettings.isIntegrated,
 			],
 		)
 
@@ -103,6 +108,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	const isLoading =
 		isLoadingLinear ||
 		jiraSettings.loading ||
+		gitlabSettings.loading ||
 		isLoadingClickUp ||
 		isLoadingHeight ||
 		githubSettings.loading ||

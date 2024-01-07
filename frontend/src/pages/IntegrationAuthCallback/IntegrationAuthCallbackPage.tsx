@@ -25,6 +25,7 @@ import { StringParam, useQueryParams } from 'use-query-params'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
+import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 interface Props {
@@ -384,6 +385,19 @@ const JiraIntegrationCallback = ({ code, projectId }: Props) => {
 	)
 }
 
+const GitlabIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useGitlabIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="Gitlab"
+			type="gitlab"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -444,6 +458,14 @@ const IntegrationAuthCallbackPage = () => {
 			case 'jira':
 				cb = (
 					<JiraIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'gitlab':
+				cb = (
+					<GitlabIntegrationCallback
 						code={code}
 						projectId={projectId}
 					/>
