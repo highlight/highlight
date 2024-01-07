@@ -43,7 +43,7 @@ export const getGitlabOAuthUrl = (projectId: string, workspaceId: string) => {
 	const authUrl =
 		`https://gitlab.com/oauth/authorize?` +
 		`client_id=${GITLAB_CLIENT_ID}` +
-		`&scope=${encodeURIComponent(GITLAB_SCOPES.join('+'))}` +
+		`&scope=${GITLAB_SCOPES.join('+')}` +
 		`&redirect_uri=${encodeURIComponent(redirectUri)}` +
 		`&state=${btoa(JSON.stringify(state))}` +
 		`&response_type=code`
