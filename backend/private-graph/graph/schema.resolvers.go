@@ -2520,6 +2520,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitlab {
+		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2578,6 +2582,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		}
 	} else if integrationType == modelInputs.IntegrationTypeJira {
 		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if integrationType == modelInputs.IntegrationTypeGitlab {
+		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	nUrl "net/url"
 	"os"
 	"strings"
@@ -330,4 +331,35 @@ func GetRefreshToken(ctx context.Context, oldToken *oauth2.Token) (*oauth2.Token
 	}
 
 	return newToken, nil
+}
+
+func RevokeGitlabAccessToken(accessToken string) error {
+	conf, _, err := GetOAuthConfig()
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+
+	data := url.Values{}
+	data.Set("token", accessToken)
+	data.Set("client_id", conf.ClientID)
+	data.Set("client_secret", conf.ClientSecret)
+
+	req, err := http.NewRequest("POST", "https://gitlab.com/oauth/revoke", strings.NewReader(data.Encode()))
+	if err != nil {
+		return errors.Wrap(err, "error creating api request to gitlab")
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "error getting response from gitlab revoke oauth token endpoint")
+	}
+
+	if res.StatusCode != 200 {
+		return errors.New("gitlab API responded with error; status_code=" + res.Status)
+	}
+
+	return nil
 }

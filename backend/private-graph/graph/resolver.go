@@ -1994,6 +1994,24 @@ func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
 	return nil
 }
 
+func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
+	ctx := context.TODO()
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitlab)
+
+	if err == nil {
+		err := gitlab.RevokeGitlabAccessToken(*accessToken)
+		if err != nil {
+			log.WithContext(ctx).Println(err.Error())
+		}
+	}
+
+	if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, modelInputs.IntegrationTypeGitlab); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 	if workspace.VercelAccessToken == nil {
 		return e.New("workspace does not have a Vercel access token")
