@@ -41,6 +41,7 @@ const WorkspaceIntegrations = new Set<string>([
 	'github',
 	'height',
 	'jira',
+	'gitlab',
 ])
 
 const logError = (e: any) => {
