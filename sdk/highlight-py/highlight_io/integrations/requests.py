@@ -1,8 +1,4 @@
-import typing as t
-
-import highlight_io
 from highlight_io.integrations import Integration
-from highlight_io.utils import utils
 
 try:
     import requests
