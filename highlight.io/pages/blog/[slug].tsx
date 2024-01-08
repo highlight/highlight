@@ -168,6 +168,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 				suggestedPost.slug
 			}?${params.toString()}`
 
+			console.log(metaImageURL)
+
 			suggestedPost.image.url = metaImageURL
 		}
 

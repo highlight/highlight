@@ -82,35 +82,37 @@ const handler = async function (req: NextRequest) {
 							fill="white"
 						/>
 					</svg>
-					<span
-						style={{
-							backgroundColor: '#0D0225',
-							border: '1px solid #ebff5e',
-							padding: '10px 18px 6px 18px',
-							marginTop: 20,
-							borderRadius: 8,
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							width: '200px',
-							maxWidth: '200px',
-							color: '#ebff5e',
-						}}
-					>
-						Highlight Customer
-					</span>
-					<span
-						style={{
-							fontSize: 45,
-							marginBottom: 60,
-							lineHeight: '1.2em',
-							maxHeight: '4.2em',
-							textOverflow: 'ellipsis',
-							overflow: 'hidden',
-						}}
-					>
-						{title || slug}
-					</span>
+					<div tw={'flex flex-col justify-center'}>
+						<span
+							style={{
+								backgroundColor: '#0D0225',
+								border: '1px solid #ebff5e',
+								padding: '10px 18px 6px 18px',
+								marginBottom: 30,
+								borderRadius: 8,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: '200px',
+								maxWidth: '200px',
+								color: '#ebff5e',
+							}}
+						>
+							Highlight Customer
+						</span>
+						<span
+							style={{
+								fontSize: 45,
+								marginBottom: 60,
+								lineHeight: '1.2em',
+								maxHeight: '4.2em',
+								textOverflow: 'ellipsis',
+								overflow: 'hidden',
+							}}
+						>
+							{title || slug}
+						</span>
+					</div>
 					<div tw={'flex flex-row items-center'}>
 						<div tw={'flex flex-col'}>
 							<span style={{ fontSize: 24 }}>
