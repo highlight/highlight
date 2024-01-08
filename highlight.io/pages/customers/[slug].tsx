@@ -36,6 +36,11 @@ interface Customer {
 			author: Author
 		}[]
 	}
+	quote: {
+		id: string
+		body: string
+		author: Author
+	}
 	primaryQuote: {
 		id: string
 		body: string
