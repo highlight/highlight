@@ -1,7 +1,6 @@
 import {
 	DateRangePreset,
 	DateRangeValue,
-	getNow,
 	presetStartDate,
 	presetValue,
 } from '@highlight-run/ui/components'
@@ -31,16 +30,6 @@ export function useSearchTime({
 	initialPreset,
 }: UseSearchTimeProps): UseSearchTimeReturnValue {
 	const defaultPreset = initialPreset ?? presets[0]
-	const [selectedPreset, setSelectedPreset] = useState<
-		DateRangePreset | undefined
-	>(defaultPreset)
-	const [endDate, setEndDate] = useState<Date>(getNow().toDate())
-	const [startDate, setStartDate] = useState<Date>(
-		moment(getNow())
-			.subtract(defaultPreset.quantity, defaultPreset.unit)
-			.toDate(),
-	)
-
 	const [startDateParam, setStartDateParam] = useQueryParam(
 		'start_date',
 		DateTimeParam,
@@ -51,6 +40,35 @@ export function useSearchTime({
 	)
 	const [presetParam, setPresetParam] = useQueryParam<string | undefined>(
 		'relative_time',
+	)
+
+	const findPreset = useCallback(
+		(value?: string): DateRangePreset => {
+			if (!value) {
+				return defaultPreset
+			}
+
+			const foundPreset = presets.find(
+				(preset) => presetValue(preset) === value,
+			)
+
+			return foundPreset || defaultPreset
+		},
+		[defaultPreset, presets],
+	)
+
+	const useRelativeTime = presetParam || !startDateParam || !endDateParam
+	const [selectedPreset, setSelectedPreset] = useState<
+		DateRangePreset | undefined
+	>(useRelativeTime ? findPreset(presetParam) : undefined)
+
+	const [endDate, setEndDate] = useState<Date>(
+		useRelativeTime ? moment().toDate() : new Date(endDateParam!),
+	)
+	const [startDate, setStartDate] = useState<Date>(
+		useRelativeTime
+			? presetStartDate(selectedPreset ?? defaultPreset)
+			: new Date(startDateParam!),
 	)
 
 	const updateSearchTime = (
@@ -69,40 +87,21 @@ export function useSearchTime({
 		}
 	}
 
-	const rebaseSearchTime = () => {
+	const rebaseSearchTime = useCallback(() => {
 		if (selectedPreset) {
 			setStartDate(presetStartDate(selectedPreset))
 			setEndDate(moment().toDate())
 		}
-	}
-
-	const findPreset = useCallback(
-		(value?: string): DateRangePreset => {
-			if (!value) {
-				return defaultPreset
-			}
-
-			const foundPreset = presets.find(
-				(preset) => presetValue(preset) === value,
-			)
-
-			return foundPreset || defaultPreset
-		},
-		[defaultPreset, presets],
-	)
+	}, [selectedPreset])
 
 	// keep state values in sync with query params
 	useEffect(() => {
-		// use absolute time if both provided
-		if (startDateParam && endDateParam) {
-			setStartDate(startDateParam as Date)
-			setEndDate(endDateParam as Date)
-			setSelectedPreset(undefined)
-			return
-		}
-
-		// use preset if provided
+		// use preset if provided but don't overwrite times if matches last s
 		if (presetParam) {
+			if (selectedPreset && presetParam === presetValue(selectedPreset)) {
+				return
+			}
+
 			const foundPreset = findPreset(presetParam)
 			setSelectedPreset(foundPreset)
 			setStartDate(presetStartDate(foundPreset))
@@ -110,29 +109,23 @@ export function useSearchTime({
 			return
 		}
 
-		// prevents searching while selecting dates
-		if (!startDateParam && !endDateParam) {
-			setStartDate(presetStartDate(defaultPreset))
-			setEndDate(moment().toDate())
-			setSelectedPreset(defaultPreset)
+		// avoid setting until both params are set
+		if (startDateParam && endDateParam) {
+			setStartDate(startDateParam as Date)
+			setEndDate(endDateParam as Date)
+			setSelectedPreset(undefined)
+			return
 		}
-	}, [
-		presetParam,
-		startDateParam,
-		endDateParam,
-		findPreset,
-		setPresetParam,
-		defaultPreset,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [presetParam, startDateParam, endDateParam])
 
 	const datePickerValue = useMemo(() => {
+		const usePreset = presetParam || !startDateParam || !endDateParam
+
 		return {
 			startDate: startDateParam ?? undefined,
 			endDate: endDateParam ?? undefined,
-			selectedPreset:
-				presetParam || !(startDateParam || endDateParam)
-					? selectedPreset
-					: undefined,
+			selectedPreset: usePreset ? selectedPreset : undefined,
 		}
 	}, [endDateParam, presetParam, selectedPreset, startDateParam])
 
