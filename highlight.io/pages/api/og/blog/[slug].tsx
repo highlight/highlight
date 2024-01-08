@@ -1,7 +1,7 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
-import { backdrop, font, fontLight } from '../util'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
+import { backdrop, font, fontLight } from '../util'
 
 export const config = {
 	runtime: 'edge',
@@ -91,15 +91,17 @@ const handler = async function (req: NextRequest) {
 					<div style={{ display: 'flex', flexDirection: 'column' }}>
 						<span
 							style={{
-								color: '#0D0225',
-								marginBottom: 20,
-								backgroundColor: '#ebff5e',
-								padding: '6px 18px 2px 18px',
-								borderRadius: 100,
+								backgroundColor: '#0D0225',
+								border: '1px solid #ebff5e',
+								padding: '10px 18px 6px 18px',
+								marginTop: 20,
+								borderRadius: 8,
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
 								width: '200px',
+								maxWidth: '200px',
+								color: '#ebff5e',
 							}}
 						>
 							Highlight Blog

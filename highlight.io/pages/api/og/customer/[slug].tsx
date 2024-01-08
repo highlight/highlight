@@ -93,6 +93,7 @@ const handler = async function (req: NextRequest) {
 							alignItems: 'center',
 							justifyContent: 'center',
 							width: '200px',
+							maxWidth: '200px',
 							color: '#ebff5e',
 						}}
 					>
