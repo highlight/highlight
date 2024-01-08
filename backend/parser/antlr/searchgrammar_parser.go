@@ -56,25 +56,25 @@ func searchgrammarParserInit() {
 		3, 1, 3, 1, 3, 1, 3, 5, 3, 82, 8, 3, 10, 3, 12, 3, 85, 9, 3, 1, 4, 1, 4,
 		1, 5, 1, 5, 3, 5, 91, 8, 5, 1, 6, 1, 6, 1, 7, 1, 7, 1, 8, 1, 8, 1, 9, 1,
 		9, 1, 9, 0, 2, 4, 6, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 0, 2, 2, 0,
-		4, 9, 12, 12, 2, 0, 13, 13, 15, 15, 103, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0,
-		0, 0, 4, 45, 1, 0, 0, 0, 6, 72, 1, 0, 0, 0, 8, 86, 1, 0, 0, 0, 10, 90,
-		1, 0, 0, 0, 12, 92, 1, 0, 0, 0, 14, 94, 1, 0, 0, 0, 16, 96, 1, 0, 0, 0,
-		18, 98, 1, 0, 0, 0, 20, 25, 5, 0, 0, 1, 21, 22, 3, 6, 3, 0, 22, 23, 5,
-		0, 0, 1, 23, 25, 1, 0, 0, 0, 24, 20, 1, 0, 0, 0, 24, 21, 1, 0, 0, 0, 25,
-		1, 1, 0, 0, 0, 26, 27, 5, 10, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 11,
-		0, 0, 29, 35, 1, 0, 0, 0, 30, 31, 3, 14, 7, 0, 31, 32, 3, 2, 1, 0, 32,
-		35, 1, 0, 0, 0, 33, 35, 3, 18, 9, 0, 34, 26, 1, 0, 0, 0, 34, 30, 1, 0,
-		0, 0, 34, 33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37, 38,
-		5, 10, 0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 11, 0, 0, 40, 46, 1, 0, 0,
-		0, 41, 42, 3, 14, 7, 0, 42, 43, 3, 4, 2, 4, 43, 46, 1, 0, 0, 0, 44, 46,
-		3, 18, 9, 0, 45, 36, 1, 0, 0, 0, 45, 41, 1, 0, 0, 0, 45, 44, 1, 0, 0, 0,
-		46, 56, 1, 0, 0, 0, 47, 48, 10, 3, 0, 0, 48, 49, 3, 10, 5, 0, 49, 50, 3,
-		4, 2, 4, 50, 55, 1, 0, 0, 0, 51, 52, 10, 2, 0, 0, 52, 53, 5, 2, 0, 0, 53,
-		55, 3, 4, 2, 3, 54, 47, 1, 0, 0, 0, 54, 51, 1, 0, 0, 0, 55, 58, 1, 0, 0,
-		0, 56, 54, 1, 0, 0, 0, 56, 57, 1, 0, 0, 0, 57, 5, 1, 0, 0, 0, 58, 56, 1,
-		0, 0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 10, 0, 0, 61, 62, 3, 6, 3, 0,
-		62, 63, 5, 11, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65, 66, 3,
-		6, 3, 5, 66, 73, 1, 0, 0, 0, 67, 68, 3, 8, 4, 0, 68, 69, 3, 16, 8, 0, 69,
+		4, 9, 12, 12, 1, 0, 13, 15, 103, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0, 0, 0,
+		4, 45, 1, 0, 0, 0, 6, 72, 1, 0, 0, 0, 8, 86, 1, 0, 0, 0, 10, 90, 1, 0,
+		0, 0, 12, 92, 1, 0, 0, 0, 14, 94, 1, 0, 0, 0, 16, 96, 1, 0, 0, 0, 18, 98,
+		1, 0, 0, 0, 20, 25, 5, 0, 0, 1, 21, 22, 3, 6, 3, 0, 22, 23, 5, 0, 0, 1,
+		23, 25, 1, 0, 0, 0, 24, 20, 1, 0, 0, 0, 24, 21, 1, 0, 0, 0, 25, 1, 1, 0,
+		0, 0, 26, 27, 5, 10, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 11, 0, 0, 29,
+		35, 1, 0, 0, 0, 30, 31, 3, 14, 7, 0, 31, 32, 3, 2, 1, 0, 32, 35, 1, 0,
+		0, 0, 33, 35, 3, 18, 9, 0, 34, 26, 1, 0, 0, 0, 34, 30, 1, 0, 0, 0, 34,
+		33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37, 38, 5, 10,
+		0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 11, 0, 0, 40, 46, 1, 0, 0, 0, 41,
+		42, 3, 14, 7, 0, 42, 43, 3, 4, 2, 4, 43, 46, 1, 0, 0, 0, 44, 46, 3, 18,
+		9, 0, 45, 36, 1, 0, 0, 0, 45, 41, 1, 0, 0, 0, 45, 44, 1, 0, 0, 0, 46, 56,
+		1, 0, 0, 0, 47, 48, 10, 3, 0, 0, 48, 49, 3, 10, 5, 0, 49, 50, 3, 4, 2,
+		4, 50, 55, 1, 0, 0, 0, 51, 52, 10, 2, 0, 0, 52, 53, 5, 2, 0, 0, 53, 55,
+		3, 4, 2, 3, 54, 47, 1, 0, 0, 0, 54, 51, 1, 0, 0, 0, 55, 58, 1, 0, 0, 0,
+		56, 54, 1, 0, 0, 0, 56, 57, 1, 0, 0, 0, 57, 5, 1, 0, 0, 0, 58, 56, 1, 0,
+		0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 10, 0, 0, 61, 62, 3, 6, 3, 0, 62,
+		63, 5, 11, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65, 66, 3, 6,
+		3, 5, 66, 73, 1, 0, 0, 0, 67, 68, 3, 8, 4, 0, 68, 69, 3, 16, 8, 0, 69,
 		70, 3, 2, 1, 0, 70, 73, 1, 0, 0, 0, 71, 73, 3, 2, 1, 0, 72, 59, 1, 0, 0,
 		0, 72, 64, 1, 0, 0, 0, 72, 67, 1, 0, 0, 0, 72, 71, 1, 0, 0, 0, 73, 83,
 		1, 0, 0, 0, 74, 75, 10, 4, 0, 0, 75, 76, 3, 10, 5, 0, 76, 77, 3, 6, 3,
@@ -264,7 +264,7 @@ func (p *SearchGrammarParser) Search_query() (localctx ISearch_queryContext) {
 			}
 		}
 
-	case SearchGrammarParserNOT, SearchGrammarParserLPAREN, SearchGrammarParserID, SearchGrammarParserVALUE:
+	case SearchGrammarParserNOT, SearchGrammarParserLPAREN, SearchGrammarParserID, SearchGrammarParserSTRING, SearchGrammarParserVALUE:
 		p.EnterOuterAlt(localctx, 2)
 		{
 			p.SetState(21)
@@ -559,7 +559,7 @@ func (p *SearchGrammarParser) Top_col_expr() (localctx ITop_col_exprContext) {
 			p.Top_col_expr()
 		}
 
-	case SearchGrammarParserID, SearchGrammarParserVALUE:
+	case SearchGrammarParserID, SearchGrammarParserSTRING, SearchGrammarParserVALUE:
 		localctx = NewTop_col_search_valueContext(p, localctx)
 		p.EnterOuterAlt(localctx, 3)
 		{
@@ -1025,7 +1025,7 @@ func (p *SearchGrammarParser) col_expr(_p int) (localctx ICol_exprContext) {
 			p.col_expr(4)
 		}
 
-	case SearchGrammarParserID, SearchGrammarParserVALUE:
+	case SearchGrammarParserID, SearchGrammarParserSTRING, SearchGrammarParserVALUE:
 		localctx = NewCol_search_valueContext(p, localctx)
 		p.SetParserRuleContext(localctx)
 		_prevctx = localctx
@@ -1956,7 +1956,7 @@ func (p *SearchGrammarParser) And_op() (localctx IAnd_opContext) {
 			}
 		}
 
-	case SearchGrammarParserNOT, SearchGrammarParserLPAREN, SearchGrammarParserID, SearchGrammarParserVALUE:
+	case SearchGrammarParserNOT, SearchGrammarParserLPAREN, SearchGrammarParserID, SearchGrammarParserSTRING, SearchGrammarParserVALUE:
 		p.EnterOuterAlt(localctx, 2)
 
 	default:
@@ -2308,6 +2308,7 @@ type ISearch_valueContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
+	STRING() antlr.TerminalNode
 	ID() antlr.TerminalNode
 	VALUE() antlr.TerminalNode
 
@@ -2347,6 +2348,10 @@ func NewSearch_valueContext(parser antlr.Parser, parent antlr.ParserRuleContext,
 
 func (s *Search_valueContext) GetParser() antlr.Parser { return s.parser }
 
+func (s *Search_valueContext) STRING() antlr.TerminalNode {
+	return s.GetToken(SearchGrammarParserSTRING, 0)
+}
+
 func (s *Search_valueContext) ID() antlr.TerminalNode {
 	return s.GetToken(SearchGrammarParserID, 0)
 }
@@ -2385,7 +2390,7 @@ func (p *SearchGrammarParser) Search_value() (localctx ISearch_valueContext) {
 		p.SetState(98)
 		_la = p.GetTokenStream().LA(1)
 
-		if !(_la == SearchGrammarParserID || _la == SearchGrammarParserVALUE) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&57344) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)

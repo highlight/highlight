@@ -57,7 +57,8 @@ bin_op
   ;
 
 search_value
-  : ID
+  : STRING
+  | ID
   | VALUE
   ;
 

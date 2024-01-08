@@ -634,35 +634,35 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service_name:foo",
+		Query:     "service:foo",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     `service_name:"image processor"`,
+		Query:     `service:"image processor"`,
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service_name:*mage*",
+		Query:     "service:*mage*",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service_name:image* workspace_id:1 user_id:1",
+		Query:     "service:image* workspace_id:1 user_id:1",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     `service_name:"image processor" service_name:"different processor"`,
+		Query:     `service:"image processor" service:"different processor"`,
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)

@@ -8,6 +8,7 @@ import (
 )
 
 var BodyKey = "SpanName"
+var AttributesColumn = "TraceAttributes"
 
 var KeysToColumns = map[string]string{
 	"duration":     "Duration",
@@ -40,7 +41,7 @@ func TestMultipleBodyFiltersSearch(t *testing.T) {
 func buildSqlForQuery(query string) (string, error) {
 	sqlBuilder := sqlbuilder.NewSelectBuilder()
 	sb := sqlBuilder.Select("*").From("t")
-	AssignSearchFilters(sb, query, BodyKey, KeysToColumns)
+	AssignSearchFilters(sb, query, BodyKey, AttributesColumn, KeysToColumns)
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	return sqlbuilder.ClickHouse.Interpolate(sql, args)
 }

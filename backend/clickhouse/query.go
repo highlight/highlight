@@ -143,7 +143,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	sqlStr, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	fmt.Printf("::: SQL: %s\n", sqlStr)
+	fmt.Printf("::: sql: %s\n", sqlStr)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
 	span.SetAttribute("Table", config.tableName)
@@ -259,7 +259,7 @@ func makeSelectBuilder[T ~string](
 	for k, v := range config.keysToColumns {
 		keysToColumns[string(k)] = v
 	}
-	parser.AssignSearchFilters(sb, params.Query, config.bodyColumn, keysToColumns)
+	parser.AssignSearchFilters(sb, params.Query, config.bodyColumn, config.attributesColumn, keysToColumns)
 
 	// TODO: Handle TraceAttributes query (and figure out why we need it)
 

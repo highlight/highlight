@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/ettle/strcase"
 	parser "github.com/highlight-run/highlight/backend/parser/antlr"
 	"github.com/huandu/go-sqlbuilder"
 )
@@ -22,22 +21,24 @@ var DefaultFilterOp = "="
 type searchListener struct {
 	parser.SearchGrammarListener
 
-	currentKey    string
-	currentOp     string
-	rules         []string
-	sb            *sqlbuilder.SelectBuilder
-	bodyColumn    string
-	keysToColumns map[string]string
+	currentKey       string
+	currentOp        string
+	rules            []string
+	sb               *sqlbuilder.SelectBuilder
+	bodyColumn       string
+	attributesColumn string
+	keysToColumns    map[string]string
 }
 
-func NewSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, bodyColumn string, keysToColumns map[string]string) *searchListener {
+func NewSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, bodyColumn string, attributesColumn string, keysToColumns map[string]string) *searchListener {
 	return &searchListener{
-		currentKey:    DefaultFilterKey,
-		currentOp:     DefaultFilterOp,
-		rules:         []string{},
-		sb:            sqlBuilder,
-		bodyColumn:    bodyColumn,
-		keysToColumns: keysToColumns,
+		currentKey:       DefaultFilterKey,
+		currentOp:        DefaultFilterOp,
+		rules:            []string{},
+		sb:               sqlBuilder,
+		bodyColumn:       bodyColumn,
+		attributesColumn: attributesColumn,
+		keysToColumns:    keysToColumns,
 	}
 }
 
@@ -148,10 +149,17 @@ func (s *searchListener) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 func (s *searchListener) appendRules(value string) {
 	filterKey, ok := s.keysToColumns[s.currentKey]
 	if !ok {
-		filterKey = strcase.ToPascal(s.currentKey)
+		if s.currentKey == s.bodyColumn {
+			filterKey = s.bodyColumn
+		} else {
+			filterKey = fmt.Sprintf("%s['%s']", s.attributesColumn, s.currentKey)
+		}
 	}
+	// 1. Body query
+	// 2. Exists in keysToColumns
+	// 3. Use raw in config.attributesColumn
 
-	fmt.Printf("::: filterKey: %s %s %+v\n", s.currentKey, filterKey, ok)
+	fmt.Printf("::: filterKey: %s %s %s %+v\n", s.currentKey, filterKey, value, ok)
 
 	switch s.currentOp {
 	case "=":

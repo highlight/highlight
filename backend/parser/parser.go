@@ -7,12 +7,12 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 )
 
-func AssignSearchFilters(sqlBuilder *sqlbuilder.SelectBuilder, query string, bodyColumn string, keysToColumns map[string]string) {
+func AssignSearchFilters(sqlBuilder *sqlbuilder.SelectBuilder, query string, bodyColumn string, attributesColumn string, keysToColumns map[string]string) {
 	is := antlr.NewInputStream(query)
 	lexer := parser.NewSearchGrammarLexer(is)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := parser.NewSearchGrammarParser(stream)
-	listener := listener.NewSearchListener(sqlBuilder, bodyColumn, keysToColumns)
+	listener := listener.NewSearchListener(sqlBuilder, bodyColumn, attributesColumn, keysToColumns)
 
 	antlr.ParseTreeWalkerDefault.Walk(listener, p.Search_query())
 }
