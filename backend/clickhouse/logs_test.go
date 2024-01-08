@@ -21,10 +21,10 @@ import (
 func TestMain(m *testing.M) {
 	_, err := SetupClickhouseTestDB()
 	if err != nil {
+
 		panic("Failed to setup clickhouse test database")
 	}
 	code := m.Run()
-	// teardown() - we could drop the testing database here
 	os.Exit(code)
 }
 
@@ -39,6 +39,9 @@ func setupTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 		assert.NoError(tb, err)
 
 		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", LogKeyValuesTable))
+		assert.NoError(tb, err)
+
+		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", TracesTable))
 		assert.NoError(tb, err)
 	}
 }
