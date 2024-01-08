@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/ettle/strcase"
 	parser "github.com/highlight-run/highlight/backend/parser/antlr"
 	"github.com/huandu/go-sqlbuilder"
 )
@@ -137,7 +138,7 @@ func (s *searchListener) EnterSearch_value(ctx *parser.Search_valueContext) {
 	value := strings.Trim(ctx.GetText(), "\"")
 	s.appendRules(value)
 }
-func (s *searchListener) ExitString_search_value(ctx *parser.Search_valueContext) {}
+func (s *searchListener) ExitSearch_value(ctx *parser.Search_valueContext) {}
 
 func (s *searchListener) VisitTerminal(node antlr.TerminalNode)      {}
 func (s *searchListener) VisitErrorNode(node antlr.ErrorNode)        {}
@@ -147,16 +148,33 @@ func (s *searchListener) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 func (s *searchListener) appendRules(value string) {
 	filterKey, ok := s.keysToColumns[s.currentKey]
 	if !ok {
-		filterKey = s.currentKey
+		filterKey = strcase.ToPascal(s.currentKey)
 	}
+
+	fmt.Printf("::: filterKey: %s %s %+v\n", s.currentKey, filterKey, ok)
 
 	switch s.currentOp {
 	case "=":
-		s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+		if strings.Contains(value, "*") {
+			value = strings.Replace(value, "*", "%", -1)
+			s.rules = append(s.rules, s.sb.Like(filterKey, value))
+		} else {
+			s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+		}
 	case ":":
-		s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+		if strings.Contains(value, "*") {
+			value = strings.Replace(value, "*", "%", -1)
+			s.rules = append(s.rules, s.sb.Like(filterKey, value))
+		} else {
+			s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+		}
 	case "!=":
-		s.rules = append(s.rules, s.sb.NotEqual(filterKey, value))
+		if strings.HasSuffix(value, "\"") && strings.Contains(value, "*") {
+			value = strings.Replace(value, "*", "%", -1)
+			s.rules = append(s.rules, s.sb.NotLike(filterKey, value))
+		} else {
+			s.rules = append(s.rules, s.sb.NotEqual(filterKey, value))
+		}
 	case ">":
 		s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
 	case ">=":

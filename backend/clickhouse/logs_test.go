@@ -540,6 +540,7 @@ func TestReadLogsAtCursor(t *testing.T) {
 	assertCursorsOutput(t, connection.Edges, permalink.Cursor)
 }
 
+// TODO: Fix this test!
 func TestReadLogsWithBodyFilter(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -554,11 +555,13 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
+	// TODO: This is returning nil for payload. See what's going on here.
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "no match",
 	}, Pagination{})
 	assert.NoError(t, err)
+	fmt.Printf("::: payload: %+v\n", payload)
 	assert.Len(t, payload.Edges, 0)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
@@ -607,14 +610,14 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	rows := []*LogRow{
 		NewLogRow(now, 1,
 			WithLogAttributes(map[string]string{
-				"service":      "image processor",
+				"service_name": "image processor",
 				"workspace_id": "1",
 				"user_id":      "1",
 			}),
 		),
 		NewLogRow(now, 1,
 			WithLogAttributes(map[string]string{
-				"service": "different processor",
+				"service_name": "different processor",
 			}),
 		),
 		NewLogRow(now, 1,
@@ -628,35 +631,35 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service:foo",
+		Query:     "service_name:foo",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     `service:"image processor"`,
+		Query:     `service_name:"image processor"`,
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service:*mage*",
+		Query:     "service_name:*mage*",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service:image* workspace_id:1 user_id:1",
+		Query:     "service_name:image* workspace_id:1 user_id:1",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     `service:"image processor" service:"different processor"`,
+		Query:     `service_name:"image processor" service_name:"different processor"`,
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
