@@ -28,13 +28,7 @@ const handler = async function (req: NextRequest) {
 	const title = url.searchParams.get('title')
 	const firstName = url.searchParams.get('fname')
 	const lastName = url.searchParams.get('lname')
-	const role = url.searchParams.get('company')
-	console.log('highlight og image for customer', {
-		title,
-		firstName,
-		lastName,
-		role,
-	})
+	const role = url.searchParams.get('role')
 
 	return new ImageResponse(
 		(
@@ -54,7 +48,7 @@ const handler = async function (req: NextRequest) {
 						display: 'flex',
 						color: 'white',
 						flexDirection: 'column',
-						width: 600,
+						width: 800,
 						height: '100%',
 						justifyContent: 'space-between',
 						paddingTop: 50,
@@ -67,7 +61,7 @@ const handler = async function (req: NextRequest) {
 						style={{
 							position: 'absolute',
 							top: 0,
-							left: 550,
+							left: 750,
 						}}
 						width={650}
 						height={650}
@@ -88,49 +82,48 @@ const handler = async function (req: NextRequest) {
 							fill="white"
 						/>
 					</svg>
-					<div style={{ display: 'flex', flexDirection: 'column' }}>
-						<span
-							style={{
-								color: '#0D0225',
-								marginBottom: 20,
-								backgroundColor: '#ebff5e',
-								padding: '6px 18px 2px 18px',
-								borderRadius: 100,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								width: '200px',
-							}}
-						>
-							Highlight Blog
-						</span>
-						<span
-							style={{
-								fontSize: 50,
-								marginBottom: 60,
-								lineHeight: '1.2em',
-								maxHeight: '4.2em',
-								textOverflow: 'ellipsis',
-								overflow: 'hidden',
-							}}
-						>
-							{title || slug}
-						</span>
-						<div tw={'flex flex-row items-center'}>
-							<div tw={'flex flex-col'}>
-								<span style={{ fontSize: 24 }}>
-									{firstName || ''} {lastName || ''}
-								</span>
-								<span
-									style={{
-										color: '#DFDFDF',
-										fontSize: 24,
-										fontFamily: '"PoppinsLight"',
-									}}
-								>
-									{role || ''}
-								</span>
-							</div>
+					<span
+						style={{
+							backgroundColor: '#0D0225',
+							border: '1px solid #ebff5e',
+							padding: '10px 18px 6px 18px',
+							marginTop: 20,
+							borderRadius: 8,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							width: '200px',
+							color: '#ebff5e',
+						}}
+					>
+						Highlight Customer
+					</span>
+					<span
+						style={{
+							fontSize: 45,
+							marginBottom: 60,
+							lineHeight: '1.2em',
+							maxHeight: '4.2em',
+							textOverflow: 'ellipsis',
+							overflow: 'hidden',
+						}}
+					>
+						{title || slug}
+					</span>
+					<div tw={'flex flex-row items-center'}>
+						<div tw={'flex flex-col'}>
+							<span style={{ fontSize: 24 }}>
+								{firstName || ''} {lastName || ''}
+							</span>
+							<span
+								style={{
+									color: '#DFDFDF',
+									fontSize: 24,
+									fontFamily: '"PoppinsLight"',
+								}}
+							>
+								{role || ''}
+							</span>
 						</div>
 					</div>
 				</div>

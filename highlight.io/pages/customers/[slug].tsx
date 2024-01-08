@@ -192,7 +192,7 @@ const CustomerPage = ({
 	params.set('title', title)
 	params.set('fname', customer.primaryQuote.author.firstName)
 	params.set('lname', customer.primaryQuote.author.lastName)
-	params.set('role', customer.founded)
+	params.set('role', customer.primaryQuote.author.title)
 
 	const metaImageURL = `https://${
 		process.env.NEXT_PUBLIC_VERCEL_URL
