@@ -1,8 +1,7 @@
 import moment from 'moment'
 
-import { DateRangePreset, DateRangeValue } from './types'
+import { DateRangePreset, DateRangeValue, presetLabel, presetValue } from '.'
 import { TIME_DISPLAY_FORMAT, TIME_INPUT_FORMAT } from './constants'
-import { presetLabel, presetValue } from './utils'
 
 export const formatDisplayedDate = (date?: Date) => {
 	if (!date) {

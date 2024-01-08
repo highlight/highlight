@@ -1,5 +1,3 @@
-import { DateRangePreset } from './types'
-
 const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
 const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'
 const DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA = 'MMM D YYYY'
@@ -44,31 +42,4 @@ export const VALID_TIME_INPUT_FORMATS = [
 	TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM_24_HOUR,
 	TIME_INPUT_FORMAT_24_HOURS_MINUTES_NO_AM_PM_24,
 	TIME_INPUT_FORMAT_12_HOURS_NO_AM_PM,
-]
-
-export const DEFAULT_TIME_PRESETS: DateRangePreset[] = [
-	{
-		unit: 'minutes',
-		quantity: 15,
-	},
-	{
-		unit: 'minutes',
-		quantity: 60,
-	},
-	{
-		unit: 'hours',
-		quantity: 4,
-	},
-	{
-		unit: 'hours',
-		quantity: 24,
-	},
-	{
-		unit: 'days',
-		quantity: 7,
-	},
-	{
-		unit: 'days',
-		quantity: 30,
-	},
 ]
