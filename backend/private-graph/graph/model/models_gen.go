@@ -1186,7 +1186,7 @@ const (
 	IntegrationTypeHeight  IntegrationType = "Height"
 	IntegrationTypeGitHub  IntegrationType = "GitHub"
 	IntegrationTypeJira    IntegrationType = "Jira"
-	IntegrationTypeGitlab  IntegrationType = "Gitlab"
+	IntegrationTypeGitLab  IntegrationType = "GitLab"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1200,12 +1200,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeHeight,
 	IntegrationTypeGitHub,
 	IntegrationTypeJira,
-	IntegrationTypeGitlab,
+	IntegrationTypeGitLab,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeGitlab:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeGitLab:
 		return true
 	}
 	return false

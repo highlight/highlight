@@ -737,7 +737,7 @@ export enum IntegrationType {
 	Discord = 'Discord',
 	Front = 'Front',
 	GitHub = 'GitHub',
-	Gitlab = 'Gitlab',
+	GitLab = 'GitLab',
 	Height = 'Height',
 	Jira = 'Jira',
 	Linear = 'Linear',

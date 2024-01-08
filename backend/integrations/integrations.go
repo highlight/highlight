@@ -39,7 +39,7 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 		return jira.GetOAuthConfig()
 	}
 
-	if integrationType == modelInputs.IntegrationTypeGitlab {
+	if integrationType == modelInputs.IntegrationTypeGitLab {
 		return gitlab.GetOAuthConfig()
 	}
 
@@ -55,7 +55,7 @@ func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrati
 		return jira.GetRefreshToken(ctx, oldToken)
 	}
 
-	if integrationType == modelInputs.IntegrationTypeGitlab {
+	if integrationType == modelInputs.IntegrationTypeGitLab {
 		return gitlab.GetRefreshToken(ctx, oldToken)
 	}
 

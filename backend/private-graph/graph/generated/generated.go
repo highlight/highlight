@@ -10979,7 +10979,7 @@ enum IntegrationType {
 	Height
 	GitHub
 	Jira
-	Gitlab
+	GitLab
 }
 
 enum ErrorState {

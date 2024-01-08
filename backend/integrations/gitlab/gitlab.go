@@ -186,7 +186,7 @@ func doGitlabRequest[T any](method string, accessToken string, url string, body 
 
 	req, err := http.NewRequest(method, finalUrl, strings.NewReader(body))
 	if err != nil {
-		return unmarshalled, errors.Wrap(err, "error creating api request to Gitlab")
+		return unmarshalled, errors.Wrap(err, "error creating api request to GitLab")
 	}
 
 	if accessToken != "" {
@@ -203,7 +203,7 @@ func doGitlabRequest[T any](method string, accessToken string, url string, body 
 
 	b, err := io.ReadAll(res.Body)
 	if res.StatusCode != 200 && res.StatusCode != 201 {
-		return unmarshalled, errors.New("Gitlab API responded with error; status_code=" + res.Status + "; body=" + string(b))
+		return unmarshalled, errors.New("GitLab API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
 	if err != nil {

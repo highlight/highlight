@@ -1812,7 +1812,7 @@ func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Work
 }
 
 func (r *Resolver) AddGitlabToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
-	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeGitlab, code)
+	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeGitLab, code)
 }
 
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
@@ -1996,7 +1996,7 @@ func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
 
 func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
 	ctx := context.TODO()
-	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitlab)
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
 
 	if err == nil {
 		err := gitlab.RevokeGitlabAccessToken(*accessToken)
@@ -2005,7 +2005,7 @@ func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
 		}
 	}
 
-	if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, modelInputs.IntegrationTypeGitlab); err != nil {
+	if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, modelInputs.IntegrationTypeGitLab); err != nil {
 		return err
 	}
 
@@ -2544,14 +2544,14 @@ func (r *Resolver) CreateGitlabTaskAndAttachment(
 	issueDescription string,
 	projectId string,
 ) error {
-	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitlab)
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
 
 	if err != nil {
 		return err
 	}
 
 	if accessToken == nil {
-		return errors.New("No Gitlab integration access token found.")
+		return errors.New("No GitLab integration access token found.")
 	}
 
 	jiraIssuePayload := gitlab.NewGitlabIssuePayload{
@@ -3391,7 +3391,7 @@ func (r *Resolver) GetGitlabProjects(
 	ctx context.Context,
 	workspace *model.Workspace,
 ) ([]*modelInputs.GitlabProject, error) {
-	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitlab)
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
 	if err != nil {
 		return nil, err
 	}

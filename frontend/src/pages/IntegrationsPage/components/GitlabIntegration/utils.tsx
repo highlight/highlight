@@ -20,7 +20,7 @@ export const useGitlabIntegration = () =>
 		GetGitlabIntegrationSettingsQuery,
 		Omit<UpdateIntegrationProjectSettingsMutationVariables, 'workspace_id'>
 	>(
-		IntegrationType.Gitlab,
+		IntegrationType.GitLab,
 		namedOperations.Query.GetGitlabIntegrationSettings,
 		useGetGitlabIntegrationSettingsQuery,
 		useUpdateIntegrationProjectSettingsMutation,

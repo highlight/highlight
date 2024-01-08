@@ -39,9 +39,9 @@ const GitlabProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 
 	return (
 		<>
-			<Form.NamedSection label="Gitlab Project" name="gitlabProject">
+			<Form.NamedSection label="GitLab Project" name="gitlabProject">
 				<Select
-					aria-label="Gitlab Project"
+					aria-label="GitLab Project"
 					placeholder="Choose a project to create the issue in"
 					options={gitlabProjectOptions}
 					onChange={setGitlabProjectId}

@@ -29,12 +29,12 @@ const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Connect Gitlab to your Highlight workspace to create issues from
+				Connect GitLab to your Highlight workspace to create issues from
 				comments.
 			</p>
 			<footer>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Gitlab"
+					trackingId="IntegrationConfigurationCancel-GitLab"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -44,13 +44,13 @@ const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Gitlab"
+					trackingId="IntegrationConfigurationSave-GitLab"
 					className={styles.modalBtn}
 					type="primary"
 					href={authUrl}
 				>
 					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Gitlab
+					Highlight with GitLab
 				</Button>
 			</footer>
 		</>
@@ -65,12 +65,12 @@ const GitlabIntegrationDisconnect: React.FC<
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Disconnecting your Gitlab from Highlight will prevent you from
+				Disconnecting your GitLab from Highlight will prevent you from
 				linking issues to future comments
 			</p>
 			<footer>
 				<Button
-					trackingId="IntegrationDisconnectCancel-Gitlab"
+					trackingId="IntegrationDisconnectCancel-GitLab"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -80,7 +80,7 @@ const GitlabIntegrationDisconnect: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationDisconnectSave-Gitlab"
+					trackingId="IntegrationDisconnectSave-GitLab"
 					className={styles.modalBtn}
 					type="primary"
 					danger
@@ -91,7 +91,7 @@ const GitlabIntegrationDisconnect: React.FC<
 					}}
 				>
 					<PlugIcon className={styles.modalBtnIcon} />
-					Disconnect Gitlab
+					Disconnect GitLab
 				</Button>
 			</footer>
 		</>

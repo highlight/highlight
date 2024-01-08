@@ -106,9 +106,9 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 
 export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 	key: 'gitlab',
-	name: 'Gitlab',
+	name: 'GitLab',
 	configurationPath: 'gitlab',
-	description: 'Bring your Highlight comments to Gitlab as issues.',
+	description: 'Bring your Highlight comments to GitLab as issues.',
 	icon: GitlabLogo,
 	configurationPage: (opts) => <GitlabIntegrationConfig {...opts} />,
 	hasSettings: false,

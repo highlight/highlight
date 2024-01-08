@@ -388,11 +388,11 @@ export const NewCommentForm = ({
 				displayValue: (
 					<Stack direction="row" gap="4" align="center">
 						<IconSolidGitlab />
-						Create a Gitlab issue
+						Create a GitLab issue
 					</Stack>
 				),
 				id: 'gitlab',
-				value: IntegrationType.Gitlab,
+				value: IntegrationType.GitLab,
 			})
 		}
 		if (isClickupIntegrated) {

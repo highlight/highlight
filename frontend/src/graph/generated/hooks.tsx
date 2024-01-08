@@ -11498,7 +11498,7 @@ export type GetGitHubIntegrationSettingsQueryResult = Apollo.QueryResult<
 export const GetGitlabIntegrationSettingsDocument = gql`
 	query GetGitlabIntegrationSettings($workspace_id: ID!) {
 		is_integrated: is_workspace_integrated_with(
-			integration_type: Gitlab
+			integration_type: GitLab
 			workspace_id: $workspace_id
 		)
 		gitlab_projects(workspace_id: $workspace_id) {

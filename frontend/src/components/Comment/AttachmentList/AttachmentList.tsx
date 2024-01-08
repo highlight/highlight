@@ -28,7 +28,7 @@ const getIcon = (a: Maybe<ExternalAttachment>) => {
 			return <IconSolidGithub />
 		case IntegrationType.Jira:
 			return <IconSolidJira />
-		case IntegrationType.Gitlab:
+		case IntegrationType.GitLab:
 			return <IconSolidGitlab />
 	}
 	return <></>
@@ -46,7 +46,7 @@ export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 			return a.external_id
 		case IntegrationType.Jira:
 			return a.external_id
-		case IntegrationType.Gitlab:
+		case IntegrationType.GitLab:
 			return a.external_id
 	}
 	return ''

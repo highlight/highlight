@@ -391,7 +391,7 @@ const GitlabIntegrationCallback = ({ code, projectId }: Props) => {
 	return (
 		<WorkspaceIntegrationCallback
 			code={code}
-			name="Gitlab"
+			name="GitLab"
 			type="gitlab"
 			addIntegration={addIntegration}
 			projectId={projectId}

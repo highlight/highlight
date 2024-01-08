@@ -1673,7 +1673,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeGitlab {
+		} else if *s == modelInputs.IntegrationTypeGitLab {
 			if err := r.CreateGitlabTaskAndAttachment(
 				ctx,
 				workspace,
@@ -1682,7 +1682,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				desc,
 				*issueTeamID,
 			); err != nil {
-				return nil, e.Wrap(err, "error creating Gitlab task")
+				return nil, e.Wrap(err, "error creating GitLab task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -1770,9 +1770,9 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeGitlab {
+		} else if *s == modelInputs.IntegrationTypeGitLab {
 			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
-				return nil, e.Wrap(err, "error creating Gitlab task")
+				return nil, e.Wrap(err, "error creating GitLab task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2103,9 +2103,9 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeGitlab {
+		} else if *s == modelInputs.IntegrationTypeGitLab {
 			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
-				return nil, e.Wrap(err, "error creating Gitlab task")
+				return nil, e.Wrap(err, "error creating GitLab task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -2292,9 +2292,9 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
-		} else if *s == modelInputs.IntegrationTypeGitlab {
+		} else if *s == modelInputs.IntegrationTypeGitLab {
 			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
-				return nil, e.Wrap(err, "error creating Gitlab task")
+				return nil, e.Wrap(err, "error creating GitLab task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
@@ -2449,7 +2449,7 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
-	} else if *integrationType == modelInputs.IntegrationTypeGitlab {
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
 		if err := r.AddGitlabToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
@@ -2520,7 +2520,7 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
 			return false, err
 		}
-	} else if *integrationType == modelInputs.IntegrationTypeGitlab {
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
 		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
 			return false, err
 		}
@@ -2554,7 +2554,7 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
-	} else if *integrationType == modelInputs.IntegrationTypeGitlab {
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
 		if err := r.AddGitlabToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
@@ -2584,7 +2584,7 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
 			return false, err
 		}
-	} else if integrationType == modelInputs.IntegrationTypeGitlab {
+	} else if integrationType == modelInputs.IntegrationTypeGitLab {
 		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
 			return false, err
 		}
