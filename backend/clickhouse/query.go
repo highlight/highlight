@@ -246,17 +246,16 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 func appendWhereConditions[T ~string](sb *sqlbuilder.SelectBuilder, config tableConfig[T], query string) {
 	filters := makeFilters(query, lo.Keys(config.keysToColumns), config.defaultFilters)
 
-	bodyQuery := ""
 	for _, body := range filters.body {
+		bodyQuery := ""
 		if strings.Contains(body, "%") {
 			bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
 		} else {
 			bodyQuery = "hasTokenCaseInsensitive(" + config.bodyColumn + ", " + sb.Var(body) + ")"
 		}
-	}
-
-	if bodyQuery != "" {
-		sb.Where(bodyQuery)
+		if bodyQuery != "" {
+			sb.Where(bodyQuery)
+		}
 	}
 
 	for key, column := range config.keysToColumns {
