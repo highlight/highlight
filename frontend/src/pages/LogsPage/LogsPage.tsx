@@ -159,13 +159,13 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 				>
 					<SearchForm
 						initialQuery={query}
+						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
-						datePickerValue={datePickerValue}
-						onFormSubmit={setQuery}
 						onDatesChange={updateSearchTime}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+						datePickerValue={datePickerValue}
 						timeMode={timeMode}
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}

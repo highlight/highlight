@@ -42,6 +42,7 @@ export const TraceLogs: React.FC = () => {
 			logCursor: undefined,
 			startDate,
 			endDate,
+			disablePolling: true,
 		})
 
 	const fetchMoreWhenScrolled = React.useCallback(

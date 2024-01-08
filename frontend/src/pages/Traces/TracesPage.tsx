@@ -196,9 +196,9 @@ export const TracesPage: React.FC = () => {
 						initialQuery={query ?? ''}
 						startDate={startDate}
 						endDate={endDate}
-						datePickerValue={datePickerValue}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={minDate}
+						datePickerValue={datePickerValue}
 						timeMode={timeMode}
 						hideCreateAlert
 						onFormSubmit={setQuery}
