@@ -202,7 +202,7 @@ const CustomerPage = ({
 		<>
 			<Meta
 				title={title}
-				description={title}
+				description={'Learn how different companies use Highlight'}
 				absoluteImageUrl={metaImageURL}
 				canonical={`/customers/${customer.slug}`}
 			/>
