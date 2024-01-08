@@ -1997,11 +1997,10 @@ func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
 func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
 	ctx := context.TODO()
 	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
-
 	if err == nil {
 		err := gitlab.RevokeGitlabAccessToken(*accessToken)
 		if err != nil {
-			log.WithContext(ctx).Println(err.Error())
+			log.WithContext(ctx).Error(errors.Wrap(err, "error revoking gitlab access token"))
 		}
 	}
 
