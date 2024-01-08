@@ -1,15 +1,16 @@
 import { RichText } from '@graphcms/rich-text-react-renderer'
 import { gql } from 'graphql-request'
+import Image from 'next/legacy/image'
+import Link from 'next/link'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
 import { Author } from '../../components/Blog/BlogPost/BlogPost'
-import { CustomerQuote } from '../../components/Customers/CustomerQuote/CustomerQuote'
-import style from '../../components/Customers/Customers.module.scss'
-import Link from 'next/link'
-import Image from 'next/legacy/image'
-import { Typography } from '../../components/common/Typography/Typography'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
+import { Meta } from '../../components/common/Head/Meta'
 import Navbar from '../../components/common/Navbar/Navbar'
+import { Typography } from '../../components/common/Typography/Typography'
+import { CustomerQuote } from '../../components/Customers/CustomerQuote/CustomerQuote'
+import style from '../../components/Customers/Customers.module.scss'
 import ReturnIcon from '../../public/images/ReturnIcon'
 import { GraphQLRequest } from '../../utils/graphql'
 
@@ -35,7 +36,7 @@ interface Customer {
 			author: Author
 		}[]
 	}
-	quote: {
+	primaryQuote: {
 		id: string
 		body: string
 		author: Author
@@ -153,6 +154,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		id: data.customer.id,
 	})
 
+	console.log(data.customer)
 	return {
 		props: {
 			customer: data.customer,
@@ -172,8 +174,33 @@ const CustomerPage = ({
 	previousCase: { slug: string; companyLogo?: { url: string } } | null
 	nextCase: { slug: string; companyLogo?: { url: string } } | null
 }) => {
+	let markdown = customer.caseStudy.markdown
+	const titleRegex = /^#\s+(.+)/
+
+	// Extract the title
+	const match = markdown.match(titleRegex)
+	const title = match
+		? match[1]
+		: 'Learn how different companies use Highlight'
+
+	const params = new URLSearchParams()
+	params.set('title', title)
+	params.set('fname', customer.primaryQuote.author.firstName)
+	params.set('lname', customer.primaryQuote.author.lastName)
+	params.set('role', customer.founded)
+
+	const metaImageURL = `https://${
+		process.env.NEXT_PUBLIC_VERCEL_URL
+	}/api/og/blog/${customer.slug}?${params.toString()}`
+
 	return (
 		<>
+			<Meta
+				title={title}
+				description={title}
+				absoluteImageUrl={metaImageURL}
+				canonical={`/customers/${customer.slug}`}
+			/>
 			<Navbar />
 			<main>
 				<div className={style.detailsLayout}>
