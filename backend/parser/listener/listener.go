@@ -112,9 +112,9 @@ func (s *searchListener) ExitAnd_search_expr(ctx *parser.And_search_exprContext)
 
 func (s *searchListener) EnterOr_search_expr(ctx *parser.Or_search_exprContext) {}
 func (s *searchListener) ExitOr_search_expr(ctx *parser.Or_search_exprContext) {
-	// rules := s.rules[len(s.rules)-2:]
-	// s.rules = s.rules[:len(s.rules)-2]
-	// s.rules = append(s.rules, s.sb.Or(rules...))
+	rules := s.rules[len(s.rules)-2:]
+	s.rules = s.rules[:len(s.rules)-2]
+	s.rules = append(s.rules, s.sb.Or(rules...))
 }
 
 func (s *searchListener) EnterKey_val_search_expr(ctx *parser.Key_val_search_exprContext) {}
@@ -179,8 +179,6 @@ func (s *searchListener) appendRules(value string) {
 	if !ok {
 		filterKey = fmt.Sprintf("%s['%s']", s.attributesColumn, s.currentKey)
 	}
-
-	fmt.Printf("::: filterKey: %s %s %s %+v\n", s.currentKey, filterKey, value, ok)
 
 	switch s.currentOp {
 	case "=":

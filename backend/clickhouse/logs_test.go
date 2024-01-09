@@ -1523,7 +1523,6 @@ func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
 			filtered = append(filtered, logRow)
 		}
 
-		fmt.Printf("::: filters: %+v\n", filters)
 		assert.Equal(t, 1, len(result.Edges))
 		assert.Equal(t, len(filtered), len(result.Edges))
 		_, found := lo.Find(result.Edges, func(edge *modelInputs.LogEdge) bool {
