@@ -543,7 +543,6 @@ func TestReadLogsAtCursor(t *testing.T) {
 	assertCursorsOutput(t, connection.Edges, permalink.Cursor)
 }
 
-// TODO: Fix this test!
 func TestReadLogsWithBodyFilter(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -658,8 +657,6 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
-	// TODO: Do we still want to treat this as an OR, or should we deprecate this
-	// syntax in favor of `service=("image processor" OR "different processor")`?
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     `service:("image processor" OR "different processor")`,
