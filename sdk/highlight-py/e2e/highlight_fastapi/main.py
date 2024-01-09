@@ -103,10 +103,7 @@ async def boto3sqs(request: Request):
 @app.get("/boto3sqs_receive")
 @app.post("/boto3sqs_receive")
 async def boto3sqs(request: Request):
-    response = sqs.receive_message(
-        QueueUrl=sqs_queue_url,
-        MaxNumberOfMessages=10
-    )
+    response = sqs.receive_message(QueueUrl=sqs_queue_url, MaxNumberOfMessages=10)
     return response
 
 
