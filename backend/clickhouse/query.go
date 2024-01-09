@@ -12,7 +12,6 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"github.com/gofiber/fiber/v2/log"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/highlight-run/highlight/backend/util"
@@ -173,7 +172,6 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selectArgs []any,
 	groupBy []string, projectID int, params modelInputs.QueryInput, pagination Pagination, orderBackward string, orderForward string) (*sqlbuilder.SelectBuilder, error) {
-	filters := makeFilters(params.Query, lo.Keys(config.keysToColumns), config.defaultFilters)
 	sb := sqlbuilder.NewSelectBuilder()
 
 	// selectStr can contain %s format tokens as placeholders for argument placeholders
@@ -191,27 +189,6 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 	}
 	sb.Select(cols...)
 	sb.From(config.tableName)
-
-	// Clickhouse requires that PREWHERE clauses occur before WHERE clauses
-	// sql-builder doesn't support PREWHERE natively so we use `SQL` which sets a marker
-	// of where to place the raw SQL later when it is being built.
-	// In this case, we are placing the marker after the `FROM` clause
-	preWheres := []string{}
-	bodyQuery := ""
-	for _, body := range filters.body {
-		if strings.Contains(body, "%") {
-			bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
-		} else {
-			preWheres = append(preWheres, "hasTokenCaseInsensitive("+config.bodyColumn+", "+sb.Var(body)+")")
-		}
-	}
-
-	if len(preWheres) > 0 {
-		sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
-	}
-	if bodyQuery != "" {
-		sb.Where(bodyQuery)
-	}
 
 	sb.Where(sb.Equal("ProjectId", projectID))
 
@@ -261,6 +238,26 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 		}
 	}
 
+	appendWhereConditions(sb, config, params.Query)
+
+	return sb, nil
+}
+
+func appendWhereConditions[T ~string](sb *sqlbuilder.SelectBuilder, config tableConfig[T], query string) {
+	filters := makeFilters(query, lo.Keys(config.keysToColumns), config.defaultFilters)
+
+	for _, body := range filters.body {
+		bodyQuery := ""
+		if strings.Contains(body, "%") {
+			bodyQuery = config.bodyColumn + " ILIKE " + sb.Var(body)
+		} else {
+			bodyQuery = "hasTokenCaseInsensitive(" + config.bodyColumn + ", " + sb.Var(body) + ")"
+		}
+		if bodyQuery != "" {
+			sb.Where(bodyQuery)
+		}
+	}
+
 	for key, column := range config.keysToColumns {
 		makeFilterConditions(sb, filters.reserved[key], column)
 	}
@@ -301,8 +298,6 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, selec
 	if len(conditions) > 0 {
 		sb.Where(sb.And(conditions...))
 	}
-
-	return sb, nil
 }
 
 type filtersWithReservedKeys[T ~string] struct {
@@ -390,7 +385,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		sb.Where(fmt.Sprintf("Key LIKE %s", sb.Var("%"+*query+"%")))
 	}
 
-	if typeArg != nil {
+	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
 		sb.Where(sb.Equal("Type", typeArg))
 	}
 
@@ -710,8 +705,9 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 			Select(strings.Join(colStrs, ", ")).
 			Where(innerSb.Equal("ProjectId", projectID)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
-			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
-			GroupBy(groupByIndexes...)
+			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
+
+		appendWhereConditions(innerSb, config, params.Query)
 
 		limitFn := ""
 		col := ""
@@ -725,7 +721,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		}
 		limitFn = getFnStr(*limitAggregator, col, useSampling)
 
-		innerSb.OrderBy(fmt.Sprintf("%s DESC", limitFn)).
+		innerSb.GroupBy(groupByIndexes...).
+			OrderBy(fmt.Sprintf("%s DESC", limitFn)).
 			Limit(limitCount)
 
 		fromColStrs := []string{}
@@ -753,8 +750,6 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	fromSb.Limit(10000)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
-	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	log.WithContext(ctx).Info(str)
 
 	metrics := &modelInputs.MetricsBuckets{
 		Buckets: []*modelInputs.MetricBucket{},
