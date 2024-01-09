@@ -31,6 +31,9 @@ Start Redis:
 * `cd docker`
 * `./start_infra` (in order to start Redis)
 
+Using Boto/Boto3 endpoints:
+* Add `E2E_AWS_ACCESS_KEY`, `E2E_AWS_SECRET_KEY`, and `SQS_QUEUE_URL` env variables
+
 Running the main app:
 * `cd e2e/highlight_fastapi`
 * `poetry run uvicorn main:app`
