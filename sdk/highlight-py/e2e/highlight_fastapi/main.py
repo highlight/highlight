@@ -29,14 +29,16 @@ r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 aws_key = os.getenv("E2E_AWS_ACCESS_KEY")
 aws_secret = os.getenv("E2E_AWS_SECRET_KEY")
-aws_region = os.getenv("E2E_AWS_REGION", "us-east-1")
+aws_region = os.getenv("E2E_AWS_REGION", "us-east-2")
+sqs_queue_url = os.getenv("SQS_QUEUE_URL")
 
 s3 = boto.connect_s3(aws_key, aws_secret)
-
-session = boto3.session.Session(
-    aws_access_key_id=aws_key, aws_secret_access_key=aws_secret, region_name=aws_region
+sqs = boto3.client(
+    "sqs",
+    aws_access_key_id=aws_key,
+    aws_secret_access_key=aws_secret,
+    region_name=aws_region,
 )
-sqs = session.client("sqs")
 
 
 @app.get("/")
@@ -85,14 +87,27 @@ async def redis(request: Request):
 @app.post("/boto")
 async def boto(request: Request):
     bucket = s3.get_bucket("source-maps-test")
-    return {"message": f"Found bucket: - {bucket.name}"}
+    return {"message": f"Found bucket: {bucket.name}"}
 
 
-@app.get("/boto3sqs")
-@app.post("/boto3sqs")
+@app.get("/boto3sqs_send")
+@app.post("/boto3sqs_send")
 async def boto3sqs(request: Request):
-    # use sqs
-    return {"message": "IMPLEMENT"}
+    message_value = random.randint(0, 100)
+    sqs.send_message(
+        QueueUrl=sqs_queue_url, MessageBody=f"Success from e2e app - {message_value}"
+    )
+    return {"message": f"Sent message: {message_value}"}
+
+
+@app.get("/boto3sqs_receive")
+@app.post("/boto3sqs_receive")
+async def boto3sqs(request: Request):
+    response = sqs.receive_message(
+        QueueUrl=sqs_queue_url,
+        MaxNumberOfMessages=10
+    )
+    return response
 
 
 @router.get("/not-found")
