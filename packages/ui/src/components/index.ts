@@ -27,6 +27,7 @@ export { Tooltip, TooltipContent } from './Tooltip/Tooltip'
 export { sMonotype, typographyStyles } from './Text/styles.css'
 export * from './Button/Button'
 export * as buttonStyles from './Button/styles.css'
+export * from './DatePicker/DateRangePicker'
 export * from './DatePicker/PreviousDateRangePicker'
 export * from './icons'
 

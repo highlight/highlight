@@ -36,12 +36,14 @@ export const useGetLogs = ({
 	logCursor,
 	startDate,
 	endDate,
+	disablePolling,
 }: {
 	query: string
 	project_id: string | undefined
 	logCursor: string | undefined
 	startDate: Date
 	endDate: Date
+	disablePolling?: boolean
 }) => {
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
@@ -85,6 +87,7 @@ export const useGetLogs = ({
 		GetLogsQuery,
 		GetLogsQueryVariables
 	>({
+		skip: disablePolling,
 		variableFn: useCallback(
 			() => ({
 				project_id: project_id!,
@@ -94,9 +97,7 @@ export const useGetLogs = ({
 					query: serverQuery,
 					date_range: {
 						start_date: moment(endDate).format(TIME_FORMAT),
-						end_date: moment(endDate)
-							.add(1, 'hour')
-							.format(TIME_FORMAT),
+						end_date: moment().format(TIME_FORMAT),
 					},
 				},
 			}),

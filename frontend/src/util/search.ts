@@ -13,10 +13,12 @@ export function usePollQuery<T, U>({
 	variableFn,
 	moreDataQuery,
 	getResultCount,
+	skip,
 }: {
 	variableFn: () => U | undefined
 	moreDataQuery: LazyQueryExecFunction<T, U>
 	getResultCount: (variables: QueryResult<T, U>) => number | undefined
+	skip?: boolean
 }) {
 	const pollTimeout = useRef<number>()
 	const [numMore, setNumMore] = useState<number>(0)
@@ -28,6 +30,10 @@ export function usePollQuery<T, U>({
 	} = useErrorSearchContext()
 
 	useEffect(() => {
+		if (skip) {
+			return
+		}
+
 		// setup a polling interval for sessions after the current date range
 		const poll = async () => {
 			const variables = variableFn()
@@ -61,7 +67,7 @@ export function usePollQuery<T, U>({
 			clearTimeout(pollTimeout.current)
 			pollTimeout.current = undefined
 		}
-	}, [getResultCount, moreDataQuery, variableFn])
+	}, [getResultCount, moreDataQuery, variableFn, skip])
 	return {
 		numMore,
 		reset: () => {

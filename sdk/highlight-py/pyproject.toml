@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.6.10"
+version = "0.6.11"
 description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
@@ -25,20 +25,22 @@ classifiers = [
 packages = [{ include = "highlight_io" }]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4"
+python = ">=3.8,<4"
 blinker = { version = ">=1", optional = true }
 django = { version = ">=3", optional = true }
 flask = { version = ">=2", optional = true }
 fastapi = { version = ">=0", optional = true }
 uvicorn = {version = ">=0", extras = ["standard"], optional = true }
-opentelemetry-api = "1.21.0"
-opentelemetry-distro = { extras = ["otlp"], version = "0.42b0" }
-opentelemetry-exporter-otlp-proto-http = "1.21.0"
-opentelemetry-instrumentation = "0.42b0"
-opentelemetry-instrumentation-logging = "0.42b0"
-opentelemetry-proto = "1.21.0"
-opentelemetry-sdk = "1.21.0"
-opentelemetry-instrumentation-requests = "0.42b0"
+celery = { version = ">=5", optional = true }
+opentelemetry-instrumentation-celery = { version = "0.43b0", optional = true }
+opentelemetry-api = "1.22.0"
+opentelemetry-distro = { extras = ["otlp"], version = "0.43b0" }
+opentelemetry-exporter-otlp-proto-http = "1.22.0"
+opentelemetry-instrumentation = "0.43b0"
+opentelemetry-instrumentation-logging = "0.43b0"
+opentelemetry-proto = "1.22.0"
+opentelemetry-sdk = "1.22.0"
+opentelemetry-instrumentation-requests = "0.43b0"
 
 [tool.poetry.group.dev.dependencies]
 azure-functions = ">=1"
@@ -50,8 +52,10 @@ pytest-cov = ">=4"
 pytest-asyncio = ">=0"
 loguru = ">=0"
 stripe = ">=6"
+redis = "^5.0.1"
 
 [tool.poetry.extras]
+Celery = ["celery", "opentelemetry-instrumentation-celery"]
 Django = ["django"]
 FastAPI = ["fastapi", "uvicorn"]
 Flask = ["blinker", "flask"]
