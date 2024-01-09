@@ -142,7 +142,6 @@ export function ErrorBoundary() {
 					text: `
 // app/root.tsx
 export { ErrorBoundary } from '~/components/error-boundary'
-}
 			`,
 					language: 'js',
 				},
