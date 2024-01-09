@@ -7,8 +7,8 @@ export const config = {
 	runtime: 'edge',
 }
 
-//Example query: https://highlight.io/api/og/blog/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
-//This query is sent from each blog slug to generate the og image
+//Example query: https://highlight.io/api/og/customer/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
+//This query is sent from each customer slug to generate the og image
 const handler = async function (req: NextRequest) {
 	const query = req.nextUrl.href
 	const fontData = await font

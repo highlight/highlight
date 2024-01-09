@@ -196,7 +196,7 @@ const CustomerPage = ({
 
 	const metaImageURL = `https://${
 		process.env.NEXT_PUBLIC_VERCEL_URL
-	}/api/og/blog/${customer.slug}?${params.toString()}`
+	}/api/og/customer/${customer.slug}?${params.toString()}`
 
 	return (
 		<>
