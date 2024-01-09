@@ -3,6 +3,7 @@ package listener
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/highlight-run/highlight/backend/parser/antlr"
@@ -96,18 +97,24 @@ func (s *searchListener) EnterBody_search_expr(ctx *parser.Body_search_exprConte
 }
 func (s *searchListener) ExitBody_search_expr(ctx *parser.Body_search_exprContext) {}
 
+// There is an issue here when grouping clauses together that contain a LIKE.
+// e.g. a:b* a!=bc a!=bb will result in a query like:
+// SELECT * FROM t WHERE ((a LIKE 'b%' AND a <> 'bc') AND a <> 'bb')
+// Commented out for now, but we will probably want to support something like
+// this in the future.
+// TODO: Review w/ Zane.
 func (s *searchListener) EnterAnd_search_expr(ctx *parser.And_search_exprContext) {}
 func (s *searchListener) ExitAnd_search_expr(ctx *parser.And_search_exprContext) {
-	rules := s.rules[len(s.rules)-2:]
-	s.rules = s.rules[:len(s.rules)-2]
-	s.rules = append(s.rules, s.sb.And(rules...))
+	// rules := s.rules[len(s.rules)-2:]
+	// s.rules = s.rules[:len(s.rules)-2]
+	// s.rules = append(s.rules, s.sb.And(rules...))
 }
 
 func (s *searchListener) EnterOr_search_expr(ctx *parser.Or_search_exprContext) {}
 func (s *searchListener) ExitOr_search_expr(ctx *parser.Or_search_exprContext) {
-	rules := s.rules[len(s.rules)-2:]
-	s.rules = s.rules[:len(s.rules)-2]
-	s.rules = append(s.rules, s.sb.Or(rules...))
+	// rules := s.rules[len(s.rules)-2:]
+	// s.rules = s.rules[:len(s.rules)-2]
+	// s.rules = append(s.rules, s.sb.Or(rules...))
 }
 
 func (s *searchListener) EnterKey_val_search_expr(ctx *parser.Key_val_search_exprContext) {}
@@ -147,17 +154,31 @@ func (s *searchListener) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 func (s *searchListener) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *searchListener) appendRules(value string) {
+	// Body column filters
+	if s.currentKey == s.bodyColumn {
+		if strings.Contains(value, "*") {
+			if strings.HasPrefix(value, "*") {
+				value = "%" + value[1:]
+			}
+			if strings.HasSuffix(value, "*") {
+				value = value[:len(value)-1] + "%"
+			}
+
+			s.rules = append(s.rules, s.bodyColumn+" ILIKE "+s.sb.Var(value))
+		} else {
+			values := strings.FieldsFunc(value, isSeparator)
+			for _, v := range values {
+				s.rules = append(s.rules, "hasTokenCaseInsensitive("+s.bodyColumn+", "+s.sb.Var(v)+")")
+			}
+		}
+
+		return
+	}
+
 	filterKey, ok := s.keysToColumns[s.currentKey]
 	if !ok {
-		if s.currentKey == s.bodyColumn {
-			filterKey = s.bodyColumn
-		} else {
-			filterKey = fmt.Sprintf("%s['%s']", s.attributesColumn, s.currentKey)
-		}
+		filterKey = fmt.Sprintf("%s['%s']", s.attributesColumn, s.currentKey)
 	}
-	// 1. Body query
-	// 2. Exists in keysToColumns
-	// 3. Use raw in config.attributesColumn
 
 	fmt.Printf("::: filterKey: %s %s %s %+v\n", s.currentKey, filterKey, value, ok)
 
@@ -194,4 +215,8 @@ func (s *searchListener) appendRules(value string) {
 	default:
 		fmt.Printf("Unknown search operator: %s\n", s.currentOp)
 	}
+}
+
+func isSeparator(r rune) bool {
+	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }

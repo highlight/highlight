@@ -563,7 +563,6 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 		Query:     "no match",
 	}, Pagination{})
 	assert.NoError(t, err)
-	fmt.Printf("::: payload: %+v\n", payload)
 	assert.Len(t, payload.Edges, 0)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
@@ -612,14 +611,14 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	rows := []*LogRow{
 		NewLogRow(now, 1,
 			WithLogAttributes(map[string]string{
-				"service_name": "image processor",
+				"service":      "image processor",
 				"workspace_id": "1",
 				"user_id":      "1",
 			}),
 		),
 		NewLogRow(now, 1,
 			WithLogAttributes(map[string]string{
-				"service_name": "different processor",
+				"service": "different processor",
 			}),
 		),
 		NewLogRow(now, 1,
@@ -659,16 +658,20 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
+	// TODO: Do we still want to treat this as an OR, or should we deprecate this
+	// syntax in favor of `service=("image processor" OR "different processor")`?
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     `service:"image processor" service:"different processor"`,
+		Query:     `service:("image processor" OR "different processor")`,
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
 
+	// TODO: Do we want to support this syntax still, or should we force people to
+	// wrap this in a string? `service:"foo:bar"`` if contains a bin_op separator?
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     `colon_delimited:foo:bar`,
+		Query:     `colon_delimited:"foo:bar"`,
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
@@ -712,7 +715,7 @@ func TestReadLogsWithLevelFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "level:error level:info",
+		Query:     "level:(error OR info)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -761,7 +764,7 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "secure_session_id:match secure_session_id:another",
+		Query:     "secure_session_id:(match OR another)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -810,7 +813,7 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "span_id:match span_id:another",
+		Query:     "span_id:(match OR another)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -859,7 +862,7 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "trace_id:match trace_id:another",
+		Query:     "trace_id:(match OR another)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -902,7 +905,7 @@ func TestReadLogsWithSourceFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "source:frontend source:backend",
+		Query:     "source:(frontend OR backend)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -945,7 +948,7 @@ func TestReadLogsWithServiceNameFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service_name:bar service_name:foo",
+		Query:     "service_name=(bar OR foo)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -988,7 +991,7 @@ func TestReadLogsWithServiceVersionFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service_version:abc123 service_version:xyz456",
+		Query:     "service_version=(abc123 OR xyz456)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -1031,7 +1034,7 @@ func TestReadLogsWithEnvironmentFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "environment:production environment:development",
+		Query:     "environment:(production OR development)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -1073,7 +1076,7 @@ func TestReadLogsWithMultipleFilters(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "code.lineno:*63 code.lineno:*62 service_name:matched",
+		Query:     "code.lineno:(*63 OR *62) service_name:matched",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
@@ -1419,7 +1422,7 @@ func Test_ReadLogsWithMultipleAttributeFilters_Clickhouse(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test OR query
-	query := "os:linux-1 os:linux-2"
+	query := "os:(linux-1 OR linux-2)"
 	params := modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     query,
@@ -1432,8 +1435,8 @@ func Test_ReadLogsWithMultipleAttributeFilters_Clickhouse(t *testing.T) {
 		assert.Contains(t, possibleValues, edge.Node.LogAttributes["os"])
 	}
 
-	// Test AND query - using AND because of the NOT operator (-)
-	query = "os:linux-* os:-linux-4"
+	// Test AND + NOT query
+	query = "os=linux-* os!=linux-4"
 	params = modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     query,
@@ -1471,7 +1474,7 @@ func Test_LogMatchesNotQuery_ClickHouse(t *testing.T) {
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	query := "service_name:frontend-* service_name:-frontend-2 service_name:-frontend-4 os.type:linu* os.type:-linux-3 os.type:-linux-5"
+	query := "service_name=frontend-* service_name!=frontend-2 service_name!=frontend-4 os.type:linu* os.type!=linux-3 os.type!=linux-5"
 	result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     query,
@@ -1510,7 +1513,7 @@ func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
 
 		result, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 			DateRange: makeDateWithinRange(now),
-			Query:     body,
+			Query:     "\"" + body + "\"",
 		}, Pagination{})
 		assert.NoError(t, err)
 
@@ -1520,6 +1523,7 @@ func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
 			filtered = append(filtered, logRow)
 		}
 
+		fmt.Printf("::: filters: %+v\n", filters)
 		assert.Equal(t, 1, len(result.Edges))
 		assert.Equal(t, len(filtered), len(result.Edges))
 		_, found := lo.Find(result.Edges, func(edge *modelInputs.LogEdge) bool {
