@@ -86,9 +86,7 @@ export const useGetTraces = ({
 					query: serverQuery,
 					date_range: {
 						start_date: moment(endDate).format(TIME_FORMAT),
-						end_date: moment(endDate)
-							.add(1, 'hour')
-							.format(TIME_FORMAT),
+						end_date: moment().format(TIME_FORMAT),
 					},
 				},
 			}),

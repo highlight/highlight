@@ -579,7 +579,6 @@ export const ProjectProductFilters: React.FC<{
 					<Text weight="medium" size="xSmall" color="weak">
 						{label}s
 					</Text>
-					{/* TODO(spenny): figure this out */}
 					<DateRangePicker
 						selectedValue={{
 							selectedPreset: selectedPreset,
