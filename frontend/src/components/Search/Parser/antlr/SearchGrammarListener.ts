@@ -15,6 +15,7 @@ import { Negated_search_exprContext } from './SearchGrammarParser'
 import { Body_search_exprContext } from './SearchGrammarParser'
 import { And_search_exprContext } from './SearchGrammarParser'
 import { Or_search_exprContext } from './SearchGrammarParser'
+import { Implicit_and_search_exprContext } from './SearchGrammarParser'
 import { Key_val_search_exprContext } from './SearchGrammarParser'
 import { Paren_search_exprContext } from './SearchGrammarParser'
 import { Search_keyContext } from './SearchGrammarParser'
@@ -183,6 +184,22 @@ export default class SearchGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitOr_search_expr?: (ctx: Or_search_exprContext) => void
+	/**
+	 * Enter a parse tree produced by the `implicit_and_search_expr`
+	 * labeled alternative in `SearchGrammarParser.search_expr`.
+	 * @param ctx the parse tree
+	 */
+	enterImplicit_and_search_expr?: (
+		ctx: Implicit_and_search_exprContext,
+	) => void
+	/**
+	 * Exit a parse tree produced by the `implicit_and_search_expr`
+	 * labeled alternative in `SearchGrammarParser.search_expr`.
+	 * @param ctx the parse tree
+	 */
+	exitImplicit_and_search_expr?: (
+		ctx: Implicit_and_search_exprContext,
+	) => void
 	/**
 	 * Enter a parse tree produced by the `key_val_search_expr`
 	 * labeled alternative in `SearchGrammarParser.search_expr`.

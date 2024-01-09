@@ -99,6 +99,14 @@ func (s *BaseSearchGrammarListener) EnterOr_search_expr(ctx *Or_search_exprConte
 // ExitOr_search_expr is called when production or_search_expr is exited.
 func (s *BaseSearchGrammarListener) ExitOr_search_expr(ctx *Or_search_exprContext) {}
 
+// EnterImplicit_and_search_expr is called when production implicit_and_search_expr is entered.
+func (s *BaseSearchGrammarListener) EnterImplicit_and_search_expr(ctx *Implicit_and_search_exprContext) {
+}
+
+// ExitImplicit_and_search_expr is called when production implicit_and_search_expr is exited.
+func (s *BaseSearchGrammarListener) ExitImplicit_and_search_expr(ctx *Implicit_and_search_exprContext) {
+}
+
 // EnterKey_val_search_expr is called when production key_val_search_expr is entered.
 func (s *BaseSearchGrammarListener) EnterKey_val_search_expr(ctx *Key_val_search_exprContext) {}
 

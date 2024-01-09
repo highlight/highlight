@@ -24,18 +24,18 @@ func TestBasicSqlForSearch(t *testing.T) {
 }
 
 func TestCoimplexSqlForSearch(t *testing.T) {
-	sql, _ := buildSqlForQuery("span_name=\"Chris Schmitz\" duration>1000 level:info source=(backend OR frontend) OR (service_name!=private-graph span_name=gorm.Query span_name!=(testing OR testing2)) \"body query\" asdf")
+	sql, _ := buildSqlForQuery("span_name=\"Chris Schmitz\" duration>1000 level:info source=(backend OR frontend) OR (service_name!=private-graph span_name=gorm.Query span_name!=(testing OR testing2)) AND (\"body query\" asdf)")
 
 	assert.Equal(
 		t,
-		"SELECT * FROM t WHERE ((((SpanName = 'Chris Schmitz' AND Duration > '1000') AND Level = 'info') AND (Source = 'backend' OR Source = 'frontend')) OR ((((ServiceName <> 'private-graph' AND SpanName = 'gorm.Query') AND (SpanName <> 'testing' OR SpanName <> 'testing2')) AND SpanName = 'body query') AND SpanName = 'asdf'))",
+		"SELECT * FROM t WHERE SpanName = 'Chris Schmitz' AND Duration > '1000' AND Level = 'info' AND (Source = 'backend' OR Source = 'frontend') AND ServiceName <> 'private-graph' AND SpanName = 'gorm.Query' AND (SpanName <> 'testing' OR SpanName <> 'testing2') AND (hasTokenCaseInsensitive(SpanName, 'body') OR (hasTokenCaseInsensitive(SpanName, 'query') AND hasTokenCaseInsensitive(SpanName, 'asdf')))",
 		sql,
 	)
 }
 
 func TestMultipleBodyFiltersSearch(t *testing.T) {
 	sql, _ := buildSqlForQuery("asdf fdsa")
-	assert.Equal(t, "SELECT * FROM t WHERE (SpanName = 'asdf' AND SpanName = 'fdsa')", sql)
+	assert.Equal(t, "SELECT * FROM t WHERE hasTokenCaseInsensitive(SpanName, 'asdf') AND hasTokenCaseInsensitive(SpanName, 'fdsa')", sql)
 }
 
 func buildSqlForQuery(query string) (string, error) {

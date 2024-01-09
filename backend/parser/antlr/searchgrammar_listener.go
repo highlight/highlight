@@ -47,6 +47,9 @@ type SearchGrammarListener interface {
 	// EnterOr_search_expr is called when entering the or_search_expr production.
 	EnterOr_search_expr(c *Or_search_exprContext)
 
+	// EnterImplicit_and_search_expr is called when entering the implicit_and_search_expr production.
+	EnterImplicit_and_search_expr(c *Implicit_and_search_exprContext)
+
 	// EnterKey_val_search_expr is called when entering the key_val_search_expr production.
 	EnterKey_val_search_expr(c *Key_val_search_exprContext)
 
@@ -109,6 +112,9 @@ type SearchGrammarListener interface {
 
 	// ExitOr_search_expr is called when exiting the or_search_expr production.
 	ExitOr_search_expr(c *Or_search_exprContext)
+
+	// ExitImplicit_and_search_expr is called when exiting the implicit_and_search_expr production.
+	ExitImplicit_and_search_expr(c *Implicit_and_search_exprContext)
 
 	// ExitKey_val_search_expr is called when exiting the key_val_search_expr production.
 	ExitKey_val_search_expr(c *Key_val_search_exprContext)

@@ -23,8 +23,9 @@ col_expr
 search_expr
   : LPAREN search_expr RPAREN # paren_search_expr
   | negation_op search_expr # negated_search_expr
-  | search_expr and_op search_expr # and_search_expr
+  | search_expr AND search_expr # and_search_expr
   | search_expr OR search_expr # or_search_expr
+  | search_expr and_op search_expr # implicit_and_search_expr
   | search_key bin_op top_col_expr # key_val_search_expr
   | top_col_expr # body_search_expr
   ;
@@ -34,8 +35,7 @@ search_key
   ;
 
 and_op
-  : AND
-  |
+  :
   ;
 
 or_op

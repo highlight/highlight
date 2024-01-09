@@ -88,18 +88,15 @@ func (s *searchListener) EnterBody_search_expr(ctx *parser.Body_search_exprConte
 }
 func (s *searchListener) ExitBody_search_expr(ctx *parser.Body_search_exprContext) {}
 
-// There is an issue here when grouping clauses together that contain a LIKE.
-// e.g. a:b* a!=bc a!=bb will result in a query like:
-// SELECT * FROM t WHERE ((a LIKE 'b%' AND a <> 'bc') AND a <> 'bb')
-// Commented out for now, but we will probably want to support something like
-// this in the future.
-// TODO: Review w/ Zane.
 func (s *searchListener) EnterAnd_search_expr(ctx *parser.And_search_exprContext) {}
 func (s *searchListener) ExitAnd_search_expr(ctx *parser.And_search_exprContext) {
-	// rules := s.rules[len(s.rules)-2:]
-	// s.rules = s.rules[:len(s.rules)-2]
-	// s.rules = append(s.rules, s.sb.And(rules...))
+	rules := s.rules[len(s.rules)-2:]
+	s.rules = s.rules[:len(s.rules)-2]
+	s.rules = append(s.rules, s.sb.And(rules...))
 }
+
+func (s *searchListener) EnterImplicit_and_search_expr(ctx *parser.Implicit_and_search_exprContext) {}
+func (s *searchListener) ExitImplicit_and_search_expr(ctx *parser.Implicit_and_search_exprContext)  {}
 
 func (s *searchListener) EnterOr_search_expr(ctx *parser.Or_search_exprContext) {}
 func (s *searchListener) ExitOr_search_expr(ctx *parser.Or_search_exprContext) {
