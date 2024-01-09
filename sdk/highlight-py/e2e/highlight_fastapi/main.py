@@ -5,13 +5,15 @@ import random
 from fastapi import FastAPI, Request, HTTPException, APIRouter
 from e2e.highlight_fastapi.work import add
 import redis
+import boto
+import boto3
+import os
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
-from highlight_io.integrations.celery import CeleryIntegration
 
 H = highlight_io.H(
-    "1",
+    "3",
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-fastapi-app",
@@ -24,6 +26,17 @@ app.add_middleware(FastAPIMiddleware)
 
 router = APIRouter()
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+
+aws_key = os.getenv("E2E_AWS_ACCESS_KEY")
+aws_secret = os.getenv("E2E_AWS_SECRET_KEY")
+aws_region = os.getenv("E2E_AWS_REGION", "us-east-1")
+
+s3 = boto.connect_s3(aws_key, aws_secret)
+
+session = boto3.session.Session(
+    aws_access_key_id=aws_key, aws_secret_access_key=aws_secret, region_name=aws_region
+)
+sqs = session.client("sqs")
 
 
 @app.get("/")
@@ -66,6 +79,20 @@ async def redis(request: Request):
         r.set(redis_key, redis_value, 60)
 
     return {"value": redis_value, "hit-cache": redis_hit}
+
+
+@app.get("/boto")
+@app.post("/boto")
+async def boto(request: Request):
+    bucket = s3.get_bucket("source-maps-test")
+    return {"message": f"Found bucket: - {bucket.name}"}
+
+
+@app.get("/boto3sqs")
+@app.post("/boto3sqs")
+async def boto3sqs(request: Request):
+    # use sqs
+    return {"message": "IMPLEMENT"}
 
 
 @router.get("/not-found")

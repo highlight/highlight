@@ -1,21 +1,21 @@
 from highlight_io.integrations import Integration
 
 try:
-    import boto3
-    from opentelemetry.instrumentation.boto3sqs import Boto3SQSInstrumentor
+    import boto
+    from opentelemetry.instrumentation.boto import BotoInstrumentor
 
     instrumentation_available = True
 except ImportError:
     instrumentation_available = False
 
 
-class Boto3Integration(Integration):
-    INTEGRATION_KEY = "boto3"
+class BotoIntegration(Integration):
+    INTEGRATION_KEY = "boto"
 
     def enable(self):
         if instrumentation_available:
-            Boto3SQSInstrumentor().instrument()
+            BotoInstrumentor().instrument()
 
     def disable(self):
         if instrumentation_available:
-            Boto3SQSInstrumentor().uninstrument()
+            BotoInstrumentor().uninstrument()
