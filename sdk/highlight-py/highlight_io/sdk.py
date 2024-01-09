@@ -23,11 +23,18 @@ from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
+from highlight_io.integrations.boto3 import Boto3Integration
 from highlight_io.integrations.celery import CeleryIntegration
+from highlight_io.integrations.redis import RedisIntegration
 from highlight_io.integrations.requests import RequestsIntegration
 from highlight_io.utils.lru_cache import LRUCache
 
-DEFAULT_INTEGRATIONS = [RequestsIntegration, CeleryIntegration]
+DEFAULT_INTEGRATIONS = [
+    Boto3Integration,
+    CeleryIntegration,
+    RedisIntegration,
+    RequestsIntegration,
+]
 
 
 class LogHandler(logging.Handler):
