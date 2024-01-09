@@ -558,7 +558,6 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	// TODO: This is returning nil for payload. See what's going on here.
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "no match",
