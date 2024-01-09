@@ -1,21 +1,21 @@
 from highlight_io.integrations import Integration
 
 try:
-    import requests
-    from opentelemetry.instrumentation.requests import RequestsInstrumentor
+    import celery
+    from opentelemetry.instrumentation.celery import CeleryInstrumentor
 
     instrumentation_available = True
 except ImportError:
     instrumentation_available = False
 
 
-class RequestsIntegration(Integration):
-    INTEGRATION_KEY = "requests"
+class CeleryIntegration(Integration):
+    INTEGRATION_KEY = "celery"
 
     def enable(self):
         if instrumentation_available:
-            RequestsInstrumentor().instrument()
+            CeleryInstrumentor().instrument()
 
     def disable(self):
         if instrumentation_available:
-            RequestsInstrumentor().uninstrument()
+            CeleryInstrumentor().uninstrument()

@@ -3,9 +3,11 @@ import logging
 import random
 
 from fastapi import FastAPI, Request, HTTPException, APIRouter
+from e2e.highlight_fastapi.work import add
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
+from highlight_io.integrations.celery import CeleryIntegration
 
 H = highlight_io.H(
     "1",
@@ -42,6 +44,14 @@ async def root(request: Request):
     return {"message": "Hello World"}
 
 
+@app.get("/celery")
+@app.post("/celery")
+async def celery(request: Request):
+    task = add.delay(1, 2)
+    value = task.get()
+    return {"message": f"Celery job - {value}"}
+
+
 @router.get("/not-found")
 def health_check():
     logging.info("oh, no!")
@@ -49,3 +59,8 @@ def health_check():
 
 
 app.include_router(router)
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -12,7 +12,6 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/highlight-run/highlight/backend/parser"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -292,7 +291,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		sb.Where(fmt.Sprintf("Key LIKE %s", sb.Var("%"+*query+"%")))
 	}
 
-	if typeArg != nil {
+	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
 		sb.Where(sb.Equal("Type", typeArg))
 	}
 
@@ -612,8 +611,9 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 			Select(strings.Join(colStrs, ", ")).
 			Where(innerSb.Equal("ProjectId", projectID)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
-			Where(innerSb.LessEqualThan("Timestamp", endTimestamp)).
-			GroupBy(groupByIndexes...)
+			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
+
+		appendWhereConditions(innerSb, config, params.Query)
 
 		limitFn := ""
 		col := ""
@@ -627,7 +627,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		}
 		limitFn = getFnStr(*limitAggregator, col, useSampling)
 
-		innerSb.OrderBy(fmt.Sprintf("%s DESC", limitFn)).
+		innerSb.GroupBy(groupByIndexes...).
+			OrderBy(fmt.Sprintf("%s DESC", limitFn)).
 			Limit(limitCount)
 
 		fromColStrs := []string{}
@@ -655,8 +656,6 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	fromSb.Limit(10000)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
-	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	log.WithContext(ctx).Info(str)
 
 	metrics := &modelInputs.MetricsBuckets{
 		Buckets: []*modelInputs.MetricBucket{},

@@ -1,5 +1,12 @@
 # highlight.run
 
+## 8.3.2
+
+### Patch Changes
+
+-   a07cdf584: correctly record stack trace for async promise rejections
+-   4493988b0: support sending structured attributes in browser console logs
+
 ## 8.3.1
 
 ### Patch Changes

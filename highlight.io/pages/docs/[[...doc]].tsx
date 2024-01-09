@@ -46,6 +46,7 @@ import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/Hig
 import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
 import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
+import logger from '../../highlight.logger'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
@@ -320,6 +321,10 @@ interface TocEntry {
 }
 
 export const getStaticProps: GetStaticProps<DocData> = async (context) => {
+	logger.info(
+		{ params: context?.params },
+		`docs getStaticProps ${context?.params?.doc}`,
+	)
 	const docPaths = sortBySlashLength(await getDocsPaths(fsp, undefined))
 
 	// const sdkPaths = await getSdkPaths(fsp, undefined);
