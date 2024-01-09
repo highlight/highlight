@@ -1,200 +1,109 @@
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { DatePicker } from './Calendar/DatePicker'
+import { DatePicker } from '../Calendar/DatePicker'
 import { DatePickerStateProvider } from '@rehookify/datepicker'
-import { Menu, MenuButtonProps, useMenu } from '../Menu/Menu'
-import { Text } from '../Text/Text'
+import { Menu, MenuButtonProps, useMenu } from '../../Menu/Menu'
+import { Text } from '../../Text/Text'
 import {
 	IconSolidCheck,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidClock,
-} from '../icons'
-import { Stack } from '../Stack/Stack'
-import { Box } from '../Box/Box'
-import { colors } from '../../css/colors'
-import { TimeInput } from './TimeInput'
-import { DateInput } from './DateInput'
-import { Form } from '../Form/Form'
+} from '../../icons'
+import { Stack } from '../../Stack/Stack'
+import { Box } from '../../Box/Box'
+import { colors } from '../../../css/colors'
+import { TimeInput } from '../TimeInput'
+import { DateInput } from '../DateInput'
+import { Form } from '../../Form/Form'
 import * as Ariakit from '@ariakit/react'
 
-export { defaultPresets, getNow, resetRelativeDates } from './utils'
+import { VALID_TIME_INPUT_FORMATS, VALID_DATE_INPUT_FORMATS } from './constants'
+import {
+	formatDisplayedDate,
+	isPresetSelected,
+	isCustomSelected,
+	setTimeOnDate,
+	getInputLabel,
+	getTimeStringFromDate,
+	getTimeInfo,
+} from './helpers'
 
-const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
-const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'
-const DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA = 'MMM D YYYY'
-const DATE_INPUT_FORMAT_WITH_NO_COMMA = 'MMM DD YYYY'
-const DATE_INPUT_FORMAT_WITH_SLASH = 'MM/DD/YYYY'
-const DATE_INPUT_FORMAT_WITH_DASH = 'MM-DD-YYYY'
-const DATE_INPUT_FORMAT_WITH_DOT = 'MM.DD.YYYY'
-
-const TIME_INPUT_FORMAT = 'HH:mm a'
-const TIME_INPUT_FORMAT_NO_SPACE = 'HH:mma'
-
-const TIME_INPUT_FORMAT_12_HOUR = 'h:mm a'
-const TIME_INPUT_FORMAT_12_HOUR_NO_SPACE = 'h:mma'
-const TIME_INPUT_FORMAT_24_HOURS_MINUTES_NO_AM_PM_24 = 'HH:mm'
-const TIME_INPUT_FORMAT_12_HOURS_NO_AM_PM = 'h:mm'
-
-const TIME_INPUT_FORMAT_HOURS_NO_MINUTES = 'h a'
-const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM = 'h'
-const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_SPACE = 'ha'
-const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM_24_HOUR = 'HH'
-
-const TIME_DISPLAY_FORMAT = 'hh:mm a'
-
-const now = new Date()
-
-export type Preset = {
-	label: string
-	startDate: Date
+export type DateRangePreset = {
+	unit: moment.DurationInputArg2
+	quantity: number
+	label?: string // defaults to `Last ${quantity} ${unit}`
+	value?: string // defaults to `last_${quantity}_${unit}`
 }
 
-enum MenuState {
+export enum MenuState {
 	Default,
 	Custom,
 }
 
-const isPresetSelected = ({
-	preset,
-	selectedDates,
-}: {
-	preset: Preset
-	selectedDates: Date[]
-}) => {
-	return preset.startDate.getTime() === selectedDates[0].getTime()
+export type DateRangeValue = {
+	startDate?: Date
+	endDate?: Date
+	selectedPreset?: DateRangePreset
 }
 
-const isCustomSelected = ({
-	presets,
-	selectedDates,
-}: {
-	presets: Preset[]
-	selectedDates: Date[]
-}) => {
-	const foundPreset = presets.find((preset) => {
-		return isPresetSelected({ preset, selectedDates })
-	})
+export const DEFAULT_TIME_PRESETS: DateRangePreset[] = [
+	{
+		unit: 'minutes',
+		quantity: 15,
+	},
+	{
+		unit: 'minutes',
+		quantity: 60,
+	},
+	{
+		unit: 'hours',
+		quantity: 4,
+	},
+	{
+		unit: 'hours',
+		quantity: 24,
+	},
+	{
+		unit: 'days',
+		quantity: 7,
+	},
+	{
+		unit: 'days',
+		quantity: 30,
+	},
+]
 
-	return !foundPreset
+export const presetLabel = (preset: DateRangePreset) => {
+	return preset.label || `Last ${preset.quantity} ${preset.unit}`
 }
 
-function toDateTimeString(date: Date, showYear: boolean) {
-	const options: Intl.DateTimeFormatOptions = {
-		month: 'short',
-		day: 'numeric',
-		hour: '2-digit',
-		minute: '2-digit',
-	}
-
-	if (showYear) {
-		options.year = 'numeric'
-	}
-	return date.toLocaleDateString('en-us', options)
+export const presetValue = (preset: DateRangePreset) => {
+	return preset.value || `last_${preset.quantity}_${preset.unit}`
 }
 
-/**
- * Takes in a time string in the format HH:mm aa or HH:mmaa and returns	an object with the hour, minute, time of day, and 24 hour time
- * @param timeString
- * @returns {	hour: number, minute: number, timeOfDay: string, hour24: number}
- */
-export const getTimeInfo = (timeString: string) => {
-	const date = moment(timeString, TIME_INPUT_FORMAT)
-	return {
-		hour: date.format('HH'),
-		minute: date.minute(),
-		timeOfDay: date.format('a'),
-		hour24: date.hour(),
-	}
-}
-
-/**
- * Takes in a date and a time string in the format HH:mm aa or HH:mmaa and returns a new date with the time set
- * @param date Date
- * @param hour number
- * @param minute number
- * @returns new date	with time set
- */
-const setTimeOnDate = (date: Date, hour: number, minute: number) => {
-	const newDate = new Date(date)
-
-	newDate.setHours(hour)
-	newDate.setMinutes(minute)
-
-	return newDate
-}
-
-/**
- * Converts a Date object to a string in the format "HH:mm aa".
- *
- * @param {Date} date - The Date object to convert.
- * @returns {string} A string in the format "HH:mm aa".
- */
-const getTimeStringFromDate = (date: Date): string => {
-	if (!date) {
-		return '12:00 AM'
-	}
-
-	return moment(date).format(TIME_DISPLAY_FORMAT)
-}
-
-/**
- * Format date	to be displayed in the input.
- * @param date {Date}
- * @returns {string}
- */
-const formatDisplayedDate = (date: Date) => {
-	if (!date) {
-		return ''
-	}
-	return new Date(date).toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-	})
-}
-
-export const getLabel = ({
-	selectedDates,
-	presets,
-}: {
-	selectedDates: Date[]
-	presets: Preset[]
-}) => {
-	const foundPreset = presets.find((preset) => {
-		return isPresetSelected({ preset, selectedDates })
-	})
-
-	if (foundPreset) {
-		return foundPreset.label
-	}
-
-	if (selectedDates.length == 2 && selectedDates[1] && selectedDates[0]) {
-		const showYear =
-			selectedDates[1].getFullYear() > selectedDates[0].getFullYear()
-
-		return `${toDateTimeString(
-			selectedDates[0],
-			showYear,
-		)} - ${toDateTimeString(selectedDates[1], showYear)}`
-	}
-
-	return ''
+export const presetStartDate = (preset: DateRangePreset): Date => {
+	return moment().subtract(preset.quantity, preset.unit).toDate()
 }
 
 type Props = {
-	selectedDates: Date[]
-	onDatesChange: (selectedDates: Date[]) => void
-	presets: Preset[]
+	selectedValue: DateRangeValue
+	onDatesChange: (
+		startDate?: Date,
+		endDate?: Date,
+		presetId?: DateRangePreset,
+	) => void
+	presets: DateRangePreset[]
 	minDate: Date
+	maxDate?: Date
 	noCustom?: boolean
 } & Omit<MenuButtonProps, 'ref' | 'store'>
 
-export const PreviousDateRangePicker: React.FC<Props> = (props) => (
+export const DateRangePicker: React.FC<Props> = (props) => (
 	<Menu placement="bottom-end">
 		{/* Rendering inside wrapper so we can work with menu store via useMenu. */}
-		<PreviousDateRangePickerImpl {...props} />
+		<DateRangePickerImpl {...props} />
 	</Menu>
 )
 
@@ -212,12 +121,13 @@ const CheckboxIconIfSelected = ({
 	)
 }
 
-const PreviousDateRangePickerImpl = ({
-	selectedDates,
+const DateRangePickerImpl = ({
+	selectedValue,
 	onDatesChange,
 	presets,
 	noCustom,
 	minDate,
+	maxDate = moment().toDate(),
 	...props
 }: Props) => {
 	const [menuState, setMenuState] = React.useState<MenuState>(
@@ -252,155 +162,148 @@ const PreviousDateRangePickerImpl = ({
 	}, [showingTime])
 
 	const startDatePlaceholder = useMemo(
-		() => formatDisplayedDate(selectedDates[0]),
-		[selectedDates[0]],
+		() => formatDisplayedDate(selectedValue.startDate),
+		[selectedValue.startDate],
 	)
 
 	const endDatePlaceholder = useMemo(
-		() => formatDisplayedDate(selectedDates[1]),
-		[selectedDates[1]],
+		() => formatDisplayedDate(selectedValue.endDate),
+		[selectedValue.endDate],
 	)
 
 	const startTimePlaceholder = useMemo(
-		() => getTimeStringFromDate(selectedDates[0]),
-		[selectedDates[0]],
+		() => getTimeStringFromDate(selectedValue.startDate),
+		[selectedValue.startDate],
 	)
 
 	const endTimePlaceholder = useMemo(
-		() => getTimeStringFromDate(selectedDates[1]),
-		[selectedDates[1]],
+		() => getTimeStringFromDate(selectedValue.endDate, true),
+		[selectedValue.endDate],
 	)
 
+	// TODO(spenny): check this works
 	const isTimepickerDisabled = useMemo(
-		() => selectedDates.length != 2,
-		[selectedDates],
+		() => !!selectedValue.startDate && !!selectedValue.endDate,
+		[selectedValue.startDate, selectedValue.endDate],
 	)
 
 	const [buttonLabel, setButtonLabel] = useState<string>(
-		getLabel({ selectedDates, presets }),
+		getInputLabel({ selectedValue, presets }),
 	)
 
 	const handleShowingTimeToggle = () => {
 		setShowingTime((prevShowingTime) => !prevShowingTime)
 	}
 
-	const handleDatesChange = (dates: Date[]) => {
-		onDatesChange(dates)
+	const handleDatesChange = ({
+		startDate,
+		endDate,
+		selectedPreset,
+	}: DateRangeValue) => {
+		onDatesChange(startDate, endDate, selectedPreset)
 
-		if (dates.length == 2) {
+		if (startDate && endDate) {
 			menu.setOpen(false)
 			setMenuState(MenuState.Default)
 		}
 	}
 
 	const handleStartDateInput = (value: string) => {
-		const isValidDateInput = [
-			DATE_INPUT_FORMAT_WITH_SLASH,
-			DATE_INPUT_FORMAT_WITH_DASH,
-			DATE_INPUT_FORMAT_WITH_DOT,
-			DATE_INPUT_FORMAT_WITH_COMMA,
-			DATE_INPUT_FORMAT_WITH_NO_COMMA,
-			DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA,
-			DATE_INPUT_FORMAT_WITH_SINGLE_DAY,
-		].some((format) => moment(value, format, true).isValid())
+		const isValidDateInput = VALID_DATE_INPUT_FORMATS.some((format) =>
+			moment(value, format, true).isValid(),
+		)
 
 		if (isValidDateInput) {
 			const newDate = moment(value).toDate()
-			const newDates = [newDate, selectedDates[1]]
-
-			onDatesChange(newDates)
+			onDatesChange(newDate, selectedValue.endDate, undefined)
 		}
 	}
 
 	const handleEndDateInput = (value: string) => {
-		const isValidDateInput = [
-			DATE_INPUT_FORMAT_WITH_SLASH,
-			DATE_INPUT_FORMAT_WITH_DASH,
-			DATE_INPUT_FORMAT_WITH_DOT,
-			DATE_INPUT_FORMAT_WITH_COMMA,
-			DATE_INPUT_FORMAT_WITH_NO_COMMA,
-			DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA,
-			DATE_INPUT_FORMAT_WITH_SINGLE_DAY,
-		]
+		const isValidDateInput = []
 			.map((format) => moment(value, format, true).isValid())
 			.some((isValid) => isValid)
 
 		if (isValidDateInput) {
 			const newDate = moment(value).toDate()
-			const newDates = [selectedDates[0], newDate]
-
-			onDatesChange(newDates)
+			onDatesChange(selectedValue.startDate, newDate, undefined)
 		}
 	}
 
 	const handleTimeChange = (value: string, input: 'start' | 'end') => {
-		const isValid = [
-			TIME_INPUT_FORMAT,
-			TIME_INPUT_FORMAT_NO_SPACE,
-			TIME_INPUT_FORMAT_12_HOUR,
-			TIME_INPUT_FORMAT_12_HOUR_NO_SPACE,
-			TIME_INPUT_FORMAT_HOURS_NO_MINUTES,
-			TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_SPACE,
-			TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM,
-			TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM_24_HOUR,
-			TIME_INPUT_FORMAT_24_HOURS_MINUTES_NO_AM_PM_24,
-			TIME_INPUT_FORMAT_12_HOURS_NO_AM_PM,
-		]
-			.map((format) => moment(value, format, true).isValid())
-			.some((isValid) => isValid)
+		const isValid = VALID_TIME_INPUT_FORMATS.map((format) =>
+			moment(value, format, true).isValid(),
+		).some((isValid) => isValid)
 
 		if (input === 'start') {
 			setStartTimeIsValid(isValid)
 
-			if (!isValid) {
+			if (!isValid || !selectedValue.startDate) {
 				return
 			}
 
 			const timeInfo = getTimeInfo(value)
 			const startDate = setTimeOnDate(
-				selectedDates[0],
+				selectedValue.startDate,
 				timeInfo.hour24,
 				timeInfo.minute,
 			)
 
-			onDatesChange([startDate, selectedDates[1]])
+			onDatesChange(startDate, selectedValue.endDate, undefined)
 
 			return
 		}
 
 		setEndTimeIsValid(isValid)
 
-		if (!isValid) {
+		if (!isValid || !selectedValue.endDate) {
 			return
 		}
 
 		const timeInfo = getTimeInfo(value)
 
 		const endDate = setTimeOnDate(
-			selectedDates[1],
+			selectedValue.endDate,
 			timeInfo.hour24,
 			timeInfo.minute,
 		)
 
-		onDatesChange([selectedDates[0], endDate])
+		onDatesChange(selectedValue.startDate, endDate, undefined)
 	}
 
 	useEffect(() => {
-		if (selectedDates.length == 2) {
-			setButtonLabel(getLabel({ selectedDates, presets }))
+		if (
+			selectedValue.selectedPreset ||
+			(selectedValue.startDate && selectedValue.endDate)
+		) {
+			setButtonLabel(getInputLabel({ selectedValue, presets }))
 		}
-	}, [selectedDates[0]?.getTime(), selectedDates[1]?.getTime()])
+	}, [selectedValue])
 
 	const hasSelectedRange = useMemo(
 		() =>
-			selectedDates.length === 2 &&
-			selectedDates.filter((date) => moment(date).isValid()).length === 2,
-		[selectedDates],
+			selectedValue.startDate &&
+			selectedValue.endDate &&
+			[selectedValue.startDate, selectedValue.endDate].filter((date) =>
+				moment(date).isValid(),
+			).length === 2,
+		[selectedValue],
 	)
 
+	const presetOptions = useMemo(() => {
+		return presets.map((preset) => {
+			return {
+				label: presetLabel(preset),
+				value: presetValue(preset),
+				quantity: preset.quantity,
+				unit: preset.unit,
+			}
+		})
+	}, [presets])
+
 	const handleAbsoluteDateChange = (selectedDates: Date[]) => {
-		let startDate = selectedDates?.[0]
-		let endDate = selectedDates?.[1]
+		let startDate = selectedDates[0]
+		let endDate = selectedDates[1]
 		if (startDate) {
 			startDate = moment
 				.max(moment(startDate).startOf('day'), moment(minDate))
@@ -408,23 +311,32 @@ const PreviousDateRangePickerImpl = ({
 		}
 		if (endDate) {
 			endDate = moment
-				.min(moment(endDate).endOf('day'), moment())
+				.min(moment(endDate).endOf('day'), moment(maxDate))
 				.toDate()
 		}
 
-		const newDates = [startDate, endDate].filter((date) => !!date)
-		handleDatesChange(newDates)
+		handleDatesChange({ startDate, endDate })
 	}
+
+	const handlePresetSelected = (preset: DateRangePreset) => {
+		handleDatesChange({
+			selectedPreset: preset,
+		})
+	}
+
+	const dateValues = [selectedValue.startDate, selectedValue.endDate].filter(
+		(date) => !!date,
+	) as Date[]
 
 	return (
 		<DatePickerStateProvider
 			config={{
-				selectedDates,
+				selectedDates: dateValues,
 				onDatesChange: handleAbsoluteDateChange,
 				dates: {
 					mode: 'range',
 					minDate,
-					maxDate: new Date(),
+					maxDate,
 					selectSameDate: true,
 				},
 			}}
@@ -443,17 +355,14 @@ const PreviousDateRangePickerImpl = ({
 			<Menu.List>
 				{menuState === MenuState.Default ? (
 					<>
-						{presets.map((preset) => {
+						{presetOptions.map((preset) => {
 							return (
 								<Menu.Item
 									key={preset.label}
 									onClick={(e) => {
 										e.preventDefault()
 										e.stopPropagation()
-										handleDatesChange([
-											preset.startDate,
-											now,
-										])
+										handlePresetSelected(preset)
 									}}
 								>
 									<Stack
@@ -463,10 +372,10 @@ const PreviousDateRangePickerImpl = ({
 										gap="4"
 									>
 										<CheckboxIconIfSelected
-											isSelected={isPresetSelected({
+											isSelected={isPresetSelected(
 												preset,
-												selectedDates,
-											})}
+												selectedValue.selectedPreset,
+											)}
 										/>
 										<Text userSelect="none">
 											{preset.label}
@@ -498,7 +407,7 @@ const PreviousDateRangePickerImpl = ({
 										<CheckboxIconIfSelected
 											isSelected={isCustomSelected({
 												presets,
-												selectedDates,
+												selectedValue,
 											})}
 										/>
 										<Text userSelect="none">Custom</Text>

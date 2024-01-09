@@ -4,15 +4,15 @@ import {
 	Badge,
 	Box,
 	Combobox,
-	defaultPresets,
-	getNow,
+	DateRangePicker,
+	DateRangePreset,
+	DateRangeValue,
+	DEFAULT_TIME_PRESETS,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
-	Preset,
-	PreviousDateRangePicker,
 	Stack,
 	Text,
 	useComboboxStore,
@@ -58,15 +58,8 @@ import {
 import * as styles from './SearchForm.css'
 
 export const QueryParam = withDefault(StringParam, '')
-export const FixedRangeStartDateParam = withDefault(
-	DateTimeParam,
-	defaultPresets[0].startDate,
-)
-export const PermalinkStartDateParam = withDefault(
-	DateTimeParam,
-	defaultPresets[5].startDate,
-)
-export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
+export const FixedRangePreset = DEFAULT_TIME_PRESETS[0]
+export const PermalinkPreset = DEFAULT_TIME_PRESETS[5]
 
 type FetchKeys =
 	| typeof useGetLogsKeysLazyQuery
@@ -84,8 +77,13 @@ export type SearchFormProps = {
 	initialQuery: string
 	startDate: Date
 	endDate: Date
-	onDatesChange: (startDate: Date, endDate: Date) => void
-	presets: Preset[]
+	datePickerValue: DateRangeValue
+	onDatesChange: (
+		startDate?: Date,
+		endDate?: Date,
+		preset?: DateRangePreset,
+	) => void
+	presets: DateRangePreset[]
 	minDate: Date
 	timeMode: TIME_MODE
 	fetchKeysLazyQuery: FetchKeys
@@ -105,6 +103,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
 	startDate,
 	endDate,
+	datePickerValue,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	onDatesChange,
@@ -128,21 +127,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		onFormSubmit(updatedQuery)
 	}
 
-	const [dateRange, setDateRange] = useState<Date[]>([startDate, endDate])
-
 	const { SegmentMenu, SegmentModals } = useSavedSegments({
 		query,
 		setQuery: handleQueryChange,
 		entityType: savedSegmentType,
 		projectId,
 	})
-
-	const handleDatesChange = (dates: Date[]) => {
-		setDateRange(dates)
-		if (dates.length == 2) {
-			onDatesChange(dates[0], dates[1])
-		}
-	}
 
 	return (
 		<>
@@ -168,10 +158,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				<Box display="flex" pr="8" py="6" gap="6">
 					{actions && actions({ query, startDate, endDate })}
 					{!hideDatePicker && (
-						<PreviousDateRangePicker
+						<DateRangePicker
 							emphasis="low"
-							selectedDates={dateRange}
-							onDatesChange={handleDatesChange}
+							selectedValue={datePickerValue}
+							onDatesChange={onDatesChange}
 							presets={presets}
 							minDate={minDate}
 							disabled={timeMode === 'permalink'}
