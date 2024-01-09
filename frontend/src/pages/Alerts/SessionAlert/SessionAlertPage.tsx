@@ -244,6 +244,8 @@ export const SessionAlertPage = () => {
 							configuration.name ===
 							ALERT_NAMES.USER_PROPERTIES_ALERT
 
+						const excludeRules = configuration.supportsExcludeRules
+
 						const input: SessionAlertInput = {
 							count_threshold: formStore.getValue(
 								formStore.names.threshold,
@@ -271,10 +273,11 @@ export const SessionAlertPage = () => {
 							threshold_window: formStore.getValue(
 								formStore.names.threshold_window,
 							),
-							exclude_rules:
-								formStore.getValue(
-									formStore.names.excludeRules,
-								) || [],
+							exclude_rules: excludeRules
+								? formStore.getValue(
+										formStore.names.excludeRules,
+								  ) || []
+								: [],
 							user_properties: tracksUserProperties
 								? (
 										formStore.getValue(
