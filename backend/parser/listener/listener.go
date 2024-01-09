@@ -10,15 +10,6 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 )
 
-// TODO: Think through logic for building up SQL queries from this. Will an
-// expression be enough, or do we need additional grouping logic in case there
-// are grouped expressions with parens, or it's required for OR logic? Or maybe
-// we create a listener we can pass the SQL builder to, and it can build up the
-// query as it walks the tree?
-
-var DefaultFilterKey = "DEFAULT"
-var DefaultFilterOp = "="
-
 type searchListener struct {
 	parser.SearchGrammarListener
 
@@ -33,8 +24,8 @@ type searchListener struct {
 
 func NewSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, bodyColumn string, attributesColumn string, keysToColumns map[string]string) *searchListener {
 	return &searchListener{
-		currentKey:       DefaultFilterKey,
-		currentOp:        DefaultFilterOp,
+		currentKey:       bodyColumn,
+		currentOp:        "=",
 		rules:            []string{},
 		sb:               sqlBuilder,
 		bodyColumn:       bodyColumn,

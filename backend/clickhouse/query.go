@@ -259,8 +259,6 @@ func makeSelectBuilder[T ~string](
 	}
 	parser.AssignSearchFilters(sb, params.Query, config.bodyColumn, config.attributesColumn, keysToColumns)
 
-	// TODO: Handle TraceAttributes query (and figure out why we need it)
-
 	return sb, nil
 }
 
