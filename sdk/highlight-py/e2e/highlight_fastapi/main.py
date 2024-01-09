@@ -4,6 +4,7 @@ import random
 
 from fastapi import FastAPI, Request, HTTPException, APIRouter
 from e2e.highlight_fastapi.work import add
+import redis
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
@@ -22,6 +23,7 @@ app = FastAPI()
 app.add_middleware(FastAPIMiddleware)
 
 router = APIRouter()
+r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 
 @app.get("/")
@@ -50,6 +52,20 @@ async def celery(request: Request):
     task = add.delay(1, 2)
     value = task.get()
     return {"message": f"Celery job - {value}"}
+
+
+@app.get("/redis")
+@app.post("/redis")
+async def redis(request: Request):
+    redis_key = "fastapi-e2e-test"
+    redis_value = r.get(redis_key)
+    redis_hit = bool(redis_value)
+
+    if not redis_hit:
+        redis_value = random.randint(0, 100)
+        r.set(redis_key, redis_value, 60)
+
+    return {"value": redis_value, "hit-cache": redis_hit}
 
 
 @router.get("/not-found")
