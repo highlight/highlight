@@ -29,13 +29,15 @@ import {
 	Badge,
 	Box,
 	Callout,
-	defaultPresets,
+	DateRangePicker,
+	DateRangePreset,
+	DEFAULT_TIME_PRESETS,
 	Form,
-	getNow,
 	Heading,
 	IconSolidCheveronRight,
 	IconSolidPencil,
-	PreviousDateRangePicker,
+	presetStartDate,
+	presetValue,
 	Stack,
 	Tag,
 	Text,
@@ -63,6 +65,9 @@ import _, { upperFirst } from 'lodash'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+const DATE_RANGE_PRESETS = [DEFAULT_TIME_PRESETS[1], DEFAULT_TIME_PRESETS[3]]
+const DEFAULT_PRESET = DATE_RANGE_PRESETS[0]
 
 const Header: React.FC<{
 	product: ProductType
@@ -141,9 +146,12 @@ export const ProjectProductFilters: React.FC<{
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
+	const [selectedPreset, setSelectedPreset] =
+		React.useState<DateRangePreset>(DEFAULT_PRESET)
+
 	const [dateRange, setDateRange] = React.useState<DateRange>({
-		start: defaultPresets[1].startDate,
-		end: getNow().toDate(),
+		start: presetStartDate(DEFAULT_PRESET),
+		end: moment().toDate(),
 	})
 	const { data, loading } = useGetProjectSettingsQuery({
 		variables: {
@@ -472,8 +480,11 @@ export const ProjectProductFilters: React.FC<{
 									startDate={dateRange.start}
 									endDate={dateRange.end}
 									onDatesChange={() => {}}
-									presets={defaultPresets}
-									minDate={defaultPresets[5].startDate}
+									presets={[]}
+									minDate={moment()
+										.subtract(30, 'days')
+										.toDate()}
+									datePickerValue={{}}
 									timeMode="fixed-range"
 									fetchKeysLazyQuery={
 										product === ProductType.Logs
@@ -568,17 +579,28 @@ export const ProjectProductFilters: React.FC<{
 					<Text weight="medium" size="xSmall" color="weak">
 						{label}s
 					</Text>
-					<PreviousDateRangePicker
-						selectedDates={[dateRange.start, dateRange.end]}
-						onDatesChange={(dates) =>
+					<DateRangePicker
+						selectedValue={{
+							selectedPreset: selectedPreset,
+						}}
+						onDatesChange={(_s, _e, preset) => {
+							const foundPreset =
+								DATE_RANGE_PRESETS.find(
+									(p) =>
+										presetValue(preset!) === presetValue(p),
+								) || DEFAULT_PRESET
+
+							setSelectedPreset(foundPreset)
+							const presetStart = presetStartDate(foundPreset)
+							const presetEnd = moment().toDate()
 							setDateRange({
-								start: dates[0],
-								end: dates[1],
+								start: presetStart,
+								end: presetEnd,
 							})
-						}
-						presets={[defaultPresets[1], defaultPresets[3]]}
+						}}
+						presets={DATE_RANGE_PRESETS}
 						noCustom
-						minDate={defaultPresets[5].startDate}
+						minDate={moment().subtract(30, 'days').toDate()}
 						kind="secondary"
 						size="medium"
 						emphasis="low"
