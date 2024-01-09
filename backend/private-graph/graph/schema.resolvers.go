@@ -4764,28 +4764,18 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 
 // WebVitals is the resolver for the web_vitals field.
 func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, nil
+	}
+
 	webVitalNames := []string{
 		"CLS", "FCP", "FID", "LCP", "TTFB",
 	}
-	webVitals := []*model.Metric{}
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return webVitals, nil
-	}
 
-	if err := r.DB.WithContext(ctx).Raw(`
-	WITH filtered_group_ids AS (
-		SELECT id
-		FROM metric_groups
-		WHERE session_id = ?
-		LIMIT 100000
-	  )
-	  SELECT metrics.*
-	  FROM metrics
-	  WHERE metrics.name in ?
-	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
-		log.WithContext(ctx).Error(err)
-		return webVitals, nil
+	webVitals, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, s.ProjectID, sessionSecureID, webVitalNames)
+	if err != nil {
+		return nil, err
 	}
 
 	return webVitals, nil
@@ -7976,31 +7966,19 @@ func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	var deviceMemory *int
-	metric := &model.Metric{}
-
-	if err := r.DB.WithContext(ctx).Raw(`
-	WITH filtered_group_ids AS (
-		SELECT id
-		FROM metric_groups
-		WHERE session_id = ?
-		LIMIT 100000
-	  )
-	  SELECT metrics.*
-	  FROM metrics
-	  WHERE metrics.name = ?
-	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").Take(&metric).Error; err != nil {
-		if !e.Is(err, gorm.ErrRecordNotFound) {
-			log.WithContext(ctx).Error(err)
-		}
+	metrics, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, obj.ProjectID, obj.SecureID, []string{
+		"DeviceMemory",
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	if metric != nil {
-		valueAsInt := int(metric.Value)
-		deviceMemory = &valueAsInt
+	if len(metrics) == 0 {
+		return nil, nil
 	}
 
-	return deviceMemory, nil
+	deviceMemory := int(metrics[0].Value)
+	return &deviceMemory, nil
 }
 
 // SessionFeedback is the resolver for the session_feedback field.
