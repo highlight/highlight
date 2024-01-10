@@ -577,7 +577,7 @@ const PageRightBar = ({
 	useIntersectionObserver(setActiveId)
 
 	const suggestLink =
-		'https:// ' +
+		'https://' +
 		`${DOCS_GITHUB_LINK}${relativePath}`.replaceAll(/\/+/g, '/')
 
 	return (
