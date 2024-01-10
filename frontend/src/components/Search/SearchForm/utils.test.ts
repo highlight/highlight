@@ -183,6 +183,7 @@ describe('buildTokenGroups', () => {
 			' ',
 			'fdsa',
 			' ',
+			'<EOF>',
 		])
 	})
 })

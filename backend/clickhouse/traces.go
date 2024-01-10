@@ -70,7 +70,7 @@ var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: "duration", Type: modelInputs.KeyTypeNumeric},
 }
 
-var tracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	TableName:        TracesTable,
 	KeysToColumns:    traceKeysToColumns,
 	ReservedKeys:     modelInputs.AllReservedTraceKey,
@@ -92,7 +92,7 @@ var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 }
 
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
-	tableConfig:         tracesTableConfig,
+	tableConfig:         TracesTableConfig,
 	samplingTableConfig: tracesSamplingTableConfig,
 	useSampling: func(d time.Duration) bool {
 		return d >= time.Hour
@@ -246,7 +246,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, tracesTableConfig, projectID, params, pagination, scanTrace)
+	conn, err := readObjects(ctx, client, TracesTableConfig, projectID, params, pagination, scanTrace)
 	if err != nil {
 		return nil, err
 	}
@@ -360,5 +360,5 @@ func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDat
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {
-	return matchesQuery(trace, tracesTableConfig, filters)
+	return matchesQuery(trace, TracesTableConfig, filters)
 }

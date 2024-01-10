@@ -3,19 +3,21 @@ package parser
 import (
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/huandu/go-assert"
 	"github.com/huandu/go-sqlbuilder"
 )
 
-var BodyKey = "SpanName"
-var AttributesColumn = "TraceAttributes"
-
-var KeysToColumns = map[string]string{
-	"duration":     "Duration",
-	"level":        "Level",
-	"span_name":    "SpanName",
-	"service_name": "ServiceName",
-	"source":       "Source",
+var tableConfig = model.TableConfig[string]{
+	KeysToColumns: map[string]string{
+		"duration":     "Duration",
+		"level":        "Level",
+		"span_name":    "SpanName",
+		"service_name": "ServiceName",
+		"source":       "Source",
+	},
+	BodyColumn:       "SpanName",
+	AttributesColumn: "TraceAttributes",
 }
 
 func TestBasicSqlForSearch(t *testing.T) {
@@ -41,7 +43,7 @@ func TestMultipleBodyFiltersSearch(t *testing.T) {
 func buildSqlForQuery(query string) (string, error) {
 	sqlBuilder := sqlbuilder.NewSelectBuilder()
 	sb := sqlBuilder.Select("*").From("t")
-	AssignSearchFilters(sb, query, BodyKey, AttributesColumn, KeysToColumns)
+	AssignSearchFilters(sb, query, tableConfig)
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	return sqlbuilder.ClickHouse.Interpolate(sql, args)
 }

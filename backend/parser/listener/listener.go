@@ -22,13 +22,13 @@ type searchListener[T ~string] struct {
 	tableConfig      model.TableConfig[T]
 }
 
-func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, bodyColumn string, attributesColumn string, tableConfig model.TableConfig[T]) *searchListener[T] {
+func NewSearchListener[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, tableConfig model.TableConfig[T]) *searchListener[T] {
 	return &searchListener[T]{
-		currentKey:       bodyColumn,
+		currentKey:       tableConfig.TableName,
 		currentOp:        "=",
 		rules:            []string{},
 		sb:               sqlBuilder,
-		attributesColumn: attributesColumn,
+		attributesColumn: tableConfig.AttributesColumn,
 		tableConfig:      tableConfig,
 	}
 }
