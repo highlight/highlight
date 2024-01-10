@@ -186,9 +186,6 @@ var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 var ErrUserFilteredError = e.New("User filtered error")
 
-// metrics that should be stored in postgres for session lookup
-var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
-
 var SessionProcessDelaySeconds = 120 // a session will be processed after not receiving events for this time
 var SessionProcessLockMinutes = 30   // a session marked as processing can be reprocessed after this time
 func init() {
@@ -1991,17 +1988,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 	}
 
 	var traceRows []*clickhouse.TraceRow
-	metricsByGroup := make(map[string][]*publicModel.MetricInput)
 	for _, m := range metrics {
-		group := ""
-		if m.Group != nil {
-			group = *m.Group
-		}
-		if _, ok := metricsByGroup[group]; !ok {
-			metricsByGroup[group] = []*publicModel.MetricInput{}
-		}
-		metricsByGroup[group] = append(metricsByGroup[group], m)
-
 		var spanID, parentSpanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.ParentSpanID), ptr.ToString(m.TraceID)
 		if spanID == "" {
 			spanID = uuid.New().String()
@@ -2043,80 +2030,6 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			WithEnvironment(session.Environment).
 			WithTraceAttributes(attributes).
 			WithEvents([]map[string]any{event}))
-	}
-	for groupName, metricInputs := range metricsByGroup {
-		var mg *model.MetricGroup
-		var newMetrics []*model.Metric
-		firstTime := time.Time{}
-		fields := map[string]interface{}{}
-		tags := map[string]string{
-			"session_id": strconv.Itoa(session.ID),
-			"group_name": groupName,
-		}
-		if _, ok := lo.Find(metricInputs, func(m *publicModel.MetricInput) bool {
-			// skip all session metric writes if we do not have a session id
-			if session.ID == 0 {
-				return false
-			}
-			category := ""
-			if m.Category != nil {
-				category = *m.Category
-			}
-			return MetricCategoriesForDB[category]
-		}); ok {
-			mg = &model.MetricGroup{
-				GroupName: groupName,
-				SessionID: session.ID,
-				ProjectID: projectID,
-			}
-			tx := r.DB.WithContext(ctx).Where(&model.MetricGroup{
-				GroupName: groupName,
-				SessionID: session.ID,
-			}).Clauses(clause.Returning{}, clause.OnConflict{
-				OnConstraint: model.METRIC_GROUPS_NAME_SESSION_UNIQ,
-				DoNothing:    true,
-			}).Create(&mg)
-			if err := tx.Error; err != nil {
-				return err
-			}
-			if tx.RowsAffected == 0 {
-				if err := r.DB.WithContext(ctx).Where(&model.MetricGroup{
-					GroupName: groupName,
-					SessionID: session.ID,
-				}).Take(&mg).Error; err != nil {
-					return err
-				}
-			}
-		}
-		for _, m := range metricInputs {
-			category := ""
-			if m.Category != nil {
-				category = *m.Category
-			}
-			if mg != nil {
-				newMetrics = append(newMetrics, &model.Metric{
-					MetricGroupID: mg.ID,
-					Name:          m.Name,
-					Value:         m.Value,
-					Category:      category,
-					CreatedAt:     m.Timestamp,
-				})
-			}
-			if m.Timestamp.After(firstTime) {
-				firstTime = m.Timestamp
-			}
-			tags[m.Name] = category
-			fields[m.Name] = m.Value
-			for _, t := range m.Tags {
-				tags[t.Name] = t.Value
-			}
-		}
-		// TODO(vkorolik) we should query session metrics from CH as well
-		if len(newMetrics) > 0 {
-			if err := r.DB.WithContext(ctx).Create(&newMetrics).Error; err != nil {
-				return err
-			}
-		}
 	}
 
 	// TODO(vkorolik) write to an actual metrics table
