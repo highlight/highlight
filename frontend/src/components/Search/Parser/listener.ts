@@ -4,9 +4,9 @@ import SearchGrammarListener from '@/components/Search/Parser/antlr/SearchGramma
 import {
 	Bin_opContext,
 	Body_search_exprContext,
-	Id_search_valueContext,
 	Key_val_search_exprContext,
 	Search_keyContext,
+	Search_valueContext,
 } from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 
@@ -66,7 +66,7 @@ export class SearchListener extends SearchGrammarListener {
 		this.currentExpression.operator = ctx.getText()
 	}
 
-	enterId_search_value = (ctx: Id_search_valueContext) => {
+	enterSearch_value = (ctx: Search_valueContext) => {
 		this.currentExpression.value = ctx.getText()
 	}
 
