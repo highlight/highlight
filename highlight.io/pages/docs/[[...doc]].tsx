@@ -581,6 +581,8 @@ const PageRightBar = ({
 		'/',
 	)
 
+	console.log(suggestLink)
+
 	return (
 		<div className={styles.rightBarWrap}>
 			<div className={styles.resourcesSideBar}>
