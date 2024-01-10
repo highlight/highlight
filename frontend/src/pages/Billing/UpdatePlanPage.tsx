@@ -218,7 +218,7 @@ const LimitButton = ({
 								),
 							)
 						}}
-						style={{ marginTop: -4 }}
+						style={{ height: 24, width: 64 }}
 					/>
 					<Button
 						trackingId="UpdatePlanClose"
@@ -315,7 +315,10 @@ const ProductCard = ({
 			<Stack gap="8" width="full">
 				<Box display="flex" justifyContent="space-between" gap="8">
 					<Stack>
-						<Text>{productType}</Text>
+						<Box display="flex" gap="4" alignItems="center">
+							{productIcon}
+							<Text>{productType}</Text>
+						</Box>
 						<Text>
 							Capture {productType.toLocaleLowerCase()} for a
 							specific retention period.
@@ -433,7 +436,11 @@ const ProductCard = ({
 						></Badge>
 					</Box>
 				</Box>
-				<Box style={{ height: 26 }}>
+				<Box
+					display="flex"
+					justifyContent="space-between"
+					alignItems="center"
+				>
 					<Menu>
 						<Menu.Button
 							kind="secondary"
@@ -444,12 +451,38 @@ const ProductCard = ({
 						</Menu.Button>
 						<Menu.List>
 							{RETENTION_OPTIONS[productType].map((rp) => (
-								<Menu.Item key={rp}>
+								<Menu.Item
+									key={rp}
+									onClick={() => {
+										setRetentionPeriod(rp)
+									}}
+								>
 									{RETENTION_PERIOD_LABELS[rp]}
 								</Menu.Item>
 							))}
 						</Menu.List>
 					</Menu>
+					{setLimitCents !== undefined && (
+						<Box display="flex">
+							<LimitButton
+								limitCents={limitCents}
+								setLimitCents={setLimitCents}
+								defaultLimit={1.3 * predictedCostCents}
+							/>
+							<Tooltip
+								trigger={
+									<IconSolidInformationCircle
+										size={12}
+										color={vars.theme.static.content.weak}
+									/>
+								}
+							>
+								If a billing limit is added, extra{' '}
+								{productType.toLowerCase()} will not be recorded
+								once the limit is reached.
+							</Tooltip>
+						</Box>
+					)}
 				</Box>
 			</Stack>
 		</Box>
@@ -731,7 +764,11 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 					<Form store={formStore}>
 						<Box display="flex" flexDirection="column">
 							<ProductCard
-								productIcon={<IconSolidPlayCircle />}
+								productIcon={
+									<IconSolidPlayCircle
+										color={vars.theme.static.content.weak}
+									/>
+								}
 								productType="Sessions"
 								rate={data?.billingDetails.plan.sessionsRate}
 								retentionPeriod={
@@ -761,7 +798,11 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							/>
 							<Box borderBottom="divider" />
 							<ProductCard
-								productIcon={<IconSolidLightningBolt />}
+								productIcon={
+									<IconSolidLightningBolt
+										color={vars.theme.static.content.weak}
+									/>
+								}
 								productType="Errors"
 								rate={data?.billingDetails.plan.errorsRate}
 								retentionPeriod={
@@ -791,7 +832,11 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							/>
 							<Box borderBottom="divider" />
 							<ProductCard
-								productIcon={<IconSolidLogs />}
+								productIcon={
+									<IconSolidLogs
+										color={vars.theme.static.content.weak}
+									/>
+								}
 								productType="Logs"
 								rate={data?.billingDetails.plan.logsRate}
 								retentionPeriod={formState.values.logsRetention}
@@ -819,7 +864,11 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							/>
 							<Box borderBottom="divider" />
 							<ProductCard
-								productIcon={<IconSolidSparkles />}
+								productIcon={
+									<IconSolidSparkles
+										color={vars.theme.static.content.weak}
+									/>
+								}
 								productType="Traces"
 								rate={data?.billingDetails.plan.tracesRate}
 								retentionPeriod={

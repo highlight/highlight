@@ -5,31 +5,6 @@ export const priceSubtitle = style({
 	marginTop: -28,
 })
 
-export const pageHeader = style({
-	height: 40,
-	bottom: 0,
-	right: 0,
-})
-
-export const progressBarBackground = style({
-	height: 4,
-	borderRadius: 2,
-	backgroundColor: vars.color.n5,
-	overflow: 'hidden',
-})
-
-export const progressBar = style({
-	backgroundColor: vars.color.n11,
-})
-
-export const progressBarOverage = style({
-	backgroundColor: vars.color.y11,
-})
-
-export const productSelections = style({
-	width: 344,
-})
-
 export const predictedCost = style({
 	width: 240,
 })
@@ -41,11 +16,9 @@ export const costBreakdown = style({
 export const costLineItem = style({
 	height: 16,
 })
-
-export const formSection = style({
+style({
 	paddingTop: 8,
 })
-
 export const step = style({
 	height: 28,
 })
