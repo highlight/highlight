@@ -1,5 +1,13 @@
 # @highlight-run/next
 
+## 7.3.3
+
+### Patch Changes
+
+-   Updated dependencies [223e47fbd]
+    -   @highlight-run/opentelemetry-sdk-workers@1.0.4
+    -   @highlight-run/cloudflare@2.1.4
+
 ## 7.3.2
 
 ### Patch Changes
