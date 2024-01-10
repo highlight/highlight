@@ -49,7 +49,7 @@ import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
-const DOCS_GITHUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
+const DOCS_GITHUB_LINK = `github.com/highlight/highlight/blob/main/docs-content`
 export interface DocPath {
 	// e.g. '[tips, sessions-search-deep-linking.md]'
 	array_path: string[]
@@ -576,12 +576,9 @@ const PageRightBar = ({
 	const [activeId, setActiveId] = useState<string>()
 	useIntersectionObserver(setActiveId)
 
-	const suggestLink = `${DOCS_GITHUB_LINK}${relativePath}`.replaceAll(
-		/\/+/g,
-		'/',
-	)
-
-	console.log(suggestLink)
+	const suggestLink =
+		'https:// ' +
+		`${DOCS_GITHUB_LINK}${relativePath}`.replaceAll(/\/+/g, '/')
 
 	return (
 		<div className={styles.rightBarWrap}>
