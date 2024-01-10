@@ -239,7 +239,7 @@ func makeSelectBuilder[T ~string](
 		}
 	}
 
-	parser.AssignSearchFilters[T](sb, params.Query, config.BodyColumn, config.AttributesColumn, config)
+	parser.AssignSearchFilters[T](sb, params.Query, config)
 
 	return sb, nil
 }
