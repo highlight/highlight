@@ -8,6 +8,7 @@ import (
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"golang.org/x/exp/slices"
 
@@ -69,25 +70,25 @@ var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: "duration", Type: modelInputs.KeyTypeNumeric},
 }
 
-var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
-	tableName:        TracesTable,
-	keysToColumns:    traceKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedTraceKey,
-	bodyColumn:       "SpanName",
-	attributesColumn: "TraceAttributes",
-	selectColumns:    traceColumns,
-	defaultFilters: map[string]string{
+var tracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+	TableName:        TracesTable,
+	KeysToColumns:    traceKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedTraceKey,
+	BodyColumn:       "SpanName",
+	AttributesColumn: "TraceAttributes",
+	SelectColumns:    traceColumns,
+	DefaultFilters: map[string]string{
 		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
 	},
 }
 
-var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
-	tableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
-	bodyColumn:       "SpanName",
-	keysToColumns:    traceKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedTraceKey,
-	attributesColumn: "TraceAttributes",
-	selectColumns:    traceColumns,
+var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+	TableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	BodyColumn:       "SpanName",
+	KeysToColumns:    traceKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedTraceKey,
+	AttributesColumn: "TraceAttributes",
+	SelectColumns:    traceColumns,
 }
 
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{

@@ -12,6 +12,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -26,23 +27,13 @@ const SamplingRows = 20_000_000
 const KeysMaxRows = 1_000_000
 const KeyValuesMaxRows = 1_000_000
 
-type tableConfig[TReservedKey ~string] struct {
-	tableName        string
-	bodyColumn       string
-	attributesColumn string
-	keysToColumns    map[TReservedKey]string
-	reservedKeys     []TReservedKey
-	selectColumns    []string
-	defaultFilters   map[string]string
-}
-
 type sampleableTableConfig[TReservedKey ~string] struct {
-	tableConfig         tableConfig[TReservedKey]
-	samplingTableConfig tableConfig[TReservedKey]
+	tableConfig         model.TableConfig[TReservedKey]
+	samplingTableConfig model.TableConfig[TReservedKey]
 	useSampling         func(time.Duration) bool
 }
 
-func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config tableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
+func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config model.TableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
@@ -54,7 +45,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		orderBackward = OrderBackwardInverted
 	}
 
-	outerSelect := strings.Join(config.selectColumns, ", ")
+	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := "Timestamp, UUID"
 
 	if pagination.At != nil && len(*pagination.At) > 1 {
@@ -112,7 +103,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
 		sb.Select(outerSelect).
-			From(config.tableName).
+			From(config.TableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), ub)).
 			OrderBy(orderForward)
@@ -133,7 +124,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 		fromSb.Limit(LogsLimit + 1)
 		sb.Select(outerSelect).
-			From(config.tableName).
+			From(config.TableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), fromSb)).
 			OrderBy(orderForward).
@@ -143,7 +134,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
-	span.SetAttribute("Table", config.tableName)
+	span.SetAttribute("Table", config.TableName)
 	span.SetAttribute("Query", sql)
 	span.SetAttribute("Params", params)
 	span.SetAttribute("db.system", "clickhouse")
@@ -172,7 +163,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 }
 
 func makeSelectBuilder[T ~string](
-	config tableConfig[T],
+	config model.TableConfig[T],
 	selectStr string,
 	selectArgs []any,
 	groupBy []string,
@@ -191,15 +182,15 @@ func makeSelectBuilder[T ~string](
 	})...)}
 
 	for idx, group := range groupBy {
-		if col, found := config.keysToColumns[T(group)]; found {
+		if col, found := config.KeysToColumns[T(group)]; found {
 			cols = append(cols, col)
 		} else {
-			cols = append(cols, sb.As("toString("+config.attributesColumn+"["+sb.Var(group)+"])", fmt.Sprintf("g%d", idx)))
+			cols = append(cols, sb.As("toString("+config.AttributesColumn+"["+sb.Var(group)+"])", fmt.Sprintf("g%d", idx)))
 		}
 	}
 
 	sb.Select(cols...)
-	sb.From(config.tableName)
+	sb.From(config.TableName)
 	sb.Where(sb.Equal("ProjectId", projectID))
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
@@ -248,15 +239,7 @@ func makeSelectBuilder[T ~string](
 		}
 	}
 
-	// TODO: Is there a better way to leverage the tableConfig types and pass this
-	// directly to AssignSearchFilters? Problem is that I can't reuse the
-	// tableConfig type inside the parser class, so I can pass tableConfig as an
-	// argument to AssignSearchFilters.
-	keysToColumns := map[string]string{}
-	for k, v := range config.keysToColumns {
-		keysToColumns[string(k)] = v
-	}
-	parser.AssignSearchFilters(sb, params.Query, config.bodyColumn, config.attributesColumn, keysToColumns)
+	parser.AssignSearchFilters[T](sb, params.Query, config.BodyColumn, config.AttributesColumn, config)
 
 	return sb, nil
 }
@@ -383,12 +366,12 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
 var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 
-func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tableConfig[TReservedKey], filters *queryparser.Filters) bool {
+func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filters *queryparser.Filters) bool {
 	v := reflect.ValueOf(*row)
 
 	rowBodyTerms := map[string]bool{}
-	if config.bodyColumn != "" && len(filters.Body) > 0 {
-		body := v.FieldByName(config.bodyColumn).String()
+	if config.BodyColumn != "" && len(filters.Body) > 0 {
+		body := v.FieldByName(config.BodyColumn).String()
 		for _, field := range nonAlphaNumericChars.Split(body, -1) {
 			if field != "" {
 				rowBodyTerms[field] = true
@@ -411,7 +394,7 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 	}
 	for key, values := range filters.Attributes {
 		var rowValue string
-		if chKey, ok := config.keysToColumns[TReservedKey(key)]; ok {
+		if chKey, ok := config.KeysToColumns[TReservedKey(key)]; ok {
 			if strings.Contains(chKey, ".") {
 				var value = v
 				for _, part := range strings.Split(chKey, ".") {
@@ -424,8 +407,8 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config tabl
 			} else {
 				rowValue = repr(v.FieldByName(chKey))
 			}
-		} else if config.attributesColumn != "" {
-			value := v.FieldByName(config.attributesColumn)
+		} else if config.AttributesColumn != "" {
+			value := v.FieldByName(config.AttributesColumn)
 			if value.Kind() == reflect.Map {
 				rowValue = repr(value.MapIndex(reflect.ValueOf(key)))
 			} else if value.Kind() == reflect.Slice {
@@ -514,8 +497,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	var selectArgs []interface{}
 
-	keysToColumns := sampleableConfig.tableConfig.keysToColumns
-	attributesColumn := sampleableConfig.tableConfig.attributesColumn
+	keysToColumns := sampleableConfig.tableConfig.KeysToColumns
+	attributesColumn := sampleableConfig.tableConfig.AttributesColumn
 
 	var metricColName string
 	if col, found := keysToColumns[T(strings.ToLower(column))]; found {
@@ -541,7 +524,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
-	var config tableConfig[T]
+	var config model.TableConfig[T]
 	if useSampling {
 		config = sampleableConfig.samplingTableConfig
 		fromSb, err = makeSelectBuilder(
@@ -607,7 +590,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		}
 
 		innerSb.
-			From(config.tableName).
+			From(config.TableName).
 			Select(strings.Join(colStrs, ", ")).
 			Where(innerSb.Equal("ProjectId", projectID)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
