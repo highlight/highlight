@@ -137,7 +137,6 @@ interface DateRange {
 	end: Date
 }
 
-// TODO(spenny): confirm this works
 export const ProjectProductFilters: React.FC<{
 	product: ProductType
 	view?: boolean

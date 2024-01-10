@@ -181,7 +181,6 @@ const DateRangePickerImpl = ({
 		[selectedValue.endDate],
 	)
 
-	// TODO(spenny): check this works
 	const isTimepickerDisabled = useMemo(
 		() => !!selectedValue.startDate && !!selectedValue.endDate,
 		[selectedValue.startDate, selectedValue.endDate],

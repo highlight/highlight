@@ -1,8 +1,4 @@
 import { LazyQueryExecFunction, QueryResult } from '@apollo/client'
-import { QueryBuilderState } from '@components/QueryBuilder/QueryBuilder'
-import { resetRelativeDates } from '@highlight-run/ui/components'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import log from '@util/log'
 import { useEffect, useRef, useState } from 'react'
 
@@ -22,12 +18,6 @@ export function usePollQuery<T, U>({
 }) {
 	const pollTimeout = useRef<number>()
 	const [numMore, setNumMore] = useState<number>(0)
-
-	const { searchQuery, setSearchQuery } = useSearchContext()
-	const {
-		searchQuery: errorSearchQuery,
-		setSearchQuery: setErrorSearchQuery,
-	} = useErrorSearchContext()
 
 	useEffect(() => {
 		if (skip) {
@@ -71,29 +61,9 @@ export function usePollQuery<T, U>({
 	return {
 		numMore,
 		reset: () => {
-			// TODO(spenny): make sure this works
-			resetRelativeDates()
 			clearTimeout(pollTimeout.current)
 			pollTimeout.current = undefined
 			setNumMore(0)
-
-			const currentState = JSON.parse(searchQuery) as QueryBuilderState
-			setSearchQuery(
-				JSON.stringify({
-					isAnd: currentState.isAnd,
-					rules: currentState.rules,
-				}),
-			)
-
-			const currentErrorState = JSON.parse(
-				errorSearchQuery,
-			) as QueryBuilderState
-			setErrorSearchQuery(
-				JSON.stringify({
-					isAnd: currentState.isAnd,
-					rules: currentErrorState.rules,
-				}),
-			)
 		},
 	}
 }
