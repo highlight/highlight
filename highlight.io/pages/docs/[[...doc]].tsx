@@ -576,6 +576,11 @@ const PageRightBar = ({
 	const [activeId, setActiveId] = useState<string>()
 	useIntersectionObserver(setActiveId)
 
+	const suggestLink = `${DOCS_GITHUB_LINK}${relativePath}`.replaceAll(
+		/\/+/g,
+		'/',
+	)
+
 	return (
 		<div className={styles.rightBarWrap}>
 			<div className={styles.resourcesSideBar}>
@@ -590,10 +595,7 @@ const PageRightBar = ({
 				</Link>
 				<a
 					className={styles.socialItem}
-					href={`${DOCS_GITHUB_LINK}${relativePath}`.replaceAll(
-						/\/+/g,
-						'/',
-					)}
+					href={suggestLink}
 					target="_blank"
 				>
 					<FaGithub style={{ height: 20, width: 20 }}></FaGithub>
