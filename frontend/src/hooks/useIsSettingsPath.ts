@@ -6,7 +6,6 @@ export type WorkspaceSettingsTab =
 	| 'team'
 	| 'settings'
 	| 'current-plan'
-	| 'select-plan'
 	| 'upgrade-plan'
 	| 'harold-ai'
 
@@ -16,7 +15,6 @@ export const isSettingsPath = (path: string[]) => {
 		'account',
 		'team',
 		'current-plan',
-		'select-plan',
 		'upgrade-plan',
 		'harold-ai',
 	]

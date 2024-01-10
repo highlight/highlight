@@ -1,10 +1,8 @@
 import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
-export const pageWrapper = style({
-	width: 960,
-	marginTop: 32,
-	marginBottom: 32,
+export const priceSubtitle = style({
+	marginTop: -28,
 })
 
 export const pageHeader = style({
@@ -33,7 +31,7 @@ export const productSelections = style({
 })
 
 export const predictedCost = style({
-	width: 216,
+	width: 240,
 })
 
 export const costBreakdown = style({

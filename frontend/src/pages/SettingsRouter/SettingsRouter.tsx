@@ -1,6 +1,5 @@
 import { ProductType } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui/components'
-import PlanComparisonPage from '@pages/Billing/PlanComparisonPage'
 import { ProjectProductFilters } from '@pages/ProjectSettings/ProjectFilters/ProjectFilters'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
@@ -32,7 +31,6 @@ import { auth } from '@/util/auth'
 import * as styles from './SettingsRouter.css'
 
 const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
-const UpdatePlanPage = React.lazy(() => import('../Billing/UpdatePlanPage'))
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
@@ -42,8 +40,6 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Properties'
 		case 'current-plan':
 			return 'Billing plans'
-		case 'select-plan':
-			return 'Select plan'
 		case 'upgrade-plan':
 			return 'Upgrade plan'
 		case 'harold-ai':
@@ -90,18 +86,6 @@ export const SettingsRouter = () => {
 	const billingContent = (
 		<Suspense fallback={null}>
 			<BillingPageV2 />
-		</Suspense>
-	)
-
-	const updatePlanContent = (
-		<Suspense fallback={null}>
-			<UpdatePlanPage />
-		</Suspense>
-	)
-
-	const planComparisonContent = (
-		<Suspense fallback={null}>
-			<PlanComparisonPage />
 		</Suspense>
 	)
 
@@ -301,14 +285,6 @@ export const SettingsRouter = () => {
 								<Route
 									path="current-plan/success"
 									element={billingContent}
-								/>
-								<Route
-									path="current-plan/update-plan"
-									element={updatePlanContent}
-								/>
-								<Route
-									path="select-plan"
-									element={planComparisonContent}
 								/>
 								<Route
 									path="upgrade-plan"
