@@ -59,6 +59,7 @@ const CTA_PATH_MAP: { [key in Area]: string } = {
 	traces: 'traces',
 }
 
+// TODO(spenny): confirm this works
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const location = useLocation()
 	const area = location.pathname.split('/')[3] as Area
@@ -66,6 +67,7 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
+	// TODO(spenny): update with dates
 	const { data: sessionData } = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: projectId,

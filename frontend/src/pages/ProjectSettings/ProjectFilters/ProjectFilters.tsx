@@ -48,13 +48,11 @@ import { useProjectId } from '@hooks/useProjectId'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorQueryBuilder, {
 	CUSTOM_FIELDS as ERROR_CUSTOM_FIELDS,
-	TIME_RANGE_FIELD as ERROR_TIME_RANGE_FIELD,
 } from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
 import SessionQueryBuilder, {
 	CUSTOM_FIELDS,
-	TIME_RANGE_FIELD,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
@@ -139,6 +137,7 @@ interface DateRange {
 	end: Date
 }
 
+// TODO(spenny): confirm this works
 export const ProjectProductFilters: React.FC<{
 	product: ProductType
 	view?: boolean
@@ -178,7 +177,6 @@ export const ProjectProductFilters: React.FC<{
 		`{"isAnd":true,"rules":[]}`,
 		'highlightSegmentPickerForProjectFilterSessionsSelectedSegmentId',
 		CUSTOM_FIELDS,
-		TIME_RANGE_FIELD,
 	)
 	const { searchQuery, setSearchQuery } = sessionSearchContext
 	const errorSearchContext = useGetBaseSearchContext(
@@ -186,7 +184,6 @@ export const ProjectProductFilters: React.FC<{
 		`{"isAnd":true,"rules":[]}`,
 		'highlightSegmentPickerForProjectFilterErrorsSelectedSegmentId',
 		ERROR_CUSTOM_FIELDS,
-		ERROR_TIME_RANGE_FIELD,
 	)
 	const [searchResultSecureIds, setSearchResultSecureIds] = useState<
 		string[]

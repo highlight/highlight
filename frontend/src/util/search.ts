@@ -71,32 +71,27 @@ export function usePollQuery<T, U>({
 	return {
 		numMore,
 		reset: () => {
+			// TODO(spenny): make sure this works
 			resetRelativeDates()
 			clearTimeout(pollTimeout.current)
 			pollTimeout.current = undefined
 			setNumMore(0)
 
 			const currentState = JSON.parse(searchQuery) as QueryBuilderState
-			const newRules = currentState.rules.filter(
-				(rule) => rule[0] !== 'custom_created_at',
-			)
 			setSearchQuery(
 				JSON.stringify({
 					isAnd: currentState.isAnd,
-					rules: newRules,
+					rules: currentState.rules,
 				}),
 			)
 
 			const currentErrorState = JSON.parse(
 				errorSearchQuery,
 			) as QueryBuilderState
-			const newErrorRules = currentErrorState.rules.filter(
-				(rule) => rule[0] !== 'error-field_timestamp',
-			)
 			setErrorSearchQuery(
 				JSON.stringify({
 					isAnd: currentState.isAnd,
-					rules: newErrorRules,
+					rules: currentErrorState.rules,
 				}),
 			)
 		},

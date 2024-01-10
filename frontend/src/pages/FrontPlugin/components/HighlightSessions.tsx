@@ -16,9 +16,10 @@ import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
 
+// TODO(spenny): confirm this works
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
-	const { backendSearchQuery, setSearchQuery, searchQuery } =
+	const { setSearchQuery, searchQuery, startDate, endDate } =
 		useSearchContext()
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
@@ -33,15 +34,15 @@ function HighlightSessions() {
 			query: JSON.parse(searchQuery),
 			sort_desc: true,
 		},
-		skip: !backendSearchQuery || !project_id,
+		skip: !project_id,
 		fetchPolicy: 'network-only',
 	})
 	const [dateRange, setDateRange] = useState<{
 		start?: moment.Moment
 		end?: moment.Moment
 	}>({
-		start: backendSearchQuery?.startDate,
-		end: backendSearchQuery?.endDate,
+		start: moment(startDate),
+		end: moment(endDate),
 	})
 
 	const email =
@@ -57,11 +58,12 @@ function HighlightSessions() {
 
 	useEffect(() => {
 		setDateRange({
-			start: backendSearchQuery?.startDate,
-			end: backendSearchQuery?.endDate,
+			start: moment(startDate),
+			end: moment(endDate),
 		})
-	}, [backendSearchQuery?.startDate, backendSearchQuery?.endDate])
+	}, [startDate, endDate])
 
+	// TODO(spenny): check this out
 	useEffect(() => {
 		if (frontContext?.type === 'singleConversation') {
 			frontContext.listMessages().then((response) => {
@@ -75,14 +77,7 @@ function HighlightSessions() {
 					)
 					const query = JSON.stringify({
 						isAnd: true,
-						rules: [
-							['user_email', 'contains', email],
-							[
-								'custom_created_at',
-								'between_date',
-								`${start.format()}_${end.format()}`,
-							],
-						],
+						rules: [['user_email', 'contains', email]],
 					})
 					setDateRange({
 						start,
