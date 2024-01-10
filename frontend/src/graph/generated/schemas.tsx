@@ -230,6 +230,7 @@ export type ClickUpTeam = {
 }
 
 export type ClickhouseQuery = {
+	dateRange: DateRangeRequiredInput
 	isAnd: Scalars['Boolean']
 	rules: Array<Array<Scalars['String']>>
 }

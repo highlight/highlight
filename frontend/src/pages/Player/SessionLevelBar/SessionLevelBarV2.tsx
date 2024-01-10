@@ -62,7 +62,7 @@ export const SessionLevelBarV2: React.FC<
 	}>()
 	const { viewport, currentUrl, sessionResults, setSessionResults, session } =
 		useReplayerContext()
-	const { page, backendSearchQuery, searchQuery } = useSearchContext()
+	const { page, searchQuery } = useSearchContext()
 	const { isLoggedIn } = useAuthContext()
 	const {
 		showLeftPanel,
@@ -80,7 +80,7 @@ export const SessionLevelBarV2: React.FC<
 			sort_desc: true,
 		},
 		fetchPolicy: 'cache-first',
-		skip: !projectId || !backendSearchQuery?.searchQuery,
+		skip: !projectId,
 	})
 	const { data: alertsData } = useGetAlertsPagePayloadQuery({
 		variables: {
