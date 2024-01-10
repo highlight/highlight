@@ -10608,9 +10608,9 @@ type SessionInterval {
 
 type SessionsReportRow {
 	key: String!
-	num_sessions: Int!
-	num_days_visited: Int!
-	num_months_visited: Int!
+	num_sessions: UInt64!
+	num_days_visited: UInt64!
+	num_months_visited: UInt64!
 	avg_active_length_mins: Float!
 	max_active_length_mins: Float!
 	total_active_length_mins: Float!
@@ -65621,9 +65621,9 @@ func (ec *executionContext) _SessionsReportRow_num_sessions(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SessionsReportRow_num_sessions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -65633,7 +65633,7 @@ func (ec *executionContext) fieldContext_SessionsReportRow_num_sessions(ctx cont
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type UInt64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -65665,9 +65665,9 @@ func (ec *executionContext) _SessionsReportRow_num_days_visited(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SessionsReportRow_num_days_visited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -65677,7 +65677,7 @@ func (ec *executionContext) fieldContext_SessionsReportRow_num_days_visited(ctx 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type UInt64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -65709,9 +65709,9 @@ func (ec *executionContext) _SessionsReportRow_num_months_visited(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(uint64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUInt642uint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SessionsReportRow_num_months_visited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -65721,7 +65721,7 @@ func (ec *executionContext) fieldContext_SessionsReportRow_num_months_visited(ct
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type UInt64 does not have child fields")
 		},
 	}
 	return fc, nil
