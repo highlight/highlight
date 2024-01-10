@@ -219,7 +219,6 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			WatchPartitionChanges: true,
 			GroupBalancers: []kafka.GroupBalancer{
 				kafka.RackAffinityGroupBalancer{Rack: rack},
-				kafka.RoundRobinGroupBalancer{},
 			},
 		}
 

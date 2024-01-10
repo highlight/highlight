@@ -65,7 +65,7 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/samber/lo v1.39.0
 	github.com/sashabaranov/go-openai v1.14.1
-	github.com/segmentio/kafka-go v0.4.42
+	github.com/segmentio/kafka-go v0.4.47
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.9.3
