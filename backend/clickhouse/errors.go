@@ -158,7 +158,7 @@ func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs
 	end := query.DateRange.EndDate.UTC()
 	start := query.DateRange.StartDate.UTC()
 	timeRangeRule := Rule{
-		Field: timeRangeField,
+		Field: errorsTimeRangeField,
 		Op:    BetweenDate,
 		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
 	}

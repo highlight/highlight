@@ -105,14 +105,11 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
             variables_fn=lambda ts: {
                 "query": {
                     "isAnd": True,
-                    "rules": [
-                        [
-                            "error-field_timestamp",
-                            "between_date",
-                            f"{start.isoformat(timespec='milliseconds')}Z_"
-                            f"{ts.isoformat(timespec='milliseconds')}Z",
-                        ],
-                    ],
+                    "rules": [],
+                    "dateRange": {
+                        "start_date": f"{start.isoformat(timespec='milliseconds')}Z_",
+                        "end_date": f"{ts.isoformat(timespec='milliseconds')}Z",
+                    },
                 },
                 "count": 10,
                 "page": 1,
@@ -208,14 +205,11 @@ def test_express_error(express_app, oauth_api):
         variables_fn=lambda ts: {
             "query": {
                 "isAnd": True,
-                "rules": [
-                    [
-                        "error-field_timestamp",
-                        "between_date",
-                        f"{start.isoformat(timespec='milliseconds')}Z_"
-                        f"{ts.isoformat(timespec='milliseconds')}Z",
-                    ],
-                ],
+                "rules": [],
+                "dateRange": {
+                    "start_date": f"{start.isoformat(timespec='milliseconds')}Z_",
+                    "end_date": f"{ts.isoformat(timespec='milliseconds')}Z",
+                },
             },
             "count": 10,
             "page": 1,
