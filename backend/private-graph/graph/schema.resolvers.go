@@ -1412,7 +1412,7 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 
 	columns := []interface{}{"errors_retention_period", "retention_period"}
 	if settings.EnableBillingLimits {
-		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents")
+		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents", "traces_max_cents")
 	}
 	if err := r.DB.WithContext(ctx).Model(&workspace).
 		Select(columns[0], columns[1:]...).
