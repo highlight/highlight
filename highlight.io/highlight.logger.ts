@@ -7,10 +7,20 @@ const highlightConfig = {
 let pinoConfig = {
 	level: 'debug',
 	transport: {
-		target: '@highlight-run/pino',
-		options: highlightConfig,
+		targets: [
+			{
+				target: 'pino/file',
+				options: { destination: 1 }, // this writes to STDOUT
+				level: 'debug',
+			},
+			{
+				target: '@highlight-run/pino',
+				options: highlightConfig,
+				level: 'debug',
+			},
+		],
 	},
-} as LoggerOptions
+}
 
 if (
 	typeof process.env.NEXT_RUNTIME === 'undefined' ||
