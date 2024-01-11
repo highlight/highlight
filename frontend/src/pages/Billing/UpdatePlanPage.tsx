@@ -178,6 +178,7 @@ type ProductCardProps = {
 	includedQuantity: number
 	usageAmount: number
 	predictedUsageAmount: number
+	setHasChanges: (changes: boolean) => void
 }
 
 interface UpdatePlanForm {
@@ -258,6 +259,7 @@ const ProductCard = ({
 	setRetentionPeriod,
 	limitCents,
 	setLimitCents,
+	setHasChanges,
 	includedQuantity,
 	usageAmount,
 	predictedUsageAmount,
@@ -313,7 +315,15 @@ const ProductCard = ({
 			alignItems="flex-start"
 			gap="12"
 		>
-			<Switch trackingId={`${productType}-enable`} checked={true} />
+			<Switch
+				trackingId={`${productType}-enable`}
+				checked={limitCents === undefined || limitCents > 0}
+				onChange={(checked) => {
+					if (setLimitCents) {
+						setLimitCents(checked ? undefined : 0)
+					}
+				}}
+			/>
 			<Stack gap="8" width="full">
 				<Box display="flex" justifyContent="space-between" gap="8">
 					<Stack>
@@ -345,14 +355,10 @@ const ProductCard = ({
 										cssClass={style.predictedCost}
 										flexDirection="column"
 									>
-										<Text weight="medium" color="strong">
-											Predicted cost
-										</Text>
 										<Box
 											display="flex"
 											flexDirection="column"
 											gap="6"
-											mt="8"
 											borderRadius="8"
 											cssClass={style.costBreakdown}
 										>
@@ -364,13 +370,17 @@ const ProductCard = ({
 												cssClass={style.costLineItem}
 											>
 												<Text
+													weight="medium"
 													color="weak"
 													size="xSmall"
 												>
 													Price / {quantityFormatted}{' '}
 													{productType}
 												</Text>
-												<Text size="xSmall">
+												<Text
+													size="xSmall"
+													color="secondaryContentOnEnabled"
+												>
 													{unitCostFormatted}
 												</Text>
 											</Box>
@@ -382,12 +392,16 @@ const ProductCard = ({
 												cssClass={style.costLineItem}
 											>
 												<Text
+													weight="medium"
 													color="weak"
 													size="xSmall"
 												>
 													{productType}
 												</Text>
-												<Text size="xSmall">
+												<Text
+													size="xSmall"
+													color="secondaryContentOnEnabled"
+												>
 													{formatNumberWithDelimiters(
 														predictedUsageAmount,
 													)}
@@ -401,17 +415,22 @@ const ProductCard = ({
 												cssClass={style.costLineItem}
 											>
 												<Text
+													weight="medium"
 													color="weak"
 													size="xSmall"
 												>
 													- Included
 												</Text>
-												<Text size="xSmall">
+												<Text
+													size="xSmall"
+													color="secondaryContentOnEnabled"
+												>
 													{formatNumberWithDelimiters(
 														includedQuantity,
 													)}
 												</Text>
 											</Box>
+											<Box borderBottom="divider" />
 											<Box
 												display="flex"
 												flexDirection="row"
@@ -420,12 +439,16 @@ const ProductCard = ({
 												cssClass={style.costLineItem}
 											>
 												<Text
+													weight="medium"
 													color="weak"
 													size="xSmall"
 												>
-													= Net
+													Total
 												</Text>
-												<Text size="xSmall">
+												<Text
+													size="xSmall"
+													color="secondaryContentOnEnabled"
+												>
 													{formatNumberWithDelimiters(
 														netUsageAmount,
 													)}
@@ -440,7 +463,8 @@ const ProductCard = ({
 				</Box>
 				<Box
 					display="flex"
-					justifyContent="space-between"
+					justifyContent="flex-start"
+					gap="6"
 					alignItems="center"
 				>
 					{RETENTION_OPTIONS[productType].length > 1 ? (
@@ -464,6 +488,7 @@ const ProductCard = ({
 										key={rp}
 										onClick={() => {
 											setRetentionPeriod(rp)
+											setHasChanges(true)
 										}}
 									>
 										{RETENTION_PERIOD_LABELS[rp]}
@@ -507,14 +532,20 @@ export type PlanSelectStep =
 
 type BillingPageProps = {
 	setStep: (step: PlanSelectStep) => void
+	showConfirmCloseModal: boolean
+	setShowConfirmCloseModal: (show: boolean) => void
+	setHasChanges: (show: boolean) => void
 }
 
-const UpdatePlanPage = ({}: BillingPageProps) => {
+const UpdatePlanPage = ({
+	setStep,
+	showConfirmCloseModal,
+	setShowConfirmCloseModal,
+	setHasChanges,
+}: BillingPageProps) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
-
-	const navigate = useNavigate()
 
 	const formStore = useFormStore<UpdatePlanForm>({
 		defaultValues: {
@@ -586,12 +617,18 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 				: { error: 'Error: could not load stripe client.' }
 		})()
 	}
+	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
+
+	React.useEffect(() => {
+		if (!loading && !isPaying) {
+			setHasChanges(true)
+		}
+	}, [isPaying, loading, setHasChanges])
 
 	if (loading) {
 		return null
 	}
 
-	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
 	const nextBillingDate = getNextBillingDate(
@@ -767,6 +804,49 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			justifyContent="center"
 			flexDirection="column"
 		>
+			{showConfirmCloseModal ? (
+				<Modal>
+					<Box
+						width="full"
+						display="flex"
+						justifyContent="center"
+						flexDirection="column"
+						style={{ maxWidth: 324 }}
+					>
+						<Box p="12">
+							<Text weight="medium" size="small" color="moderate">
+								Are you sure you want to leave without updating
+								your plan?
+							</Text>
+						</Box>
+						<Box borderBottom="divider" />
+						<Box
+							display="flex"
+							justifyContent="flex-end"
+							alignItems="center"
+							px="6"
+							py="4"
+							gap="6"
+						>
+							<Button
+								kind="secondary"
+								size="small"
+								trackingId="CancelLeaveUpdatePlan"
+								onClick={() => setShowConfirmCloseModal(false)}
+							>
+								Cancel
+							</Button>
+							<Button
+								emphasis="high"
+								trackingId="LeaveUpdatePlan"
+								onClick={() => setStep(null)}
+							>
+								Leave without saving
+							</Button>
+						</Box>
+					</Box>
+				</Modal>
+			) : null}
 			<Form store={formStore}>
 				<Box display="flex" flexDirection="column">
 					<ProductCard
@@ -787,13 +867,16 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 						limitCents={formState.values.sessionsLimitCents}
 						setLimitCents={
 							enableBillingLimits
-								? (l) =>
+								? (l) => {
 										formStore.setValue(
 											formStore.names.sessionsLimitCents,
 											l,
 										)
+										setHasChanges(true)
+								  }
 								: undefined
 						}
+						setHasChanges={setHasChanges}
 						usageAmount={sessionsUsage}
 						predictedUsageAmount={predictedSessionsUsage}
 						includedQuantity={includedSessions}
@@ -818,13 +901,16 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 						limitCents={formState.values.errorsLimitCents}
 						setLimitCents={
 							enableBillingLimits
-								? (l) =>
+								? (l) => {
 										formStore.setValue(
 											formStore.names.errorsLimitCents,
 											l,
 										)
+										setHasChanges(true)
+								  }
 								: undefined
 						}
+						setHasChanges={setHasChanges}
 						usageAmount={errorsUsage}
 						predictedUsageAmount={predictedErrorsUsage}
 						includedQuantity={includedErrors}
@@ -849,13 +935,16 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 						limitCents={formState.values.logsLimitCents}
 						setLimitCents={
 							enableBillingLimits
-								? (l) =>
+								? (l) => {
 										formStore.setValue(
 											formStore.names.logsLimitCents,
 											l,
 										)
+										setHasChanges(true)
+								  }
 								: undefined
 						}
+						setHasChanges={setHasChanges}
 						usageAmount={logsUsage}
 						predictedUsageAmount={predictedLogsUsage}
 						includedQuantity={includedLogs}
@@ -880,13 +969,16 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 						limitCents={formState.values.tracesLimitCents}
 						setLimitCents={
 							enableBillingLimits
-								? (l) =>
+								? (l) => {
 										formStore.setValue(
 											formStore.names.tracesLimitCents,
 											l,
 										)
+										setHasChanges(true)
+								  }
 								: undefined
 						}
+						setHasChanges={setHasChanges}
 						usageAmount={tracesUsage}
 						predictedUsageAmount={predictedTracesUsage}
 						includedQuantity={includedTraces}
@@ -1048,7 +1140,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 												message.success(
 													'Billing plan saved!',
 												)
-												navigate('../current-plan')
+												setHasChanges(false)
 											}
 										})
 										.catch(() => {
@@ -1430,11 +1522,30 @@ export const UpdatePlanModal: React.FC<{
 	step: PlanSelectStep
 	setStep: (step: PlanSelectStep) => void
 }> = ({ step, setStep }) => {
+	const [hasChanges, setHasChanges] = React.useState<boolean>(false)
+	const [showConfirmCloseModal, setShowConfirmCloseModal] =
+		React.useState<boolean>(false)
+	React.useEffect(() => {
+		if (step === null) {
+			setHasChanges(false)
+			setShowConfirmCloseModal(false)
+		}
+	}, [step])
 	if (step === null) return null
 	return (
 		<Modal
 			maxHeight={step === 'Select plan' ? '80vh' : undefined}
-			onClose={() => setStep(null)}
+			onClose={() => {
+				if (
+					step === 'Configure plan' &&
+					hasChanges &&
+					!showConfirmCloseModal
+				) {
+					setShowConfirmCloseModal(true)
+				} else {
+					setStep(null)
+				}
+			}}
 			footer={
 				step === 'Configure plan' ? (
 					<UpdatePlanFooter setStep={setStep} />
@@ -1447,7 +1558,12 @@ export const UpdatePlanModal: React.FC<{
 			{step === 'Select plan' ? (
 				<PlanComparisonPage setStep={setStep} />
 			) : (
-				<UpdatePlanPage setStep={setStep} />
+				<UpdatePlanPage
+					setStep={setStep}
+					setHasChanges={setHasChanges}
+					showConfirmCloseModal={showConfirmCloseModal}
+					setShowConfirmCloseModal={setShowConfirmCloseModal}
+				/>
 			)}
 		</Modal>
 	)

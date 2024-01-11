@@ -6,7 +6,7 @@ export const priceSubtitle = style({
 })
 
 export const predictedCost = style({
-	width: 240,
+	width: 200,
 })
 
 export const costBreakdown = style({
