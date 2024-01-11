@@ -23,6 +23,8 @@ interface SearchState {
 	histogramBucketSize: DateHistogramBucketSize
 	page: number
 	selectedSegment: Segment
+	startDate: Date
+	endDate: Date
 }
 
 enum SearchActionType {
@@ -106,6 +108,8 @@ export const SearchReducer = (
 				action.startDate,
 				action.endDate,
 			)
+			s.startDate = action.startDate
+			s.endDate = action.endDate
 			break
 		case SearchActionType.setSelectedSegment:
 			const query = addDates(
@@ -123,6 +127,8 @@ export const SearchReducer = (
 				action.startDate,
 				action.endDate,
 			)
+			s.startDate = action.startDate
+			s.endDate = action.endDate
 			break
 		case SearchActionType.setPage:
 			s.page = evaluateAction(action.page, s.page)
@@ -165,8 +171,6 @@ export const useGetInitialSearchState = (
 	page: 'sessions' | 'errors',
 	defaultSearchQuery: string,
 	segmentKeyPrefix: string,
-	admin: Admin | undefined,
-	customFields: CustomField[],
 	startDate: Date,
 	endDate: Date,
 ): SearchState => {
@@ -203,6 +207,8 @@ export const useGetInitialSearchState = (
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 		selectedSegment,
 		page: (isCurrentPage && queryParams.page) || START_PAGE,
+		startDate,
+		endDate,
 	}
 }
 
@@ -224,8 +230,6 @@ export const useGetBaseSearchContext = (
 		page,
 		defaultSearchQuery,
 		segmentKeyPrefix,
-		admin,
-		customFields,
 		startDate,
 		endDate,
 	)
@@ -340,8 +344,6 @@ export const useGetBaseSearchContext = (
 
 	return {
 		...state,
-		startDate,
-		endDate,
 		datePickerValue,
 		setSearchQuery,
 		setSelectedSegment,

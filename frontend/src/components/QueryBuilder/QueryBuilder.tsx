@@ -1551,7 +1551,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializedRules)
 		}
-	}, [searchQuery, toggleIsAnd, updateSearchTime])
+	}, [searchQuery, toggleIsAnd])
 
 	// When the query builder is unmounted, reset the state.
 	// Not sure if this is desired behavior in the long term, but
