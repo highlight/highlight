@@ -347,6 +347,8 @@ func getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.Error
 }
 
 func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.ErrorObject) *string {
+	return pointy.String("vadim")
+	// TODO(vkorolik) for backend errors, use service version
 	// get version from session
 	var session *model.Session
 	if err := r.DB.WithContext(ctx).Model(&session).
