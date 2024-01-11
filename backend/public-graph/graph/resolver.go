@@ -1724,10 +1724,10 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return true, 0
 	}
 
+	overage := meter - includedQuantity
 	// offset by the default included amount since ProductToBasePriceCents will offset too,
 	// but we want to use the local offset of includedQuantity which respects overrides
-	overage := meter + pricing.IncludedAmount(stripePlan, productType) - includedQuantity
-	basePriceCents := pricing.ProductToBasePriceCents(productType, stripePlan, overage)
+	basePriceCents := pricing.ProductToBasePriceCents(productType, stripePlan, meter+pricing.IncludedAmount(stripePlan, productType)-includedQuantity)
 	costCents := float64(overage) *
 		basePriceCents *
 		pricing.RetentionMultiplier(cfg.retentionPeriod(workspace))
