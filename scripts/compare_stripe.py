@@ -8,25 +8,25 @@ import stripe
 
 def main():
     stripe.api_key = os.environ["STRIPE_API_KEY"]
-    invoices = stripe.Invoice.list(
-        expand=["data.subscription", "data.charge"]
-    )  # created={'gte': 1693526400}
+    invoices = stripe.Invoice.list(expand=["data.subscription", "data.charge"])
 
     with open("invoices.csv", "w") as f:
         f.write(
-            "customer_name,customer_id,customer_created_at,sessions,errors,logs,sessions_cost,errors_cost,logs_cost\n"
+            "customer_name,customer_id,customer_created_at,sessions,errors,logs,traces,sessions_cost,errors_cost,logs_cost,traces_cost\n"
         )
         for i, invoice in enumerate(invoices.auto_paging_iter()):
-            amounts = {"Logs": 0, "Sessions": 0, "Errors": 0}
-            costs = {"Logs": 0, "Sessions": 0, "Errors": 0}
+            amounts = {"Traces": 0, "Logs": 0, "Sessions": 0, "Errors": 0}
+            costs = {"Traces": 0, "Logs": 0, "Sessions": 0, "Errors": 0}
             for li in invoice["lines"]["data"]:
-                if li["description"] in amounts:
-                    amounts[li["description"]] = li["quantity"]
-                    costs[li["description"]] = li["amount"] / 100.0
+                for key in amounts:
+                    if key in li["description"]:
+                        amounts[key] += li["quantity"]
+                        costs[key] += li["amount"] / 100.0
+                        break
 
             created = datetime.datetime.fromtimestamp(invoice["created"])
             f.write(
-                f"{(invoice['customer_name'] or '').replace(',', ' ')},{invoice['customer']},{created.isoformat()},{amounts['Sessions']},{amounts['Errors']},{amounts['Logs']},{costs['Sessions']},{costs['Errors']},{costs['Logs']}\n"
+                f"{(invoice['customer_name'] or '').replace(',', ' ')},{invoice['customer']},{created.isoformat()},{amounts['Sessions']},{amounts['Errors']},{amounts['Logs']},{amounts['Traces']},{costs['Sessions']},{costs['Errors']},{costs['Logs']},{costs['Traces']}\n"
             )
 
 
