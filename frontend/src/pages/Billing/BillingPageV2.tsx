@@ -6,6 +6,7 @@ import {
 	Heading,
 	IconProps,
 	IconSolidArrowSmRight,
+	IconSolidCheveronRight,
 	IconSolidExclamation,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
@@ -13,6 +14,7 @@ import {
 	IconSolidPlayCircle,
 	IconSolidTraces,
 	Stack,
+	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
@@ -78,6 +80,7 @@ const UsageCard = ({
 	isPaying,
 	enableBillingLimits,
 	billingIssues,
+	setStep,
 }: UsageCardProps) => {
 	const costCents = isPaying
 		? getCostCents(
@@ -177,6 +180,19 @@ const UsageCard = ({
 								</Tooltip>
 							}
 						></Badge>
+					) : null}
+					{billingLimitCents === 0 ? (
+						<Tag
+							iconRight={<IconSolidCheveronRight />}
+							kind="secondary"
+							emphasis="low"
+							shape="basic"
+							onClick={() => {
+								setStep('Configure plan')
+							}}
+						>
+							Turn on {productType.toLocaleLowerCase()}
+						</Tag>
 					) : null}
 				</Box>
 			</Box>
@@ -376,7 +392,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		? data?.workspace?.logs_max_cents ?? undefined
 		: 0
 
-	const tracesLimit = isPaying ? undefined : 0
+	const tracesLimit = isPaying
+		? data?.workspace?.traces_max_cents ?? undefined
+		: 0
 
 	const hasExtras = baseAmount !== 0 || discountCents !== 0
 	const baseAmountFormatted =

@@ -316,6 +316,7 @@ const ProductCard = ({
 			gap="12"
 		>
 			<Switch
+				disabled={!setLimitCents}
 				trackingId={`${productType}-enable`}
 				checked={limitCents === undefined || limitCents > 0}
 				onChange={(checked) => {
@@ -604,7 +605,10 @@ const UpdatePlanPage = ({
 	const [
 		createOrUpdateStripeSubscription,
 		{ data: stripeData, loading: stripeLoading },
-	] = useCreateOrUpdateStripeSubscriptionMutation({ fetchPolicy: 'no-cache' })
+	] = useCreateOrUpdateStripeSubscriptionMutation({
+		fetchPolicy: 'no-cache',
+		refetchQueries: [namedOperations.Query.GetBillingDetails],
+	})
 
 	if (stripeData?.createOrUpdateStripeSubscription && stripePromiseOrNull) {
 		;(async function () {
