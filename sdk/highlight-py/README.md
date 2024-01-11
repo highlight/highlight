@@ -32,7 +32,10 @@ Start Redis:
 * `./start_infra` (in order to start Redis)
 
 Using Boto/Boto3 endpoints:
-* Add `E2E_AWS_ACCESS_KEY`, `E2E_AWS_SECRET_KEY`, and `SQS_QUEUE_URL` env variables
+* Update the have the following environment variables (edit Run Confirguration in PyCharm)
+* `E2E_AWS_ACCESS_KEY` (from IAM account)
+* `E2E_AWS_SECRET_KEY` (from IAM account)
+* `SQS_QUEUE_URL` (from SQS queue information)
 
 Running the main app:
 * `cd e2e/highlight_fastapi`

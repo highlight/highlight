@@ -13,7 +13,7 @@ import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
 
 H = highlight_io.H(
-    "3",
+    "1",
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-fastapi-app",
@@ -27,18 +27,21 @@ app.add_middleware(FastAPIMiddleware)
 router = APIRouter()
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-aws_key = os.getenv("E2E_AWS_ACCESS_KEY")
-aws_secret = os.getenv("E2E_AWS_SECRET_KEY")
-aws_region = os.getenv("E2E_AWS_REGION", "us-east-2")
-sqs_queue_url = os.getenv("SQS_QUEUE_URL")
+try:
+    aws_key = os.getenv("E2E_AWS_ACCESS_KEY")
+    aws_secret = os.getenv("E2E_AWS_SECRET_KEY")
+    aws_region = os.getenv("E2E_AWS_REGION", "us-east-2")
+    sqs_queue_url = os.getenv("SQS_QUEUE_URL")
 
-s3 = boto.connect_s3(aws_key, aws_secret)
-sqs = boto3.client(
-    "sqs",
-    aws_access_key_id=aws_key,
-    aws_secret_access_key=aws_secret,
-    region_name=aws_region,
-)
+    s3 = boto.connect_s3(aws_key, aws_secret)
+    sqs = boto3.client(
+        "sqs",
+        aws_access_key_id=aws_key,
+        aws_secret_access_key=aws_secret,
+        region_name=aws_region,
+    )
+except:
+    logging.warning("Not able to connect to AWS. Check credentials")
 
 
 @app.get("/")
