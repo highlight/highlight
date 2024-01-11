@@ -14,13 +14,17 @@ import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuil
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 
-// TODO(spenny): confirm this works
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
-	const { setSearchQuery, searchQuery, startDate, endDate } =
-		useSearchContext()
+	const {
+		setSearchQuery,
+		searchQuery,
+		startDate,
+		endDate,
+		updateSearchTime,
+	} = useSearchContext()
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
 		project_id: string
@@ -37,13 +41,6 @@ function HighlightSessions() {
 		skip: !project_id,
 		fetchPolicy: 'network-only',
 	})
-	const [dateRange, setDateRange] = useState<{
-		start?: moment.Moment
-		end?: moment.Moment
-	}>({
-		start: moment(startDate),
-		end: moment(endDate),
-	})
 
 	const email =
 		frontContext?.type === 'singleConversation'
@@ -56,14 +53,6 @@ function HighlightSessions() {
 			  'recipient'
 			: email || 'recipient'
 
-	useEffect(() => {
-		setDateRange({
-			start: moment(startDate),
-			end: moment(endDate),
-		})
-	}, [startDate, endDate])
-
-	// TODO(spenny): check this out
 	useEffect(() => {
 		if (frontContext?.type === 'singleConversation') {
 			frontContext.listMessages().then((response) => {
@@ -79,15 +68,13 @@ function HighlightSessions() {
 						isAnd: true,
 						rules: [['user_email', 'contains', email]],
 					})
-					setDateRange({
-						start,
-						end,
-					})
+
+					updateSearchTime(start.toDate(), end.toDate())
 					setSearchQuery(query)
 				}
 			})
 		}
-	}, [email, frontContext, setSearchQuery])
+	}, [email, frontContext, setSearchQuery, updateSearchTime])
 
 	useEffect(() => {
 		if (called) {
@@ -96,9 +83,8 @@ function HighlightSessions() {
 	}, [called, setLoadingState])
 
 	const qs = encodeURI(
-		`?query=and` +
-			(email ? `||user_email,contains,${email}` : '') +
-			`||custom_created_at,between_date,${dateRange.start?.format()}_${dateRange.end?.format()}`,
+		`?end_date=${startDate.toISOString()}&start_date=${endDate.toISOString()}&query=and` +
+			(email ? `||user_email,contains,${email}` : ''),
 	)
 	const url = `${GetBaseURL()}/${project_id}/sessions${qs}`
 

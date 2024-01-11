@@ -254,6 +254,10 @@ func Test_QuerySessionIds(t *testing.T) {
 				Rules: [][]string{
 					{"custom_sample", "matches", "FFFFFFFFFFFFFFFF"},
 				},
+				DateRange: &modelInputs.DateRangeRequiredInput{
+					StartDate: s1.CreatedAt.UTC().Add(-time.Hour),
+					EndDate:   s1.CreatedAt.UTC().Add(time.Hour),
+				},
 			},
 		},
 	} {

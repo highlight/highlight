@@ -95,7 +95,6 @@ export const SessionCountGraph = ({
 		setUpdatingData(loading)
 	}, [setUpdatingData, loading])
 
-	// TODO(spenny): confirm this works
 	return (
 		<div className={clsx({ [styles.loading]: loading })}>
 			<DailyChart

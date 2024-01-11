@@ -59,7 +59,6 @@ const CTA_PATH_MAP: { [key in Area]: string } = {
 	traces: 'traces',
 }
 
-// TODO(spenny): confirm this works
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const location = useLocation()
 	const area = location.pathname.split('/')[3] as Area
@@ -67,11 +66,17 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
-	// TODO(spenny): update with dates
 	const { data: sessionData } = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: { isAnd: true, rules: [] },
+			query: {
+				isAnd: true,
+				rules: [],
+				dateRange: {
+					start_date: moment().subtract(30, 'days').toISOString(),
+					end_date: moment().toISOString(),
+				},
+			},
 			count: 1,
 			page: 1,
 			sort_desc: true,
@@ -83,7 +88,14 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const { data: errorGroupData } = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: { isAnd: true, rules: [] },
+			query: {
+				isAnd: true,
+				rules: [],
+				dateRange: {
+					start_date: moment().subtract(30, 'days').toISOString(),
+					end_date: moment().toISOString(),
+				},
+			},
 			count: 1,
 		},
 		skip: area !== 'backend' || !integrated,
