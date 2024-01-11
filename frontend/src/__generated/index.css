@@ -7283,6 +7283,12 @@ body {
 ._4qdycv5 + ._4qdycv5 {
   border-top: var(--_1pyqka91o) solid 1px;
 }
+._1ozlps90 {
+  margin-top: auto;
+  margin-bottom: auto;
+  max-width: 1080px;
+  overflow-x: hidden;
+}
 ._1xxy0on0 {
   margin-top: -28px;
 }

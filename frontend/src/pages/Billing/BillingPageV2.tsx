@@ -6,15 +6,13 @@ import {
 	Heading,
 	IconProps,
 	IconSolidArrowSmRight,
-	IconSolidCheveronRight,
 	IconSolidExclamation,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
-	IconSolidSparkles,
+	IconSolidTraces,
 	Stack,
-	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
@@ -80,7 +78,6 @@ const UsageCard = ({
 	isPaying,
 	enableBillingLimits,
 	billingIssues,
-	setStep,
 }: UsageCardProps) => {
 	const costCents = isPaying
 		? getCostCents(
@@ -181,17 +178,6 @@ const UsageCard = ({
 							}
 						></Badge>
 					) : null}
-					<Tag
-						iconRight={<IconSolidCheveronRight />}
-						kind="secondary"
-						emphasis="low"
-						shape="basic"
-						onClick={() => {
-							setStep('Configure plan')
-						}}
-					>
-						Update
-					</Tag>
 				</Box>
 			</Box>
 			{enableBillingLimits ? (
@@ -416,12 +402,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 			<Stack height="full" px="8" cssClass={style.pageWrapper} gap="0">
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
-					<Box gap="4" display="flex">
+					<Box display="inline-flex">
 						<Text size="small" color="weak">
-							Prices are usage based and flexible with your needs.
-						</Text>
-						<Text size="small" color="weak">
-							Custom quote?{' '}
+							Prices are flexible around your needs. Custom quote?{' '}
 							<a
 								href={getPlanChangeEmail({
 									workspaceID: workspace_id,
@@ -575,7 +558,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
-						productIcon={<IconSolidSparkles />}
+						productIcon={<IconSolidTraces />}
 						productType={ProductType.Traces}
 						rate={tracesRate}
 						retentionPeriod={tracesRetention}

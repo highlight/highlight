@@ -19,8 +19,12 @@ function handleError(
 	} catch (e) {
 		res = ErrorStackParser.parse(new Error())
 	}
+	let payload: Object = {}
 	if (event instanceof Error) {
 		event = event.message
+		if (event.cause) {
+			payload = event.cause
+		}
 	}
 	const framesToUse = removeHighlightFrameIfExists(res)
 	callback({
@@ -34,6 +38,7 @@ function handleError(
 			: 0,
 		stackTrace: framesToUse,
 		timestamp: new Date().toISOString(),
+		payload: payload ? stringify(payload) : undefined,
 	})
 }
 

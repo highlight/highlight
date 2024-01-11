@@ -20,7 +20,7 @@ import {
 	IconSolidPuzzle,
 	IconSolidReceiptTax,
 	IconSolidServer,
-	IconSolidSparkles,
+	IconSolidTraces,
 	IconSolidX,
 	Input,
 	Menu,
@@ -443,27 +443,35 @@ const ProductCard = ({
 					justifyContent="space-between"
 					alignItems="center"
 				>
-					<Menu>
-						<Menu.Button
-							kind="secondary"
-							size="small"
-							emphasis="medium"
-						>
-							{RETENTION_PERIOD_LABELS[retentionPeriod]}
-						</Menu.Button>
-						<Menu.List>
-							{RETENTION_OPTIONS[productType].map((rp) => (
-								<Menu.Item
-									key={rp}
-									onClick={() => {
-										setRetentionPeriod(rp)
-									}}
-								>
-									{RETENTION_PERIOD_LABELS[rp]}
-								</Menu.Item>
-							))}
-						</Menu.List>
-					</Menu>
+					{RETENTION_OPTIONS[productType].length > 1 ? (
+						<Menu>
+							<Menu.Button
+								kind="secondary"
+								size="small"
+								emphasis="medium"
+								style={{
+									border: vars.border.secondary,
+								}}
+							>
+								<Box display="flex" alignItems="center" gap="4">
+									{RETENTION_PERIOD_LABELS[retentionPeriod]}
+									<IconSolidCheveronDown />
+								</Box>
+							</Menu.Button>
+							<Menu.List>
+								{RETENTION_OPTIONS[productType].map((rp) => (
+									<Menu.Item
+										key={rp}
+										onClick={() => {
+											setRetentionPeriod(rp)
+										}}
+									>
+										{RETENTION_PERIOD_LABELS[rp]}
+									</Menu.Item>
+								))}
+							</Menu.List>
+						</Menu>
+					) : null}
 					{setLimitCents !== undefined && (
 						<Box display="flex">
 							<LimitButton
@@ -856,7 +864,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 					<Box borderBottom="divider" />
 					<ProductCard
 						productIcon={
-							<IconSolidSparkles
+							<IconSolidTraces
 								color={vars.theme.static.content.weak}
 							/>
 						}
@@ -919,14 +927,14 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 						</Box>
 					</Box>
 					<Box borderBottom="divider" />
-					<Box paddingTop="20" paddingBottom="16" px="16">
+					<Stack gap="20" paddingTop="20" paddingBottom="16" px="16">
 						<Box
 							display="flex"
 							justifyContent="space-between"
 							gap="8"
 							width="full"
 						>
-							<Stack>
+							<Box display="flex" alignItems="center" gap="12">
 								<Text
 									size="large"
 									color="strong"
@@ -939,11 +947,11 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										: 'Monthly'}{' '}
 									Bill
 								</Text>
-								<Text color="weak">
+								<Text size="large" color="weak">
 									Due{' '}
 									{moment(nextBillingDate).format('MM/DD/YY')}
 								</Text>
-							</Stack>
+							</Box>
 							<Tooltip
 								trigger={
 									<Text
@@ -971,20 +979,31 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								) : null}
 							</Tooltip>
 						</Box>
-						<Box display="flex" justifyContent="flex-end" gap="12">
-							<Button
-								trackingId="BillingPaymentSettings"
-								size="small"
-								emphasis="low"
-								kind="secondary"
-								disabled={loadingCustomerPortal}
-								onClick={async () => {
-									await openCustomerPortalUrl()
-								}}
-								iconLeft={<IconSolidCog color="n11" />}
-							>
-								Payment Settings
-							</Button>
+						<Box
+							display="flex"
+							justifyContent={
+								isPaying ? 'space-between' : 'flex-end'
+							}
+							gap="12"
+						>
+							{isPaying ? (
+								<Button
+									trackingId="BillingPaymentSettings"
+									size="small"
+									emphasis="low"
+									kind="secondary"
+									disabled={loadingCustomerPortal}
+									onClick={async () => {
+										await openCustomerPortalUrl()
+									}}
+									iconLeft={<IconSolidCog color="n11" />}
+									style={{
+										border: vars.border.secondary,
+									}}
+								>
+									Payment Settings
+								</Button>
+							) : null}
 							<Button
 								trackingId="UpdatePlanSave"
 								onClick={() => {
@@ -1045,7 +1064,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									: 'Enter payment details'}
 							</Button>
 						</Box>
-					</Box>
+					</Stack>
 				</Box>
 			</Form>
 		</Box>
@@ -1178,13 +1197,11 @@ const PlanCard = ({
 					}
 				}}
 			>
-				{free
-					? 'Cancel subscription'
-					: enterprise
+				{enterprise
 					? 'Talk to sales'
 					: current
 					? 'Current plan'
-					: 'Get started'}
+					: 'Select plan'}
 			</Button>
 			<Stack>
 				{plan.descriptions.map((d) => (
@@ -1335,6 +1352,7 @@ const UpdatePlanFooter: React.FC<{
 			justifyContent="space-between"
 			gap="12"
 			style={{ maxWidth: 580 }}
+			onClick={(e) => e.stopPropagation()}
 		>
 			<Stack
 				border="secondary"
@@ -1415,6 +1433,7 @@ export const UpdatePlanModal: React.FC<{
 	if (step === null) return null
 	return (
 		<Modal
+			maxHeight={step === 'Select plan' ? '80vh' : undefined}
 			onClose={() => setStep(null)}
 			footer={
 				step === 'Configure plan' ? (

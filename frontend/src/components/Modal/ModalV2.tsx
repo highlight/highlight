@@ -6,15 +6,21 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import clsx from 'clsx'
 import React from 'react'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
+
+import * as style from './ModalV2.css'
 
 export const Modal: React.FC<
 	React.PropsWithChildren<{
 		onClose?: () => void
+		maxHeight?: string
 		title?: string
 		footer?: React.ReactNode
 	}>
-> = ({ children, onClose, title, footer }) => {
+> = ({ children, maxHeight, onClose, title, footer }) => {
 	return (
 		<Box
 			width="screen"
@@ -34,10 +40,9 @@ export const Modal: React.FC<
 		>
 			<Stack
 				gap="12"
+				cssClass={clsx(styledVerticalScrollbar, style.modalInner)}
 				style={{
-					marginTop: 'auto',
-					marginBottom: 'auto',
-					maxWidth: 1080,
+					maxHeight,
 				}}
 			>
 				<Box
