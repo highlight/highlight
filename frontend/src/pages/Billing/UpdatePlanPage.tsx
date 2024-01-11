@@ -9,6 +9,7 @@ import {
 	IconSolidChatAlt,
 	IconSolidCheck,
 	IconSolidCheveronDown,
+	IconSolidCheveronRight,
 	IconSolidCog,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
@@ -38,6 +39,7 @@ import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React from 'react'
+import ReactCollapsible from 'react-collapsible'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
@@ -500,7 +502,6 @@ type BillingPageProps = {
 }
 
 const UpdatePlanPage = ({}: BillingPageProps) => {
-	const { allProjects } = useApplicationContext()
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
@@ -733,12 +734,11 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	const discountCents = productSubtotal + baseAmount - predictedTotalCents
 
 	const predictedTotalFormatted =
-		'est. $ ' +
+		'$ ' +
 		toDecimal(
 			dinero({ amount: Math.round(predictedTotalCents), currency: USD }),
 		)
 
-	const hasExtras = baseAmount !== 0 || discountCents !== 0
 	const enableBillingLimits = data?.billingDetails.plan.enableBillingLimits
 	const baseAmountFormatted =
 		'$' +
@@ -759,330 +759,295 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			justifyContent="center"
 			flexDirection="column"
 		>
-			<Box display="flex" justifyContent="center">
+			<Form store={formStore}>
 				<Box display="flex" flexDirection="column">
-					<Form store={formStore}>
-						<Box display="flex" flexDirection="column">
-							<ProductCard
-								productIcon={
-									<IconSolidPlayCircle
-										color={vars.theme.static.content.weak}
-									/>
-								}
-								productType="Sessions"
-								rate={data?.billingDetails.plan.sessionsRate}
-								retentionPeriod={
-									formState.values.sessionsRetention
-								}
-								setRetentionPeriod={(rp) =>
-									formStore.setValue(
-										formStore.names.sessionsRetention,
-										rp,
-									)
-								}
-								limitCents={formState.values.sessionsLimitCents}
-								setLimitCents={
-									enableBillingLimits
-										? (l) =>
-												formStore.setValue(
-													formStore.names
-														.sessionsLimitCents,
-													l,
-												)
-										: undefined
-								}
-								usageAmount={sessionsUsage}
-								predictedUsageAmount={predictedSessionsUsage}
-								includedQuantity={includedSessions}
-								planType={planType}
+					<ProductCard
+						productIcon={
+							<IconSolidPlayCircle
+								color={vars.theme.static.content.weak}
 							/>
-							<Box borderBottom="divider" />
-							<ProductCard
-								productIcon={
-									<IconSolidLightningBolt
-										color={vars.theme.static.content.weak}
-									/>
-								}
-								productType="Errors"
-								rate={data?.billingDetails.plan.errorsRate}
-								retentionPeriod={
-									formState.values.errorsRetention
-								}
-								setRetentionPeriod={(rp) =>
-									formStore.setValue(
-										formStore.names.errorsRetention,
-										rp,
-									)
-								}
-								limitCents={formState.values.errorsLimitCents}
-								setLimitCents={
-									enableBillingLimits
-										? (l) =>
-												formStore.setValue(
-													formStore.names
-														.errorsLimitCents,
-													l,
-												)
-										: undefined
-								}
-								usageAmount={errorsUsage}
-								predictedUsageAmount={predictedErrorsUsage}
-								includedQuantity={includedErrors}
-								planType={planType}
+						}
+						productType="Sessions"
+						rate={data?.billingDetails.plan.sessionsRate}
+						retentionPeriod={formState.values.sessionsRetention}
+						setRetentionPeriod={(rp) =>
+							formStore.setValue(
+								formStore.names.sessionsRetention,
+								rp,
+							)
+						}
+						limitCents={formState.values.sessionsLimitCents}
+						setLimitCents={
+							enableBillingLimits
+								? (l) =>
+										formStore.setValue(
+											formStore.names.sessionsLimitCents,
+											l,
+										)
+								: undefined
+						}
+						usageAmount={sessionsUsage}
+						predictedUsageAmount={predictedSessionsUsage}
+						includedQuantity={includedSessions}
+						planType={planType}
+					/>
+					<Box borderBottom="divider" />
+					<ProductCard
+						productIcon={
+							<IconSolidLightningBolt
+								color={vars.theme.static.content.weak}
 							/>
-							<Box borderBottom="divider" />
-							<ProductCard
-								productIcon={
-									<IconSolidLogs
-										color={vars.theme.static.content.weak}
-									/>
-								}
-								productType="Logs"
-								rate={data?.billingDetails.plan.logsRate}
-								retentionPeriod={formState.values.logsRetention}
-								setRetentionPeriod={(rp) =>
-									formStore.setValue(
-										formStore.names.logsRetention,
-										rp,
-									)
-								}
-								limitCents={formState.values.logsLimitCents}
-								setLimitCents={
-									enableBillingLimits
-										? (l) =>
-												formStore.setValue(
-													formStore.names
-														.logsLimitCents,
-													l,
-												)
-										: undefined
-								}
-								usageAmount={logsUsage}
-								predictedUsageAmount={predictedLogsUsage}
-								includedQuantity={includedLogs}
-								planType={planType}
+						}
+						productType="Errors"
+						rate={data?.billingDetails.plan.errorsRate}
+						retentionPeriod={formState.values.errorsRetention}
+						setRetentionPeriod={(rp) =>
+							formStore.setValue(
+								formStore.names.errorsRetention,
+								rp,
+							)
+						}
+						limitCents={formState.values.errorsLimitCents}
+						setLimitCents={
+							enableBillingLimits
+								? (l) =>
+										formStore.setValue(
+											formStore.names.errorsLimitCents,
+											l,
+										)
+								: undefined
+						}
+						usageAmount={errorsUsage}
+						predictedUsageAmount={predictedErrorsUsage}
+						includedQuantity={includedErrors}
+						planType={planType}
+					/>
+					<Box borderBottom="divider" />
+					<ProductCard
+						productIcon={
+							<IconSolidLogs
+								color={vars.theme.static.content.weak}
 							/>
-							<Box borderBottom="divider" />
-							<ProductCard
-								productIcon={
-									<IconSolidSparkles
-										color={vars.theme.static.content.weak}
-									/>
-								}
-								productType="Traces"
-								rate={data?.billingDetails.plan.tracesRate}
-								retentionPeriod={
-									formState.values.tracesRetention
-								}
-								setRetentionPeriod={(rp) =>
-									formStore.setValue(
-										formStore.names.tracesRetention,
-										rp,
-									)
-								}
-								limitCents={formState.values.tracesLimitCents}
-								setLimitCents={
-									enableBillingLimits
-										? (l) =>
-												formStore.setValue(
-													formStore.names
-														.tracesLimitCents,
-													l,
-												)
-										: undefined
-								}
-								usageAmount={tracesUsage}
-								predictedUsageAmount={predictedTracesUsage}
-								includedQuantity={includedTraces}
-								planType={planType}
+						}
+						productType="Logs"
+						rate={data?.billingDetails.plan.logsRate}
+						retentionPeriod={formState.values.logsRetention}
+						setRetentionPeriod={(rp) =>
+							formStore.setValue(
+								formStore.names.logsRetention,
+								rp,
+							)
+						}
+						limitCents={formState.values.logsLimitCents}
+						setLimitCents={
+							enableBillingLimits
+								? (l) =>
+										formStore.setValue(
+											formStore.names.logsLimitCents,
+											l,
+										)
+								: undefined
+						}
+						usageAmount={logsUsage}
+						predictedUsageAmount={predictedLogsUsage}
+						includedQuantity={includedLogs}
+						planType={planType}
+					/>
+					<Box borderBottom="divider" />
+					<ProductCard
+						productIcon={
+							<IconSolidSparkles
+								color={vars.theme.static.content.weak}
 							/>
-							<Stack
-								border="secondary"
-								borderRadius="8"
-								p="8"
-								gap="8"
-							>
-								<Box>
-									<Text color="weak">
-										<b
-											style={{
-												color: vars.theme.static.content
-													.strong,
-											}}
-										>
-											Use our new filtering functionality
-										</b>{' '}
-										to drop data that is not relevant for
-										your observability setup.
-									</Text>
-								</Box>
-								<Box display="flex" alignItems="center" gap="8">
-									<Button
-										trackingId="UpdatePlan Filtering"
-										onClick={() =>
-											navigate(
-												`/${
-													allProjects?.at(0)?.id
-												}/settings/filters`,
-											)
-										}
-									>
-										Go to filtering
-									</Button>
-									<TextLink href="https://www.highlight.io/docs/general/product-features/session-replay/filtering-sessions#set-up-ingestion-filters">
-										Learn more
-									</TextLink>
-								</Box>
-							</Stack>
-							<Box borderBottom="divider" />
-							<Box
-								border="secondary"
-								borderRadius="8"
-								p="12"
-								gap="12"
-							>
-								<Box
-									display="flex"
-									justifyContent="space-between"
-								>
-									<Box display="flex" gap="4">
-										<Text color="strong">
-											Total this{' '}
-											{data?.billingDetails.plan
-												.interval === 'Annual'
-												? 'year'
-												: 'month'}
-										</Text>
-										<Text color="weak">
-											Due{' '}
-											{moment(nextBillingDate).format(
-												'MM/DD/YY',
-											)}
-										</Text>
-									</Box>
-									<Box
-										display="flex"
-										alignItems="center"
-										color="p11"
-										gap="4"
-									>
-										<Text color="p11" weight="bold">
-											{predictedTotalFormatted}
-										</Text>
-										<Tooltip
-											trigger={
-												<IconSolidInformationCircle
-													size={12}
-												/>
-											}
-										>
-											Estimated cost based on trailing 7
-											day usage.
-											{hasExtras && (
-												<>
-													{' '}
-													Includes a{' '}
-													{data?.billingDetails.plan
-														.interval === 'Annual'
-														? 'yearly'
-														: 'monthly'}{' '}
-													base charge of{' '}
-													{baseAmountFormatted}
-													{discountPercent
-														? ` with a ${discountPercent}% discount`
-														: ''}
-													{discountAmount
-														? ` with a ${discountAmountFormatted} discount`
-														: ''}
-													.
-												</>
-											)}
-										</Tooltip>
-									</Box>
-								</Box>
-							</Box>
-							<Box display="flex" justifyContent="flex-end">
-								<Button
-									trackingId="BillingPaymentSettings"
+						}
+						productType="Traces"
+						rate={data?.billingDetails.plan.tracesRate}
+						retentionPeriod={formState.values.tracesRetention}
+						setRetentionPeriod={(rp) =>
+							formStore.setValue(
+								formStore.names.tracesRetention,
+								rp,
+							)
+						}
+						limitCents={formState.values.tracesLimitCents}
+						setLimitCents={
+							enableBillingLimits
+								? (l) =>
+										formStore.setValue(
+											formStore.names.tracesLimitCents,
+											l,
+										)
+								: undefined
+						}
+						usageAmount={tracesUsage}
+						predictedUsageAmount={predictedTracesUsage}
+						includedQuantity={includedTraces}
+						planType={planType}
+					/>
+					<Box borderBottom="divider" />
+					<Box
+						py="12"
+						px="16"
+						display="flex"
+						alignItems="flex-start"
+						gap="12"
+						width="full"
+					>
+						<Box
+							display="flex"
+							justifyContent="space-between"
+							gap="8"
+							width="full"
+						>
+							<Box display="flex" gap="4" alignItems="center">
+								<Text
 									size="small"
-									emphasis="low"
-									kind="secondary"
-									disabled={loadingCustomerPortal}
-									onClick={async () => {
-										await openCustomerPortalUrl()
-									}}
-									iconLeft={<IconSolidCog color="n11" />}
+									color="strong"
+									weight="medium"
 								>
-									Payment Settings
-								</Button>
-								<Button
-									trackingId="UpdatePlanSave"
-									onClick={() => {
-										saveBillingPlan({
-											variables: {
-												workspace_id: workspace_id!,
-												sessionsLimitCents:
-													formState.values
-														.sessionsLimitCents,
-												sessionsRetention:
-													formState.values
-														.sessionsRetention,
-												errorsLimitCents:
-													formState.values
-														.errorsLimitCents,
-												errorsRetention:
-													formState.values
-														.errorsRetention,
-												logsLimitCents:
-													formState.values
-														.logsLimitCents,
-												logsRetention:
-													formState.values
-														.logsRetention,
-												tracesLimitCents:
-													formState.values
-														.tracesLimitCents,
-												tracesRetention:
-													formState.values
-														.tracesRetention,
-											},
-										})
-											.then(() => {
-												if (!isPaying) {
-													createOrUpdateStripeSubscription(
-														{
-															variables: {
-																workspace_id:
-																	workspace_id!,
-															},
-														},
-													)
-												} else {
-													message.success(
-														'Billing plan saved!',
-													)
-													navigate('../current-plan')
-												}
-											})
-											.catch(() => {
-												message.error(
-													'Failed to save billing plan details',
-												)
-											})
-									}}
-									disabled={
-										billingPlanLoading || stripeLoading
-									}
-								>
-									{isPaying
-										? 'Save billing plan'
-										: 'Enter payment details'}
-								</Button>
+									{planType} base fee
+								</Text>
+							</Box>
+							<Box>
+								<Badge
+									size="medium"
+									shape="basic"
+									variant="gray"
+									label={baseAmountFormatted}
+								></Badge>
 							</Box>
 						</Box>
-					</Form>
+					</Box>
+					<Box borderBottom="divider" />
+					<Box paddingTop="20" paddingBottom="16" px="16">
+						<Box
+							display="flex"
+							justifyContent="space-between"
+							gap="8"
+							width="full"
+						>
+							<Stack>
+								<Text
+									size="large"
+									color="strong"
+									weight="medium"
+								>
+									Estimated{' '}
+									{data?.billingDetails.plan.interval ===
+									'Annual'
+										? 'Yearly'
+										: 'Monthly'}{' '}
+									Bill
+								</Text>
+								<Text color="weak">
+									Due{' '}
+									{moment(nextBillingDate).format('MM/DD/YY')}
+								</Text>
+							</Stack>
+							<Tooltip
+								trigger={
+									<Text
+										color="strong"
+										size="large"
+										weight="bold"
+									>
+										{predictedTotalFormatted}
+									</Text>
+								}
+							>
+								Estimated cost based on trailing 7 day usage.
+								{discountCents ? (
+									<>
+										{' '}
+										Includes a
+										{discountPercent
+											? ` ${discountPercent}% discount`
+											: ''}
+										{discountAmount
+											? ` ${discountAmountFormatted} discount`
+											: ''}
+										.
+									</>
+								) : null}
+							</Tooltip>
+						</Box>
+						<Box display="flex" justifyContent="flex-end" gap="12">
+							<Button
+								trackingId="BillingPaymentSettings"
+								size="small"
+								emphasis="low"
+								kind="secondary"
+								disabled={loadingCustomerPortal}
+								onClick={async () => {
+									await openCustomerPortalUrl()
+								}}
+								iconLeft={<IconSolidCog color="n11" />}
+							>
+								Payment Settings
+							</Button>
+							<Button
+								trackingId="UpdatePlanSave"
+								onClick={() => {
+									saveBillingPlan({
+										variables: {
+											workspace_id: workspace_id!,
+											sessionsLimitCents:
+												formState.values
+													.sessionsLimitCents,
+											sessionsRetention:
+												formState.values
+													.sessionsRetention,
+											errorsLimitCents:
+												formState.values
+													.errorsLimitCents,
+											errorsRetention:
+												formState.values
+													.errorsRetention,
+											logsLimitCents:
+												formState.values.logsLimitCents,
+											logsRetention:
+												formState.values.logsRetention,
+											tracesLimitCents:
+												formState.values
+													.tracesLimitCents,
+											tracesRetention:
+												formState.values
+													.tracesRetention,
+										},
+									})
+										.then(() => {
+											if (!isPaying) {
+												createOrUpdateStripeSubscription(
+													{
+														variables: {
+															workspace_id:
+																workspace_id!,
+														},
+													},
+												)
+											} else {
+												message.success(
+													'Billing plan saved!',
+												)
+												navigate('../current-plan')
+											}
+										})
+										.catch(() => {
+											message.error(
+												'Failed to save billing plan details',
+											)
+										})
+								}}
+								disabled={billingPlanLoading || stripeLoading}
+							>
+								{isPaying
+									? 'Save plan details'
+									: 'Enter payment details'}
+							</Button>
+						</Box>
+					</Box>
 				</Box>
-			</Box>
+			</Form>
 		</Box>
 	)
 }
@@ -1150,6 +1115,10 @@ const FAQ = [
 	{
 		question: 'Do you offer discounts for non-profit organizations?',
 		answer: 'We love supporting non-profits and offer a 75% discount for the lifetime of the account. To activate the discount, create a workplace on a paying plan. Then reach out to us over email requesting the discount.',
+	},
+	{
+		question: 'Can I subscribe to a plan with a custom retention period?',
+		answer: 'Yes, we support custom longer retention periods. The minimum options are shown when configuring your plan.',
 	},
 ] as const
 
@@ -1280,35 +1249,159 @@ export const PlanComparisonPage: React.FC<{
 					flexDirection="column"
 					border="dividerWeak"
 					borderRadius="8"
-					px="8"
-					paddingTop="4"
-					paddingBottom="12"
 				>
-					{/*TODO(vkorolik) make collapsible*/}
-					{FAQ.map((faq) => (
-						<Box
+					{FAQ.map((faq, idx) => (
+						<FAQEntry
 							key={faq.question}
-							style={{
-								display: 'grid',
-								gap: 4,
-								gridTemplateColumns: '24px 1fr',
-							}}
-						>
+							faq={faq}
+							bottomBorder={idx < FAQ.length - 1}
+						/>
+					))}
+				</Box>
+			</Stack>
+		</Box>
+	)
+}
+
+const FAQEntry = ({
+	faq,
+	bottomBorder,
+}: {
+	faq: { question: string; answer: string }
+	bottomBorder?: boolean
+}) => {
+	const [expanded, setExpanded] = React.useState<boolean>(false)
+	return (
+		<Box
+			key={faq.question}
+			borderBottom={bottomBorder ? 'dividerWeak' : undefined}
+			p="8"
+		>
+			<ReactCollapsible
+				trigger={
+					<Box
+						key={faq.question}
+						style={{
+							display: 'grid',
+							gap: 4,
+							gridTemplateColumns: '16px 1fr',
+							alignItems: 'center',
+							...(expanded ? { marginBottom: 8 } : {}),
+						}}
+					>
+						{expanded ? (
 							<IconSolidCheveronDown
-								size={24}
+								size={16}
 								color={
 									vars.theme.interactive.fill.secondary
 										.content.text
 								}
 							/>
-							<Stack gap="12" paddingTop="6">
-								<Text>{faq.question}</Text>
-								<Text size="small" color="weak">
-									{faq.answer}
-								</Text>
-							</Stack>
-						</Box>
-					))}
+						) : (
+							<IconSolidCheveronRight
+								size={16}
+								color={
+									vars.theme.interactive.fill.secondary
+										.content.text
+								}
+							/>
+						)}
+						<Text>{faq.question}</Text>
+					</Box>
+				}
+				open={expanded}
+				handleTriggerClick={() => setExpanded(!expanded)}
+				transitionTime={150}
+			>
+				<Box ml="20" py="4">
+					<Text size="small" color="weak">
+						{faq.answer}
+					</Text>
+				</Box>
+			</ReactCollapsible>
+		</Box>
+	)
+}
+
+const UpdatePlanFooter: React.FC<{
+	setStep: (step: PlanSelectStep) => void
+}> = ({ setStep }) => {
+	const { allProjects } = useApplicationContext()
+	const navigate = useNavigate()
+	return (
+		<Box
+			display="flex"
+			alignItems="center"
+			justifyContent="space-between"
+			gap="12"
+			style={{ maxWidth: 580 }}
+		>
+			<Stack
+				border="secondary"
+				borderRadius="8"
+				backgroundColor="white"
+				p="8"
+				gap="8"
+			>
+				<Box>
+					<Text color="weak">
+						<b
+							style={{
+								color: vars.theme.static.content.strong,
+							}}
+						>
+							Use our new filtering functionality
+						</b>{' '}
+						to drop data that is not relevant for your observability
+						setup.
+					</Text>
+				</Box>
+				<Box display="flex" alignItems="center" gap="8">
+					<Button
+						trackingId="UpdatePlan Filtering"
+						onClick={() =>
+							navigate(
+								`/${allProjects?.at(0)?.id}/settings/filters`,
+							)
+						}
+					>
+						Go to filtering
+					</Button>
+					<TextLink href="https://www.highlight.io/docs/general/product-features/session-replay/filtering-sessions#set-up-ingestion-filters">
+						Learn more
+					</TextLink>
+				</Box>
+			</Stack>
+			<Stack
+				border="secondary"
+				borderRadius="8"
+				backgroundColor="white"
+				p="8"
+				gap="8"
+			>
+				<Box>
+					<Text color="weak">
+						<b
+							style={{
+								color: vars.theme.static.content.strong,
+							}}
+						>
+							Can't get all the functionality you need?
+						</b>{' '}
+						Upgrade your current plan to get the most out of
+						highlight.io
+					</Text>
+				</Box>
+				<Box display="flex" alignItems="center" gap="8">
+					<Button
+						trackingId="UpdatePlan Filtering"
+						onClick={(e) => {
+							setStep('Select plan')
+							e.stopPropagation()
+						}}
+					>
+						See all plans
+					</Button>
 				</Box>
 			</Stack>
 		</Box>
@@ -1323,6 +1416,11 @@ export const UpdatePlanModal: React.FC<{
 	return (
 		<Modal
 			onClose={() => setStep(null)}
+			footer={
+				step === 'Configure plan' ? (
+					<UpdatePlanFooter setStep={setStep} />
+				) : undefined
+			}
 			title={
 				step === 'Select plan' ? 'Pricing Plans' : 'Edit current plan'
 			}
