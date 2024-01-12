@@ -79,7 +79,7 @@ type MutationResolver interface {
 	IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error)
 	AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error)
 	PushPayload(ctx context.Context, sessionSecureID string, payloadID *int, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
-	PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (int, error)
+	PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (interface{}, error)
 	PushBackendPayload(ctx context.Context, projectID *string, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
 	MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error)
@@ -477,7 +477,7 @@ type Mutation {
 		session_secure_id: String!
 		payload_id: ID!
 		data: String!
-	): Int!
+	): Any
 	pushBackendPayload(
 		project_id: String
 		errors: [BackendErrorObjectInput]!
@@ -1372,14 +1372,11 @@ func (ec *executionContext) _Mutation_pushPayloadCompressed(ctx context.Context,
 		ec.Error(ctx, err)
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(interface{})
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_pushPayloadCompressed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1389,7 +1386,7 @@ func (ec *executionContext) fieldContext_Mutation_pushPayloadCompressed(ctx cont
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Any does not have child fields")
 		},
 	}
 	defer func() {

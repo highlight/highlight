@@ -219,7 +219,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 }
 
 // PushPayloadCompressed is the resolver for the pushPayloadCompressed field.
-func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (int, error) {
+func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (interface{}, error) {
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
 	if err != nil {
 		return 0, err
@@ -235,7 +235,8 @@ func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSec
 		return 0, err
 	}
 
-	return r.PushPayload(ctx, sessionSecureID, pointy.Int(payloadID), payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, payload.IsBeacon, payload.HasSessionUnloaded, payload.HighlightLogs)
+	_, err = r.PushPayload(ctx, sessionSecureID, pointy.Int(payloadID), payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, payload.IsBeacon, payload.HasSessionUnloaded, payload.HighlightLogs)
+	return nil, err
 }
 
 // PushBackendPayload is the resolver for the pushBackendPayload field.

@@ -133,7 +133,7 @@ type Mutation {
 		session_secure_id: String!
 		payload_id: ID!
 		data: String!
-	): Int!
+	): Any
 	pushBackendPayload(
 		project_id: String
 		errors: [BackendErrorObjectInput]!

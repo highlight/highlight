@@ -24,7 +24,7 @@ import {
 } from './constants'
 import { Logger } from '../logger'
 import { MetricCategory } from '../types/client'
-import { compressSync, gzipSync, strToU8 } from 'fflate'
+import { compressSync, strToU8 } from 'fflate'
 
 export interface HighlightClientRequestWorker {
 	postMessage: (message: HighlightClientWorkerParams) => void
@@ -43,11 +43,10 @@ async function bufferToBase64(buffer: Uint8Array) {
 	// use a FileReader to generate a base64 data URI:
 	const base64url = await new Promise<string>((r) => {
 		const reader = new FileReader()
-		// remove data:*/*;base64, prefix
-		reader.onload = () => r((reader.result as string).slice(16))
+		reader.onload = () => r(reader.result as string)
 		reader.readAsDataURL(new Blob([buffer]))
 	})
-	// remove the `data:...;base64,` part from the start
+	// remove data:application/octet-stream;base64, prefix
 	return base64url.slice(base64url.indexOf(',') + 1)
 }
 
@@ -176,28 +175,26 @@ function stringifyProperties(
 		})
 		const compressedBase64 = await bufferToBase64(compressed)
 
-		const eventsSize = graphqlSDK
-			.PushPayloadCompressed({
-				session_secure_id: sessionSecureID,
-				payload_id: id.toString(),
-				data: compressedBase64,
-			})
-			.then((res) => res.pushPayloadCompressed ?? 0)
+		const pushPayload = graphqlSDK.PushPayloadCompressed({
+			session_secure_id: sessionSecureID,
+			payload_id: id.toString(),
+			data: compressedBase64,
+		})
 
+		let pushMetrics: Promise<any> = Promise.resolve()
 		if (metricsPayload.length) {
-			const metrics = graphqlSDK.pushMetrics({
+			pushMetrics = graphqlSDK.pushMetrics({
 				metrics: metricsPayload,
 			})
 			// clear batched payload before yielding for network request
 			metricsPayload.splice(0)
-			await metrics
 		}
-
+		await Promise.all([pushPayload, pushMetrics])
 		worker.postMessage({
 			response: {
 				type: MessageType.AsyncEvents,
 				id,
-				eventsSize: await eventsSize,
+				eventsSize: buf.length,
 			},
 		})
 	}
@@ -230,7 +227,7 @@ function stringifyProperties(
 
 	const processPropertiesMessage = async (msg: PropertiesMessage) => {
 		const { propertiesObject, propertyType } = msg
-		let eventType = ''
+		let eventType: string
 		if (propertiesObject?.clickTextContent !== undefined) {
 			eventType = 'ClickTextContent'
 			// click text content should be searchable on sessions but not part of the timeline indicators
