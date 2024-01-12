@@ -39609,6 +39609,7 @@ __metadata:
     chokidar: "npm:^3.5.3"
     cypress: "npm:^12.16.0"
     esbuild: "npm:^0.19.5"
+    fflate: "npm:^0.8.1"
     husky: "npm:^8.0.1"
     hygen: "npm:^6.2.7"
     npm-run-all: "npm:^4.1.5"
