@@ -186,15 +186,6 @@ var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 var ErrUserFilteredError = e.New("User filtered error")
 
-var SessionProcessDelaySeconds = 120 // a session will be processed after not receiving events for this time
-var SessionProcessLockMinutes = 30   // a session marked as processing can be reprocessed after this time
-func init() {
-	if util.IsDevEnv() {
-		SessionProcessDelaySeconds = 8
-		SessionProcessLockMinutes = 1
-	}
-}
-
 // Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
@@ -2370,14 +2361,6 @@ func (r *Resolver) MoveSessionDataToStorage(ctx context.Context, sessionId int, 
 	return nil
 }
 
-// Returns a variable processing delay based on the session's last processing time
-func getSessionProcessingDelaySeconds(timeElapsed time.Duration) int {
-	if timeElapsed >= time.Minute {
-		return 600 // 10 minutes
-	}
-	return SessionProcessDelaySeconds
-}
-
 func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
 	redisSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
 		util.ResourceName("go.parseEvents.processWithRedis"), util.Tag("project_id", projectId), util.Tag("payload_type", payloadType))
@@ -2459,16 +2442,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	if sessionID%1000 == 0 {
 		log.WithContext(ctx).WithField("session_id", sessionID).Info("processing payload")
-	}
-
-	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
-	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
-		if sessionObj.ResumedAfterProcessedTime == nil {
-			now := time.Now()
-			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
-			}
-		}
 	}
 
 	var g errgroup.Group
@@ -2803,17 +2776,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
 
-	elapsedSinceUpdate := time.Hour
-	if sessionObj.PayloadUpdatedAt != nil {
-		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
-	}
-
 	updateColumns := []string{}
 	updates := &model.Session{}
-	if sessionObj.PayloadUpdatedAt == nil || elapsedSinceUpdate > 15*time.Second {
-		updateColumns = append(updateColumns, "PayloadUpdatedAt")
-		updates.PayloadUpdatedAt = &now
-	}
 
 	if beaconTime != nil {
 		updateColumns = append(updateColumns, "BeaconTime")
@@ -2889,8 +2853,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	if !excluded {
-		processingDelay := getSessionProcessingDelaySeconds(elapsedSinceUpdate)
-		if err := r.Redis.AddSessionToProcess(ctx, sessionID, processingDelay); err != nil {
+		if err := r.Redis.AddSessionToProcess(ctx, sessionID); err != nil {
 			return err
 		}
 	}

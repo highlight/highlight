@@ -24,6 +24,15 @@ import (
 const CacheKeyHubspotCompanies = "hubspot-companies"
 const CacheKeySessionsToProcess = "sessions-to-process"
 
+var SessionProcessDelaySeconds = 120 // a session will be processed after not receiving events for this time
+var SessionProcessLockMinutes = 30   // a session marked as processing can be reprocessed after this time
+func init() {
+	if util.IsDevEnv() {
+		SessionProcessDelaySeconds = 8
+		SessionProcessLockMinutes = 1
+	}
+}
+
 type Client struct {
 	Client  redis.Cmdable
 	Cache   *cache.Cache
@@ -347,14 +356,31 @@ func (r *Client) GetResources(ctx context.Context, s *model.Session, resources m
 }
 
 // Adds a session to be processed `delaySeconds` in the future
-func (r *Client) AddSessionToProcess(ctx context.Context, sessionId int, delaySeconds int) error {
-	score := float64(time.Now().Unix() + int64(delaySeconds))
+func (r *Client) AddSessionToProcess(ctx context.Context, sessionId int) error {
+	baseScore := float64(time.Now().Unix())
 
-	cmd := r.Client.ZAdd(ctx, CacheKeySessionsToProcess, redis.Z{
-		Score:  score,
-		Member: sessionId,
-	})
-	if err := cmd.Err(); err != nil {
+	var script = redis.NewScript(fmt.Sprintf(`
+		local key = KEYS[1]
+		local baseScore = ARGV[1]
+		local sessionId = ARGV[2]
+
+		local oldScore = tonumber(redis.call("ZSCORE", key, sessionId))
+
+		local newScore
+		if oldScore ~= nil and oldScore == math.floor(score) and baseScore - oldScore >= 60 then
+			newScore = baseScore + %d
+		else
+			newScore = baseScore + 600
+		end
+
+		return redis.call("ZADD", key, newScore, sessionId)
+	`, SessionProcessDelaySeconds))
+
+	keys := []string{CacheKeySessionsToProcess}
+	values := []interface{}{baseScore, sessionId}
+	cmd := script.Run(ctx, r.Client, keys, values...)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
 		return err
 	}
 
@@ -391,11 +417,11 @@ func (r *Client) RemoveSessionToProcess(ctx context.Context, sessionId int) erro
 // Retrieves up to `limit` sessions to process. Sets the processing time
 // for each to `lockPeriod` minutes after the current time, so they
 // can be retried in case processing fails.
-func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit int) ([]int64, error) {
+func (r *Client) GetSessionsToProcess(ctx context.Context, limit int) ([]int64, error) {
 	now := time.Now().Unix()
 	// Use a non-integer score, then check the score again when removing processed sessions
 	// in case a session had new events added to it while it was being processed.
-	timeAfterLock := float64(now+int64(60*lockPeriod)) + .5
+	timeAfterLock := float64(now+int64(60*SessionProcessLockMinutes)) + .5
 	var script = redis.NewScript(`
 		local key = KEYS[1]
 		local now = ARGV[1]

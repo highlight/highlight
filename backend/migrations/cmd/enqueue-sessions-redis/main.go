@@ -33,7 +33,7 @@ func main() {
 	}
 
 	for _, id := range sessionIds {
-		if err := redisClient.AddSessionToProcess(ctx, id, 60); err != nil {
+		if err := redisClient.AddSessionToProcess(ctx, id); err != nil {
 			log.WithContext(ctx).Fatal(err)
 		}
 	}

@@ -1010,11 +1010,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	return nil
 }
 
-func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod int, lockPeriod int, limit int) ([]*model.Session, error) {
+func (w *Worker) GetSessionsToProcess(ctx context.Context, limit int) ([]*model.Session, error) {
 	sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
 	defer sessionsSpan.Finish()
 
-	sessionIds, err := w.Resolver.Redis.GetSessionsToProcess(ctx, lockPeriod, limit)
+	sessionIds, err := w.Resolver.Redis.GetSessionsToProcess(ctx, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -1037,7 +1037,6 @@ func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod
 
 // Start begins the worker's tasks.
 func (w *Worker) Start(ctx context.Context) {
-	go reportProcessSessionCount(ctx, w.Resolver.DB, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes)
 	maxWorkerCount := 10
 	wp := workerpool.New(maxWorkerCount)
 	wp.SetPanicHandler(util.Recover)
@@ -1046,7 +1045,7 @@ func (w *Worker) Start(ctx context.Context) {
 
 		limit := processSessionLimit + rand.Intn(100)
 		sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
-		sessions, err := w.GetSessionsToProcess(ctx, pubgraph.SessionProcessDelaySeconds, pubgraph.SessionProcessLockMinutes, limit)
+		sessions, err := w.GetSessionsToProcess(ctx, limit)
 		sessionsSpan.Finish(err)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
@@ -1584,25 +1583,4 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 		}
 	}
 	return a
-}
-
-func reportProcessSessionCount(ctx context.Context, db *gorm.DB, lookbackPeriod, lockPeriod int) {
-	defer util.Recover()
-	for {
-		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
-		var count int64
-		if err := db.WithContext(ctx).Raw(`
-			SELECT COUNT(*)
-			FROM sessions
-			WHERE (processed = false)
-				AND (excluded = false)
-				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
-				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
-				AND (retry_count < ?)
-			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error getting count of sessions to process"))
-			continue
-		}
-		hmetric.Histogram(ctx, "processSessionsCount", float64(count), nil, 1)
-	}
 }
