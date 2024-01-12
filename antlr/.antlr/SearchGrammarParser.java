@@ -17,7 +17,7 @@ public class SearchGrammarParser extends Parser {
 		new PredictionContextCache();
 	public static final int
 		AND=1, OR=2, NOT=3, EQ=4, NEQ=5, LT=6, LTE=7, GT=8, GTE=9, LPAREN=10, 
-		RPAREN=11, COLON=12, ID=13, STRING=14, VALUE=15, WS=16;
+		RPAREN=11, COLON=12, ID=13, STRING=14, VALUE=15, WS=16, ERROR_CHARACTERS=17;
 	public static final int
 		RULE_search_query = 0, RULE_top_col_expr = 1, RULE_col_expr = 2, RULE_search_expr = 3, 
 		RULE_search_key = 4, RULE_and_op = 5, RULE_or_op = 6, RULE_negation_op = 7, 
@@ -40,7 +40,7 @@ public class SearchGrammarParser extends Parser {
 	private static String[] makeSymbolicNames() {
 		return new String[] {
 			null, "AND", "OR", "NOT", "EQ", "NEQ", "LT", "LTE", "GT", "GTE", "LPAREN", 
-			"RPAREN", "COLON", "ID", "STRING", "VALUE", "WS"
+			"RPAREN", "COLON", "ID", "STRING", "VALUE", "WS", "ERROR_CHARACTERS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -872,7 +872,7 @@ public class SearchGrammarParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0010f\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001\u0011f\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0002"+
 		"\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007\u0002"+
 		"\b\u0007\b\u0002\t\u0007\t\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000"+

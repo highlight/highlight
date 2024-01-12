@@ -78,3 +78,8 @@ ID : [a-zA-Z_0-9.\-*]+ ;
 STRING : '"' .*? '"' ;
 VALUE: ~[ \t\n\r\f=><:!)(]+ ;
 WS : [ \t\n\r\f]+ -> skip ;
+
+// Handle characters which failed to match any other token. This ensures all
+// characters are tokenized.
+ERROR_CHARACTERS : . ;
+

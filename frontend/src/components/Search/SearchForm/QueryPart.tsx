@@ -119,6 +119,15 @@ const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 		error.startsWith("extraneous input '\"' expecting")
 	) {
 		error = 'Missing closing quote'
+	} else if (
+		error.startsWith('extraneous input') &&
+		error.endsWith('expecting <EOF>')
+	) {
+		error = 'Must wrap search value in quotes to use special characters.'
+	} else if (error.startsWith("mismatched input '<EOF>' expecting")) {
+		// Swallow this error. It's becuase they have entered an operator and
+		// there's not value yet.
+		return null
 	}
 
 	return (
