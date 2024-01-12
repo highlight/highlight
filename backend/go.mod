@@ -67,7 +67,7 @@ require (
 	github.com/openlyinc/pointy v1.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.3.0
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.10.1
 	github.com/rs/xid v1.4.0
 	github.com/samber/lo v1.39.0
 	github.com/sashabaranov/go-openai v1.14.1
