@@ -19,7 +19,9 @@ const port = 3003
 app.use(Handlers.middleware(config))
 app.get('/', (req, res) => {
 	H.runWithHeaders(req.headers, () => {
-		const err = new Error('this is a test error')
+		const err = new Error('this is a test error', {
+			cause: { route: '/', foo: ['bar'] },
+		})
 		console.info('Sending error to highlight')
 		H.consumeError(err)
 
