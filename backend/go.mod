@@ -38,7 +38,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/go-redis/cache/v9 v9.0.0
-	github.com/go-redsync/redsync/v4 v4.8.1
+	github.com/go-redsync/redsync/v4 v4.11.0
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -97,7 +97,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.16 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.15.0 // indirect
