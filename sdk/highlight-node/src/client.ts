@@ -337,8 +337,17 @@ export class Highlight {
 		if (requestId) {
 			span.setAttribute('highlight.trace_id', requestId)
 		}
-		if (error.cause) {
-			span.setAttribute('exception.cause', JSON.stringify(error.cause))
+		if (error.cause && typeof error.cause === 'object') {
+			span.setAttributes(
+				Object.entries(error.cause)
+					.map(([k, v]) => [`exception.cause.${k}`, v])
+					.reduce((acc, [k, v]) => {
+						acc[k] = v
+						return acc
+					}, {} as Attributes),
+			)
+		} else if (error.cause) {
+			span.setAttribute('exception.cause', error.cause.toString())
 		}
 		this._log('created error span', span)
 		span.end()

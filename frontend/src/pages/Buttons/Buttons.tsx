@@ -258,7 +258,14 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
-							H.error('Highlight H.error')
+							H.consumeError(
+								new Error('Highlight H.consumeError', {
+									cause: {
+										location: window.location.toString(),
+										foo: 'bar',
+									},
+								}),
+							)
 						}}
 					>
 						H.error()
