@@ -9,6 +9,7 @@ import clsx from 'clsx'
 
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { TokenGroup } from '@/components/Search/SearchForm/utils'
+import { SearchToken } from '@/components/Search/utils'
 
 import * as styles from './SearchForm.css'
 
@@ -23,7 +24,7 @@ export const QueryPart: React.FC<{
 	const errorToken = tokenGroup.tokens.find(
 		(token) => (token as any).errorMessage !== undefined,
 	)
-	const error = (errorToken as any)?.errorMessage
+	const error = errorMessageForToken(errorToken)
 
 	if (
 		tokenGroup.tokens.length === 1 &&
@@ -112,6 +113,25 @@ export const Token = ({
 }
 
 const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
+	return (
+		<Box p="4">
+			<Text>{error}</Text>
+		</Box>
+	)
+}
+
+const errorMessageForToken = (
+	token?: SearchToken & { errorMessage?: string },
+): string | undefined => {
+	if (!token || token.type === SearchGrammarParser.EOF) {
+		return undefined
+	}
+
+	let error = token.errorMessage
+	if (!error) {
+		return undefined
+	}
+
 	if (error.endsWith("expecting ')'") || error.startsWith("missing ')'")) {
 		error = 'Missing closing parenthesis'
 	} else if (
@@ -123,16 +143,14 @@ const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 		error.startsWith('extraneous input') &&
 		error.endsWith('expecting <EOF>')
 	) {
+		// TODO: This is also caught when entering something like `span_name!`. We
+		// don't want to show the error until they are entering a search value.
 		error = 'Must wrap search value in quotes to use special characters.'
 	} else if (error.startsWith("mismatched input '<EOF>' expecting")) {
 		// Swallow this error. It's becuase they have entered an operator and
-		// there's not value yet.
-		return null
+		// there's no value yet.
+		return ''
 	}
 
-	return (
-		<Box p="4">
-			<Text>{error}</Text>
-		</Box>
-	)
+	return error
 }
