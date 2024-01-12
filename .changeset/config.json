@@ -19,6 +19,7 @@
 		"@highlight-run/rrweb-types",
 		"@highlight-run/rrweb-web-extension",
 		"@highlight-run/ui",
+		"angular.io-example",
 		"cloudflare-worker",
 		"emails",
 		"e2e-express",
