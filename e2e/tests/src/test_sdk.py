@@ -199,7 +199,7 @@ def test_express_error(express_app, oauth_api):
                 data["error_groups_clickhouse"]["error_groups"],
             )
         )
-        assert "this is a test error" in events
+        assert "this is another test error" in events
 
     query(
         oauth_api,
