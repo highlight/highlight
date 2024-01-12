@@ -332,10 +332,13 @@ export class Highlight {
 			span.setAttributes(metadata)
 		}
 		if (secureSessionId) {
-			span.setAttributes({ ['highlight.session_id']: secureSessionId })
+			span.setAttribute('highlight.session_id', secureSessionId)
 		}
 		if (requestId) {
-			span.setAttributes({ ['highlight.trace_id']: requestId })
+			span.setAttribute('highlight.trace_id', requestId)
+		}
+		if (error.cause) {
+			span.setAttribute('exception.cause', JSON.stringify(error.cause))
 		}
 		this._log('created error span', span)
 		span.end()
