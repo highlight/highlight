@@ -23,7 +23,7 @@ function handleError(
 	if (event instanceof Error) {
 		event = event.message
 		if (event.cause) {
-			payload = event.cause
+			payload = { cause: event.cause }
 		}
 	}
 	const framesToUse = removeHighlightFrameIfExists(res)
