@@ -33,12 +33,12 @@ var SearchGrammarParserStaticData struct {
 func searchgrammarParserInit() {
 	staticData := &SearchGrammarParserStaticData
 	staticData.LiteralNames = []string{
-		"", "'AND'", "'OR'", "'NOT'", "'='", "'!='", "'<'", "'<='", "'>'", "'>='",
-		"'('", "')'", "':'",
+		"", "'AND'", "'OR'", "'NOT'", "'!'", "'='", "'!='", "'<'", "'<='", "'>'",
+		"'>='", "'('", "')'", "':'",
 	}
 	staticData.SymbolicNames = []string{
-		"", "AND", "OR", "NOT", "EQ", "NEQ", "LT", "LTE", "GT", "GTE", "LPAREN",
-		"RPAREN", "COLON", "ID", "STRING", "VALUE", "WS", "ERROR_CHARACTERS",
+		"", "AND", "OR", "NOT", "BANG", "EQ", "NEQ", "LT", "LTE", "GT", "GTE",
+		"LPAREN", "RPAREN", "COLON", "ID", "STRING", "VALUE", "WS", "ERROR_CHARACTERS",
 	}
 	staticData.RuleNames = []string{
 		"search_query", "top_col_expr", "col_expr", "search_expr", "search_key",
@@ -46,7 +46,7 @@ func searchgrammarParserInit() {
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 17, 102, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 18, 102, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 1, 0, 1,
 		0, 1, 0, 1, 0, 3, 0, 25, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 3, 1, 35, 8, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
@@ -56,24 +56,24 @@ func searchgrammarParserInit() {
 		3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 5, 3, 85, 8, 3, 10, 3, 12, 3, 88,
 		9, 3, 1, 4, 1, 4, 1, 5, 1, 5, 1, 6, 1, 6, 1, 7, 1, 7, 1, 8, 1, 8, 1, 9,
 		1, 9, 1, 9, 0, 2, 4, 6, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 0, 2, 2,
-		0, 4, 9, 12, 12, 1, 0, 13, 15, 104, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0, 0,
+		0, 4, 10, 13, 13, 1, 0, 14, 16, 104, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0, 0,
 		0, 4, 45, 1, 0, 0, 0, 6, 72, 1, 0, 0, 0, 8, 89, 1, 0, 0, 0, 10, 91, 1,
 		0, 0, 0, 12, 93, 1, 0, 0, 0, 14, 95, 1, 0, 0, 0, 16, 97, 1, 0, 0, 0, 18,
 		99, 1, 0, 0, 0, 20, 25, 5, 0, 0, 1, 21, 22, 3, 6, 3, 0, 22, 23, 5, 0, 0,
 		1, 23, 25, 1, 0, 0, 0, 24, 20, 1, 0, 0, 0, 24, 21, 1, 0, 0, 0, 25, 1, 1,
-		0, 0, 0, 26, 27, 5, 10, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 11, 0, 0,
+		0, 0, 0, 26, 27, 5, 11, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 12, 0, 0,
 		29, 35, 1, 0, 0, 0, 30, 31, 3, 14, 7, 0, 31, 32, 3, 2, 1, 0, 32, 35, 1,
 		0, 0, 0, 33, 35, 3, 18, 9, 0, 34, 26, 1, 0, 0, 0, 34, 30, 1, 0, 0, 0, 34,
-		33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37, 38, 5, 10,
-		0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 11, 0, 0, 40, 46, 1, 0, 0, 0, 41,
+		33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37, 38, 5, 11,
+		0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 12, 0, 0, 40, 46, 1, 0, 0, 0, 41,
 		42, 3, 14, 7, 0, 42, 43, 3, 4, 2, 4, 43, 46, 1, 0, 0, 0, 44, 46, 3, 18,
 		9, 0, 45, 36, 1, 0, 0, 0, 45, 41, 1, 0, 0, 0, 45, 44, 1, 0, 0, 0, 46, 56,
 		1, 0, 0, 0, 47, 48, 10, 3, 0, 0, 48, 49, 3, 10, 5, 0, 49, 50, 3, 4, 2,
 		4, 50, 55, 1, 0, 0, 0, 51, 52, 10, 2, 0, 0, 52, 53, 5, 2, 0, 0, 53, 55,
 		3, 4, 2, 3, 54, 47, 1, 0, 0, 0, 54, 51, 1, 0, 0, 0, 55, 58, 1, 0, 0, 0,
 		56, 54, 1, 0, 0, 0, 56, 57, 1, 0, 0, 0, 57, 5, 1, 0, 0, 0, 58, 56, 1, 0,
-		0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 10, 0, 0, 61, 62, 3, 6, 3, 0, 62,
-		63, 5, 11, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65, 66, 3, 6,
+		0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 11, 0, 0, 61, 62, 3, 6, 3, 0, 62,
+		63, 5, 12, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65, 66, 3, 6,
 		3, 6, 66, 73, 1, 0, 0, 0, 67, 68, 3, 8, 4, 0, 68, 69, 3, 16, 8, 0, 69,
 		70, 3, 2, 1, 0, 70, 73, 1, 0, 0, 0, 71, 73, 3, 2, 1, 0, 72, 59, 1, 0, 0,
 		0, 72, 64, 1, 0, 0, 0, 72, 67, 1, 0, 0, 0, 72, 71, 1, 0, 0, 0, 73, 86,
@@ -82,7 +82,7 @@ func searchgrammarParserInit() {
 		3, 0, 0, 81, 82, 3, 10, 5, 0, 82, 83, 3, 6, 3, 4, 83, 85, 1, 0, 0, 0, 84,
 		74, 1, 0, 0, 0, 84, 77, 1, 0, 0, 0, 84, 80, 1, 0, 0, 0, 85, 88, 1, 0, 0,
 		0, 86, 84, 1, 0, 0, 0, 86, 87, 1, 0, 0, 0, 87, 7, 1, 0, 0, 0, 88, 86, 1,
-		0, 0, 0, 89, 90, 5, 13, 0, 0, 90, 9, 1, 0, 0, 0, 91, 92, 1, 0, 0, 0, 92,
+		0, 0, 0, 89, 90, 5, 14, 0, 0, 90, 9, 1, 0, 0, 0, 91, 92, 1, 0, 0, 0, 92,
 		11, 1, 0, 0, 0, 93, 94, 5, 2, 0, 0, 94, 13, 1, 0, 0, 0, 95, 96, 5, 3, 0,
 		0, 96, 15, 1, 0, 0, 0, 97, 98, 7, 0, 0, 0, 98, 17, 1, 0, 0, 0, 99, 100,
 		7, 1, 0, 0, 100, 19, 1, 0, 0, 0, 8, 24, 34, 45, 54, 56, 72, 84, 86,
@@ -127,20 +127,21 @@ const (
 	SearchGrammarParserAND              = 1
 	SearchGrammarParserOR               = 2
 	SearchGrammarParserNOT              = 3
-	SearchGrammarParserEQ               = 4
-	SearchGrammarParserNEQ              = 5
-	SearchGrammarParserLT               = 6
-	SearchGrammarParserLTE              = 7
-	SearchGrammarParserGT               = 8
-	SearchGrammarParserGTE              = 9
-	SearchGrammarParserLPAREN           = 10
-	SearchGrammarParserRPAREN           = 11
-	SearchGrammarParserCOLON            = 12
-	SearchGrammarParserID               = 13
-	SearchGrammarParserSTRING           = 14
-	SearchGrammarParserVALUE            = 15
-	SearchGrammarParserWS               = 16
-	SearchGrammarParserERROR_CHARACTERS = 17
+	SearchGrammarParserBANG             = 4
+	SearchGrammarParserEQ               = 5
+	SearchGrammarParserNEQ              = 6
+	SearchGrammarParserLT               = 7
+	SearchGrammarParserLTE              = 8
+	SearchGrammarParserGT               = 9
+	SearchGrammarParserGTE              = 10
+	SearchGrammarParserLPAREN           = 11
+	SearchGrammarParserRPAREN           = 12
+	SearchGrammarParserCOLON            = 13
+	SearchGrammarParserID               = 14
+	SearchGrammarParserSTRING           = 15
+	SearchGrammarParserVALUE            = 16
+	SearchGrammarParserWS               = 17
+	SearchGrammarParserERROR_CHARACTERS = 18
 )
 
 // SearchGrammarParser rules.
@@ -2242,6 +2243,7 @@ type IBin_opContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
+	BANG() antlr.TerminalNode
 	EQ() antlr.TerminalNode
 	NEQ() antlr.TerminalNode
 	GT() antlr.TerminalNode
@@ -2285,6 +2287,10 @@ func NewBin_opContext(parser antlr.Parser, parent antlr.ParserRuleContext, invok
 }
 
 func (s *Bin_opContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *Bin_opContext) BANG() antlr.TerminalNode {
+	return s.GetToken(SearchGrammarParserBANG, 0)
+}
 
 func (s *Bin_opContext) EQ() antlr.TerminalNode {
 	return s.GetToken(SearchGrammarParserEQ, 0)
@@ -2344,7 +2350,7 @@ func (p *SearchGrammarParser) Bin_op() (localctx IBin_opContext) {
 		p.SetState(97)
 		_la = p.GetTokenStream().LA(1)
 
-		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&5104) != 0) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&10224) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)
@@ -2455,7 +2461,7 @@ func (p *SearchGrammarParser) Search_value() (localctx ISearch_valueContext) {
 		p.SetState(99)
 		_la = p.GetTokenStream().LA(1)
 
-		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&57344) != 0) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&114688) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)

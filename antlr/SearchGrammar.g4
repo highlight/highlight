@@ -47,7 +47,9 @@ negation_op
   ;
 
 bin_op
-  : EQ
+  // BANG is not a valid operator, but don't want it to produce a parsing error.
+  : BANG
+  | EQ
   | NEQ
   | GT
   | GTE
@@ -65,6 +67,7 @@ search_value
 AND : 'AND' ;
 OR : 'OR' ;
 NOT : 'NOT' ;
+BANG : '!' ;
 EQ : '=' ;
 NEQ : '!=' ;
 LT : '<' ;

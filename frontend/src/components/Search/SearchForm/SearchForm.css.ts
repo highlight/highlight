@@ -1,4 +1,4 @@
-import { sMonotype, typographyStyles } from '@highlight-run/ui/components'
+import { typographyStyles } from '@highlight-run/ui/components'
 import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { themeVars } from '@highlight-run/ui/theme'
 import { vars } from '@highlight-run/ui/vars'
@@ -12,20 +12,23 @@ export const searchIcon = style({
 	left: 14,
 })
 
+const WORD_SPACING = 4
+
 export const combobox = style([
 	sprinkles({
 		p: '6',
 	}),
-	typographyStyles.family.monospace,
-	sMonotype,
+	typographyStyles.family.body,
+	typographyStyles.size.small,
 	{
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		display: 'flex',
-		fontWeight: '500',
+		fontWeight: '500 !important',
 		pointerEvents: 'auto',
 		width: '100%',
+		wordSpacing: WORD_SPACING,
 		selectors: {
 			'&:focus': {
 				outline: 0,
@@ -44,14 +47,18 @@ export const comboboxNotEmpty = style({
 	WebkitTextFillColor: 'transparent',
 })
 
+export const whitspaceTag = style({
+	letterSpacing: WORD_SPACING,
+})
+
 export const comboboxTagsContainer = style([
-	typographyStyles.family.monospace,
-	sMonotype,
+	typographyStyles.family.body,
+	typographyStyles.size.small,
 	{
 		alignItems: 'center',
 		display: 'flex',
 		flexWrap: 'nowrap',
-		fontWeight: '500',
+		fontWeight: '500 !important',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
 		paddingRight: 8,

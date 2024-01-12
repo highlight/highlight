@@ -32,20 +32,21 @@ export default class SearchGrammarParser extends Parser {
 	public static readonly AND = 1
 	public static readonly OR = 2
 	public static readonly NOT = 3
-	public static readonly EQ = 4
-	public static readonly NEQ = 5
-	public static readonly LT = 6
-	public static readonly LTE = 7
-	public static readonly GT = 8
-	public static readonly GTE = 9
-	public static readonly LPAREN = 10
-	public static readonly RPAREN = 11
-	public static readonly COLON = 12
-	public static readonly ID = 13
-	public static readonly STRING = 14
-	public static readonly VALUE = 15
-	public static readonly WS = 16
-	public static readonly ERROR_CHARACTERS = 17
+	public static readonly BANG = 4
+	public static readonly EQ = 5
+	public static readonly NEQ = 6
+	public static readonly LT = 7
+	public static readonly LTE = 8
+	public static readonly GT = 9
+	public static readonly GTE = 10
+	public static readonly LPAREN = 11
+	public static readonly RPAREN = 12
+	public static readonly COLON = 13
+	public static readonly ID = 14
+	public static readonly STRING = 15
+	public static readonly VALUE = 16
+	public static readonly WS = 17
+	public static readonly ERROR_CHARACTERS = 18
 	public static readonly EOF = Token.EOF
 	public static readonly RULE_search_query = 0
 	public static readonly RULE_top_col_expr = 1
@@ -62,6 +63,7 @@ export default class SearchGrammarParser extends Parser {
 		"'AND'",
 		"'OR'",
 		"'NOT'",
+		"'!'",
 		"'='",
 		"'!='",
 		"'<'",
@@ -77,6 +79,7 @@ export default class SearchGrammarParser extends Parser {
 		'AND',
 		'OR',
 		'NOT',
+		'BANG',
 		'EQ',
 		'NEQ',
 		'LT',
@@ -157,10 +160,10 @@ export default class SearchGrammarParser extends Parser {
 					}
 					break
 				case 3:
-				case 10:
-				case 13:
+				case 11:
 				case 14:
 				case 15:
+				case 16:
 					this.enterOuterAlt(localctx, 2)
 					{
 						this.state = 21
@@ -197,7 +200,7 @@ export default class SearchGrammarParser extends Parser {
 			this.state = 34
 			this._errHandler.sync(this)
 			switch (this._input.LA(1)) {
-				case 10:
+				case 11:
 					localctx = new Top_paren_col_exprContext(this, localctx)
 					this.enterOuterAlt(localctx, 1)
 					{
@@ -219,9 +222,9 @@ export default class SearchGrammarParser extends Parser {
 						this.top_col_expr()
 					}
 					break
-				case 13:
 				case 14:
 				case 15:
+				case 16:
 					localctx = new Top_col_search_valueContext(this, localctx)
 					this.enterOuterAlt(localctx, 3)
 					{
@@ -276,7 +279,7 @@ export default class SearchGrammarParser extends Parser {
 				this.state = 45
 				this._errHandler.sync(this)
 				switch (this._input.LA(1)) {
-					case 10:
+					case 11:
 						{
 							localctx = new Col_paren_exprContext(this, localctx)
 							this._ctx = localctx
@@ -304,9 +307,9 @@ export default class SearchGrammarParser extends Parser {
 							this.col_expr(4)
 						}
 						break
-					case 13:
 					case 14:
 					case 15:
+					case 16:
 						{
 							localctx = new Col_search_valueContext(
 								this,
@@ -761,7 +764,7 @@ export default class SearchGrammarParser extends Parser {
 			{
 				this.state = 97
 				_la = this._input.LA(1)
-				if (!((_la & ~0x1f) === 0 && ((1 << _la) & 5104) !== 0)) {
+				if (!((_la & ~0x1f) === 0 && ((1 << _la) & 10224) !== 0)) {
 					this._errHandler.recoverInline(this)
 				} else {
 					this._errHandler.reportMatch(this)
@@ -795,7 +798,7 @@ export default class SearchGrammarParser extends Parser {
 			{
 				this.state = 99
 				_la = this._input.LA(1)
-				if (!((_la & ~0x1f) === 0 && ((1 << _la) & 57344) !== 0)) {
+				if (!((_la & ~0x1f) === 0 && ((1 << _la) & 114688) !== 0)) {
 					this._errHandler.recoverInline(this)
 				} else {
 					this._errHandler.reportMatch(this)
@@ -863,7 +866,7 @@ export default class SearchGrammarParser extends Parser {
 	}
 
 	public static readonly _serializedATN: number[] = [
-		4, 1, 17, 102, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 18, 102, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 1, 0, 1,
 		0, 1, 0, 1, 0, 3, 0, 25, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 3, 1, 35, 8, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
@@ -873,24 +876,24 @@ export default class SearchGrammarParser extends Parser {
 		3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 5, 3, 85, 8, 3, 10, 3, 12, 3, 88,
 		9, 3, 1, 4, 1, 4, 1, 5, 1, 5, 1, 6, 1, 6, 1, 7, 1, 7, 1, 8, 1, 8, 1, 9,
 		1, 9, 1, 9, 0, 2, 4, 6, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 0, 2, 2,
-		0, 4, 9, 12, 12, 1, 0, 13, 15, 104, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0, 0,
+		0, 4, 10, 13, 13, 1, 0, 14, 16, 104, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0, 0,
 		0, 4, 45, 1, 0, 0, 0, 6, 72, 1, 0, 0, 0, 8, 89, 1, 0, 0, 0, 10, 91, 1,
 		0, 0, 0, 12, 93, 1, 0, 0, 0, 14, 95, 1, 0, 0, 0, 16, 97, 1, 0, 0, 0, 18,
 		99, 1, 0, 0, 0, 20, 25, 5, 0, 0, 1, 21, 22, 3, 6, 3, 0, 22, 23, 5, 0, 0,
 		1, 23, 25, 1, 0, 0, 0, 24, 20, 1, 0, 0, 0, 24, 21, 1, 0, 0, 0, 25, 1, 1,
-		0, 0, 0, 26, 27, 5, 10, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 11, 0, 0,
+		0, 0, 0, 26, 27, 5, 11, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 12, 0, 0,
 		29, 35, 1, 0, 0, 0, 30, 31, 3, 14, 7, 0, 31, 32, 3, 2, 1, 0, 32, 35, 1,
 		0, 0, 0, 33, 35, 3, 18, 9, 0, 34, 26, 1, 0, 0, 0, 34, 30, 1, 0, 0, 0,
 		34, 33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37, 38, 5,
-		10, 0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 11, 0, 0, 40, 46, 1, 0, 0, 0,
+		11, 0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 12, 0, 0, 40, 46, 1, 0, 0, 0,
 		41, 42, 3, 14, 7, 0, 42, 43, 3, 4, 2, 4, 43, 46, 1, 0, 0, 0, 44, 46, 3,
 		18, 9, 0, 45, 36, 1, 0, 0, 0, 45, 41, 1, 0, 0, 0, 45, 44, 1, 0, 0, 0,
 		46, 56, 1, 0, 0, 0, 47, 48, 10, 3, 0, 0, 48, 49, 3, 10, 5, 0, 49, 50, 3,
 		4, 2, 4, 50, 55, 1, 0, 0, 0, 51, 52, 10, 2, 0, 0, 52, 53, 5, 2, 0, 0,
 		53, 55, 3, 4, 2, 3, 54, 47, 1, 0, 0, 0, 54, 51, 1, 0, 0, 0, 55, 58, 1,
 		0, 0, 0, 56, 54, 1, 0, 0, 0, 56, 57, 1, 0, 0, 0, 57, 5, 1, 0, 0, 0, 58,
-		56, 1, 0, 0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 10, 0, 0, 61, 62, 3, 6,
-		3, 0, 62, 63, 5, 11, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65,
+		56, 1, 0, 0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 11, 0, 0, 61, 62, 3, 6,
+		3, 0, 62, 63, 5, 12, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65,
 		66, 3, 6, 3, 6, 66, 73, 1, 0, 0, 0, 67, 68, 3, 8, 4, 0, 68, 69, 3, 16,
 		8, 0, 69, 70, 3, 2, 1, 0, 70, 73, 1, 0, 0, 0, 71, 73, 3, 2, 1, 0, 72,
 		59, 1, 0, 0, 0, 72, 64, 1, 0, 0, 0, 72, 67, 1, 0, 0, 0, 72, 71, 1, 0, 0,
@@ -899,7 +902,7 @@ export default class SearchGrammarParser extends Parser {
 		80, 81, 10, 3, 0, 0, 81, 82, 3, 10, 5, 0, 82, 83, 3, 6, 3, 4, 83, 85, 1,
 		0, 0, 0, 84, 74, 1, 0, 0, 0, 84, 77, 1, 0, 0, 0, 84, 80, 1, 0, 0, 0, 85,
 		88, 1, 0, 0, 0, 86, 84, 1, 0, 0, 0, 86, 87, 1, 0, 0, 0, 87, 7, 1, 0, 0,
-		0, 88, 86, 1, 0, 0, 0, 89, 90, 5, 13, 0, 0, 90, 9, 1, 0, 0, 0, 91, 92,
+		0, 88, 86, 1, 0, 0, 0, 89, 90, 5, 14, 0, 0, 90, 9, 1, 0, 0, 0, 91, 92,
 		1, 0, 0, 0, 92, 11, 1, 0, 0, 0, 93, 94, 5, 2, 0, 0, 94, 13, 1, 0, 0, 0,
 		95, 96, 5, 3, 0, 0, 96, 15, 1, 0, 0, 0, 97, 98, 7, 0, 0, 0, 98, 17, 1,
 		0, 0, 0, 99, 100, 7, 1, 0, 0, 100, 19, 1, 0, 0, 0, 8, 24, 34, 45, 54,
@@ -1515,6 +1518,9 @@ export class Bin_opContext extends ParserRuleContext {
 	) {
 		super(parent, invokingState)
 		this.parser = parser
+	}
+	public BANG(): TerminalNode {
+		return this.getToken(SearchGrammarParser.BANG, 0)
 	}
 	public EQ(): TerminalNode {
 		return this.getToken(SearchGrammarParser.EQ, 0)

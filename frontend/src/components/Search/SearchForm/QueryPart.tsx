@@ -17,14 +17,17 @@ export const QueryPart: React.FC<{
 	cursorIndex: number
 	index: number
 	tokenGroup: TokenGroup
+	showValues: boolean
 	onRemoveItem: (index: number) => void
-}> = ({ cursorIndex, index, tokenGroup, onRemoveItem }) => {
+}> = ({ cursorIndex, index, tokenGroup, showValues, onRemoveItem }) => {
 	const active =
 		cursorIndex >= tokenGroup.start && cursorIndex <= tokenGroup.stop + 1
 	const errorToken = tokenGroup.tokens.find(
 		(token) => (token as any).errorMessage !== undefined,
 	)
-	const error = errorMessageForToken(errorToken)
+	const error = errorToken
+		? errorMessageForToken(errorToken, showValues)
+		: undefined
 
 	if (
 		tokenGroup.tokens.length === 1 &&
@@ -40,7 +43,13 @@ export const QueryPart: React.FC<{
 					const { text } = token
 					const key = `${text}-${index}`
 
-					return <Token key={key} text={text} />
+					return (
+						<Token
+							key={key}
+							text={text}
+							cssClass={styles.whitspaceTag}
+						/>
+					)
 				})}
 			</>
 		)
@@ -101,14 +110,23 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 
 export const Token = ({
 	text,
+	cssClass,
 }: {
 	text: string
-	error?: string
+	cssClass?: string
 }): JSX.Element => {
 	if (SEPARATORS.includes(text)) {
-		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
+		return (
+			<Box style={{ color: '#E93D82', zIndex: 1 }} cssClass={cssClass}>
+				{text}
+			</Box>
+		)
 	} else {
-		return <Box style={{ zIndex: 1 }}>{text}</Box>
+		return (
+			<Box style={{ zIndex: 1 }} cssClass={cssClass}>
+				{text}
+			</Box>
+		)
 	}
 }
 
@@ -121,7 +139,8 @@ const ErrorRenderer: React.FC<{ error: string }> = ({ error }) => {
 }
 
 const errorMessageForToken = (
-	token?: SearchToken & { errorMessage?: string },
+	token: SearchToken & { errorMessage?: string },
+	showValues: boolean,
 ): string | undefined => {
 	if (!token || token.type === SearchGrammarParser.EOF) {
 		return undefined
@@ -140,12 +159,16 @@ const errorMessageForToken = (
 	) {
 		error = 'Missing closing quote'
 	} else if (
-		error.startsWith('extraneous input') &&
+		(error.startsWith('mismatched input') ||
+			error.startsWith('extraneous input')) &&
 		error.endsWith('expecting <EOF>')
 	) {
-		// TODO: This is also caught when entering something like `span_name!`. We
-		// don't want to show the error until they are entering a search value.
-		error = 'Must wrap search value in quotes to use special characters.'
+		if (showValues) {
+			error =
+				'Must wrap search value in quotes to use special characters.'
+		} else {
+			return ''
+		}
 	} else if (error.startsWith("mismatched input '<EOF>' expecting")) {
 		// Swallow this error. It's becuase they have entered an operator and
 		// there's no value yet.

@@ -1,4 +1,10 @@
-import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4'
+import {
+	ErrorListener,
+	ParserRuleContext,
+	RecognitionException,
+	Recognizer,
+	Token,
+} from 'antlr4'
 
 import SearchGrammarListener from '@/components/Search/Parser/antlr/SearchGrammarListener'
 import {
@@ -83,6 +89,10 @@ export class SearchListener extends SearchGrammarListener {
 		this.currentExpression.value = this.currentExpression.text
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
+	}
+
+	enterEveryRule(ctx: ParserRuleContext): void {
+		console.log('::: enterEveryRule', ctx.getText(), ctx)
 	}
 }
 

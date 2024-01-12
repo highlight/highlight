@@ -72,6 +72,8 @@ type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
 
 const MAX_ITEMS = 10
 
+export const SEARCH_OPERATORS = ['=', '!=', '>', '>=', '<', '<=']
+
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
@@ -252,7 +254,8 @@ export const Search: React.FC<{
 	// because we are reserving it for the body implicitly
 	const showValues =
 		activePart.key !== BODY_KEY &&
-		!!keysData?.keys?.find((k) => k.name === activePart.key)
+		!!keysData?.keys?.find((k) => k.name === activePart.key) &&
+		activePart.text.includes(activePart.operator)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showPartSelect = !!activePart.value?.length
 
@@ -281,6 +284,7 @@ export const Search: React.FC<{
 			return
 		}
 
+		debugger
 		getKeys({
 			variables: {
 				project_id: project_id!,
@@ -335,6 +339,7 @@ export const Search: React.FC<{
 	}, [query])
 
 	const handleItemSelect = (key: Keys[0] | string) => {
+		debugger
 		const isValueSelect = typeof key === 'string'
 		const value = isValueSelect ? key : key.name
 		const isLastPart =
@@ -436,6 +441,7 @@ export const Search: React.FC<{
 									cursorIndex={cursorIndex}
 									index={index}
 									tokenGroup={tokenGroup}
+									showValues={showValues}
 									onRemoveItem={handleRemoveItem}
 								/>
 							</Fragment>
