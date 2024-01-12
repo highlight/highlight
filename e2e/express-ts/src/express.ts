@@ -24,6 +24,11 @@ app.get('/', (req, res) => {
 		})
 		console.info('Sending error to highlight')
 		H.consumeError(err)
+		H.consumeError(
+			new Error('this is another test error', {
+				cause: 'bad code',
+			}),
+		)
 
 		res.send('Hello World!')
 	})

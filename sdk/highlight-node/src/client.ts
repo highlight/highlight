@@ -342,7 +342,7 @@ export class Highlight {
 				Object.entries(error.cause)
 					.map(([k, v]) => [`exception.cause.${k}`, v])
 					.reduce((acc, [k, v]) => {
-						acc[k] = v
+						acc[k] = JSON.stringify(v)
 						return acc
 					}, {} as Attributes),
 			)
