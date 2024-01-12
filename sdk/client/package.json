@@ -31,15 +31,16 @@
 	},
 	"homepage": "https://github.com/highlight-run/highlight#readme",
 	"devDependencies": {
-		"@graphql-codegen/cli": "^2.11.2",
-		"@graphql-codegen/typescript": "^2.8.1",
-		"@graphql-codegen/typescript-graphql-request": "^4.5.2",
-		"@graphql-codegen/typescript-operations": "^2.5.2",
+		"@graphql-codegen/cli": "^5.0.0",
+		"@graphql-codegen/typescript": "^4.0.1",
+		"@graphql-codegen/typescript-graphql-request": "^6.0.1",
+		"@graphql-codegen/typescript-operations": "^4.0.1",
 		"@highlight-run/rrweb-types": "workspace:*",
 		"@size-limit/file": "^8.1.0",
 		"@types/json-stringify-safe": "^5.0.0",
 		"@types/node": "^16.3.1",
 		"onchange": "^7.1.0",
+		"prettier": "^3.1.0",
 		"size-limit": "^8.1.0",
 		"typescript": "^5.0.4",
 		"vite": "^4.3.9",
@@ -48,12 +49,13 @@
 	"dependencies": {
 		"@highlight-run/rrweb": "workspace:*",
 		"error-stack-parser": "2.0.6",
-		"graphql": "^16.5.0",
-		"graphql-request": "^4.3.0",
+		"fflate": "^0.8.1",
+		"graphql": "^16.8.1",
+		"graphql-request": "^6.1.0",
 		"graphql-tag": "^2.12.6",
 		"json-stringify-safe": "^5.0.1",
 		"stacktrace-js": "2.0.2",
-		"web-vitals": "^3.3.1"
+		"web-vitals": "^3.5.0"
 	},
 	"size-limit": [
 		{

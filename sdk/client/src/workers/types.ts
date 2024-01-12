@@ -44,6 +44,7 @@ export type AsyncEventsResponse = {
 	type: MessageType.AsyncEvents
 	id: number
 	eventsSize: number
+	compressedSize: number
 }
 
 export type IdentifyMessage = {
