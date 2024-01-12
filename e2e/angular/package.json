@@ -8,7 +8,6 @@
 		"start": "ng serve",
 		"build": "ng build",
 		"watch": "ng build --watch --configuration development",
-		"test": "ng test",
 		"e2e": "ng e2e"
 	},
 	"private": true,
