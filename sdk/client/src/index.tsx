@@ -247,6 +247,9 @@ export class Highlight {
 				this.logger.log(
 					`Web worker sent payloadID ${e.data.response.id} size ${
 						e.data.response.eventsSize
+					} bytes, compression ratio ${
+						e.data.response.eventsSize /
+						e.data.response.compressedSize
 					}.
                 Total since snapshot: ${(
 					this._eventBytesSinceSnapshot / 1000000

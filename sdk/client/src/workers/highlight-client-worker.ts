@@ -169,10 +169,7 @@ function stringifyProperties(
 		}
 
 		const buf = strToU8(JSON.stringify(payload))
-		const compressed = compressSync(buf, {
-			level: 9,
-			mem: 12,
-		})
+		const compressed = compressSync(buf)
 		const compressedBase64 = await bufferToBase64(compressed)
 
 		const pushPayload = graphqlSDK.PushPayloadCompressed({
@@ -195,6 +192,7 @@ function stringifyProperties(
 				type: MessageType.AsyncEvents,
 				id,
 				eventsSize: buf.length,
+				compressedSize: compressedBase64.length,
 			},
 		})
 	}
