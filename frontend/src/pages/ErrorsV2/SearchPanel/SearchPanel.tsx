@@ -41,7 +41,7 @@ const SearchPanel = () => {
 	const {
 		searchQuery,
 		endDate,
-		datePickerValue,
+		selectedPreset,
 		page,
 		setPage,
 		setSearchResultsLoading,
@@ -102,7 +102,7 @@ const SearchPanel = () => {
 			(result) => result?.data?.error_groups_clickhouse.totalCount,
 			[],
 		),
-		skip: !datePickerValue.selectedPreset,
+		skip: !selectedPreset,
 	})
 
 	useEffect(() => {

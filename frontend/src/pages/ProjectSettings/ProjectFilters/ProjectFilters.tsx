@@ -37,7 +37,6 @@ import {
 	IconSolidCheveronRight,
 	IconSolidPencil,
 	presetStartDate,
-	presetValue,
 	Stack,
 	Tag,
 	Text,
@@ -480,7 +479,6 @@ export const ProjectProductFilters: React.FC<{
 									minDate={moment()
 										.subtract(30, 'days')
 										.toDate()}
-									datePickerValue={{}}
 									timeMode="fixed-range"
 									fetchKeysLazyQuery={
 										product === ProductType.Logs
@@ -577,21 +575,15 @@ export const ProjectProductFilters: React.FC<{
 					</Text>
 					<DateRangePicker
 						selectedValue={{
+							startDate: dateRange.start,
+							endDate: dateRange.end,
 							selectedPreset: selectedPreset,
 						}}
-						onDatesChange={(_s, _e, preset) => {
-							const foundPreset =
-								DATE_RANGE_PRESETS.find(
-									(p) =>
-										presetValue(preset!) === presetValue(p),
-								) || DEFAULT_PRESET
-
-							setSelectedPreset(foundPreset)
-							const presetStart = presetStartDate(foundPreset)
-							const presetEnd = moment().toDate()
+						onDatesChange={(start, end, preset) => {
+							setSelectedPreset(preset!)
 							setDateRange({
-								start: presetStart,
-								end: presetEnd,
+								start: start,
+								end: end,
 							})
 						}}
 						presets={DATE_RANGE_PRESETS}

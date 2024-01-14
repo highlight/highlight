@@ -1,5 +1,5 @@
 import { DateHistogramBucketSize } from '@graph/schemas'
-import { DateRangePreset, DateRangeValue } from '@highlight-run/ui/components'
+import { DateRangePreset } from '@highlight-run/ui/components'
 import { identity, omitBy, pickBy } from 'lodash'
 
 export type Segment = { name: string; id: string } | undefined
@@ -31,10 +31,10 @@ export type BaseSearchContext = {
 	>
 	startDate: Date
 	endDate: Date
-	datePickerValue: DateRangeValue
+	selectedPreset?: DateRangePreset
 	updateSearchTime: (
-		startDate?: Date,
-		endDate?: Date,
+		startDate: Date,
+		endDate: Date,
 		preset?: DateRangePreset,
 	) => void
 }

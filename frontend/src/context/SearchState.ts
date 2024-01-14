@@ -33,7 +33,6 @@ enum SearchActionType {
 	setPage,
 	setSearchResultsLoading,
 	setSearchResultsCount,
-	updateSearchTime,
 }
 
 type SearchAction =
@@ -48,8 +47,6 @@ interface setSearchQuery {
 	searchQuery: React.SetStateAction<SearchState['searchQuery']>
 	admin: Admin | undefined
 	customFields: CustomField[]
-	startDate: Date
-	endDate: Date
 }
 
 interface setSelectedSegment {
@@ -58,8 +55,6 @@ interface setSelectedSegment {
 	query: string
 	admin: Admin | undefined
 	customFields: CustomField[]
-	startDate: Date
-	endDate: Date
 }
 
 type setPage = {
@@ -99,23 +94,25 @@ export const SearchReducer = (
 	const s = { ...state }
 	switch (action.type) {
 		case SearchActionType.setSearchQuery:
-			s.searchQuery = addDates(
+			s.searchQuery = tryAddDefaultDate(
 				evaluateAction(action.searchQuery, s.searchQuery),
-				action.startDate,
-				action.endDate,
+				s.startDate,
+				s.endDate,
 			)
+			const { start_date, end_date } = JSON.parse(s.searchQuery).dateRange
+			s.startDate = moment(start_date).toDate()
+			s.endDate = moment(end_date).toDate()
+
 			s.histogramBucketSize = determineHistogramBucketSize(
-				action.startDate,
-				action.endDate,
+				start_date,
+				end_date,
 			)
-			s.startDate = action.startDate
-			s.endDate = action.endDate
 			break
 		case SearchActionType.setSelectedSegment:
-			const query = addDates(
+			const query = tryPreserveDateFromExistingOrAddDefault(
 				action.query,
-				action.startDate,
-				action.endDate,
+				s.startDate,
+				s.endDate,
 			)
 			s.selectedSegment = evaluateAction(
 				action.selectedSegment,
@@ -124,11 +121,9 @@ export const SearchReducer = (
 			s.searchQuery = query
 			s.existingQuery = query
 			s.histogramBucketSize = determineHistogramBucketSize(
-				action.startDate,
-				action.endDate,
+				s.startDate,
+				s.endDate,
 			)
-			s.startDate = action.startDate
-			s.endDate = action.endDate
 			break
 		case SearchActionType.setPage:
 			s.page = evaluateAction(action.page, s.page)
@@ -154,9 +149,39 @@ const SearchInitialState = {
 	searchResultsCount: undefined,
 }
 
-const addDates = (searchQuery: string, startDate: Date, endDate: Date) => {
-	const { isAnd, rules }: { isAnd: boolean; rules: any } =
-		JSON.parse(searchQuery)
+const tryAddDefaultDate = (
+	searchQuery: string,
+	startDate: Date,
+	endDate: Date,
+) => {
+	const { isAnd, rules, dateRange } = JSON.parse(searchQuery)
+
+	const newStartDate = dateRange?.start_date
+		? moment(dateRange.start_date).toDate()
+		: startDate
+	const newEndDate = dateRange?.end_date
+		? moment(dateRange.end_date).toDate()
+		: endDate
+
+	return JSON.stringify({
+		isAnd,
+		rules,
+		dateRange: {
+			start_date: newStartDate,
+			end_date: newEndDate,
+		},
+	})
+}
+
+// If the user is searching withing a time range, we want to preserve that time
+// range when applying a segment.
+const tryPreserveDateFromExistingOrAddDefault = (
+	searchQuery: string,
+	startDate: Date,
+	endDate: Date,
+) => {
+	const { isAnd, rules } = JSON.parse(searchQuery)
+
 	return JSON.stringify({
 		isAnd,
 		rules,
@@ -194,11 +219,15 @@ export const useGetInitialSearchState = (
 	const pathSnippet = location.pathname.split('/')[2]
 	const isCurrentPage = page === pathSnippet
 
-	const startingQuery = addDates(
+	const startingQuery = tryAddDefaultDate(
 		(isCurrentPage && queryParams.query) || defaultSearchQuery,
 		startDate,
 		endDate,
 	)
+
+	const { dateRange } = JSON.parse(startingQuery)
+	const searchStartDate = moment(dateRange.start_date).toDate()
+	const searchEndDate = moment(dateRange.end_date).toDate()
 
 	return {
 		...SearchInitialState,
@@ -207,8 +236,8 @@ export const useGetInitialSearchState = (
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 		selectedSegment,
 		page: (isCurrentPage && queryParams.page) || START_PAGE,
-		startDate,
-		endDate,
+		startDate: searchStartDate,
+		endDate: searchEndDate,
 	}
 }
 
@@ -220,7 +249,7 @@ export const useGetBaseSearchContext = (
 ): BaseSearchContext => {
 	const { admin } = useAuthContext()
 
-	const { startDate, endDate, updateSearchTime, datePickerValue } =
+	const { startDate, endDate, updateSearchTime, selectedPreset } =
 		useSearchTime({
 			initialPreset: DEFAULT_TIME_PRESETS[5],
 			presets: DEFAULT_TIME_PRESETS,
@@ -276,11 +305,9 @@ export const useGetBaseSearchContext = (
 				searchQuery,
 				admin,
 				customFields,
-				startDate,
-				endDate,
 			})
 		},
-		[admin, customFields, startDate, endDate],
+		[admin, customFields],
 	)
 
 	const setSelectedSegment = useCallback(
@@ -291,12 +318,10 @@ export const useGetBaseSearchContext = (
 				query,
 				admin,
 				customFields,
-				startDate,
-				endDate,
 			})
 			localStorage.setItem(segmentKey, JSON.stringify(selectedSegment))
 		},
-		[admin, customFields, segmentKey, startDate, endDate],
+		[admin, customFields, segmentKey],
 	)
 
 	const removeSelectedSegment = useCallback(() => {
@@ -330,21 +355,9 @@ export const useGetBaseSearchContext = (
 		[],
 	)
 
-	useEffect(() => {
-		dispatch({
-			type: SearchActionType.setSearchQuery,
-			searchQuery: state.searchQuery,
-			admin,
-			customFields,
-			startDate,
-			endDate,
-		})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [startDate, endDate])
-
 	return {
 		...state,
-		datePickerValue,
+		selectedPreset,
 		setSearchQuery,
 		setSelectedSegment,
 		removeSelectedSegment,

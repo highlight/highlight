@@ -57,7 +57,7 @@ export const TracesPage: React.FC = () => {
 	const {
 		startDate,
 		endDate,
-		datePickerValue,
+		selectedPreset,
 		updateSearchTime,
 		rebaseSearchTime,
 	} = useSearchTime({
@@ -82,7 +82,7 @@ export const TracesPage: React.FC = () => {
 		traceCursor,
 		startDate,
 		endDate,
-		skipPolling: !datePickerValue.selectedPreset,
+		skipPolling: !selectedPreset,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =
@@ -198,7 +198,7 @@ export const TracesPage: React.FC = () => {
 						endDate={endDate}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={minDate}
-						datePickerValue={datePickerValue}
+						selectedPreset={selectedPreset}
 						timeMode={timeMode}
 						hideCreateAlert
 						onFormSubmit={setQuery}

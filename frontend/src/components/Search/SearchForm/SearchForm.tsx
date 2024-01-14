@@ -6,7 +6,6 @@ import {
 	Combobox,
 	DateRangePicker,
 	DateRangePreset,
-	DateRangeValue,
 	DEFAULT_TIME_PRESETS,
 	IconSolidExternalLink,
 	IconSolidPlus,
@@ -77,10 +76,10 @@ export type SearchFormProps = {
 	initialQuery: string
 	startDate: Date
 	endDate: Date
-	datePickerValue: DateRangeValue
+	selectedPreset?: DateRangePreset
 	onDatesChange: (
-		startDate?: Date,
-		endDate?: Date,
+		startDate: Date,
+		endDate: Date,
 		preset?: DateRangePreset,
 	) => void
 	presets: DateRangePreset[]
@@ -103,7 +102,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
 	startDate,
 	endDate,
-	datePickerValue,
+	selectedPreset,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	onDatesChange,
@@ -160,7 +159,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					{!hideDatePicker && (
 						<DateRangePicker
 							emphasis="low"
-							selectedValue={datePickerValue}
+							selectedValue={{
+								startDate,
+								endDate,
+								selectedPreset,
+							}}
 							onDatesChange={onDatesChange}
 							presets={presets}
 							minDate={minDate}

@@ -99,7 +99,6 @@ export const TraceLogs: React.FC = () => {
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={() => null}
-						datePickerValue={{}}
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
