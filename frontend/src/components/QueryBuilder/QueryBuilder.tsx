@@ -1327,11 +1327,16 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const [isAnd, toggleIsAnd] = useToggle(serializedIsAnd)
 	const [rules, setRules] = useState<RuleProps[]>(startingRules)
 
-	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			initialPreset: DEFAULT_TIME_PRESETS[5],
-			presets: DEFAULT_TIME_PRESETS,
-		})
+	const {
+		startDate,
+		endDate,
+		selectedPreset,
+		updateSearchTime,
+		resetSearchTime,
+	} = useSearchTime({
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+		presets: DEFAULT_TIME_PRESETS,
+	})
 
 	const setRulesImpl = useCallback(
 		(newRules: RuleProps[], isAnd: boolean, start: Date, end: Date) => {
@@ -1565,8 +1570,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// this matches the current prod behavior.
 	useEffect(() => {
 		return () => {
-			if (selectedSegment && !readonly && setDefault !== false) {
-				removeSelectedSegment()
+			if (!readonly && setDefault !== false) {
+				resetSearchTime()
+				if (selectedSegment) {
+					removeSelectedSegment()
+				}
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
