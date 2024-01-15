@@ -7,24 +7,24 @@ import {
 	IconProps,
 	IconSolidArrowSmRight,
 	IconSolidCheveronRight,
-	IconSolidCog,
 	IconSolidExclamation,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
-	IconSolidSparkles,
+	IconSolidTraces,
 	Stack,
 	Tag,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import { getPlanChangeEmail } from '@util/billing/billing'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
-import { useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { LoadingRightPanel } from '@/components/Loading/Loading'
@@ -42,6 +42,8 @@ import {
 	getCostCents,
 	getNextBillingDate,
 	getQuantity,
+	PlanSelectStep,
+	UpdatePlanModal,
 } from '@/pages/Billing/UpdatePlanPage'
 import {
 	RETENTION_PERIOD_LABELS,
@@ -64,6 +66,7 @@ type UsageCardProps = {
 	isPaying: boolean
 	enableBillingLimits: boolean | undefined
 	billingIssues: boolean
+	setStep: (step: PlanSelectStep) => void
 }
 
 const UsageCard = ({
@@ -77,13 +80,8 @@ const UsageCard = ({
 	isPaying,
 	enableBillingLimits,
 	billingIssues,
+	setStep,
 }: UsageCardProps) => {
-	const { workspace_id } = useParams<{
-		workspace_id: string
-	}>()
-
-	const navigate = useNavigate()
-
 	const costCents = isPaying
 		? getCostCents(
 				productType,
@@ -138,6 +136,15 @@ const UsageCard = ({
 					<Text color="n12">{costFormatted}</Text>
 				</Box>
 				<Box display="flex" gap="4">
+					{!enableBillingLimits ? (
+						<Badge
+							size="medium"
+							shape="basic"
+							kind="primary"
+							variant="gray"
+							label={`${usageAmount.toLocaleString()} ${productType.toLocaleLowerCase()}`}
+						></Badge>
+					) : null}
 					<Badge
 						size="medium"
 						shape="basic"
@@ -174,65 +181,67 @@ const UsageCard = ({
 							}
 						></Badge>
 					) : null}
-					<Tag
-						iconRight={<IconSolidCheveronRight />}
-						kind="secondary"
-						emphasis="low"
-						shape="basic"
-						onClick={() => {
-							navigate(
-								`/w/${workspace_id}/current-plan/update-plan`,
-							)
-						}}
-					>
-						Update
-					</Tag>
+					{billingLimitCents === 0 ? (
+						<Tag
+							iconRight={<IconSolidCheveronRight />}
+							kind="secondary"
+							emphasis="low"
+							shape="basic"
+							onClick={() => {
+								setStep('Configure plan')
+							}}
+						>
+							Turn on {productType.toLocaleLowerCase()}
+						</Tag>
+					) : null}
 				</Box>
 			</Box>
-			<Box display="flex" flexDirection="column" gap="4">
-				<Box
-					color={isOverage ? 'caution' : undefined}
-					alignItems="center"
-					display="flex"
-					gap="4"
-					cssClass={style.progressAmount}
-				>
-					{billingIssues ? (
-						<>
-							<Text size="xSmall" color="moderate">
-								{formatNumberWithDelimiters(usageAmount)} on
-								hold
-							</Text>
-							<IconSolidExclamation
-								color={vars.theme.static.content.moderate}
-							/>
-						</>
-					) : (
-						<Text size="xSmall" color="moderate">
-							{formatNumberWithDelimiters(usageAmount)} /{' '}
-							{formatNumberWithDelimiters(usageLimitAmount) ??
-								'Unlimited'}
-						</Text>
-					)}
-					{isOverage && (
-						<Tooltip trigger={<IconSolidExclamation />}>
-							{productType} have exceeded your billing limit and
-							are not being recorded.
-						</Tooltip>
-					)}
-				</Box>
-				<Box cssClass={style.progressBarBackground}>
+			{enableBillingLimits ? (
+				<Box display="flex" flexDirection="column" gap="4">
 					<Box
-						cssClass={
-							isOverage
-								? style.progressBarOverage
-								: style.progressBar
-						}
-						height="full"
-						style={{ width: `${(usageRatio ?? 0) * 100}%` }}
-					/>
+						color={isOverage ? 'caution' : undefined}
+						alignItems="center"
+						display="flex"
+						gap="4"
+						cssClass={style.progressAmount}
+					>
+						{billingIssues ? (
+							<>
+								<Text size="xSmall" color="moderate">
+									{formatNumberWithDelimiters(usageAmount)} on
+									hold
+								</Text>
+								<IconSolidExclamation
+									color={vars.theme.static.content.moderate}
+								/>
+							</>
+						) : (
+							<Text size="xSmall" color="moderate">
+								{formatNumberWithDelimiters(usageAmount)} /{' '}
+								{formatNumberWithDelimiters(usageLimitAmount) ??
+									'Unlimited'}
+							</Text>
+						)}
+						{isOverage && (
+							<Tooltip trigger={<IconSolidExclamation />}>
+								{productType} have exceeded your billing limit
+								and are not being recorded.
+							</Tooltip>
+						)}
+					</Box>
+					<Box cssClass={style.progressBarBackground}>
+						<Box
+							cssClass={
+								isOverage
+									? style.progressBarOverage
+									: style.progressBar
+							}
+							height="full"
+							style={{ width: `${(usageRatio ?? 0) * 100}%` }}
+						/>
+					</Box>
 				</Box>
-			</Box>
+			) : null}
 		</Box>
 	)
 }
@@ -244,8 +253,8 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		workspace_id: string
 	}>()
 
-	const navigate = useNavigate()
 	const location = useLocation()
+	const [step, setStep] = React.useState<PlanSelectStep | null>(null)
 
 	const { data, loading, refetch } = useGetBillingDetailsQuery({
 		variables: {
@@ -255,17 +264,16 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const billingIssue = data?.subscription_details.billingIssue ?? false
 
-	const [openCustomerPortalUrl, { loading: loadingCustomerPortal }] =
-		useGetCustomerPortalUrlLazyQuery({
-			variables: {
-				workspace_id: workspace_id!,
-			},
-			onCompleted: (data) => {
-				if (data?.customer_portal_url) {
-					window.open(data?.customer_portal_url, '_self')
-				}
-			},
-		})
+	const [openCustomerPortalUrl] = useGetCustomerPortalUrlLazyQuery({
+		variables: {
+			workspace_id: workspace_id!,
+		},
+		onCompleted: (data) => {
+			if (data?.customer_portal_url) {
+				window.open(data?.customer_portal_url, '_self')
+			}
+		},
+	})
 
 	const [updateBillingDetails] = useUpdateBillingDetailsMutation({
 		variables: { workspace_id: workspace_id! },
@@ -384,7 +392,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		? data?.workspace?.logs_max_cents ?? undefined
 		: 0
 
-	const tracesLimit = isPaying ? undefined : 0
+	const tracesLimit = isPaying
+		? data?.workspace?.traces_max_cents ?? undefined
+		: 0
 
 	const hasExtras = baseAmount !== 0 || discountCents !== 0
 	const baseAmountFormatted =
@@ -406,15 +416,19 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	return (
 		<Box width="full" display="flex" justifyContent="center">
+			<UpdatePlanModal step={step} setStep={setStep} />
 			<Stack height="full" px="8" cssClass={style.pageWrapper} gap="0">
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
-					<Box>
-						<Text size="small" weight="medium">
-							Prices are usage based and flexible with your needs.
-							Need a custom quote or want to commit to a minimum
-							spend (at a discount)?{' '}
-							<a href="mailto:sales@highlight.run">
+					<Box display="inline-flex">
+						<Text size="small" color="weak">
+							Prices are flexible around your needs. Custom quote?{' '}
+							<a
+								href={getPlanChangeEmail({
+									workspaceID: workspace_id,
+									planType: PlanType.Enterprise,
+								})}
+							>
 								<Box display="inline-flex" alignItems="center">
 									Reach out to sales <IconSolidArrowSmRight />
 								</Box>
@@ -452,41 +466,55 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						</Callout>
 					) : null}
 				</Stack>
-				<Box display="flex" justifyContent="space-between" mt="24">
-					<Box display="flex" alignItems="center">
-						<Text size="large" weight="bold" color="n12">
-							Current plan's details
+				<Stack mt="24" gap="8">
+					<Text size="small" weight="bold" color="strong">
+						Current plan's details
+					</Text>
+					<Box
+						display="flex"
+						alignItems="center"
+						alignSelf="stretch"
+						justifyContent="space-between"
+						background="elevated"
+						borderRadius="6"
+						py="8"
+						px="12"
+					>
+						<Text size="small" color="strong">
+							{isPaying
+								? data?.billingDetails.plan.type ===
+								  PlanType.Graduated
+									? 'Pay as you go'
+									: data?.billingDetails.plan.type ===
+									  PlanType.UsageBased
+									? 'Usage based'
+									: data?.billingDetails.plan.type
+								: 'Free'}
 						</Text>
+						<Box display="flex" gap="6">
+							{isPaying ? (
+								<Button
+									trackingId="BillingPage EditCurrentPlan"
+									size="small"
+									emphasis="low"
+									kind="secondary"
+									onClick={() => setStep('Configure plan')}
+								>
+									Edit current plan
+								</Button>
+							) : null}
+							<Button
+								trackingId="BillingPage UpgradePlan"
+								size="small"
+								emphasis="high"
+								kind="primary"
+								onClick={() => setStep('Select plan')}
+							>
+								Select a plan
+							</Button>
+						</Box>
 					</Box>
-					<Box display="flex" gap="6" color="n11">
-						<Button
-							trackingId="BillingPaymentSettings"
-							size="small"
-							emphasis="low"
-							kind="secondary"
-							disabled={loadingCustomerPortal}
-							onClick={async () => {
-								await openCustomerPortalUrl()
-							}}
-							iconLeft={<IconSolidCog color="n11" />}
-						>
-							Payment Settings
-						</Button>
-						<Button
-							trackingId="BillingUpdatePlanDetails"
-							size="small"
-							emphasis="high"
-							kind="primary"
-							onClick={() => {
-								navigate(
-									`/w/${workspace_id}/current-plan/update-plan`,
-								)
-							}}
-						>
-							{isPaying ? 'Update Plan Details' : 'Upgrade plan'}
-						</Button>
-					</Box>
-				</Box>
+				</Stack>
 				<Box
 					display="flex"
 					flexDirection="column"
@@ -510,6 +538,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							data?.billingDetails.plan.enableBillingLimits
 						}
 						billingIssues={billingIssue}
+						setStep={setStep}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -526,6 +555,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							data?.billingDetails.plan.enableBillingLimits
 						}
 						billingIssues={billingIssue}
+						setStep={setStep}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -542,10 +572,11 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							data?.billingDetails.plan.enableBillingLimits
 						}
 						billingIssues={billingIssue}
+						setStep={setStep}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
-						productIcon={<IconSolidSparkles />}
+						productIcon={<IconSolidTraces />}
 						productType={ProductType.Traces}
 						rate={tracesRate}
 						retentionPeriod={tracesRetention}
@@ -558,6 +589,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							data?.billingDetails.plan.enableBillingLimits
 						}
 						billingIssues={billingIssue}
+						setStep={setStep}
 					/>
 				</Box>
 				<Stack
@@ -611,7 +643,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 											</Text>
 										</Box>
 									</Box>
-									<Box border="divider" />
+									<Box borderBottom="divider" />
 								</>
 							) : null}
 							<Box

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.6.11"
+version = "0.6.12"
 description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
@@ -33,6 +33,12 @@ fastapi = { version = ">=0", optional = true }
 uvicorn = {version = ">=0", extras = ["standard"], optional = true }
 celery = { version = ">=5", optional = true }
 opentelemetry-instrumentation-celery = { version = "0.43b0", optional = true }
+redis = { version = ">=5", optional = true }
+opentelemetry-instrumentation-redis = { version = "0.43b0", optional = true }
+boto = { version = ">=2", optional = true }
+opentelemetry-instrumentation-boto = { version = "0.43b0", optional = true }
+boto3 = { version = ">=1", optional = true }
+opentelemetry-instrumentation-boto3sqs = { version = "0.43b0", optional = true }
 opentelemetry-api = "1.22.0"
 opentelemetry-distro = { extras = ["otlp"], version = "0.43b0" }
 opentelemetry-exporter-otlp-proto-http = "1.22.0"
@@ -52,13 +58,15 @@ pytest-cov = ">=4"
 pytest-asyncio = ">=0"
 loguru = ">=0"
 stripe = ">=6"
-redis = "^5.0.1"
 
 [tool.poetry.extras]
+Boto = ["boto", "opentelemetry-instrumentation-boto"]
+Boto3SQS = ["boto3", "opentelemetry-instrumentation-boto3sqs"]
 Celery = ["celery", "opentelemetry-instrumentation-celery"]
 Django = ["django"]
 FastAPI = ["fastapi", "uvicorn"]
 Flask = ["blinker", "flask"]
+Redis = ["redis", "opentelemetry-instrumentation-redis"]
 
 [build-system]
 requires = ["poetry-core"]

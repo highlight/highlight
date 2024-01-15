@@ -27,7 +27,7 @@
 		"@vercel/speed-insights": "^1.0.0",
 		"antd": "^4.24.7",
 		"classnames": "^2.3.1",
-		"dexie": "^3.2.2",
+		"dexie": "^3.2.4",
 		"docs-content": "workspace:*",
 		"embla-carousel-react": "^7.0.5",
 		"framer-motion": "^8.5.2",

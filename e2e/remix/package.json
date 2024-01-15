@@ -12,7 +12,7 @@
 		"@highlight-run/remix": "workspace:*",
 		"@remix-run/css-bundle": "^1.18.1",
 		"@remix-run/node": "^1.18.1",
-		"@remix-run/react": "^2.4.0",
+		"@remix-run/react": "^2.4.1",
 		"@remix-run/serve": "^1.18.1",
 		"isbot": "^3.6.8",
 		"react": "^18.2.0",

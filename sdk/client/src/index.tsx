@@ -247,6 +247,9 @@ export class Highlight {
 				this.logger.log(
 					`Web worker sent payloadID ${e.data.response.id} size ${
 						e.data.response.eventsSize
+					} bytes, compression ratio ${
+						e.data.response.eventsSize /
+						e.data.response.compressedSize
 					}.
                 Total since snapshot: ${(
 					this._eventBytesSinceSnapshot / 1000000
@@ -368,7 +371,7 @@ export class Highlight {
 				canvas: 2,
 			}),
 		}
-		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
+		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.io'
 
 		// If _backendUrl is a relative URL, convert it to an absolute URL
 		// so that it's usable from a web worker.
