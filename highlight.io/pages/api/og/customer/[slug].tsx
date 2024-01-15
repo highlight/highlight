@@ -7,8 +7,8 @@ export const config = {
 	runtime: 'edge',
 }
 
-//Example query: https://highlight.io/api/og/blog/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
-//This query is sent from each blog slug to generate the og image
+//Example query: https://highlight.io/api/og/customer/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
+//This query is sent from each customer slug to generate the og image
 const handler = async function (req: NextRequest) {
 	const query = req.nextUrl.href
 	const fontData = await font
@@ -20,7 +20,7 @@ const handler = async function (req: NextRequest) {
 		}, ''),
 	)
 
-	const slug = new URLPattern({ pathname: '/api/og/blog/:slug' }).exec(
+	const slug = new URLPattern({ pathname: '/api/og/customer/:slug' }).exec(
 		req.url,
 	)?.pathname.groups.slug
 
@@ -29,12 +29,6 @@ const handler = async function (req: NextRequest) {
 	const firstName = url.searchParams.get('fname')
 	const lastName = url.searchParams.get('lname')
 	const role = url.searchParams.get('role')
-	console.log('highlight og image for blog', {
-		title,
-		firstName,
-		lastName,
-		role,
-	})
 
 	return new ImageResponse(
 		(
@@ -99,12 +93,12 @@ const handler = async function (req: NextRequest) {
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								width: '175px',
-								maxWidth: '175px',
+								width: '200px',
+								maxWidth: '200px',
 								color: '#ebff5e',
 							}}
 						>
-							Highlight Blog
+							Highlight Customer
 						</span>
 						<span
 							style={{

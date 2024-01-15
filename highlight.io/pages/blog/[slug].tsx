@@ -164,9 +164,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			params.set('lname', suggestedPost.author?.lastName || '')
 			params.set('role', suggestedPost.author?.title || '')
 
-			const metaImageURL = `https://${'www.highlight.io'}/api/og/blog/${
-				suggestedPost.slug
-			}?${params.toString()}`
+			const metaImageURL = `https://${
+				process.env.NEXT_PUBLIC_VERCEL_URL || 'www.highlight.io'
+			}/api/og/blog/${suggestedPost.slug}?${params.toString()}`
 
 			suggestedPost.image.url = metaImageURL
 		}
@@ -239,6 +239,9 @@ const PostPage = ({
 	const metaImageURL = `https://${
 		process.env.NEXT_PUBLIC_VERCEL_URL
 	}/api/og/blog/${post.slug}?${params.toString()}`
+
+	console.log(post)
+	console.log(metaImageURL)
 
 	return (
 		<>

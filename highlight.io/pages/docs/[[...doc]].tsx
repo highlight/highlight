@@ -321,10 +321,10 @@ interface TocEntry {
 }
 
 export const getStaticProps: GetStaticProps<DocData> = async (context) => {
-	logger.info(
-		{ params: context?.params },
-		`docs getStaticProps ${context?.params?.doc}`,
-	)
+	// logger.info(
+	// 	{ params: context?.params },
+	// 	`docs getStaticProps ${context?.params?.doc}`,
+	// )
 	const docPaths = sortBySlashLength(await getDocsPaths(fsp, undefined))
 
 	// const sdkPaths = await getSdkPaths(fsp, undefined);
