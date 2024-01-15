@@ -17,7 +17,6 @@ import {
 	QuickStartContent,
 	quickStartContent,
 } from '../../components/QuickstartContent/QuickstartContent'
-import logger from '../../highlight.logger'
 import {
 	IGNORED_DOCS_PATHS,
 	processDocPath,
@@ -321,10 +320,10 @@ interface TocEntry {
 }
 
 export const getStaticProps: GetStaticProps<DocData> = async (context) => {
-	logger.info(
-		{ params: context?.params },
-		`docs getStaticProps ${context?.params?.doc}`,
-	)
+	// logger.info(
+	// 	{ params: context?.params },
+	// 	`docs getStaticProps ${context?.params?.doc}`,
+	// )
 	const docPaths = sortBySlashLength(await getDocsPaths(fsp, undefined))
 
 	// const sdkPaths = await getSdkPaths(fsp, undefined);
