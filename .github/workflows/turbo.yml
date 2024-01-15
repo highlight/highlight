@@ -170,7 +170,7 @@ jobs:
                   cache: 'yarn'
 
             - name: Setup Golang environment
-              uses: buildjet/setup-go@v4
+              uses: buildjet/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
@@ -286,7 +286,7 @@ jobs:
                   cache: 'yarn'
 
             - name: Setup Golang environment
-              uses: buildjet/setup-go@v4
+              uses: buildjet/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
