@@ -1,11 +1,52 @@
-import { Box } from '@highlight-run/ui/components'
+import { Box, Callout, Text, TextLink } from '@highlight-run/ui/components'
 
+import LoadingBox from '@/components/LoadingBox'
+import { useProjectId } from '@/hooks/useProjectId'
 import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 
 export const NetworkResourceTrace: React.FC = () => {
-	const { selectedSpan } = useTrace()
+	const { projectId } = useProjectId()
+	const { loading, selectedSpan, traceName } = useTrace()
+
+	if (loading) {
+		return <LoadingBox />
+	}
+
+	if (!traceName) {
+		return (
+			<Box
+				p="8"
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+			>
+				<Callout
+					kind="error"
+					title="Trace not found"
+					style={{ paddingBottom: 16 }}
+				>
+					<Text weight="bold">
+						This could happen for the following reasons:
+					</Text>
+					<Text size="small">
+						1. Traces are not configured yet for your project.
+						Follow{' '}
+						<TextLink href={`/${projectId}/setup/traces`}>
+							setup instructions
+						</TextLink>{' '}
+						to enable them.
+					</Text>
+					<Text>
+						2. The trace was sampled out. You can configure the
+						sampling rate when making calls to send traces with our
+						SDKs.
+					</Text>
+				</Callout>
+			</Box>
+		)
+	}
 
 	return (
 		<Box p="8">

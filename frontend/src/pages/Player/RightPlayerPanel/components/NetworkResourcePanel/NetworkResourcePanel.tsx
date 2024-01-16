@@ -19,7 +19,7 @@ import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
@@ -30,7 +30,7 @@ import { NetworkResourceLogs } from '@/pages/Player/RightPlayerPanel/components/
 import { NetworkResourceTrace } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceTrace'
 import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
-import { TraceProvider, useTrace } from '@/pages/Traces/TraceProvider'
+import { TraceProvider } from '@/pages/Traces/TraceProvider'
 
 import * as styles from './NetworkResourcePanel.css'
 
@@ -143,9 +143,7 @@ function NetworkResourceDetails({
 	resource: NetworkResource
 	hide: () => void
 }) {
-	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
-	const { selectedSpan, traceName } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
@@ -204,15 +202,13 @@ function NetworkResourceDetails({
 			},
 		}
 
-		if (!!traceName) {
-			tabPages[NetworkRequestTabs.Trace] = {
-				page: <NetworkResourceTrace />,
-			}
+		tabPages[NetworkRequestTabs.Trace] = {
+			page: <NetworkResourceTrace />,
 		}
 
 		return tabPages
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [traceName])
+	}, [])
 
 	useHotkeys(
 		'h',
@@ -237,17 +233,7 @@ function NetworkResourceDetails({
 	)
 
 	useEffect(() => {
-		if (selectedSpan?.spanID && initialized.current) {
-			setActiveTab(NetworkRequestTabs.Trace)
-		}
-
-		// Don't want to select the trace on the first render.
-		initialized.current = true
-	}, [selectedSpan?.spanID])
-
-	useEffect(() => {
 		setActiveTab(NetworkRequestTabs.Info)
-		initialized.current = false
 	}, [resource.id])
 
 	return (
