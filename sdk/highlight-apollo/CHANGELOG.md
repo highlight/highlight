@@ -1,5 +1,12 @@
 # @highlight-run/apollo
 
+## 3.4.9
+
+### Patch Changes
+
+-   Updated dependencies [59952b854]
+    -   @highlight-run/node@3.7.2
+
 ## 3.4.8
 
 ### Patch Changes
