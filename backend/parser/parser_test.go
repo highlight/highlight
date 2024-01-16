@@ -40,6 +40,16 @@ func TestMultipleBodyFiltersSearch(t *testing.T) {
 	assert.Equal(t, "SELECT * FROM t WHERE hasTokenCaseInsensitive(SpanName, 'asdf') AND hasTokenCaseInsensitive(SpanName, 'fdsa')", sql)
 }
 
+func TestAttributesSearch(t *testing.T) {
+	sql, _ := buildSqlForQuery("custom=attribute")
+	assert.Equal(t, "SELECT * FROM t WHERE TraceAttributes['custom'] = 'attribute'", sql)
+}
+
+func TestWildcardSearch(t *testing.T) {
+	sql, _ := buildSqlForQuery("*asdf* service_name=*-graph")
+	assert.Equal(t, "SELECT * FROM t WHERE SpanName ILIKE '%asdf%' AND ServiceName LIKE '%-graph'", sql)
+}
+
 func buildSqlForQuery(query string) (string, error) {
 	sqlBuilder := sqlbuilder.NewSelectBuilder()
 	sb := sqlBuilder.Select("*").From("t")

@@ -167,44 +167,67 @@ func (s *searchListener[T]) appendRules(value string) {
 		return
 	}
 
+	traceAttributeKey := false
 	filterKey, ok := s.tableConfig.KeysToColumns[T(s.currentKey)]
 	if !ok {
-		filterKey = fmt.Sprintf("%s['%s']", s.attributesColumn, s.currentKey)
+		traceAttributeKey = true
 	}
 
-	switch s.currentOp {
-	case "=":
+	if s.currentOp == ":" || s.currentOp == "=" {
 		if strings.Contains(value, "*") {
-			value = strings.Replace(value, "*", "%", -1)
-			s.rules = append(s.rules, s.sb.Like(filterKey, value))
+			value = wildcardValue(value)
+
+			if traceAttributeKey {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] LIKE %s", s.currentKey, value)))
+			} else {
+				s.rules = append(s.rules, s.sb.Like(filterKey, value))
+			}
 		} else {
-			s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+			if traceAttributeKey {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] = %s", s.currentKey, value)))
+			} else {
+				s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+			}
 		}
-	case ":":
+	} else if s.currentOp == "!=" {
 		if strings.Contains(value, "*") {
-			value = strings.Replace(value, "*", "%", -1)
-			s.rules = append(s.rules, s.sb.Like(filterKey, value))
+			value = wildcardValue(value)
+
+			if traceAttributeKey {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] NOT LIKE %s", s.currentKey, value)))
+			} else {
+				s.rules = append(s.rules, s.sb.NotLike(filterKey, value))
+			}
 		} else {
-			s.rules = append(s.rules, s.sb.Equal(filterKey, value))
+			if traceAttributeKey {
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] <> %s", s.currentKey, value)))
+			} else {
+				s.rules = append(s.rules, s.sb.NotEqual(filterKey, value))
+			}
 		}
-	case "!=":
-		if strings.HasSuffix(value, "\"") && strings.Contains(value, "*") {
-			value = strings.Replace(value, "*", "%", -1)
-			s.rules = append(s.rules, s.sb.NotLike(filterKey, value))
-		} else {
-			s.rules = append(s.rules, s.sb.NotEqual(filterKey, value))
-		}
-	case ">":
+	} else if s.currentOp == ">" {
 		s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
-	case ">=":
+	} else if s.currentOp == ">=" {
 		s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, value))
-	case "<":
+	} else if s.currentOp == "<" {
 		s.rules = append(s.rules, s.sb.LessThan(filterKey, value))
-	case "<=":
+	} else if s.currentOp == "<=" {
 		s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, value))
-	default:
+	} else {
 		fmt.Printf("Unknown search operator: %s\n", s.currentOp)
 	}
+}
+
+func wildcardValue(value string) string {
+	if strings.HasPrefix(value, "*") {
+		value = "%" + value[1:]
+	}
+
+	if strings.HasSuffix(value, "*") {
+		value = value[:len(value)-1] + "%"
+	}
+
+	return value
 }
 
 func isSeparator(r rune) bool {
