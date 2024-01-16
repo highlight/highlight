@@ -59,9 +59,9 @@ export const buildTokenGroups = (
 	queryString: string,
 ) => {
 	const tokenGroups: TokenGroup[] = []
-	let currentGroupIndex = 0
 	let currentTokenIndex = 0
 	let currentToken = tokens[currentTokenIndex]
+	let currentGroupIndex = -1
 	let lastTokenStopIndex = -1
 	let stopIndex = -1
 
@@ -93,7 +93,7 @@ export const buildTokenGroups = (
 		if (
 			tokenGroups.length === 0 ||
 			(currentToken.stop > stopIndex &&
-				!SEPARATOR_TOKENS.includes(currentToken.type))
+				(!currentPart || !SEPARATOR_TOKENS.includes(currentToken.type)))
 		) {
 			if (whitespaceToken) {
 				if (currentTokenIndex > 0) {
@@ -121,6 +121,7 @@ export const buildTokenGroups = (
 			}
 		}
 
+		console.log('::: pushing', currentToken, tokenGroups[currentGroupIndex])
 		tokenGroups[currentGroupIndex].tokens.push(currentToken)
 		tokenGroups[currentGroupIndex].stop = currentToken.stop
 
