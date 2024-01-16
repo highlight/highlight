@@ -187,7 +187,7 @@ describe('buildTokenGroups', () => {
 		])
 	})
 
-	it.only('handles AND and OR correctly', () => {
+	it('handles AND and OR correctly', () => {
 		const tokens = [
 			{ start: 0, stop: 11, text: 'service_name', type: 14 },
 			{ start: 12, stop: 12, text: '=', type: 5 },

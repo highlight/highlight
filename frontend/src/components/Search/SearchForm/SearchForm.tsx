@@ -575,7 +575,7 @@ export const Search: React.FC<{
 									<Text>{key}</Text>
 								) : (
 									<Stack direction="row" gap="8">
-										<Text>{key.name}:</Text>{' '}
+										<Text>{key.name}</Text>{' '}
 										<Text color="weak">
 											{key.type.toLowerCase()}
 										</Text>
