@@ -2,9 +2,11 @@ import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4'
 
 import SearchGrammarListener from '@/components/Search/Parser/antlr/SearchGrammarListener'
 import {
+	And_opContext,
 	Bin_opContext,
 	Body_search_exprContext,
 	Key_val_search_exprContext,
+	Or_opContext,
 	Search_keyContext,
 	Search_valueContext,
 } from '@/components/Search/Parser/antlr/SearchGrammarParser'
@@ -24,6 +26,12 @@ export type SearchExpression = {
 	}
 }
 
+export type AndOrExpression = {
+	start: number
+	stop: number
+	text: string
+}
+
 const DEFAULT_EXPRESSION = {
 	key: BODY_KEY,
 	operator: '=',
@@ -34,9 +42,25 @@ export class SearchListener extends SearchGrammarListener {
 
 	constructor(
 		private queryString: string,
-		private expressions: SearchExpression[],
+		private expressions: Array<SearchExpression | AndOrExpression>,
 	) {
 		super()
+	}
+
+	enterAnd_op = (ctx: And_opContext) => {
+		const start = ctx.start.start
+		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
+		const text = this.queryString.substring(start, stop + 1)
+		this.expressions.push({ start, stop, text })
+		this.currentExpression = { ...DEFAULT_EXPRESSION }
+	}
+
+	enterOr_op = (ctx: Or_opContext) => {
+		const start = ctx.start.start
+		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
+		const text = this.queryString.substring(start, stop + 1)
+		this.expressions.push({ start, stop, text })
+		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}
 
 	enterKey_val_search_expr = (ctx: Key_val_search_exprContext) => {

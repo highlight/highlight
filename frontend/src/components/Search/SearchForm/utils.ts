@@ -23,10 +23,6 @@ export const stringifySearchQuery = (params: SearchExpression[]) => {
 	return querySegments.join('')
 }
 
-export const validateSearchQuery = (params: SearchExpression[]): boolean => {
-	return !params.some((param) => !param.value)
-}
-
 export const quoteQueryValue = (value: string | number) => {
 	if (typeof value !== 'string') {
 		return String(value)
@@ -61,7 +57,7 @@ export const buildTokenGroups = (
 	const tokenGroups: TokenGroup[] = []
 	let currentTokenIndex = 0
 	let currentToken = tokens[currentTokenIndex]
-	let currentGroupIndex = -1
+	let currentGroupIndex = 0
 	let lastTokenStopIndex = -1
 	let stopIndex = -1
 
@@ -90,11 +86,7 @@ export const buildTokenGroups = (
 			stopIndex = currentPart?.stop ?? 0
 		}
 
-		if (
-			tokenGroups.length === 0 ||
-			(currentToken.stop > stopIndex &&
-				(!currentPart || !SEPARATOR_TOKENS.includes(currentToken.type)))
-		) {
+		if (tokenGroups.length === 0 || currentToken.stop > stopIndex) {
 			if (whitespaceToken) {
 				if (currentTokenIndex > 0) {
 					currentGroupIndex++
@@ -121,7 +113,6 @@ export const buildTokenGroups = (
 			}
 		}
 
-		console.log('::: pushing', currentToken, tokenGroups[currentGroupIndex])
 		tokenGroups[currentGroupIndex].tokens.push(currentToken)
 		tokenGroups[currentGroupIndex].stop = currentToken.stop
 
@@ -139,10 +130,6 @@ export const buildTokenGroups = (
 		currentToken = tokens[currentTokenIndex]
 	}
 
-	// Remove the last token group if it's empty
-	if (tokenGroups[tokenGroups.length - 1].tokens.length === 0) {
-		tokenGroups.pop()
-	}
-
-	return tokenGroups
+	// Remove any empty token groups
+	return tokenGroups.filter((group) => group.tokens.length > 0)
 }

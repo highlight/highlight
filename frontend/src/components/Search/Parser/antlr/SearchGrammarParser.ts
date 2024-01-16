@@ -54,10 +54,11 @@ export default class SearchGrammarParser extends Parser {
 	public static readonly RULE_search_expr = 3
 	public static readonly RULE_search_key = 4
 	public static readonly RULE_and_op = 5
-	public static readonly RULE_or_op = 6
-	public static readonly RULE_negation_op = 7
-	public static readonly RULE_bin_op = 8
-	public static readonly RULE_search_value = 9
+	public static readonly RULE_implicit_and_op = 6
+	public static readonly RULE_or_op = 7
+	public static readonly RULE_negation_op = 8
+	public static readonly RULE_bin_op = 9
+	public static readonly RULE_search_value = 10
 	public static readonly literalNames: (string | null)[] = [
 		null,
 		"'AND'",
@@ -103,6 +104,7 @@ export default class SearchGrammarParser extends Parser {
 		'search_expr',
 		'search_key',
 		'and_op',
+		'implicit_and_op',
 		'or_op',
 		'negation_op',
 		'bin_op',
@@ -149,13 +151,13 @@ export default class SearchGrammarParser extends Parser {
 		)
 		this.enterRule(localctx, 0, SearchGrammarParser.RULE_search_query)
 		try {
-			this.state = 24
+			this.state = 26
 			this._errHandler.sync(this)
 			switch (this._input.LA(1)) {
 				case -1:
 					this.enterOuterAlt(localctx, 1)
 					{
-						this.state = 20
+						this.state = 22
 						this.match(SearchGrammarParser.EOF)
 					}
 					break
@@ -166,9 +168,9 @@ export default class SearchGrammarParser extends Parser {
 				case 16:
 					this.enterOuterAlt(localctx, 2)
 					{
-						this.state = 21
+						this.state = 23
 						this.search_expr(0)
-						this.state = 22
+						this.state = 24
 						this.match(SearchGrammarParser.EOF)
 					}
 					break
@@ -197,18 +199,18 @@ export default class SearchGrammarParser extends Parser {
 		)
 		this.enterRule(localctx, 2, SearchGrammarParser.RULE_top_col_expr)
 		try {
-			this.state = 34
+			this.state = 36
 			this._errHandler.sync(this)
 			switch (this._input.LA(1)) {
 				case 11:
 					localctx = new Top_paren_col_exprContext(this, localctx)
 					this.enterOuterAlt(localctx, 1)
 					{
-						this.state = 26
-						this.match(SearchGrammarParser.LPAREN)
-						this.state = 27
-						this.col_expr(0)
 						this.state = 28
+						this.match(SearchGrammarParser.LPAREN)
+						this.state = 29
+						this.col_expr(0)
+						this.state = 30
 						this.match(SearchGrammarParser.RPAREN)
 					}
 					break
@@ -216,9 +218,9 @@ export default class SearchGrammarParser extends Parser {
 					localctx = new Negated_top_col_exprContext(this, localctx)
 					this.enterOuterAlt(localctx, 2)
 					{
-						this.state = 30
+						this.state = 32
 						this.negation_op()
-						this.state = 31
+						this.state = 33
 						this.top_col_expr()
 					}
 					break
@@ -228,7 +230,7 @@ export default class SearchGrammarParser extends Parser {
 					localctx = new Top_col_search_valueContext(this, localctx)
 					this.enterOuterAlt(localctx, 3)
 					{
-						this.state = 33
+						this.state = 35
 						this.search_value()
 					}
 					break
@@ -276,7 +278,7 @@ export default class SearchGrammarParser extends Parser {
 			let _alt: number
 			this.enterOuterAlt(localctx, 1)
 			{
-				this.state = 45
+				this.state = 47
 				this._errHandler.sync(this)
 				switch (this._input.LA(1)) {
 					case 11:
@@ -285,11 +287,11 @@ export default class SearchGrammarParser extends Parser {
 							this._ctx = localctx
 							_prevctx = localctx
 
-							this.state = 37
-							this.match(SearchGrammarParser.LPAREN)
-							this.state = 38
-							this.col_expr(0)
 							this.state = 39
+							this.match(SearchGrammarParser.LPAREN)
+							this.state = 40
+							this.col_expr(0)
+							this.state = 41
 							this.match(SearchGrammarParser.RPAREN)
 						}
 						break
@@ -301,9 +303,9 @@ export default class SearchGrammarParser extends Parser {
 							)
 							this._ctx = localctx
 							_prevctx = localctx
-							this.state = 41
+							this.state = 43
 							this.negation_op()
-							this.state = 42
+							this.state = 44
 							this.col_expr(4)
 						}
 						break
@@ -317,7 +319,7 @@ export default class SearchGrammarParser extends Parser {
 							)
 							this._ctx = localctx
 							_prevctx = localctx
-							this.state = 44
+							this.state = 46
 							this.search_value()
 						}
 						break
@@ -325,7 +327,7 @@ export default class SearchGrammarParser extends Parser {
 						throw new NoViableAltException(this)
 				}
 				this._ctx.stop = this._input.LT(-1)
-				this.state = 56
+				this.state = 58
 				this._errHandler.sync(this)
 				_alt = this._interp.adaptivePredict(this._input, 4, this._ctx)
 				while (_alt !== 2 && _alt !== ATN.INVALID_ALT_NUMBER) {
@@ -335,7 +337,7 @@ export default class SearchGrammarParser extends Parser {
 						}
 						_prevctx = localctx
 						{
-							this.state = 54
+							this.state = 56
 							this._errHandler.sync(this)
 							switch (
 								this._interp.adaptivePredict(
@@ -359,15 +361,15 @@ export default class SearchGrammarParser extends Parser {
 											_startState,
 											SearchGrammarParser.RULE_col_expr,
 										)
-										this.state = 47
+										this.state = 49
 										if (!this.precpred(this._ctx, 3)) {
 											throw this.createFailedPredicateException(
 												'this.precpred(this._ctx, 3)',
 											)
 										}
-										this.state = 48
+										this.state = 50
 										this.and_op()
-										this.state = 49
+										this.state = 51
 										this.col_expr(4)
 									}
 									break
@@ -386,22 +388,22 @@ export default class SearchGrammarParser extends Parser {
 											_startState,
 											SearchGrammarParser.RULE_col_expr,
 										)
-										this.state = 51
+										this.state = 53
 										if (!this.precpred(this._ctx, 2)) {
 											throw this.createFailedPredicateException(
 												'this.precpred(this._ctx, 2)',
 											)
 										}
-										this.state = 52
+										this.state = 54
 										this.match(SearchGrammarParser.OR)
-										this.state = 53
+										this.state = 55
 										this.col_expr(3)
 									}
 									break
 							}
 						}
 					}
-					this.state = 58
+					this.state = 60
 					this._errHandler.sync(this)
 					_alt = this._interp.adaptivePredict(
 						this._input,
@@ -451,7 +453,7 @@ export default class SearchGrammarParser extends Parser {
 			let _alt: number
 			this.enterOuterAlt(localctx, 1)
 			{
-				this.state = 72
+				this.state = 74
 				this._errHandler.sync(this)
 				switch (
 					this._interp.adaptivePredict(this._input, 5, this._ctx)
@@ -465,11 +467,11 @@ export default class SearchGrammarParser extends Parser {
 							this._ctx = localctx
 							_prevctx = localctx
 
-							this.state = 60
-							this.match(SearchGrammarParser.LPAREN)
-							this.state = 61
-							this.search_expr(0)
 							this.state = 62
+							this.match(SearchGrammarParser.LPAREN)
+							this.state = 63
+							this.search_expr(0)
+							this.state = 64
 							this.match(SearchGrammarParser.RPAREN)
 						}
 						break
@@ -481,9 +483,9 @@ export default class SearchGrammarParser extends Parser {
 							)
 							this._ctx = localctx
 							_prevctx = localctx
-							this.state = 64
+							this.state = 66
 							this.negation_op()
-							this.state = 65
+							this.state = 67
 							this.search_expr(6)
 						}
 						break
@@ -495,11 +497,11 @@ export default class SearchGrammarParser extends Parser {
 							)
 							this._ctx = localctx
 							_prevctx = localctx
-							this.state = 67
-							this.search_key()
-							this.state = 68
-							this.bin_op()
 							this.state = 69
+							this.search_key()
+							this.state = 70
+							this.bin_op()
+							this.state = 71
 							this.top_col_expr()
 						}
 						break
@@ -511,13 +513,13 @@ export default class SearchGrammarParser extends Parser {
 							)
 							this._ctx = localctx
 							_prevctx = localctx
-							this.state = 71
+							this.state = 73
 							this.top_col_expr()
 						}
 						break
 				}
 				this._ctx.stop = this._input.LT(-1)
-				this.state = 86
+				this.state = 90
 				this._errHandler.sync(this)
 				_alt = this._interp.adaptivePredict(this._input, 7, this._ctx)
 				while (_alt !== 2 && _alt !== ATN.INVALID_ALT_NUMBER) {
@@ -527,7 +529,7 @@ export default class SearchGrammarParser extends Parser {
 						}
 						_prevctx = localctx
 						{
-							this.state = 84
+							this.state = 88
 							this._errHandler.sync(this)
 							switch (
 								this._interp.adaptivePredict(
@@ -551,15 +553,15 @@ export default class SearchGrammarParser extends Parser {
 											_startState,
 											SearchGrammarParser.RULE_search_expr,
 										)
-										this.state = 74
+										this.state = 76
 										if (!this.precpred(this._ctx, 5)) {
 											throw this.createFailedPredicateException(
 												'this.precpred(this._ctx, 5)',
 											)
 										}
-										this.state = 75
-										this.match(SearchGrammarParser.AND)
-										this.state = 76
+										this.state = 77
+										this.and_op()
+										this.state = 78
 										this.search_expr(6)
 									}
 									break
@@ -578,15 +580,15 @@ export default class SearchGrammarParser extends Parser {
 											_startState,
 											SearchGrammarParser.RULE_search_expr,
 										)
-										this.state = 77
+										this.state = 80
 										if (!this.precpred(this._ctx, 4)) {
 											throw this.createFailedPredicateException(
 												'this.precpred(this._ctx, 4)',
 											)
 										}
-										this.state = 78
-										this.match(SearchGrammarParser.OR)
-										this.state = 79
+										this.state = 81
+										this.or_op()
+										this.state = 82
 										this.search_expr(5)
 									}
 									break
@@ -606,22 +608,22 @@ export default class SearchGrammarParser extends Parser {
 											_startState,
 											SearchGrammarParser.RULE_search_expr,
 										)
-										this.state = 80
+										this.state = 84
 										if (!this.precpred(this._ctx, 3)) {
 											throw this.createFailedPredicateException(
 												'this.precpred(this._ctx, 3)',
 											)
 										}
-										this.state = 81
-										this.and_op()
-										this.state = 82
+										this.state = 85
+										this.implicit_and_op()
+										this.state = 86
 										this.search_expr(4)
 									}
 									break
 							}
 						}
 					}
-					this.state = 88
+					this.state = 92
 					this._errHandler.sync(this)
 					_alt = this._interp.adaptivePredict(
 						this._input,
@@ -654,7 +656,7 @@ export default class SearchGrammarParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1)
 			{
-				this.state = 89
+				this.state = 93
 				this.match(SearchGrammarParser.ID)
 			}
 		} catch (re) {
@@ -680,6 +682,33 @@ export default class SearchGrammarParser extends Parser {
 		this.enterRule(localctx, 10, SearchGrammarParser.RULE_and_op)
 		try {
 			this.enterOuterAlt(localctx, 1)
+			{
+				this.state = 95
+				this.match(SearchGrammarParser.AND)
+			}
+		} catch (re) {
+			if (re instanceof RecognitionException) {
+				localctx.exception = re
+				this._errHandler.reportError(this, re)
+				this._errHandler.recover(this, re)
+			} else {
+				throw re
+			}
+		} finally {
+			this.exitRule()
+		}
+		return localctx
+	}
+	// @RuleVersion(0)
+	public implicit_and_op(): Implicit_and_opContext {
+		let localctx: Implicit_and_opContext = new Implicit_and_opContext(
+			this,
+			this._ctx,
+			this.state,
+		)
+		this.enterRule(localctx, 12, SearchGrammarParser.RULE_implicit_and_op)
+		try {
+			this.enterOuterAlt(localctx, 1)
 			// tslint:disable-next-line:no-empty
 			{
 			}
@@ -703,11 +732,11 @@ export default class SearchGrammarParser extends Parser {
 			this._ctx,
 			this.state,
 		)
-		this.enterRule(localctx, 12, SearchGrammarParser.RULE_or_op)
+		this.enterRule(localctx, 14, SearchGrammarParser.RULE_or_op)
 		try {
 			this.enterOuterAlt(localctx, 1)
 			{
-				this.state = 93
+				this.state = 99
 				this.match(SearchGrammarParser.OR)
 			}
 		} catch (re) {
@@ -730,11 +759,11 @@ export default class SearchGrammarParser extends Parser {
 			this._ctx,
 			this.state,
 		)
-		this.enterRule(localctx, 14, SearchGrammarParser.RULE_negation_op)
+		this.enterRule(localctx, 16, SearchGrammarParser.RULE_negation_op)
 		try {
 			this.enterOuterAlt(localctx, 1)
 			{
-				this.state = 95
+				this.state = 101
 				this.match(SearchGrammarParser.NOT)
 			}
 		} catch (re) {
@@ -757,12 +786,12 @@ export default class SearchGrammarParser extends Parser {
 			this._ctx,
 			this.state,
 		)
-		this.enterRule(localctx, 16, SearchGrammarParser.RULE_bin_op)
+		this.enterRule(localctx, 18, SearchGrammarParser.RULE_bin_op)
 		let _la: number
 		try {
 			this.enterOuterAlt(localctx, 1)
 			{
-				this.state = 97
+				this.state = 103
 				_la = this._input.LA(1)
 				if (!((_la & ~0x1f) === 0 && ((1 << _la) & 10224) !== 0)) {
 					this._errHandler.recoverInline(this)
@@ -791,12 +820,12 @@ export default class SearchGrammarParser extends Parser {
 			this._ctx,
 			this.state,
 		)
-		this.enterRule(localctx, 18, SearchGrammarParser.RULE_search_value)
+		this.enterRule(localctx, 20, SearchGrammarParser.RULE_search_value)
 		let _la: number
 		try {
 			this.enterOuterAlt(localctx, 1)
 			{
-				this.state = 99
+				this.state = 105
 				_la = this._input.LA(1)
 				if (!((_la & ~0x1f) === 0 && ((1 << _la) & 114688) !== 0)) {
 					this._errHandler.recoverInline(this)
@@ -866,47 +895,49 @@ export default class SearchGrammarParser extends Parser {
 	}
 
 	public static readonly _serializedATN: number[] = [
-		4, 1, 18, 102, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
-		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 1, 0, 1,
-		0, 1, 0, 1, 0, 3, 0, 25, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 3, 1, 35, 8, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
-		2, 3, 2, 46, 8, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 5, 2, 55,
-		8, 2, 10, 2, 12, 2, 58, 9, 2, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3,
-		1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 73, 8, 3, 1, 3, 1, 3, 1, 3, 1,
-		3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 5, 3, 85, 8, 3, 10, 3, 12, 3, 88,
-		9, 3, 1, 4, 1, 4, 1, 5, 1, 5, 1, 6, 1, 6, 1, 7, 1, 7, 1, 8, 1, 8, 1, 9,
-		1, 9, 1, 9, 0, 2, 4, 6, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 0, 2, 2,
-		0, 4, 10, 13, 13, 1, 0, 14, 16, 104, 0, 24, 1, 0, 0, 0, 2, 34, 1, 0, 0,
-		0, 4, 45, 1, 0, 0, 0, 6, 72, 1, 0, 0, 0, 8, 89, 1, 0, 0, 0, 10, 91, 1,
-		0, 0, 0, 12, 93, 1, 0, 0, 0, 14, 95, 1, 0, 0, 0, 16, 97, 1, 0, 0, 0, 18,
-		99, 1, 0, 0, 0, 20, 25, 5, 0, 0, 1, 21, 22, 3, 6, 3, 0, 22, 23, 5, 0, 0,
-		1, 23, 25, 1, 0, 0, 0, 24, 20, 1, 0, 0, 0, 24, 21, 1, 0, 0, 0, 25, 1, 1,
-		0, 0, 0, 26, 27, 5, 11, 0, 0, 27, 28, 3, 4, 2, 0, 28, 29, 5, 12, 0, 0,
-		29, 35, 1, 0, 0, 0, 30, 31, 3, 14, 7, 0, 31, 32, 3, 2, 1, 0, 32, 35, 1,
-		0, 0, 0, 33, 35, 3, 18, 9, 0, 34, 26, 1, 0, 0, 0, 34, 30, 1, 0, 0, 0,
-		34, 33, 1, 0, 0, 0, 35, 3, 1, 0, 0, 0, 36, 37, 6, 2, -1, 0, 37, 38, 5,
-		11, 0, 0, 38, 39, 3, 4, 2, 0, 39, 40, 5, 12, 0, 0, 40, 46, 1, 0, 0, 0,
-		41, 42, 3, 14, 7, 0, 42, 43, 3, 4, 2, 4, 43, 46, 1, 0, 0, 0, 44, 46, 3,
-		18, 9, 0, 45, 36, 1, 0, 0, 0, 45, 41, 1, 0, 0, 0, 45, 44, 1, 0, 0, 0,
-		46, 56, 1, 0, 0, 0, 47, 48, 10, 3, 0, 0, 48, 49, 3, 10, 5, 0, 49, 50, 3,
-		4, 2, 4, 50, 55, 1, 0, 0, 0, 51, 52, 10, 2, 0, 0, 52, 53, 5, 2, 0, 0,
-		53, 55, 3, 4, 2, 3, 54, 47, 1, 0, 0, 0, 54, 51, 1, 0, 0, 0, 55, 58, 1,
-		0, 0, 0, 56, 54, 1, 0, 0, 0, 56, 57, 1, 0, 0, 0, 57, 5, 1, 0, 0, 0, 58,
-		56, 1, 0, 0, 0, 59, 60, 6, 3, -1, 0, 60, 61, 5, 11, 0, 0, 61, 62, 3, 6,
-		3, 0, 62, 63, 5, 12, 0, 0, 63, 73, 1, 0, 0, 0, 64, 65, 3, 14, 7, 0, 65,
-		66, 3, 6, 3, 6, 66, 73, 1, 0, 0, 0, 67, 68, 3, 8, 4, 0, 68, 69, 3, 16,
-		8, 0, 69, 70, 3, 2, 1, 0, 70, 73, 1, 0, 0, 0, 71, 73, 3, 2, 1, 0, 72,
-		59, 1, 0, 0, 0, 72, 64, 1, 0, 0, 0, 72, 67, 1, 0, 0, 0, 72, 71, 1, 0, 0,
-		0, 73, 86, 1, 0, 0, 0, 74, 75, 10, 5, 0, 0, 75, 76, 5, 1, 0, 0, 76, 85,
-		3, 6, 3, 6, 77, 78, 10, 4, 0, 0, 78, 79, 5, 2, 0, 0, 79, 85, 3, 6, 3, 5,
-		80, 81, 10, 3, 0, 0, 81, 82, 3, 10, 5, 0, 82, 83, 3, 6, 3, 4, 83, 85, 1,
-		0, 0, 0, 84, 74, 1, 0, 0, 0, 84, 77, 1, 0, 0, 0, 84, 80, 1, 0, 0, 0, 85,
-		88, 1, 0, 0, 0, 86, 84, 1, 0, 0, 0, 86, 87, 1, 0, 0, 0, 87, 7, 1, 0, 0,
-		0, 88, 86, 1, 0, 0, 0, 89, 90, 5, 14, 0, 0, 90, 9, 1, 0, 0, 0, 91, 92,
-		1, 0, 0, 0, 92, 11, 1, 0, 0, 0, 93, 94, 5, 2, 0, 0, 94, 13, 1, 0, 0, 0,
-		95, 96, 5, 3, 0, 0, 96, 15, 1, 0, 0, 0, 97, 98, 7, 0, 0, 0, 98, 17, 1,
-		0, 0, 0, 99, 100, 7, 1, 0, 0, 100, 19, 1, 0, 0, 0, 8, 24, 34, 45, 54,
-		56, 72, 84, 86,
+		4, 1, 18, 108, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
+		10, 1, 0, 1, 0, 1, 0, 1, 0, 3, 0, 27, 8, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 3, 1, 37, 8, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,
+		1, 2, 1, 2, 1, 2, 3, 2, 48, 8, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
+		2, 5, 2, 57, 8, 2, 10, 2, 12, 2, 60, 9, 2, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3,
+		1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 75, 8, 3, 1, 3, 1,
+		3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 5, 3, 89,
+		8, 3, 10, 3, 12, 3, 92, 9, 3, 1, 4, 1, 4, 1, 5, 1, 5, 1, 6, 1, 6, 1, 7,
+		1, 7, 1, 8, 1, 8, 1, 9, 1, 9, 1, 10, 1, 10, 1, 10, 0, 2, 4, 6, 11, 0, 2,
+		4, 6, 8, 10, 12, 14, 16, 18, 20, 0, 2, 2, 0, 4, 10, 13, 13, 1, 0, 14,
+		16, 109, 0, 26, 1, 0, 0, 0, 2, 36, 1, 0, 0, 0, 4, 47, 1, 0, 0, 0, 6, 74,
+		1, 0, 0, 0, 8, 93, 1, 0, 0, 0, 10, 95, 1, 0, 0, 0, 12, 97, 1, 0, 0, 0,
+		14, 99, 1, 0, 0, 0, 16, 101, 1, 0, 0, 0, 18, 103, 1, 0, 0, 0, 20, 105,
+		1, 0, 0, 0, 22, 27, 5, 0, 0, 1, 23, 24, 3, 6, 3, 0, 24, 25, 5, 0, 0, 1,
+		25, 27, 1, 0, 0, 0, 26, 22, 1, 0, 0, 0, 26, 23, 1, 0, 0, 0, 27, 1, 1, 0,
+		0, 0, 28, 29, 5, 11, 0, 0, 29, 30, 3, 4, 2, 0, 30, 31, 5, 12, 0, 0, 31,
+		37, 1, 0, 0, 0, 32, 33, 3, 16, 8, 0, 33, 34, 3, 2, 1, 0, 34, 37, 1, 0,
+		0, 0, 35, 37, 3, 20, 10, 0, 36, 28, 1, 0, 0, 0, 36, 32, 1, 0, 0, 0, 36,
+		35, 1, 0, 0, 0, 37, 3, 1, 0, 0, 0, 38, 39, 6, 2, -1, 0, 39, 40, 5, 11,
+		0, 0, 40, 41, 3, 4, 2, 0, 41, 42, 5, 12, 0, 0, 42, 48, 1, 0, 0, 0, 43,
+		44, 3, 16, 8, 0, 44, 45, 3, 4, 2, 4, 45, 48, 1, 0, 0, 0, 46, 48, 3, 20,
+		10, 0, 47, 38, 1, 0, 0, 0, 47, 43, 1, 0, 0, 0, 47, 46, 1, 0, 0, 0, 48,
+		58, 1, 0, 0, 0, 49, 50, 10, 3, 0, 0, 50, 51, 3, 10, 5, 0, 51, 52, 3, 4,
+		2, 4, 52, 57, 1, 0, 0, 0, 53, 54, 10, 2, 0, 0, 54, 55, 5, 2, 0, 0, 55,
+		57, 3, 4, 2, 3, 56, 49, 1, 0, 0, 0, 56, 53, 1, 0, 0, 0, 57, 60, 1, 0, 0,
+		0, 58, 56, 1, 0, 0, 0, 58, 59, 1, 0, 0, 0, 59, 5, 1, 0, 0, 0, 60, 58, 1,
+		0, 0, 0, 61, 62, 6, 3, -1, 0, 62, 63, 5, 11, 0, 0, 63, 64, 3, 6, 3, 0,
+		64, 65, 5, 12, 0, 0, 65, 75, 1, 0, 0, 0, 66, 67, 3, 16, 8, 0, 67, 68, 3,
+		6, 3, 6, 68, 75, 1, 0, 0, 0, 69, 70, 3, 8, 4, 0, 70, 71, 3, 18, 9, 0,
+		71, 72, 3, 2, 1, 0, 72, 75, 1, 0, 0, 0, 73, 75, 3, 2, 1, 0, 74, 61, 1,
+		0, 0, 0, 74, 66, 1, 0, 0, 0, 74, 69, 1, 0, 0, 0, 74, 73, 1, 0, 0, 0, 75,
+		90, 1, 0, 0, 0, 76, 77, 10, 5, 0, 0, 77, 78, 3, 10, 5, 0, 78, 79, 3, 6,
+		3, 6, 79, 89, 1, 0, 0, 0, 80, 81, 10, 4, 0, 0, 81, 82, 3, 14, 7, 0, 82,
+		83, 3, 6, 3, 5, 83, 89, 1, 0, 0, 0, 84, 85, 10, 3, 0, 0, 85, 86, 3, 12,
+		6, 0, 86, 87, 3, 6, 3, 4, 87, 89, 1, 0, 0, 0, 88, 76, 1, 0, 0, 0, 88,
+		80, 1, 0, 0, 0, 88, 84, 1, 0, 0, 0, 89, 92, 1, 0, 0, 0, 90, 88, 1, 0, 0,
+		0, 90, 91, 1, 0, 0, 0, 91, 7, 1, 0, 0, 0, 92, 90, 1, 0, 0, 0, 93, 94, 5,
+		14, 0, 0, 94, 9, 1, 0, 0, 0, 95, 96, 5, 1, 0, 0, 96, 11, 1, 0, 0, 0, 97,
+		98, 1, 0, 0, 0, 98, 13, 1, 0, 0, 0, 99, 100, 5, 2, 0, 0, 100, 15, 1, 0,
+		0, 0, 101, 102, 5, 3, 0, 0, 102, 17, 1, 0, 0, 0, 103, 104, 7, 0, 0, 0,
+		104, 19, 1, 0, 0, 0, 105, 106, 7, 1, 0, 0, 106, 21, 1, 0, 0, 0, 8, 26,
+		36, 47, 56, 58, 74, 88, 90,
 	]
 
 	private static __ATN: ATN
@@ -1271,8 +1302,8 @@ export class And_search_exprContext extends Search_exprContext {
 			i,
 		) as Search_exprContext
 	}
-	public AND(): TerminalNode {
-		return this.getToken(SearchGrammarParser.AND, 0)
+	public and_op(): And_opContext {
+		return this.getTypedRuleContext(And_opContext, 0) as And_opContext
 	}
 	public enterRule(listener: SearchGrammarListener): void {
 		if (listener.enterAnd_search_expr) {
@@ -1301,8 +1332,8 @@ export class Or_search_exprContext extends Search_exprContext {
 			i,
 		) as Search_exprContext
 	}
-	public OR(): TerminalNode {
-		return this.getToken(SearchGrammarParser.OR, 0)
+	public or_op(): Or_opContext {
+		return this.getTypedRuleContext(Or_opContext, 0) as Or_opContext
 	}
 	public enterRule(listener: SearchGrammarListener): void {
 		if (listener.enterOr_search_expr) {
@@ -1331,8 +1362,11 @@ export class Implicit_and_search_exprContext extends Search_exprContext {
 			i,
 		) as Search_exprContext
 	}
-	public and_op(): And_opContext {
-		return this.getTypedRuleContext(And_opContext, 0) as And_opContext
+	public implicit_and_op(): Implicit_and_opContext {
+		return this.getTypedRuleContext(
+			Implicit_and_opContext,
+			0,
+		) as Implicit_and_opContext
 	}
 	public enterRule(listener: SearchGrammarListener): void {
 		if (listener.enterImplicit_and_search_expr) {
@@ -1441,6 +1475,9 @@ export class And_opContext extends ParserRuleContext {
 		super(parent, invokingState)
 		this.parser = parser
 	}
+	public AND(): TerminalNode {
+		return this.getToken(SearchGrammarParser.AND, 0)
+	}
 	public get ruleIndex(): number {
 		return SearchGrammarParser.RULE_and_op
 	}
@@ -1452,6 +1489,30 @@ export class And_opContext extends ParserRuleContext {
 	public exitRule(listener: SearchGrammarListener): void {
 		if (listener.exitAnd_op) {
 			listener.exitAnd_op(this)
+		}
+	}
+}
+
+export class Implicit_and_opContext extends ParserRuleContext {
+	constructor(
+		parser?: SearchGrammarParser,
+		parent?: ParserRuleContext,
+		invokingState?: number,
+	) {
+		super(parent, invokingState)
+		this.parser = parser
+	}
+	public get ruleIndex(): number {
+		return SearchGrammarParser.RULE_implicit_and_op
+	}
+	public enterRule(listener: SearchGrammarListener): void {
+		if (listener.enterImplicit_and_op) {
+			listener.enterImplicit_and_op(this)
+		}
+	}
+	public exitRule(listener: SearchGrammarListener): void {
+		if (listener.exitImplicit_and_op) {
+			listener.exitImplicit_and_op(this)
 		}
 	}
 }

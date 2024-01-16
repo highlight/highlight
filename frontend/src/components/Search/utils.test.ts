@@ -3,7 +3,7 @@ import { parseSearch } from '@/components/Search/utils'
 describe('parseSearch', () => {
 	it('should parse a string correctly', () => {
 		const queryString =
-			'  span_name="Chris Schmitz" source=(backend OR frontend)  service_name!=private-graph'
+			'  span_name="Chris Schmitz" source=(backend OR frontend)  service_name!=private-graph AND status>=400 '
 		const { queryParts } = parseSearch(queryString)
 
 		expect(queryParts).toEqual([
@@ -30,6 +30,19 @@ describe('parseSearch', () => {
 				text: 'service_name!=private-graph',
 				start: 58,
 				stop: 84,
+			},
+			{
+				text: 'AND',
+				start: 86,
+				stop: 88,
+			},
+			{
+				key: 'status',
+				operator: '>=',
+				start: 90,
+				stop: 100,
+				text: 'status>=400',
+				value: '400',
 			},
 		])
 	})

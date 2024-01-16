@@ -400,6 +400,13 @@ export const Search: React.FC<{
 		submitQuery(newQuery)
 	}
 
+	const submitAndBlur = () => {
+		submitQuery(query)
+		comboboxStore.setOpen(false)
+		inputRef.current?.blur()
+		setCursorIndex(-1)
+	}
+
 	return (
 		<Box
 			alignItems="stretch"
@@ -468,10 +475,13 @@ export const Search: React.FC<{
 						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
-						if (e.key === 'Enter' && query === '') {
+						if (
+							e.key === 'Enter' &&
+							(query === '' ||
+								comboboxStore.getState().activeId === null)
+						) {
 							e.preventDefault()
-							submitQuery(query)
-							comboboxStore.setOpen(false)
+							submitAndBlur()
 						}
 					}}
 					onKeyUp={handleSetCursorIndex}
@@ -514,10 +524,7 @@ export const Search: React.FC<{
 									className={styles.comboboxItem}
 									onClick={() => {
 										if (activePart.key === BODY_KEY) {
-											submitQuery(query)
-											comboboxStore.setOpen(false)
-											inputRef.current?.blur()
-											setCursorIndex(-1)
+											submitAndBlur()
 											return
 										}
 
