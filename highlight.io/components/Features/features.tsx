@@ -4,6 +4,8 @@ export const sessionReplayHeroKey = '/images/features/sessionReplayHero.png'
 export const loggingscreenshotKey = '/images/loggingscreenshot.png'
 export const monitoringscreenshotKey = '/images/monitoringscreenshot.png'
 export const sessionscreenshotKey = '/images/sessionscreenshot.png'
+export const tracesKey = '/images/traces.webp'
+export const tracesscreenshot = '/images/tracesmobile.svg'
 
 const sessionReplay2 = '/images/features/sessionReplay2.png'
 const sessionReplay3 = '/images/landingInfoRow1.png'
@@ -217,6 +219,66 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'From a “click” to a server-side error.',
 				subheader:
 					'Visualize a complete, cohesive view of your entire stack. All the way from a user clicking a button to a server-side error.',
+				link: 'https://app.highlight.io/?sign_up=1',
+				linkText: 'Get started for free',
+				imgSrc: sessionReplay3,
+				invert: true,
+			},
+			{
+				header: 'Support for all the modern frameworks.',
+				subheader:
+					'Whether its Python, Golang, or even vanilla JS, we got you covered. Get started with just a few lines of code.',
+				link: '/frameworks',
+				linkText: 'View all frameworks',
+				imgSrc: sessionReplay4,
+				invert: false,
+			},
+			{
+				header: 'A few lines of code. That’s it.',
+				subheader:
+					'Install highlight.io in seconds and get logging out of the box.',
+				link: '/docs/getting-started/overview',
+				linkText: 'Framework Docs',
+				invert: true,
+				code: pythonSnippet,
+				codeFrom: 'Python',
+			},
+		],
+	},
+	traces: {
+		slug: 'traces',
+		header: 'Traces for modern web applications.',
+		subheader:
+			'Search for and query the traces across your full-stack web app. Get started in seconds.',
+		docsLink: '/docs/general/product-features/logging/overview',
+		slantedImage: loggingHeroKey,
+		regularImage: loggingscreenshotKey,
+		header2Selection: 3,
+		subheader2:
+			'Pinpoint latency across your entire codebase, all the way from the client to server.',
+		infoRows: [
+			{
+				header: 'Dig deep into nested code execution.',
+				subheader:
+					'Scrutinize every layer of your codebase and identify bottlenecks, inefficiencies, and areas of optimization.',
+				link: '/docs/general/product-features/logging/overview',
+				linkText: 'Read the Docs',
+				imgSrc: logging1,
+				invert: true,
+			},
+			{
+				header: 'Powerful search. Powered by ClickHouse.',
+				subheader:
+					'Perform fine-grained searches across all of your logs. Powered by ClickHouse, an industry leading time-series database.',
+				link: '/docs/general/product-features/logging/overview',
+				linkText: 'Read the Docs',
+				imgSrc: logging2,
+				invert: false,
+			},
+			{
+				header: 'From a “click” to a server-side error.',
+				subheader:
+					'Visualize a complete, cohesive view of your entire stack. All the way from a user clicking a button to a server-side trace.',
 				link: 'https://app.highlight.io/?sign_up=1',
 				linkText: 'Get started for free',
 				imgSrc: sessionReplay3,

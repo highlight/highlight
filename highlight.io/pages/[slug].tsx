@@ -66,6 +66,12 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 			Search & set alerts{' '}
 			<span className="text-color-selected-light">across your logs.</span>
 		</>,
+		<>
+			Measure performance{' '}
+			<span className="text-color-selected-light">
+				across your application.
+			</span>
+		</>,
 	]
 
 	return (
