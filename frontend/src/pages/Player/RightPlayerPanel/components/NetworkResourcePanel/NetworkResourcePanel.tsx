@@ -27,11 +27,10 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { NetworkResourceErrors } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceErrors'
 import { NetworkResourceInfo } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceInfo'
 import { NetworkResourceLogs } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceLogs'
+import { NetworkResourceTrace } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceTrace'
 import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
-import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceProvider, useTrace } from '@/pages/Traces/TraceProvider'
-import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
 
 import * as styles from './NetworkResourcePanel.css'
 
@@ -207,11 +206,7 @@ function NetworkResourceDetails({
 
 		if (!!traceName) {
 			tabPages[NetworkRequestTabs.Trace] = {
-				page: (
-					<Box p="8">
-						<TraceSpanAttributes span={selectedSpan!} />
-					</Box>
-				),
+				page: <NetworkResourceTrace />,
 			}
 		}
 
@@ -335,8 +330,6 @@ function NetworkResourceDetails({
 						Go to
 					</Tag>
 				</Box>
-
-				{traceName && <TraceFlameGraph />}
 			</Box>
 
 			<Tabs<NetworkRequestTabs>
