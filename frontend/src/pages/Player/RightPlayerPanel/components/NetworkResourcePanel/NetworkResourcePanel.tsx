@@ -154,6 +154,8 @@ function NetworkResourceDetails({
 	} = useReplayerContext()
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
+	const isNetworkRequest =
+		resource?.initiatorType === 'fetch' || resource?.initiatorType === 'xhr'
 
 	const networkResources = useMemo(() => {
 		return (
@@ -202,13 +204,15 @@ function NetworkResourceDetails({
 			},
 		}
 
-		tabPages[NetworkRequestTabs.Trace] = {
-			page: <NetworkResourceTrace />,
+		if (isNetworkRequest) {
+			tabPages[NetworkRequestTabs.Trace] = {
+				page: <NetworkResourceTrace />,
+			}
 		}
 
 		return tabPages
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [isNetworkRequest])
 
 	useHotkeys(
 		'h',
