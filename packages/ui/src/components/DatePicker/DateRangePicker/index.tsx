@@ -137,10 +137,9 @@ const DateRangePickerImpl = ({
 	const [showingTime, setShowingTime] = useState<boolean>(false)
 	const [startTimeIsValid, setStartTimeIsValid] = useState<boolean>(true)
 	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
+	const useAbsoluteTime = !selectedValue.selectedPreset
 	const [absoluteDateRange, setAbsoluteDateRange] = useState<Date[]>(
-		!selectedValue.selectedPreset
-			? [selectedValue.startDate, selectedValue.endDate]
-			: [],
+		useAbsoluteTime ? [selectedValue.startDate, selectedValue.endDate] : [],
 	)
 
 	const menu = useMenu()
@@ -188,8 +187,8 @@ const DateRangePickerImpl = ({
 	)
 
 	const isTimepickerDisabled = useMemo(
-		() => !!selectedValue.startDate && !!selectedValue.endDate,
-		[selectedValue.startDate, selectedValue.endDate],
+		() => absoluteDateRange.length != 2,
+		[absoluteDateRange],
 	)
 
 	const [buttonLabel, setButtonLabel] = useState<string>(
