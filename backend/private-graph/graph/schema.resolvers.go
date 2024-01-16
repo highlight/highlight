@@ -5653,16 +5653,12 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 		return nil, err
 	}
 
-	ids, total, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000, query, "ID", nil, retentionDate)
+	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	if total >= 1_000_000 {
-		return nil, e.New("too many sessions to generate report, adjust the query to return fewer sessions")
-	}
 
-	var results []*modelInputs.SessionsReportRow
-	if err := r.DB.Raw(`
+	rows, err := r.ClickhouseClient.GetConn().Query(ctx, fmt.Sprintf(`
 select coalesce(email, ip, client_id, identifier)                              as key,
        max(user_properties::text) filter ( where user_properties is not null ) as user_properties,
        count(*)                                                                as num_sessions,
@@ -5675,12 +5671,19 @@ select coalesce(email, ip, client_id, identifier)                              a
        max(length) / 1000 / 60                                                 as max_length_mins,
        sum(length) / 1000 / 60                                                 as total_length_mins,
        max(case when state is not null then state || '|' || city end)          as location
-from sessions
-where id in (?)
-group by 1
-order by num_sessions desc;
-`, ids).Scan(&results).Error; err != nil {
+from %s where id in (%s) group by 1 order by num_sessions desc;
+`, clickhouse.GetPostgresConnectionString(), sql), args...)
+	if err != nil {
 		return nil, err
+	}
+
+	var results []*modelInputs.SessionsReportRow
+	for rows.Next() {
+		var result modelInputs.SessionsReportRow
+		if err := rows.Scan(&result.Key, &result.UserProperties, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
+			return nil, err
+		}
+		results = append(results, &result)
 	}
 
 	return results, nil

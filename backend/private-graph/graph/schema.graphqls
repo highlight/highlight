@@ -95,9 +95,9 @@ type SessionInterval {
 
 type SessionsReportRow {
 	key: String!
-	num_sessions: Int!
-	num_days_visited: Int!
-	num_months_visited: Int!
+	num_sessions: UInt64!
+	num_days_visited: UInt64!
+	num_months_visited: UInt64!
 	avg_active_length_mins: Float!
 	max_active_length_mins: Float!
 	total_active_length_mins: Float!

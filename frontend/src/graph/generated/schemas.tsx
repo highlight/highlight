@@ -3128,9 +3128,9 @@ export type SessionsReportRow = {
 	location: Scalars['String']
 	max_active_length_mins: Scalars['Float']
 	max_length_mins: Scalars['Float']
-	num_days_visited: Scalars['Int']
-	num_months_visited: Scalars['Int']
-	num_sessions: Scalars['Int']
+	num_days_visited: Scalars['UInt64']
+	num_months_visited: Scalars['UInt64']
+	num_sessions: Scalars['UInt64']
 	total_active_length_mins: Scalars['Float']
 	total_length_mins: Scalars['Float']
 	user_properties?: Maybe<Scalars['String']>
