@@ -1,4 +1,10 @@
-import { Box, Callout, Text, TextLink } from '@highlight-run/ui/components'
+import {
+	Box,
+	Callout,
+	Stack,
+	Text,
+	TextLink,
+} from '@highlight-run/ui/components'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -49,9 +55,9 @@ export const NetworkResourceTrace: React.FC = () => {
 	}
 
 	return (
-		<Box p="8">
+		<Stack gap="12" direction="column" p="8">
 			<TraceFlameGraph />
 			{selectedSpan && <TraceSpanAttributes span={selectedSpan} />}
-		</Box>
+		</Stack>
 	)
 }
