@@ -20,7 +20,6 @@ import {
 	ButtonIcon,
 	ComboboxSelect,
 	DateRangePicker,
-	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
 	getNow,
 	IconSolidCalendar,
@@ -75,7 +74,6 @@ import { useToggle } from 'react-use'
 
 import LoadingBox from '@/components/LoadingBox'
 import { searchesAreEqual } from '@/components/QueryBuilder/utils'
-import { useSearchTime } from '@/hooks/useSearchTime'
 import { CreateErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/CreateErrorSegmentModal'
 import { DeleteErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -1209,6 +1207,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
+		setSearchTime,
+		resetTime,
+		startDate,
+		endDate,
+		selectedPreset,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1327,17 +1330,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const [isAnd, toggleIsAnd] = useToggle(serializedIsAnd)
 	const [rules, setRules] = useState<RuleProps[]>(startingRules)
 
-	const {
-		startDate,
-		endDate,
-		selectedPreset,
-		updateSearchTime,
-		resetSearchTime,
-	} = useSearchTime({
-		initialPreset: DEFAULT_TIME_PRESETS[5],
-		presets: DEFAULT_TIME_PRESETS,
-	})
-
 	const setRulesImpl = useCallback(
 		(newRules: RuleProps[], isAnd: boolean, start: Date, end: Date) => {
 			setRules(newRules)
@@ -1390,14 +1382,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const toggleIsAndImpl = useCallback(() => {
 		setRulesImpl(rules, !isAnd, startDate, endDate)
 	}, [isAnd, rules, setRulesImpl, startDate, endDate])
-
-	const handleSearchTimeChange = useCallback(
-		(start: Date, end: Date, preset?: DateRangePreset) => {
-			setRulesImpl(rules, isAnd, start, end)
-			updateSearchTime(start, end, preset)
-		},
-		[isAnd, rules, setRulesImpl, updateSearchTime],
-	)
 
 	const getKeyOptions = useCallback(
 		async (input: string) => {
@@ -1571,7 +1555,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	useEffect(() => {
 		return () => {
 			if (!readonly && setDefault !== false) {
-				resetSearchTime()
+				resetTime()
 				if (selectedSegment) {
 					removeSelectedSegment()
 				}
@@ -1725,7 +1709,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						selectedPreset,
 					}}
 					minDate={defaultMinDate}
-					onDatesChange={handleSearchTimeChange}
+					onDatesChange={setSearchTime}
 				/>
 				<Box marginLeft="auto" display="flex" gap="0">
 					{!isOnErrorsPage && (
@@ -1745,7 +1729,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		)
 	}, [
 		endDate,
-		handleSearchTimeChange,
+		setSearchTime,
 		isOnErrorsPage,
 		searchQuery,
 		selectedPreset,

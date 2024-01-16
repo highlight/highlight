@@ -14,7 +14,7 @@ const ErrorFeedHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			startDate,
 			endDate,
 			histogramBucketSize,
-			updateSearchTime,
+			setSearchTime,
 		} = useErrorSearchContext()
 		const { loading, data } = useGetErrorsHistogramClickhouseQuery({
 			variables: {
@@ -66,7 +66,7 @@ const ErrorFeedHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 				bucketTimes={histogram.bucketTimes}
 				bucketSize={histogramBucketSize}
 				loading={loading}
-				updateTimeRange={updateSearchTime}
+				updateTimeRange={setSearchTime}
 				barGap={2.4}
 				readonly={readonly}
 			/>

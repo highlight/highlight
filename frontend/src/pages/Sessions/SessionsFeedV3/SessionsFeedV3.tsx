@@ -67,7 +67,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 		const {
 			histogramBucketSize,
 			searchQuery,
-			updateSearchTime,
+			setSearchTime,
 			startDate,
 			endDate,
 		} = useSearchContext()
@@ -127,7 +127,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 				bucketTimes={histogram.bucketTimes}
 				bucketSize={histogramBucketSize}
 				loading={loading}
-				updateTimeRange={updateSearchTime}
+				updateTimeRange={setSearchTime}
 				barGap={2.4}
 				readonly={readonly}
 			/>

@@ -1,4 +1,8 @@
-import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
+import {
+	DateRangePreset,
+	DEFAULT_TIME_PRESETS,
+	presetStartDate,
+} from '@highlight-run/ui/components'
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -74,6 +78,8 @@ type setSearchResultsCount = {
 	searchResultsCount: React.SetStateAction<SearchState['searchResultsCount']>
 }
 
+const defaultPreset = DEFAULT_TIME_PRESETS[5]
+
 const isFunction = (x: unknown): x is Function => typeof x === 'function'
 
 const evaluateAction = <T>(
@@ -109,7 +115,7 @@ export const SearchReducer = (
 			)
 			break
 		case SearchActionType.setSelectedSegment:
-			const query = tryPreserveDateFromExistingOrAddDefault(
+			const query = overwriteQueryDates(
 				action.query,
 				s.startDate,
 				s.endDate,
@@ -175,7 +181,7 @@ const tryAddDefaultDate = (
 
 // If the user is searching withing a time range, we want to preserve that time
 // range when applying a segment.
-const tryPreserveDateFromExistingOrAddDefault = (
+const overwriteQueryDates = (
 	searchQuery: string,
 	startDate: Date,
 	endDate: Date,
@@ -249,11 +255,16 @@ export const useGetBaseSearchContext = (
 ): BaseSearchContext => {
 	const { admin } = useAuthContext()
 
-	const { startDate, endDate, updateSearchTime, selectedPreset } =
-		useSearchTime({
-			initialPreset: DEFAULT_TIME_PRESETS[5],
-			presets: DEFAULT_TIME_PRESETS,
-		})
+	const {
+		startDate,
+		endDate,
+		updateSearchTime,
+		selectedPreset,
+		resetSearchTime,
+	} = useSearchTime({
+		initialPreset: defaultPreset,
+		presets: DEFAULT_TIME_PRESETS,
+	})
 
 	const initialState = useGetInitialSearchState(
 		page,
@@ -355,6 +366,45 @@ export const useGetBaseSearchContext = (
 		[],
 	)
 
+	const setSearchTime = useCallback(
+		(start: Date, end: Date, preset?: DateRangePreset) => {
+			updateSearchTime(start, end, preset)
+
+			const queryWithTimes = overwriteQueryDates(
+				state.searchQuery,
+				start,
+				end,
+			)
+
+			dispatch({
+				type: SearchActionType.setSearchQuery,
+				searchQuery: queryWithTimes,
+				admin,
+				customFields,
+			})
+		},
+		[admin, customFields, state.searchQuery, updateSearchTime],
+	)
+
+	const resetTime = useCallback(() => {
+		resetSearchTime()
+		const end = moment().toDate()
+		const start = presetStartDate(defaultPreset)
+
+		const queryWithTimes = overwriteQueryDates(
+			state.searchQuery,
+			start,
+			end,
+		)
+
+		dispatch({
+			type: SearchActionType.setSearchQuery,
+			searchQuery: queryWithTimes,
+			admin,
+			customFields,
+		})
+	}, [admin, customFields, resetSearchTime, state.searchQuery])
+
 	return {
 		...state,
 		selectedPreset,
@@ -364,7 +414,8 @@ export const useGetBaseSearchContext = (
 		setPage,
 		setSearchResultsLoading,
 		setSearchResultsCount,
-		updateSearchTime,
+		setSearchTime,
+		resetTime,
 	}
 }
 

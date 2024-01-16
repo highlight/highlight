@@ -18,13 +18,8 @@ import React, { useEffect } from 'react'
 
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
-	const {
-		setSearchQuery,
-		searchQuery,
-		startDate,
-		endDate,
-		updateSearchTime,
-	} = useSearchContext()
+	const { setSearchQuery, searchQuery, startDate, endDate, setSearchTime } =
+		useSearchContext()
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
 		project_id: string
@@ -69,12 +64,12 @@ function HighlightSessions() {
 						rules: [['user_email', 'contains', email]],
 					})
 
-					updateSearchTime(start.toDate(), end.toDate())
+					setSearchTime(start.toDate(), end.toDate())
 					setSearchQuery(query)
 				}
 			})
 		}
-	}, [email, frontContext, setSearchQuery, updateSearchTime])
+	}, [email, frontContext, setSearchQuery, setSearchTime])
 
 	useEffect(() => {
 		if (called) {
