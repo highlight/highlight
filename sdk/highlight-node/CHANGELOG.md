@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.7.2
+
+### Patch Changes
+
+-   59952b854: report exception.cause for js error objects with a cause attribute
+
 ## 3.7.1
 
 ### Patch Changes
