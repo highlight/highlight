@@ -254,8 +254,7 @@ export const Search: React.FC<{
 	// because we are reserving it for the body implicitly
 	const showValues =
 		activePart.key !== BODY_KEY &&
-		!!keysData?.keys?.find((k) => k.name === activePart.key) &&
-		activePart.text.includes(activePart.operator)
+		activePart.text.includes(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showPartSelect = !!activePart.value?.length
 
@@ -465,6 +464,7 @@ export const Search: React.FC<{
 					}}
 					onBlur={() => {
 						submitQuery(query)
+						setCursorIndex(-1)
 						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
@@ -513,6 +513,14 @@ export const Search: React.FC<{
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() => {
+										if (activePart.key === BODY_KEY) {
+											submitQuery(query)
+											comboboxStore.setOpen(false)
+											inputRef.current?.blur()
+											setCursorIndex(-1)
+											return
+										}
+
 										handleItemSelect(
 											showValues
 												? activePart.value
