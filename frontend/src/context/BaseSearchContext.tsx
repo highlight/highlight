@@ -38,4 +38,10 @@ export type BaseSearchContext = {
 		preset?: DateRangePreset,
 	) => void
 	resetTime: () => void
+	createNewSearch: (
+		searchQuery: string,
+		startDate?: Date,
+		endDate?: Date,
+		preset?: DateRangePreset,
+	) => void
 }

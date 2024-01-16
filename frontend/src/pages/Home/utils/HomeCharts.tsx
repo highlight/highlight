@@ -40,7 +40,7 @@ export const SessionCountGraph = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { updateSearchTime, removeSelectedSegment } = useSearchContext()
+	const { setSearchTime, removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
@@ -104,7 +104,7 @@ export const SessionCountGraph = ({
 					const date = moment(payload.activePayload[0].payload.date)
 					removeSelectedSegment()
 
-					updateSearchTime(
+					setSearchTime(
 						date.startOf('day').toDate(),
 						date.endOf('day').toDate(),
 					)

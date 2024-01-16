@@ -405,6 +405,30 @@ export const useGetBaseSearchContext = (
 		})
 	}, [admin, customFields, resetSearchTime, state.searchQuery])
 
+	const createNewSearch = useCallback(
+		(
+			searchQuery: string,
+			start?: Date,
+			end?: Date,
+			preset?: DateRangePreset,
+		) => {
+			let query = searchQuery
+
+			if (start && end) {
+				updateSearchTime(start, end, preset)
+				query = overwriteQueryDates(searchQuery, start, end)
+			}
+
+			dispatch({
+				type: SearchActionType.setSearchQuery,
+				searchQuery: query,
+				admin,
+				customFields,
+			})
+		},
+		[admin, customFields, updateSearchTime],
+	)
+
 	return {
 		...state,
 		selectedPreset,
@@ -416,6 +440,7 @@ export const useGetBaseSearchContext = (
 		setSearchResultsCount,
 		setSearchTime,
 		resetTime,
+		createNewSearch,
 	}
 }
 
