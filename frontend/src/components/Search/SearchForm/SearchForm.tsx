@@ -284,7 +284,6 @@ export const Search: React.FC<{
 			return
 		}
 
-		debugger
 		getKeys({
 			variables: {
 				project_id: project_id!,
@@ -339,7 +338,6 @@ export const Search: React.FC<{
 	}, [query])
 
 	const handleItemSelect = (key: Keys[0] | string) => {
-		debugger
 		const isValueSelect = typeof key === 'string'
 		const value = isValueSelect ? key : key.name
 		const isLastPart =
