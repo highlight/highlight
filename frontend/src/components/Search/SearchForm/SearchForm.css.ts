@@ -25,6 +25,7 @@ export const combobox = style([
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		display: 'flex',
+		fontFeatureSettings: 'normal', // disable tabular numbers
 		fontWeight: '500 !important',
 		pointerEvents: 'auto',
 		width: '100%',
@@ -74,6 +75,7 @@ export const comboboxTag = style({
 	position: 'relative',
 	textOverflow: 'ellipsis',
 	whiteSpace: 'pre',
+	wordSpacing: WORD_SPACING,
 })
 
 export const comboboxTagBackground = style({

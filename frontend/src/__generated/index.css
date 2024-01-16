@@ -5905,6 +5905,7 @@ body {
   border: 0;
   caret-color: var(--_1pyqka9b);
   display: flex;
+  font-feature-settings: normal;
   font-weight: 500 !important;
   pointer-events: auto;
   width: 100%;
@@ -5977,6 +5978,7 @@ body {
   position: relative;
   text-overflow: ellipsis;
   white-space: pre;
+  word-spacing: 4px;
 }
 ._10xh0c27 {
   border: var(--_1pyqka91o) solid 1px;

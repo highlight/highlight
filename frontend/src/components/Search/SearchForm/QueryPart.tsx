@@ -43,13 +43,7 @@ export const QueryPart: React.FC<{
 					const { text } = token
 					const key = `${text}-${index}`
 
-					return (
-						<Token
-							key={key}
-							text={text}
-							cssClass={styles.whitspaceTag}
-						/>
-					)
+					return <Token key={key} text={text} />
 				})}
 			</>
 		)
@@ -108,19 +102,11 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 	name?.replaceAll("'", ''),
 )
 
-export const Token = ({
-	text,
-	cssClass,
-}: {
-	text: string
-	cssClass?: string
-}): JSX.Element => {
+export const Token = ({ text }: { text: string }): JSX.Element => {
+	const cssClass = text.trim() === '' ? styles.whitspaceTag : ''
+
 	if (SEPARATORS.includes(text)) {
-		return (
-			<Box style={{ color: '#E93D82', zIndex: 1 }} cssClass={cssClass}>
-				{text}
-			</Box>
-		)
+		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
 	} else {
 		return (
 			<Box style={{ zIndex: 1 }} cssClass={cssClass}>
