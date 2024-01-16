@@ -28710,7 +28710,6 @@ __metadata:
     karma-jasmine: "npm:~5.1.0"
     karma-jasmine-html-reporter: "npm:~2.1.0"
     protractor: "npm:~7.0.0"
-    rxjs: "npm:~7.8.0"
     ts-node: "npm:~10.9.0"
     tslib: "npm:^2.3.0"
     typescript: "npm:~4.9.3"
@@ -59371,7 +59370,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.8.1, rxjs@npm:^7.8.1, rxjs@npm:~7.8.0":
+"rxjs@npm:7.8.1, rxjs@npm:^7.8.1":
   version: 7.8.1
   resolution: "rxjs@npm:7.8.1"
   dependencies:
