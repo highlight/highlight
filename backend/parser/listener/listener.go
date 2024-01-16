@@ -123,6 +123,9 @@ func (s *searchListener[T]) ExitAnd_op(ctx *parser.And_opContext)  {}
 func (s *searchListener[T]) EnterOr_op(ctx *parser.Or_opContext) {}
 func (s *searchListener[T]) ExitOr_op(ctx *parser.Or_opContext)  {}
 
+func (s *searchListener[T]) EnterImplicit_and_op(ctx *parser.Implicit_and_opContext) {}
+func (s *searchListener[T]) ExitImplicit_and_op(ctx *parser.Implicit_and_opContext)  {}
+
 func (s *searchListener[T]) EnterNegation_op(ctx *parser.Negation_opContext) {}
 func (s *searchListener[T]) ExitNegation_op(ctx *parser.Negation_opContext)  {}
 

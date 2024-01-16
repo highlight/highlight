@@ -34,6 +34,7 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
 	TIME_FORMAT,
@@ -392,7 +393,15 @@ export const Search: React.FC<{
 		const newTokenGroups = [...tokenGroups]
 		newTokenGroups.splice(index, 1)
 		const newQuery = newTokenGroups
-			.map((tokenGroup) => tokenGroup.tokens.map((token) => token.text))
+			.map((tokenGroup) =>
+				tokenGroup.tokens
+					.map((token) =>
+						token.type === SearchGrammarParser.EOF
+							? ''
+							: token.text,
+					)
+					.join(''),
+			)
 			.join('')
 			.trim()
 
@@ -478,6 +487,7 @@ export const Search: React.FC<{
 						if (e.key === 'Escape') {
 							submitAndBlur()
 						}
+
 						if (e.key === 'Enter' && query === '') {
 							e.preventDefault()
 							submitAndBlur()
