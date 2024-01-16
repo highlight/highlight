@@ -33,7 +33,6 @@ var (
 )
 
 func GetPostgresConnectionString() string {
-	// TODO(vkorolik) PSQL_DOCKER_HOST
 	return fmt.Sprintf("postgresql('%s:%s', '%s', 'sessions', '%s', '%s')", os.Getenv("PSQL_DOCKER_HOST"), os.Getenv("PSQL_PORT"), os.Getenv("PSQL_DB"), os.Getenv("PSQL_USER"), os.Getenv("PSQL_PASSWORD"))
 }
 
