@@ -12649,7 +12649,7 @@ __metadata:
     "@highlight-run/rrweb-types": "workspace:*"
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
-    "@rehooks/local-storage": "npm:^2.4.0"
+    "@rehooks/local-storage": "npm:^2.4.5"
     "@stripe/stripe-js": "npm:^1.32.0"
     "@svgr/cli": "npm:^5.5.0"
     "@svgr/core": "npm:^7.0.0"
@@ -19204,12 +19204,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rehooks/local-storage@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "@rehooks/local-storage@npm:2.4.0"
+"@rehooks/local-storage@npm:^2.4.5":
+  version: 2.4.5
+  resolution: "@rehooks/local-storage@npm:2.4.5"
   peerDependencies:
-    react: "*"
-  checksum: 82cd6ac35bf8ecb66ee93f092abb94ee7d3c68b21a803a0268d635a171c773fd0612024f56a5c2559b4f2d9a9480bb1c1d90e7ac1d0a158c1e3a278fca105480
+    react: ">=16.8.0"
+  checksum: 6ee932cc83e9c6358df595f6b9cba9f4ccf3aeac2149632dcfcd12e09733430d65ec13d77baff98b689826efa8173abb178dc862063670fe6585db41572ea69c
   languageName: node
   linkType: hard
 
