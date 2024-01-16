@@ -475,11 +475,10 @@ export const Search: React.FC<{
 						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
-						if (
-							e.key === 'Enter' &&
-							(query === '' ||
-								comboboxStore.getState().activeId === null)
-						) {
+						if (e.key === 'Escape') {
+							submitAndBlur()
+						}
+						if (e.key === 'Enter' && query === '') {
 							e.preventDefault()
 							submitAndBlur()
 						}
