@@ -376,6 +376,12 @@ type GitHubRepo struct {
 	Key    string `json:"key"`
 }
 
+type GitlabProject struct {
+	ID                int    `json:"id"`
+	Name              string `json:"name"`
+	NameWithNameSpace string `json:"nameWithNameSpace"`
+}
+
 type HeightList struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -1180,6 +1186,7 @@ const (
 	IntegrationTypeHeight  IntegrationType = "Height"
 	IntegrationTypeGitHub  IntegrationType = "GitHub"
 	IntegrationTypeJira    IntegrationType = "Jira"
+	IntegrationTypeGitLab  IntegrationType = "GitLab"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1193,11 +1200,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeHeight,
 	IntegrationTypeGitHub,
 	IntegrationTypeJira,
+	IntegrationTypeGitLab,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeGitLab:
 		return true
 	}
 	return false

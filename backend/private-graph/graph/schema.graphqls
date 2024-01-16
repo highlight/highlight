@@ -295,6 +295,12 @@ type JiraIssueType {
 	scope: JiraIssueTypeScope
 }
 
+type GitlabProject {
+	id: Int!
+	name: String!
+	nameWithNameSpace: String!
+}
+
 type JiraProject {
 	name: String!
 	key: String!
@@ -419,6 +425,7 @@ enum IntegrationType {
 	Height
 	GitHub
 	Jira
+	GitLab
 }
 
 enum ErrorState {
@@ -1955,6 +1962,7 @@ type Query {
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	jira_projects(workspace_id: ID!): [JiraProject!]
+	gitlab_projects(workspace_id: ID!): [GitlabProject!]
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
