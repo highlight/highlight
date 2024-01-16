@@ -3,7 +3,6 @@ on:
     push:
         branches:
             - 'main'
-            - 'vadim/kafka-tuning-v3'
         paths:
             - 'go.work'
             - 'go.work.sum'
