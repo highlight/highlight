@@ -1,11 +1,11 @@
 export const errorMonitoringHeroKey = '/images/features/errorMonitoringHero.png'
-export const loggingHeroKey = '/images/features/loggingHero.png'
+export const loggingHeroKey = '/images/fullstack-logging.webp'
 export const sessionReplayHeroKey = '/images/features/sessionReplayHero.png'
 export const loggingscreenshotKey = '/images/loggingscreenshot.png'
 export const monitoringscreenshotKey = '/images/monitoringscreenshot.png'
 export const sessionscreenshotKey = '/images/sessionscreenshot.png'
-export const tracesKey = '/images/traces.webp'
-export const tracesscreenshot = '/images/tracesmobile.svg'
+export const tracesHeroKey = '/images/traces.png'
+export const tracesscreenshotKey = '/images/tracesmobile.svg'
 
 const sessionReplay2 = '/images/features/sessionReplay2.png'
 const sessionReplay3 = '/images/landingInfoRow1.png'
@@ -14,6 +14,8 @@ const errorMonitoring1 = '/images/features/errorMonitoring1.png'
 const errorMonitoring2 = '/images/features/errorMonitoring2.png'
 const logging1 = '/images/features/logging1.png'
 const logging2 = '/images/features/logging2.png'
+const tracing1 = '/images/features/tracing1.png'
+const tracing2 = '/images/features/tracing2.png'
 
 type InfoRow = {
 	header: string
@@ -60,6 +62,11 @@ const onError = (request, error) => {
 const pythonSnippet: string = `import highlight_io
 
 H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
+`
+
+const tracingSnippet: string = `import highlight_io
+
+H = highlight_io.H("<YOUR_PROJECT_ID>")
 `
 
 export const FEATURES: { [k: string]: iFeature } = {
@@ -247,12 +254,12 @@ export const FEATURES: { [k: string]: iFeature } = {
 	},
 	traces: {
 		slug: 'traces',
-		header: 'Traces for modern web applications.',
+		header: 'Tracing for modern web applications.',
 		subheader:
 			'Search for and query the traces across your full-stack web app. Get started in seconds.',
 		docsLink: '/docs/general/product-features/logging/overview',
-		slantedImage: loggingHeroKey,
-		regularImage: loggingscreenshotKey,
+		slantedImage: tracesHeroKey,
+		regularImage: tracesscreenshotKey,
 		header2Selection: 3,
 		subheader2:
 			'Pinpoint latency across your entire codebase, all the way from the client to server.',
@@ -261,22 +268,22 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Dig deep into nested code execution.',
 				subheader:
 					'Scrutinize every layer of your codebase and identify bottlenecks, inefficiencies, and areas of optimization.',
-				link: '/docs/general/product-features/logging/overview',
+				link: '/docs/getting-started/overview',
 				linkText: 'Read the Docs',
-				imgSrc: logging1,
+				imgSrc: tracing1,
 				invert: true,
 			},
 			{
 				header: 'Powerful search. Powered by ClickHouse.',
 				subheader:
-					'Perform fine-grained searches across all of your logs. Powered by ClickHouse, an industry leading time-series database.',
-				link: '/docs/general/product-features/logging/overview',
+					'Perform fine-grained searches across all of your traces. Powered by ClickHouse, an industry leading time-series database.',
+				link: '/docs/getting-started/overview',
 				linkText: 'Read the Docs',
-				imgSrc: logging2,
+				imgSrc: tracing2,
 				invert: false,
 			},
 			{
-				header: 'From a “click” to a server-side error.',
+				header: 'From a “click” to a server-side trace.',
 				subheader:
 					'Visualize a complete, cohesive view of your entire stack. All the way from a user clicking a button to a server-side trace.',
 				link: 'https://app.highlight.io/?sign_up=1',
@@ -296,11 +303,11 @@ export const FEATURES: { [k: string]: iFeature } = {
 			{
 				header: 'A few lines of code. That’s it.',
 				subheader:
-					'Install highlight.io in seconds and get logging out of the box.',
+					'Install highlight.io in seconds and get tracing out of the box.',
 				link: '/docs/getting-started/overview',
 				linkText: 'Framework Docs',
 				invert: true,
-				code: pythonSnippet,
+				code: tracingSnippet,
 				codeFrom: 'Python',
 			},
 		],
