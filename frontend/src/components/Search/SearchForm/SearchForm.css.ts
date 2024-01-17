@@ -25,7 +25,7 @@ export const combobox = style([
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		display: 'flex',
-		fontFeatureSettings: 'normal', // disable tabular numbers
+		fontFeatureSettings: '"tnum" off', // disable tabular numbers
 		fontWeight: '500 !important',
 		pointerEvents: 'auto',
 		width: '100%',
@@ -71,7 +71,7 @@ export const comboboxTagsContainer = style([
 
 export const comboboxTag = style({
 	display: 'inline-flex',
-	fontFeatureSettings: 'normal', // disable tabular numbers
+	fontFeatureSettings: '"tnum" off', // disable tabular numbers
 	position: 'relative',
 	textOverflow: 'ellipsis',
 	whiteSpace: 'pre',

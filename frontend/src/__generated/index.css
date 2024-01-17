@@ -3608,7 +3608,7 @@
 }
 body {
   color: var(--_1pyqka9b);
-  font-feature-settings: "tnum" 0;
+  font-feature-settings: "tnum" off;
   font-family:
     Inter,
     -apple-system,
@@ -5905,7 +5905,7 @@ body {
   border: 0;
   caret-color: var(--_1pyqka9b);
   display: flex;
-  font-feature-settings: normal;
+  font-feature-settings: "tnum" off;
   font-weight: 500 !important;
   pointer-events: auto;
   width: 100%;
@@ -5974,7 +5974,7 @@ body {
 }
 ._10xh0c26 {
   display: inline-flex;
-  font-feature-settings: normal;
+  font-feature-settings: "tnum" off;
   position: relative;
   text-overflow: ellipsis;
   white-space: pre;
@@ -6086,7 +6086,6 @@ body {
 }
 ._1wt9z3q1 {
   display: inline-flex;
-  font-feature-settings: normal;
   margin: 2px 0;
   padding: 0;
   white-space: pre;
