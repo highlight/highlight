@@ -725,7 +725,7 @@ grpc = ["grpcio (>=1.44.0,<2.0.0.dev0)"]
 name = "greenlet"
 version = "3.0.3"
 description = "Lightweight in-process concurrent programming"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "greenlet-3.0.3-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:9da2bd29ed9e4f15955dd1595ad7bc9320308a3b766ef7f837e23ad4b4aac31a"},
@@ -1403,7 +1403,7 @@ test = ["httpretty (>=1.0,<2.0)", "opentelemetry-instrumentation-requests[instru
 name = "opentelemetry-instrumentation-sqlalchemy"
 version = "0.43b0"
 description = "OpenTelemetry SQLAlchemy instrumentation"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "opentelemetry_instrumentation_sqlalchemy-0.43b0-py3-none-any.whl", hash = "sha256:ae89ce719e8cda5518f1f6e8a6aff915dde1d7afbd3d6c6dd9654bb1e6126f8e"},
@@ -1955,7 +1955,7 @@ files = [
 name = "sqlalchemy"
 version = "2.0.25"
 description = "Database Abstraction Library"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "SQLAlchemy-2.0.25-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4344d059265cc8b1b1be351bfb88749294b87a8b2bbe21dfbe066c4199541ebd"},
@@ -2585,8 +2585,9 @@ django = ["django"]
 fastapi = ["fastapi", "uvicorn"]
 flask = ["blinker", "flask"]
 redis = ["opentelemetry-instrumentation-redis", "redis"]
+sqlalchemy = ["opentelemetry-instrumentation-sqlalchemy", "sqlalchemy"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4"
-content-hash = "e6bcf13dcf0ca3a048887a035064692e694f905b1c2fd349aa62cd47c88e0ce2"
+content-hash = "e7613fdb279365456de465a6257fb2a6c3efc2da5f1b64c950dce9b51769ce83"
