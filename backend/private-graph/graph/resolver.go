@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -23,6 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/gitlab"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/sashabaranov/go-openai"
+	"github.com/segmentio/encoding/json"
 
 	"gorm.io/gorm/clause"
 
@@ -46,6 +46,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"gorm.io/gorm"
+
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/openlyinc/pointy"
@@ -58,7 +60,6 @@ import (
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/client"
 	"github.com/stripe/stripe-go/v76/webhook"
-	"gorm.io/gorm"
 
 	"github.com/highlight-run/workerpool"
 

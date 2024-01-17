@@ -3,10 +3,11 @@ package kafka_queue
 // based on https://github.com/segmentio/kafka-go/blob/e0af1cfbb8dd463571748e350262e2c81754bb73/example_groupbalancer_test.go#L37 and https://github.com/segmentio/kafka-go/issues/415
 
 import (
-	"encoding/json"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/segmentio/encoding/json"
 )
 
 var availabilityZoneMap = map[string]string{

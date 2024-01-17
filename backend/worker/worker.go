@@ -3,7 +3,6 @@ package worker
 import (
 	"container/list"
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -14,6 +13,11 @@ import (
 	"time"
 
 	"github.com/samber/lo"
+	"github.com/segmentio/encoding/json"
+
+	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/golang/snappy"
@@ -44,9 +48,6 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/attribute"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
 )
 
 // Worker is a job runner that parses sessions

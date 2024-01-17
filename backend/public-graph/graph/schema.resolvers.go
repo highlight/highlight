@@ -6,8 +6,9 @@ package graph
 
 import (
 	"context"
-	"encoding/json"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/DmitriyVTitov/size"
 	"github.com/aws/smithy-go/ptr"
@@ -21,8 +22,8 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
