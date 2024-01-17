@@ -25,6 +25,7 @@ import { StringParam, useQueryParams } from 'use-query-params'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
+import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
@@ -41,6 +42,7 @@ const WorkspaceIntegrations = new Set<string>([
 	'github',
 	'height',
 	'jira',
+	'gitlab',
 ])
 
 const logError = (e: any) => {
@@ -426,6 +428,19 @@ const JiraIntegrationCallback = ({ code, projectId }: Props) => {
 	)
 }
 
+const GitlabIntegrationCallback = ({ code, projectId }: Props) => {
+	const { addIntegration } = useGitlabIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="GitLab"
+			type="gitlab"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -495,6 +510,14 @@ const IntegrationAuthCallbackPage = () => {
 			case 'jira':
 				cb = (
 					<JiraIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'gitlab':
+				cb = (
+					<GitlabIntegrationCallback
 						code={code}
 						projectId={projectId}
 					/>

@@ -1,5 +1,24 @@
 # highlight.run
 
+## 8.4.0
+
+### Minor Changes
+
+-   7a3e3d077: optimize data transfer from browser sdk by compressing uploads
+    changes data export to https://pub.highlight.io which may require CSP setting changes
+
+### Patch Changes
+
+-   59952b854: update highlight.run client import for nodenext resolution
+-   59952b854: fix promise patch for angular.js
+
+## 8.3.2
+
+### Patch Changes
+
+-   a07cdf584: correctly record stack trace for async promise rejections
+-   4493988b0: support sending structured attributes in browser console logs
+
 ## 8.3.1
 
 ### Patch Changes

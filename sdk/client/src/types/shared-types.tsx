@@ -1,7 +1,8 @@
 import StackTrace from 'stacktrace-js'
 
 export type ConsoleMessage = {
-	value?: Array<any> | string
+	value?: Array<string>
+	attributes?: object
 	time: number
 	type: string
 	trace?: StackTrace.StackFrame[]

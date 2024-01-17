@@ -25,12 +25,14 @@ export const useGetTraces = ({
 	traceCursor,
 	startDate,
 	endDate,
+	skipPolling,
 }: {
 	query: string
 	projectId: string | undefined
 	traceCursor: string | undefined
 	startDate: Date
 	endDate: Date
+	skipPolling?: boolean
 }) => {
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
@@ -74,6 +76,7 @@ export const useGetTraces = ({
 		GetTracesQuery,
 		GetTracesQueryVariables
 	>({
+		skip: skipPolling,
 		variableFn: useCallback(
 			() => ({
 				project_id: projectId!,
@@ -83,9 +86,7 @@ export const useGetTraces = ({
 					query: serverQuery,
 					date_range: {
 						start_date: moment(endDate).format(TIME_FORMAT),
-						end_date: moment(endDate)
-							.add(1, 'hour')
-							.format(TIME_FORMAT),
+						end_date: moment().format(TIME_FORMAT),
 					},
 				},
 			}),

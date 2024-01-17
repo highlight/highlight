@@ -12,10 +12,7 @@ from highlight_io.integrations.requests import RequestsIntegration
 app = Flask(__name__)
 H = highlight_io.H(
     "1",
-    integrations=[
-        FlaskIntegration(),
-        RequestsIntegration(tracing_origins=["localhost", "highlight.io"]),
-    ],
+    integrations=[FlaskIntegration()],
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-flask-app",
@@ -31,9 +28,6 @@ def hello():
         {"customer": request.headers.get("customer") or "unknown"},
     )
 
-    r = requests.get(url="http://app.highlight.io/health_check")
-    logging.info(f"received {r.status_code} response")
-
     for idx in range(1000):
         logging.info(f"hello {idx}")
         time.sleep(0.001)
@@ -41,6 +35,14 @@ def hello():
             raise Exception(f"random error! {idx}")
     logging.warning("made it outside the loop!")
     return "<h1>Hello, World!</h1>"
+
+
+@app.route("/external")
+def external():
+    r = requests.get(url="http://app.highlight.io/health_check")
+    logging.info(f"received {r.status_code} response")
+
+    return "<h1>External Request</h1>"
 
 
 if __name__ == "__main__":

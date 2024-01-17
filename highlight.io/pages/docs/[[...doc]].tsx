@@ -44,11 +44,12 @@ import DocSelect from '../../components/Docs/DocSelect/DocSelect'
 import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
+import logger from '../../highlight.logger'
 import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
-const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
+const DOCS_GITHUB_LINK = `github.com/highlight/highlight/blob/main/docs-content`
 export interface DocPath {
 	// e.g. '[tips, sessions-search-deep-linking.md]'
 	array_path: string[]
@@ -320,6 +321,10 @@ interface TocEntry {
 }
 
 export const getStaticProps: GetStaticProps<DocData> = async (context) => {
+	// logger.info(
+	// 	{ params: context?.params },
+	// 	`docs getStaticProps ${context?.params?.doc}`,
+	// )
 	const docPaths = sortBySlashLength(await getDocsPaths(fsp, undefined))
 
 	// const sdkPaths = await getSdkPaths(fsp, undefined);
@@ -571,6 +576,10 @@ const PageRightBar = ({
 	const [activeId, setActiveId] = useState<string>()
 	useIntersectionObserver(setActiveId)
 
+	const suggestLink =
+		'https://' +
+		`${DOCS_GITHUB_LINK}${relativePath}`.replaceAll(/\/+/g, '/')
+
 	return (
 		<div className={styles.rightBarWrap}>
 			<div className={styles.resourcesSideBar}>
@@ -583,17 +592,14 @@ const PageRightBar = ({
 					<FaDiscord style={{ height: 20, width: 20 }}></FaDiscord>
 					<Typography type="copy3">Community / Support</Typography>
 				</Link>
-				<Link
+				<a
 					className={styles.socialItem}
-					href={`${DOCS_GITUB_LINK}${relativePath}`.replaceAll(
-						/\/+/g,
-						'/',
-					)}
+					href={suggestLink}
 					target="_blank"
 				>
 					<FaGithub style={{ height: 20, width: 20 }}></FaGithub>
 					<Typography type="copy3">Suggest Edits?</Typography>
-				</Link>
+				</a>
 				<Link
 					style={{ borderTop: '1px solid #30294E' }}
 					className={styles.socialItem}

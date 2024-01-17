@@ -477,16 +477,15 @@ func GetWorkspaceTracesMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 }
 
 func GetLimitAmount(limitCostCents *int, productType model.PricingProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
-	included := IncludedAmount(planType, productType)
+	count := IncludedAmount(planType, productType)
 	if planType == backend.PlanTypeFree {
-		return pointy.Int64(included)
+		return pointy.Int64(count)
 	}
 	if limitCostCents == nil {
 		return nil
 	}
 
 	retentionMultiplier := RetentionMultiplier(retentionPeriod)
-	count := IncludedAmount(planType, productType)
 	var cost float64
 	for _, item := range ProductPrices[planType][productType].Items {
 		quota := int64((float64(*limitCostCents)/100. - cost) / item.Rate / retentionMultiplier)
@@ -507,7 +506,7 @@ func ProductToBasePriceCents(productType model.PricingProductType, planType back
 	included := IncludedAmount(planType, productType)
 	remainder := meter - included
 	if remainder <= 0 {
-		return 0
+		return ProductPrices[planType][productType].Items[0].Rate * 100.
 	}
 	var price float64
 	for _, item := range ProductPrices[planType][productType].Items {
@@ -521,7 +520,7 @@ func ProductToBasePriceCents(productType model.PricingProductType, planType back
 		price += float64(itemUsage) * item.Rate
 		remainder -= itemUsage
 	}
-	return price / float64(meter) * 100.
+	return price / float64(meter-included) * 100.
 }
 
 func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
@@ -1109,12 +1108,6 @@ func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace
 		if paymentMethod.Card != nil && paymentMethod.Card.Checks != nil {
 			if paymentMethod.Card.Checks.CVCCheck == stripe.PaymentMethodCardChecksCVCCheckFail {
 				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe cvc check failed")
-				failures += 1
-			} else if paymentMethod.Card.Checks.AddressPostalCodeCheck == stripe.PaymentMethodCardChecksAddressPostalCodeCheckFail {
-				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address postal check failed")
-				failures += 1
-			} else if paymentMethod.Card.Checks.AddressLine1Check == stripe.PaymentMethodCardChecksAddressLine1CheckFail {
-				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe address line1 check failed")
 				failures += 1
 			}
 		}

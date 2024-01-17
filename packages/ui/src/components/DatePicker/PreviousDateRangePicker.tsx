@@ -398,12 +398,35 @@ const PreviousDateRangePickerImpl = ({
 		[selectedDates],
 	)
 
+	const handleAbsoluteDateChange = (selectedDates: Date[]) => {
+		let startDate = selectedDates?.[0]
+		let endDate = selectedDates?.[1]
+		if (startDate) {
+			startDate = moment
+				.max(moment(startDate).startOf('day'), moment(minDate))
+				.toDate()
+		}
+		if (endDate) {
+			endDate = moment
+				.min(moment(endDate).endOf('day'), moment())
+				.toDate()
+		}
+
+		const newDates = [startDate, endDate].filter((date) => !!date)
+		handleDatesChange(newDates)
+	}
+
 	return (
 		<DatePickerStateProvider
 			config={{
 				selectedDates,
-				onDatesChange: handleDatesChange,
-				dates: { mode: 'range', minDate, maxDate: new Date() },
+				onDatesChange: handleAbsoluteDateChange,
+				dates: {
+					mode: 'range',
+					minDate,
+					maxDate: new Date(),
+					selectSameDate: true,
+				},
 			}}
 		>
 			<Menu.Button

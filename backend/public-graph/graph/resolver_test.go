@@ -617,13 +617,13 @@ func Test_WithinQuota_CommittedPricing(t *testing.T) {
 			// workspace 2: usage based (500 included), 500 overage, $5 = 250 sessions until limit. not within limit.
 			resolver.DB.Exec(`drop materialized view daily_session_counts_view`)
 			resolver.DB.Exec(`
-			select * into daily_session_counts_view 
-			from (
-				select 1 as project_id, '2023-01-01'::date as date, 11000 as count
-				union all select 1, '2023-01-02'::date, 0
-				union all select 2, '2023-01-01'::date, 1000
-				union all select 2, '2023-01-02'::date, 0) a
-		`)
+				select * into daily_session_counts_view 
+				from (
+					select 1 as project_id, '2023-01-01'::date as date, 11000 as count
+					union all select 1, '2023-01-02'::date, 0
+					union all select 2, '2023-01-01'::date, 1000
+					union all select 2, '2023-01-02'::date, 0) a
+			`)
 
 			basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceBasic, time.Now())
 			assert.True(t, basicWithinBillingQuota)

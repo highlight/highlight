@@ -64,3 +64,18 @@
 
 - Add support for Python versions 3.9 and lower for sdk v0.6.8.
 - Optimization of LRU cache
+
+## v0.6.11 (2024-01-08)
+
+### Fix
+
+- Requires Python version 3.8 or newer.
+- Support tracing auto-instrumention for the celery library.
+- Optimizations for requests auto-instrumentation tracing.
+- Removes `tracing_origins` configuration for requests library and passes by default.
+
+## v0.6.12 (2024-01-09)
+
+### Fix
+
+- Support tracing auto-instrumention for boto, boto3 (sqs), and redis libraries.

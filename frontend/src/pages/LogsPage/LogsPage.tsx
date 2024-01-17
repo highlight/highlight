@@ -1,5 +1,10 @@
 import { LogLevel, ProductType } from '@graph/schemas'
-import { Box, defaultPresets, getNow } from '@highlight-run/ui/components'
+import {
+	Box,
+	DateRangePreset,
+	DEFAULT_TIME_PRESETS,
+	presetStartDate,
+} from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -9,16 +14,15 @@ import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { QueryParamConfig, useQueryParam } from 'use-query-params'
+import { useQueryParam } from 'use-query-params'
 
 import {
 	TIME_FORMAT,
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
-	EndDateParam,
-	FixedRangeStartDateParam,
-	PermalinkStartDateParam,
+	FixedRangePreset,
+	PermalinkPreset,
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
@@ -28,6 +32,7 @@ import {
 	useGetLogsKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 
 const LogsPage = () => {
@@ -36,16 +41,14 @@ const LogsPage = () => {
 	}>()
 
 	const timeMode = log_cursor !== undefined ? 'permalink' : 'fixed-range'
-	const startDateDefault =
-		timeMode === 'permalink'
-			? PermalinkStartDateParam
-			: FixedRangeStartDateParam
+	const presetDefault =
+		timeMode === 'permalink' ? PermalinkPreset : FixedRangePreset
 
 	return (
 		<LogsPageInner
 			logCursor={log_cursor}
 			timeMode={timeMode}
-			startDateDefault={startDateDefault}
+			presetDefault={presetDefault}
 		/>
 	)
 }
@@ -53,22 +56,28 @@ const LogsPage = () => {
 type Props = {
 	timeMode: TIME_MODE
 	logCursor: string | undefined
-	startDateDefault: QueryParamConfig<Date | null | undefined, Date>
+	presetDefault: DateRangePreset
 }
 
 const HEADERS_AND_CHARTS_HEIGHT = 228
 const LOAD_MORE_HEIGHT = 28
 
-const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
+const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const [startDate, setStartDate] = useQueryParam(
-		'start_date',
-		startDateDefault,
-	)
-	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
+
+	const {
+		startDate,
+		endDate,
+		datePickerValue,
+		rebaseSearchTime,
+		updateSearchTime,
+	} = useSearchTime({
+		presets: DEFAULT_TIME_PRESETS,
+		initialPreset: presetDefault,
+	})
 
 	const {
 		logEdges,
@@ -85,16 +94,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		logCursor,
 		startDate,
 		endDate,
+		disablePolling: !datePickerValue.selectedPreset,
 	})
-
-	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
-		setStartDate(newStartDate)
-		setEndDate(newEndDate)
-	}
-
-	const handleAdditionalLogsDateChange = () => {
-		handleDatesChange(defaultPresets[0].startDate, getNow().toDate())
-	}
 
 	const handleLevelChange = (level: LogLevel) => {
 		setQuery(`${query} level:${level}`)
@@ -158,27 +159,29 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 				>
 					<SearchForm
 						initialQuery={query}
-						onFormSubmit={(value) => setQuery(value)}
+						onFormSubmit={setQuery}
 						startDate={startDate}
 						endDate={endDate}
-						onDatesChange={handleDatesChange}
-						presets={defaultPresets}
-						minDate={defaultPresets[5].startDate}
+						onDatesChange={updateSearchTime}
+						presets={DEFAULT_TIME_PRESETS}
+						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+						datePickerValue={datePickerValue}
 						timeMode={timeMode}
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
+						savedSegmentType="Log"
 					/>
 					<LogsCount
 						startDate={startDate}
 						endDate={endDate}
-						presets={defaultPresets}
+						presetSelected={!!datePickerValue.selectedPreset}
 						totalCount={histogramData?.logs_histogram.objectCount}
 						loading={histogramLoading}
 					/>
 					<LogsHistogram
 						startDate={startDate}
 						endDate={endDate}
-						onDatesChange={handleDatesChange}
+						onDatesChange={updateSearchTime}
 						onLevelChange={handleLevelChange}
 						loading={histogramLoading}
 						histogramBuckets={histogramData?.logs_histogram.buckets}
@@ -199,9 +202,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							selectedCursor={logCursor}
 							moreLogs={moreLogs}
 							clearMoreLogs={clearMoreLogs}
-							handleAdditionalLogsDateChange={
-								handleAdditionalLogsDateChange
-							}
+							handleAdditionalLogsDateChange={rebaseSearchTime}
 							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 						/>

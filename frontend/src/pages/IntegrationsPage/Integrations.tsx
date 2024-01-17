@@ -1,6 +1,7 @@
 import {
 	IconSolidClickUp,
 	IconSolidGithub,
+	IconSolidGitlab,
 	IconSolidHeight,
 	IconSolidJira,
 	IconSolidLinear,
@@ -24,6 +25,8 @@ import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIn
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import React from 'react'
 
+import GitlabIntegrationConfig from '@/pages/IntegrationsPage/components/GitlabIntegration/GitlabIntegrationConfig'
+import GitlabProjectSelector from '@/pages/IntegrationsPage/components/GitlabIntegration/GitlabProjectSelector'
 import JiraIntegrationConfig from '@/pages/IntegrationsPage/components/JiraIntegration/JiraIntegrationConfig'
 import JiraProjectAndIssueTypeSelector from '@/pages/IntegrationsPage/components/JiraIntegration/JiraProjectSelector'
 import ClearbitLogo from '@/static/integrations/clearbit.svg'
@@ -31,6 +34,7 @@ import ClickupLogo from '@/static/integrations/clickup.svg'
 import DiscordLogo from '@/static/integrations/discord.svg'
 import FrontLogo from '@/static/integrations/front.png'
 import GitHubLogo from '@/static/integrations/github.svg'
+import GitlabLogo from '@/static/integrations/gitlab.png'
 import HeightLogo from '@/static/integrations/height.svg'
 import JiraLogo from '@/static/integrations/jira.png'
 import LinearLogo from '@/static/integrations/linear.png'
@@ -111,6 +115,20 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'issue',
 	containerSelection: (opts) => <JiraProjectAndIssueTypeSelector {...opts} />,
 	Icon: IconSolidJira,
+}
+
+export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
+	key: 'gitlab',
+	name: 'GitLab',
+	configurationPath: 'gitlab',
+	description: 'Bring your Highlight comments to GitLab as issues.',
+	icon: GitlabLogo,
+	configurationPage: (opts) => <GitlabIntegrationConfig {...opts} />,
+	hasSettings: false,
+	containerLabel: 'team',
+	issueLabel: 'issue',
+	containerSelection: (opts) => <GitlabProjectSelector {...opts} />,
+	Icon: IconSolidGitlab,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -235,6 +253,7 @@ const INTEGRATIONS: Integration[] = [
 	GITHUB_INTEGRATION,
 	JIRA_INTEGRATION,
 	MICROSOFT_TEAMS_INTEGRATION,
+	GITLAB_INTEGRATION,
 ]
 
 export default INTEGRATIONS

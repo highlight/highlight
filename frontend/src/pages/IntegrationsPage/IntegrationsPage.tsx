@@ -19,6 +19,7 @@ import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
+import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
@@ -66,6 +67,13 @@ const IntegrationsPage = () => {
 			loading: loadingJira,
 		},
 	} = useJiraIntegration()
+
+	const {
+		settings: {
+			isIntegrated: isGitlabIntegratedWithProject,
+			loading: loadingGitlab,
+		},
+	} = useGitlabIntegration()
 
 	const {
 		settings: {
@@ -141,7 +149,8 @@ const IntegrationsPage = () => {
 				(inter.key === 'height' && isHeightIntegratedWithProject) ||
 				(inter.key === 'jira' && isJiraIntegratedWithProject) ||
 				(inter.key === 'microsoft_teams' &&
-					isMicrosoftTeamsConnectedToWorkspace),
+					isMicrosoftTeamsConnectedToWorkspace) ||
+				(inter.key === 'gitlab' && isGitlabIntegratedWithProject),
 		}))
 	}, [
 		currentWorkspace?.id,
@@ -158,6 +167,7 @@ const IntegrationsPage = () => {
 		isHeightIntegratedWithProject,
 		isJiraIntegratedWithProject,
 		isMicrosoftTeamsConnectedToWorkspace,
+		isGitlabIntegratedWithProject,
 	])
 
 	useEffect(() => analytics.page(), [])

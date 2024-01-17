@@ -28,7 +28,9 @@ export const Buttons = () => {
 	const [showWebSocket, setShowWebSocket] = useState(false)
 	const [sendEmail, { loading }] = useSendEmailSignupMutation()
 	if (hasError) {
-		throw new Error('got an error')
+		throw new Error('this is a buttons error', {
+			cause: { location: window.location.toString(), foo: ['bar'] },
+		})
 	}
 	const [getWorkspaceAdmins] = useGetWorkspaceAdminsByProjectIdLazyQuery({
 		variables: { project_id: '1' },
@@ -89,7 +91,7 @@ export const Buttons = () => {
 	}, [])
 
 	const messageListener = (message: MessageEvent) => {
-		console.log('Highlight[iframe]', message.data)
+		console.log('Highlight[iframe]', { eventData: message.data })
 	}
 	useEffect(() => {
 		window.addEventListener('message', messageListener)
@@ -214,19 +216,33 @@ export const Buttons = () => {
 					</button>
 					<button
 						className={commonStyles.submitButton}
-						onClick={() => {
-							for (let i = 0; i < 100; i++) {
-								new Promise<void>((resolve, reject) => {
-									if (Math.random() < 0.1) {
-										throw new Error(
-											'third uncaught error in promise',
-										)
-									} else if (Math.random() < 0.2) {
-										reject('what the')
-									}
-									resolve()
-								}).then()
+						onClick={async () => {
+							const p = (
+								resolve: (value: void) => void,
+								reject: (reason?: any) => void,
+							) => {
+								const rng = Math.random()
+								if (rng < 0.2) {
+									throw new Error(
+										'third uncaught error in promise',
+									)
+								} else if (rng < 0.4) {
+									return reject('what the')
+								} else if (rng < 0.6) {
+									return reject(new Error('oh my'))
+								} else if (rng < 0.8) {
+									return reject()
+								}
+								return resolve()
 							}
+
+							const promises = []
+							for (let i = 0; i < 100; i++) {
+								// unhandled promise rejection
+								new Promise<void>(p)
+								promises.push(new Promise<void>(p))
+							}
+							await Promise.allSettled(promises)
 						}}
 					>
 						Async Error
@@ -242,7 +258,14 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
-							H.error('Highlight H.error')
+							H.consumeError(
+								new Error('Highlight H.consumeError', {
+									cause: {
+										location: window.location.toString(),
+										foo: 'bar',
+									},
+								}),
+							)
 						}}
 					>
 						H.error()

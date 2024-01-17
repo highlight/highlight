@@ -19,7 +19,7 @@ This policy is to allow downloading the Highlight runtime code for session recor
 #### `worker-src`: `blob: https://static.highlight.io`
 This policy allows our script to create a web-worker which we use to serialize the recording data without affecting the performance of your application.
 
-#### `connect-src`: `https://pub.highlight.run`
+#### `connect-src`: `https://pub.highlight.io`
 This policy is to allow connecting with Highlight servers to send recorded session data.
 
 Your [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) definition may look something like this:
@@ -27,6 +27,6 @@ Your [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) definition may
 ```html
 <meta
   http-equiv="Content-Security-Policy"
-  content="default-src 'self'; script-src 'self' https://static.highlight.io; worker-src: blob: https://static.highlight.io; connect-src https://pub.highlight.run;"
+  content="default-src 'self'; script-src 'self' https://static.highlight.io; worker-src: blob: https://static.highlight.io; connect-src https://pub.highlight.io;"
 />
 ```

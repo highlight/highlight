@@ -673,6 +673,13 @@ export type GitHubRepo = {
 	repo_id: Scalars['String']
 }
 
+export type GitlabProject = {
+	__typename?: 'GitlabProject'
+	id: Scalars['Int']
+	name: Scalars['String']
+	nameWithNameSpace: Scalars['String']
+}
+
 export type HeightList = {
 	__typename?: 'HeightList'
 	id: Scalars['String']
@@ -731,6 +738,7 @@ export enum IntegrationType {
 	Discord = 'Discord',
 	Front = 'Front',
 	GitHub = 'GitHub',
+	GitLab = 'GitLab',
 	Height = 'Height',
 	Jira = 'Jira',
 	Linear = 'Linear',
@@ -1858,6 +1866,7 @@ export type Query = {
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
 	github_repos?: Maybe<Array<GitHubRepo>>
+	gitlab_projects?: Maybe<Array<GitlabProject>>
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
@@ -2223,6 +2232,10 @@ export type QueryGithub_Issue_LabelsArgs = {
 }
 
 export type QueryGithub_ReposArgs = {
+	workspace_id: Scalars['ID']
+}
+
+export type QueryGitlab_ProjectsArgs = {
 	workspace_id: Scalars['ID']
 }
 
@@ -3139,9 +3152,9 @@ export type SessionsReportRow = {
 	location: Scalars['String']
 	max_active_length_mins: Scalars['Float']
 	max_length_mins: Scalars['Float']
-	num_days_visited: Scalars['Int']
-	num_months_visited: Scalars['Int']
-	num_sessions: Scalars['Int']
+	num_days_visited: Scalars['UInt64']
+	num_months_visited: Scalars['UInt64']
+	num_sessions: Scalars['UInt64']
 	total_active_length_mins: Scalars['Float']
 	total_length_mins: Scalars['Float']
 	user_properties?: Maybe<Scalars['String']>

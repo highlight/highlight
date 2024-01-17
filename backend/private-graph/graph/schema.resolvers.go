@@ -1423,7 +1423,7 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 
 	columns := []interface{}{"errors_retention_period", "retention_period"}
 	if settings.EnableBillingLimits {
-		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents")
+		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents", "traces_max_cents")
 	}
 	if err := r.DB.WithContext(ctx).Model(&workspace).
 		Select(columns[0], columns[1:]...).
@@ -1684,6 +1684,19 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				title,
+				desc,
+				*issueTeamID,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1765,6 +1778,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID, *issueTypeID); err != nil {
 				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2095,6 +2114,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2278,6 +2303,12 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2429,6 +2460,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.AddGitlabToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
@@ -2504,6 +2539,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveMicrosoftTeamsFromWorkspace(workspace, projectID); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2534,6 +2573,10 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.AddGitlabToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2558,6 +2601,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		}
 	} else if integrationType == modelInputs.IntegrationTypeJira {
 		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -4807,28 +4854,18 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 
 // WebVitals is the resolver for the web_vitals field.
 func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, nil
+	}
+
 	webVitalNames := []string{
 		"CLS", "FCP", "FID", "LCP", "TTFB",
 	}
-	webVitals := []*model.Metric{}
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return webVitals, nil
-	}
 
-	if err := r.DB.WithContext(ctx).Raw(`
-	WITH filtered_group_ids AS (
-		SELECT id
-		FROM metric_groups
-		WHERE session_id = ?
-		LIMIT 100000
-	  )
-	  SELECT metrics.*
-	  FROM metrics
-	  WHERE metrics.name in ?
-	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
-		log.WithContext(ctx).Error(err)
-		return webVitals, nil
+	webVitals, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, s.ProjectID, sessionSecureID, webVitalNames)
+	if err != nil {
+		return nil, err
 	}
 
 	return webVitals, nil
@@ -5659,16 +5696,12 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 		return nil, err
 	}
 
-	ids, total, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000, query, "ID", nil, retentionDate)
+	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	if total >= 1_000_000 {
-		return nil, e.New("too many sessions to generate report, adjust the query to return fewer sessions")
-	}
 
-	var results []*modelInputs.SessionsReportRow
-	if err := r.DB.Raw(`
+	rows, err := r.ClickhouseClient.GetConn().Query(ctx, fmt.Sprintf(`
 select coalesce(email, ip, client_id, identifier)                              as key,
        max(user_properties::text) filter ( where user_properties is not null ) as user_properties,
        count(*)                                                                as num_sessions,
@@ -5681,12 +5714,19 @@ select coalesce(email, ip, client_id, identifier)                              a
        max(length) / 1000 / 60                                                 as max_length_mins,
        sum(length) / 1000 / 60                                                 as total_length_mins,
        max(case when state is not null then state || '|' || city end)          as location
-from sessions
-where id in (?)
-group by 1
-order by num_sessions desc;
-`, ids).Scan(&results).Error; err != nil {
+from %s where id in (%s) group by 1 order by num_sessions desc;
+`, clickhouse.GetPostgresConnectionString(), sql), args...)
+	if err != nil {
 		return nil, err
+	}
+
+	var results []*modelInputs.SessionsReportRow
+	for rows.Next() {
+		var result modelInputs.SessionsReportRow
+		if err := rows.Scan(&result.Key, &result.UserProperties, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
+			return nil, err
+		}
+		results = append(results, &result)
 	}
 
 	return results, nil
@@ -6727,6 +6767,16 @@ func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*m
 	}
 
 	return r.GetJiraProjects(ctx, workspace)
+}
+
+// GitlabProjects is the resolver for the gitlab_projects field.
+func (r *queryResolver) GitlabProjects(ctx context.Context, workspaceID int) ([]*modelInputs.GitlabProject, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetGitlabProjects(ctx, workspace)
 }
 
 // GithubRepos is the resolver for the github_repos field.
@@ -8052,31 +8102,19 @@ func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	var deviceMemory *int
-	metric := &model.Metric{}
-
-	if err := r.DB.WithContext(ctx).Raw(`
-	WITH filtered_group_ids AS (
-		SELECT id
-		FROM metric_groups
-		WHERE session_id = ?
-		LIMIT 100000
-	  )
-	  SELECT metrics.*
-	  FROM metrics
-	  WHERE metrics.name = ?
-	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").Take(&metric).Error; err != nil {
-		if !e.Is(err, gorm.ErrRecordNotFound) {
-			log.WithContext(ctx).Error(err)
-		}
+	metrics, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, obj.ProjectID, obj.SecureID, []string{
+		"DeviceMemory",
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	if metric != nil {
-		valueAsInt := int(metric.Value)
-		deviceMemory = &valueAsInt
+	if len(metrics) == 0 {
+		return nil, nil
 	}
 
-	return deviceMemory, nil
+	deviceMemory := int(metrics[0].Value)
+	return &deviceMemory, nil
 }
 
 // SessionFeedback is the resolver for the session_feedback field.

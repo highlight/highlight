@@ -62,9 +62,13 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 	span, _ := highlight.StartTraceWithTimestamp(ctx, "highlight.go.log", entry.Time, []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)})
 	defer highlight.EndTrace(span)
 
+	msg := entry.Message
+	if msg == "" {
+		msg = fmt.Sprintf("%+v", entry.Data)
+	}
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(levelString(entry.Level)),
-		LogMessageKey.String(entry.Message),
+		LogMessageKey.String(msg),
 	}
 	if entry.Caller != nil {
 		if entry.Caller.Function != "" {
@@ -83,7 +87,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...))
 
 	if entry.Level <= hook.errorStatusLevel {
-		span.SetStatus(codes.Error, entry.Message)
+		span.SetStatus(codes.Error, msg)
 	}
 
 	return nil

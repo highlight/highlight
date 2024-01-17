@@ -56,7 +56,7 @@ interface HighlightWindow extends Window {
 	Intercom?: any
 }
 
-const READY_WAIT_LOOP_MS = 100
+const READY_WAIT_LOOP_MS = 200
 
 declare var window: HighlightWindow
 
@@ -64,7 +64,7 @@ let onHighlightReadyQueue: {
 	options?: OnHighlightReadyOptions
 	func: () => void | Promise<void>
 }[] = []
-let onHighlightReadyInterval: number | undefined = undefined
+let onHighlightReadyTimeout: number | undefined = undefined
 
 let script: HTMLScriptElement
 let highlight_obj: Highlight
@@ -172,12 +172,14 @@ const H: HighlightPublicInterface = {
 				if ('HighlightIO' in window) {
 					startFunction()
 				} else {
-					const interval = setInterval(() => {
+					const start = () => {
 						if ('HighlightIO' in window) {
 							startFunction()
-							clearInterval(interval)
+						} else {
+							setTimeout(start, READY_WAIT_LOOP_MS)
 						}
-					}, READY_WAIT_LOOP_MS)
+					}
+					start()
 				}
 			})
 
@@ -411,41 +413,38 @@ const H: HighlightPublicInterface = {
 		})
 	},
 	onHighlightReady: async (func, options) => {
-		try {
-			if (
-				highlight_obj &&
-				(options?.waitForReady === false || highlight_obj.ready)
-			) {
-				await func()
-			} else {
-				onHighlightReadyQueue.push({ options, func })
-				if (onHighlightReadyInterval === undefined) {
-					onHighlightReadyInterval = setInterval(async () => {
-						const newOnHighlightReadyQueue: {
-							options?: OnHighlightReadyOptions
-							func: () => void | Promise<void>
-						}[] = []
-						for (const f of onHighlightReadyQueue) {
-							if (
-								highlight_obj &&
-								(f.options?.waitForReady === false ||
-									highlight_obj.ready)
-							) {
-								await f.func()
-							} else {
-								newOnHighlightReadyQueue.push(f)
-							}
+		onHighlightReadyQueue.push({ options, func })
+		if (onHighlightReadyTimeout === undefined) {
+			const fn = async () => {
+				const newOnHighlightReadyQueue: {
+					options?: OnHighlightReadyOptions
+					func: () => void | Promise<void>
+				}[] = []
+				for (const f of onHighlightReadyQueue) {
+					if (
+						highlight_obj &&
+						(f.options?.waitForReady === false ||
+							highlight_obj.ready)
+					) {
+						try {
+							await f.func()
+						} catch (e) {
+							HighlightWarning('onHighlightReady', e)
 						}
-						onHighlightReadyQueue = newOnHighlightReadyQueue
-						if (onHighlightReadyQueue.length == 0) {
-							clearInterval(onHighlightReadyInterval)
-							onHighlightReadyInterval = undefined
-						}
-					}, READY_WAIT_LOOP_MS) as unknown as number
+					} else {
+						newOnHighlightReadyQueue.push(f)
+					}
+				}
+				onHighlightReadyTimeout = undefined
+				onHighlightReadyQueue = newOnHighlightReadyQueue
+				if (onHighlightReadyQueue.length > 0) {
+					onHighlightReadyTimeout = setTimeout(
+						fn,
+						READY_WAIT_LOOP_MS,
+					) as unknown as number
 				}
 			}
-		} catch (e) {
-			HighlightWarning('onHighlightReady', e)
+			await fn()
 		}
 	},
 }

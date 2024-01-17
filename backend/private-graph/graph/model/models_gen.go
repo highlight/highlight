@@ -376,6 +376,12 @@ type GitHubRepo struct {
 	Key    string `json:"key"`
 }
 
+type GitlabProject struct {
+	ID                int    `json:"id"`
+	Name              string `json:"name"`
+	NameWithNameSpace string `json:"nameWithNameSpace"`
+}
+
 type HeightList struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -763,9 +769,9 @@ type SessionQuery struct {
 
 type SessionsReportRow struct {
 	Key                   string  `json:"key"`
-	NumSessions           int     `json:"num_sessions"`
-	NumDaysVisited        int     `json:"num_days_visited"`
-	NumMonthsVisited      int     `json:"num_months_visited"`
+	NumSessions           uint64  `json:"num_sessions"`
+	NumDaysVisited        uint64  `json:"num_days_visited"`
+	NumMonthsVisited      uint64  `json:"num_months_visited"`
 	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
 	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
 	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
@@ -1188,6 +1194,7 @@ const (
 	IntegrationTypeGitHub         IntegrationType = "GitHub"
 	IntegrationTypeJira           IntegrationType = "Jira"
 	IntegrationTypeMicrosoftTeams IntegrationType = "MicrosoftTeams"
+	IntegrationTypeGitLab         IntegrationType = "GitLab"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -1202,11 +1209,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeGitHub,
 	IntegrationTypeJira,
 	IntegrationTypeMicrosoftTeams,
+	IntegrationTypeGitLab,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab:
 		return true
 	}
 	return false

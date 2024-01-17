@@ -20,9 +20,10 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 			link: 'https://status.highlight.io/',
 		},
 		{
-			title: 'Community',
+			title: 'Customers',
 			icon: <Icons.HiUsers className={styles.copyOnLight} />,
-			link: 'https://discord.gg/yxaXEAqgwN',
+			link: '/customers',
+			sameTab: true,
 		},
 		{
 			title: 'Changelog',

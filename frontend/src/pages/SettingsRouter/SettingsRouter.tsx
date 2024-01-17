@@ -31,7 +31,6 @@ import { auth } from '@/util/auth'
 import * as styles from './SettingsRouter.css'
 
 const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
-const UpdatePlanPage = React.lazy(() => import('../Billing/UpdatePlanPage'))
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
@@ -45,6 +44,8 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Upgrade plan'
 		case 'harold-ai':
 			return 'Harold AI'
+		case 'plan-features':
+			return 'Plan comparison'
 		default:
 			return ''
 	}
@@ -85,12 +86,6 @@ export const SettingsRouter = () => {
 	const billingContent = (
 		<Suspense fallback={null}>
 			<BillingPageV2 />
-		</Suspense>
-	)
-
-	const updatePlanContent = (
-		<Suspense fallback={null}>
-			<UpdatePlanPage />
 		</Suspense>
 	)
 
@@ -290,10 +285,6 @@ export const SettingsRouter = () => {
 								<Route
 									path="current-plan/success"
 									element={billingContent}
-								/>
-								<Route
-									path="current-plan/update-plan"
-									element={updatePlanContent}
 								/>
 								<Route
 									path="upgrade-plan"

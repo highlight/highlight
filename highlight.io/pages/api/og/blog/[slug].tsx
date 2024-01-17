@@ -1,7 +1,7 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
-import { backdrop, font, fontLight } from '../util'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
+import { backdrop, font, fontLight } from '../util'
 
 export const config = {
 	runtime: 'edge',
@@ -54,7 +54,7 @@ const handler = async function (req: NextRequest) {
 						display: 'flex',
 						color: 'white',
 						flexDirection: 'column',
-						width: 600,
+						width: 800,
 						height: '100%',
 						justifyContent: 'space-between',
 						paddingTop: 50,
@@ -67,7 +67,7 @@ const handler = async function (req: NextRequest) {
 						style={{
 							position: 'absolute',
 							top: 0,
-							left: 550,
+							left: 750,
 						}}
 						width={650}
 						height={650}
@@ -88,25 +88,27 @@ const handler = async function (req: NextRequest) {
 							fill="white"
 						/>
 					</svg>
-					<div style={{ display: 'flex', flexDirection: 'column' }}>
+					<div tw={'flex flex-col justify-center'}>
 						<span
 							style={{
-								color: '#0D0225',
-								marginBottom: 20,
-								backgroundColor: '#ebff5e',
-								padding: '6px 18px 2px 18px',
-								borderRadius: 100,
+								backgroundColor: '#0D0225',
+								border: '1px solid #ebff5e',
+								padding: '10px 18px 6px 18px',
+								marginBottom: 30,
+								borderRadius: 8,
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								width: '200px',
+								width: '175px',
+								maxWidth: '175px',
+								color: '#ebff5e',
 							}}
 						>
 							Highlight Blog
 						</span>
 						<span
 							style={{
-								fontSize: 50,
+								fontSize: 45,
 								marginBottom: 60,
 								lineHeight: '1.2em',
 								maxHeight: '4.2em',
@@ -116,21 +118,21 @@ const handler = async function (req: NextRequest) {
 						>
 							{title || slug}
 						</span>
-						<div tw={'flex flex-row items-center'}>
-							<div tw={'flex flex-col'}>
-								<span style={{ fontSize: 24 }}>
-									{firstName || ''} {lastName || ''}
-								</span>
-								<span
-									style={{
-										color: '#DFDFDF',
-										fontSize: 24,
-										fontFamily: '"PoppinsLight"',
-									}}
-								>
-									{role || ''}
-								</span>
-							</div>
+					</div>
+					<div tw={'flex flex-row items-center'}>
+						<div tw={'flex flex-col'}>
+							<span style={{ fontSize: 24 }}>
+								{firstName || ''} {lastName || ''}
+							</span>
+							<span
+								style={{
+									color: '#DFDFDF',
+									fontSize: 24,
+									fontFamily: '"PoppinsLight"',
+								}}
+							>
+								{role || ''}
+							</span>
 						</div>
 					</div>
 				</div>

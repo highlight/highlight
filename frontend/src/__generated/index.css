@@ -5628,6 +5628,7 @@ body {
 }
 ._14kgefq1 {
   margin-bottom: var(--size-large) !important;
+  max-width: 500px;
 }
 ._1ukfp2a0 {
   border-radius: 0;
@@ -5845,6 +5846,57 @@ body {
   animation-duration: 1.25s;
   animation-iteration-count: infinite;
   animation-timing-function: ease-out;
+}
+._1wt9z3q0 {
+  font-family:
+    IBM Plex Mono,
+    Menlo,
+    DejaVu Sans Mono,
+    Bitstream Vera Sans Mono,
+    Courier,
+    monospace;
+  font-size: 13px;
+  line-height: 20px;
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+  padding: 4px;
+  width: 100%;
+  white-space: pre;
+}
+._1wt9z3q0::before {
+  content: "";
+  margin-bottom: -0.4462em;
+  display: table;
+}
+._1wt9z3q0::after {
+  content: "";
+  margin-top: -0.3942em;
+  display: table;
+}
+._1wt9z3q1 {
+  display: inline-flex;
+  font-feature-settings: normal;
+  margin: 2px 0;
+  padding: 0;
+  white-space: pre;
+}
+._1wt9z3q2 {
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  height: 20px;
+  letter-spacing: normal;
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  width: calc(100% + 4px);
+}
+._7edxgj0 {
+  overflow: hidden;
+  padding-top: 0;
+  z-index: 5;
 }
 ._14ud0dc0::-webkit-scrollbar {
   width: 9px;
@@ -7231,50 +7283,34 @@ body {
 ._4qdycv5 + ._4qdycv5 {
   border-top: var(--_1pyqka91o) solid 1px;
 }
+._1ozlps90 {
+  margin-top: auto;
+  margin-bottom: auto;
+  max-width: 1080px;
+  overflow-x: hidden;
+}
 ._1xxy0on0 {
-  width: 560px;
-  margin-top: 64px;
-  margin-bottom: 12px;
+  margin-top: -28px;
 }
 ._1xxy0on1 {
-  height: 40px;
-  top: 0;
-  background-color: #ffffff;
+  width: 200px;
 }
 ._1xxy0on2 {
-  height: 4px;
-  border-radius: 2px;
-  background-color: #e9e8ea;
-  overflow: hidden;
-}
-._1xxy0on3 {
-  background-color: #6f6e77;
-}
-._1xxy0on4 {
-  background-color: #ad5700;
-}
-._1xxy0on5 {
-  width: 344px;
-}
-._1xxy0on6 {
-  width: 216px;
-}
-._1xxy0on7 {
   background-color: #f9f8f9;
 }
-._1xxy0on8 {
+._1xxy0on3 {
   height: 16px;
 }
-._1xxy0on9 {
+._1xxy0on4 {
   padding-top: 8px;
 }
-._1xxy0ona {
+._1xxy0on5 {
   height: 28px;
 }
 ._1q3ayoh0 {
   width: 560px;
-  margin-top: 36px;
-  margin-bottom: 12px;
+  margin-top: 32px;
+  margin-bottom: 32px;
 }
 ._1q3ayoh1 {
   height: 4px;

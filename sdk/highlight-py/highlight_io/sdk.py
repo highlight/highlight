@@ -7,6 +7,8 @@ import typing
 
 from opentelemetry import trace, _logs
 from opentelemetry._logs.severity import std_to_otel
+from opentelemetry.baggage import set_baggage, get_baggage
+from opentelemetry.context import Context, attach
 from opentelemetry.exporter.otlp.proto.http import Compression
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -14,17 +16,27 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider, Span
+from opentelemetry.sdk.trace import TracerProvider, Span, SpanProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
-from highlight_io.utils.lru_cache import LRUCache
+from highlight_io.integrations.boto import BotoIntegration
+from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
+from highlight_io.integrations.celery import CeleryIntegration
+from highlight_io.integrations.redis import RedisIntegration
 from highlight_io.integrations.requests import RequestsIntegration
+from highlight_io.utils.lru_cache import LRUCache
 
-DEFAULT_INTEGRATIONS = [RequestsIntegration]
+DEFAULT_INTEGRATIONS = [
+    BotoIntegration,
+    Boto3SQSIntegration,
+    CeleryIntegration,
+    RedisIntegration,
+    RequestsIntegration,
+]
 
 
 class LogHandler(logging.Handler):
@@ -100,12 +112,45 @@ class H(object):
         if instrument_logging:
             self._instrument_logging()
 
+        class HighlightSpanProcessor(SpanProcessor):
+            def on_start(
+                self, span: Span, parent_context: typing.Optional[Context] = None
+            ) -> None:
+                session_id, request_id = "", ""
+                try:
+                    header_value = str(
+                        get_baggage(H._instance.REQUEST_HEADER, parent_context)
+                    )
+                    session_id, request_id = header_value.split("/")
+                except (AttributeError, KeyError, ValueError):
+                    pass
+                if not session_id or not request_id:
+                    session_id, request_id = H._instance.get_highlight_context(
+                        span.context.trace_id
+                    )
+
+                span.set_attributes(
+                    {
+                        "highlight.project_id": H._instance._project_id,
+                        "highlight.trace_id": request_id,
+                        "highlight.session_id": session_id,
+                    }
+                )
+                attach(
+                    set_baggage(
+                        H._instance.REQUEST_HEADER, f"{session_id}/{request_id}"
+                    )
+                )
+
+                return super().on_start(span, parent_context)
+
         resource = _build_resource(
             service_name=service_name,
             service_version=service_version,
             environment=environment,
         )
         self._trace_provider = TracerProvider(resource=resource)
+        self._trace_provider.add_span_processor(HighlightSpanProcessor())
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
                 OTLPSpanExporter(

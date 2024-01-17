@@ -247,6 +247,9 @@ export class Highlight {
 				this.logger.log(
 					`Web worker sent payloadID ${e.data.response.id} size ${
 						e.data.response.eventsSize
+					} bytes, compression ratio ${
+						e.data.response.eventsSize /
+						e.data.response.compressedSize
 					}.
                 Total since snapshot: ${(
 					this._eventBytesSinceSnapshot / 1000000
@@ -368,7 +371,7 @@ export class Highlight {
 				canvas: 2,
 			}),
 		}
-		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
+		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.io'
 
 		// If _backendUrl is a relative URL, convert it to an absolute URL
 		// so that it's usable from a web worker.
@@ -472,6 +475,15 @@ export class Highlight {
 	}
 
 	async consumeCustomError(error: Error, message?: string, payload?: string) {
+		if (error.cause) {
+			let obj = { 'exception.cause': error.cause }
+			if (payload) {
+				try {
+					obj = { ...JSON.parse(payload), ...obj }
+				} catch (e) {}
+			}
+			payload = JSON.stringify(obj)
+		}
 		const res = ErrorStackParser.parse(error)
 		this._firstLoadListeners.errors.push({
 			event: message ? message + ':' + error.message : error.message,

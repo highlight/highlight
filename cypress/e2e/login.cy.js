@@ -24,6 +24,6 @@ describe('login spec', () => {
 		cy.wait('@initializeSession')
 			.its('request.body.variables')
 			.should('have.property', 'session_secure_id')
-		cy.wait('@PushPayload')
+		cy.wait('@PushPayloadCompressed')
 	})
 })

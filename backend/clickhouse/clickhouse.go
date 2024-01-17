@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,6 +31,10 @@ var (
 	Username        = os.Getenv("CLICKHOUSE_USERNAME")
 	Password        = os.Getenv("CLICKHOUSE_PASSWORD")
 )
+
+func GetPostgresConnectionString() string {
+	return fmt.Sprintf("postgresql('%s:%s', '%s', 'sessions', '%s', '%s')", os.Getenv("PSQL_DOCKER_HOST"), os.Getenv("PSQL_PORT"), os.Getenv("PSQL_DB"), os.Getenv("PSQL_USER"), os.Getenv("PSQL_PASSWORD"))
+}
 
 func NewClient(dbName string) (*Client, error) {
 	opts := getClickhouseOptions(dbName)
