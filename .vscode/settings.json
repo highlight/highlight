@@ -25,6 +25,7 @@
 		"CLICKHOUSE_PASSWORD": "",
 		"LOG_LEVEL": "debug",
 		"PSQL_HOST": "localhost",
+		"PSQL_DOCKER_HOST": "postgres",
 		"PSQL_PORT": "5432",
 		"PSQL_USER": "postgres",
 		"PSQL_PASSWORD": "postgres",

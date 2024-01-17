@@ -762,9 +762,9 @@ type SessionQuery struct {
 
 type SessionsReportRow struct {
 	Key                   string  `json:"key"`
-	NumSessions           int     `json:"num_sessions"`
-	NumDaysVisited        int     `json:"num_days_visited"`
-	NumMonthsVisited      int     `json:"num_months_visited"`
+	NumSessions           uint64  `json:"num_sessions"`
+	NumDaysVisited        uint64  `json:"num_days_visited"`
+	NumMonthsVisited      uint64  `json:"num_months_visited"`
 	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
 	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
 	TotalActiveLengthMins float64 `json:"total_active_length_mins"`

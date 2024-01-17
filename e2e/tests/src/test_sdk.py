@@ -199,7 +199,10 @@ def test_express_error(express_app, oauth_api):
                 data["error_groups_clickhouse"]["error_groups"],
             )
         )
-        assert "this is a test error" in events
+        if express_app[0] == "express_js":
+            assert "this is a test error" in events
+        else:
+            assert "this is another test error" in events
 
     query(
         oauth_api,
