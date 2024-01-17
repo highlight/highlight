@@ -8,8 +8,6 @@ import (
 	"context"
 	"time"
 
-	"golang.org/x/sync/errgroup"
-
 	"github.com/DmitriyVTitov/size"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
@@ -24,6 +22,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
