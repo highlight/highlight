@@ -3,6 +3,7 @@ on:
     push:
         branches:
             - 'main'
+            - 'vadim/unblock-kafka-partitions'
         paths:
             - 'go.work'
             - 'go.work.sum'
