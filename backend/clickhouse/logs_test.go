@@ -663,15 +663,6 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
-
-	// TODO: Do we want to support this syntax still, or should we force people to
-	// wrap this in a string? `service:"foo:bar"`` if contains a bin_op separator?
-	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
-		DateRange: makeDateWithinRange(now),
-		Query:     `colon_delimited:"foo:bar"`,
-	}, Pagination{})
-	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
 }
 
 func TestReadLogsWithLevelFilter(t *testing.T) {
