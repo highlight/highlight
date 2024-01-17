@@ -130,22 +130,6 @@ Highlight.io also supports tracing from your backend and mapping these to corres
     </DocsCard>
 </DocsCardGroup>
 
-## For your Backend: Tracing
-
-Tracing enables you to analyze performance and pinpoint where errors are happening in your application. Each trace corresponds to a request to your backend and is made up of one or more child spans. Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).
-
-### Application Tracing
-
-<DocsCardGroup>
-    <DocsCard title="Go" href="./backend-tracing/1_go/1_overview.md">
-        {"Get started in your Go app"}
-    </DocsCard>
-    <DocsCard title="OTLP"  href="./backend-tracing/2_other.md">
-        {"Get started with OTLP"}
-    </DocsCard>
-</DocsCardGroup>
-
-
 ### Something missing?
 
 If there's a guide missing for your framework, feel free to [create an issue](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=) or message us on [discord](https://highlight.io/community).
