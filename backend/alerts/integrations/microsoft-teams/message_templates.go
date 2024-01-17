@@ -33,7 +33,7 @@ type ErrorAlertTemplatePayload struct {
 var NewSessionAlertMessageTemplate = []byte(`{
 	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
 	"type": "AdaptiveCard",
-	"version": "1.0",
+	"version": "1.6",
 	"body": [
 		{{ if .AvatarURL }}
 			{
@@ -98,7 +98,7 @@ var NewSessionAlertMessageTemplate = []byte(`{
 var BasicMessageTemplate = []byte(`{
 	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
 	"type": "AdaptiveCard",
-	"version": "1.0",
+	"version": "1.6",
 	"body": [
 		{
 			"type":   "TextBlock",
@@ -134,7 +134,7 @@ var BasicMessageTemplate = []byte(`{
 var TrackPropertiesTemplate = []byte(`{
 	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
 	"type": "AdaptiveCard",
-	"version": "1.0",
+	"version": "1.6",
 	"body": [
 		{
 			"type":   "TextBlock",
@@ -200,7 +200,7 @@ var TrackPropertiesTemplate = []byte(`{
 var UserPropertiesTemplate = []byte(`{
 	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
 	"type": "AdaptiveCard",
-	"version": "1.0",
+	"version": "1.6",
 	"body": [
 		{
 			"type":   "TextBlock",
@@ -248,7 +248,7 @@ var UserPropertiesTemplate = []byte(`{
 var ErrorAlertMessageTemplate = []byte(`{
 	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
 	"type": "AdaptiveCard",
-	"version": "1.0",
+	"version": "1.6",
 	"body": [
 	  {
 		"type": "Container",

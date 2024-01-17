@@ -108,6 +108,7 @@ const IntegrationsPage = () => {
 		loadingHeight ||
 		loadingGitHub ||
 		loadingJira ||
+		loadingGitlab ||
 		loadingMicrosoftTeams
 
 	const integrations = useMemo(() => {
