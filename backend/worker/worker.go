@@ -332,6 +332,19 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
+	case kafkaqueue.PushCompressedPayload:
+		if task.PushCompressedPayload == nil {
+			break
+		}
+		if err := w.PublicResolver.ProcessCompressedPayload(
+			ctx,
+			task.PushCompressedPayload.SessionSecureID,
+			task.PushCompressedPayload.PayloadID,
+			task.PushCompressedPayload.Data,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
 	case kafkaqueue.InitializeSession:
 		if task.InitializeSession == nil {
 			break
