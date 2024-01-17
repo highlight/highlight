@@ -2,7 +2,10 @@ import moment from 'moment'
 import { stringify } from 'query-string'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
-import { SearchExpression } from '@/components/Search/Parser/listener'
+import {
+	AndOrExpression,
+	SearchExpression,
+} from '@/components/Search/Parser/listener'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import {
@@ -26,7 +29,7 @@ export const isSignificantDateRange = (startDate: Date, endDate: Date) => {
 const bodyKey = ReservedLogKey['Message']
 
 export const findMatchingLogAttributes = (
-	queryParts: SearchExpression[],
+	queryParts: Array<SearchExpression | AndOrExpression>,
 	logAttributes: object | string,
 	matchingAttributes: any = {},
 	attributeKeyBase: string[] = [],
@@ -35,7 +38,10 @@ export const findMatchingLogAttributes = (
 		return {}
 	}
 
-	const bodyQueryValue = queryParts.find((term) => term.key === 'body')?.value
+	const bodyQueryValue = queryParts.find(
+		(term): term is SearchExpression =>
+			'key' in term && term.key === 'body',
+	)?.value
 
 	Object.entries(logAttributes).forEach(([key, value]) => {
 		const isString = typeof value === 'string'
@@ -59,6 +65,10 @@ export const findMatchingLogAttributes = (
 			const fullKey = [...attributeKeyBase, key].join('.')
 
 			queryParts.some((term) => {
+				if (!('key' in term)) {
+					return false
+				}
+
 				const queryKey = term.key.toLowerCase()
 				const queryValue = term.value.toLowerCase()
 
