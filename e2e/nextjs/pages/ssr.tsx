@@ -1,4 +1,6 @@
+import logger from '@/highlight.logger'
 import { useRouter } from 'next/router'
+import { GetServerSideProps, GetStaticProps } from 'next'
 
 type Props = {
 	date: string
@@ -21,8 +23,9 @@ export default function SsrPage({ date, random }: Props) {
 	)
 }
 
-export async function getStaticProps() {
-	console.info('getStaticProps pages/ssr')
+export const getStaticProps: GetStaticProps = (props) => {
+	console.info('console.info getStaticProps pages/ssr')
+	logger.info({ props }, 'getStaticProps pages/ssr')
 
 	return {
 		props: {
@@ -31,4 +34,14 @@ export async function getStaticProps() {
 		},
 		revalidate: 10, // seconds
 	}
+}
+
+export const getServerSideProps = async () => {
+	const res = await fetch('https://api.github.com/repos/vercel/next.js')
+	const repo = await res.json()
+
+	console.info('console.info getServerSideProps pages/ssr')
+	logger.info({ repo }, 'getServerSideProps pages/ssr')
+
+	return { props: { repo } }
 }
