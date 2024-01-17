@@ -206,13 +206,29 @@ func (s *searchListener[T]) appendRules(value string) {
 			}
 		}
 	} else if s.currentOp == ">" {
-		s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
+		if traceAttributeKey {
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] > %s", s.currentKey, value)))
+		} else {
+			s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
+		}
 	} else if s.currentOp == ">=" {
-		s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, value))
+		if traceAttributeKey {
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] >= %s", s.currentKey, value)))
+		} else {
+			s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, value))
+		}
 	} else if s.currentOp == "<" {
-		s.rules = append(s.rules, s.sb.LessThan(filterKey, value))
+		if traceAttributeKey {
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] < %s", s.currentKey, value)))
+		} else {
+			s.rules = append(s.rules, s.sb.LessThan(filterKey, value))
+		}
 	} else if s.currentOp == "<=" {
-		s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, value))
+		if traceAttributeKey {
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] <= %s", s.currentKey, value)))
+		} else {
+			s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, value))
+		}
 	} else {
 		fmt.Printf("Unknown search operator: %s\n", s.currentOp)
 	}
