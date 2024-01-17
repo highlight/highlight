@@ -112,6 +112,7 @@ export enum QuickStartType {
 	PythonAWSFn = 'aws-lambda-python',
 	PythonAzureFn = 'azure-functions',
 	PythonGCPFn = 'google-cloud-functions',
+	PythonLibraries = 'python-libraries',
 	GoGqlgen = 'gqlgen',
 	GoFiber = 'fiber',
 	GoChi = 'chi',
@@ -326,6 +327,20 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoOther]: GoTracesContent,
 			[QuickStartType.GoGorm]: GormTracesContent,
+		},
+		python: {
+			title: 'Python',
+			subtitle: 'Install tracing in your Python application.',
+			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			[QuickStartType.PythonFlask]: PythonFlaskContext,
+			[QuickStartType.PythonDjango]: PythonDjangoContext,
+			[QuickStartType.PythonFastAPI]: PythonFastAPIContext,
+			[QuickStartType.PythonOther]: PythonOtherContext,
+			[QuickStartType.PythonAWSFn]: PythonAWSContext,
+			[QuickStartType.PythonAzureFn]: PythonAzureContext,
+			[QuickStartType.PythonGCPFn]: PythonGCPContext,
+			// TODO(spenny): add correct libraries documentation
+			[QuickStartType.PythonLibraries]: PythonOtherContext,
 		},
 		otlp: {
 			title: 'OpenTelemetry',

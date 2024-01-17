@@ -8,4 +8,4 @@ updatedAt: 2024-01-18T00:00:00.000Z
 quickstart: true
 ---
 
-<QuickStart content={quickStartContent["traces"]["python"]["manual"]}/>
+<QuickStart content={quickStartContent["traces"]["python"]["other"]}/>
