@@ -71,16 +71,32 @@ export const getMeterAmounts = (
 ): { [K in ProductType]: [number, number | undefined] } => {
 	const sessionsMeter = data.billingDetailsForProject?.meter ?? 0
 	const sessionsQuota =
-		data.billingDetailsForProject?.sessionsBillingLimit ?? undefined
+		data.billingDetailsForProject?.plan.sessionsLimit === undefined &&
+		data.billingDetailsForProject?.sessionsBillingLimit === undefined
+			? undefined
+			: (data.billingDetailsForProject?.plan.sessionsLimit ?? 0) +
+			  (data.billingDetailsForProject?.sessionsBillingLimit ?? 0)
 	const errorsMeter = data.billingDetailsForProject?.errorsMeter ?? 0
 	const errorsQuota =
-		data.billingDetailsForProject?.errorsBillingLimit ?? undefined
+		data.billingDetailsForProject?.plan.errorsLimit === undefined &&
+		data.billingDetailsForProject?.errorsBillingLimit === undefined
+			? undefined
+			: (data.billingDetailsForProject?.plan.errorsLimit ?? 0) +
+			  (data.billingDetailsForProject?.errorsBillingLimit ?? 0)
 	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
 	const logsQuota =
-		data.billingDetailsForProject?.logsBillingLimit ?? undefined
+		data.billingDetailsForProject?.plan.logsLimit === undefined &&
+		data.billingDetailsForProject?.logsBillingLimit === undefined
+			? undefined
+			: (data.billingDetailsForProject?.plan.logsLimit ?? 0) +
+			  (data.billingDetailsForProject?.logsBillingLimit ?? 0)
 	const tracesMeter = data.billingDetailsForProject?.tracesMeter ?? 0
 	const tracesQuota =
-		data.billingDetailsForProject?.tracesBillingLimit ?? undefined
+		data.billingDetailsForProject?.plan.tracesLimit === undefined &&
+		data.billingDetailsForProject?.tracesBillingLimit === undefined
+			? undefined
+			: (data.billingDetailsForProject?.plan.tracesLimit ?? 0) +
+			  (data.billingDetailsForProject?.tracesBillingLimit ?? 0)
 	return {
 		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
 		[ProductType.Errors]: [errorsMeter, errorsQuota],

@@ -73,3 +73,9 @@
 - Support tracing auto-instrumention for the celery library.
 - Optimizations for requests auto-instrumentation tracing.
 - Removes `tracing_origins` configuration for requests library and passes by default.
+
+## v0.6.12 (2024-01-09)
+
+### Fix
+
+- Support tracing auto-instrumention for boto, boto3 (sqs), and redis libraries.

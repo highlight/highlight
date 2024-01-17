@@ -1,5 +1,24 @@
 # @highlight-run/next
 
+## 7.3.4
+
+### Patch Changes
+
+-   Updated dependencies [59952b854]
+-   Updated dependencies [7a3e3d077]
+-   Updated dependencies [59952b854]
+-   Updated dependencies [59952b854]
+    -   @highlight-run/node@3.7.2
+    -   highlight.run@8.4.0
+
+## 7.3.3
+
+### Patch Changes
+
+-   Updated dependencies [223e47fbd]
+    -   @highlight-run/opentelemetry-sdk-workers@1.0.4
+    -   @highlight-run/cloudflare@2.1.4
+
 ## 7.3.2
 
 ### Patch Changes

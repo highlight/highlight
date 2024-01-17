@@ -1638,6 +1638,18 @@ query GetGitHubIntegrationSettings($workspace_id: ID!) {
 	}
 }
 
+query GetGitlabIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: GitLab
+		workspace_id: $workspace_id
+	)
+	gitlab_projects(workspace_id: $workspace_id) {
+		name
+		id
+		nameWithNameSpace
+	}
+}
+
 query GetGitHubIssueLabels($workspace_id: ID!, $repository: String!) {
 	github_issue_labels(workspace_id: $workspace_id, repository: $repository)
 }

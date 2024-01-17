@@ -13,3 +13,19 @@ export const mustUpgradeForClearbit = (workspaceTier?: string) => {
 		workspaceTier !== PlanType.Enterprise
 	)
 }
+
+export const getPlanChangeEmail = ({
+	workspaceID,
+	planType,
+}: {
+	workspaceID?: string | undefined
+	planType: PlanType
+}) => {
+	let href =
+		`mailto:sales@highlight.run?subject=Highlight Subscription Update` +
+		`&body=I would like to change my subscription to the following plan: ${planType}.`
+	if (workspaceID) {
+		href = href + ` My workspace ID is ${workspaceID}.`
+	}
+	return href
+}

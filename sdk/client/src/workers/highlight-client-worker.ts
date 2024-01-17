@@ -24,6 +24,7 @@ import {
 } from './constants'
 import { Logger } from '../logger'
 import { MetricCategory } from '../types/client'
+import { compressSync, strToU8 } from 'fflate'
 
 export interface HighlightClientRequestWorker {
 	postMessage: (message: HighlightClientWorkerParams) => void
@@ -36,6 +37,17 @@ interface HighlightClientResponseWorker {
 		| ((message: MessageEvent<HighlightClientWorkerParams>) => void)
 
 	postMessage(e: HighlightClientWorkerResponse): void
+}
+
+async function bufferToBase64(buffer: Uint8Array) {
+	// use a FileReader to generate a base64 data URI:
+	const base64url = await new Promise<string>((r) => {
+		const reader = new FileReader()
+		reader.onload = () => r(reader.result as string)
+		reader.readAsDataURL(new Blob([buffer]))
+	})
+	// remove data:application/octet-stream;base64, prefix
+	return base64url.slice(base64url.indexOf(',') + 1)
 }
 
 // `as any` because: https://github.com/Microsoft/TypeScript/issues/20595
@@ -143,6 +155,7 @@ function stringifyProperties(
 		const messagesString = stringify({ messages: messages })
 		let payload: PushPayloadMutationVariables = {
 			session_secure_id: sessionSecureID,
+			payload_id: id.toString(),
 			events: { events } as ReplayEventsInput,
 			messages: messagesString,
 			resources: resourcesString,
@@ -150,30 +163,36 @@ function stringifyProperties(
 			errors,
 			is_beacon: isBeacon,
 			has_session_unloaded: hasSessionUnloaded,
-			payload_id: id.toString(),
 		}
 		if (highlightLogs) {
 			payload.highlight_logs = highlightLogs
 		}
 
-		const eventsSize = graphqlSDK
-			.PushPayload(payload)
-			.then((res) => res.pushPayload ?? 0)
+		const buf = strToU8(JSON.stringify(payload))
+		const compressed = compressSync(buf)
+		const compressedBase64 = await bufferToBase64(compressed)
 
+		const pushPayload = graphqlSDK.PushPayloadCompressed({
+			session_secure_id: sessionSecureID,
+			payload_id: id.toString(),
+			data: compressedBase64,
+		})
+
+		let pushMetrics: Promise<any> = Promise.resolve()
 		if (metricsPayload.length) {
-			const metrics = graphqlSDK.pushMetrics({
+			pushMetrics = graphqlSDK.pushMetrics({
 				metrics: metricsPayload,
 			})
 			// clear batched payload before yielding for network request
 			metricsPayload.splice(0)
-			await metrics
 		}
-
+		await Promise.all([pushPayload, pushMetrics])
 		worker.postMessage({
 			response: {
 				type: MessageType.AsyncEvents,
 				id,
-				eventsSize: await eventsSize,
+				eventsSize: buf.length,
+				compressedSize: compressedBase64.length,
 			},
 		})
 	}
@@ -206,7 +225,7 @@ function stringifyProperties(
 
 	const processPropertiesMessage = async (msg: PropertiesMessage) => {
 		const { propertiesObject, propertyType } = msg
-		let eventType = ''
+		let eventType: string
 		if (propertiesObject?.clickTextContent !== undefined) {
 			eventType = 'ClickTextContent'
 			// click text content should be searchable on sessions but not part of the timeline indicators

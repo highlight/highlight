@@ -38,15 +38,15 @@ const (
 
 type PushPayloadArgs struct {
 	SessionSecureID    string
-	Events             customModels.ReplayEventsInput
-	Messages           string
-	Resources          string
-	WebSocketEvents    *string
-	Errors             []*customModels.ErrorObjectInput
-	IsBeacon           *bool
-	HasSessionUnloaded *bool
-	HighlightLogs      *string
 	PayloadID          *int
+	Events             customModels.ReplayEventsInput   `json:"events"`
+	Messages           string                           `json:"messages"`
+	Resources          string                           `json:"resources"`
+	WebSocketEvents    *string                          `json:"web_socket_events"`
+	Errors             []*customModels.ErrorObjectInput `json:"errors"`
+	IsBeacon           *bool                            `json:"is_beacon"`
+	HasSessionUnloaded *bool                            `json:"has_session_unloaded"`
+	HighlightLogs      *string                          `json:"highlight_logs"`
 }
 
 type InitializeSessionArgs struct {
