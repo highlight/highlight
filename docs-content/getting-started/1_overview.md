@@ -92,24 +92,6 @@ Highlight.io also supports logging from your backend and mapping these to corres
     </DocsCard>
 </DocsCardGroup>
 
-## For your Backend: Tracing
-
-Highlight.io also supports tracing from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state, as well as allowing you to dig deeper into performance problems. Supported frameworks / languages below:
-
-### Application Tracing
-
-<DocsCardGroup>
-    <DocsCard title="Go" href="./tracing/2_go.md">
-        {"Get started with tracing in Go"}
-    </DocsCard>
-    <DocsCard title="JS / TS" href="./tracing/1_node-js/1_overview.md">
-        {"Get started with tracing in Javascript"}
-    </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
-        {"Get started with tracing in OpenTelemetry"}
-    </DocsCard>
-</DocsCardGroup>
-
 ### Hosting Platform Logging
 
 <DocsCardGroup>
@@ -127,6 +109,24 @@ Highlight.io also supports tracing from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="File" href="./backend-logging/09_file.md">
         {"Stream any log file"}
+    </DocsCard>
+</DocsCardGroup>
+
+## For your Backend: Tracing
+
+Highlight.io also supports tracing from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state, as well as allowing you to dig deeper into performance problems. Supported frameworks / languages below:
+
+### Application Tracing
+
+<DocsCardGroup>
+    <DocsCard title="Go" href="./tracing/2_go.md">
+        {"Get started with tracing in Go"}
+    </DocsCard>
+    <DocsCard title="JS / TS" href="./tracing/1_node-js/1_overview.md">
+        {"Get started with tracing in Javascript"}
+    </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
+        {"Get started with tracing in OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
 
