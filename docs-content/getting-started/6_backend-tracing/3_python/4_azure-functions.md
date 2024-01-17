@@ -1,6 +1,6 @@
 ---
 title: Azure Functions
-heading: Azure Functionsn Tracing
+heading: Azure Functions Tracing
 metaTitle: Azure Functions Tracing
 slug: azure-functions
 createdAt: 2024-01-18T00:00:00.000Z

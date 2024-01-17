@@ -61,6 +61,14 @@ import { GormTracesContent } from './traces/go/gorm'
 import { JSManualTracesContent } from './traces/node-js/manual'
 import { NextJsTracesContent } from './traces/node-js/nextjs'
 import { OTLPTracesContent } from './traces/otlp'
+import { PythonAWSTracesContent } from './traces/python/aws'
+import { PythonAzureTracesContent } from './traces/python/azure'
+import { PythonDjangoTracesContent } from './traces/python/django'
+import { PythonFastAPITracesContent } from './traces/python/fastapi'
+import { PythonFlaskTracesContent } from './traces/python/flask'
+import { PythonGCPTracesContent } from './traces/python/gcp'
+import { PythonManualTracesContent } from './traces/python/manual'
+import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
 
 export type QuickStartOptions = {
 	title: string
@@ -332,15 +340,14 @@ export const quickStartContent = {
 			title: 'Python',
 			subtitle: 'Install tracing in your Python application.',
 			logoUrl: siteUrl('/images/quickstart/python.svg'),
-			[QuickStartType.PythonFlask]: PythonFlaskContext,
-			[QuickStartType.PythonDjango]: PythonDjangoContext,
-			[QuickStartType.PythonFastAPI]: PythonFastAPIContext,
-			[QuickStartType.PythonOther]: PythonOtherContext,
-			[QuickStartType.PythonAWSFn]: PythonAWSContext,
-			[QuickStartType.PythonAzureFn]: PythonAzureContext,
-			[QuickStartType.PythonGCPFn]: PythonGCPContext,
-			// TODO(spenny): add correct libraries documentation
-			[QuickStartType.PythonLibraries]: PythonOtherContext,
+			[QuickStartType.PythonOther]: PythonManualTracesContent,
+			[QuickStartType.PythonAWSFn]: PythonAWSTracesContent,
+			[QuickStartType.PythonAzureFn]: PythonAzureTracesContent,
+			[QuickStartType.PythonDjango]: PythonDjangoTracesContent,
+			[QuickStartType.PythonFastAPI]: PythonFastAPITracesContent,
+			[QuickStartType.PythonFlask]: PythonFlaskTracesContent,
+			[QuickStartType.PythonGCPFn]: PythonGCPTracesContent,
+			[QuickStartType.PythonLibraries]: PythonLibrariesTracesContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
