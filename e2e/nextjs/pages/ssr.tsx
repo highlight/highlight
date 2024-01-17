@@ -35,13 +35,3 @@ export const getStaticProps: GetStaticProps = (props) => {
 		revalidate: 10, // seconds
 	}
 }
-
-export const getServerSideProps = async () => {
-	const res = await fetch('https://api.github.com/repos/vercel/next.js')
-	const repo = await res.json()
-
-	console.info('console.info getServerSideProps pages/ssr')
-	logger.info({ repo }, 'getServerSideProps pages/ssr')
-
-	return { props: { repo } }
-}
