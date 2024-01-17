@@ -119,10 +119,10 @@ Highlight.io also supports tracing from your backend and mapping these to corres
 ### Application Tracing
 
 <DocsCardGroup>
-    <DocsCard title="Go" href="./tracing/2_go.md">
+    <DocsCard title="Go" href="./backend-tracing/1_go/1_overview.md">
         {"Get started with tracing in Go"}
     </DocsCard>
-    <DocsCard title="JS / TS" href="./tracing/1_node-js/1_overview.md">
+    <DocsCard title="JS / TS" href="./backend-tracing/1_node-js/1_overview.md">
         {"Get started with tracing in Javascript"}
     </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
