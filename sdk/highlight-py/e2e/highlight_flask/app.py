@@ -7,8 +7,11 @@ from flask import Flask, request
 
 import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
-from highlight_io.integrations.requests import RequestsIntegration
+from database import db_session, init_db
+from models import Item
 
+
+init_db()
 app = Flask(__name__)
 H = highlight_io.H(
     "1",
@@ -43,6 +46,29 @@ def external():
     logging.info(f"received {r.status_code} response")
 
     return "<h1>External Request</h1>"
+
+
+@app.route("/create/<name>")
+def create_item(name):
+    item = Item(name)
+    db_session.add(item)
+    db_session.commit()
+    return f"{item.name} created"
+
+
+@app.route("/items")
+def fetch_items():
+    items = Item.query.all()
+    item_names = []
+    for item in items:
+        item_names.append(item.name)
+
+    return item_names
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
 
 
 if __name__ == "__main__":
