@@ -173,11 +173,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			// ensure messages are pushed to kafka before responding to the client
-			Async: false,
+			Async:        true,
 			// override batch limit to be our message max size
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchSize:    1,
+			BatchSize:    1_000 * 1_000, // 1 MB
 			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
@@ -222,7 +221,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
-			MinBytes:          1000, // 1 KB
+			MinBytes:          1_000 * 1_000, // 1 MB
 			MaxBytes:          MaxMessageSizeBytes,
 			MaxWait:           KafkaOperationTimeout,
 			ReadBatchTimeout:  KafkaOperationTimeout,
