@@ -8,12 +8,8 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React from 'react'
 
-import { SearchOption } from '@/components/Select/SearchSelect/SearchSelect'
-import { removeTimeField } from '@/context/SearchState'
-
 interface Props {
 	showModal: boolean
-	timeRangeField: SearchOption
 	onHideModal: () => void
 	/** Called after a segment is created. */
 	afterCreateHandler?: (segmentId: string, segmentValue: string) => void
@@ -22,7 +18,6 @@ interface Props {
 
 export const CreateSegmentModal: React.FC<Props> = ({
 	showModal,
-	timeRangeField,
 	onHideModal,
 	afterCreateHandler,
 	currentSegment,
@@ -43,18 +38,13 @@ export const CreateSegmentModal: React.FC<Props> = ({
 	const { searchQuery } = useSearchContext()
 
 	const onSubmit = (newSegmentName: string) => {
-		const queryWithoutTimeRange = removeTimeField(
-			searchQuery,
-			timeRangeField,
-		)
-
 		if (shouldUpdate) {
 			editSegment({
 				variables: {
 					project_id,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					query: queryWithoutTimeRange,
+					query: searchQuery,
 				},
 				onCompleted: () => {
 					message.success(
@@ -78,7 +68,7 @@ export const CreateSegmentModal: React.FC<Props> = ({
 				variables: {
 					project_id,
 					name: newSegmentName,
-					query: queryWithoutTimeRange,
+					query: searchQuery,
 				},
 				refetchQueries: [namedOperations.Query.GetSegments],
 				onCompleted: (r) => {

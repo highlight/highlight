@@ -28,11 +28,11 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import { SearchExpression } from '@/components/Search/Parser/listener'
 import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
 import {
 	DEFAULT_OPERATOR,
 	quoteQueryValue,
-	SearchParam,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
@@ -43,7 +43,7 @@ import * as logsTableStyles from './LogsTable.css'
 
 type Props = {
 	row: Row<LogEdgeWithError>
-	queryTerms: SearchParam[]
+	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
 
@@ -73,7 +73,7 @@ const getErrorLink = (projectId: string, log: LogEdgeWithError): string => {
 export const LogDetails: React.FC<Props> = ({
 	matchedAttributes,
 	row,
-	queryTerms,
+	queryParts,
 }) => {
 	const { projectId } = useProjectId()
 	const [allExpanded, setAllExpanded] = useState(false)
@@ -131,7 +131,7 @@ export const LogDetails: React.FC<Props> = ({
 								attribute={value as object}
 								label={key}
 								matchedAttributes={matchedAttributes}
-								queryTerms={queryTerms}
+								queryParts={queryParts}
 								queryBaseKeys={[key]}
 							/>
 						) : (
@@ -139,7 +139,7 @@ export const LogDetails: React.FC<Props> = ({
 								label={key}
 								value={String(value)}
 								queryKey={key}
-								queryTerms={queryTerms}
+								queryParts={queryParts}
 							/>
 						)}
 					</Box>
@@ -154,7 +154,7 @@ export const LogDetails: React.FC<Props> = ({
 								label={key}
 								value={value}
 								queryKey={key}
-								queryTerms={queryTerms}
+								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
 							/>
 						</Box>
@@ -310,7 +310,7 @@ const LogDetailsObject: React.FC<{
 	attribute: string | object | number
 	label: string
 	queryBaseKeys: string[]
-	queryTerms: SearchParam[]
+	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }> = ({
 	allExpanded,
@@ -318,7 +318,7 @@ const LogDetailsObject: React.FC<{
 	label,
 	matchedAttributes,
 	queryBaseKeys,
-	queryTerms,
+	queryParts,
 }) => {
 	const [open, setOpen] = useState(false)
 
@@ -360,7 +360,7 @@ const LogDetailsObject: React.FC<{
 						attribute={value}
 						label={key}
 						matchedAttributes={matchedAttributes}
-						queryTerms={queryTerms}
+						queryParts={queryParts}
 						queryBaseKeys={[...queryBaseKeys, key]}
 					/>
 				))}
@@ -371,7 +371,7 @@ const LogDetailsObject: React.FC<{
 				label={label}
 				value={String(attribute)}
 				queryKey={queryKey}
-				queryTerms={queryTerms}
+				queryParts={queryParts}
 				queryMatch={queryMatch?.match}
 			/>
 		</Box>
@@ -381,10 +381,10 @@ const LogDetailsObject: React.FC<{
 export const LogValue: React.FC<{
 	label: string
 	value: string
-	queryTerms: SearchParam[]
+	queryParts: SearchExpression[]
 	queryKey: string
 	queryMatch?: string
-}> = ({ label, queryKey, queryTerms, value, queryMatch }) => {
+}> = ({ label, queryKey, queryParts, value, queryMatch }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
 
 	// replace wildcards for highlighting.
@@ -429,28 +429,26 @@ export const LogValue: React.FC<{
 									className={styles.attributeAction}
 									size="12"
 									onClick={() => {
-										if (!queryTerms) {
+										if (!queryParts) {
 											return
 										}
 
-										const index = queryTerms.findIndex(
+										const index = queryParts.findIndex(
 											(term) => term.key === queryKey,
 										)
 
-										index !== -1
-											? (queryTerms[index].value = value)
-											: queryTerms.push({
-													key: queryKey,
-													value: quoteQueryValue(
-														value,
-													),
-													operator: DEFAULT_OPERATOR,
-													offsetStart: 0, // not actually used
-											  })
+										if (index !== -1) {
+											queryParts[index].value = value
+										}
 
-										setQuery(
-											stringifySearchQuery(queryTerms),
-										)
+										let newQuery =
+											stringifySearchQuery(queryParts)
+
+										if (index === -1) {
+											newQuery += ` ${queryKey}${DEFAULT_OPERATOR}"${value}"`
+										}
+
+										setQuery(newQuery)
 									}}
 								/>
 							}

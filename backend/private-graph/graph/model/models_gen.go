@@ -177,8 +177,9 @@ type ClickUpTeam struct {
 }
 
 type ClickhouseQuery struct {
-	IsAnd bool       `json:"isAnd"`
-	Rules [][]string `json:"rules"`
+	IsAnd     bool                    `json:"isAnd"`
+	Rules     [][]string              `json:"rules"`
+	DateRange *DateRangeRequiredInput `json:"dateRange"`
 }
 
 type DashboardDefinition struct {

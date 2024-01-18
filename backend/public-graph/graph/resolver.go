@@ -2109,11 +2109,16 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 
+	verboseIdDeref := ""
+	if projectVerboseID != nil {
+		verboseIdDeref = *projectVerboseID
+	}
+
 	if projectID == 0 {
 		log.WithContext(ctx).
-			WithError(e.New("No project id found for error")).
 			WithField("sessionSecureID", sessionSecureID).
-			WithField("projectVerboseID", projectVerboseID)
+			WithField("projectVerboseID", verboseIdDeref).
+			Error("No project id found for error")
 		return
 	}
 
@@ -2121,7 +2126,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 	var project model.Project
 	if err := r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ?", projectID).Take(&project).Error; err != nil {
-		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
+		log.WithContext(ctx).WithError(err).
+			WithField("projectId", projectID).
+			WithField("project", project).
+			WithField("projectVerboseID", verboseIdDeref).
+			Error("failed to find project")
 		return
 	}
 

@@ -69,7 +69,14 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const { data: sessionData } = useGetSessionsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: { isAnd: true, rules: [] },
+			query: {
+				isAnd: true,
+				rules: [],
+				dateRange: {
+					start_date: moment().subtract(30, 'days').toISOString(),
+					end_date: moment().toISOString(),
+				},
+			},
 			count: 1,
 			page: 1,
 			sort_desc: true,
@@ -81,7 +88,14 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const { data: errorGroupData } = useGetErrorGroupsClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			query: { isAnd: true, rules: [] },
+			query: {
+				isAnd: true,
+				rules: [],
+				dateRange: {
+					start_date: moment().subtract(30, 'days').toISOString(),
+					end_date: moment().toISOString(),
+				},
+			},
 			count: 1,
 		},
 		skip: area !== 'backend' || !integrated,

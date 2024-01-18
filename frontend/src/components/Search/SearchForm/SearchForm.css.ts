@@ -1,4 +1,4 @@
-import { sMonotype, typographyStyles } from '@highlight-run/ui/components'
+import { typographyStyles } from '@highlight-run/ui/components'
 import { sprinkles } from '@highlight-run/ui/sprinkles'
 import { themeVars } from '@highlight-run/ui/theme'
 import { vars } from '@highlight-run/ui/vars'
@@ -12,20 +12,24 @@ export const searchIcon = style({
 	left: 14,
 })
 
+const WORD_SPACING = 4
+
 export const combobox = style([
 	sprinkles({
 		p: '6',
 	}),
-	typographyStyles.family.monospace,
-	sMonotype,
+	typographyStyles.family.body,
+	typographyStyles.size.small,
 	{
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
 		display: 'flex',
-		fontWeight: '500',
+		fontFeatureSettings: '"tnum" off', // disable tabular numbers
+		fontWeight: '500 !important',
 		pointerEvents: 'auto',
 		width: '100%',
+		wordSpacing: WORD_SPACING,
 		selectors: {
 			'&:focus': {
 				outline: 0,
@@ -44,14 +48,18 @@ export const comboboxNotEmpty = style({
 	WebkitTextFillColor: 'transparent',
 })
 
+export const whitspaceTag = style({
+	letterSpacing: WORD_SPACING,
+})
+
 export const comboboxTagsContainer = style([
-	typographyStyles.family.monospace,
-	sMonotype,
+	typographyStyles.family.body,
+	typographyStyles.size.small,
 	{
 		alignItems: 'center',
 		display: 'flex',
 		flexWrap: 'nowrap',
-		fontWeight: '500',
+		fontWeight: '500 !important',
 		maxWidth: 'calc(100% - 26px)',
 		overflow: 'hidden',
 		paddingRight: 8,
@@ -63,10 +71,11 @@ export const comboboxTagsContainer = style([
 
 export const comboboxTag = style({
 	display: 'inline-flex',
-	fontFeatureSettings: 'normal', // disable tabular numbers
+	fontFeatureSettings: '"tnum" off', // disable tabular numbers
 	position: 'relative',
 	textOverflow: 'ellipsis',
 	whiteSpace: 'pre',
+	wordSpacing: WORD_SPACING,
 })
 
 export const comboboxTagBackground = style({
@@ -83,13 +92,29 @@ export const comboboxTagBackground = style({
 })
 
 export const comboboxTagActive = style({})
+export const comboboxTagError = style({})
 
 export const comboboxTagClose = style({
+	backgroundColor: vars.color.white,
+	borderRadius: vars.borderRadius.round,
 	color: themeVars.static.content.default,
 	cursor: 'pointer',
 	position: 'absolute',
 	pointerEvents: 'auto',
 	opacity: 0,
+	right: -8,
+	top: 1,
+	zIndex: 1,
+})
+
+export const comboboxTagErrorIndicator = style({
+	backgroundColor: vars.color.white,
+	borderRadius: vars.borderRadius.round,
+	color: themeVars.static.content.sentiment.bad,
+	fontWeight: 'bold',
+	opacity: 1,
+	position: 'absolute',
+	pointerEvents: 'auto',
 	right: -8,
 	top: 1,
 	zIndex: 1,
@@ -102,8 +127,16 @@ globalStyle(
 	},
 )
 
+globalStyle(`${comboboxTagError} ${comboboxTagBackground}`, {
+	border: `1px solid ${vars.theme.static.content.sentiment.bad}`,
+})
+
 globalStyle(`${comboboxTag}:hover ${comboboxTagClose}`, {
 	opacity: 1,
+})
+
+globalStyle(`${comboboxTag}:hover ${comboboxTagErrorIndicator}`, {
+	display: 'none',
 })
 
 export const comboboxPopover = style({

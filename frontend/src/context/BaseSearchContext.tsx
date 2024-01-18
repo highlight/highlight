@@ -1,18 +1,8 @@
 import { DateHistogramBucketSize } from '@graph/schemas'
+import { DateRangePreset } from '@highlight-run/ui/components'
 import { identity, omitBy, pickBy } from 'lodash'
-import moment from 'moment'
 
 export type Segment = { name: string; id: string } | undefined
-
-export type BackendSearchQuery =
-	| undefined
-	| {
-			searchQuery: string
-			childSearchQuery?: string
-			startDate: moment.Moment
-			endDate: moment.Moment
-			histogramBucketSize: DateHistogramBucketSize
-	  }
 
 export function normalizeParams<T>(params: object) {
 	return omitBy(
@@ -30,8 +20,7 @@ export type BaseSearchContext = {
 	selectedSegment: Segment
 	setSelectedSegment: (newValue: Segment, query: string) => void
 	removeSelectedSegment: () => void
-	/** The query sent to the backend */
-	backendSearchQuery: BackendSearchQuery
+	histogramBucketSize: DateHistogramBucketSize
 	page: number
 	setPage: React.Dispatch<React.SetStateAction<number>>
 	searchResultsLoading: boolean
@@ -40,4 +29,19 @@ export type BaseSearchContext = {
 	setSearchResultsCount: React.Dispatch<
 		React.SetStateAction<number | undefined>
 	>
+	startDate: Date
+	endDate: Date
+	selectedPreset?: DateRangePreset
+	setSearchTime: (
+		startDate: Date,
+		endDate: Date,
+		preset?: DateRangePreset,
+	) => void
+	resetTime: () => void
+	createNewSearch: (
+		searchQuery: string,
+		startDate?: Date,
+		endDate?: Date,
+		preset?: DateRangePreset,
+	) => void
 }

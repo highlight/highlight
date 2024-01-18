@@ -11696,6 +11696,7 @@ input DateHistogramOptions {
 input ClickhouseQuery {
 	isAnd: Boolean!
 	rules: [[String!]!]!
+	dateRange: DateRangeRequiredInput!
 }
 
 enum NetworkRequestAttribute {
@@ -74630,7 +74631,7 @@ func (ec *executionContext) unmarshalInputClickhouseQuery(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"isAnd", "rules"}
+	fieldsInOrder := [...]string{"isAnd", "rules", "dateRange"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -74650,6 +74651,14 @@ func (ec *executionContext) unmarshalInputClickhouseQuery(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
 			it.Rules, err = ec.unmarshalNString2ᚕᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dateRange":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
 				return it, err
 			}

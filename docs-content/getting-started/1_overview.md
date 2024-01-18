@@ -92,24 +92,6 @@ Highlight.io also supports logging from your backend and mapping these to corres
     </DocsCard>
 </DocsCardGroup>
 
-## For your Backend: Tracing
-
-Highlight.io also supports tracing from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state, as well as allowing you to dig deeper into performance problems. Supported frameworks / languages below:
-
-### Application Tracing
-
-<DocsCardGroup>
-    <DocsCard title="Go" href="./tracing/2_go.md">
-        {"Get started with tracing in Go"}
-    </DocsCard>
-    <DocsCard title="JS / TS" href="./tracing/1_node-js/1_overview.md">
-        {"Get started with tracing in Javascript"}
-    </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
-        {"Get started with tracing in OpenTelemetry"}
-    </DocsCard>
-</DocsCardGroup>
-
 ### Hosting Platform Logging
 
 <DocsCardGroup>
@@ -132,19 +114,24 @@ Highlight.io also supports tracing from your backend and mapping these to corres
 
 ## For your Backend: Tracing
 
-Tracing enables you to analyze performance and pinpoint where errors are happening in your application. Each trace corresponds to a request to your backend and is made up of one or more child spans. Tracing is supported with the Highlight Go SDK or via the OpenTelemetry protocol (OTLP).
+Highlight.io also supports tracing from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state, as well as allowing you to dig deeper into performance problems. Supported frameworks / languages below:
 
 ### Application Tracing
 
 <DocsCardGroup>
     <DocsCard title="Go" href="./backend-tracing/1_go/1_overview.md">
-        {"Get started in your Go app"}
+        {"Get started with tracing in Go"}
     </DocsCard>
-    <DocsCard title="OTLP"  href="./backend-tracing/2_other.md">
-        {"Get started with OTLP"}
+    <DocsCard title="JS / TS" href="./backend-tracing/2_node-js/1_overview.md">
+        {"Get started with tracing in Javascript"}
+    </DocsCard>
+    <DocsCard title="Python" href="./backend-tracing/3_python/1_overview.md">
+        {"Get started with tracing in Python"}
+    </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
+        {"Get started with tracing in OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
-
 
 ### Something missing?
 
