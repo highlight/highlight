@@ -88,12 +88,11 @@ service_name=(private-graph OR public-graph)
 
 Here are some examples of valid search queries:
 
-* `service_name=private-graph` finds all records where `service_name` equals `private-graph`
-* `key1=value1 AND key2=value2`
-* `key1=value1 OR key2=value2`
-* `key!=value`
-* `(key1=value1 AND key2=value2) OR key3=value3`
 * `service_name=private-graph`
+* `service_name=public-graph AND span_name!=gorm.Query`
+* `service_name=worker OR span_name=gorm.Query`
+* `service_name!=private-graph`
+* `(service_name=public-graph AND span_name=gorm.Query) OR duration>=100000`
 
 ## Search Segments
 
