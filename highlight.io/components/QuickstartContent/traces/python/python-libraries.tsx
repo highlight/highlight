@@ -17,6 +17,7 @@ export const PythonLibrariesTracesContent: QuickStartContent = {
 \n[Celery](https://docs.celeryq.dev/en/stable/getting-started/introduction.html)
 \n[Redis](https://redis.io/docs/connect/clients/python/)
 \n[Requests](https://requests.readthedocs.io/en/latest/)
+\n[SQLAlchemy](https://www.sqlalchemy.org/)
 `,
 			code: [
 				{
@@ -25,7 +26,8 @@ pip install highlight-io[Boto]
 pip install highlight-io[Boto3SQS]
 pip install highlight-io[Celery]
 pip install highlight-io[Redis]
-# requests is installed by default`,
+# requests is installed by default
+pip install highlight-io[SQLAlchemy]`,
 					language: 'bash',
 				},
 			],
