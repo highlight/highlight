@@ -11,5 +11,5 @@ export const highlightConfig = {
 
 export async function register() {
 	const { registerHighlight } = await import('@highlight-run/next/server')
-	await registerHighlight(highlightConfig)
+	registerHighlight(highlightConfig)
 }
