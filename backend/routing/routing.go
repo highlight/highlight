@@ -10,10 +10,11 @@ import (
 type Referrer string
 
 const (
-	Discord Referrer = "discord"
-	Email   Referrer = "email"
-	Slack   Referrer = "slack"
-	Webhook Referrer = "webhook"
+	Discord        Referrer = "discord"
+	Email          Referrer = "email"
+	Slack          Referrer = "slack"
+	Webhook        Referrer = "webhook"
+	MicrosoftTeams Referrer = "microsoft-teams"
 )
 
 func AttachReferrer(ctx context.Context, u string, referrer Referrer) string {

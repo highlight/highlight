@@ -88,7 +88,7 @@ func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
 			return err
 		}
 
-		payload = attachReferrerToErrorAlertPayload(ctx, payload, routing.Discord)
+		payload = attachReferrerToErrorAlertPayload(ctx, payload, routing.MicrosoftTeams)
 		for _, channel := range event.ErrorAlert.MicrosoftTeamsChannelsToNotify {
 			err = bot.SendErrorAlert(channel.ID, payload)
 
