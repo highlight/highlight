@@ -177,6 +177,8 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
+			Logger:       kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Infof),
+			ErrorLogger:  kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Errorf),
 			MaxAttempts:  10,
 		}
 
@@ -218,6 +220,8 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			MaxAttempts:           10,
 			WatchPartitionChanges: true,
 			OffsetOutOfRangeError: true,
+			Logger:                kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Infof),
+			ErrorLogger:           kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Errorf),
 			GroupBalancers: []kafka.GroupBalancer{
 				kafka.RackAffinityGroupBalancer{Rack: rack},
 			},
