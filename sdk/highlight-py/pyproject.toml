@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.6.12"
+version = "0.6.13"
 description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
@@ -38,6 +38,8 @@ opentelemetry-instrumentation-redis = { version = "0.43b0", optional = true }
 boto = { version = ">=2", optional = true }
 opentelemetry-instrumentation-boto = { version = "0.43b0", optional = true }
 boto3 = { version = ">=1", optional = true }
+opentelemetry-instrumentation-sqlalchemy = { version = "0.43b0", optional = true }
+sqlalchemy = { version = ">=2", optional = true }
 opentelemetry-instrumentation-boto3sqs = { version = "0.43b0", optional = true }
 opentelemetry-api = "1.22.0"
 opentelemetry-distro = { extras = ["otlp"], version = "0.43b0" }
@@ -67,6 +69,7 @@ Django = ["django"]
 FastAPI = ["fastapi", "uvicorn"]
 Flask = ["blinker", "flask"]
 Redis = ["redis", "opentelemetry-instrumentation-redis"]
+SQLAlchemy = ["sqlalchemy", "opentelemetry-instrumentation-sqlalchemy"]
 
 [build-system]
 requires = ["poetry-core"]
