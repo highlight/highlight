@@ -16,7 +16,7 @@ import {
 	GetErrorGroupsClickhouseQueryVariables,
 } from '@graph/operations'
 import { ClickhouseQuery, ErrorGroup, Maybe, ProductType } from '@graph/schemas'
-import { Box, getNow } from '@highlight-run/ui/components'
+import { Box } from '@highlight-run/ui/components'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
@@ -40,7 +40,8 @@ const SearchPanel = () => {
 	const { showBanner } = useGlobalContext()
 	const {
 		searchQuery,
-		backendSearchQuery,
+		endDate,
+		selectedPreset,
 		page,
 		setPage,
 		setSearchResultsLoading,
@@ -70,7 +71,7 @@ const SearchPanel = () => {
 				results.error_groups.map((eg) => eg.secure_id),
 			)
 		},
-		skip: !backendSearchQuery || !projectId,
+		skip: !projectId,
 		fetchPolicy: 'network-only',
 	})
 
@@ -83,28 +84,11 @@ const SearchPanel = () => {
 		GetErrorGroupsClickhouseQueryVariables
 	>({
 		variableFn: useCallback(() => {
-			const query = JSON.parse(backendSearchQuery?.searchQuery || '')
-			const lte =
-				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
-					?.should[0]?.range?.timestamp?.lte
-			// if the query end date is close to 'now',
-			// then we are using a default relative time range.
-			// otherwise, we are using a custom date range and should not poll
-			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
-				return
-			}
 			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
-			const newRules = clickhouseQuery.rules.filter(
-				(r) => r[0] !== 'error-field_timestamp',
-			)
-			const startDate = new Date(Date.parse(lte))
-			const endDate = new Date(Date.parse(lte) + 7 * 24 * 60 * 60 * 1000)
-			newRules.push([
-				'error-field_timestamp',
-				'between_date',
-				startDate.toISOString() + '_' + endDate.toISOString(),
-			])
-			clickhouseQuery.rules = newRules
+			clickhouseQuery.dateRange = {
+				start_date: endDate.toISOString(),
+				end_date: moment().toISOString(),
+			}
 
 			return {
 				query: clickhouseQuery,
@@ -112,21 +96,18 @@ const SearchPanel = () => {
 				page: 1,
 				project_id: projectId!,
 			}
-		}, [backendSearchQuery?.searchQuery, projectId, searchQuery]),
+		}, [endDate, projectId, searchQuery]),
 		moreDataQuery,
 		getResultCount: useCallback(
 			(result) => result?.data?.error_groups_clickhouse.totalCount,
 			[],
 		),
+		skip: !selectedPreset,
 	})
 
 	useEffect(() => {
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
-
-	useEffect(() => {
-		setSearchResultsCount(undefined)
-	}, [backendSearchQuery?.searchQuery, setSearchResultsCount])
 
 	const showHistogram = searchResultsCount !== 0
 

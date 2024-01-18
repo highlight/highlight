@@ -24,7 +24,7 @@ const sessionExample = {
 	country: 'Germany',
 	activeLength: '1h 25m',
 	insights: [
-		`The user viewed an error page with the URL 'https://app.highlight.io/1/errors/7YboUB1obqGbOZV95X40gZrTGyRC/instances/196875448/?page=1&query=and%7C%7Cerror_state%2Cis%2COPEN%7C%7Cerror-field_timestamp%2Cbetween_date%2C2023-06-05T18%3A32%3A16.319Z_2023-07-05T18%3A32%3A16.319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z'`,
+		`The user viewed an error page with the URL 'https://app.highlight.io/1/errors/7YboUB1obqGbOZV95X40gZrTGyRC/instances/196875448/?page=1&query=and%7C%7Cerror_state%2Cis%2COPEN'`,
 		'The customer changed their billing settings on the billing page. This is a really long insight. I wonder what happens when the insight is this long.',
 		'The customer logged out at 45:32.',
 	],

@@ -27,31 +27,25 @@ import {
 } from '@graph/operations'
 import {
 	ClickhouseQuery,
-	DateHistogramBucketSize,
 	Maybe,
 	PlanType,
 	ProductType,
 	Session,
 } from '@graph/schemas'
-import { Box, getNow } from '@highlight-run/ui/components'
+import { Box } from '@highlight-run/ui/components'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
-import SessionQueryBuilder, {
-	TIME_RANGE_FIELD,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
+import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { usePollQuery } from '@util/search'
-import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
+import { roundFeedDate } from '@util/time'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useCallback, useEffect, useRef } from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
-import {
-	QueryBuilderState,
-	updateQueriedTimeRange,
-} from '@/components/QueryBuilder/QueryBuilder'
+import { QueryBuilderState } from '@/components/QueryBuilder/QueryBuilder'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -70,30 +64,32 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 		const { project_id } = useParams<{
 			project_id: string
 		}>()
-		const { setSearchQuery, backendSearchQuery, searchQuery } =
-			useSearchContext()
+		const {
+			histogramBucketSize,
+			searchQuery,
+			setSearchTime,
+			startDate,
+			endDate,
+		} = useSearchContext()
 
 		const { loading, data } = useGetSessionsHistogramClickhouseQuery({
 			variables: {
 				project_id: project_id!,
 				query: JSON.parse(searchQuery),
 				histogram_options: {
-					bucket_size:
-						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+					bucket_size: histogramBucketSize,
 					time_zone:
 						Intl.DateTimeFormat().resolvedOptions().timeZone ??
 						'UTC',
 					bounds: {
 						start_date: roundFeedDate(
-							backendSearchQuery?.startDate.toISOString() ?? null,
+							startDate.toISOString(),
 						).format(),
-						end_date: roundFeedDate(
-							backendSearchQuery?.endDate.toISOString() ?? null,
-						).format(),
+						end_date: roundFeedDate(endDate.toISOString()).format(),
 					},
 				},
 			},
-			skip: !backendSearchQuery || !project_id,
+			skip: !histogramBucketSize || !project_id,
 			fetchPolicy: 'network-only',
 		})
 
@@ -125,26 +121,13 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			]
 		}
 
-		const updateTimeRange = useCallback(
-			(newStartTime: Date, newEndTime: Date) => {
-				setSearchQuery((query) =>
-					updateQueriedTimeRange(
-						query || '',
-						TIME_RANGE_FIELD,
-						serializeAbsoluteTimeRange(newStartTime, newEndTime),
-					),
-				)
-			},
-			[setSearchQuery],
-		)
-
 		return (
 			<SearchResultsHistogram
 				seriesList={histogram.seriesList}
 				bucketTimes={histogram.bucketTimes}
-				bucketSize={backendSearchQuery?.histogramBucketSize}
+				bucketSize={histogramBucketSize}
 				loading={loading}
-				updateTimeRange={updateTimeRange}
+				updateTimeRange={setSearchTime}
 				barGap={2.4}
 				readonly={readonly}
 			/>
@@ -166,7 +149,8 @@ export const SessionFeedV3 = React.memo(() => {
 	const {
 		searchQuery,
 		setSearchQuery,
-		backendSearchQuery,
+		selectedSegment,
+		endDate,
 		page,
 		setPage,
 		searchResultsLoading,
@@ -211,7 +195,7 @@ export const SessionFeedV3 = React.memo(() => {
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 		},
 		onCompleted: addSessions,
-		skip: !backendSearchQuery?.searchQuery || !project_id,
+		skip: !project_id,
 		fetchPolicy: 'network-only',
 	})
 
@@ -224,27 +208,12 @@ export const SessionFeedV3 = React.memo(() => {
 		GetSessionsClickhouseQueryVariables
 	>({
 		variableFn: useCallback(() => {
-			const query = JSON.parse(backendSearchQuery?.searchQuery || '')
-			const lte =
-				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
-			// if the query end date is close to 'now',
-			// then we are using a default relative time range.
-			// otherwise, we are using a custom date range and should not poll
-			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
-				return undefined
-			}
 			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
-			const newRules = clickhouseQuery.rules.filter(
-				(r) => r[0] !== 'custom_created_at',
-			)
-			const startDate = new Date(Date.parse(lte))
-			const endDate = new Date(Date.parse(lte) + 7 * 24 * 60 * 60 * 1000)
-			newRules.push([
-				'custom_created_at',
-				'between_date',
-				startDate.toISOString() + '_' + endDate.toISOString(),
-			])
-			clickhouseQuery.rules = newRules
+			clickhouseQuery.dateRange = {
+				start_date: endDate.toISOString(),
+				end_date: moment().toDate().toISOString(),
+			}
+
 			return {
 				query: clickhouseQuery,
 				count: DEFAULT_PAGE_SIZE,
@@ -253,7 +222,7 @@ export const SessionFeedV3 = React.memo(() => {
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 			}
 		}, [
-			backendSearchQuery?.searchQuery,
+			endDate,
 			project_id,
 			sessionFeedConfiguration.sortOrder,
 			searchQuery,
@@ -263,6 +232,7 @@ export const SessionFeedV3 = React.memo(() => {
 			(result) => result?.data?.sessions_clickhouse.totalCount,
 			[],
 		),
+		skip: !selectedSegment,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
@@ -271,10 +241,6 @@ export const SessionFeedV3 = React.memo(() => {
 	useEffect(() => {
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
-
-	useEffect(() => {
-		setSearchResultsCount(undefined)
-	}, [backendSearchQuery?.searchQuery, setSearchResultsCount])
 
 	useEffect(() => {
 		// we just loaded the page for the first time
@@ -299,7 +265,7 @@ export const SessionFeedV3 = React.memo(() => {
 			)
 			setSearchQuery(
 				JSON.stringify({
-					isAnd: currentState.isAnd,
+					...currentState,
 					rules: newRules,
 				}),
 			)

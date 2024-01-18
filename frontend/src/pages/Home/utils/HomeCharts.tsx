@@ -19,10 +19,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
 
-import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
-import { TIME_RANGE_FIELD } from '@/pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import { serializeAbsoluteTimeRange } from '@/util/time'
-
 import styles from './HomeCharts.module.css'
 
 type DailyCount = {
@@ -44,7 +40,7 @@ export const SessionCountGraph = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchQuery, removeSelectedSegment } = useSearchContext()
+	const { setSearchTime, removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
@@ -108,15 +104,9 @@ export const SessionCountGraph = ({
 					const date = moment(payload.activePayload[0].payload.date)
 					removeSelectedSegment()
 
-					setSearchQuery(
-						updateQueriedTimeRange(
-							'',
-							TIME_RANGE_FIELD,
-							serializeAbsoluteTimeRange(
-								date.startOf('day').toDate(),
-								date.endOf('day').toDate(),
-							),
-						),
+					setSearchTime(
+						date.startOf('day').toDate(),
+						date.endOf('day').toDate(),
 					)
 
 					message.success(

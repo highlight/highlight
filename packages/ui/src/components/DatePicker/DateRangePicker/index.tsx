@@ -29,6 +29,7 @@ import {
 	getTimeStringFromDate,
 	getTimeInfo,
 } from './helpers'
+import { set } from 'lodash'
 
 export type DateRangePreset = {
 	unit: moment.DurationInputArg2
@@ -43,8 +44,8 @@ export enum MenuState {
 }
 
 export type DateRangeValue = {
-	startDate?: Date
-	endDate?: Date
+	startDate: Date
+	endDate: Date
 	selectedPreset?: DateRangePreset
 }
 
@@ -90,9 +91,9 @@ export const presetStartDate = (preset: DateRangePreset): Date => {
 type Props = {
 	selectedValue: DateRangeValue
 	onDatesChange: (
-		startDate?: Date,
-		endDate?: Date,
-		presetId?: DateRangePreset,
+		startDate: Date,
+		endDate: Date,
+		preset?: DateRangePreset,
 	) => void
 	presets: DateRangePreset[]
 	minDate: Date
@@ -136,6 +137,10 @@ const DateRangePickerImpl = ({
 	const [showingTime, setShowingTime] = useState<boolean>(false)
 	const [startTimeIsValid, setStartTimeIsValid] = useState<boolean>(true)
 	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
+	const useAbsoluteTime = !selectedValue.selectedPreset
+	const [absoluteDateRange, setAbsoluteDateRange] = useState<Date[]>(
+		useAbsoluteTime ? [selectedValue.startDate, selectedValue.endDate] : [],
+	)
 
 	const menu = useMenu()
 	const open = menu.getState().open
@@ -181,10 +186,9 @@ const DateRangePickerImpl = ({
 		[selectedValue.endDate],
 	)
 
-	// TODO(spenny): check this works
 	const isTimepickerDisabled = useMemo(
-		() => !!selectedValue.startDate && !!selectedValue.endDate,
-		[selectedValue.startDate, selectedValue.endDate],
+		() => absoluteDateRange.length != 2,
+		[absoluteDateRange],
 	)
 
 	const [buttonLabel, setButtonLabel] = useState<string>(
@@ -315,23 +319,30 @@ const DateRangePickerImpl = ({
 				.toDate()
 		}
 
-		handleDatesChange({ startDate, endDate })
+		// only update to parent when both are selected
+		if (startDate && endDate) {
+			handleDatesChange({ startDate, endDate })
+		}
+
+		const newDates = [startDate, endDate].filter((date) => !!date)
+		setAbsoluteDateRange(newDates)
 	}
 
 	const handlePresetSelected = (preset: DateRangePreset) => {
+		const end = moment().toDate()
+		const start = presetStartDate(preset)
+
 		handleDatesChange({
+			startDate: start,
+			endDate: end,
 			selectedPreset: preset,
 		})
 	}
 
-	const dateValues = [selectedValue.startDate, selectedValue.endDate].filter(
-		(date) => !!date,
-	) as Date[]
-
 	return (
 		<DatePickerStateProvider
 			config={{
-				selectedDates: dateValues,
+				selectedDates: absoluteDateRange,
 				onDatesChange: handleAbsoluteDateChange,
 				dates: {
 					mode: 'range',

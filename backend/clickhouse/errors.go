@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -156,36 +155,16 @@ func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs
 		return "", nil, err
 	}
 
-	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
-		return r.Field == errorsTimeRangeField
-	})
-	if !found {
-		end := time.Now().UTC()
-		start := end.AddDate(0, 0, -30)
-		timeRangeRule = Rule{
-			Field: errorsTimeRangeField,
-			Op:    BetweenDate,
-			Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
-		}
-		rules = append(rules, timeRangeRule)
+	end := query.DateRange.EndDate.UTC()
+	start := query.DateRange.StartDate.UTC()
+	timeRangeRule := Rule{
+		Field: errorsTimeRangeField,
+		Op:    BetweenDate,
+		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
 	}
-	if len(timeRangeRule.Val) != 1 {
-		return "", nil, fmt.Errorf("unexpected length of time range value: %s", timeRangeRule.Val)
-	}
-	start, end, found := strings.Cut(timeRangeRule.Val[0], "_")
-	if !found {
-		return "", nil, fmt.Errorf("separator not found for time range: %s", timeRangeRule.Val[0])
-	}
-	startTime, err := time.Parse(timeFormat, start)
-	if err != nil {
-		return "", nil, err
-	}
-	endTime, err := time.Parse(timeFormat, end)
-	if err != nil {
-		return "", nil, err
-	}
+	rules = append(rules, timeRangeRule)
 
-	sb, err := parseErrorRules(tableName, selectColumns, query.IsAnd, rules, projectId, startTime, endTime)
+	sb, err := parseErrorRules(tableName, selectColumns, query.IsAnd, rules, projectId, start, end)
 	if err != nil {
 		return "", nil, err
 	}
