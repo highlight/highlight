@@ -316,7 +316,6 @@ export const PlayerReducer = (
 	action: PlayerAction,
 ): PlayerState => {
 	const events = getEvents(state.chunkEventsRef.current)
-	console.log('vadim', 'num events', { len: events.length })
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.play:
