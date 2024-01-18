@@ -1208,7 +1208,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		setSelectedSegment,
 		removeSelectedSegment,
 		setSearchTime,
-		resetTime,
 		startDate,
 		endDate,
 		selectedPreset,
@@ -1554,11 +1553,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 	// this matches the current prod behavior.
 	useEffect(() => {
 		return () => {
-			if (!readonly && setDefault !== false) {
-				resetTime()
-				if (selectedSegment) {
-					removeSelectedSegment()
-				}
+			if (selectedSegment && !readonly && setDefault !== false) {
+				removeSelectedSegment()
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps

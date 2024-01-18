@@ -1,7 +1,6 @@
 import {
 	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
-	presetStartDate,
 } from '@highlight-run/ui/components'
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
@@ -255,16 +254,11 @@ export const useGetBaseSearchContext = (
 ): BaseSearchContext => {
 	const { admin } = useAuthContext()
 
-	const {
-		startDate,
-		endDate,
-		updateSearchTime,
-		selectedPreset,
-		resetSearchTime,
-	} = useSearchTime({
-		initialPreset: defaultPreset,
-		presets: DEFAULT_TIME_PRESETS,
-	})
+	const { startDate, endDate, updateSearchTime, selectedPreset } =
+		useSearchTime({
+			initialPreset: defaultPreset,
+			presets: DEFAULT_TIME_PRESETS,
+		})
 
 	const initialState = useGetInitialSearchState(
 		page,
@@ -386,25 +380,6 @@ export const useGetBaseSearchContext = (
 		[admin, customFields, state.searchQuery, updateSearchTime],
 	)
 
-	const resetTime = useCallback(() => {
-		resetSearchTime()
-		const end = moment().toDate()
-		const start = presetStartDate(defaultPreset)
-
-		const queryWithTimes = overwriteQueryDates(
-			state.searchQuery,
-			start,
-			end,
-		)
-
-		dispatch({
-			type: SearchActionType.setSearchQuery,
-			searchQuery: queryWithTimes,
-			admin,
-			customFields,
-		})
-	}, [admin, customFields, resetSearchTime, state.searchQuery])
-
 	const createNewSearch = useCallback(
 		(
 			searchQuery: string,
@@ -439,7 +414,6 @@ export const useGetBaseSearchContext = (
 		setSearchResultsLoading,
 		setSearchResultsCount,
 		setSearchTime,
-		resetTime,
 		createNewSearch,
 	}
 }

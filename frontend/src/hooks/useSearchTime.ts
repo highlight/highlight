@@ -13,7 +13,6 @@ export interface UseSearchTimeReturnValue {
 	selectedPreset?: DateRangePreset
 	rebaseSearchTime: () => void
 	updateSearchTime: (start: Date, end: Date, preset?: DateRangePreset) => void
-	resetSearchTime: () => void
 }
 
 type UseSearchTimeProps = {
@@ -78,12 +77,6 @@ export function useSearchTime({
 		setSelectedPreset(preset)
 	}
 
-	const resetSearchTime = () => {
-		const start = presetStartDate(defaultPreset)
-		const end = moment().toDate()
-		updateSearchTime(start, end, defaultPreset)
-	}
-
 	const rebaseSearchTime = useCallback(() => {
 		if (selectedPreset) {
 			setStartDate(presetStartDate(selectedPreset))
@@ -117,6 +110,5 @@ export function useSearchTime({
 		selectedPreset,
 		rebaseSearchTime,
 		updateSearchTime,
-		resetSearchTime,
 	}
 }
