@@ -1760,6 +1760,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				<Menu.Item
 					onClick={(e) => {
 						e.stopPropagation()
+						setSelectedSegment(undefined, searchQuery)
 						setSegmentModalState(SegmentModalState.CREATE)
 					}}
 					disabled={!canUpdateSegment}
@@ -1796,7 +1797,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 				<Menu.Divider />
 			</>
 		)
-	}, [canUpdateSegment, currentSegment, selectSegment, updateSegment])
+	}, [
+		canUpdateSegment,
+		currentSegment,
+		searchQuery,
+		selectSegment,
+		setSelectedSegment,
+		updateSegment,
+	])
 
 	// Don't render anything if this is a readonly query builder and there are no rules
 	if (readonly && rules.length === 0) {
