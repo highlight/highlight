@@ -755,7 +755,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						const newEvents = sd!.session_payload_appended.events!
 						if (newEvents.length) {
 							const events = [
-								...(chunkEventsRef.current.get(0) || []),
+								...getEvents(chunkEventsRef.current),
 								...toHighlightEvents(newEvents),
 							]
 							chunkEventsSet(0, events)
