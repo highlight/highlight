@@ -217,6 +217,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			CommitInterval:        time.Second,
 			MaxAttempts:           10,
 			WatchPartitionChanges: true,
+			OffsetOutOfRangeError: true,
 			GroupBalancers: []kafka.GroupBalancer{
 				kafka.RackAffinityGroupBalancer{Rack: rack},
 			},
