@@ -17,6 +17,7 @@ else
     export CLICKHOUSE_ADDRESS=localhost:9000
     export KAFKA_SERVERS=localhost:9092
     export PSQL_HOST=localhost
+    export PSQL_DOCKER_HOST=postgres
     export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
 fi
 export BUILD_ARGS="--build-arg GOARCH=${GOARCH}

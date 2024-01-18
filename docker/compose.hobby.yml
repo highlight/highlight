@@ -32,6 +32,7 @@ x-backend-env: &backend-env
         - OTLP_ENDPOINT
         - PSQL_DB
         - PSQL_HOST
+        - PSQL_DOCKER_HOST
         - PSQL_PASSWORD
         - PSQL_PORT
         - PSQL_USER

@@ -1724,10 +1724,10 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 		return true, 0
 	}
 
+	overage := meter - includedQuantity
 	// offset by the default included amount since ProductToBasePriceCents will offset too,
 	// but we want to use the local offset of includedQuantity which respects overrides
-	overage := meter + pricing.IncludedAmount(stripePlan, productType) - includedQuantity
-	basePriceCents := pricing.ProductToBasePriceCents(productType, stripePlan, overage)
+	basePriceCents := pricing.ProductToBasePriceCents(productType, stripePlan, meter+pricing.IncludedAmount(stripePlan, productType)-includedQuantity)
 	costCents := float64(overage) *
 		basePriceCents *
 		pricing.RetentionMultiplier(cfg.retentionPeriod(workspace))
@@ -2109,11 +2109,16 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 
+	verboseIdDeref := ""
+	if projectVerboseID != nil {
+		verboseIdDeref = *projectVerboseID
+	}
+
 	if projectID == 0 {
 		log.WithContext(ctx).
-			WithError(e.New("No project id found for error")).
 			WithField("sessionSecureID", sessionSecureID).
-			WithField("projectVerboseID", projectVerboseID)
+			WithField("projectVerboseID", verboseIdDeref).
+			Error("No project id found for error")
 		return
 	}
 
@@ -2121,7 +2126,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 	var project model.Project
 	if err := r.DB.WithContext(ctx).Model(&model.Project{}).Where("id = ?", projectID).Take(&project).Error; err != nil {
-		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
+		log.WithContext(ctx).WithError(err).
+			WithField("projectId", projectID).
+			WithField("project", project).
+			WithField("projectVerboseID", verboseIdDeref).
+			Error("failed to find project")
 		return
 	}
 

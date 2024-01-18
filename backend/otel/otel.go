@@ -324,7 +324,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				keyedErrorMessages[sessionID] = append(keyedErrorMessages[sessionID], &kafkaqueue.Message{
 					Type: kafkaqueue.PushBackendPayload,
 					PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-						ProjectVerboseID: &projectID,
+						ProjectVerboseID: pointy.String(projectID),
 						Errors:           []*model.BackendErrorObjectInput{errorObject},
 					}})
 			}
@@ -339,9 +339,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var messages []*kafkaqueue.Message
 	for projectID, traceMetrics := range projectTraceMetrics {
 		for sessionID, metrics := range traceMetrics {
+			var messages []*kafkaqueue.Message
 			for _, metric := range metrics {
 				messages = append(messages, &kafkaqueue.Message{
 					Type: kafkaqueue.PushMetrics,

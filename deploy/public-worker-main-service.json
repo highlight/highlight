@@ -68,7 +68,7 @@
 	"placementConstraints": [],
 	"compatibilities": ["EXTERNAL", "EC2"],
 	"requiresCompatibilities": ["EC2"],
-	"cpu": "2048",
+	"cpu": "4096",
 	"memory": "16384",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64",

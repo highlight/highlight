@@ -3,6 +3,7 @@ import {
 	IconSolidClickUp,
 	IconSolidExternalLink,
 	IconSolidGithub,
+	IconSolidGitlab,
 	IconSolidHeight,
 	IconSolidJira,
 	IconSolidLinear,
@@ -27,6 +28,8 @@ const getIcon = (a: Maybe<ExternalAttachment>) => {
 			return <IconSolidGithub />
 		case IntegrationType.Jira:
 			return <IconSolidJira />
+		case IntegrationType.GitLab:
+			return <IconSolidGitlab />
 	}
 	return <></>
 }
@@ -42,6 +45,8 @@ export const getAttachmentUrl = (a: Maybe<ExternalAttachment>) => {
 		case IntegrationType.GitHub:
 			return a.external_id
 		case IntegrationType.Jira:
+			return a.external_id
+		case IntegrationType.GitLab:
 			return a.external_id
 	}
 	return ''
