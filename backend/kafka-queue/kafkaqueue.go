@@ -27,7 +27,8 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 2
 	prefetchQueueCapacity = 8
-	MaxMessageSizeBytes   = 128 * 1000 * 1000 // MB
+	// MaxMessageSizeBytes is slightly larger than the server configured value
+	MaxMessageSizeBytes = 150 * 1000 * 1000 // MB
 )
 
 var (
@@ -101,7 +102,9 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	brokers := strings.Split(servers, ",")
 	groupID := strings.Join([]string{ConsumerGroupName, topic}, "_")
 
-	tlsConfig := &tls.Config{}
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
 	var mechanism sasl.Mechanism
 	var dialer *kafka.Dialer
 	var transport *kafka.Transport
@@ -170,10 +173,11 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			Async:        true,
+			// ensure messages are pushed to kafka before responding to the client
+			Async: false,
 			// override batch limit to be our message max size
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchSize:    1_000,
+			BatchSize:    1,
 			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
@@ -187,14 +191,13 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 				"mode":        "producer",
 				"topic":       topic,
 			}).Errorf),
-			MaxAttempts: 10,
 		}
 
 		if configOverride != nil {
 			deref := *configOverride
 			if deref.Async != nil {
 				pool.kafkaP.Async = *deref.Async
-				pool.kafkaP.BatchSize = 100
+				pool.kafkaP.BatchSize = 1_000
 			}
 			if deref.MessageSizeBytes != nil {
 				pool.kafkaP.BatchBytes = *deref.MessageSizeBytes
@@ -214,18 +217,21 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Brokers:           brokers,
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
+			ReadLagInterval:   time.Second,
 			SessionTimeout:    10 * time.Second,
 			RebalanceTimeout:  rebalanceTimeout,
-			ReadBatchTimeout:  KafkaOperationTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
+			MinBytes:          1000, // 1 KB
 			MaxBytes:          MaxMessageSizeBytes,
-			MaxWait:           time.Second,
+			MaxWait:           KafkaOperationTimeout,
+			ReadBatchTimeout:  KafkaOperationTimeout,
+			ReadBackoffMin:    time.Millisecond,
+			ReadBackoffMax:    5 * time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval:        time.Second,
-			MaxAttempts:           10,
 			WatchPartitionChanges: true,
 			OffsetOutOfRangeError: true,
 			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
