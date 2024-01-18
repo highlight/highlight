@@ -913,7 +913,7 @@ export const getTimeFromReplayer = function (
 	)
 }
 
-const MAX_SHORT_INT_SIZE = 10_000
+const MAX_SHORT_INT_SIZE = 65536
 
 // events are passed into an functions which does an array.splice or Math.max
 // When the number of events is greater than MAX_SHORT_INT_SIZE, the browser can crash.
@@ -934,12 +934,16 @@ export const getEvents = (
 		'clear' | 'set' | 'delete'
 	>,
 ) => {
+	let numEvents = 0
 	const events = []
-	for (const [, v] of [...truncate(chunkEvents.entries())].sort(
+	for (const [, v] of [...chunkEvents.entries()].sort(
 		(a, b) => a[0] - b[0],
 	)) {
 		for (const val of v) {
 			if (val) {
+				if (numEvents++ >= MAX_SHORT_INT_SIZE) {
+					return events
+				}
 				events.push(val)
 			}
 		}
