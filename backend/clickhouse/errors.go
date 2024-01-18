@@ -239,7 +239,7 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, projectId 
 	for _, id := range errorGroupIds {
 		defaultInner := sqlbuilder.Buildf(`
 			SELECT %s as ErrorGroupID, intDiv(toRelativeMinuteNum(%s), %s), 0
-			ORDER BY 
+			ORDER BY
 				1 WITH FILL,
 				2 WITH FILL FROM intDiv(toRelativeMinuteNum(%s), %s) TO intDiv(toRelativeMinuteNum(%s), %s)`,
 			id, params.DateRange.StartDate, mins, params.DateRange.StartDate, mins, params.DateRange.EndDate, mins)
@@ -538,9 +538,9 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 	return bucketTimes, totals, nil
 }
 
-var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
-	tableName: ErrorObjectsTable,
-	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+var errorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
+	TableName: ErrorObjectsTable,
+	KeysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
 		modelInputs.ReservedErrorObjectKeySessionSecureID: "SessionSecureID",
 		modelInputs.ReservedErrorObjectKeyRequestID:       "RequestID",
 		modelInputs.ReservedErrorObjectKeyTraceID:         "TraceID",
@@ -557,13 +557,13 @@ var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
 		modelInputs.ReservedErrorObjectKeyServiceVersion:  "Service.Version",
 		modelInputs.ReservedErrorObjectKeyEnvironment:     "Environment",
 	},
-	bodyColumn:   "Event",
-	reservedKeys: modelInputs.AllReservedErrorObjectKey,
+	BodyColumn:   "Event",
+	ReservedKeys: modelInputs.AllReservedErrorObjectKey,
 }
 
-var errorsJoinedTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
-	tableName: "errors_joined_vw",
-	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+var errorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
+	TableName: "errors_joined_vw",
+	KeysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
 		modelInputs.ReservedErrorObjectKeyBrowser:        "Browser",
 		modelInputs.ReservedErrorObjectKeyEnvironment:    "Environment",
 		modelInputs.ReservedErrorObjectKeyEvent:          "Event",
@@ -577,8 +577,8 @@ var errorsJoinedTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
 		modelInputs.ReservedErrorObjectKeyTimestamp:      "Timestamp",
 		modelInputs.ReservedErrorObjectKeyStatus:         "Status",
 	},
-	bodyColumn:   "Event",
-	reservedKeys: modelInputs.AllReservedErrorObjectKey,
+	BodyColumn:   "Event",
+	ReservedKeys: modelInputs.AllReservedErrorObjectKey,
 }
 
 var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErrorObjectKey]{

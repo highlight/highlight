@@ -14,10 +14,7 @@ import {
 	SearchForm,
 	SearchFormProps,
 } from '@/components/Search/SearchForm/SearchForm'
-import {
-	DEFAULT_OPERATOR,
-	stringifySearchQuery,
-} from '@/components/Search/SearchForm/utils'
+import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import {
 	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
@@ -63,18 +60,7 @@ export const TraceLogs: React.FC = () => {
 	const refetch = () => {}
 
 	useEffect(() => {
-		setQuery(
-			traceId
-				? stringifySearchQuery([
-						{
-							key: 'trace_id',
-							operator: DEFAULT_OPERATOR,
-							value: traceId,
-							offsetStart: 0,
-						},
-				  ])
-				: '',
-		)
+		setQuery(traceId ? `trace_id${DEFAULT_OPERATOR}${traceId}` : '')
 	}, [traceId])
 
 	return (

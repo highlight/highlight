@@ -1,138 +1,48 @@
+import { SearchExpression } from '@/components/Search/Parser/listener'
+import { parseSearch } from '@/components/Search/utils'
+
 import {
 	BODY_KEY,
-	buildSearchQueryForServer,
-	parseSearchQuery,
+	buildTokenGroups,
 	quoteQueryValue,
 	stringifySearchQuery,
-	validateSearchQuery,
 } from './utils'
 
-const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly' project_id:9 freetext query`
-const complexQueryParams = [
+const complexQueryString = `  name:"Eric Thomas" workspace:'Chilly McWilly'  project_id:9 freetext query`
+const complexQueryParams: SearchExpression[] = [
 	{
 		key: 'name',
 		operator: '=',
 		value: '"Eric Thomas"',
-		offsetStart: 0,
+		text: 'name:"Eric Thomas"',
+		start: 2,
+		stop: 17,
 	},
 	{
 		key: 'workspace',
 		operator: '=',
 		value: "'Chilly McWilly'",
-		offsetStart: 19,
+		text: "workspace:'Chilly McWilly'",
+		start: 21,
+		stop: 40,
 	},
 	{
 		key: 'project_id',
 		operator: '=',
 		value: '9',
-		offsetStart: 46,
+		text: 'project_id:9',
+		start: 49,
+		stop: 59,
 	},
 	{
 		key: BODY_KEY,
 		operator: '=',
 		value: 'freetext query',
-		offsetStart: 59,
+		text: 'freetext query',
+		start: 62,
+		stop: 75,
 	},
 ]
-
-describe('parseLogsQuery', () => {
-	it('parses a simple query correctly', () => {
-		const query = 'a test query'
-
-		expect(parseSearchQuery(query)).toEqual([
-			{
-				key: BODY_KEY,
-				operator: '=',
-				value: query,
-				offsetStart: 0,
-			},
-		])
-	})
-
-	it('parses a complex query correctly', () => {
-		expect(parseSearchQuery(complexQueryString)).toEqual(complexQueryParams)
-	})
-
-	it('calculates offsets correctly when text query when not at end of query', () => {
-		const query = 'project_id:18 search query name:"Eric Thomas"'
-
-		expect(parseSearchQuery(query)).toEqual([
-			{
-				key: 'project_id',
-				operator: '=',
-				value: '18',
-				offsetStart: 0,
-			},
-			{
-				key: BODY_KEY,
-				operator: '=',
-				value: 'search query',
-				offsetStart: 14,
-			},
-			{
-				key: 'name',
-				operator: '=',
-				value: '"Eric Thomas"',
-				offsetStart: 27,
-			},
-		])
-	})
-
-	it('adds a text query when there is a trailing space', () => {
-		const query = 'name:"Eric Thomas" '
-		expect(parseSearchQuery(query)).toEqual([
-			{
-				key: 'name',
-				operator: '=',
-				value: '"Eric Thomas"',
-				offsetStart: 0,
-			},
-			{
-				key: BODY_KEY,
-				operator: '=',
-				value: '',
-				offsetStart: 19,
-			},
-		])
-	})
-
-	it('handles separators in quotes', () => {
-		const query =
-			'"Error updating filter group: Filtering out noisy error" user:"Chilly: McWilly"'
-		expect(parseSearchQuery(query)).toEqual([
-			{
-				key: BODY_KEY,
-				operator: '=',
-				value: '"Error updating filter group: Filtering out noisy error"',
-				offsetStart: 0,
-			},
-			{
-				key: 'user',
-				offsetStart: 57,
-				operator: '=',
-				value: '"Chilly: McWilly"',
-			},
-		])
-	})
-
-	it('handles nested quotes', () => {
-		const query = `'test: "ing' user:'Chilly "McWilly"'`
-		expect(parseSearchQuery(query)).toEqual([
-			{
-				key: BODY_KEY,
-				operator: '=',
-				value: `'test: "ing'`,
-				offsetStart: 0,
-			},
-			{
-				key: 'user',
-				operator: '=',
-				value: `'Chilly "McWilly"'`,
-				offsetStart: 13,
-			},
-		])
-	})
-})
 
 describe('stringifyLogsQuery', () => {
 	it('parses simple params to a query string', () => {
@@ -142,7 +52,9 @@ describe('stringifyLogsQuery', () => {
 					key: BODY_KEY,
 					operator: '=',
 					value: 'a test query',
-					offsetStart: 0,
+					text: 'a test query',
+					start: 0,
+					stop: 12,
 				},
 			]),
 		).toEqual('a test query')
@@ -161,43 +73,12 @@ describe('stringifyLogsQuery', () => {
 					key: BODY_KEY,
 					operator: '=',
 					value: '"Error updating filter group: Filtering out noisy error"',
-					offsetStart: 0,
+					text: '"Error updating filter group: Filtering out noisy error"',
+					start: 0,
+					stop: 62,
 				},
 			]),
 		).toEqual('"Error updating filter group: Filtering out noisy error"')
-	})
-})
-
-describe('buildLogsQueryForServer', () => {
-	it('handles quoted strings correctly', () => {
-		expect(
-			buildSearchQueryForServer([
-				{
-					key: BODY_KEY,
-					operator: '=',
-					value: `"test: \"ing"`,
-					offsetStart: 0,
-				},
-				{
-					key: 'user',
-					operator: '=',
-					value: `'Chilly "McWilly"'`,
-					offsetStart: 10,
-				},
-			]),
-		).toEqual(`"test: \"ing" user:"Chilly \"McWilly\""`)
-	})
-})
-
-describe('validateLogsQuery', () => {
-	it('returns true for an invalid query', () => {
-		expect(validateSearchQuery(complexQueryParams)).toBeTruthy()
-	})
-
-	it('returns false for an invalid query', () => {
-		const params = [...complexQueryParams]
-		params[0].value = ''
-		expect(validateSearchQuery(params)).toBeFalsy()
 	})
 })
 
@@ -216,5 +97,50 @@ describe('quoteQueryValue', () => {
 
 	it('handles numbers', () => {
 		expect(quoteQueryValue(1234)).toEqual('1234')
+	})
+})
+
+describe('buildTokenGroups', () => {
+	it('builds token groups correctly', () => {
+		const queryString =
+			' service_name=(private-graph  OR public-graph) AND span_name!=gorm.Query asdf fdsa '
+		const { tokens, queryParts } = parseSearch(queryString)
+		const tokenGroups = buildTokenGroups(tokens, queryParts, queryString)
+		const tokenGroupStrings = tokenGroups.map((group) =>
+			group.tokens.map((token) => token.text).join(''),
+		)
+
+		expect(tokenGroupStrings).toEqual([
+			' ',
+			'service_name=(private-graph  OR public-graph)',
+			' ',
+			'AND',
+			' ',
+			'span_name!=gorm.Query',
+			' ',
+			'asdf',
+			' ',
+			'fdsa',
+			' ',
+			'<EOF>',
+		])
+	})
+
+	it('handles AND and OR correctly', () => {
+		const queryString =
+			'service_name=private-graph AND span_name!=gorm.Query'
+		const { tokens, queryParts } = parseSearch(queryString)
+		const tokenGroups = buildTokenGroups(tokens, queryParts, queryString)
+		const tokenGroupStrings = tokenGroups.map((group) =>
+			group.tokens.map((token) => token.text).join(''),
+		)
+
+		expect(tokenGroupStrings).toEqual([
+			'service_name=private-graph',
+			' ',
+			'AND',
+			' ',
+			'span_name!=gorm.Query<EOF>',
+		])
 	})
 })

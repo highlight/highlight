@@ -11,10 +11,6 @@ import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
-import {
-	buildSearchQueryForServer,
-	parseSearchQuery,
-} from '@/components/Search/SearchForm/utils'
 
 export type LogEdgeWithError = LogEdge & {
 	error_object?: Pick<
@@ -56,8 +52,6 @@ export const useGetLogs = ({
 	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
-	const queryTerms = parseSearchQuery(query)
-	const serverQuery = buildSearchQueryForServer(queryTerms)
 
 	useEffect(() => {
 		setWindowInfo(initialWindowInfo)
@@ -69,7 +63,7 @@ export const useGetLogs = ({
 			at: logCursor,
 			direction: Types.SortDirection.Desc,
 			params: {
-				query: serverQuery,
+				query,
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
@@ -94,14 +88,14 @@ export const useGetLogs = ({
 				at: logCursor,
 				direction: Types.SortDirection.Desc,
 				params: {
-					query: serverQuery,
+					query,
 					date_range: {
 						start_date: moment(endDate).format(TIME_FORMAT),
 						end_date: moment().format(TIME_FORMAT),
 					},
 				},
 			}),
-			[endDate, logCursor, project_id, serverQuery],
+			[endDate, logCursor, project_id, query],
 		),
 		moreDataQuery,
 		getResultCount: useCallback((result) => {

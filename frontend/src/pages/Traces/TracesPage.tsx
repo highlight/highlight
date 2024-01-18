@@ -23,10 +23,6 @@ import {
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import {
-	buildSearchQueryForServer,
-	parseSearchQuery,
-} from '@/components/Search/SearchForm/utils'
-import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 	useGetTracesMetricsQuery,
@@ -64,8 +60,6 @@ export const TracesPage: React.FC = () => {
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: FixedRangePreset,
 	})
-	const queryTerms = parseSearchQuery(query)
-	const serverQuery = buildSearchQueryForServer(queryTerms)
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 
@@ -92,7 +86,7 @@ export const TracesPage: React.FC = () => {
 				column: MetricColumn.Duration,
 				group_by: [],
 				params: {
-					query: serverQuery,
+					query,
 					date_range: {
 						start_date: moment(startDate).format(TIME_FORMAT),
 						end_date: moment(endDate).format(TIME_FORMAT),

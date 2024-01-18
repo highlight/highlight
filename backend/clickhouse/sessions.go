@@ -441,11 +441,11 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	return client.conn.Exec(ctx, sql, args...)
 }
 
-var sessionsTableConfig = tableConfig[string]{
-	tableName:        SessionsTable,
-	keysToColumns:    fieldMap,
-	attributesColumn: "Fields",
-	reservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
+var sessionsTableConfig = model.TableConfig[string]{
+	TableName:        SessionsTable,
+	KeysToColumns:    fieldMap,
+	AttributesColumn: "Fields",
+	ReservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
 		return item.String()
 	}),
 }
@@ -454,10 +454,10 @@ func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) b
 	return matchesQuery(session, sessionsTableConfig, filters)
 }
 
-var sessionsJoinedTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
-	tableName:        "sessions_joined_vw",
-	attributesColumn: "SessionAttributes",
-	reservedKeys:     modelInputs.AllReservedSessionKey,
+var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
+	TableName:        "sessions_joined_vw",
+	AttributesColumn: "SessionAttributes",
+	ReservedKeys:     modelInputs.AllReservedSessionKey,
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
