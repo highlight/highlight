@@ -27,8 +27,7 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 2
 	prefetchQueueCapacity = 8
-	// MaxMessageSizeBytes is slightly larger than the server configured value
-	MaxMessageSizeBytes = 150 * 1000 * 1000 // MB
+	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
 )
 
 var (
@@ -173,10 +172,11 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			Async:        true,
+			// ensure messages are pushed to kafka before responding to the client
+			Async: false,
 			// override batch limit to be our message max size
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchSize:    1_000 * 1_000, // 1 MB
+			BatchSize:    1,
 			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
