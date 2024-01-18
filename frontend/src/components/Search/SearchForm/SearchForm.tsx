@@ -659,7 +659,7 @@ export const Search: React.FC<{
 						>
 							<LinkButton
 								trackingId="search-form_search-specification-docs-link"
-								to="https://www.highlight.io/docs/general/product-features/logging/log-search#attributes-search"
+								to="https://www.highlight.io/docs/general/product-features/general-features/search"
 								target="_blank"
 								size="xSmall"
 								kind="secondary"

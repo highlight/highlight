@@ -86,11 +86,11 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 <img width="600" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
 </p>
 
-### Logging
+### Logs and Traces: Dig deeper into what's happening on your server.
 
--   **Powerful Log Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/logging/log-search)
+-   **Powerful Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/general-features/search)
 -   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
--   **Embedded Session Replay and Errors**: See all of the sessions & errors associated with any given log.
+-   **Embedded Session Replay and Errors**: See all of the sessions & errors associated a log or a trace.
 -   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
 -   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
 
