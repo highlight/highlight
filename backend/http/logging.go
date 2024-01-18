@@ -3,7 +3,6 @@ package http
 import (
 	"compress/gzip"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )

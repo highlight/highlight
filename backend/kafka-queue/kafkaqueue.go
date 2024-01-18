@@ -3,7 +3,6 @@ package kafka_queue
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
+	"github.com/segmentio/encoding/json"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"

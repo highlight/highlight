@@ -2,8 +2,13 @@ package graph
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"hash/fnv"
+	"regexp"
+	"time"
+
+	trace2 "go.opentelemetry.io/otel/trace"
+
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -14,11 +19,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	e "github.com/pkg/errors"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
-	trace2 "go.opentelemetry.io/otel/trace"
-	"hash/fnv"
-	"regexp"
-	"time"
 )
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {

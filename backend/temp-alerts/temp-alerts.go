@@ -8,13 +8,17 @@ package tempalerts
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/segmentio/encoding/json"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"gorm.io/gorm"
 
 	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
@@ -26,9 +30,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-	"gorm.io/gorm"
 )
 
 type SendSlackAlertInput struct {

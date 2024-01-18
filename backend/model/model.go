@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -16,6 +15,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
+	"github.com/segmentio/encoding/json"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"

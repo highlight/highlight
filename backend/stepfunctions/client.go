@@ -2,7 +2,6 @@ package stepfunctions
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -13,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
+	"github.com/segmentio/encoding/json"
 )
 
 var (

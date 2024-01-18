@@ -3,7 +3,6 @@ package lambda
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go-v2/config"

@@ -2,7 +2,6 @@ package hubspot
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 )
 

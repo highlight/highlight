@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math"
@@ -13,13 +12,14 @@ import (
 	"strings"
 	"time"
 
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 )
 

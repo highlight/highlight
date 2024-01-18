@@ -2,14 +2,17 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/segmentio/encoding/json"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+
+	log "github.com/sirupsen/logrus"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/digests/utils"
@@ -17,7 +20,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"gorm.io/gorm"
 )
 
 type Handlers interface {
