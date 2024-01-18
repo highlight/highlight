@@ -25,9 +25,7 @@ enum TraceTabs {
 	Logs = 'Logs',
 }
 
-type Props = {}
-
-export const TracePage: React.FC<Props> = () => {
+export const TracePage: React.FC = () => {
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
 	const {
 		durationString,
@@ -41,7 +39,7 @@ export const TracePage: React.FC<Props> = () => {
 	} = useTrace()
 
 	useEffect(() => {
-		analytics.page(`/traces/${traceId}`)
+		analytics.page()
 	}, [traceId])
 
 	if (!traces?.length) {
