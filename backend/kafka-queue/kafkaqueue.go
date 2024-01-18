@@ -177,9 +177,17 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
-			Logger:       kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Debugf),
-			ErrorLogger:  kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Errorf),
-			MaxAttempts:  10,
+			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "producer",
+				"topic":       topic,
+			}).Debugf),
+			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "producer",
+				"topic":       topic,
+			}).Errorf),
+			MaxAttempts: 10,
 		}
 
 		if configOverride != nil {
@@ -220,8 +228,16 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			MaxAttempts:           10,
 			WatchPartitionChanges: true,
 			OffsetOutOfRangeError: true,
-			Logger:                kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Debugf),
-			ErrorLogger:           kafka.LoggerFunc(log.WithField("code.module", "kafkaqueue").Errorf),
+			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "consumer",
+				"topic":       topic,
+			}).Debugf),
+			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "consumer",
+				"topic":       topic,
+			}).Errorf),
 			GroupBalancers: []kafka.GroupBalancer{
 				kafka.RackAffinityGroupBalancer{Rack: rack},
 			},
