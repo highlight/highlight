@@ -405,7 +405,6 @@ const AlertPicker = function ({
 				})
 				channelID = data?.upsertDiscordChannel.id ?? ''
 			}
-			// TODO: do we have to do same for microsoft_teams platform?
 			return channelID
 		},
 		[platform, projectId, upsertDiscordChannel, upsertSlackChannel],

@@ -83,13 +83,13 @@ func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
 			return nil
 		}
 
-		bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.DiscordGuildId)
+		bot, err := microsoft_teams.NewMicrosoftTeamsBot(*event.Workspace.MicrosoftTeamsTenantId)
 		if err != nil {
 			return err
 		}
 
 		payload = attachReferrerToErrorAlertPayload(ctx, payload, routing.Discord)
-		for _, channel := range event.ErrorAlert.DiscordChannelsToNotify {
+		for _, channel := range event.ErrorAlert.MicrosoftTeamsChannelsToNotify {
 			err = bot.SendErrorAlert(channel.ID, payload)
 
 			if err != nil {

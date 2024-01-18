@@ -288,7 +288,6 @@ export const ErrorAlertPage = () => {
 						}
 
 						if (isCreate) {
-							console.log('Input', input)
 							createErrorAlertMutation({
 								variables: input,
 							})
