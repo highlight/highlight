@@ -157,9 +157,9 @@ export const useGenerateSessionsReportCSV = () => {
 			}
 
 			const sessionReportPromise = getSessionReport()
-			const { sessions, totalCount } = await getSessions(1)
+			const { sessions: s, totalCount } = await getSessions(1)
 
-			const allSessions = [...sessions]
+			const sessions = [...s]
 			const promises: Promise<Session[]>[] = []
 			for (
 				let page = 2;
@@ -167,10 +167,10 @@ export const useGenerateSessionsReportCSV = () => {
 				page++
 			) {
 				promises.push(
-					(async () => (await getSessions(page)).sessions)(),
+					(async (p) => (await getSessions(p)).sessions)(page),
 				)
 			}
-			allSessions.push(...(await Promise.all(promises)).flat())
+			sessions.push(...(await Promise.all(promises)).flat())
 
 			const rows: any[][] = [
 				...getQueryRows(query, sessions),
