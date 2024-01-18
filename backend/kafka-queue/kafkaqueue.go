@@ -26,7 +26,7 @@ const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 2
-	prefetchQueueCapacity = 8
+	prefetchQueueCapacity = 100
 	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
 )
 
@@ -221,18 +221,17 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
-			MinBytes:          1_000 * 1_000, // 1 MB
+			MinBytes:          1,
 			MaxBytes:          MaxMessageSizeBytes,
 			MaxWait:           KafkaOperationTimeout,
 			ReadBatchTimeout:  KafkaOperationTimeout,
-			ReadBackoffMin:    time.Millisecond,
+			ReadBackoffMin:    time.Nanosecond,
 			ReadBackoffMax:    5 * time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval:        time.Second,
 			WatchPartitionChanges: true,
-			OffsetOutOfRangeError: true,
 			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
 				"code.module": "kafkaqueue",
 				"mode":        "consumer",
