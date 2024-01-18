@@ -103,7 +103,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	groupID := strings.Join([]string{ConsumerGroupName, topic}, "_")
 
 	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS13,
+		MinVersion: tls.VersionTLS12,
 	}
 	var mechanism sasl.Mechanism
 	var dialer *kafka.Dialer
