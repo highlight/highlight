@@ -7,7 +7,7 @@ import {
 	Tabs,
 } from '@highlight-run/ui/components'
 import moment from 'moment'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { TraceErrors } from '@/pages/Traces/TraceErrors'
@@ -15,6 +15,7 @@ import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
 import { TraceLogs } from '@/pages/Traces/TraceLogs'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
+import analytics from '@/util/analytics'
 
 import * as styles from './TracePage.css'
 
@@ -24,9 +25,7 @@ enum TraceTabs {
 	Logs = 'Logs',
 }
 
-type Props = {}
-
-export const TracePage: React.FC<Props> = () => {
+export const TracePage: React.FC = () => {
 	const [activeTab, setActiveTab] = useState<TraceTabs>(TraceTabs.Info)
 	const {
 		durationString,
@@ -36,7 +35,12 @@ export const TracePage: React.FC<Props> = () => {
 		startTime,
 		traces,
 		traceName,
+		traceId,
 	} = useTrace()
+
+	useEffect(() => {
+		analytics.page()
+	}, [traceId])
 
 	if (!traces?.length) {
 		return loading ? (
