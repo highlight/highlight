@@ -8,8 +8,8 @@ export const SignInRedirect: React.FC = () => {
 		// Store the original path so we can redirect back to it later.
 		const dest = window.location.href.replace(window.location.origin, '')
 
-		// Perform the comparison on pathname rather than dest because dest because
-		// we want to include search params in the redirect.
+		// Perform the comparison on pathname rather than dest because we want to
+		// include the search string in the redirect.
 		if (window.location.pathname !== '/') {
 			authRedirect.set(dest)
 		}
