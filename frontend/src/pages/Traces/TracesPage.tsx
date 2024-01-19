@@ -10,7 +10,7 @@ import moment from 'moment'
 import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
-import { useQueryParam } from 'use-query-params'
+import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
 import LoadingBox from '@/components/LoadingBox'
 import {
@@ -19,7 +19,6 @@ import {
 } from '@/components/Search/SearchForm/constants'
 import {
 	FixedRangePreset,
-	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import {
@@ -49,7 +48,10 @@ export const TracesPage: React.FC = () => {
 	const { trace_cursor: traceCursor } = useParams<{
 		trace_cursor: string
 	}>()
-	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const [query, setQuery] = useQueryParam(
+		'query',
+		withDefault(StringParam, 'parent_span_id:""'),
+	)
 	const {
 		startDate,
 		endDate,
