@@ -5,7 +5,7 @@ import * as styles from './styles.css'
 type Props = React.PropsWithChildren &
 	styles.Variants & {
 		href: string
-		target?: '_blank'
+		target?: '_blank' | '_self'
 		rel?: 'noreferrer'
 	}
 

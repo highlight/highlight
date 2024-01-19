@@ -37,7 +37,10 @@ export const NetworkResourceTrace: React.FC = () => {
 					<Text>
 						1. Traces are not configured yet for your project.
 						Follow{' '}
-						<TextLink href={`/${projectId}/setup/traces`}>
+						<TextLink
+							href={`/${projectId}/setup/traces`}
+							target="_self"
+						>
 							setup instructions
 						</TextLink>{' '}
 						to enable them.
@@ -45,7 +48,10 @@ export const NetworkResourceTrace: React.FC = () => {
 					<Text>
 						2. The trace was sampled out. Your sampling settings
 						could be configured{' '}
-						<TextLink href={`/${projectId}/settings/filters`}>
+						<TextLink
+							href={`/${projectId}/settings/filters`}
+							target="_self"
+						>
 							using filters
 						</TextLink>{' '}
 						or in your code calling our SDK.
