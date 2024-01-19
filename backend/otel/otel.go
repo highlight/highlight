@@ -326,6 +326,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					Type: kafkaqueue.PushBackendPayload,
 					PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 						ProjectVerboseID: pointy.String(projectID),
+						SessionSecureID:  pointy.String(sessionID),
 						Errors:           []*model.BackendErrorObjectInput{errorObject},
 					}})
 			}
