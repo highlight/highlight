@@ -355,7 +355,8 @@ func TestReadLogsHasNextPage(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, payload.Edges, 50)
-	assert.True(t, payload.PageInfo.HasNextPage)
+	// Duplicates are removed from the result set so this should be false
+	assert.False(t, payload.PageInfo.HasNextPage)
 }
 
 func TestReadLogsAfterCursor(t *testing.T) {

@@ -47,7 +47,6 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	outerSelect := strings.Join(config.SelectColumns, ", ")
 	innerSelect := "Timestamp, UUID"
-
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
@@ -66,7 +65,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		if err != nil {
 			return nil, err
 		}
-		beforeSb.Limit(LogsLimit/2 + 1)
+		beforeSb.Distinct().Limit(LogsLimit/2 + 1)
 
 		atSb, err := makeSelectBuilder(
 			config,
@@ -83,6 +82,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		if err != nil {
 			return nil, err
 		}
+		atSb.Distinct()
 
 		afterSb, err := makeSelectBuilder(
 			config,
@@ -99,10 +99,11 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		if err != nil {
 			return nil, err
 		}
-		afterSb.Limit(LogsLimit/2 + 1)
+		afterSb.Distinct().Limit(LogsLimit/2 + 1)
 
 		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
 		sb.Select(outerSelect).
+			Distinct().
 			From(config.TableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), ub)).
@@ -122,8 +123,9 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 			return nil, err
 		}
 
-		fromSb.Limit(LogsLimit + 1)
+		fromSb.Distinct().Limit(LogsLimit + 1)
 		sb.Select(outerSelect).
+			Distinct().
 			From(config.TableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), fromSb)).
