@@ -9,16 +9,21 @@ import {
 	Session,
 	SessionsReportRow,
 } from '@graph/schemas'
+import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
+import { useSearchTime } from '@hooks/useSearchTime'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import moment from 'moment/moment'
 
 const processRows = <
-	T extends { __typename?: string; user_properties?: Maybe<string> },
+	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
 >(
 	inputs: T[],
 	ignoreKeys: Set<keyof T> = new Set<keyof T>([]),
 ) => {
+	ignoreKeys.add('user_properties')
+	ignoreKeys.add('__typename')
+
 	const rows: any[][] = []
 	if (!inputs.length) {
 		return rows
@@ -30,8 +35,6 @@ const processRows = <
 		try {
 			input = { ...input, ...JSON.parse(input.user_properties ?? '') }
 		} catch (e) {}
-		delete input.user_properties
-		delete input.__typename
 		Object.keys(input).forEach((key, idx) => {
 			if (!keys.hasOwnProperty(key)) {
 				keys[key as keyof T] = idx
@@ -57,14 +60,15 @@ const processRows = <
 	return rows
 }
 
-const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => {
-	const timeRule = query.rules.find(
-		(rule) => (rule[1] as Operator) === 'between_date',
-	)!
+const getQueryRows = (
+	start: Date,
+	end: Date,
+	query: ClickhouseQuery,
+	sessions: Session[],
+) => {
 	const rules = query.rules.filter(
 		(rule: any) => (rule[1] as Operator) !== 'between_date',
 	)
-	const [start, end] = timeRule[2].split('_')
 	const startFormatted = moment(start).format()
 	const endFormatted = moment(end).format()
 	return [
@@ -107,60 +111,80 @@ const exportFile = async (name: string, encodedUri: string) => {
 }
 
 export const useGenerateSessionsReportCSV = () => {
+	const PAGE_SIZE = 1_000
+	const { startDate, endDate } = useSearchTime({
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+		presets: DEFAULT_TIME_PRESETS,
+	})
 	const { searchQuery } = useSearchContext()
 	const { projectId } = useProjectId()
 	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
 	const [getSessionsClickhouse, { loading: sessionsLoading }] =
 		useGetSessionsClickhouseLazyQuery()
+
 	return {
 		loading: loading || sessionsLoading,
 		generateSessionsReportCSV: async () => {
 			const query = JSON.parse(searchQuery) as ClickhouseQuery
-			const [sessions, sessionsReport] = await Promise.all([
-				(async () => {
-					const { data, error } = await getSessionsClickhouse({
-						variables: {
-							query,
-							count: 1_000_000,
-							page: 1,
-							project_id: projectId,
-							sort_desc: true,
-						},
-					})
-					if (!data?.sessions_clickhouse) {
-						throw new Error(`No sessions data: ${error?.message}`)
-					}
-					if (data?.sessions_clickhouse.totalCount >= 1_000_000) {
-						throw new Error(
-							'Too many sessions to export. Please narrow your search.',
-						)
-					}
-					return data.sessions_clickhouse.sessions.map((s) => ({
+
+			const getSessionReport = async () => {
+				const { data, error } = await getReport({
+					variables: {
+						query,
+						project_id: projectId,
+					},
+				})
+				if (!data?.sessions_report) {
+					throw new Error(
+						`No sessions report data: ${error?.message}`,
+					)
+				}
+				return data.sessions_report
+			}
+
+			const getSessions = async (page: number) => {
+				const { data, error } = await getSessionsClickhouse({
+					variables: {
+						query,
+						count: PAGE_SIZE,
+						page,
+						project_id: projectId,
+						sort_desc: true,
+					},
+				})
+				if (!data?.sessions_clickhouse) {
+					throw new Error(`No sessions data: ${error?.message}`)
+				}
+				return {
+					totalCount: data.sessions_clickhouse.totalCount ?? 0,
+					sessions: data.sessions_clickhouse.sessions.map((s) => ({
 						...s,
 						payload_updated_at: new Date().toISOString(),
-					}))
-				})(),
-				(async () => {
-					const { data, error } = await getReport({
-						variables: {
-							query,
-							project_id: projectId,
-						},
-					})
-					if (!data?.sessions_report) {
-						throw new Error(
-							`No sessions report data: ${error?.message}`,
-						)
-					}
-					return data.sessions_report
-				})(),
-			])
+					})),
+				}
+			}
+
+			const sessionReportPromise = getSessionReport()
+			const { sessions: s, totalCount } = await getSessions(1)
+
+			const sessions = [...s]
+			const promises: Promise<Session[]>[] = []
+			for (
+				let page = 2;
+				page <= Math.ceil(totalCount / PAGE_SIZE);
+				page++
+			) {
+				promises.push(
+					(async (p) => (await getSessions(p)).sessions)(page),
+				)
+			}
+			sessions.push(...(await Promise.all(promises)).flat())
 
 			const rows: any[][] = [
-				...getQueryRows(query, sessions),
+				...getQueryRows(startDate, endDate, query, sessions),
 				// leave a blank row between the sub reports
 				[],
-				...getReportRows(sessionsReport),
+				...getReportRows(await sessionReportPromise),
 				// leave a blank row between the sub reports
 				[],
 				...getSessionRows(sessions),
