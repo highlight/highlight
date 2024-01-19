@@ -55,7 +55,6 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 	outerSelect := strings.Join(config.selectColumns, ", ")
 	innerSelect := "Timestamp, UUID"
-
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
