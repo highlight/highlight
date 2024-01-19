@@ -773,7 +773,6 @@ type SessionsReportRow struct {
 	MaxLengthMins         float64 `json:"max_length_mins"`
 	TotalLengthMins       float64 `json:"total_length_mins"`
 	Location              string  `json:"location"`
-	UserProperties        *string `json:"user_properties"`
 }
 
 type SlackSyncResponse struct {

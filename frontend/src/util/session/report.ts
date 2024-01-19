@@ -16,11 +16,14 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import moment from 'moment/moment'
 
 const processRows = <
-	T extends { __typename?: string; user_properties?: Maybe<string> },
+	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
 >(
 	inputs: T[],
 	ignoreKeys: Set<keyof T> = new Set<keyof T>([]),
 ) => {
+	ignoreKeys.add('user_properties')
+	ignoreKeys.add('__typename')
+
 	const rows: any[][] = []
 	if (!inputs.length) {
 		return rows
@@ -32,8 +35,6 @@ const processRows = <
 		try {
 			input = { ...input, ...JSON.parse(input.user_properties ?? '') }
 		} catch (e) {}
-		delete input.user_properties
-		delete input.__typename
 		Object.keys(input).forEach((key, idx) => {
 			if (!keys.hasOwnProperty(key)) {
 				keys[key as keyof T] = idx
