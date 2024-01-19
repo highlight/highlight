@@ -43,9 +43,12 @@ export const NetworkResourceTrace: React.FC = () => {
 						to enable them.
 					</Text>
 					<Text>
-						2. The trace was sampled out. You can configure the
-						sampling rate when making calls to send traces with our
-						SDKs.
+						2. The trace was sampled out. Your sampling settings
+						could be configured{' '}
+						<TextLink href={`/${projectId}/settings/filters`}>
+							using filters
+						</TextLink>{' '}
+						or in your code calling our SDK.
 					</Text>
 				</Callout>
 			</Box>
