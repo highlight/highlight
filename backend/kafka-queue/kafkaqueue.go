@@ -217,7 +217,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
 			ReadLagInterval:   time.Second,
-			SessionTimeout:    rebalanceTimeout,
+			SessionTimeout:    30 * time.Second,
 			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
