@@ -172,9 +172,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			Async:        true,
+			// synchronous mode so that we can ensure messages are sent before we return
+			Async:        false,
+			BatchSize:    1,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchSize:    1_000,
 			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
