@@ -172,12 +172,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			// ensure messages are pushed to kafka before responding to the client
-			Async: false,
-			// override batch limit to be our message max size
+			Async:        true,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchSize:    1,
-			BatchTimeout: time.Second,
+			BatchSize:    1_000,
+			BatchTimeout: 100 * time.Millisecond,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
@@ -217,7 +215,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
 			ReadLagInterval:   time.Second,
-			SessionTimeout:    10 * time.Second,
+			SessionTimeout:    rebalanceTimeout,
 			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
