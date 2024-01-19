@@ -33,10 +33,8 @@ export const NetworkResourceTrace: React.FC = () => {
 					title="Trace not found"
 					style={{ paddingBottom: 16 }}
 				>
-					<Text weight="bold">
-						This could happen for the following reasons:
-					</Text>
-					<Text size="small">
+					<Text>This could happen for the following reasons:</Text>
+					<Text>
 						1. Traces are not configured yet for your project.
 						Follow{' '}
 						<TextLink href={`/${projectId}/setup/traces`}>
