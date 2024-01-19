@@ -19,7 +19,8 @@ import {
 	Box,
 	ButtonIcon,
 	ComboboxSelect,
-	defaultPresets,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	getNow,
 	IconSolidCalendar,
 	IconSolidChat,
@@ -55,7 +56,6 @@ import {
 	IconSolidX,
 	Menu,
 	Popover,
-	PreviousDateRangePicker,
 	Tag,
 	Text,
 	Tooltip,
@@ -167,21 +167,6 @@ const getDateLabel = (value: string): string => {
 	const startStr = moment(start).format('MMM D h:mm a')
 	const endStr = moment(end).format('MMM D h:mm a')
 	return `${startStr} to ${endStr}`
-}
-
-export const updateQueriedTimeRange = (
-	query: string,
-	timeRangeField: SelectOption,
-	serializedValue: string,
-): string => {
-	const parsedQuery = JSON.parse(query) as QueryBuilderState
-	parsedQuery.rules = parsedQuery.rules.map((rule) => {
-		if (rule[0] === timeRangeField.value) {
-			rule[2] = serializedValue
-		}
-		return rule
-	})
-	return JSON.stringify(parsedQuery)
 }
 
 export const isAbsoluteTimeRange = (value?: string): boolean => {
@@ -953,11 +938,9 @@ export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
 
 const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
 	custom_processed: getProcessedLabel,
-	custom_created_at: getDateLabel,
 	custom_active_length: getTimeLabel,
 	custom_pages_visited: getLengthLabel,
 	error_state: getStateLabel,
-	'error-field_timestamp': getDateLabel,
 }
 
 export const deserializeGroup = (
@@ -1157,7 +1140,6 @@ export type FetchFieldVariables =
 
 export interface QueryBuilderProps {
 	searchContext: BaseSearchContext
-	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesClickhouseQuery
@@ -1196,12 +1178,10 @@ enum SegmentModalState {
 }
 
 const defaultMinDate = getNow().subtract(90, 'days').toDate()
-const defaultPreset = defaultPresets[5]
 
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
-		timeRangeField,
 		customFields,
 		fetchFields,
 		fieldData,
@@ -1227,6 +1207,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
+		setSearchTime,
+		resetTime,
+		startDate,
+		endDate,
+		selectedPreset,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1340,35 +1325,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		isAnd: serializedIsAnd,
 		rules: serializedRules,
-	}: { isAnd: boolean; rules: any } = JSON.parse(searchQuery)
+	}: QueryBuilderState = JSON.parse(searchQuery)
 	const startingRules = deserializeRules(serializedRules)
 	const [isAnd, toggleIsAnd] = useToggle(serializedIsAnd)
 	const [rules, setRules] = useState<RuleProps[]>(startingRules)
 
-	const startingDateRange = startingRules.find(
-		(rule) =>
-			rule.op === 'between_date' &&
-			rule.field?.value === timeRangeField.value,
-	)?.val?.options?.[0]?.value
-	let from, to: Date | undefined
-	if (startingDateRange) {
-		const [fromStr, toStr] = startingDateRange.split('_')
-		from = new Date(fromStr)
-		to = new Date(toStr)
-	}
-	const [dateRange, setDateRange] = useState<Date[]>([
-		from ?? defaultPreset.startDate, // Start at 30days
-		to ?? new Date(getNow().toISOString()),
-	])
-
-	const filterRules = useMemo(
-		() =>
-			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
-		[rules, timeRangeField.value],
-	)
-
 	const setRulesImpl = useCallback(
-		(newRules: RuleProps[], isAnd: boolean) => {
+		(newRules: RuleProps[], isAnd: boolean, start: Date, end: Date) => {
 			setRules(newRules)
 			toggleIsAnd(isAnd)
 
@@ -1379,6 +1342,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			const newState = JSON.stringify({
 				isAnd,
 				rules: serializeRules(newRules),
+				dateRange: { start_date: start, end_date: end },
 			})
 			setSearchQuery(newState)
 		},
@@ -1387,18 +1351,20 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const addRule = useCallback(
 		(rule: RuleProps) => {
-			setRulesImpl([...rules, rule], isAnd)
+			setRulesImpl([...rules, rule], isAnd, startDate, endDate)
 			setCurrentRule(undefined)
 		},
-		[rules, setRulesImpl, isAnd],
+		[rules, setRulesImpl, isAnd, startDate, endDate],
 	)
 	const removeRule = useCallback(
 		(targetRule: RuleProps) =>
 			setRulesImpl(
 				rules.filter((rule) => rule !== targetRule),
 				isAnd,
+				startDate,
+				endDate,
 			),
-		[rules, setRulesImpl, isAnd],
+		[rules, setRulesImpl, isAnd, startDate, endDate],
 	)
 	const updateRule = useCallback(
 		(targetRule: RuleProps, newProps: any) => {
@@ -1407,21 +1373,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 					rule !== targetRule ? rule : { ...rule, ...newProps },
 				),
 				isAnd,
+				startDate,
+				endDate,
 			)
 		},
-		[rules, setRulesImpl, isAnd],
+		[rules, setRulesImpl, isAnd, startDate, endDate],
 	)
 	const toggleIsAndImpl = useCallback(() => {
-		setRulesImpl(rules, !isAnd)
-	}, [isAnd, rules, setRulesImpl])
-
-	const timeRangeRule = useMemo<RuleProps>(() => {
-		const timeRange = rules.find(
-			(rule) => rule.field?.value === timeRangeField.value,
-		)! // ZANETODO: can we enforce this?
-
-		return timeRange
-	}, [rules, timeRangeField.value])
+		setRulesImpl(rules, !isAnd, startDate, endDate)
+	}, [isAnd, rules, setRulesImpl, startDate, endDate])
 
 	const getKeyOptions = useCallback(
 		async (input: string) => {
@@ -1553,8 +1513,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 					field_type: fieldType,
 					field_name: label,
 					query: input,
-					start_date: moment(dateRange[0]).toISOString(),
-					end_date: moment(dateRange[1]).toISOString(),
+					start_date: moment(startDate).toISOString(),
+					end_date: moment(endDate).toISOString(),
 					use_clickhouse: true,
 				}).then((res) => {
 					return res.map((val) => ({
@@ -1568,7 +1528,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 			getCustomFieldOptions,
 			fetchFields,
 			projectId,
-			dateRange,
+			startDate,
+			endDate,
 			appVersionData?.app_version_suggestion,
 			errorTagData?.error_tags,
 		],
@@ -1583,28 +1544,21 @@ function QueryBuilder(props: QueryBuilderProps) {
 			const newState = JSON.parse(searchQuery)
 			const deserializedRules = deserializeRules(newState.rules)
 
-			const dateRange = deserializedRules?.find(
-				(rule) =>
-					rule.op === 'between_date' &&
-					rule.field?.value === timeRangeField.value,
-			)?.val?.options?.[0]?.value
-			if (dateRange) {
-				const [from, to] = dateRange.split('_')
-				setDateRange([new Date(from), new Date(to)])
-			}
-
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializedRules)
 		}
-	}, [searchQuery, timeRangeField.value, toggleIsAnd])
+	}, [searchQuery, toggleIsAnd])
 
 	// When the query builder is unmounted, reset the state.
 	// Not sure if this is desired behavior in the long term, but
 	// this matches the current prod behavior.
 	useEffect(() => {
 		return () => {
-			if (selectedSegment && !readonly && setDefault !== false) {
-				removeSelectedSegment()
+			if (!readonly && setDefault !== false) {
+				resetTime()
+				if (selectedSegment) {
+					removeSelectedSegment()
+				}
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1614,7 +1568,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const mode = (() => {
 		if (selectedSegment !== undefined) {
-			if (searchesAreEqual(searchQuery, existingQuery, timeRangeField)) {
+			if (searchesAreEqual(searchQuery, existingQuery)) {
 				return QueryBuilderMode.SEGMENT
 			} else {
 				return QueryBuilderMode.SEGMENT_UPDATE
@@ -1656,7 +1610,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [addRule, currentRule, getKeyOptions, readonly])
 
 	const canUpdateSegment =
-		!!selectedSegment && filterRules.length > 0 && areRulesValid
+		!!selectedSegment && rules.length > 0 && areRulesValid
 
 	const updateSegment = useCallback(() => {
 		if (canUpdateSegment) {
@@ -1747,27 +1701,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 				borderBottom="secondary"
 				cssClass={styles.controlBar}
 			>
-				<PreviousDateRangePicker
-					presets={defaultPresets}
-					selectedDates={dateRange}
-					minDate={defaultMinDate}
-					onDatesChange={(dates: Date[]) => {
-						setDateRange(dates)
-						if (!dates[0] || !dates[1]) {
-							return
-						}
-						updateRule(timeRangeRule, {
-							val: {
-								kind: 'multi',
-								options: [
-									{
-										label: 'Date Range',
-										value: `${dates[0].toISOString()}_${dates[1].toISOString()}`,
-									},
-								],
-							} as MultiselectOption,
-						})
+				<DateRangePicker
+					presets={DEFAULT_TIME_PRESETS}
+					selectedValue={{
+						startDate,
+						endDate,
+						selectedPreset,
 					}}
+					minDate={defaultMinDate}
+					onDatesChange={setSearchTime}
 				/>
 				<Box marginLeft="auto" display="flex" gap="0">
 					{!isOnErrorsPage && (
@@ -1786,12 +1728,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 			</Box>
 		)
 	}, [
-		dateRange,
+		endDate,
+		setSearchTime,
 		isOnErrorsPage,
 		searchQuery,
-		updateRule,
-		timeRangeRule,
+		selectedPreset,
 		setShowLeftPanel,
+		startDate,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {
@@ -1817,6 +1760,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				<Menu.Item
 					onClick={(e) => {
 						e.stopPropagation()
+						setSelectedSegment(undefined, searchQuery)
 						setSegmentModalState(SegmentModalState.CREATE)
 					}}
 					disabled={!canUpdateSegment}
@@ -1853,7 +1797,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 				<Menu.Divider />
 			</>
 		)
-	}, [canUpdateSegment, currentSegment, selectSegment, updateSegment])
+	}, [
+		canUpdateSegment,
+		currentSegment,
+		searchQuery,
+		selectSegment,
+		setSelectedSegment,
+		updateSegment,
+	])
 
 	// Don't render anything if this is a readonly query builder and there are no rules
 	if (readonly && rules.length === 0) {
@@ -1864,7 +1815,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		<>
 			<CreateAnySegmentModal
 				showModal={segmentModalState !== SegmentModalState.HIDDEN}
-				timeRangeField={timeRangeField}
 				onHideModal={() => {
 					setSegmentModalState(SegmentModalState.HIDDEN)
 				}}
@@ -1921,7 +1871,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					flexWrap="wrap"
 					gap="4"
 				>
-					{filterRules.flatMap((rule, index) => [
+					{rules.flatMap((rule, index) => [
 						...(index != 0
 							? [
 									<Tag

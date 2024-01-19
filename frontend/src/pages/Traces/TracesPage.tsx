@@ -23,10 +23,6 @@ import {
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import {
-	buildSearchQueryForServer,
-	parseSearchQuery,
-} from '@/components/Search/SearchForm/utils'
-import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 	useGetTracesMetricsQuery,
@@ -57,15 +53,13 @@ export const TracesPage: React.FC = () => {
 	const {
 		startDate,
 		endDate,
-		datePickerValue,
+		selectedPreset,
 		updateSearchTime,
 		rebaseSearchTime,
 	} = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: FixedRangePreset,
 	})
-	const queryTerms = parseSearchQuery(query)
-	const serverQuery = buildSearchQueryForServer(queryTerms)
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 
@@ -82,7 +76,7 @@ export const TracesPage: React.FC = () => {
 		traceCursor,
 		startDate,
 		endDate,
-		skipPolling: !datePickerValue.selectedPreset,
+		skipPolling: !selectedPreset,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =
@@ -92,7 +86,7 @@ export const TracesPage: React.FC = () => {
 				column: MetricColumn.Duration,
 				group_by: [],
 				params: {
-					query: serverQuery,
+					query,
 					date_range: {
 						start_date: moment(startDate).format(TIME_FORMAT),
 						end_date: moment(endDate).format(TIME_FORMAT),
@@ -198,7 +192,7 @@ export const TracesPage: React.FC = () => {
 						endDate={endDate}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={minDate}
-						datePickerValue={datePickerValue}
+						selectedPreset={selectedPreset}
 						timeMode={timeMode}
 						hideCreateAlert
 						onFormSubmit={setQuery}

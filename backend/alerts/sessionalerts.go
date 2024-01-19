@@ -1,10 +1,9 @@
 package alerts
 
 import (
-	"encoding/json"
-
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/openlyinc/pointy"
+	"github.com/segmentio/encoding/json"
 
 	"github.com/pkg/errors"
 

@@ -2,7 +2,6 @@ package jira
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,11 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/segmentio/encoding/json"
+	"golang.org/x/exp/slices"
+	"golang.org/x/oauth2"
+
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
-	"golang.org/x/exp/slices"
-	"golang.org/x/oauth2"
 )
 
 var (

@@ -1,111 +1,26 @@
-export type SearchParam = {
-	key: string
-	operator: string
-	value: string
-	offsetStart: number
-}
+import SearchGrammarLexer from '@/components/Search/Parser/antlr/SearchGrammarLexer'
+import { SearchExpression } from '@/components/Search/Parser/listener'
+import { SearchToken } from '@/components/Search/utils'
 
-const SEPARATOR = ':'
 export const DEFAULT_OPERATOR = '='
 export const BODY_KEY = 'message'
 
-// Inspired by search-query-parser:
-// https://github.com/nepsilon/search-query-parser/blob/8158d09c70b66168440e93ffabd720f4c8314c9b/lib/search-query-parser.js#L40
-// We've extended it to support parenthesis.
-const PARSE_REGEX =
-	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|(\S+:\((?:[^\)\\]|\\.)*\))|\S+|\S+:\S+|\s$/g
-
-export const parseSearchQuery = (query = ''): SearchParam[] => {
-	if (query.indexOf(SEPARATOR) === -1) {
-		return [
-			{
-				key: BODY_KEY,
-				operator: DEFAULT_OPERATOR,
-				value: query,
-				offsetStart: 0,
-			},
-		]
-	}
-
-	const terms = []
-	let match
-
-	while ((match = PARSE_REGEX.exec(query)) !== null) {
-		const term = match[0]
-		const termIsQuotedString = term.startsWith('"') || term.startsWith("'")
-
-		if (!termIsQuotedString && term.indexOf(SEPARATOR) > -1) {
-			const [key, ...rest] = term.split(SEPARATOR)
-			const value = rest.join(SEPARATOR)
-
-			terms.push({
-				key,
-				value,
-				operator: DEFAULT_OPERATOR,
-				offsetStart: match.index,
-			})
-		} else {
-			const textTermIndex = terms.findIndex(
-				(term) => term.key === BODY_KEY,
-			)
-
-			if (textTermIndex !== -1) {
-				terms[textTermIndex].value +=
-					terms[textTermIndex].value.length > 0 ? ` ${term}` : term
-			} else {
-				const isEmptyString = term.trim() === ''
-
-				terms.push({
-					key: BODY_KEY,
-					operator: DEFAULT_OPERATOR,
-					value: isEmptyString ? '' : term,
-					offsetStart: isEmptyString ? match.index + 1 : match.index,
-				})
-			}
-		}
-	}
-
-	return terms
-}
-
-export const stringifySearchQuery = (params: SearchParam[]) => {
+export const stringifySearchQuery = (params: SearchExpression[]) => {
 	const querySegments: string[] = []
+	let currentOffset = 0
 
-	params.forEach(({ key, value }) => {
-		if (key === BODY_KEY) {
-			querySegments.push(value)
-		} else {
-			querySegments.push(`${key}:${value}`)
+	params.forEach(({ text, start }, index) => {
+		const spaces = Math.max(start - currentOffset, index === 0 ? 0 : 1)
+		currentOffset = start + text.length
+
+		if (spaces > 0) {
+			querySegments.push(' '.repeat(spaces))
 		}
+
+		querySegments.push(text)
 	})
 
-	return querySegments.join(' ')
-}
-
-// Same as the method above, but only used for building a query string to send
-// to the server which requires that all strings are wrapped in double quotes.
-export const buildSearchQueryForServer = (params: SearchParam[]) => {
-	const querySegments: string[] = []
-
-	params.forEach(({ key, value }) => {
-		value = value.trim()
-
-		if (value.startsWith("'") && value.endsWith("'")) {
-			value = `"${value.slice(1, -1)}"`
-		}
-
-		if (key === BODY_KEY) {
-			querySegments.push(value)
-		} else {
-			querySegments.push(`${key}:${value}`)
-		}
-	})
-
-	return querySegments.join(' ')
-}
-
-export const validateSearchQuery = (params: SearchParam[]): boolean => {
-	return !params.some((param) => !param.value)
+	return querySegments.join('')
 }
 
 export const quoteQueryValue = (value: string | number) => {
@@ -122,4 +37,99 @@ export const quoteQueryValue = (value: string | number) => {
 	}
 
 	return value
+}
+
+const SEPARATOR_TOKENS = [SearchGrammarLexer.AND, SearchGrammarLexer.OR]
+
+export type TokenGroup = {
+	tokens: SearchToken[]
+	start: number
+	stop: number
+	type: 'expression' | 'separator'
+	expression?: SearchExpression
+}
+
+export const buildTokenGroups = (
+	tokens: SearchToken[],
+	queryParts: SearchExpression[],
+	queryString: string,
+) => {
+	const tokenGroups: TokenGroup[] = []
+	let currentTokenIndex = 0
+	let currentToken = tokens[currentTokenIndex]
+	let currentGroupIndex = 0
+	let lastTokenStopIndex = -1
+	let stopIndex = -1
+
+	while (currentToken) {
+		const currentPartIndex = queryParts.findIndex(
+			(part) =>
+				currentToken.start >= part.start &&
+				currentToken.stop <= part.stop,
+		)
+		const currentPart = queryParts[currentPartIndex]
+		const whitespace = queryString.substring(
+			lastTokenStopIndex + 1,
+			currentToken.start,
+		)
+		const whitespaceToken =
+			whitespace.length > 0
+				? {
+						type: SearchGrammarLexer.WS,
+						text: whitespace,
+						start: lastTokenStopIndex + 1,
+						stop: currentToken.start,
+				  }
+				: undefined
+
+		if (stopIndex === -1) {
+			stopIndex = currentPart?.stop ?? 0
+		}
+
+		if (tokenGroups.length === 0 || currentToken.stop > stopIndex) {
+			if (whitespaceToken) {
+				if (currentTokenIndex > 0) {
+					currentGroupIndex++
+				}
+
+				tokenGroups[currentGroupIndex] = {
+					tokens: [whitespaceToken],
+					start: whitespaceToken.start,
+					stop: whitespaceToken.stop,
+					type: 'separator',
+				}
+			}
+
+			currentGroupIndex++
+			tokenGroups[currentGroupIndex] = {
+				tokens: [],
+				start: currentToken.start,
+				stop: currentToken.stop,
+				type: 'separator',
+			}
+		} else {
+			if (whitespaceToken) {
+				tokenGroups[currentGroupIndex].tokens.push(whitespaceToken)
+			}
+		}
+
+		tokenGroups[currentGroupIndex].tokens.push(currentToken)
+		tokenGroups[currentGroupIndex].stop = currentToken.stop
+
+		const isExpression = !SEPARATOR_TOKENS.includes(currentToken.type)
+		if (isExpression) {
+			tokenGroups[currentGroupIndex].type = 'expression'
+			tokenGroups[currentGroupIndex].expression = currentPart
+		}
+
+		lastTokenStopIndex = currentToken.stop
+		stopIndex = currentPart
+			? currentPart.stop
+			: queryParts[currentPartIndex + 1]?.stop ?? lastTokenStopIndex
+		currentTokenIndex++
+		currentToken = tokens[currentTokenIndex]
+	}
+
+	// Remove any empty token groups
+	return tokenGroups.filter((group) => group.tokens.length > 0)
 }

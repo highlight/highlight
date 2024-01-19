@@ -78,4 +78,10 @@
 
 ### Fix
 
-- Support tracing auto-instrumention for boto, boto3 (sqs), and redis libraries.
+- Support tracing auto-instrumention for boto, boto3 (sqs), 
+
+## v0.6.13 (2024-01-17)
+
+### Fix
+
+- Support tracing auto-instrumention for SQLAlchemy.

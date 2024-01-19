@@ -28,6 +28,7 @@ from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
 from highlight_io.integrations.celery import CeleryIntegration
 from highlight_io.integrations.redis import RedisIntegration
 from highlight_io.integrations.requests import RequestsIntegration
+from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
 from highlight_io.utils.lru_cache import LRUCache
 
 DEFAULT_INTEGRATIONS = [
@@ -36,6 +37,7 @@ DEFAULT_INTEGRATIONS = [
     CeleryIntegration,
     RedisIntegration,
     RequestsIntegration,
+    SQLAlchemyIntegration,
 ]
 
 

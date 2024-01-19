@@ -2,7 +2,6 @@ package webhook
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 )
 

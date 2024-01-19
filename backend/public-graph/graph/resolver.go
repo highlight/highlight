@@ -1,8 +1,9 @@
 package graph
 
 import (
+	"compress/gzip"
 	"context"
-	"encoding/json"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"hash/fnv"
@@ -15,8 +16,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/segmentio/encoding/json"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
+
+	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -51,10 +58,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/attribute"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // This file will not be regenerated automatically.
@@ -2427,6 +2430,25 @@ type PushPayloadChunk struct {
 	logRows         []*hlog.Message
 	resources       []*any
 	websocketEvents []*any
+}
+
+func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
+	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
+	if err != nil {
+		return err
+	}
+
+	js, err := io.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	var payload kafka_queue.PushPayloadArgs
+	if err = json.Unmarshal(js, &payload); err != nil {
+		return err
+	}
+
+	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
 }
 
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {

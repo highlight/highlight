@@ -1142,6 +1142,7 @@ input DateHistogramOptions {
 input ClickhouseQuery {
 	isAnd: Boolean!
 	rules: [[String!]!]!
+	dateRange: DateRangeRequiredInput!
 }
 
 enum NetworkRequestAttribute {
