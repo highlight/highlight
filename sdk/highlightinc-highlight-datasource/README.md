@@ -32,7 +32,7 @@ The query editor is configurable with these fields:
 |----|-----------|
 |`Resource`|The highlight.io resource being queried for these metrics.|
 |`Function`|The method used for aggregating data within a group and bucket, e.g. count, avg, p50. If the function operates on a metric, numeric fields from the linked project's data are shown as search suggestions.|
-|`Filter`|A highlight.io filtering expression can be used to include only matching resources. Follows the search syntax shown [here](https://www.highlight.io/docs/general/product-features/logging/log-search#searching-for-logs).|
+|`Filter`|A highlight.io filtering expression can be used to include only matching resources. Follows the search syntax shown [here](https://www.highlight.io/docs/general/product-features/general-features/search).|
 |`Group by`|One or more categories to group the results by. Categorical fields from the linked project's data are shown as search suggestions.|
 |`Limit N`|If one or more "group by" categories are selected, the result groups are limited to the top N.|
 |`Limit by function`|If one or more "group by" categories are selected, this method is used to rank categories before returning the top N.|
