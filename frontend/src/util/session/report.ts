@@ -9,7 +9,9 @@ import {
 	Session,
 	SessionsReportRow,
 } from '@graph/schemas'
+import { DEFAULT_TIME_PRESETS } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
+import { useSearchTime } from '@hooks/useSearchTime'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import moment from 'moment/moment'
 
@@ -57,14 +59,15 @@ const processRows = <
 	return rows
 }
 
-const getQueryRows = (query: ClickhouseQuery, sessions: Session[]) => {
-	const timeRule = query.rules.find(
-		(rule) => (rule[1] as Operator) === 'between_date',
-	)!
+const getQueryRows = (
+	start: Date,
+	end: Date,
+	query: ClickhouseQuery,
+	sessions: Session[],
+) => {
 	const rules = query.rules.filter(
 		(rule: any) => (rule[1] as Operator) !== 'between_date',
 	)
-	const [start, end] = timeRule[2].split('_')
 	const startFormatted = moment(start).format()
 	const endFormatted = moment(end).format()
 	return [
@@ -108,6 +111,10 @@ const exportFile = async (name: string, encodedUri: string) => {
 
 export const useGenerateSessionsReportCSV = () => {
 	const PAGE_SIZE = 1_000
+	const { startDate, endDate } = useSearchTime({
+		initialPreset: DEFAULT_TIME_PRESETS[5],
+		presets: DEFAULT_TIME_PRESETS,
+	})
 	const { searchQuery } = useSearchContext()
 	const { projectId } = useProjectId()
 	const [getReport, { loading }] = useGetSessionsReportLazyQuery()
@@ -173,7 +180,7 @@ export const useGenerateSessionsReportCSV = () => {
 			sessions.push(...(await Promise.all(promises)).flat())
 
 			const rows: any[][] = [
-				...getQueryRows(query, sessions),
+				...getQueryRows(startDate, endDate, query, sessions),
 				// leave a blank row between the sub reports
 				[],
 				...getReportRows(await sessionReportPromise),
