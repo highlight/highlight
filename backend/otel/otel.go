@@ -4,15 +4,19 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	model2 "github.com/highlight-run/highlight/backend/model"
+	"github.com/segmentio/encoding/json"
 
 	"github.com/samber/lo"
+
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -24,9 +28,6 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
 type Handler struct {
@@ -324,7 +325,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				keyedErrorMessages[sessionID] = append(keyedErrorMessages[sessionID], &kafkaqueue.Message{
 					Type: kafkaqueue.PushBackendPayload,
 					PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-						ProjectVerboseID: &projectID,
+						ProjectVerboseID: pointy.String(projectID),
 						Errors:           []*model.BackendErrorObjectInput{errorObject},
 					}})
 			}
@@ -339,9 +340,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var messages []*kafkaqueue.Message
 	for projectID, traceMetrics := range projectTraceMetrics {
 		for sessionID, metrics := range traceMetrics {
+			var messages []*kafkaqueue.Message
 			for _, metric := range metrics {
 				messages = append(messages, &kafkaqueue.Message{
 					Type: kafkaqueue.PushMetrics,

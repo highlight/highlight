@@ -42,28 +42,34 @@ describe('findMatchingLogAttributes', () => {
 	}
 
 	it('returns an empty object if there are no query terms', () => {
-		const queryTerms = [
+		const queryParts = [
 			{
 				key: 'os.type',
 				value: 'darwin',
 				operator: '=',
-				offsetStart: 0,
+				text: 'os.type:darwin',
+				start: 0,
+				stop: 11,
 			},
 			{
 				key: 'level',
 				value: 'trace',
 				operator: '=',
-				offsetStart: 15,
+				text: 'level:trace',
+				start: 15,
+				stop: 24,
 			},
 			{
 				key: 'message',
 				value: '*light',
 				operator: '=',
-				offsetStart: 27,
+				text: 'message:*light',
+				start: 27,
+				stop: 39,
 			},
 		]
 		const matchingAttributes = findMatchingLogAttributes(
-			queryTerms,
+			queryParts,
 			logAttributes,
 		)
 

@@ -2,11 +2,13 @@ package parse
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/segmentio/encoding/json"
+	"gorm.io/gorm"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
@@ -17,7 +19,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
 	"github.com/go-test/deep"
 	"github.com/kylelemons/godebug/pretty"

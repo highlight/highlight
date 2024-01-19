@@ -14,6 +14,7 @@ import {
 	ButtonIcon,
 	Form,
 	IconSolidClickUp,
+	IconSolidGitlab,
 	IconSolidJira,
 	IconSolidLinear,
 	IconSolidX,
@@ -24,6 +25,7 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import {
 	CLICKUP_INTEGRATION,
+	GITLAB_INTEGRATION,
 	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
@@ -192,6 +194,8 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				return <IconSolidClickUp size={14} />
 			case JIRA_INTEGRATION.key:
 				return <IconSolidJira size={14} />
+			case GITLAB_INTEGRATION.key:
+				return <IconSolidGitlab size={14} />
 			default:
 				return <></>
 		}

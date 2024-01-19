@@ -98,7 +98,7 @@ export type Mutation = {
 	pushBackendPayload?: Maybe<Scalars['Any']['output']>
 	pushMetrics: Scalars['Int']['output']
 	pushPayload: Scalars['Int']['output']
-	pushPayloadCompressed: Scalars['Int']['output']
+	pushPayloadCompressed?: Maybe<Scalars['Any']['output']>
 }
 
 export type MutationAddSessionFeedbackArgs = {
@@ -246,7 +246,7 @@ export type PushPayloadCompressedMutationVariables = Exact<{
 
 export type PushPayloadCompressedMutation = {
 	__typename?: 'Mutation'
-	pushPayloadCompressed: number
+	pushPayloadCompressed?: any | null
 }
 
 export type IdentifySessionMutationVariables = Exact<{

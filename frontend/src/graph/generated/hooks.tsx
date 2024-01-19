@@ -11495,6 +11495,68 @@ export type GetGitHubIntegrationSettingsQueryResult = Apollo.QueryResult<
 	Types.GetGitHubIntegrationSettingsQuery,
 	Types.GetGitHubIntegrationSettingsQueryVariables
 >
+export const GetGitlabIntegrationSettingsDocument = gql`
+	query GetGitlabIntegrationSettings($workspace_id: ID!) {
+		is_integrated: is_workspace_integrated_with(
+			integration_type: GitLab
+			workspace_id: $workspace_id
+		)
+		gitlab_projects(workspace_id: $workspace_id) {
+			name
+			id
+			nameWithNameSpace
+		}
+	}
+`
+
+/**
+ * __useGetGitlabIntegrationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetGitlabIntegrationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGitlabIntegrationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGitlabIntegrationSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetGitlabIntegrationSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetGitlabIntegrationSettingsQuery,
+		Types.GetGitlabIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetGitlabIntegrationSettingsQuery,
+		Types.GetGitlabIntegrationSettingsQueryVariables
+	>(GetGitlabIntegrationSettingsDocument, baseOptions)
+}
+export function useGetGitlabIntegrationSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetGitlabIntegrationSettingsQuery,
+		Types.GetGitlabIntegrationSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetGitlabIntegrationSettingsQuery,
+		Types.GetGitlabIntegrationSettingsQueryVariables
+	>(GetGitlabIntegrationSettingsDocument, baseOptions)
+}
+export type GetGitlabIntegrationSettingsQueryHookResult = ReturnType<
+	typeof useGetGitlabIntegrationSettingsQuery
+>
+export type GetGitlabIntegrationSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetGitlabIntegrationSettingsLazyQuery
+>
+export type GetGitlabIntegrationSettingsQueryResult = Apollo.QueryResult<
+	Types.GetGitlabIntegrationSettingsQuery,
+	Types.GetGitlabIntegrationSettingsQueryVariables
+>
 export const GetGitHubIssueLabelsDocument = gql`
 	query GetGitHubIssueLabels($workspace_id: ID!, $repository: String!) {
 		github_issue_labels(

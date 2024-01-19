@@ -19,7 +19,6 @@ export const comboboxTagsContainer = style([
 
 export const comboboxTag = style({
 	display: 'inline-flex',
-	fontFeatureSettings: 'normal', // disable tabular numbers
 	margin: '2px 0',
 	padding: 0,
 	whiteSpace: 'pre',

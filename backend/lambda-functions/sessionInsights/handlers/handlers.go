@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"image/png"
 	"io"
@@ -15,7 +14,10 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/openlyinc/pointy"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -24,7 +26,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"gorm.io/gorm"
 )
 
 type Handlers interface {

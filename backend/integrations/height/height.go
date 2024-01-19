@@ -2,7 +2,6 @@ package height
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"

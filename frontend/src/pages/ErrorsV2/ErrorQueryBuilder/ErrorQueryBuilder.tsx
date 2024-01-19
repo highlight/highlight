@@ -13,16 +13,9 @@ import QueryBuilder, {
 	ERROR_TYPE,
 	FetchFieldVariables,
 	QueryBuilderProps,
-	SelectOption,
 } from '@/components/QueryBuilder/QueryBuilder'
 import { CreateErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/CreateErrorSegmentModal'
 import { DeleteErrorSegmentModal } from '@/pages/Errors/ErrorSegmentModals/DeleteErrorSegmentModal'
-
-export const TIME_RANGE_FIELD: SelectOption = {
-	kind: 'single',
-	label: 'timestamp',
-	value: 'error-field_timestamp',
-}
 
 export const CUSTOM_FIELDS: CustomField[] = [
 	{
@@ -120,7 +113,6 @@ const ErrorQueryBuilder = (props: Partial<QueryBuilderProps>) => {
 	return (
 		<QueryBuilder
 			searchContext={useErrorSearchContext()}
-			timeRangeField={props.timeRangeField ?? TIME_RANGE_FIELD}
 			customFields={props.customFields ?? CUSTOM_FIELDS}
 			fetchFields={props.fetchFields ?? fetchFields}
 			errorTagData={props.errorTagData ?? data}

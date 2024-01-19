@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -19,6 +18,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
+	"github.com/segmentio/encoding/json"
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"

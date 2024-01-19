@@ -475,6 +475,15 @@ export class Highlight {
 	}
 
 	async consumeCustomError(error: Error, message?: string, payload?: string) {
+		if (error.cause) {
+			let obj = { 'exception.cause': error.cause }
+			if (payload) {
+				try {
+					obj = { ...JSON.parse(payload), ...obj }
+				} catch (e) {}
+			}
+			payload = JSON.stringify(obj)
+		}
 		const res = ErrorStackParser.parse(error)
 		this._firstLoadListeners.errors.push({
 			event: message ? message + ':' + error.message : error.message,

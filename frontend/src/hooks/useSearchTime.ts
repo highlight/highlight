@@ -1,23 +1,19 @@
 import {
 	DateRangePreset,
-	DateRangeValue,
 	presetStartDate,
 	presetValue,
 } from '@highlight-run/ui/components'
 import moment from 'moment'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { DateTimeParam, useQueryParam } from 'use-query-params'
 
 export interface UseSearchTimeReturnValue {
 	startDate: Date
 	endDate: Date
-	datePickerValue: DateRangeValue
+	selectedPreset?: DateRangePreset
 	rebaseSearchTime: () => void
-	updateSearchTime: (
-		start?: Date,
-		end?: Date,
-		preset?: DateRangePreset,
-	) => void
+	updateSearchTime: (start: Date, end: Date, preset?: DateRangePreset) => void
+	resetSearchTime: () => void
 }
 
 type UseSearchTimeProps = {
@@ -57,6 +53,7 @@ export function useSearchTime({
 		[defaultPreset, presets],
 	)
 
+	// initalize state to url params
 	const useRelativeTime = presetParam || !startDateParam || !endDateParam
 	const [selectedPreset, setSelectedPreset] = useState<
 		DateRangePreset | undefined
@@ -72,19 +69,19 @@ export function useSearchTime({
 	)
 
 	const updateSearchTime = (
-		start?: Date,
-		end?: Date,
+		start: Date,
+		end: Date,
 		preset?: DateRangePreset,
 	) => {
-		if (preset) {
-			setPresetParam(presetValue(preset))
-			setStartDateParam(undefined)
-			setEndDateParam(undefined)
-		} else {
-			setPresetParam(undefined)
-			setStartDateParam(start)
-			setEndDateParam(end)
-		}
+		setStartDate(start)
+		setEndDate(end)
+		setSelectedPreset(preset)
+	}
+
+	const resetSearchTime = () => {
+		const start = presetStartDate(defaultPreset)
+		const end = moment().toDate()
+		updateSearchTime(start, end, defaultPreset)
 	}
 
 	const rebaseSearchTime = useCallback(() => {
@@ -94,46 +91,32 @@ export function useSearchTime({
 		}
 	}, [selectedPreset])
 
-	// keep state values in sync with query params
+	// keep url values in sync with query params
 	useEffect(() => {
-		// use preset if provided but don't overwrite times if matches last s
-		if (presetParam) {
-			if (selectedPreset && presetParam === presetValue(selectedPreset)) {
-				return
+		if (selectedPreset) {
+			let selectedPresetValue: string | undefined =
+				presetValue(selectedPreset)
+			if (selectedPresetValue === presetValue(defaultPreset)) {
+				selectedPresetValue = undefined
 			}
 
-			const foundPreset = findPreset(presetParam)
-			setSelectedPreset(foundPreset)
-			setStartDate(presetStartDate(foundPreset))
-			setEndDate(moment().toDate())
-			return
-		}
-
-		// avoid setting until both params are set
-		if (startDateParam && endDateParam) {
-			setStartDate(startDateParam as Date)
-			setEndDate(endDateParam as Date)
-			setSelectedPreset(undefined)
-			return
+			setPresetParam(selectedPresetValue)
+			setEndDateParam(undefined)
+			setStartDateParam(undefined)
+		} else {
+			setPresetParam(undefined)
+			setEndDateParam(endDate)
+			setStartDateParam(startDate)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [presetParam, startDateParam, endDateParam])
-
-	const datePickerValue = useMemo(() => {
-		const usePreset = presetParam || !startDateParam || !endDateParam
-
-		return {
-			startDate: startDateParam ?? undefined,
-			endDate: endDateParam ?? undefined,
-			selectedPreset: usePreset ? selectedPreset : undefined,
-		}
-	}, [endDateParam, presetParam, selectedPreset, startDateParam])
+	}, [startDate, endDate, selectedPreset])
 
 	return {
 		startDate,
 		endDate,
-		datePickerValue,
+		selectedPreset,
 		rebaseSearchTime,
 		updateSearchTime,
+		resetSearchTime,
 	}
 }

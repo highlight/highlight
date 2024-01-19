@@ -6,7 +6,7 @@ createdAt: 2021-09-10T17:54:08.000Z
 updatedAt: 2022-08-18T22:36:12.000Z
 ---
 
-Logs are broken down into two discrete concepts: messages and attributes. Given the following log:
+Logs are broken down into two discrete concepts: **messages** and **attributes**. Given the following log:
 
 ```
 logger.info('Queried table', {
@@ -19,7 +19,9 @@ The log message is `Queried table` and the attributes are `table:users` and `que
 
 ## Searching for logs
 
-### Messages search
+For general information on searching logs, check out our [Search docs](../../6_product-features/3_general-features/search.md).
+
+### Message Search
 
 To search for a log message, simply type the text of the message. Given the following log:
 
@@ -27,47 +29,9 @@ To search for a log message, simply type the text of the message. Given the foll
 log.info("excluding session due to no user interaction events")
 ```
 
-We can find this log by typing `excluding session due to no user interaction events`
+We can find this log by typing `excluding session due to no user interaction events`.
 
 ![](/images/log-search.png)
-
-### Attributes search
-
-To search on a log attribute, add a `:` between search terms. Given the following log:
-
-```
-log.info({
-  user_id: 42,
-})
-```
-
-We can search for it via:
-
-- `user_id:42` matches every log where `user_id` is `42`
-- `level:info` matches every log where `level` is `info`
-
-We can exclude logs that match an attribute by prefixing it with `-`:
-
-- `user_id:-42` matches every log where `user_id` _is not_ `42`
-- `level:-info` matches every log where `level` _is not_ `info`
-
-#### AND vs OR
-
-When multiple attributes are included, they work as an `AND` operator:
-
-- `user_id:42 level:info` - matches every log where `user_id` is `42` _and_ `level` is `info`
-
-When the same attribute is included twice in a search, it works as an `OR` operator:
-
-- `user_id:42 level:info level:warn` - matches every log where `user_id` is `42` _and_ (`level` is `info` _or_ `level` is `warn`)
-
-### Wildcard search
-
-To perform a wildcard search, use the `*` symbol:
-
-- `service:frontend*` matches every log that has a service starting with `frontend`
-- `frontend*` matches all log messages starting with the word `frontend`
-- `*frontend` matches all log messages ending with the word `frontend`
 
 ## Autoinjected attributes
 

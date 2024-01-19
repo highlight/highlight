@@ -1,19 +1,20 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { Text } from '@highlight-run/ui/components'
 
-import { BODY_KEY, SearchParam } from '@/components/Search/SearchForm/utils'
+import { SearchExpression } from '@/components/Search/Parser/listener'
+import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
 	message: string
 	expanded: boolean
-	queryTerms: SearchParam[]
+	queryParts: SearchExpression[]
 }
 
-const LogMessage = ({ message, expanded, queryTerms }: Props) => {
+const LogMessage = ({ message, expanded, queryParts }: Props) => {
 	const searchWords =
-		queryTerms.find((qt) => qt.key === BODY_KEY)?.value.split(' ') || []
+		queryParts.find((qt) => qt.key === BODY_KEY)?.value.split(' ') || []
 
 	return (
 		<Text

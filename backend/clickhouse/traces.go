@@ -3,10 +3,12 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"golang.org/x/exp/slices"
 
@@ -65,31 +67,32 @@ var traceColumns = []string{
 var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: "trace_id", Type: modelInputs.KeyTypeString},
 	{Name: "span_id", Type: modelInputs.KeyTypeString},
+	{Name: "duration", Type: modelInputs.KeyTypeNumeric},
 }
 
-var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
-	tableName:        TracesTable,
-	keysToColumns:    traceKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedTraceKey,
-	bodyColumn:       "SpanName",
-	attributesColumn: "TraceAttributes",
-	selectColumns:    traceColumns,
-	defaultFilters: map[string]string{
+var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+	TableName:        TracesTable,
+	KeysToColumns:    traceKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedTraceKey,
+	BodyColumn:       "SpanName",
+	AttributesColumn: "TraceAttributes",
+	SelectColumns:    traceColumns,
+	DefaultFilters: map[string]string{
 		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
 	},
 }
 
-var tracesSamplingTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
-	tableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
-	bodyColumn:       "SpanName",
-	keysToColumns:    traceKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedTraceKey,
-	attributesColumn: "TraceAttributes",
-	selectColumns:    traceColumns,
+var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+	TableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	BodyColumn:       "SpanName",
+	KeysToColumns:    traceKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedTraceKey,
+	AttributesColumn: "TraceAttributes",
+	SelectColumns:    traceColumns,
 }
 
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
-	tableConfig:         tracesTableConfig,
+	tableConfig:         TracesTableConfig,
 	samplingTableConfig: tracesSamplingTableConfig,
 	useSampling: func(d time.Duration) bool {
 		return d >= time.Hour
@@ -243,7 +246,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, tracesTableConfig, projectID, params, pagination, scanTrace)
+	conn, err := readObjects(ctx, client, TracesTableConfig, projectID, params, pagination, scanTrace)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +338,16 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 		return nil, err
 	}
 
-	traceKeys = append(traceKeys, defaultTraceKeys...)
+	if query == nil || *query == "" {
+		traceKeys = append(traceKeys, defaultTraceKeys...)
+	} else {
+		for _, key := range defaultTraceKeys {
+			if !strings.Contains(key.Name, *query) {
+				traceKeys = append(traceKeys, key)
+			}
+		}
+	}
+
 	return traceKeys, nil
 }
 
@@ -348,5 +360,5 @@ func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDat
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {
-	return matchesQuery(trace, tracesTableConfig, filters)
+	return matchesQuery(trace, TracesTableConfig, filters)
 }
