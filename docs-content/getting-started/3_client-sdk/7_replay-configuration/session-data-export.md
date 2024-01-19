@@ -10,7 +10,7 @@ updatedAt: 2022-09-29T18:01:58.000Z
 Interested in exporting a highlight session as an mp4? You can download session videos from the Highlight dashboard. To request a video, click the `Download video` button in the player tools
 when a session is opened up.
 
-![export video](/images/blog/docs/session-export/video.png)
+![export video](/images/docs/session-export/video.png)
 
 You will receive an email with the mp4 link once the session is processed. You can also find all previous exports in the [session settings page](https://app.highlight.io/settings/sessions).
 
@@ -18,7 +18,7 @@ You will receive an email with the mp4 link once the session is processed. You c
 
 Highlight collects lots of meaningful data providing analytics about your site users. Want to know what users are most active on your site, and how long they are spending on it? Build a session search query and click the `Download CSV Session report` button. Shortly, you should receive a CSV file download in your browser, containing an aggregate report for the query in the session feed, as well as per-session metadata.
 
-![aggregate report](/images/blog/docs/session-export/report.png)
+![aggregate report](/images/docs/session-export/report.png)
 
 ## Self-hosted Data Migration
 
