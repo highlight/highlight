@@ -3,7 +3,11 @@ import {
 	ATTRIBUTES,
 	CommandBarSearch,
 } from '@components/CommandBar/context'
-import { FormState } from '@highlight-run/ui/components'
+import {
+	DEFAULT_TIME_PRESETS,
+	FormState,
+	presetValue,
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import {
@@ -11,11 +15,9 @@ import {
 	buildQueryStateString,
 	buildQueryURLString,
 } from '@util/url/params'
-import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
 
 import {
-	CUSTOM_TYPE,
 	ERROR_FIELD_TYPE,
 	ERROR_TYPE,
 	SESSION_TYPE,
@@ -33,29 +35,16 @@ export const isSessionAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 
 export const buildQueryBuilderParams = ({
 	attribute,
-	startDate,
-	endDate,
 	query,
 	op = 'contains',
 }: {
 	attribute: Attribute
 	query: string
-	startDate?: Date
-	endDate?: Date
 	op?: string
 }): BuilderParams => {
-	const result = {
+	return {
 		[`${attribute.type}_${attribute.name}`]: `${op}:${query}`,
 	}
-	if (startDate && endDate) {
-		const timeFilter = isErrorAttribute(attribute)
-			? `${ERROR_FIELD_TYPE}_timestamp`
-			: `${CUSTOM_TYPE}_created_at`
-		const start = moment(startDate).toISOString()
-		const end = moment(endDate).toISOString()
-		result[timeFilter] = `between_date:${start}_${end}`
-	}
-	return result
 }
 
 export function nextAttribute(
@@ -78,43 +67,84 @@ export function nextAttribute(
 	}
 }
 
+const findSelectedPreset = (value?: string) => {
+	if (!value) return undefined
+
+	return DEFAULT_TIME_PRESETS.find((preset) => presetValue(preset) === value)
+}
+
+const buildTimeParams = (
+	startDate?: Date,
+	endDate?: Date,
+	selectedPreset?: string,
+) => {
+	if (selectedPreset) {
+		return `&relative_time=${selectedPreset}`
+	} else if (startDate && endDate) {
+		return `&start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
+	}
+
+	return ''
+}
+
+type TimeRangeParams = {
+	startDate: Date
+	endDate: Date
+	selectedPreset?: string
+}
+
 export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 	const query = form.getValue(form.names.search).trim()
-	const dates = form.getValue(form.names.selectedDates)
 
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { commandBarDialog } = useGlobalContext()
-	const { setSearchQuery } = useSearchContext()
-	const { setSearchQuery: setErrorSearchQuery } = useErrorSearchContext()
+	const { createNewSearch } = useSearchContext()
+	const { createNewSearch: createNewErrorSearch } = useErrorSearchContext()
 	return (
 		attribute: Attribute | undefined,
-		params?: { newTab?: boolean; withDate?: boolean },
+		params?: { newTab?: boolean; timeRange?: TimeRangeParams },
 	) => {
 		if (!attribute) return
 
 		const isError = isErrorAttribute(attribute)
 
 		const basePath = `/${projectId}/${isError ? 'errors' : 'sessions'}`
-		const qbParams = buildQueryBuilderParams({
-			attribute,
-			query,
-			startDate: params?.withDate ? dates[0] : undefined,
-			endDate: params?.withDate ? dates[1] : undefined,
-		})
+		const qbParams = buildQueryBuilderParams({ attribute, query })
+
+		const timeParams = buildTimeParams(
+			params?.timeRange?.startDate,
+			params?.timeRange?.endDate,
+			params?.timeRange?.selectedPreset,
+		)
+
+		const selectedPreset = findSelectedPreset(
+			params?.timeRange?.selectedPreset,
+		)
 
 		if (!params?.newTab) {
 			if (isError) {
-				setErrorSearchQuery(buildQueryStateString(qbParams))
+				createNewErrorSearch(
+					buildQueryStateString(qbParams),
+					params?.timeRange?.startDate,
+					params?.timeRange?.endDate,
+					selectedPreset,
+				)
 			} else {
-				setSearchQuery(buildQueryStateString(qbParams))
+				createNewSearch(
+					buildQueryStateString(qbParams),
+					params?.timeRange?.startDate,
+					params?.timeRange?.endDate,
+					selectedPreset,
+				)
 			}
 			navigate({
 				pathname: basePath,
+				search: `${buildQueryURLString(qbParams)}${timeParams}`,
 			})
 		} else {
 			const searchQuery = buildQueryURLString(qbParams)
-			window.open(`${basePath}${searchQuery}`, '_blank')
+			window.open(`${basePath}${searchQuery}${timeParams}`, '_blank')
 		}
 		commandBarDialog.hide()
 	}

@@ -7,7 +7,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
@@ -22,10 +22,6 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
-import {
-	buildSearchQueryForServer,
-	parseSearchQuery,
-} from '@/components/Search/SearchForm/utils'
 import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
@@ -42,6 +38,7 @@ import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
+import analytics from '@/util/analytics'
 import { formatNumber } from '@/util/numbers'
 
 import * as styles from './TracesPage.css'
@@ -57,15 +54,13 @@ export const TracesPage: React.FC = () => {
 	const {
 		startDate,
 		endDate,
-		datePickerValue,
+		selectedPreset,
 		updateSearchTime,
 		rebaseSearchTime,
 	} = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: FixedRangePreset,
 	})
-	const queryTerms = parseSearchQuery(query)
-	const serverQuery = buildSearchQueryForServer(queryTerms)
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 
@@ -82,7 +77,7 @@ export const TracesPage: React.FC = () => {
 		traceCursor,
 		startDate,
 		endDate,
-		skipPolling: !datePickerValue.selectedPreset,
+		skipPolling: !selectedPreset,
 	})
 
 	const { data: metricsData, loading: metricsLoading } =
@@ -92,7 +87,7 @@ export const TracesPage: React.FC = () => {
 				column: MetricColumn.Duration,
 				group_by: [],
 				params: {
-					query: serverQuery,
+					query,
 					date_range: {
 						start_date: moment(startDate).format(TIME_FORMAT),
 						end_date: moment(endDate).format(TIME_FORMAT),
@@ -168,6 +163,8 @@ export const TracesPage: React.FC = () => {
 		return traceEdges.map((edge) => edge.node)
 	}, [traceEdges])
 
+	useEffect(() => analytics.page(), [])
+
 	return (
 		<>
 			<Helmet>
@@ -198,7 +195,7 @@ export const TracesPage: React.FC = () => {
 						endDate={endDate}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={minDate}
-						datePickerValue={datePickerValue}
+						selectedPreset={selectedPreset}
 						timeMode={timeMode}
 						hideCreateAlert
 						onFormSubmit={setQuery}

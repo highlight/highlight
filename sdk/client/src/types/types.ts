@@ -4,7 +4,7 @@ import {
 	IntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
-} from './client'
+} from './client.js'
 
 export declare interface Metadata {
 	[key: string]: string | boolean | number

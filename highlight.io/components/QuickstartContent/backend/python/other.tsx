@@ -45,7 +45,7 @@ ${init}
 
 
 def main():
-    with H.trace():
+    with H.trace(span_name="my_span"):
         logging.info('hello, world!', {'favorite_number': 7})
         return f"<h1>bad idea { 5/0 }</h1>"
 

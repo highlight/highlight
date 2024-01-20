@@ -54,4 +54,7 @@ When highlight.io is fully integrated, this is what it looks like:
     <DocsCard title="Logging."  href="./6_product-features/4_logging/1_overview.md">
         {"Logging features, how to get started, etc.."}
     </DocsCard>
+    <DocsCard title="Tracing."  href="./6_product-features/5_tracing/1_overview.md">
+        {"Tracing features, how to get started, etc.."}
+    </DocsCard>
 </DocsCardGroup>

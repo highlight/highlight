@@ -71,7 +71,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const {
 		startDate,
 		endDate,
-		datePickerValue,
+		selectedPreset,
 		rebaseSearchTime,
 		updateSearchTime,
 	} = useSearchTime({
@@ -94,7 +94,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		logCursor,
 		startDate,
 		endDate,
-		disablePolling: !datePickerValue.selectedPreset,
+		disablePolling: !selectedPreset,
 	})
 
 	const handleLevelChange = (level: LogLevel) => {
@@ -165,7 +165,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						onDatesChange={updateSearchTime}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
-						datePickerValue={datePickerValue}
+						selectedPreset={selectedPreset}
 						timeMode={timeMode}
 						fetchKeysLazyQuery={useGetLogsKeysLazyQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
@@ -174,7 +174,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					<LogsCount
 						startDate={startDate}
 						endDate={endDate}
-						presetSelected={!!datePickerValue.selectedPreset}
+						presetSelected={!!selectedPreset}
 						totalCount={histogramData?.logs_histogram.objectCount}
 						loading={histogramLoading}
 					/>

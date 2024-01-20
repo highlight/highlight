@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -16,12 +15,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/openlyinc/pointy"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/lambda-functions/journeys/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 const normalnessTimeout = 10 * 60 * 1000

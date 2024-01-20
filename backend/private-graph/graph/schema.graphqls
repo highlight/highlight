@@ -95,9 +95,9 @@ type SessionInterval {
 
 type SessionsReportRow {
 	key: String!
-	num_sessions: Int!
-	num_days_visited: Int!
-	num_months_visited: Int!
+	num_sessions: UInt64!
+	num_days_visited: UInt64!
+	num_months_visited: UInt64!
 	avg_active_length_mins: Float!
 	max_active_length_mins: Float!
 	total_active_length_mins: Float!
@@ -105,7 +105,6 @@ type SessionsReportRow {
 	max_length_mins: Float!
 	total_length_mins: Float!
 	location: String!
-	user_properties: String
 }
 
 type TimelineIndicatorEvent {
@@ -295,6 +294,12 @@ type JiraIssueType {
 	scope: JiraIssueTypeScope
 }
 
+type GitlabProject {
+	id: Int!
+	name: String!
+	nameWithNameSpace: String!
+}
+
 type JiraProject {
 	name: String!
 	key: String!
@@ -419,6 +424,7 @@ enum IntegrationType {
 	Height
 	GitHub
 	Jira
+	GitLab
 }
 
 enum ErrorState {
@@ -1135,6 +1141,7 @@ input DateHistogramOptions {
 input ClickhouseQuery {
 	isAnd: Boolean!
 	rules: [[String!]!]!
+	dateRange: DateRangeRequiredInput!
 }
 
 enum NetworkRequestAttribute {
@@ -1955,6 +1962,7 @@ type Query {
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	jira_projects(workspace_id: ID!): [JiraProject!]
+	gitlab_projects(workspace_id: ID!): [GitlabProject!]
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project

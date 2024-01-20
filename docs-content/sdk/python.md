@@ -160,7 +160,7 @@ the error will be associated with the project ID passed to H().</p>
   </div>
   <div className="right">
     <code>
-        with H.trace():
+        with H.trace(span_name="my_span"):
             for idx in range(1000):
                 logging.info(f"hello {idx}")
                 time.sleep(0.001)

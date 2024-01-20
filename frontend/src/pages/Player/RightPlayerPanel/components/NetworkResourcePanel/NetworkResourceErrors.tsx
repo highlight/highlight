@@ -1,4 +1,5 @@
 import { Box, Callout, Text } from '@highlight-run/ui/components'
+import moment from 'moment'
 
 import LoadingBox from '@/components/LoadingBox'
 import { useGetErrorGroupsClickhouseQuery } from '@/graph/generated/hooks'
@@ -30,6 +31,10 @@ export const NetworkResourceErrors: React.FC<{
 			query: {
 				isAnd: true,
 				rules: [['secure_id', 'is', ...errorGroupSecureIds]],
+				dateRange: {
+					start_date: moment().subtract(30, 'days').toISOString(),
+					end_date: moment().toISOString(),
+				},
 			},
 			project_id: projectId,
 			count: errorGroupSecureIds.length,

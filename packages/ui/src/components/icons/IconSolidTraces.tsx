@@ -5,10 +5,11 @@ export const IconSolidTraces = ({ size = '1em', ...props }: IconProps) => {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			width="16"
-			height="16"
+			width={size}
+			height={size}
 			viewBox="0 0 16 16"
 			fill="none"
+			{...props}
 		>
 			<path
 				d="M1.60156 4.00039C1.60156 3.11674 2.31791 2.40039 3.20156 2.40039H12.8016C13.6852 2.40039 14.4016 3.11674 14.4016 4.00039C14.4016 4.88405 13.6852 5.60039 12.8016 5.60039H3.20156C2.31791 5.60039 1.60156 4.88405 1.60156 4.00039Z"

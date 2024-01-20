@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"math"
 	"regexp"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/segmentio/encoding/json"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/integrations/github"

@@ -33,8 +33,15 @@ const (
 	SessionDataSync                        PayloadType = iota
 	ErrorGroupDataSync                     PayloadType = iota
 	ErrorObjectDataSync                    PayloadType = iota
+	PushCompressedPayload                  PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
+
+type PushCompressedPayloadArgs struct {
+	SessionSecureID string
+	PayloadID       int
+	Data            string `json:"data"`
+}
 
 type PushPayloadArgs struct {
 	SessionSecureID    string
@@ -126,23 +133,24 @@ type ErrorObjectDataSyncArgs struct {
 }
 
 type Message struct {
-	Type                 PayloadType
-	Failures             int
-	MaxRetries           int
-	KafkaMessage         *kafka.Message            `json:",omitempty"`
-	PushPayload          *PushPayloadArgs          `json:",omitempty"`
-	InitializeSession    *InitializeSessionArgs    `json:",omitempty"`
-	IdentifySession      *IdentifySessionArgs      `json:",omitempty"`
-	AddTrackProperties   *AddTrackPropertiesArgs   `json:",omitempty"`
-	AddSessionProperties *AddSessionPropertiesArgs `json:",omitempty"`
-	PushBackendPayload   *PushBackendPayloadArgs   `json:",omitempty"`
-	PushMetrics          *PushMetricsArgs          `json:",omitempty"`
-	AddSessionFeedback   *AddSessionFeedbackArgs   `json:",omitempty"`
-	PushLogs             *PushLogsArgs             `json:",omitempty"`
-	PushTraces           *PushTracesArgs           `json:",omitempty"`
-	SessionDataSync      *SessionDataSyncArgs      `json:",omitempty"`
-	ErrorGroupDataSync   *ErrorGroupDataSyncArgs   `json:",omitempty"`
-	ErrorObjectDataSync  *ErrorObjectDataSyncArgs  `json:",omitempty"`
+	Type                  PayloadType
+	Failures              int
+	MaxRetries            int
+	KafkaMessage          *kafka.Message             `json:",omitempty"`
+	PushPayload           *PushPayloadArgs           `json:",omitempty"`
+	InitializeSession     *InitializeSessionArgs     `json:",omitempty"`
+	IdentifySession       *IdentifySessionArgs       `json:",omitempty"`
+	AddTrackProperties    *AddTrackPropertiesArgs    `json:",omitempty"`
+	AddSessionProperties  *AddSessionPropertiesArgs  `json:",omitempty"`
+	PushBackendPayload    *PushBackendPayloadArgs    `json:",omitempty"`
+	PushMetrics           *PushMetricsArgs           `json:",omitempty"`
+	AddSessionFeedback    *AddSessionFeedbackArgs    `json:",omitempty"`
+	PushLogs              *PushLogsArgs              `json:",omitempty"`
+	PushTraces            *PushTracesArgs            `json:",omitempty"`
+	SessionDataSync       *SessionDataSyncArgs       `json:",omitempty"`
+	ErrorGroupDataSync    *ErrorGroupDataSyncArgs    `json:",omitempty"`
+	ErrorObjectDataSync   *ErrorObjectDataSyncArgs   `json:",omitempty"`
+	PushCompressedPayload *PushCompressedPayloadArgs `json:",omitempty"`
 }
 
 type PartitionMessage struct {

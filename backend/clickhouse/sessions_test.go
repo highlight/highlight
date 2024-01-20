@@ -3,11 +3,12 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
-	"testing"
-	"time"
 
 	"github.com/highlight-run/highlight/backend/queryparser"
 
@@ -239,8 +240,11 @@ func Test_QuerySessionIds(t *testing.T) {
 				IsAnd: true,
 				Rules: [][]string{
 					{"session_environment", "is", "production"},
-					{"custom_created_at", "between_date", fmt.Sprintf("%s.000Z_%s.000Z", s1.CreatedAt.UTC().Add(-time.Hour).Format(time.RFC3339)[:19], s1.CreatedAt.UTC().Add(time.Hour).Format(time.RFC3339)[:19])},
 					{"custom_sample", "matches", "281cce18b609606b"},
+				},
+				DateRange: &modelInputs.DateRangeRequiredInput{
+					StartDate: s1.CreatedAt.UTC().Add(-time.Hour),
+					EndDate:   s1.CreatedAt.UTC().Add(time.Hour),
 				},
 			},
 		},
@@ -249,6 +253,10 @@ func Test_QuerySessionIds(t *testing.T) {
 				IsAnd: true,
 				Rules: [][]string{
 					{"custom_sample", "matches", "FFFFFFFFFFFFFFFF"},
+				},
+				DateRange: &modelInputs.DateRangeRequiredInput{
+					StartDate: s1.CreatedAt.UTC().Add(-time.Hour),
+					EndDate:   s1.CreatedAt.UTC().Add(time.Hour),
 				},
 			},
 		},

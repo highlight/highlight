@@ -1,5 +1,9 @@
-import { last30Days } from '@components/CommandBar/constants'
 import { nextAttribute, useAttributeSearch } from '@components/CommandBar/utils'
+import {
+	DEFAULT_TIME_PRESETS,
+	presetStartDate,
+	presetValue,
+} from '@highlight-run/ui/components'
 import { FormState, useFormStore } from '@highlight-run/ui/components'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
@@ -17,6 +21,7 @@ import {
 export interface CommandBarSearch {
 	search: string
 	selectedDates: Date[]
+	selectedPreset: string
 }
 
 export const ATTRIBUTES = [
@@ -100,20 +105,25 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 	const formStore = useFormStore<CommandBarSearch>({
 		defaultValues: {
 			search: '',
-			selectedDates: [last30Days.startDate, moment().toDate()],
+			selectedDates: [
+				presetStartDate(DEFAULT_TIME_PRESETS[5]),
+				moment().toDate(),
+			],
+			selectedPreset: presetValue(DEFAULT_TIME_PRESETS[5]),
 		},
 	})
 
 	const query = formStore.useValue('search').trim()
-	const selectedDates = formStore.useValue('selectedDates')
 	const searchAttribute = useAttributeSearch(formStore)
 
 	formStore.useSubmit(() => {
 		if (query) {
 			searchAttribute(currentAttribute, {
-				withDate:
-					selectedDates[0].getTime() !==
-					last30Days.startDate.getTime(),
+				timeRange: {
+					startDate: formStore.useValue('selectedDates')[0],
+					endDate: formStore.useValue('selectedDates')[1],
+					selectedPreset: formStore.useValue('selectedPreset'),
+				},
 			})
 		}
 	})

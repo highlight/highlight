@@ -8,7 +8,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -54,6 +53,7 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v76"
 	"go.opentelemetry.io/otel/attribute"
@@ -1673,6 +1673,19 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(
+				ctx,
+				workspace,
+				attachment,
+				title,
+				desc,
+				*issueTeamID,
+			); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1754,6 +1767,12 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			if err := r.CreateJiraTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID, *issueTypeID); err != nil {
 				return nil, e.Wrap(err, "error creating Jira task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
@@ -2084,6 +2103,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2267,6 +2292,12 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeGitLab {
+			if err := r.CreateGitlabTaskAndAttachment(ctx, workspace, attachment, title, desc, *issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating GitLab task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -2418,6 +2449,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.AddGitlabToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else if *integrationType == modelInputs.IntegrationTypeSlack {
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
@@ -2485,6 +2520,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2515,6 +2554,10 @@ func (r *mutationResolver) AddIntegrationToWorkspace(ctx context.Context, integr
 		if err := r.AddJiraToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.AddGitlabToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New(fmt.Sprintf("invalid integrationType: %s", integrationType))
 	}
@@ -2539,6 +2582,10 @@ func (r *mutationResolver) RemoveIntegrationFromWorkspace(ctx context.Context, i
 		}
 	} else if integrationType == modelInputs.IntegrationTypeJira {
 		if err := r.RemoveJiraFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if integrationType == modelInputs.IntegrationTypeGitLab {
+		if err := r.RemoveGitlabFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -5606,34 +5653,57 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 		return nil, err
 	}
 
-	ids, total, _, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, 1_000_000, query, "ID", nil, retentionDate)
+	sql, args, _, err := clickhouse.GetSessionsQueryImpl(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	if total >= 1_000_000 {
-		return nil, e.New("too many sessions to generate report, adjust the query to return fewer sessions")
+
+	q := fmt.Sprintf(`
+select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
+       count(*)                                                        as num_sessions,
+       count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
+       count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
+       avg(ActiveLength) / 1000 / 60                                   as avg_active_length_mins,
+       max(ActiveLength) / 1000 / 60                                   as max_active_length_mins,
+       sum(ActiveLength) / 1000 / 60                                   as total_active_length_mins,
+       avg(Length) / 1000 / 60                                         as avg_length_mins,
+       max(Length) / 1000 / 60                                         as max_length_mins,
+       sum(Length) / 1000 / 60                                         as total_length_mins,
+       max(City)                                                       as location
+from sessions final
+         left join (select *
+                    from fields
+                    where fields.ProjectID = %d
+                      and Type = 'user'
+                      and Name = 'email') email on
+    email.SessionCreatedAt = CreatedAt
+        and email.SessionID = ID
+         left join (select *
+                    from fields
+                    where fields.ProjectID = %d
+                      and Type = 'session'
+                      and Name = 'device_id') device on
+    device.SessionCreatedAt = CreatedAt
+        and device.SessionID = ID
+WHERE sessions.ProjectID = %d
+  AND NOT Excluded
+  AND WithinBillingQuota
+  AND (NOT Processed OR ActiveLength >= 1000 OR (ActiveLength IS NULL AND Length >= 1000))
+  and ID in (%s)
+group by 1 order by num_sessions desc;
+`, project.ID, project.ID, project.ID, sql)
+	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
+	if err != nil {
+		return nil, err
 	}
 
 	var results []*modelInputs.SessionsReportRow
-	if err := r.DB.Raw(`
-select coalesce(email, ip, client_id, identifier)                              as key,
-       max(user_properties::text) filter ( where user_properties is not null ) as user_properties,
-       count(*)                                                                as num_sessions,
-       count(distinct date_trunc('day', created_at))                           as num_days_visited,
-       count(distinct date_trunc('month', created_at))                         as num_months_visited,
-       avg(active_length) / 1000 / 60                                          as avg_active_length_mins,
-       max(active_length) / 1000 / 60                                          as max_active_length_mins,
-       sum(active_length) / 1000 / 60                                          as total_active_length_mins,
-       avg(length) / 1000 / 60                                                 as avg_length_mins,
-       max(length) / 1000 / 60                                                 as max_length_mins,
-       sum(length) / 1000 / 60                                                 as total_length_mins,
-       max(case when state is not null then state || '|' || city end)          as location
-from sessions
-where id in (?)
-group by 1
-order by num_sessions desc;
-`, ids).Scan(&results).Error; err != nil {
-		return nil, err
+	for rows.Next() {
+		var result modelInputs.SessionsReportRow
+		if err := rows.Scan(&result.Key, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
+			return nil, err
+		}
+		results = append(results, &result)
 	}
 
 	return results, nil
@@ -6641,6 +6711,16 @@ func (r *queryResolver) JiraProjects(ctx context.Context, workspaceID int) ([]*m
 	}
 
 	return r.GetJiraProjects(ctx, workspace)
+}
+
+// GitlabProjects is the resolver for the gitlab_projects field.
+func (r *queryResolver) GitlabProjects(ctx context.Context, workspaceID int) ([]*modelInputs.GitlabProject, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	return r.GetGitlabProjects(ctx, workspace)
 }
 
 // GithubRepos is the resolver for the github_repos field.

@@ -3,8 +3,13 @@ package oauth
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
@@ -18,11 +23,8 @@ import (
 	oredis "github.com/highlight/go-oauth2-redis/v4"
 	e "github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const CookieName = "highlightOAuth"

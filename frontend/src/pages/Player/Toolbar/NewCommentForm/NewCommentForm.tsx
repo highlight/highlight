@@ -25,6 +25,7 @@ import {
 	Form,
 	IconSolidClickUp,
 	IconSolidGithub,
+	IconSolidGitlab,
 	IconSolidHeight,
 	IconSolidJira,
 	IconSolidLinear,
@@ -54,6 +55,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
+import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
@@ -343,6 +345,7 @@ export const NewCommentForm = ({
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
 	const { settings: jiraSettings } = useJiraIntegration()
+	const { settings: gitlabSettings } = useGitlabIntegration()
 
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
@@ -378,6 +381,18 @@ export const NewCommentForm = ({
 				),
 				id: 'jira',
 				value: IntegrationType.Jira,
+			})
+		}
+		if (gitlabSettings.isIntegrated) {
+			integrations.push({
+				displayValue: (
+					<Stack direction="row" gap="4" align="center">
+						<IconSolidGitlab />
+						Create a GitLab issue
+					</Stack>
+				),
+				id: 'gitlab',
+				value: IntegrationType.GitLab,
 			})
 		}
 		if (isClickupIntegrated) {
@@ -423,6 +438,7 @@ export const NewCommentForm = ({
 		isClickupIntegrated,
 		isHeightIntegrated,
 		githubSettings.isIntegrated,
+		gitlabSettings.isIntegrated,
 	])
 
 	useEffect(() => {

@@ -1,4 +1,3 @@
-import { last30Days, now, PRESETS } from '@components/CommandBar/constants'
 import {
 	Attribute,
 	ATTRIBUTES,
@@ -21,6 +20,8 @@ import {
 	Ariakit,
 	Badge,
 	Box,
+	DateRangePicker,
+	DEFAULT_TIME_PRESETS,
 	Form,
 	IconProps,
 	IconSolidCalendar,
@@ -29,15 +30,16 @@ import {
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
+	presetValue,
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
-import { PreviousDateRangePicker } from '@highlight-run/ui/components'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
 import isEqual from 'lodash/isEqual'
-import React, { useRef } from 'react'
+import moment from 'moment'
+import React, { useMemo, useRef } from 'react'
 
 import * as styles from './style.css'
 
@@ -102,10 +104,21 @@ const SearchBar = () => {
 	const selectedDates = formStore.useValue<Date[]>(
 		formStore.names.selectedDates,
 	)
+	const selectedPresetValue = formStore.useValue<string>(
+		formStore.names.selectedPreset,
+	)
+
+	const selectedPreset = useMemo(() => {
+		if (!selectedPresetValue) return undefined
+
+		return DEFAULT_TIME_PRESETS.find(
+			(preset) => presetValue(preset) === selectedPresetValue,
+		)
+	}, [selectedPresetValue])
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const isDirty =
-		!!query || selectedDates[0].getTime() !== last30Days.startDate.getTime()
+		!!query || selectedPresetValue !== presetValue(DEFAULT_TIME_PRESETS[5])
 
 	const searchAttribute = useAttributeSearch(formStore)
 
@@ -130,9 +143,11 @@ const SearchBar = () => {
 			if (e.metaKey || e.ctrlKey) {
 				searchAttribute(currentAttribute, {
 					newTab: true,
-					withDate:
-						selectedDates[0].getTime() !==
-						last30Days.startDate.getTime(),
+					timeRange: {
+						startDate: selectedDates[0],
+						endDate: selectedDates[1],
+						selectedPreset: selectedPresetValue,
+					},
 				})
 			} else {
 				formStore.submit()
@@ -181,18 +196,26 @@ const SearchBar = () => {
 							/>
 						) : null}
 					</Box>
-					<PreviousDateRangePicker
-						selectedDates={formStore.useValue(
-							formStore.names.selectedDates,
-						)}
-						onDatesChange={(dates) => {
+					<DateRangePicker
+						selectedValue={{
+							startDate: selectedDates[0],
+							endDate: selectedDates[1],
+							selectedPreset,
+						}}
+						onDatesChange={(startDate, endDate, selectedPreset) => {
+							formStore.setValue(formStore.names.selectedDates, [
+								startDate,
+								endDate,
+							])
 							formStore.setValue(
-								formStore.names.selectedDates,
-								dates,
+								formStore.names.selectedPreset,
+								selectedPreset
+									? presetValue(selectedPreset)
+									: undefined,
 							)
 						}}
-						presets={PRESETS}
-						minDate={now.clone().subtract(2, 'years').toDate()}
+						presets={DEFAULT_TIME_PRESETS}
+						minDate={moment().subtract(2, 'years').toDate()}
 						emphasis="medium"
 						cssClass={styles.datePicker}
 						iconLeft={<IconSolidCalendar />}
@@ -223,6 +246,12 @@ const SectionRow = ({
 	const { setCurrentAttribute, setTouched } = useCommandBarAPI()
 	const currentAttribute = useCurrentAttribute()
 	const formStore = useCommandBarForm()
+	const selectedDates = formStore.useValue<Date[]>(
+		formStore.names.selectedDates,
+	)
+	const selectedPresetValue = formStore.useValue<string>(
+		formStore.names.selectedPreset,
+	)
 	const selected = isEqual(currentAttribute, attribute)
 	const searchAttribute = useAttributeSearch(formStore)
 
@@ -247,11 +276,12 @@ const SectionRow = ({
 			onClick={(e) => {
 				setTouched(true)
 				searchAttribute(attribute, {
-					withDate:
-						formStore
-							.getValue(formStore.names.selectedDates)[0]
-							.getTime() !== last30Days.startDate.getTime(),
 					newTab: e.metaKey || e.ctrlKey,
+					timeRange: {
+						startDate: selectedDates[0],
+						endDate: selectedDates[1],
+						selectedPreset: selectedPresetValue,
+					},
 				})
 			}}
 		>

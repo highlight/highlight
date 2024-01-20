@@ -332,10 +332,22 @@ export class Highlight {
 			span.setAttributes(metadata)
 		}
 		if (secureSessionId) {
-			span.setAttributes({ ['highlight.session_id']: secureSessionId })
+			span.setAttribute('highlight.session_id', secureSessionId)
 		}
 		if (requestId) {
-			span.setAttributes({ ['highlight.trace_id']: requestId })
+			span.setAttribute('highlight.trace_id', requestId)
+		}
+		if (error.cause && typeof error.cause === 'object') {
+			span.setAttributes(
+				Object.entries(error.cause)
+					.map(([k, v]) => [`exception.cause.${k}`, v])
+					.reduce((acc, [k, v]) => {
+						acc[k] = JSON.stringify(v)
+						return acc
+					}, {} as Attributes),
+			)
+		} else if (error.cause) {
+			span.setAttribute('exception.cause', error.cause.toString())
 		}
 		this._log('created error span', span)
 		span.end()

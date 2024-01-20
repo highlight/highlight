@@ -16,6 +16,7 @@ import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/c
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
 	CLICKUP_INTEGRATION,
+	GITLAB_INTEGRATION,
 	HEIGHT_INTEGRATION,
 	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
@@ -38,6 +39,7 @@ import {
 	useDeleteComment,
 	useNavigateToComment,
 } from '@/components/Comment/utils/utils'
+import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 interface Props {
@@ -53,6 +55,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
 
 	const { settings: jiraSettings } = useJiraIntegration()
+	const { settings: gitlabSettings } = useGitlabIntegration()
 
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
@@ -80,6 +83,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 		[isClickupIntegrated, CLICKUP_INTEGRATION],
 		[jiraSettings.isIntegrated, JIRA_INTEGRATION],
 		[isHeightIntegrated, HEIGHT_INTEGRATION],
+		[gitlabSettings.isIntegrated, GITLAB_INTEGRATION],
 	]
 
 	const anyIssueTrackerIntegrated = issueTrackers.some(

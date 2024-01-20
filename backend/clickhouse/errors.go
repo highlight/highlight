@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -156,36 +155,16 @@ func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs
 		return "", nil, err
 	}
 
-	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
-		return r.Field == errorsTimeRangeField
-	})
-	if !found {
-		end := time.Now().UTC()
-		start := end.AddDate(0, 0, -30)
-		timeRangeRule = Rule{
-			Field: errorsTimeRangeField,
-			Op:    BetweenDate,
-			Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
-		}
-		rules = append(rules, timeRangeRule)
+	end := query.DateRange.EndDate.UTC()
+	start := query.DateRange.StartDate.UTC()
+	timeRangeRule := Rule{
+		Field: errorsTimeRangeField,
+		Op:    BetweenDate,
+		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
 	}
-	if len(timeRangeRule.Val) != 1 {
-		return "", nil, fmt.Errorf("unexpected length of time range value: %s", timeRangeRule.Val)
-	}
-	start, end, found := strings.Cut(timeRangeRule.Val[0], "_")
-	if !found {
-		return "", nil, fmt.Errorf("separator not found for time range: %s", timeRangeRule.Val[0])
-	}
-	startTime, err := time.Parse(timeFormat, start)
-	if err != nil {
-		return "", nil, err
-	}
-	endTime, err := time.Parse(timeFormat, end)
-	if err != nil {
-		return "", nil, err
-	}
+	rules = append(rules, timeRangeRule)
 
-	sb, err := parseErrorRules(tableName, selectColumns, query.IsAnd, rules, projectId, startTime, endTime)
+	sb, err := parseErrorRules(tableName, selectColumns, query.IsAnd, rules, projectId, start, end)
 	if err != nil {
 		return "", nil, err
 	}
@@ -260,7 +239,7 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, projectId 
 	for _, id := range errorGroupIds {
 		defaultInner := sqlbuilder.Buildf(`
 			SELECT %s as ErrorGroupID, intDiv(toRelativeMinuteNum(%s), %s), 0
-			ORDER BY 
+			ORDER BY
 				1 WITH FILL,
 				2 WITH FILL FROM intDiv(toRelativeMinuteNum(%s), %s) TO intDiv(toRelativeMinuteNum(%s), %s)`,
 			id, params.DateRange.StartDate, mins, params.DateRange.StartDate, mins, params.DateRange.EndDate, mins)
@@ -559,9 +538,9 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 	return bucketTimes, totals, nil
 }
 
-var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
-	tableName: ErrorObjectsTable,
-	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+var errorObjectsTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
+	TableName: ErrorObjectsTable,
+	KeysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
 		modelInputs.ReservedErrorObjectKeySessionSecureID: "SessionSecureID",
 		modelInputs.ReservedErrorObjectKeyRequestID:       "RequestID",
 		modelInputs.ReservedErrorObjectKeyTraceID:         "TraceID",
@@ -578,13 +557,13 @@ var errorObjectsTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
 		modelInputs.ReservedErrorObjectKeyServiceVersion:  "Service.Version",
 		modelInputs.ReservedErrorObjectKeyEnvironment:     "Environment",
 	},
-	bodyColumn:   "Event",
-	reservedKeys: modelInputs.AllReservedErrorObjectKey,
+	BodyColumn:   "Event",
+	ReservedKeys: modelInputs.AllReservedErrorObjectKey,
 }
 
-var errorsJoinedTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
-	tableName: "errors_joined_vw",
-	keysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
+var errorsJoinedTableConfig = model.TableConfig[modelInputs.ReservedErrorObjectKey]{
+	TableName: "errors_joined_vw",
+	KeysToColumns: map[modelInputs.ReservedErrorObjectKey]string{
 		modelInputs.ReservedErrorObjectKeyBrowser:        "Browser",
 		modelInputs.ReservedErrorObjectKeyEnvironment:    "Environment",
 		modelInputs.ReservedErrorObjectKeyEvent:          "Event",
@@ -598,8 +577,8 @@ var errorsJoinedTableConfig = tableConfig[modelInputs.ReservedErrorObjectKey]{
 		modelInputs.ReservedErrorObjectKeyTimestamp:      "Timestamp",
 		modelInputs.ReservedErrorObjectKeyStatus:         "Status",
 	},
-	bodyColumn:   "Event",
-	reservedKeys: modelInputs.AllReservedErrorObjectKey,
+	BodyColumn:   "Event",
+	ReservedKeys: modelInputs.AllReservedErrorObjectKey,
 }
 
 var errorsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedErrorObjectKey]{

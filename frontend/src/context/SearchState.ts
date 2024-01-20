@@ -1,4 +1,8 @@
-import { defaultPresets, getNow } from '@highlight-run/ui/components'
+import {
+	DateRangePreset,
+	DEFAULT_TIME_PRESETS,
+	presetStartDate,
+} from '@highlight-run/ui/components'
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -6,37 +10,13 @@ import { useLocalStorage } from 'react-use'
 import { JsonParam, NumberParam, useQueryParams } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import {
-	CUSTOM_TYPE,
-	CustomField,
-	deserializeRules,
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
-	getAbsoluteEndTime,
-	getAbsoluteStartTime,
-	getType,
-	hasArguments,
-	MultiselectOption,
-	Operator,
-	RANGE_MAX_LENGTH,
-	RuleProps,
-	SelectOption,
-	serializeRules,
-	SESSION_TYPE,
-	TIME_MAX_LENGTH,
-} from '@/components/QueryBuilder/QueryBuilder'
-import { searchObjectFromString } from '@/components/QueryBuilder/utils'
+import { CustomField } from '@/components/QueryBuilder/QueryBuilder'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetHistogramBucketSize } from '@/components/SearchResultsHistogram/SearchResultsHistogram'
-import { SearchOption } from '@/components/Select/SearchSelect/SearchSelect'
-import {
-	BackendSearchQuery,
-	BaseSearchContext,
-	Segment,
-} from '@/context/BaseSearchContext'
-import { Admin } from '@/graph/generated/schemas'
+import { BaseSearchContext, Segment } from '@/context/BaseSearchContext'
+import { Admin, DateHistogramBucketSize } from '@/graph/generated/schemas'
+import { useSearchTime } from '@/hooks/useSearchTime'
 import { useParams } from '@/util/react-router/useParams'
-import { roundFeedDate } from '@/util/time'
 import { QueryBuilderStateParam } from '@/util/url/params'
 
 interface SearchState {
@@ -44,9 +24,11 @@ interface SearchState {
 	searchResultsLoading: boolean
 	searchResultsCount: number | undefined
 	existingQuery: string
-	backendSearchQuery: BackendSearchQuery
+	histogramBucketSize: DateHistogramBucketSize
 	page: number
 	selectedSegment: Segment
+	startDate: Date
+	endDate: Date
 }
 
 enum SearchActionType {
@@ -69,7 +51,6 @@ interface setSearchQuery {
 	searchQuery: React.SetStateAction<SearchState['searchQuery']>
 	admin: Admin | undefined
 	customFields: CustomField[]
-	timeRangeField: SelectOption
 }
 
 interface setSelectedSegment {
@@ -78,7 +59,6 @@ interface setSelectedSegment {
 	query: string
 	admin: Admin | undefined
 	customFields: CustomField[]
-	timeRangeField: SelectOption
 }
 
 type setPage = {
@@ -97,6 +77,8 @@ type setSearchResultsCount = {
 	type: SearchActionType.setSearchResultsCount
 	searchResultsCount: React.SetStateAction<SearchState['searchResultsCount']>
 }
+
+const defaultPreset = DEFAULT_TIME_PRESETS[5]
 
 const isFunction = (x: unknown): x is Function => typeof x === 'function'
 
@@ -120,20 +102,23 @@ export const SearchReducer = (
 		case SearchActionType.setSearchQuery:
 			s.searchQuery = tryAddDefaultDate(
 				evaluateAction(action.searchQuery, s.searchQuery),
-				action.timeRangeField,
+				s.startDate,
+				s.endDate,
 			)
-			s.backendSearchQuery = getSerializedQuery(
-				s.searchQuery,
-				action.admin,
-				action.customFields,
-				action.timeRangeField,
+			const { start_date, end_date } = JSON.parse(s.searchQuery).dateRange
+			s.startDate = moment(start_date).toDate()
+			s.endDate = moment(end_date).toDate()
+
+			s.histogramBucketSize = determineHistogramBucketSize(
+				start_date,
+				end_date,
 			)
 			break
 		case SearchActionType.setSelectedSegment:
-			const query = tryPreserveDateFromExistingOrAddDefault(
-				s.searchQuery,
+			const query = overwriteQueryDates(
 				action.query,
-				action.timeRangeField,
+				s.startDate,
+				s.endDate,
 			)
 			s.selectedSegment = evaluateAction(
 				action.selectedSegment,
@@ -141,11 +126,9 @@ export const SearchReducer = (
 			)
 			s.searchQuery = query
 			s.existingQuery = query
-			s.backendSearchQuery = getSerializedQuery(
-				s.searchQuery,
-				action.admin,
-				action.customFields,
-				action.timeRangeField,
+			s.histogramBucketSize = determineHistogramBucketSize(
+				s.startDate,
+				s.endDate,
 			)
 			break
 		case SearchActionType.setPage:
@@ -174,64 +157,44 @@ const SearchInitialState = {
 
 const tryAddDefaultDate = (
 	searchQuery: string,
-	timeRangeField: SelectOption,
-): string => {
-	const { isAnd, rules: serializedRules }: { isAnd: boolean; rules: any } =
-		JSON.parse(searchQuery)
-	const newRules = deserializeRules(serializedRules)
-	const hasTimeRange =
-		newRules.find((rule) => rule.field?.value === timeRangeField.value) !==
-		undefined
-	if (!hasTimeRange) {
-		newRules.push(getDefaultTimeRangeRule(timeRangeField))
-	}
+	startDate: Date,
+	endDate: Date,
+) => {
+	const { isAnd, rules, dateRange } = JSON.parse(searchQuery)
+
+	const newStartDate = dateRange?.start_date
+		? moment(dateRange.start_date).toDate()
+		: startDate
+	const newEndDate = dateRange?.end_date
+		? moment(dateRange.end_date).toDate()
+		: endDate
+
 	return JSON.stringify({
 		isAnd,
-		rules: serializeRules(newRules),
+		rules,
+		dateRange: {
+			start_date: newStartDate,
+			end_date: newEndDate,
+		},
 	})
 }
 
 // If the user is searching withing a time range, we want to preserve that time
 // range when applying a segment.
-const tryPreserveDateFromExistingOrAddDefault = (
+const overwriteQueryDates = (
 	searchQuery: string,
-	newSearchQuery: string,
-	timeRangeField: SelectOption,
+	startDate: Date,
+	endDate: Date,
 ) => {
-	const { isAnd, rules } = searchObjectFromString(searchQuery)
-	const existingTimeRangeRule = rules.find(
-		(rule: any) => rule.field?.value === timeRangeField.value,
-	)
-
-	let { rules: newRules } = searchObjectFromString(newSearchQuery)
-	newRules = newRules.filter(
-		(rule: any) => rule.field?.value !== timeRangeField.value,
-	)
-
-	if (existingTimeRangeRule) {
-		newRules.push(existingTimeRangeRule)
-	} else {
-		newRules.push(getDefaultTimeRangeRule(timeRangeField))
-	}
+	const { isAnd, rules } = JSON.parse(searchQuery)
 
 	return JSON.stringify({
 		isAnd,
-		rules: serializeRules(newRules),
-	})
-}
-
-export const removeTimeField = (
-	searchQuery: string,
-	timeRangeField: SearchOption,
-): string => {
-	const { isAnd, rules } = searchObjectFromString(searchQuery)
-	const filteredRules = rules.filter(
-		(rule: RuleProps) => rule.field?.value !== timeRangeField.value,
-	)
-
-	return JSON.stringify({
-		isAnd,
-		rules: serializeRules(filteredRules),
+		rules,
+		dateRange: {
+			start_date: startDate,
+			end_date: endDate,
+		},
 	})
 }
 
@@ -239,9 +202,8 @@ export const useGetInitialSearchState = (
 	page: 'sessions' | 'errors',
 	defaultSearchQuery: string,
 	segmentKeyPrefix: string,
-	admin: Admin | undefined,
-	customFields: CustomField[],
-	timeRangeField: SelectOption,
+	startDate: Date,
+	endDate: Date,
 ): SearchState => {
 	const [queryParams] = useQueryParams({
 		query: QueryBuilderStateParam,
@@ -265,21 +227,23 @@ export const useGetInitialSearchState = (
 
 	const startingQuery = tryAddDefaultDate(
 		(isCurrentPage && queryParams.query) || defaultSearchQuery,
-		timeRangeField,
+		startDate,
+		endDate,
 	)
+
+	const { dateRange } = JSON.parse(startingQuery)
+	const searchStartDate = moment(dateRange.start_date).toDate()
+	const searchEndDate = moment(dateRange.end_date).toDate()
 
 	return {
 		...SearchInitialState,
 		searchQuery: startingQuery,
 		existingQuery: startingQuery,
-		backendSearchQuery: getSerializedQuery(
-			startingQuery,
-			admin,
-			customFields,
-			timeRangeField,
-		),
+		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 		selectedSegment,
 		page: (isCurrentPage && queryParams.page) || START_PAGE,
+		startDate: searchStartDate,
+		endDate: searchEndDate,
 	}
 }
 
@@ -288,17 +252,26 @@ export const useGetBaseSearchContext = (
 	defaultSearchQuery: string,
 	segmentKeyPrefix: string,
 	customFields: CustomField[],
-	timeRangeField: SelectOption,
 ): BaseSearchContext => {
 	const { admin } = useAuthContext()
+
+	const {
+		startDate,
+		endDate,
+		updateSearchTime,
+		selectedPreset,
+		resetSearchTime,
+	} = useSearchTime({
+		initialPreset: defaultPreset,
+		presets: DEFAULT_TIME_PRESETS,
+	})
 
 	const initialState = useGetInitialSearchState(
 		page,
 		defaultSearchQuery,
 		segmentKeyPrefix,
-		admin,
-		customFields,
-		timeRangeField,
+		startDate,
+		endDate,
 	)
 
 	const { project_id } = useParams<{
@@ -343,10 +316,9 @@ export const useGetBaseSearchContext = (
 				searchQuery,
 				admin,
 				customFields,
-				timeRangeField,
 			})
 		},
-		[admin, customFields, timeRangeField],
+		[admin, customFields],
 	)
 
 	const setSelectedSegment = useCallback(
@@ -357,11 +329,10 @@ export const useGetBaseSearchContext = (
 				query,
 				admin,
 				customFields,
-				timeRangeField,
 			})
 			localStorage.setItem(segmentKey, JSON.stringify(selectedSegment))
 		},
-		[admin, customFields, segmentKey, timeRangeField],
+		[admin, customFields, segmentKey],
 	)
 
 	const removeSelectedSegment = useCallback(() => {
@@ -395,389 +366,85 @@ export const useGetBaseSearchContext = (
 		[],
 	)
 
+	const setSearchTime = useCallback(
+		(start: Date, end: Date, preset?: DateRangePreset) => {
+			updateSearchTime(start, end, preset)
+
+			const queryWithTimes = overwriteQueryDates(
+				state.searchQuery,
+				start,
+				end,
+			)
+
+			dispatch({
+				type: SearchActionType.setSearchQuery,
+				searchQuery: queryWithTimes,
+				admin,
+				customFields,
+			})
+		},
+		[admin, customFields, state.searchQuery, updateSearchTime],
+	)
+
+	const resetTime = useCallback(() => {
+		resetSearchTime()
+		const end = moment().toDate()
+		const start = presetStartDate(defaultPreset)
+
+		const queryWithTimes = overwriteQueryDates(
+			state.searchQuery,
+			start,
+			end,
+		)
+
+		dispatch({
+			type: SearchActionType.setSearchQuery,
+			searchQuery: queryWithTimes,
+			admin,
+			customFields,
+		})
+	}, [admin, customFields, resetSearchTime, state.searchQuery])
+
+	const createNewSearch = useCallback(
+		(
+			searchQuery: string,
+			start?: Date,
+			end?: Date,
+			preset?: DateRangePreset,
+		) => {
+			let query = searchQuery
+
+			if (start && end) {
+				updateSearchTime(start, end, preset)
+				query = overwriteQueryDates(searchQuery, start, end)
+			}
+
+			dispatch({
+				type: SearchActionType.setSearchQuery,
+				searchQuery: query,
+				admin,
+				customFields,
+			})
+		},
+		[admin, customFields, updateSearchTime],
+	)
+
 	return {
 		...state,
+		selectedPreset,
 		setSearchQuery,
 		setSelectedSegment,
 		removeSelectedSegment,
 		setPage,
 		setSearchResultsLoading,
 		setSearchResultsCount,
+		setSearchTime,
+		resetTime,
+		createNewSearch,
 	}
 }
 
-type OpenSearchQuery = {
-	query: any
-	childQuery?: any
-}
-
-const getDefaultTimeRangeRule = (timeRangeField: SelectOption): RuleProps => {
-	const defaultPreset = defaultPresets[5]
-	const period = {
-		label: defaultPreset.label, // Start at 30 days
-		value: `${defaultPreset.startDate.toISOString()}_${getNow().toISOString()}`, // Start at 30 days
-	}
-	return {
-		field: timeRangeField,
-		op: 'between_date',
-		val: {
-			kind: 'multi',
-			options: [period],
-		},
-	}
-}
-
-const getSerializedQuery = (
-	searchQuery: string,
-	admin: Admin | undefined,
-	customFields: CustomField[],
-	timeRangeField: SelectOption,
-): BackendSearchQuery => {
-	const defaultTimeRangeRule = getDefaultTimeRangeRule(timeRangeField)
-
-	const { isAnd, rules: serializedRules }: { isAnd: boolean; rules: any } =
-		JSON.parse(searchQuery)
-	const rules = deserializeRules(serializedRules)
-
-	const isNegative = (op: Operator): boolean =>
-		[
-			'is_not',
-			'not_contains',
-			'not_exists',
-			'not_between',
-			'not_between_time',
-			'not_between_date',
-			'not_matches',
-		].includes(op)
-
-	const parseGroup = (
-		isAnd: boolean,
-		rules: RuleProps[],
-	): OpenSearchQuery => {
-		const parseInner = (
-			field: SelectOption,
-			op: Operator,
-			value?: string,
-		): any => {
-			const getCustomFieldOptions = (field: SelectOption | undefined) => {
-				if (!field) {
-					return undefined
-				}
-
-				const type = getType(field.value)
-				if (
-					![
-						CUSTOM_TYPE,
-						SESSION_TYPE,
-						ERROR_TYPE,
-						ERROR_FIELD_TYPE,
-					].includes(type)
-				) {
-					return undefined
-				}
-
-				return customFields.find((f) => f.name === field.label)?.options
-			}
-
-			if (
-				[CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(
-					getType(field.value),
-				)
-			) {
-				const name = field.label
-				const isKeyword = !(
-					getCustomFieldOptions(field)?.type !== 'text'
-				)
-
-				if (field.label === 'viewed_by_me' && admin) {
-					const baseQuery = {
-						term: {
-							[`viewed_by_admins.id`]: admin.id,
-						},
-					}
-
-					if (value === 'true') {
-						return {
-							...baseQuery,
-						}
-					}
-					return {
-						bool: {
-							must_not: {
-								...baseQuery,
-							},
-						},
-					}
-				}
-
-				switch (op) {
-					case 'is':
-						return {
-							term: {
-								[`${name}${isKeyword ? '.keyword' : ''}`]:
-									value,
-							},
-						}
-					case 'contains':
-						return {
-							wildcard: {
-								[`${name}${
-									isKeyword ? '.keyword' : ''
-								}`]: `*${value}*`,
-							},
-						}
-					case 'matches':
-						return {
-							regexp: {
-								[`${name}${isKeyword ? '.keyword' : ''}`]:
-									value,
-							},
-						}
-					case 'exists':
-						return { exists: { field: name } }
-					case 'between_date':
-						return {
-							range: {
-								[name]: {
-									gte: getAbsoluteStartTime(value),
-									lte: getAbsoluteEndTime(value),
-								},
-							},
-						}
-					case 'between_time':
-						return {
-							range: {
-								[name]: {
-									gte:
-										Number(value?.split('_')[0]) *
-										60 *
-										1000,
-									...(Number(value?.split('_')[1]) ===
-									TIME_MAX_LENGTH
-										? null
-										: {
-												lte:
-													Number(
-														value?.split('_')[1],
-													) *
-													60 *
-													1000,
-										  }),
-								},
-							},
-						}
-					case 'between':
-						return {
-							range: {
-								[name]: {
-									gte: Number(value?.split('_')[0]),
-									...(Number(value?.split('_')[1]) ===
-									RANGE_MAX_LENGTH
-										? null
-										: {
-												lte: Number(
-													value?.split('_')[1],
-												),
-										  }),
-								},
-							},
-						}
-				}
-			} else {
-				const key = field.value
-				switch (op) {
-					case 'is':
-						return {
-							term: {
-								'fields.KeyValue': `${key}_${value}`,
-							},
-						}
-					case 'contains':
-						return {
-							wildcard: {
-								'fields.KeyValue': `${key}_*${value}*`,
-							},
-						}
-					case 'matches':
-						return {
-							regexp: {
-								'fields.KeyValue': `${key}_${value}`,
-							},
-						}
-					case 'exists':
-						return { term: { 'fields.Key': key } }
-				}
-			}
-		}
-
-		const NEGATION_MAP: { [K in Operator]: Operator } = {
-			is: 'is_not',
-			is_not: 'is',
-			is_editable: 'is_not',
-			contains: 'not_contains',
-			not_contains: 'contains',
-			exists: 'not_exists',
-			not_exists: 'exists',
-			between: 'not_between',
-			not_between: 'between',
-			between_time: 'not_between_time',
-			not_between_time: 'between_time',
-			between_date: 'not_between_date',
-			not_between_date: 'between_date',
-			matches: 'not_matches',
-			not_matches: 'matches',
-		}
-
-		const parseRuleImpl = (
-			field: SelectOption,
-			op: Operator,
-			multiValue: MultiselectOption,
-		): any => {
-			if (isNegative(op)) {
-				return {
-					bool: {
-						must_not: {
-							...parseRuleImpl(
-								field,
-								NEGATION_MAP[op],
-								multiValue,
-							),
-						},
-					},
-				}
-			} else if (hasArguments(op)) {
-				return {
-					bool: {
-						should: multiValue.options.map(({ value }) =>
-							parseInner(field, op, value),
-						),
-					},
-				}
-			} else {
-				return parseInner(field, op)
-			}
-		}
-
-		const parseRule = (rule: RuleProps): any => {
-			const field = rule.field!
-			const multiValue = rule.val!
-			const op = rule.op!
-
-			return parseRuleImpl(field, op, multiValue)
-		}
-
-		const condition = isAnd ? 'must' : 'should'
-		const filterErrors = rules.some(
-			(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
-		)
-		const timeRange =
-			rules.find(
-				(rule) =>
-					rule.field?.value === defaultTimeRangeRule.field!.value,
-			) ?? defaultTimeRangeRule
-
-		const timeRule = parseRule(timeRange)
-
-		const errorObjectRules = rules
-			.filter(
-				(r) =>
-					getType(r.field!.value) === ERROR_FIELD_TYPE &&
-					r !== timeRange,
-			)
-			.map(parseRule)
-
-		const standardRules = rules
-			.filter(
-				(r) =>
-					getType(r.field!.value) !== ERROR_FIELD_TYPE &&
-					r !== timeRange,
-			)
-			.map(parseRule)
-
-		const request: OpenSearchQuery = { query: {} }
-
-		if (filterErrors) {
-			const errorGroupFilter = {
-				bool: {
-					[condition]: standardRules,
-				},
-			}
-			const errorObjectFilter = {
-				bool: {
-					must: [
-						timeRule,
-						{
-							bool: {
-								[condition]: errorObjectRules,
-							},
-						},
-					],
-				},
-			}
-			request.query = {
-				bool: {
-					must: [
-						errorGroupFilter,
-						{
-							has_child: {
-								type: 'child',
-								query: errorObjectFilter,
-							},
-						},
-					],
-				},
-			}
-			request.childQuery = {
-				bool: {
-					must: [
-						{
-							has_parent: {
-								parent_type: 'parent',
-								query: errorGroupFilter,
-							},
-						},
-						errorObjectFilter,
-					],
-				},
-			}
-		} else {
-			request.query = {
-				bool: {
-					must: [
-						timeRule,
-						{
-							bool: {
-								[condition]: standardRules,
-							},
-						},
-					],
-				},
-			}
-		}
-		return request
-	}
-
-	const timeRange =
-		rules.find(
-			(rule) => rule.field?.value === defaultTimeRangeRule.field!.value,
-		) ?? defaultTimeRangeRule
-
-	const startDate = roundFeedDate(
-		getAbsoluteStartTime(timeRange.val?.options[0].value),
-	)
-	const endDate = roundFeedDate(
-		getAbsoluteEndTime(timeRange.val?.options[0].value),
-	)
-	const backendSearchQuery = parseGroup(isAnd, rules)
-	return {
-		searchQuery: JSON.stringify(backendSearchQuery.query),
-		childSearchQuery: backendSearchQuery.childQuery
-			? JSON.stringify(backendSearchQuery.childQuery)
-			: undefined,
-		startDate,
-		endDate,
-		histogramBucketSize: GetHistogramBucketSize(
-			moment.duration(endDate.diff(startDate)),
-		),
-	}
+const determineHistogramBucketSize = (startDate: Date, endDate: Date) => {
+	const duration = moment.duration(moment(endDate).diff(moment(startDate)))
+	return GetHistogramBucketSize(duration)
 }

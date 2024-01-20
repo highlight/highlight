@@ -1,38 +1,112 @@
 import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4'
 
-import SearchGrammarListener from '@/components/Search/Parser/SearchGrammarListener'
-import { Search_exprContext } from '@/components/Search/Parser/SearchGrammarParser'
+import SearchGrammarListener from '@/components/Search/Parser/antlr/SearchGrammarListener'
+import {
+	And_opContext,
+	Bin_opContext,
+	Body_search_exprContext,
+	Key_val_search_exprContext,
+	Or_opContext,
+	Search_keyContext,
+	Search_valueContext,
+} from '@/components/Search/Parser/antlr/SearchGrammarParser'
+import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 
-export type Expression = {
+export type SearchExpression = {
+	start: number
+	stop: number
+	text: string
+	key: string
+	operator: string
+	value: string
+	error?: {
+		message: string
+		start: number
+		symbol: Token
+	}
+}
+
+export type AndOrExpression = {
 	start: number
 	stop: number
 	text: string
 }
 
-export class SearchListener extends SearchGrammarListener {
-	constructor(public queryString: string, public expressions: Expression[]) {
-		super()
+const DEFAULT_EXPRESSION = {
+	key: BODY_KEY,
+	operator: '=',
+} as SearchExpression
 
-		this.queryString = queryString
-		this.expressions = expressions
+export class SearchListener extends SearchGrammarListener {
+	private currentExpression = { ...DEFAULT_EXPRESSION }
+
+	constructor(
+		private queryString: string,
+		private expressions: Array<SearchExpression | AndOrExpression>,
+	) {
+		super()
 	}
 
-	exitSearch_expr = (ctx: Search_exprContext) => {
-		if (!this.hasChildExpressions(ctx)) {
-			const start = ctx.start.start
-			const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
-			const text = this.queryString.substring(start, stop + 1)
-			const filter = { start, stop, text }
+	enterAnd_op = (ctx: And_opContext) => {
+		const start = ctx.start.start
+		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
+		const text = this.queryString.substring(start, stop + 1)
+		this.expressions.push({ start, stop, text })
+		this.currentExpression = { ...DEFAULT_EXPRESSION }
+	}
 
-			this.expressions.push(filter)
+	enterOr_op = (ctx: Or_opContext) => {
+		const start = ctx.start.start
+		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
+		const text = this.queryString.substring(start, stop + 1)
+		this.expressions.push({ start, stop, text })
+		this.currentExpression = { ...DEFAULT_EXPRESSION }
+	}
+
+	enterKey_val_search_expr = (ctx: Key_val_search_exprContext) => {
+		const start = ctx.start.start
+		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
+		const text = this.queryString.substring(start, stop + 1)
+		this.currentExpression = { start, stop, text } as SearchExpression
+	}
+
+	enterBody_search_expr = (ctx: Body_search_exprContext) => {
+		const start = ctx.start.start
+		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
+		const text = this.queryString.substring(start, stop + 1)
+		this.currentExpression = {
+			...DEFAULT_EXPRESSION,
+			start,
+			stop,
+			text,
 		}
 	}
 
-	hasChildExpressions(ctx: Search_exprContext) {
-		return (
-			ctx.children &&
-			ctx.children.some((child) => child instanceof Search_exprContext)
+	enterSearch_key = (ctx: Search_keyContext) => {
+		this.currentExpression.key = ctx.getText()
+	}
+
+	enterBin_op = (ctx: Bin_opContext) => {
+		this.currentExpression.operator = ctx.getText()
+	}
+
+	enterSearch_value = (ctx: Search_valueContext) => {
+		this.currentExpression.value = ctx.getText()
+	}
+
+	exitKey_val_search_expr = (_ctx: Key_val_search_exprContext) => {
+		this.currentExpression.value = this.currentExpression.text.substring(
+			this.currentExpression.key.length +
+				this.currentExpression.operator.length,
 		)
+		this.expressions.push(this.currentExpression)
+		this.currentExpression = { ...DEFAULT_EXPRESSION }
+	}
+
+	exitBody_search_expr = (_ctx: Body_search_exprContext) => {
+		this.currentExpression.value = this.currentExpression.text
+		this.expressions.push(this.currentExpression)
+		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}
 }
 
@@ -43,19 +117,17 @@ export type SearchError = {
 	e: RecognitionException | undefined
 }
 
+// Using an error listener rather than visitErrorNode because this seems to
+// catch more errors.
 export class SearchErrorListener extends ErrorListener<Token> {
-	public errors: SearchError[] = []
-
 	syntaxError(
-		_: Recognizer<Token>,
-		offendingSymbol: Token,
-		line: number,
-		column: number,
+		_recognizer: Recognizer<Token>,
+		symbol: Token & { errorMessage?: string },
+		_line: number,
+		_column: number,
 		msg: string,
-		e: RecognitionException | undefined,
+		_e: RecognitionException | undefined,
 	) {
-		// Assign error propreties to the offendingSymbol so we can access them in
-		// the listener.
-		;(offendingSymbol as any).error = { line, column, msg, e }
+		symbol.errorMessage = msg
 	}
 }

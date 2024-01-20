@@ -28,7 +28,9 @@ export const Buttons = () => {
 	const [showWebSocket, setShowWebSocket] = useState(false)
 	const [sendEmail, { loading }] = useSendEmailSignupMutation()
 	if (hasError) {
-		throw new Error('got an error')
+		throw new Error('this is a buttons error', {
+			cause: { location: window.location.toString(), foo: ['bar'] },
+		})
 	}
 	const [getWorkspaceAdmins] = useGetWorkspaceAdminsByProjectIdLazyQuery({
 		variables: { project_id: '1' },
@@ -256,7 +258,14 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
-							H.error('Highlight H.error')
+							H.consumeError(
+								new Error('Highlight H.consumeError', {
+									cause: {
+										location: window.location.toString(),
+										foo: 'bar',
+									},
+								}),
+							)
 						}}
 					>
 						H.error()

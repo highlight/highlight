@@ -2,13 +2,13 @@ package stacktraces
 
 import (
 	"context"
-	"encoding/json"
 	"regexp"
 	"strconv"
 	"strings"
 
 	publicModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 )
 

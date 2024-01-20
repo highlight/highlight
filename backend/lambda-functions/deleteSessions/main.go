@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -30,11 +31,20 @@ func main() {
 	hlog.Init()
 
 	h := handlers.NewHandlers()
+	start, _ := time.Parse(time.RFC3339, "2022-07-15T23:00:25.525Z")
+	end, _ := time.Parse(time.RFC3339, "2023-09-01T23:59:59.999Z")
 	input := utils.QuerySessionsInput{
-		ProjectId:    1,
-		Email:        "zane@highlight.io",
-		FirstName:    "Zane",
-		Query:        model.ClickhouseQuery{IsAnd: true, Rules: [][]string{{"custom_processed", "is", "true"}, {"custom_created_at", "between_date", "2022-07-15T23:00:25.525Z_2023-09-01T23:59:59.999Z"}}},
+		ProjectId: 1,
+		Email:     "zane@highlight.io",
+		FirstName: "Zane",
+		Query: model.ClickhouseQuery{
+			IsAnd: true,
+			Rules: [][]string{{"custom_processed", "is", "true"}},
+			DateRange: &model.DateRangeRequiredInput{
+				StartDate: start,
+				EndDate:   end,
+			},
+		},
 		SessionCount: 256,
 		DryRun:       true,
 	}
