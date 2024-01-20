@@ -1,15 +1,8 @@
 import express from 'express'
 import { H, Handlers } from '@highlight-run/node'
 import { CONSTANTS } from './constants'
+import { config } from './instrumentation'
 
-/** @type {import('@highlight-run/node').NodeOptions} */
-const config = {
-	projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID ?? '1',
-	debug: true,
-	serviceName: 'e2e-express',
-	serviceVersion: 'git-sha',
-	otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
-}
 H.init(config)
 
 const app = express()
