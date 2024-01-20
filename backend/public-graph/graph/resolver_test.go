@@ -93,6 +93,7 @@ func TestMain(m *testing.M) {
 		DB:               db,
 		Redis:            redisClient,
 		Clickhouse:       chClient,
+		StorageClient:    &storage.FilesystemClient{},
 		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
