@@ -257,7 +257,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 		header: 'Tracing for modern web applications.',
 		subheader:
 			'Search for and query the traces across your full-stack web app. Get started in seconds.',
-		docsLink: '/docs/general/product-features/logging/overview',
+		docsLink: '/docs/general/product-features/tracing/overview',
 		slantedImage: tracesHeroKey,
 		regularImage: tracesscreenshotKey,
 		header2Selection: 3,
@@ -268,7 +268,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Dig deep into nested code execution.',
 				subheader:
 					'Scrutinize every layer of your codebase and identify bottlenecks, inefficiencies, and areas of optimization.',
-				link: '/docs/getting-started/overview',
+				link: '/docs/general/product-features/tracing/overview',
 				linkText: 'Read the Docs',
 				imgSrc: tracing1,
 				invert: true,
@@ -277,7 +277,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Powerful search. Powered by ClickHouse.',
 				subheader:
 					'Perform fine-grained searches across all of your traces. Powered by ClickHouse, an industry leading time-series database.',
-				link: '/docs/getting-started/overview',
+				link: '/docs/general/product-features/tracing/trace-search',
 				linkText: 'Read the Docs',
 				imgSrc: tracing2,
 				invert: false,
