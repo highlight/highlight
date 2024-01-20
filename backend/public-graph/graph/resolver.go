@@ -2792,6 +2792,20 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			errorToInsert.MappedStackTrace = mappedStackTrace
 
+			// use github enhancement for frontend errors
+			stack := errorToInsert.MappedStackTrace
+			if stack == nil {
+				stack = errorToInsert.StackTrace
+			}
+
+			enhancedStackTrace, enhancedStructuredStackTrace, err := r.Store.EnhancedStackTrace(ctx, *stack, workspace, project, errorToInsert, nil)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("stacktrace", v.StackTrace).Errorf("Failed to generate frontend structured stacktrace %v", v.StackTrace)
+			} else if enhancedStackTrace != nil {
+				errorToInsert.MappedStackTrace = enhancedStackTrace
+				structuredStackTrace = enhancedStructuredStackTrace
+			}
+
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
 
 			if err != nil {
