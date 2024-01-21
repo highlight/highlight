@@ -11,7 +11,7 @@ import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import { Typography } from '../components/common/Typography/Typography'
 import { CustomerReel } from '../components/Home/CompaniesReel/CustomerReel'
-import swag from '../public/images/highlightswag.svg'
+import swag from '../public/images/highlightswag.webp'
 import meta from '../public/images/startupherometa.png'
 import hero from '../public/images/startupshero.svg'
 
