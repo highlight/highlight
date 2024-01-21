@@ -19,8 +19,12 @@ function handleError(
 	} catch (e) {
 		res = ErrorStackParser.parse(new Error())
 	}
+	let payload: Object = {}
 	if (event instanceof Error) {
 		event = event.message
+		if (event.cause) {
+			payload = { 'exception.cause': event.cause }
+		}
 	}
 	const framesToUse = removeHighlightFrameIfExists(res)
 	callback({
@@ -34,6 +38,7 @@ function handleError(
 			: 0,
 		stackTrace: framesToUse,
 		timestamp: new Date().toISOString(),
+		payload: payload ? stringify(payload) : undefined,
 	})
 }
 
@@ -69,7 +74,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 	})
 
 	const initialPromise = window.Promise
-	window.Promise = class Promise<T> extends initialPromise<T> {
+	const highlightPromise = class Promise<T> extends initialPromise<T> {
 		private readonly promiseCreationError: Error
 		constructor(
 			executor: (
@@ -83,6 +88,13 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		getStack() {
 			return this.promiseCreationError
 		}
+		static shouldPatch() {
+			// @ts-ignore
+			return typeof window.Zone === 'undefined'
+		}
+	}
+	if (highlightPromise.shouldPatch()) {
+		window.Promise = highlightPromise
 	}
 
 	return () => {

@@ -37,7 +37,6 @@ import {
 	IconSolidCheveronRight,
 	IconSolidPencil,
 	presetStartDate,
-	presetValue,
 	Stack,
 	Tag,
 	Text,
@@ -48,13 +47,11 @@ import { useProjectId } from '@hooks/useProjectId'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorQueryBuilder, {
 	CUSTOM_FIELDS as ERROR_CUSTOM_FIELDS,
-	TIME_RANGE_FIELD as ERROR_TIME_RANGE_FIELD,
 } from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
 import SessionQueryBuilder, {
 	CUSTOM_FIELDS,
-	TIME_RANGE_FIELD,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
@@ -178,7 +175,6 @@ export const ProjectProductFilters: React.FC<{
 		`{"isAnd":true,"rules":[]}`,
 		'highlightSegmentPickerForProjectFilterSessionsSelectedSegmentId',
 		CUSTOM_FIELDS,
-		TIME_RANGE_FIELD,
 	)
 	const { searchQuery, setSearchQuery } = sessionSearchContext
 	const errorSearchContext = useGetBaseSearchContext(
@@ -186,7 +182,6 @@ export const ProjectProductFilters: React.FC<{
 		`{"isAnd":true,"rules":[]}`,
 		'highlightSegmentPickerForProjectFilterErrorsSelectedSegmentId',
 		ERROR_CUSTOM_FIELDS,
-		ERROR_TIME_RANGE_FIELD,
 	)
 	const [searchResultSecureIds, setSearchResultSecureIds] = useState<
 		string[]
@@ -484,7 +479,6 @@ export const ProjectProductFilters: React.FC<{
 									minDate={moment()
 										.subtract(30, 'days')
 										.toDate()}
-									datePickerValue={{}}
 									timeMode="fixed-range"
 									fetchKeysLazyQuery={
 										product === ProductType.Logs
@@ -581,21 +575,15 @@ export const ProjectProductFilters: React.FC<{
 					</Text>
 					<DateRangePicker
 						selectedValue={{
+							startDate: dateRange.start,
+							endDate: dateRange.end,
 							selectedPreset: selectedPreset,
 						}}
-						onDatesChange={(_s, _e, preset) => {
-							const foundPreset =
-								DATE_RANGE_PRESETS.find(
-									(p) =>
-										presetValue(preset!) === presetValue(p),
-								) || DEFAULT_PRESET
-
-							setSelectedPreset(foundPreset)
-							const presetStart = presetStartDate(foundPreset)
-							const presetEnd = moment().toDate()
+						onDatesChange={(start, end, preset) => {
+							setSelectedPreset(preset!)
 							setDateRange({
-								start: presetStart,
-								end: presetEnd,
+								start: start,
+								end: end,
 							})
 						}}
 						presets={DATE_RANGE_PRESETS}

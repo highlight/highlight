@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -20,8 +19,10 @@ import (
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/highlight-run/highlight/backend/integrations/gitlab"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/sashabaranov/go-openai"
+	"github.com/segmentio/encoding/json"
 
 	"gorm.io/gorm/clause"
 
@@ -45,6 +46,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"gorm.io/gorm"
+
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/openlyinc/pointy"
@@ -57,7 +60,6 @@ import (
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/client"
 	"github.com/stripe/stripe-go/v76/webhook"
-	"gorm.io/gorm"
 
 	"github.com/highlight-run/workerpool"
 
@@ -1810,6 +1812,10 @@ func (r *Resolver) AddJiraToWorkspace(ctx context.Context, workspace *model.Work
 	return nil
 }
 
+func (r *Resolver) AddGitlabToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeGitLab, code)
+}
+
 func (r *Resolver) AddHeightToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	return r.IntegrationsClient.GetAndSetWorkspaceToken(ctx, workspace, modelInputs.IntegrationTypeHeight, code)
 }
@@ -1983,6 +1989,23 @@ func (r *Resolver) RemoveJiraFromWorkspace(workspace *model.Workspace) error {
 	}
 
 	if err := r.DB.WithContext(context.TODO()).Where(&workspace).Select("jira_domain", "jira_cloud_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveGitlabFromWorkspace(workspace *model.Workspace) error {
+	ctx := context.TODO()
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
+	if err == nil {
+		err := gitlab.RevokeGitlabAccessToken(*accessToken)
+		if err != nil {
+			log.WithContext(ctx).Error(errors.Wrap(err, "error revoking gitlab access token"))
+		}
+	}
+
+	if err := r.RemoveIntegrationFromWorkspaceAndProjects(ctx, workspace, modelInputs.IntegrationTypeGitLab); err != nil {
 		return err
 	}
 
@@ -2507,6 +2530,43 @@ func (r *Resolver) CreateJiraTaskAndAttachment(
 
 	attachment.ExternalID = jira.MakeExternalIdForJiraTask(workspace, task)
 	attachment.Title = issueTitle
+	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
+		return e.Wrap(err, "error creating external attachment")
+	}
+	return nil
+}
+
+func (r *Resolver) CreateGitlabTaskAndAttachment(
+	ctx context.Context,
+	workspace *model.Workspace,
+	attachment *model.ExternalAttachment,
+	issueTitle string,
+	issueDescription string,
+	projectId string,
+) error {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
+
+	if err != nil {
+		return err
+	}
+
+	if accessToken == nil {
+		return errors.New("No GitLab integration access token found.")
+	}
+
+	jiraIssuePayload := gitlab.NewGitlabIssuePayload{
+		Description: issueDescription,
+		Title:       issueTitle,
+	}
+
+	task, err := gitlab.CreateGitlabTask(*accessToken, projectId, jiraIssuePayload)
+
+	if err != nil {
+		return err
+	}
+
+	attachment.ExternalID = task.WebURL
+	attachment.Title = task.Title
 	if err := r.DB.WithContext(ctx).Create(attachment).Error; err != nil {
 		return e.Wrap(err, "error creating external attachment")
 	}
@@ -3325,4 +3385,20 @@ func (r *Resolver) GetJiraProjects(
 	}
 
 	return jira.GetJiraProjects(workspace, *accessToken)
+}
+
+func (r *Resolver) GetGitlabProjects(
+	ctx context.Context,
+	workspace *model.Workspace,
+) ([]*modelInputs.GitlabProject, error) {
+	accessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, modelInputs.IntegrationTypeGitLab)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == nil {
+		return nil, nil
+	}
+
+	return gitlab.GetGitlabProjects(workspace, *accessToken)
 }

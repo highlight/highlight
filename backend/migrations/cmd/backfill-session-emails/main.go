@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"os"
+
+	"github.com/segmentio/encoding/json"
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 const batchSize = 100

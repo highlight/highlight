@@ -23,6 +23,7 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 			title: 'Customers',
 			icon: <Icons.HiUsers className={styles.copyOnLight} />,
 			link: '/customers',
+			sameTab: true,
 		},
 		{
 			title: 'Changelog',

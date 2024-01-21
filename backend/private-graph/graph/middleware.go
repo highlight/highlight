@@ -3,7 +3,6 @@ package graph
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,11 +12,13 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"github.com/segmentio/encoding/json"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
+
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-oauth2/oauth2/v4"

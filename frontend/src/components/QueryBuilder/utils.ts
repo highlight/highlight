@@ -1,16 +1,13 @@
 import { deserializeRules } from '@/components/QueryBuilder/QueryBuilder'
-import { SearchOption } from '@/components/Select/SearchSelect/SearchSelect'
 
 export type SearchObject = {
 	isAnd: boolean
 	rules: string[][]
+	startDate: Date
+	endDate: Date
 }
 
-export const searchesAreEqual = (
-	search: string,
-	newSearch: string,
-	timeRangeField: SearchOption,
-) => {
+export const searchesAreEqual = (search: string, newSearch: string) => {
 	const { rules } = searchObjectFromString(search)
 	const { rules: newRules } = searchObjectFromString(newSearch)
 
@@ -19,10 +16,6 @@ export const searchesAreEqual = (
 	}
 
 	return rules.every((rule) => {
-		if (rule.field?.value === timeRangeField.value) {
-			return true
-		}
-
 		const newRule = newRules.find(
 			(r) => r.field?.value === rule.field?.value,
 		)
@@ -36,5 +29,7 @@ export const searchObjectFromString = (search: string) => {
 	return {
 		isAnd: searchJSON.isAnd,
 		rules: deserializeRules(searchJSON.rules),
+		startDate: searchJSON.startDate,
+		endDate: searchJSON.endDate,
 	}
 }

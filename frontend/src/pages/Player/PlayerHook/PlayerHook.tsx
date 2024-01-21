@@ -27,6 +27,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 	THROTTLED_UPDATE_MS,
+	truncate,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
 import analytics from '@util/analytics'
@@ -281,15 +282,17 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const getLastLoadedEventTimestamp = useCallback(() => {
 		const lastLoadedChunk = Math.max(
-			...[...chunkEventsRef.current.entries()]
+			...[...truncate(chunkEventsRef.current.entries())]
 				.filter(([, v]) => !!v.length)
 				.map(([k]) => k),
 		)
 		return (
 			Math.max(
-				...(chunkEventsRef.current
-					.get(lastLoadedChunk)
-					?.map((e) => e.timestamp) || []),
+				...truncate(
+					chunkEventsRef.current
+						.get(lastLoadedChunk)
+						?.map((e) => e.timestamp) || [],
+				),
 			) - state.sessionMetadata.startTime
 		)
 	}, [chunkEventsRef, state.sessionMetadata.startTime])
@@ -752,7 +755,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						const newEvents = sd!.session_payload_appended.events!
 						if (newEvents.length) {
 							const events = [
-								...(chunkEventsRef.current.get(0) || []),
+								...getEvents(chunkEventsRef.current),
 								...toHighlightEvents(newEvents),
 							]
 							chunkEventsSet(0, events)

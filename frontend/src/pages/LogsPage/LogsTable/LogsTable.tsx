@@ -29,7 +29,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import React, { Key, useEffect, useRef, useState } from 'react'
 
-import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
+import { parseSearch } from '@/components/Search/utils'
 import { LogEdge } from '@/graph/generated/schemas'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
@@ -131,7 +131,7 @@ const LogsTableInner = ({
 	const enableFetchMoreLogs =
 		!!moreLogs && !!clearMoreLogs && !!handleAdditionalLogsDateChange
 
-	const queryTerms = parseSearchQuery(query)
+	const { queryParts } = parseSearch(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columnHelper = createColumnHelper<LogEdge>()
@@ -169,7 +169,7 @@ const LogsTableInner = ({
 				const log = row.original.node
 				const rowExpanded = row.getIsExpanded()
 				const matchedAttributes = findMatchingLogAttributes(
-					queryTerms,
+					queryParts,
 					{
 						...log.logAttributes,
 						environment: log.environment,
@@ -187,7 +187,7 @@ const LogsTableInner = ({
 				return (
 					<Stack gap="2" pt="2">
 						<LogMessage
-							queryTerms={queryTerms}
+							queryParts={queryParts}
 							message={getValue()}
 							expanded={rowExpanded}
 						/>
@@ -203,7 +203,7 @@ const LogsTableInner = ({
 													value={value}
 													queryKey={key}
 													queryMatch={match}
-													queryTerms={queryTerms}
+													queryParts={queryParts}
 												/>
 											)
 										},
@@ -213,7 +213,7 @@ const LogsTableInner = ({
 						<LogDetails
 							matchedAttributes={matchedAttributes}
 							row={row}
-							queryTerms={queryTerms}
+							queryParts={queryParts}
 						/>
 					</Stack>
 				)

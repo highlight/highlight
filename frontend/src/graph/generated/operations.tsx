@@ -2344,7 +2344,6 @@ export type GetSessionsReportQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionsReportRow' } & Pick<
 			Types.SessionsReportRow,
 			| 'key'
-			| 'user_properties'
 			| 'num_sessions'
 			| 'num_days_visited'
 			| 'num_months_visited'
@@ -3804,6 +3803,23 @@ export type GetGitHubIntegrationSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetGitlabIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetGitlabIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	gitlab_projects?: Types.Maybe<
+		Array<
+			{ __typename?: 'GitlabProject' } & Pick<
+				Types.GitlabProject,
+				'name' | 'id' | 'nameWithNameSpace'
+			>
+		>
+	>
+}
+
 export type GetGitHubIssueLabelsQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	repository: Types.Scalars['String']
@@ -4976,6 +4992,7 @@ export const namedOperations = {
 		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
 		GetHeightIntegrationSettings: 'GetHeightIntegrationSettings' as const,
 		GetGitHubIntegrationSettings: 'GetGitHubIntegrationSettings' as const,
+		GetGitlabIntegrationSettings: 'GetGitlabIntegrationSettings' as const,
 		GetGitHubIssueLabels: 'GetGitHubIssueLabels' as const,
 		GetProjectIntegratedWith: 'GetProjectIntegratedWith' as const,
 		GetClickUpFolders: 'GetClickUpFolders' as const,

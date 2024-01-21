@@ -1,3 +1,5 @@
+import { decompressPushPayload } from './util'
+
 describe('client recording spec', () => {
 	it('fetch requests are recorded', () => {
 		let events = []
@@ -12,10 +14,11 @@ describe('client recording spec', () => {
 		cy.visit('/')
 		cy.window().then((win) => {
 			// delay can be long because the client test might run first, and waiting for vite to have the dev bundle ready can take a while.
-			cy.wait('@PushPayload', { timeout: 90 * 1000 })
+			cy.wait('@PushPayloadCompressed', { timeout: 90 * 1000 })
 				.its('request.body.variables')
-				.should('have.property', 'resources')
-				.then((resources) => {
+				.should('have.property', 'data')
+				.then((data) => {
+					const { resources } = decompressPushPayload(data)
 					const parsedResources = JSON.parse(resources).resources
 					const firstResourceKeys = Object.keys(
 						parsedResources[0],
@@ -45,25 +48,31 @@ describe('client recording spec', () => {
 					win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
 				})
 
-			cy.wait('@PushPayload')
+			cy.wait('@PushPayloadCompressed')
 				.its('request.body.variables')
-				.then(({ resources, events }) => {
+				.then(({ data }) => {
+					const { resources, events } = decompressPushPayload(data)
 					if (!resources) {
 						throw new Error('no resources')
 					}
 					if (!events) {
 						throw new Error('no events')
 					}
-				})
-
-			cy.wait('@PushPayload')
-				.its('request.body.variables')
-				.should('have.property', 'events')
-				.then(() => {
-					const customEvent = events.find((e) => e.type === 5)
+					const customEvent = events.events.find((e) => e.type === 5)
 					if (!customEvent) {
 						throw new Error(
 							'no customEvent: ' + JSON.stringify(events),
+						)
+					}
+					const payload = JSON.parse(customEvent.data.payload)
+					if (
+						customEvent.data.tag !== 'Track' ||
+						payload.foo !== 'bar' ||
+						payload.event !== 'MyTrackEvent'
+					) {
+						throw new Error(
+							'invalid customEvent: ' +
+								JSON.stringify(customEvent),
 						)
 					}
 				})

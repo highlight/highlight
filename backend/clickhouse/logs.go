@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
@@ -35,13 +36,13 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 }
 
-var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
-	tableName:        LogsTable,
-	keysToColumns:    logKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedLogKey,
-	bodyColumn:       "Body",
-	attributesColumn: "LogAttributes",
-	selectColumns: []string{
+var logsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+	TableName:        LogsTable,
+	KeysToColumns:    logKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedLogKey,
+	BodyColumn:       "Body",
+	AttributesColumn: "LogAttributes",
+	SelectColumns: []string{
 		"Timestamp",
 		"UUID",
 		"SeverityText",
@@ -57,12 +58,12 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	},
 }
 
-var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
-	tableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
-	keysToColumns:    logKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedLogKey,
-	bodyColumn:       "Body",
-	attributesColumn: "LogAttributes",
+var logsSamplingTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+	TableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
+	KeysToColumns:    logKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedLogKey,
+	BodyColumn:       "Body",
+	AttributesColumn: "LogAttributes",
 }
 
 var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{

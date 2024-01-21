@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -16,6 +15,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
+	"github.com/segmentio/encoding/json"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"
@@ -1708,7 +1708,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		// in case this partition was already attached by a previous failed migration, this will fail.
 		// ignore errors
 		DB.Exec(fmt.Sprintf(`
-			ALTER TABLE error_object_embeddings_partitioned 
+			ALTER TABLE error_object_embeddings_partitioned
 			ATTACH PARTITION error_object_embeddings_partitioned_%d
 			FOR VALUES IN ('%d');
 		`, i, i))
@@ -2445,4 +2445,14 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 	}
 
 	return nil
+}
+
+type TableConfig[TReservedKey ~string] struct {
+	TableName        string
+	BodyColumn       string
+	AttributesColumn string
+	KeysToColumns    map[TReservedKey]string
+	ReservedKeys     []TReservedKey
+	SelectColumns    []string
+	DefaultFilters   map[string]string
 }

@@ -662,7 +662,6 @@ query GetSessionsHistogramClickhouse(
 query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
 	sessions_report(project_id: $project_id, query: $query) {
 		key
-		user_properties
 		num_sessions
 		num_days_visited
 		num_months_visited
@@ -1635,6 +1634,18 @@ query GetGitHubIntegrationSettings($workspace_id: ID!) {
 		repo_id
 		name
 		key
+	}
+}
+
+query GetGitlabIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: GitLab
+		workspace_id: $workspace_id
+	)
+	gitlab_projects(workspace_id: $workspace_id) {
+		name
+		id
+		nameWithNameSpace
 	}
 }
 

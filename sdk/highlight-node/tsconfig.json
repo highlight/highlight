@@ -5,9 +5,9 @@
 		"declarationDir": "dist",
 		"declarationMap": true,
 		"forceConsistentCasingInFileNames": true,
-		"lib": ["ES6"],
-		"module": "ES6",
-		"target": "ES6",
+		"lib": ["ESNext"],
+		"module": "ESNext",
+		"target": "ESNext",
 		"moduleResolution": "Node",
 		"skipLibCheck": true,
 		"strict": true

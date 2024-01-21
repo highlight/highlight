@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -13,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
@@ -220,7 +220,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	return g.Wait()
 }
 
-func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
+func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
 		return "", nil, false, err
@@ -234,34 +234,14 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 	}
 	useRandomSample := sampleRuleFound && groupBy == nil
 
-	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
-		return r.Field == timeRangeField
-	})
-	if !found {
-		end := time.Now().UTC()
-		start := end.AddDate(0, 0, -30)
-		timeRangeRule = Rule{
-			Field: timeRangeField,
-			Op:    BetweenDate,
-			Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
-		}
-		rules = append(rules, timeRangeRule)
+	end := query.DateRange.EndDate.UTC()
+	start := query.DateRange.StartDate.UTC()
+	timeRangeRule := Rule{
+		Field: timeRangeField,
+		Op:    BetweenDate,
+		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
 	}
-	if len(timeRangeRule.Val) != 1 {
-		return "", nil, false, fmt.Errorf("unexpected length of time range value: %s", timeRangeRule.Val)
-	}
-	start, end, found := strings.Cut(timeRangeRule.Val[0], "_")
-	if !found {
-		return "", nil, false, fmt.Errorf("separator not found for time range: %s", timeRangeRule.Val[0])
-	}
-	startTime, err := time.Parse(timeFormat, start)
-	if err != nil {
-		return "", nil, false, err
-	}
-	endTime, err := time.Parse(timeFormat, end)
-	if err != nil {
-		return "", nil, false, err
-	}
+	rules = append(rules, timeRangeRule)
 
 	if useRandomSample {
 		salt, err := strconv.ParseUint(sampleRule.Val[0], 16, 64)
@@ -283,7 +263,7 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
-	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
+	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, start, end, sb)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -320,7 +300,7 @@ func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, p
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, sampleRuleFound, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -358,7 +338,7 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Ad
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, _, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, _, err := GetSessionsQueryImpl(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -461,11 +441,11 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	return client.conn.Exec(ctx, sql, args...)
 }
 
-var sessionsTableConfig = tableConfig[string]{
-	tableName:        SessionsTable,
-	keysToColumns:    fieldMap,
-	attributesColumn: "Fields",
-	reservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
+var sessionsTableConfig = model.TableConfig[string]{
+	TableName:        SessionsTable,
+	KeysToColumns:    fieldMap,
+	AttributesColumn: "Fields",
+	ReservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
 		return item.String()
 	}),
 }
@@ -474,10 +454,10 @@ func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) b
 	return matchesQuery(session, sessionsTableConfig, filters)
 }
 
-var sessionsJoinedTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
-	tableName:        "sessions_joined_vw",
-	attributesColumn: "SessionAttributes",
-	reservedKeys:     modelInputs.AllReservedSessionKey,
+var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
+	TableName:        "sessions_joined_vw",
+	AttributesColumn: "SessionAttributes",
+	ReservedKeys:     modelInputs.AllReservedSessionKey,
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
@@ -522,4 +502,8 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 	}
 
 	return metrics, nil
+}
+
+func (client *Client) GetConn() driver.Conn {
+	return client.conn
 }

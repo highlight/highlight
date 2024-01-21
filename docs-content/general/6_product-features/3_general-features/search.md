@@ -1,0 +1,106 @@
+---
+title: Search
+slug: search
+createdAt: 2023-01-16T09:00:00.000Z
+updatedAt: 2023-01-16T09:00:00.000Z
+---
+
+## Basic Syntax
+
+A search query is composed of one or more **expressions**. Each expression can be a comparison between a **key** and a **value**, or a logical combination of other expressions.
+
+```
+span_name=gorm.Query
+```
+
+You can also enter a seach value without a key to search on a default key. For logs, this would be the `message` and on traces it would be the `span_name`.
+
+```
+gorm.Query
+```
+
+Any custom attributes you send in logs and traces can be filters on as well.
+
+```
+user_id=42
+```
+
+## Keys and Values
+
+Keys are identifiers, which can include any combination of alphanumeric characters, underscores (`_`), periods (`.`), dashes (`-`), and asterisks (`*`).
+
+Values can be strings with any character. In order to use spaces or special characters you must enclose the string in double quotes (`"`).
+
+### Wildcards
+
+You can use `*` in values to match on part of a pattern.
+
+* `span_name=gorm.*` matches all `span_name` values that start with `gorm.`
+* `span_name=*.Query` matches all `span_name` values that end with `.Query`
+* `span_name=*orm*` matches all values that contain `orm`
+
+## Comparisons
+
+Comparisons are made using **operators**. The following operators are supported:
+
+* `=` - Equal to
+* `!=` - Not equal to
+* `<` - Less than
+* `<=` - Less than or equal to
+* `>` - Greater than
+* `>=` - Greater than or equal to
+
+## Logical Combinations
+
+Expressions can be combined using the logical operators `AND`, `OR`, and `NOT`.
+
+* `AND` - Both expressions must be true
+* `OR` - At least one of the expressions must be true
+* `NOT` - The following expression must be false
+
+Note that there is an implicit `AND` between all filters unless you specify an `OR` directly. For example:
+
+```
+service_name=private-graph span_name=gorm.Query
+```
+
+This is equivalent to:
+
+```
+service_name=private-graph AND span_name=gorm.Query
+```
+
+## Grouping Expressions
+
+Expressions can be grouped using parentheses `(` and `)`. For example:
+
+```
+(key1=value1 AND key2=value2) OR key3=value3
+```
+
+You can also use parentheses to group values in an expression:
+
+```
+service_name=(private-graph OR public-graph)
+```
+
+## Query Examples
+
+Here are some examples of valid search queries:
+
+* `service_name=private-graph`
+* `service_name=public-graph AND span_name!=gorm.Query`
+* `service_name=worker OR span_name=gorm.Query`
+* `service_name!=private-graph`
+* `(service_name=public-graph AND span_name=gorm.Query) OR duration>=100000`
+
+## Search Segments
+
+All of our search pages allow you to save a search and reuse it later. We call these **segments**. Create segments for common sets of filters you want to use across Highlight.
+
+## More Reading
+
+See the links below for more details on searching in specific parts of the product.
+
+* [Logs Search](../../6_product-features/4_logging/log-search.md)
+* [Traces Search](../../6_product-features/5_tracing/trace-search.md)

@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -21,6 +20,7 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
+	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
@@ -106,7 +106,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecu
 }
 
 // PushPayload is the resolver for the pushPayload field.
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, payloadID *int, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
 	if payloadID == nil {
 		payloadID = pointy.Int(0)
 	}
@@ -212,6 +212,18 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 	}
 	err := r.ProducerQueue.Submit(ctx, sessionSecureID, msgs...)
 	return size.Of(events), err
+}
+
+// PushPayloadCompressed is the resolver for the pushPayloadCompressed field.
+func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (interface{}, error) {
+	return nil, r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
+		Type: kafkaqueue.PushCompressedPayload,
+		PushCompressedPayload: &kafkaqueue.PushCompressedPayloadArgs{
+			SessionSecureID: sessionSecureID,
+			PayloadID:       payloadID,
+			Data:            data,
+		},
+	})
 }
 
 // PushBackendPayload is the resolver for the pushBackendPayload field.

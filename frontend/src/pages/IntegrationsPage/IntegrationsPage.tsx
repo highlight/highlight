@@ -19,6 +19,7 @@ import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
+import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
@@ -63,6 +64,13 @@ const IntegrationsPage = () => {
 
 	const {
 		settings: {
+			isIntegrated: isGitlabIntegratedWithProject,
+			loading: loadingGitlab,
+		},
+	} = useGitlabIntegration()
+
+	const {
+		settings: {
 			isIntegrated: isGitHubIntegratedWithProject,
 			loading: loadingGitHub,
 		},
@@ -93,7 +101,8 @@ const IntegrationsPage = () => {
 		loadingClickUp ||
 		loadingHeight ||
 		loadingGitHub ||
-		loadingJira
+		loadingJira ||
+		loadingGitlab
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
@@ -132,7 +141,8 @@ const IntegrationsPage = () => {
 				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
 				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
 				(inter.key === 'height' && isHeightIntegratedWithProject) ||
-				(inter.key === 'jira' && isJiraIntegratedWithProject),
+				(inter.key === 'jira' && isJiraIntegratedWithProject) ||
+				(inter.key === 'gitlab' && isGitlabIntegratedWithProject),
 		}))
 	}, [
 		currentWorkspace?.id,
@@ -148,6 +158,7 @@ const IntegrationsPage = () => {
 		isClickUpIntegratedWithProject,
 		isHeightIntegratedWithProject,
 		isJiraIntegratedWithProject,
+		isGitlabIntegratedWithProject,
 	])
 
 	useEffect(() => analytics.page(), [])

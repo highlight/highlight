@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/gob"
-	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -19,11 +18,13 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/rs/cors"
 	"github.com/samber/lo"
+	"github.com/segmentio/encoding/json"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/andybalholm/brotli"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"

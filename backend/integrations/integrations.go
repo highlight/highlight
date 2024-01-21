@@ -6,6 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/highlight-run/highlight/backend/integrations/gitlab"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
 	"github.com/highlight-run/highlight/backend/model"
@@ -38,6 +39,10 @@ func getOAuthConfig(integrationType modelInputs.IntegrationType) (*oauth2.Config
 		return jira.GetOAuthConfig()
 	}
 
+	if integrationType == modelInputs.IntegrationTypeGitLab {
+		return gitlab.GetOAuthConfig()
+	}
+
 	return nil, nil, fmt.Errorf("invalid integrationType: %s", integrationType)
 }
 
@@ -48,6 +53,10 @@ func getRefreshOAuthToken(ctx context.Context, oldToken *oauth2.Token, integrati
 
 	if integrationType == modelInputs.IntegrationTypeJira {
 		return jira.GetRefreshToken(ctx, oldToken)
+	}
+
+	if integrationType == modelInputs.IntegrationTypeGitLab {
+		return gitlab.GetRefreshToken(ctx, oldToken)
 	}
 
 	return nil, fmt.Errorf("invalid integrationType: %s", integrationType)

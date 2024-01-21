@@ -1,6 +1,7 @@
 package pricing
 
 import (
+	"fmt"
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
@@ -47,13 +48,15 @@ func TestGetLimitAmount(t *testing.T) {
 		},
 	}
 	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			limitCostCents := int(1234.56 * 100)
-			count := GetLimitAmount(&limitCostCents, tc.productType, tc.planType, tc.retentionPeriod)
-			rateCents := ProductToBasePriceCents(tc.productType, tc.planType, *count) * RetentionMultiplier(tc.retentionPeriod)
-			rateCostCents := math.Round(float64(*count) * rateCents)
-			// some error expected due to rounding error
-			assert.Less(t, int(math.Abs(float64(int(rateCostCents)-limitCostCents))), 5, "limit count vs base price count should be within 5 cents")
-		})
+		for _, limitCostCents := range []int{int(1.23 * 100), int(1234.56 * 100)} {
+			t.Run(fmt.Sprintf("%s-%d", name, limitCostCents), func(t *testing.T) {
+				included := IncludedAmount(tc.planType, tc.productType)
+				count := GetLimitAmount(&limitCostCents, tc.productType, tc.planType, tc.retentionPeriod)
+				rateCents := ProductToBasePriceCents(tc.productType, tc.planType, *count) * RetentionMultiplier(tc.retentionPeriod)
+				rateCostCents := math.Round(float64(*count-included) * rateCents)
+				// some error expected due to rounding error
+				assert.Less(t, int(math.Abs(float64(int(rateCostCents)-limitCostCents))), 5, "limit count vs base price count should be within 5 cents")
+			})
+		}
 	}
 }

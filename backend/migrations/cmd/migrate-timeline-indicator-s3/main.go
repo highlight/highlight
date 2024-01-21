@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/segmentio/encoding/json"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/samber/lo"
-	"golang.org/x/sync/errgroup"
 
 	log "github.com/sirupsen/logrus"
 
