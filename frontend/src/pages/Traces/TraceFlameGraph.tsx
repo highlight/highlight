@@ -21,7 +21,10 @@ import {
 
 import LoadingBox from '@/components/LoadingBox'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
-import { TraceFlameGraphNode } from '@/pages/Traces/TraceFlameGraphNode'
+import {
+	getSpanTheme,
+	TraceFlameGraphNode,
+} from '@/pages/Traces/TraceFlameGraphNode'
 import { useTrace } from '@/pages/Traces/TraceProvider'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import {
@@ -41,7 +44,7 @@ const MAX_TICKS = 20
 const MAX_ZOOM = 1000
 export const ticksHeight = 24
 export const outsidePadding = 4
-export const lineHeight = 18
+export const lineHeight = 20
 const timeUnits = [
 	{ unit: 'h', divider: 1e9 * 60 * 60 },
 	{ unit: 'm', divider: 1e9 * 60 },
@@ -54,9 +57,11 @@ export const TraceFlameGraph: React.FC = () => {
 	const zoomBar = useRef<HTMLDivElement>(null)
 	const { hoveredSpan, loading, totalDuration, traces } = useTrace()
 	const svgContainerRef = useRef<HTMLDivElement>(null)
+	const tooltipRef = useRef<HTMLDivElement>(null)
 	const [zoom, setZoom] = useState(1)
 	const [x, setX] = useState(0)
 	const [width, setWidth] = useState<number | undefined>(undefined)
+	const hoveredSpanTheme = getSpanTheme(hoveredSpan)
 	const [tooltipCoordinates, setTooltipCoordinates] = useState({
 		x: 0,
 		y: 0,
@@ -104,9 +109,8 @@ export const TraceFlameGraph: React.FC = () => {
 	}, [totalDuration, zoom, width, x])
 
 	const setTooltipCoordinatesImpl = useCallback((e: React.MouseEvent) => {
-		const elementBounds = e.currentTarget.getBoundingClientRect()
-		const y = elementBounds.top - 60
-		const x = e.clientX
+		const y = window.innerHeight - e.clientY
+		const x = window.innerWidth - e.clientX
 
 		setTooltipCoordinates({ x, y })
 	}, [])
@@ -386,33 +390,60 @@ export const TraceFlameGraph: React.FC = () => {
 
 				{hoveredSpan && (
 					<Box
+						ref={tooltipRef}
 						position="fixed"
 						display="flex"
 						flexDirection="column"
-						gap="6"
+						gap="8"
 						style={{
-							left: tooltipCoordinates.x - 10,
-							top: tooltipCoordinates.y + 5,
-							backgroundColor: '#fff',
-							padding: '4px 8px',
-							borderRadius: '4px',
+							right: tooltipCoordinates.x,
+							bottom: tooltipCoordinates.y + 8,
+							width: 224,
 							zIndex: 1000,
 						}}
 						shadow="small"
+						backgroundColor="white"
 						border="dividerWeak"
+						borderRadius="6"
+						px="8"
+						py="10"
 					>
-						<Text weight="bold" lines="1">
+						<Text
+							lines="1"
+							size="small"
+							weight="medium"
+							color="default"
+						>
 							{hoveredSpan.spanName}
 						</Text>
-						<Text lines="1">
-							Duration:{' '}
-							{getTraceDurationString(hoveredSpan.duration)}
-						</Text>
-						<Text lines="1">
-							Start:{' '}
-							{getTraceDurationString(hoveredSpan.startTime) ||
-								'0ms'}
-						</Text>
+						<Stack gap="4" direction="row">
+							<Box
+								borderRadius="4"
+								p="4"
+								style={{
+									backgroundColor:
+										hoveredSpanTheme.background,
+									border: `1px solid ${hoveredSpanTheme.background}`,
+									color: hoveredSpanTheme.color,
+								}}
+							>
+								<Text weight="medium">
+									{hoveredSpan.serviceName}
+								</Text>
+							</Box>
+							<Box
+								backgroundColor="white"
+								borderRadius="4"
+								border="dividerWeak"
+								p="4"
+							>
+								<Text color="default" weight="medium">
+									{getTraceDurationString(
+										hoveredSpan.duration,
+									)}
+								</Text>
+							</Box>
+						</Stack>
 					</Box>
 				)}
 			</Box>
