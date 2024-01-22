@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS trace_secure_session_id_mv;
