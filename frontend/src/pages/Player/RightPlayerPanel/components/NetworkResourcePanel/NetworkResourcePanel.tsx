@@ -19,6 +19,7 @@ import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import { camelCase } from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
@@ -155,6 +156,7 @@ function NetworkResourceDetails({
 		setTime,
 		session,
 	} = useReplayerContext()
+	const sessionSecureId = session?.secure_id
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
 
@@ -254,6 +256,14 @@ function NetworkResourceDetails({
 		setActiveTab(NetworkRequestTabs.Info)
 		initialized.current = false
 	}, [resource.id])
+
+	useEffect(() => {
+		analytics.page(
+			`/sessions/${sessionSecureId}/network-resource/${
+				resource.id
+			}/${camelCase(activeTab)}`,
+		)
+	}, [activeTab, resource.id, sessionSecureId])
 
 	return (
 		<>

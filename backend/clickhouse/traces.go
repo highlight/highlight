@@ -290,12 +290,19 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 		return nil, err
 	}
 
+	var seenUUIDs = map[string]struct{}{}
 	var traces []*modelInputs.Trace
 	for rows.Next() {
 		var result ClickhouseTraceRow
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
 		}
+
+		// Skip already-seen UUIDs to remove duplicate traces
+		if _, ok := seenUUIDs[result.UUID]; ok {
+			continue
+		}
+		seenUUIDs[result.UUID] = struct{}{}
 
 		traces = append(traces, &modelInputs.Trace{
 			Timestamp:       result.Timestamp,
