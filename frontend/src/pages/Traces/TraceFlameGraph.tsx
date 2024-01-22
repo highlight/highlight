@@ -146,7 +146,10 @@ export const TraceFlameGraph: React.FC = () => {
 		},
 		[updateZoom, zoom],
 	)
-	const throttledZoom = useRef(throttle(handleZoom, 50))
+	const throttledHandleZoom = useMemo(
+		() => throttle(handleZoom, 50),
+		[handleZoom],
+	)
 
 	const handleScroll = useCallback(
 		(currentTarget: BaseSyntheticEvent['currentTarget']) => {
@@ -184,7 +187,7 @@ export const TraceFlameGraph: React.FC = () => {
 				event.preventDefault()
 				event.stopPropagation()
 
-				throttledZoom.current(deltaY)
+				throttledHandleZoom(deltaY)
 			}
 		},
 		{ passive: false },
