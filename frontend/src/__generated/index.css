@@ -6996,6 +6996,9 @@ body {
 .riaubmc {
   font-weight: 500;
 }
+.essfm40::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
 ._3y9dcy0 {
   background: #fdfcfd;
   width: 100%;
@@ -7026,9 +7029,6 @@ body {
   width: 100%;
   height: 24px;
   align-items: center;
-}
-.essfm40::-webkit-scrollbar-corner {
-  background-color: transparent;
 }
 ._1h7r9xv0 {
   height: 100%;
