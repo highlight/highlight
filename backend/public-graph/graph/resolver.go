@@ -359,8 +359,7 @@ func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.Error
 	return session.AppVersion
 }
 
-func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
-	version := r.GetErrorAppVersion(ctx, errorObj)
+func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject, version *string) (*string, []*privateModel.ErrorTrace, error) {
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
 	if err != nil {
@@ -2213,14 +2212,30 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
-		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
-		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
+		var stackFrameInput []*publicModel.StackFrameInput
 
+		if err := json.Unmarshal([]byte(v.StackTrace), &stackFrameInput); err == nil {
+			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version)))
+			if err != nil {
+				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
+			} else if mapped != nil {
+				errorToInsert.MappedStackTrace = mapped
+				structuredStackTrace = structured
+			}
+		}
+
+		stack := errorToInsert.MappedStackTrace
+		if stack == nil {
+			stack = &v.StackTrace
+		}
+
+		mapped, structured, err := r.Store.EnhancedStackTrace(ctx, *stack, workspace, &project, errorToInsert, nil)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
-		} else if mappedStackTrace != nil {
-			errorToInsert.MappedStackTrace = mappedStackTrace
+			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", *stack)
+		} else if mapped != nil {
+			errorToInsert.MappedStackTrace = mapped
+			structuredStackTrace = structured
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
@@ -2768,14 +2783,28 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ServiceName:    sessionObj.ServiceName,
 			}
 
-			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
+			var structuredStackTrace []*privateModel.ErrorTrace
+			mapped, structured, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert, r.GetErrorAppVersion(ctx, errorToInsert))
 
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
-				continue
+			} else {
+				errorToInsert.MappedStackTrace = mapped
+				structuredStackTrace = structured
 			}
 
-			errorToInsert.MappedStackTrace = mappedStackTrace
+			stack := errorToInsert.MappedStackTrace
+			if stack == nil {
+				stack = errorToInsert.StackTrace
+			}
+			// use github enhancement for frontend errors
+			mapped, structured, err = r.Store.EnhancedStackTrace(ctx, *stack, workspace, project, errorToInsert, nil)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("stacktrace", v.StackTrace).Errorf("Failed to generate frontend structured stacktrace %v", v.StackTrace)
+			} else if mapped != nil {
+				errorToInsert.MappedStackTrace = mapped
+				structuredStackTrace = structured
+			}
 
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
 

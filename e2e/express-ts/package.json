@@ -8,7 +8,8 @@
 		"build": "tsc",
 		"dev": "ts-node src/index.ts",
 		"start": "node dist/index.js",
-		"test:dev": "ts-node src/test.ts"
+		"test:dev": "ts-node src/test.ts",
+		"sourcemaps": "yarn exec ../../sourcemap-uploader/dist/index.js upload --apiKey \"${HIGHLIGHT_API_KEY}\" --appVersion \"${APP_VERSION}\" --path ./dist --basePath ${PWD}/dist/"
 	},
 	"keywords": [],
 	"author": "",

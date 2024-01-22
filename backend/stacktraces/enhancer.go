@@ -346,10 +346,15 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
-	// remove a query string in the url, eg main.js?foo=bar -> main.js
-	queryStringIndex := strings.Index(stackTraceFileURL, "?")
-	if queryStringIndex != -1 {
-		stackTraceFileURL = stackTraceFileURL[:queryStringIndex]
+	// ensure reflame query string is preserved, as it is necessary to load the file
+	isReflame := strings.Contains(stackTraceFileURL, "~r_rid=")
+	if !isReflame {
+		// remove query string in the url which may be used to cache bust
+		// eg. main.js?foo=bar -> main.js
+		queryStringIndex := strings.Index(stackTraceFileURL, "?")
+		if queryStringIndex != -1 {
+			stackTraceFileURL = stackTraceFileURL[:queryStringIndex]
+		}
 	}
 	var sourceMapURL string
 	var sourceMapFileBytes []byte

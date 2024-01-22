@@ -156,7 +156,11 @@ def test_express_log(express_app, oauth_api):
                 if express_app_type == "express_js"
                 else "e2e-express-pino"
             )
-            assert item["node"]["serviceVersion"] == "git-sha"
+            assert (
+                item["node"]["serviceVersion"] == "git-sha"
+                if express_app_type == "express_js"
+                else "vadim"
+            )
 
     query(
         oauth_api,
