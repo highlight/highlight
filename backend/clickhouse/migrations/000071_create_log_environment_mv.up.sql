@@ -6,7 +6,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS log_environment_mv TO log_attributes (
     `Value` String
 ) AS
 SELECT ProjectId AS ProjectId,
-    'level' AS Key,
+    'environment' AS Key,
     Timestamp AS LogTimestamp,
     UUID AS LogUUID,
     Environment AS Value
