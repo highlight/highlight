@@ -48,6 +48,7 @@ const SearchPanel = () => {
 		searchResultsCount,
 		setSearchResultsCount,
 		setSearchResultSecureIds,
+		rebaseTime,
 	} = useErrorSearchContext()
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
@@ -149,7 +150,10 @@ const SearchPanel = () => {
 			<AdditionalFeedResults
 				more={moreErrors}
 				type="errors"
-				onClick={resetMoreErrors}
+				onClick={() => {
+					resetMoreErrors()
+					rebaseTime()
+				}}
 			/>
 			<Box
 				paddingTop="4"
