@@ -157,6 +157,7 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsLoading,
 		searchResultsCount,
 		setSearchResultsCount,
+		rebaseTime,
 	} = useSearchContext()
 	const { integrated } = useIntegrated()
 	const { showLeftPanel } = usePlayerConfiguration()
@@ -324,7 +325,10 @@ export const SessionFeedV3 = React.memo(() => {
 				<AdditionalFeedResults
 					more={moreSessions}
 					type="sessions"
-					onClick={resetMoreSessions}
+					onClick={() => {
+						resetMoreSessions()
+						rebaseTime()
+					}}
 				/>
 				<Box
 					paddingTop="4"

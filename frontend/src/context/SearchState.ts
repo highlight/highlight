@@ -261,6 +261,7 @@ export const useGetBaseSearchContext = (
 		updateSearchTime,
 		selectedPreset,
 		resetSearchTime,
+		rebaseSearchTime,
 	} = useSearchTime({
 		initialPreset: defaultPreset,
 		presets: DEFAULT_TIME_PRESETS,
@@ -386,6 +387,34 @@ export const useGetBaseSearchContext = (
 		[admin, customFields, state.searchQuery, updateSearchTime],
 	)
 
+	const rebaseTime = useCallback(() => {
+		if (selectedPreset) {
+			rebaseSearchTime()
+
+			const end = moment().toDate()
+			const start = presetStartDate(selectedPreset)
+
+			const queryWithTimes = overwriteQueryDates(
+				state.searchQuery,
+				start,
+				end,
+			)
+
+			dispatch({
+				type: SearchActionType.setSearchQuery,
+				searchQuery: queryWithTimes,
+				admin,
+				customFields,
+			})
+		}
+	}, [
+		admin,
+		customFields,
+		rebaseSearchTime,
+		selectedPreset,
+		state.searchQuery,
+	])
+
 	const resetTime = useCallback(() => {
 		resetSearchTime()
 		const end = moment().toDate()
@@ -441,6 +470,7 @@ export const useGetBaseSearchContext = (
 		setSearchTime,
 		resetTime,
 		createNewSearch,
+		rebaseTime,
 	}
 }
 
