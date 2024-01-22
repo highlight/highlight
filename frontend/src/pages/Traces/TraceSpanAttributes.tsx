@@ -1,5 +1,9 @@
 import JsonViewer from '@/components/JsonViewer/JsonViewer'
-import { FlameGraphSpan } from '@/pages/Traces/utils'
+import {
+	FlameGraphSpan,
+	formatDateWithNanoseconds,
+	humanizeDuration,
+} from '@/pages/Traces/utils'
 
 type Props = {
 	span: FlameGraphSpan
@@ -15,7 +19,7 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 
 	// Convert timestamp to a formatted date/time
 	if (attributes.timestamp) {
-		attributes.timestamp = new Date(attributes.timestamp).toLocaleString()
+		attributes.timestamp = formatDateWithNanoseconds(attributes.timestamp)
 	}
 
 	// Move properties of traceAttributes to the top level
@@ -46,6 +50,11 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 	attributes.host = host
 	attributes.os = os
 	attributes.process = process
+
+	// Display duration as the appropriate unit: min, s, ms, us, ns
+	if (attributes.duration) {
+		attributes.duration = humanizeDuration(attributes.duration)
+	}
 
 	attributes = cleanAttributes(attributes)
 
