@@ -21,6 +21,7 @@ import {
 
 import LoadingBox from '@/components/LoadingBox'
 import { useHTMLElementEvent } from '@/hooks/useHTMLElementEvent'
+import { ZOOM_SCALING_FACTOR } from '@/pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import {
 	getSpanTheme,
 	TraceFlameGraphNode,
@@ -136,11 +137,8 @@ export const TraceFlameGraph: React.FC = () => {
 
 	const handleZoom = useCallback(
 		(dz: number) => {
-			const change = dz * (zoom / 4)
-			const newZoom = Math.min(
-				Math.max(zoom + change / MAX_ZOOM, 1),
-				MAX_ZOOM,
-			)
+			const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
+			const newZoom = Math.min(Math.max(zoom * factor, 1), MAX_ZOOM)
 
 			updateZoom(newZoom)
 		},
@@ -183,11 +181,13 @@ export const TraceFlameGraph: React.FC = () => {
 		(event: WheelEvent) => {
 			const { deltaY, ctrlKey, metaKey } = event
 
+			// Some browers report ctrlKey as true when using a pinch gesture on a
+			// trackpad. This is where the pinch to zoom functionality comes from.
 			if (ctrlKey || metaKey) {
 				event.preventDefault()
 				event.stopPropagation()
 
-				throttledHandleZoom(deltaY)
+				throttledHandleZoom(deltaY / ZOOM_SCALING_FACTOR)
 			}
 		},
 		{ passive: false },
