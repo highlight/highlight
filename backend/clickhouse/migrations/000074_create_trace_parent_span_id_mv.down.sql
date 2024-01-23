@@ -1,1 +1,0 @@
-DROP VIEW IF EXISTS trace_parent_span_id_mv;
