@@ -605,9 +605,7 @@ export const Search: React.FC<{
 						</Combobox.GroupLabel>
 					</Box>
 					<Combobox.Group
-						className={clsx(styles.comboboxGroup, {
-							[styles.comboboxGroupLoading]: loading,
-						})}
+						className={styles.comboboxGroup}
 						store={comboboxStore}
 					>
 						{loading && visibleItems.length === 0 && (
