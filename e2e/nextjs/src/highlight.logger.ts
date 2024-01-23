@@ -18,8 +18,7 @@ const pinoConfig = {
 	},
 } as LoggerOptions
 
-const node = process.env.NEXT_RUNTIME === 'nodejs'
-if (node) {
+if (process.env.NEXT_RUNTIME === 'nodejs') {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
 }
