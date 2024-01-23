@@ -207,25 +207,25 @@ func (s *searchListener[T]) appendRules(value string) {
 		}
 	} else if s.currentOp == ">" {
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] > %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) > %s", s.currentKey, value)))
 		} else {
 			s.rules = append(s.rules, s.sb.GreaterThan(filterKey, value))
 		}
 	} else if s.currentOp == ">=" {
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] >= %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) >= %s", s.currentKey, value)))
 		} else {
 			s.rules = append(s.rules, s.sb.GreaterEqualThan(filterKey, value))
 		}
 	} else if s.currentOp == "<" {
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] < %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) < %s", s.currentKey, value)))
 		} else {
 			s.rules = append(s.rules, s.sb.LessThan(filterKey, value))
 		}
 	} else if s.currentOp == "<=" {
 		if traceAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] <= %s", s.currentKey, value)))
+			s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf("toFloat64OrNull("+s.attributesColumn+"[%s]) <= %s", s.currentKey, value)))
 		} else {
 			s.rules = append(s.rules, s.sb.LessEqualThan(filterKey, value))
 		}
