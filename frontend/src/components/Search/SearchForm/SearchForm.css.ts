@@ -180,3 +180,7 @@ export const comboboxGroup = style([
 		},
 	},
 ])
+
+export const comboboxGroupLoading = style({
+	opacity: 0.5,
+})

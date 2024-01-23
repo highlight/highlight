@@ -242,13 +242,13 @@ export const Search: React.FC<{
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
+	const [keys, setKeys] = useState<Keys | undefined>()
+	const [values, setValues] = useState<string[] | undefined>()
 	const comboboxStore = useComboboxStore({
 		defaultValue: query ?? '',
 	})
-	const [getKeys, { data: keysData, loading: keysLoading }] =
-		fetchKeysLazyQuery()
-	const [getKeyValues, { data, loading: valuesLoading }] =
-		fetchValuesLazyQuery()
+	const [getKeys, { loading: keysLoading }] = fetchKeysLazyQuery()
+	const [getKeyValues, { loading: valuesLoading }] = fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
 
 	const { queryParts, tokens } = parseSearch(query)
@@ -262,13 +262,11 @@ export const Search: React.FC<{
 		activePart.key !== BODY_KEY &&
 		activePart.text.includes(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
-	const showPartSelect = !!activePart.value?.length
-
-	const values = data?.key_values
+	const showValueSelect = !!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
-		: getVisibleKeys(query, queryParts, activePart, keysData?.keys)
+		: getVisibleKeys(query, queryParts, activePart, keys)
 
 	// Show operators when we have an exact match for a key
 	const showOperators = visibleItems.find(
@@ -285,7 +283,7 @@ export const Search: React.FC<{
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
-	const showResults = loading || visibleItems.length > 0 || showPartSelect
+	const showResults = loading || visibleItems.length > 0 || showValueSelect
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
@@ -310,6 +308,9 @@ export const Search: React.FC<{
 				},
 				query: debouncedKeyValue,
 			},
+			onCompleted: (data) => {
+				setKeys(data.keys)
+			},
 		})
 	}, [debouncedKeyValue, showValues, startDate, endDate, project_id, getKeys])
 
@@ -326,6 +327,9 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
+			},
+			onCompleted: (data) => {
+				setValues(data.key_values)
 			},
 		})
 	}, [
@@ -595,17 +599,11 @@ export const Search: React.FC<{
 						</Combobox.GroupLabel>
 					</Box>
 					<Combobox.Group
-						className={styles.comboboxGroup}
+						className={clsx(styles.comboboxGroup, {
+							[styles.comboboxGroupLoading]: loading,
+						})}
 						store={comboboxStore}
 					>
-						{loading && (
-							<Combobox.Item
-								className={styles.comboboxItem}
-								disabled
-							>
-								<Text>Loading...</Text>
-							</Combobox.Item>
-						)}
 						{visibleItems.length > 0 &&
 							visibleItems.map((key, index) => (
 								<Combobox.Item
