@@ -6,8 +6,7 @@ const pinoConfig = {
 	transport: {
 		targets: [
 			{
-				target: 'pino/file',
-				options: { destination: 1 }, // this writes to STDOUT
+				target: 'pino-pretty',
 				level: 'debug',
 			},
 			{
@@ -19,13 +18,11 @@ const pinoConfig = {
 	},
 } as LoggerOptions
 
-const node =
-	typeof process.env.NEXT_RUNTIME === 'undefined' ||
-	process.env.NEXT_RUNTIME === 'nodejs'
+const node = process.env.NEXT_RUNTIME === 'nodejs'
 if (node) {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
 }
 
-const logger = require('pino')(node ? {} : pinoConfig)
+const logger = require('pino')(pinoConfig)
 export default logger
