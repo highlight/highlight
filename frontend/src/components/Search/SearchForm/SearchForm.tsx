@@ -70,7 +70,7 @@ type FetchValues =
 
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
 
-const MAX_ITEMS = 10
+const MAX_ITEMS = 25
 
 export const SEARCH_OPERATORS = ['=', '!=', '>', '>=', '<', '<=']
 
@@ -264,9 +264,27 @@ export const Search: React.FC<{
 
 	const values = data?.key_values
 
-	const visibleItems = showValues
+	// TODO: Consider adding metadata to each item so you can check whether it's a
+	// key, operator, or value when selected.
+	let visibleItems = showValues
 		? getVisibleValues(activePart, values)
 		: getVisibleKeys(query, queryParts, activePart, keysData?.keys)
+
+	// TODO: Also show operators if there is only one key and it's an exact match
+	// for the query.
+	if (
+		(!showValues &&
+			activePart.text.length > 3 &&
+			visibleItems.length === 0) ||
+		(visibleItems.length === 1 &&
+			typeof visibleItems[0] === 'object' &&
+			visibleItems[0].name === activePart.text)
+	) {
+		visibleItems = SEARCH_OPERATORS.map((operator) => ({
+			name: operator,
+			type: 'Operator' as KeyType,
+		}))
+	}
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
@@ -342,11 +360,19 @@ export const Search: React.FC<{
 
 	const handleItemSelect = (key: Keys[0] | string) => {
 		const isValueSelect = typeof key === 'string'
+		const isOperatorSelect =
+			!isValueSelect && key.type === ('Operator' as KeyType)
 		const value = isValueSelect ? key : key.name
 		const isLastPart =
 			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
-		if (isValueSelect) {
+		if (isOperatorSelect) {
+			activePart.operator = value
+			activePart.text =
+				activePart.key === BODY_KEY
+					? `${activePart.text}${activePart.operator}`
+					: `${activePart.key}${activePart.operator}`
+		} else if (isValueSelect) {
 			activePart.value = value
 			activePart.text = `${activePart.key}${activePart.operator}${value}`
 		} else {
@@ -593,12 +619,7 @@ export const Search: React.FC<{
 								{typeof key === 'string' ? (
 									<Text>{key}</Text>
 								) : (
-									<Stack direction="row" gap="8">
-										<Text>{key.name}</Text>{' '}
-										<Text color="weak">
-											{key.type.toLowerCase()}
-										</Text>
-									</Stack>
+									<Text>{key.name}</Text>
 								)}
 							</Combobox.Item>
 						))}
