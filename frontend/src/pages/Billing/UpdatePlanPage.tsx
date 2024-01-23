@@ -173,8 +173,9 @@ type ProductCardProps = {
 	retentionPeriod: RetentionPeriod
 	planType: PlanType
 	setRetentionPeriod: (rp: RetentionPeriod) => void
+	enableBillingLimits: boolean
 	limitCents: number | undefined
-	setLimitCents: ((limit: number | undefined) => void) | undefined
+	setLimitCents: (limit: number | undefined) => void
 	includedQuantity: number
 	usageAmount: number
 	predictedUsageAmount: number
@@ -262,6 +263,7 @@ const ProductCard = ({
 	rate,
 	retentionPeriod,
 	setRetentionPeriod,
+	enableBillingLimits,
 	limitCents,
 	setLimitCents,
 	setHasChanges,
@@ -329,15 +331,12 @@ const ProductCard = ({
 					>
 						<Box display="flex" alignItems="center" gap="12">
 							<Switch
-								disabled={!setLimitCents}
 								trackingId={`${productType}-enable`}
 								checked={
 									limitCents === undefined || limitCents > 0
 								}
 								onChange={(checked) => {
-									if (setLimitCents) {
-										setLimitCents(checked ? undefined : 0)
-									}
+									setLimitCents(checked ? undefined : 0)
 								}}
 							/>
 							<Text size="small">{productType}</Text>
@@ -523,7 +522,7 @@ const ProductCard = ({
 							</Menu.List>
 						</Menu>
 					) : null}
-					{setLimitCents !== undefined && (
+					{enableBillingLimits && (
 						<Box display="flex">
 							<LimitButton
 								limitCents={limitCents}
@@ -879,18 +878,15 @@ const UpdatePlanPage = ({
 								rp,
 							)
 						}
+						enableBillingLimits={!!enableBillingLimits}
 						limitCents={formState.values.sessionsLimitCents}
-						setLimitCents={
-							enableBillingLimits
-								? (l) => {
-										formStore.setValue(
-											formStore.names.sessionsLimitCents,
-											l,
-										)
-										setHasChanges(true)
-								  }
-								: undefined
-						}
+						setLimitCents={(l) => {
+							formStore.setValue(
+								formStore.names.sessionsLimitCents,
+								l,
+							)
+							setHasChanges(true)
+						}}
 						setHasChanges={setHasChanges}
 						usageAmount={sessionsUsage}
 						predictedUsageAmount={predictedSessionsUsage}
@@ -913,18 +909,15 @@ const UpdatePlanPage = ({
 								rp,
 							)
 						}
+						enableBillingLimits={!!enableBillingLimits}
 						limitCents={formState.values.errorsLimitCents}
-						setLimitCents={
-							enableBillingLimits
-								? (l) => {
-										formStore.setValue(
-											formStore.names.errorsLimitCents,
-											l,
-										)
-										setHasChanges(true)
-								  }
-								: undefined
-						}
+						setLimitCents={(l) => {
+							formStore.setValue(
+								formStore.names.errorsLimitCents,
+								l,
+							)
+							setHasChanges(true)
+						}}
 						setHasChanges={setHasChanges}
 						usageAmount={errorsUsage}
 						predictedUsageAmount={predictedErrorsUsage}
@@ -947,18 +940,15 @@ const UpdatePlanPage = ({
 								rp,
 							)
 						}
+						enableBillingLimits={!!enableBillingLimits}
 						limitCents={formState.values.logsLimitCents}
-						setLimitCents={
-							enableBillingLimits
-								? (l) => {
-										formStore.setValue(
-											formStore.names.logsLimitCents,
-											l,
-										)
-										setHasChanges(true)
-								  }
-								: undefined
-						}
+						setLimitCents={(l) => {
+							formStore.setValue(
+								formStore.names.logsLimitCents,
+								l,
+							)
+							setHasChanges(true)
+						}}
 						setHasChanges={setHasChanges}
 						usageAmount={logsUsage}
 						predictedUsageAmount={predictedLogsUsage}
@@ -981,18 +971,15 @@ const UpdatePlanPage = ({
 								rp,
 							)
 						}
+						enableBillingLimits={!!enableBillingLimits}
 						limitCents={formState.values.tracesLimitCents}
-						setLimitCents={
-							enableBillingLimits
-								? (l) => {
-										formStore.setValue(
-											formStore.names.tracesLimitCents,
-											l,
-										)
-										setHasChanges(true)
-								  }
-								: undefined
-						}
+						setLimitCents={(l) => {
+							formStore.setValue(
+								formStore.names.tracesLimitCents,
+								l,
+							)
+							setHasChanges(true)
+						}}
 						setHasChanges={setHasChanges}
 						usageAmount={tracesUsage}
 						predictedUsageAmount={predictedTracesUsage}

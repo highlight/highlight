@@ -145,23 +145,12 @@ const UsageCard = ({
 							label={`${usageAmount.toLocaleString()} ${productType.toLocaleLowerCase()}`}
 						></Badge>
 					) : null}
-					<Tooltip
-						delayed
-						trigger={
-							<Badge
-								size="medium"
-								shape="basic"
-								kind="secondary"
-								label={`Retention: ${RETENTION_PERIOD_LABELS[retentionPeriod]}`}
-								iconEnd={
-									<IconSolidInformationCircle size={12} />
-								}
-							></Badge>
-						}
-					>
-						{productType} recorded before this date will not be
-						accessible.
-					</Tooltip>
+					<Badge
+						size="medium"
+						shape="basic"
+						kind="secondary"
+						label={RETENTION_PERIOD_LABELS[retentionPeriod]}
+					/>
 					{enableBillingLimits ? (
 						<Tooltip
 							delayed
