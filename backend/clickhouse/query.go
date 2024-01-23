@@ -598,6 +598,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
 			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
 
+		parser.AssignSearchFilters[T](innerSb, params.Query, config)
+
 		limitFn := ""
 		col := ""
 		if limitColumn != nil {
