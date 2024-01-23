@@ -12,6 +12,7 @@ import {
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
+	Stack,
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
@@ -43,6 +44,7 @@ import {
 	BODY_KEY,
 	buildTokenGroups,
 	DEFAULT_OPERATOR,
+	quoteQueryValue,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
@@ -68,6 +70,7 @@ type FetchValues =
 	| typeof useGetTracesKeyValuesLazyQuery
 
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
+type SearchResult = Keys[0] | { name: string; type: 'Operator' | 'Value' }
 
 const MAX_ITEMS = 25
 
@@ -263,25 +266,17 @@ export const Search: React.FC<{
 
 	const values = data?.key_values
 
-	// TODO: Consider adding metadata to each item so you can check whether it's a
-	// key, operator, or value when selected.
-	let visibleItems = showValues
+	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
 		: getVisibleKeys(query, queryParts, activePart, keysData?.keys)
 
-	// TODO: Also show operators if there is only one key and it's an exact match
-	// for the query.
-	if (
-		(!showValues &&
-			activePart.text.length > 3 &&
-			visibleItems.length === 0) ||
-		(visibleItems.length === 1 &&
-			typeof visibleItems[0] === 'object' &&
-			visibleItems[0].name === activePart.text)
-	) {
+	const showOperators =
+		visibleItems.length === 1 && visibleItems[0].name === activePart.text
+
+	if (showOperators) {
 		visibleItems = SEARCH_OPERATORS.map((operator) => ({
 			name: operator,
-			type: 'Operator' as KeyType,
+			type: 'Operator',
 		}))
 	}
 
@@ -357,27 +352,24 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	const handleItemSelect = (key: Keys[0] | string) => {
-		const isValueSelect = typeof key === 'string'
-		const isOperatorSelect =
-			!isValueSelect && key.type === ('Operator' as KeyType)
-		const value = isValueSelect ? key : key.name
+	const handleItemSelect = (item: SearchResult) => {
+		const isValueSelect = item.type === 'Value'
+		const value = item.name
 		const isLastPart =
 			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
-		if (isOperatorSelect) {
+		if (item.type === 'Operator') {
 			activePart.operator = value
 			activePart.text =
 				activePart.key === BODY_KEY
 					? `${activePart.text}${activePart.operator}`
 					: `${activePart.key}${activePart.operator}`
 		} else if (isValueSelect) {
-			activePart.value = value
-			activePart.text = `${activePart.key}${activePart.operator}${value}`
+			activePart.value = quoteQueryValue(value)
+			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
 		} else {
 			activePart.key = value
-			activePart.operator = DEFAULT_OPERATOR
-			activePart.text = `${value}${DEFAULT_OPERATOR}`
+			activePart.text = value
 			activePart.value = ''
 		}
 
@@ -501,6 +493,10 @@ export const Search: React.FC<{
 					})}
 					value={query}
 					onChange={(e) => {
+						// Need to update cursor position before updating the query for all
+						// cursor-based logic to work.
+						handleSetCursorIndex()
+
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
 						// after a delay or blurring the input.
@@ -554,6 +550,48 @@ export const Search: React.FC<{
 					gutter={10}
 					sameWidth
 				>
+					<Box pt="3">
+						<Combobox.GroupLabel store={comboboxStore}>
+							{activePart.key === BODY_KEY &&
+								visibleItems.length === 0 && (
+									<Combobox.Item
+										className={styles.comboboxItem}
+										onClick={() => {
+											if (activePart.key === BODY_KEY) {
+												submitAndBlur()
+												return
+											}
+
+											handleItemSelect(
+												showValues
+													? {
+															name: activePart.value,
+															type: 'Value',
+													  }
+													: {
+															name: activePart.value,
+															type: KeyType.String,
+															__typename:
+																'QueryKey',
+													  },
+											)
+										}}
+										store={comboboxStore}
+									>
+										<Stack direction="row" gap="4">
+											<Text lines="1" color="weak">
+												Show all results for
+											</Text>{' '}
+											<Text>
+												&lsquo;
+												{activePart.value}
+												&rsquo;
+											</Text>
+										</Stack>
+									</Combobox.Item>
+								)}
+						</Combobox.GroupLabel>
+					</Box>
 					<Combobox.Group
 						className={styles.comboboxGroup}
 						store={comboboxStore}
@@ -564,14 +602,6 @@ export const Search: React.FC<{
 								disabled
 							>
 								<Text>Loading...</Text>
-							</Combobox.Item>
-						)}
-						{visibleItems.length === 0 && (
-							<Combobox.Item
-								className={styles.comboboxItem}
-								disabled
-							>
-								<Text>No results found</Text>
 							</Combobox.Item>
 						)}
 						{visibleItems.length > 0 &&
@@ -725,10 +755,9 @@ const getVisibleKeys = (
 const getVisibleValues = (
 	activeQueryPart?: SearchExpression,
 	values?: string[],
-) => {
+): SearchResult[] => {
 	const activePart = activeQueryPart?.value ?? ''
-
-	return (
+	const filteredValues =
 		values?.filter(
 			(v) =>
 				// Don't filter if no value has been typed
@@ -736,5 +765,9 @@ const getVisibleValues = (
 				// Return values that match the query part
 				v.indexOf(activePart) > -1,
 		) || []
-	)
+
+	return filteredValues.map((value) => ({
+		name: value,
+		type: 'Value',
+	}))
 }
