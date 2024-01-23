@@ -270,8 +270,10 @@ export const Search: React.FC<{
 		? getVisibleValues(activePart, values)
 		: getVisibleKeys(query, queryParts, activePart, keysData?.keys)
 
-	const showOperators =
-		visibleItems.length === 1 && visibleItems[0].name === activePart.text
+	// Show operators when we have an exact match for a key
+	const showOperators = visibleItems.find(
+		(item) => item.name === activePart.text,
+	)
 
 	if (showOperators) {
 		visibleItems = SEARCH_OPERATORS.map((operator) => ({
