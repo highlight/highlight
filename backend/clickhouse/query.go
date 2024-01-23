@@ -282,7 +282,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 
 	sb.GroupBy("1").
 		OrderBy("2 DESC, 1").
-		Limit(10)
+		Limit(25)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
