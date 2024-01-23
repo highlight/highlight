@@ -7,6 +7,8 @@ export declare type HasHeaders = { headers: IncomingHttpHeaders }
 export declare type HasStatus = {
 	readonly statusCode: number
 	readonly statusMessage: string
+	status: (statusCode: number) => HasStatus
+	send: (body: string) => void
 }
 export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 	req: T,
@@ -30,6 +32,7 @@ export const Highlight =
 					return await originalHandler(req, res)
 				})
 			} catch (e) {
+				res.status(500).send('Internal Server Error')
 				throw e
 			} finally {
 				recordLatency()
