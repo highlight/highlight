@@ -1116,6 +1116,14 @@ func TestLogsKeys(t *testing.T) {
 		{
 			Name: "user_id",
 		},
+		{
+			Name: "secure_session_id",
+			Type: "String",
+		},
+		{
+			Name: "span_id",
+			Type: "String",
+		},
 	}
 	assert.Equal(t, expected, keys)
 }
