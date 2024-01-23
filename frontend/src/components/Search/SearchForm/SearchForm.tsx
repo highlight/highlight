@@ -348,6 +348,12 @@ export const Search: React.FC<{
 	}, [initialQuery])
 
 	useEffect(() => {
+		if (!showValues) {
+			setValues(undefined)
+		}
+	}, [showValues])
+
+	useEffect(() => {
 		if (query === '') {
 			setTimeout(() => {
 				comboboxStore.setActiveId(null)
@@ -604,6 +610,14 @@ export const Search: React.FC<{
 						})}
 						store={comboboxStore}
 					>
+						{loading && visibleItems.length === 0 && (
+							<Combobox.Item
+								className={styles.comboboxItem}
+								disabled
+							>
+								<Text>Loading...</Text>
+							</Combobox.Item>
+						)}
 						{visibleItems.length > 0 &&
 							visibleItems.map((key, index) => (
 								<Combobox.Item
