@@ -1479,7 +1479,7 @@ const FAQEntry = ({
 
 const UpdatePlanFooter: React.FC<{
 	setStep: (step: PlanSelectStep) => void
-}> = ({ setStep }) => {
+}> = () => {
 	const { allProjects } = useApplicationContext()
 	const navigate = useNavigate()
 	return (
@@ -1488,6 +1488,7 @@ const UpdatePlanFooter: React.FC<{
 			alignItems="center"
 			justifyContent="space-between"
 			gap="12"
+			shadow="medium"
 			style={{ maxWidth: 580 }}
 			onClick={(e) => e.stopPropagation()}
 		>
@@ -1531,41 +1532,6 @@ const UpdatePlanFooter: React.FC<{
 					>
 						Learn more
 					</TextLink>
-				</Box>
-			</Stack>
-			<Stack
-				border="secondary"
-				borderRadius="8"
-				backgroundColor="white"
-				p="8"
-				gap="8"
-			>
-				<Box>
-					<Text color="weak">
-						<b
-							style={{
-								color: vars.theme.static.content.strong,
-							}}
-						>
-							Can't get all the functionality you need?
-						</b>{' '}
-						Upgrade your current plan to get the most out of
-						highlight.io
-					</Text>
-				</Box>
-				<Box display="flex" alignItems="center" gap="8">
-					<Button
-						size="small"
-						kind="secondary"
-						emphasis="high"
-						trackingId="UpdatePlan Filtering"
-						onClick={(e) => {
-							setStep('Select plan')
-							e.stopPropagation()
-						}}
-					>
-						See all plans
-					</Button>
 				</Box>
 			</Stack>
 		</Box>

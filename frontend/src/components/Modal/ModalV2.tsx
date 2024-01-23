@@ -75,6 +75,7 @@ export const Modal: React.FC<
 					flexDirection="column"
 					borderRadius="8"
 					border="secondary"
+					shadow="medium"
 					backgroundColor="white"
 					onClick={(e) => e.stopPropagation()}
 				>
