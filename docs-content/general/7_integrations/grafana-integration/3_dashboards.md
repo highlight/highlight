@@ -16,7 +16,7 @@ Once you've [installed and configured](./2_setup.md) a highlight.io data source,
 When you use the highlight.io data source, it is configurable with these fields:
 |Name|Description|
 |----|-----------|
-|`Resource`|The highlight.io resource being queried for these metrics.|
+|`Resource`|The highlight.io resource being queried for these metrics: one of traces, logs, sessions, or errors.|
 |`Function`|The method used for aggregating data within a group and bucket, e.g. count, avg, p50. If the function operates on a metric, numeric fields from the linked project's data are shown as search suggestions.|
 |`Filter`|A highlight.io filtering expression can be used to include only matching resources. Follows the search syntax shown [here](https://www.highlight.io/docs/general/product-features/general-features/search).|
 |`Group by`|One or more categories to group the results by. Categorical fields from the linked project's data are shown as search suggestions.|
@@ -26,7 +26,7 @@ When you use the highlight.io data source, it is configurable with these fields:
 
 ## Examples
 
-The following are a few example queries to help you get started with your own visualizations.
+The following are a few example queries to help you get started with your own visualizations. You can also download these import these examples into your Grafana instance as [JSON](https://highlight-client-bundle.s3.us-east-2.amazonaws.com/assets/grafana/sample_dashboard.json).
 
 ### Frequent HTTP requests
 
