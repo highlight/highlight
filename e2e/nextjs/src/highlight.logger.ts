@@ -1,6 +1,7 @@
 import { highlightConfig } from '@/instrumentation'
+import type { LoggerOptions } from 'pino'
 
-let pinoConfig = {
+const pinoConfig = {
 	level: 'debug',
 	transport: {
 		targets: [
@@ -16,15 +17,15 @@ let pinoConfig = {
 			},
 		],
 	},
-}
+} as LoggerOptions
 
-if (
+const node =
 	typeof process.env.NEXT_RUNTIME === 'undefined' ||
 	process.env.NEXT_RUNTIME === 'nodejs'
-) {
+if (node) {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
 }
 
-const logger = require('pino')(pinoConfig)
+const logger = require('pino')(node ? {} : pinoConfig)
 export default logger
