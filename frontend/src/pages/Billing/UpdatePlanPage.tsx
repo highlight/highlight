@@ -240,24 +240,16 @@ const LimitButton = ({
 					iconLeft={<IconSolidPlus />}
 					kind="secondary"
 					emphasis="medium"
+					size="small"
+					style={{
+						border: vars.border.secondary,
+					}}
 					onClick={() => {
 						setLimitCents(Math.round(defaultLimit))
 					}}
 				>
 					<Box display="flex" alignItems="center" gap="4">
 						Add Limit
-						<Tooltip
-							delayed
-							trigger={
-								<IconSolidInformationCircle
-									size={12}
-									color={vars.theme.static.content.weak}
-								/>
-							}
-						>
-							If a billing limit is added, data will not be
-							recorded once the limit is reached.
-						</Tooltip>
 					</Box>
 				</Button>
 			)}
@@ -337,7 +329,6 @@ const ProductCard = ({
 					>
 						<Box display="flex" alignItems="center" gap="12">
 							<Switch
-								color=""
 								disabled={!setLimitCents}
 								trackingId={`${productType}-enable`}
 								checked={
@@ -554,6 +545,7 @@ export type PlanSelectStep =
 	| null
 
 type BillingPageProps = {
+	selectedPlanType: PlanType
 	setStep: (step: PlanSelectStep) => void
 	showConfirmCloseModal: boolean
 	setShowConfirmCloseModal: (show: boolean) => void
@@ -561,6 +553,7 @@ type BillingPageProps = {
 }
 
 const UpdatePlanPage = ({
+	selectedPlanType,
 	setStep,
 	showConfirmCloseModal,
 	setShowConfirmCloseModal,
@@ -665,8 +658,6 @@ const UpdatePlanPage = ({
 	const daysUntilNextBillingDate = Math.ceil(
 		(nextBillingDate.getTime() - Date.now()) / (1000 * 3600 * 24),
 	)
-
-	const planType = data?.billingDetails.plan.type ?? PlanType.Free
 
 	const sessionsUsage = isPaying ? data?.billingDetails.meter ?? 0 : 0
 	const predictedSessionsUsage = Math.ceil(
@@ -784,7 +775,7 @@ const UpdatePlanPage = ({
 	}
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
-	const baseAmount = data?.subscription_details.baseAmount ?? 0
+	const baseAmount = PLANS[selectedPlanType].price * 100
 	const discountPercent = data?.subscription_details.discount?.percent ?? 0
 	const discountAmount = data?.subscription_details.discount?.amount ?? 0
 
@@ -804,11 +795,9 @@ const UpdatePlanPage = ({
 	)
 	const discountCents = productSubtotal + baseAmount - predictedTotalCents
 
-	const predictedTotalFormatted =
-		'$ ' +
-		toDecimal(
-			dinero({ amount: Math.round(predictedTotalCents), currency: USD }),
-		)
+	const predictedTotalFormatted = toDecimal(
+		dinero({ amount: Math.round(predictedTotalCents), currency: USD }),
+	)
 
 	const enableBillingLimits = data?.billingDetails.plan.enableBillingLimits
 	const baseAmountFormatted =
@@ -906,7 +895,7 @@ const UpdatePlanPage = ({
 						usageAmount={sessionsUsage}
 						predictedUsageAmount={predictedSessionsUsage}
 						includedQuantity={includedSessions}
-						planType={planType}
+						planType={selectedPlanType}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -940,7 +929,7 @@ const UpdatePlanPage = ({
 						usageAmount={errorsUsage}
 						predictedUsageAmount={predictedErrorsUsage}
 						includedQuantity={includedErrors}
-						planType={planType}
+						planType={selectedPlanType}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -974,7 +963,7 @@ const UpdatePlanPage = ({
 						usageAmount={logsUsage}
 						predictedUsageAmount={predictedLogsUsage}
 						includedQuantity={includedLogs}
-						planType={planType}
+						planType={selectedPlanType}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -1008,43 +997,51 @@ const UpdatePlanPage = ({
 						usageAmount={tracesUsage}
 						predictedUsageAmount={predictedTracesUsage}
 						includedQuantity={includedTraces}
-						planType={planType}
+						planType={selectedPlanType}
 					/>
 					<Box borderBottom="divider" />
-					<Box
-						py="12"
-						px="16"
-						display="flex"
-						alignItems="flex-start"
-						gap="12"
-						width="full"
-					>
-						<Box
-							display="flex"
-							justifyContent="space-between"
-							gap="8"
-							width="full"
-						>
-							<Box display="flex" gap="4" alignItems="center">
-								<Text
-									size="small"
-									color="strong"
-									weight="medium"
+					{selectedPlanType === PlanType.Free ? null : (
+						<>
+							<Box
+								py="12"
+								px="16"
+								display="flex"
+								alignItems="flex-start"
+								gap="12"
+								width="full"
+							>
+								<Box
+									display="flex"
+									justifyContent="space-between"
+									gap="8"
+									width="full"
 								>
-									{planType} base fee
-								</Text>
+									<Box
+										display="flex"
+										gap="4"
+										alignItems="center"
+									>
+										<Text
+											size="small"
+											color="strong"
+											weight="medium"
+										>
+											{selectedPlanType} base fee
+										</Text>
+									</Box>
+									<Box>
+										<Badge
+											size="medium"
+											shape="basic"
+											variant="gray"
+											label={baseAmountFormatted}
+										></Badge>
+									</Box>
+								</Box>
 							</Box>
-							<Box>
-								<Badge
-									size="medium"
-									shape="basic"
-									variant="gray"
-									label={baseAmountFormatted}
-								></Badge>
-							</Box>
-						</Box>
-					</Box>
-					<Box borderBottom="divider" />
+							<Box borderBottom="divider" />
+						</>
+					)}
 					<Stack gap="20" paddingTop="20" paddingBottom="16" px="16">
 						<Box
 							display="flex"
@@ -1065,21 +1062,34 @@ const UpdatePlanPage = ({
 										: 'Monthly'}{' '}
 									Bill
 								</Text>
-								<Text size="large" color="weak">
-									Due{' '}
-									{moment(nextBillingDate).format('MM/DD/YY')}
-								</Text>
+								<Badge
+									size="medium"
+									shape="basic"
+									variant="gray"
+									label={`Due ${moment(
+										nextBillingDate,
+									).format('MM/DD/YY')}`}
+								/>
 							</Box>
 							<Tooltip
 								delayed
 								trigger={
-									<Text
-										color="strong"
-										size="large"
-										weight="bold"
-									>
-										{predictedTotalFormatted}
-									</Text>
+									<>
+										<Text
+											color="weak"
+											size="large"
+											weight="medium"
+										>
+											$
+										</Text>
+										<Text
+											color="strong"
+											size="large"
+											weight="medium"
+										>
+											{predictedTotalFormatted}
+										</Text>
+									</>
 								}
 							>
 								Estimated cost based on trailing 7 day usage.
@@ -1198,8 +1208,8 @@ type Plan = {
 	price: number
 }
 
-const PLANS = [
-	{
+const PLANS = {
+	[PlanType.Free]: {
 		type: PlanType.Free,
 		name: 'Free',
 		descriptions: ['Observability for individual developers'],
@@ -1211,7 +1221,7 @@ const PLANS = [
 		),
 		price: 0,
 	},
-	{
+	[PlanType.Graduated]: {
 		type: PlanType.Graduated,
 		name: 'Pay as you go',
 		descriptions: [
@@ -1221,7 +1231,7 @@ const PLANS = [
 		icon: <IconSolidPuzzle size="24" color="#0090FF" />,
 		price: 50,
 	},
-	{
+	[PlanType.Enterprise]: {
 		type: PlanType.Enterprise,
 		name: 'Enterprise (Cloud)',
 		descriptions: [
@@ -1231,7 +1241,7 @@ const PLANS = [
 		icon: <IconSolidServer size="24" color="#E93D82" />,
 		price: 1000,
 	},
-	{
+	'Self-host': {
 		type: PlanType.Enterprise,
 		name: 'Enterprise (Self-hosted)',
 		descriptions: [
@@ -1247,7 +1257,7 @@ const PLANS = [
 		),
 		price: 3000,
 	},
-] as Plan[]
+} as { [plan in PlanType | 'Self-host']: Plan }
 
 const FAQ = [
 	{
@@ -1262,10 +1272,12 @@ const FAQ = [
 
 const PlanCard = ({
 	plan,
+	setSelectedPlanType,
 	setStep,
 	currentPlanType,
 }: {
 	plan: Plan
+	setSelectedPlanType: (step: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
 	currentPlanType?: PlanType
 }) => {
@@ -1312,6 +1324,7 @@ const PlanCard = ({
 							}),
 						)
 					} else {
+						setSelectedPlanType(plan.type)
 						setStep('Configure plan')
 					}
 				}}
@@ -1344,8 +1357,9 @@ const PlanCard = ({
 }
 
 export const PlanComparisonPage: React.FC<{
+	setSelectedPlanType: (plan: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
-}> = ({ setStep }) => {
+}> = ({ setSelectedPlanType, setStep }) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
@@ -1361,38 +1375,55 @@ export const PlanComparisonPage: React.FC<{
 
 	return (
 		<Box height="full" margin="auto" p="32">
-			<Stack>
+			<Stack gap="48">
 				<Box
 					display="flex"
 					gap="12"
 					alignItems="stretch"
 					justifyContent="space-between"
+					m="auto"
+					style={{
+						maxWidth: 960,
+					}}
 				>
-					{PLANS.map((plan) => (
+					{Object.values(PLANS).map((plan) => (
 						<PlanCard
 							currentPlanType={data?.billingDetails.plan.type}
 							plan={plan}
+							setSelectedPlanType={setSelectedPlanType}
 							setStep={setStep}
 							key={plan.name}
 						/>
 					))}
 				</Box>
-				<Text size="large" weight="bold" color="strong">
-					FAQ
-				</Text>
 				<Box
 					display="flex"
 					flexDirection="column"
-					border="dividerWeak"
-					borderRadius="8"
+					gap="12"
+					alignItems="stretch"
+					justifyContent="space-between"
+					m="auto"
+					style={{
+						maxWidth: 960,
+					}}
 				>
-					{FAQ.map((faq, idx) => (
-						<FAQEntry
-							key={faq.question}
-							faq={faq}
-							bottomBorder={idx < FAQ.length - 1}
-						/>
-					))}
+					<Text size="large" weight="bold" color="strong">
+						FAQ
+					</Text>
+					<Box
+						display="flex"
+						flexDirection="column"
+						border="dividerWeak"
+						borderRadius="8"
+					>
+						{FAQ.map((faq, idx) => (
+							<FAQEntry
+								key={faq.question}
+								faq={faq}
+								bottomBorder={idx < FAQ.length - 1}
+							/>
+						))}
+					</Box>
 				</Box>
 			</Stack>
 		</Box>
@@ -1495,6 +1526,9 @@ const UpdatePlanFooter: React.FC<{
 				</Box>
 				<Box display="flex" alignItems="center" gap="8">
 					<Button
+						size="small"
+						kind="secondary"
+						emphasis="high"
 						trackingId="UpdatePlan Filtering"
 						onClick={() =>
 							navigate(
@@ -1504,7 +1538,10 @@ const UpdatePlanFooter: React.FC<{
 					>
 						Go to filtering
 					</Button>
-					<TextLink href="https://www.highlight.io/docs/general/product-features/session-replay/filtering-sessions#set-up-ingestion-filters">
+					<TextLink
+						color="none"
+						href="https://www.highlight.io/docs/general/product-features/session-replay/filtering-sessions#set-up-ingestion-filters"
+					>
 						Learn more
 					</TextLink>
 				</Box>
@@ -1531,6 +1568,9 @@ const UpdatePlanFooter: React.FC<{
 				</Box>
 				<Box display="flex" alignItems="center" gap="8">
 					<Button
+						size="small"
+						kind="secondary"
+						emphasis="high"
 						trackingId="UpdatePlan Filtering"
 						onClick={(e) => {
 							setStep('Select plan')
@@ -1549,6 +1589,9 @@ export const UpdatePlanModal: React.FC<{
 	step: PlanSelectStep
 	setStep: (step: PlanSelectStep) => void
 }> = ({ step, setStep }) => {
+	const [selectedPlanType, setSelectedPlanType] = React.useState<PlanType>(
+		PlanType.Graduated,
+	)
 	const [hasChanges, setHasChanges] = React.useState<boolean>(false)
 	const [showConfirmCloseModal, setShowConfirmCloseModal] =
 		React.useState<boolean>(false)
@@ -1561,7 +1604,12 @@ export const UpdatePlanModal: React.FC<{
 	if (step === null) return null
 	return (
 		<Modal
-			maxHeight={step === 'Select plan' ? '80vh' : undefined}
+			justifyContent="space-between"
+			width={step === 'Select plan' ? 'full' : undefined}
+			height="full"
+			innerWidth="full"
+			innerHeight={step === 'Select plan' ? 'full' : undefined}
+			maxHeight="90vh"
 			onClose={() => {
 				if (
 					step === 'Configure plan' &&
@@ -1583,9 +1631,13 @@ export const UpdatePlanModal: React.FC<{
 			}
 		>
 			{step === 'Select plan' ? (
-				<PlanComparisonPage setStep={setStep} />
+				<PlanComparisonPage
+					setSelectedPlanType={setSelectedPlanType}
+					setStep={setStep}
+				/>
 			) : (
 				<UpdatePlanPage
+					selectedPlanType={selectedPlanType}
 					setStep={setStep}
 					setHasChanges={setHasChanges}
 					showConfirmCloseModal={showConfirmCloseModal}
