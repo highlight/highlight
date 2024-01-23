@@ -12,7 +12,6 @@ import {
 	IconSolidSearch,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
-	Stack,
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
@@ -555,48 +554,6 @@ export const Search: React.FC<{
 					gutter={10}
 					sameWidth
 				>
-					<Box pt="3">
-						<Combobox.GroupLabel store={comboboxStore}>
-							{activePart.value && (
-								<Combobox.Item
-									className={styles.comboboxItem}
-									onClick={() => {
-										if (activePart.key === BODY_KEY) {
-											submitAndBlur()
-											return
-										}
-
-										handleItemSelect(
-											showValues
-												? activePart.value
-												: {
-														name: activePart.value,
-														type: KeyType.String,
-														__typename: 'QueryKey',
-												  },
-										)
-									}}
-									store={comboboxStore}
-								>
-									<Stack direction="row" gap="4">
-										{activePart.key === BODY_KEY ? (
-											<>
-												<Text lines="1" color="weak">
-													Show all results for
-												</Text>{' '}
-												<Text>
-													&lsquo;{activePart.value}
-													&rsquo;
-												</Text>
-											</>
-										) : (
-											<Text>{activePart.value}</Text>
-										)}
-									</Stack>
-								</Combobox.Item>
-							)}
-						</Combobox.GroupLabel>
-					</Box>
 					<Combobox.Group
 						className={styles.comboboxGroup}
 						store={comboboxStore}
@@ -609,20 +566,29 @@ export const Search: React.FC<{
 								<Text>Loading...</Text>
 							</Combobox.Item>
 						)}
-						{visibleItems.map((key, index) => (
+						{visibleItems.length === 0 && (
 							<Combobox.Item
 								className={styles.comboboxItem}
-								key={index}
-								onClick={() => handleItemSelect(key)}
-								store={comboboxStore}
+								disabled
 							>
-								{typeof key === 'string' ? (
-									<Text>{key}</Text>
-								) : (
-									<Text>{key.name}</Text>
-								)}
+								<Text>No results found</Text>
 							</Combobox.Item>
-						))}
+						)}
+						{visibleItems.length > 0 &&
+							visibleItems.map((key, index) => (
+								<Combobox.Item
+									className={styles.comboboxItem}
+									key={index}
+									onClick={() => handleItemSelect(key)}
+									store={comboboxStore}
+								>
+									{typeof key === 'string' ? (
+										<Text>{key}</Text>
+									) : (
+										<Text>{key.name}</Text>
+									)}
+								</Combobox.Item>
+							))}
 					</Combobox.Group>
 					<Box
 						bbr="8"
@@ -767,10 +733,8 @@ const getVisibleValues = (
 			(v) =>
 				// Don't filter if no value has been typed
 				!activePart.length ||
-				// Exclude the current part since that is given special treatment
-				(v !== activePart &&
-					// Return values that match the query part
-					v.indexOf(activePart) > -1),
+				// Return values that match the query part
+				v.indexOf(activePart) > -1,
 		) || []
 	)
 }
