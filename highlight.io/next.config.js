@@ -23,6 +23,9 @@ const nextConfig = {
 			'tamuhack.org',
 		],
 	},
+	experimental: {
+		serverComponentsExternalPackages: ['pino', 'pino-pretty'],
+	},
 	productionBrowserSourceMaps: true,
 	reactStrictMode: true,
 	swcMinify: true,
