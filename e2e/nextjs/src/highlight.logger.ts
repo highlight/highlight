@@ -1,19 +1,12 @@
+import { highlightConfig } from '@/instrumentation'
 import type { LoggerOptions } from 'pino'
-import type { NodeOptions } from '@highlight-run/node'
-
-const highlightConfig = {
-	projectID: '4d7k1xeo',
-	serviceName: 'highlight-io-pino',
-	serviceVersion: 'git-sha',
-} as NodeOptions
 
 const pinoConfig = {
 	level: 'debug',
 	transport: {
 		targets: [
 			{
-				target: 'pino/file',
-				options: { destination: 1 }, // this writes to STDOUT
+				target: 'pino-pretty',
 				level: 'debug',
 			},
 			{
