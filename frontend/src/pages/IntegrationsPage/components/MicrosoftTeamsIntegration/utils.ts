@@ -11,7 +11,7 @@ import {
 	useRemoveIntegrationFromProjectMutation,
 } from '@/graph/generated/hooks'
 
-const MICROSOFT_TEAMS_CLIENT_ID = import.meta.env.MICROSOFT_TEAMS_CLIENT_ID
+const MICROSOFT_TEAMS_BOT_ID = import.meta.env.MICROSOFT_TEAMS_BOT_ID
 const MICROSOFT_SCOPES = ['offline_access', 'openid', 'profile']
 
 export const useMicrosoftTeamsBot = (next?: string) => {
@@ -114,7 +114,7 @@ export const getMicrosoftTeamsUrl = (projectId: string, next?: string) => {
 
 	const authUrl =
 		`https://login.microsoftonline.com/common/adminconsent` +
-		`?client_id=${MICROSOFT_TEAMS_CLIENT_ID}` +
+		`?client_id=${MICROSOFT_TEAMS_BOT_ID}` +
 		`&scope=${encodeURIComponent(MICROSOFT_SCOPES.join(' '))}` +
 		`&redirect_uri=${encodeURIComponent(redirectUri)}` +
 		`&state=${btoa(JSON.stringify(state))}` +

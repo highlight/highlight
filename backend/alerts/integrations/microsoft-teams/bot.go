@@ -35,7 +35,7 @@ var BotMessagesHandler = activity.HandlerFuncs{
 			for _, memberRemoved := range turn.Activity.MembersRemoved {
 				if memberRemoved.ID == turn.Activity.Recipient.ID {
 					// this is probably redundant since bot will no longer be part of the team but ...
-					return turn.SendActivity(activity.MsgOptionText("Hightlight bot uninstalled successfully"))
+					return turn.SendActivity(activity.MsgOptionText("highlight.io bot uninstalled successfully!"))
 				}
 			}
 		}
@@ -45,7 +45,7 @@ var BotMessagesHandler = activity.HandlerFuncs{
 			for _, member := range turn.Activity.MembersAdded {
 				// our bot is the recipient of this message - so we are being added to the conversation
 				if member.ID == turn.Activity.Recipient.ID {
-					return turn.SendActivity(activity.MsgOptionText("👋 your highlight notifications bot has been installed successfully. You can now set a teams channel as receipient for your alerts. Your highlight microsoft teams integration will be removed on highlight whenever you uninstall the bot."))
+					return turn.SendActivity(activity.MsgOptionText("👋 Your highlight.io notifications bot has been installed successfully. You can now set a Teams channel as recipient for your alerts."))
 				}
 			}
 		}

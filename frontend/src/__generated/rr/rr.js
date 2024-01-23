@@ -6275,7 +6275,7 @@ function getDefaultSN(node, id) {
 var { addCustomEvent } = record;
 var { freezePage } = record;
 
-// ../rrweb/packages/rrweb/es/rrweb/ext/fflate/esm/browser.js
+// ../rrweb/packages/rrweb/es/rrweb/rrweb/packages/rrweb/ext/fflate/esm/browser.js
 var u8 = Uint8Array;
 var u16 = Uint16Array;
 var u32 = Uint32Array;

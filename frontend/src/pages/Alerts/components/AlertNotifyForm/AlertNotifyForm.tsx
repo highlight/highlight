@@ -140,11 +140,11 @@ const AlertNotifyForm = () => {
 			</Form.NamedSection>
 
 			<Form.NamedSection
-				label="Microsoft teams channels to notify"
+				label="Microsoft Teams channels to notify"
 				name={formStore.names.microsoftTeamsChannels}
 			>
 				<Select
-					aria-label="Microsoft teams channels to notify"
+					aria-label="Microsoft Teams channels to notify"
 					placeholder="Select Microsoft Teams channels"
 					options={microsoftTeamsChannels}
 					optionFilterProp="label"
