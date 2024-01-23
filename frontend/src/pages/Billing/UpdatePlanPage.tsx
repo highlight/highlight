@@ -244,7 +244,21 @@ const LimitButton = ({
 						setLimitCents(Math.round(defaultLimit))
 					}}
 				>
-					Add Limit
+					<Box display="flex" alignItems="center" gap="4">
+						Add Limit
+						<Tooltip
+							delayed
+							trigger={
+								<IconSolidInformationCircle
+									size={12}
+									color={vars.theme.static.content.weak}
+								/>
+							}
+						>
+							If a billing limit is added, data will not be
+							recorded once the limit is reached.
+						</Tooltip>
+					</Box>
 				</Button>
 			)}
 		</Box>
@@ -252,7 +266,6 @@ const LimitButton = ({
 }
 
 const ProductCard = ({
-	productIcon,
 	productType,
 	rate,
 	retentionPeriod,
@@ -315,157 +328,178 @@ const ProductCard = ({
 			alignItems="flex-start"
 			gap="12"
 		>
-			<Switch
-				disabled={!setLimitCents}
-				trackingId={`${productType}-enable`}
-				checked={limitCents === undefined || limitCents > 0}
-				onChange={(checked) => {
-					if (setLimitCents) {
-						setLimitCents(checked ? undefined : 0)
-					}
-				}}
-			/>
-			<Stack gap="8" width="full">
-				<Box display="flex" justifyContent="space-between" gap="8">
-					<Stack>
-						<Box display="flex" gap="4" alignItems="center">
-							{productIcon}
-							<Text>{productType}</Text>
-						</Box>
-						<Text>
-							Capture {productType.toLocaleLowerCase()} for a
-							specific retention period.
-						</Text>
-					</Stack>
-					<Box>
-						<Badge
-							size="medium"
-							shape="basic"
-							variant="gray"
-							label={totalCostFormatted}
-							iconEnd={
-								<Tooltip
-									trigger={
-										<IconSolidInformationCircle size={12} />
+			<Stack gap="12" width="full">
+				<Stack gap="4" width="full">
+					<Box
+						display="flex"
+						justifyContent="space-between"
+						alignItems="center"
+					>
+						<Box display="flex" alignItems="center" gap="12">
+							<Switch
+								color=""
+								disabled={!setLimitCents}
+								trackingId={`${productType}-enable`}
+								checked={
+									limitCents === undefined || limitCents > 0
+								}
+								onChange={(checked) => {
+									if (setLimitCents) {
+										setLimitCents(checked ? undefined : 0)
 									}
-								>
-									<Box
-										p="8"
-										display="flex"
-										gap="4"
-										cssClass={style.predictedCost}
-										flexDirection="column"
+								}}
+							/>
+							<Text size="small">{productType}</Text>
+						</Box>
+						<Box>
+							<Badge
+								size="medium"
+								shape="basic"
+								variant="gray"
+								label={totalCostFormatted}
+								iconEnd={
+									<Tooltip
+										delayed
+										trigger={
+											<IconSolidInformationCircle
+												size={12}
+											/>
+										}
 									>
 										<Box
+											p="8"
 											display="flex"
+											gap="4"
+											cssClass={style.predictedCost}
 											flexDirection="column"
-											gap="6"
-											borderRadius="8"
-											cssClass={style.costBreakdown}
 										>
 											<Box
 												display="flex"
-												flexDirection="row"
-												justifyContent="space-between"
-												alignItems="center"
-												cssClass={style.costLineItem}
+												flexDirection="column"
+												gap="6"
+												borderRadius="8"
+												cssClass={style.costBreakdown}
 											>
-												<Text
-													weight="medium"
-													color="weak"
-													size="xSmall"
+												<Box
+													display="flex"
+													flexDirection="row"
+													justifyContent="space-between"
+													alignItems="center"
+													cssClass={
+														style.costLineItem
+													}
 												>
-													Price / {quantityFormatted}{' '}
-													{productType}
-												</Text>
-												<Text
-													size="xSmall"
-													color="secondaryContentOnEnabled"
+													<Text
+														weight="medium"
+														color="weak"
+														size="xSmall"
+													>
+														Price /{' '}
+														{quantityFormatted}{' '}
+														{productType}
+													</Text>
+													<Text
+														size="xSmall"
+														color="secondaryContentOnEnabled"
+													>
+														{unitCostFormatted}
+													</Text>
+												</Box>
+												<Box
+													display="flex"
+													flexDirection="row"
+													justifyContent="space-between"
+													alignItems="center"
+													cssClass={
+														style.costLineItem
+													}
 												>
-													{unitCostFormatted}
-												</Text>
-											</Box>
-											<Box
-												display="flex"
-												flexDirection="row"
-												justifyContent="space-between"
-												alignItems="center"
-												cssClass={style.costLineItem}
-											>
-												<Text
-													weight="medium"
-													color="weak"
-													size="xSmall"
+													<Text
+														weight="medium"
+														color="weak"
+														size="xSmall"
+													>
+														{productType}
+													</Text>
+													<Text
+														size="xSmall"
+														color="secondaryContentOnEnabled"
+													>
+														{formatNumberWithDelimiters(
+															predictedUsageAmount,
+														)}
+													</Text>
+												</Box>
+												<Box
+													display="flex"
+													flexDirection="row"
+													justifyContent="space-between"
+													alignItems="center"
+													cssClass={
+														style.costLineItem
+													}
 												>
-													{productType}
-												</Text>
-												<Text
-													size="xSmall"
-													color="secondaryContentOnEnabled"
+													<Text
+														weight="medium"
+														color="weak"
+														size="xSmall"
+													>
+														- Included
+													</Text>
+													<Text
+														size="xSmall"
+														color="secondaryContentOnEnabled"
+													>
+														{formatNumberWithDelimiters(
+															includedQuantity,
+														)}
+													</Text>
+												</Box>
+												<Box borderBottom="divider" />
+												<Box
+													display="flex"
+													flexDirection="row"
+													justifyContent="space-between"
+													alignItems="center"
+													cssClass={
+														style.costLineItem
+													}
 												>
-													{formatNumberWithDelimiters(
-														predictedUsageAmount,
-													)}
-												</Text>
-											</Box>
-											<Box
-												display="flex"
-												flexDirection="row"
-												justifyContent="space-between"
-												alignItems="center"
-												cssClass={style.costLineItem}
-											>
-												<Text
-													weight="medium"
-													color="weak"
-													size="xSmall"
-												>
-													- Included
-												</Text>
-												<Text
-													size="xSmall"
-													color="secondaryContentOnEnabled"
-												>
-													{formatNumberWithDelimiters(
-														includedQuantity,
-													)}
-												</Text>
-											</Box>
-											<Box borderBottom="divider" />
-											<Box
-												display="flex"
-												flexDirection="row"
-												justifyContent="space-between"
-												alignItems="center"
-												cssClass={style.costLineItem}
-											>
-												<Text
-													weight="medium"
-													color="weak"
-													size="xSmall"
-												>
-													Total
-												</Text>
-												<Text
-													size="xSmall"
-													color="secondaryContentOnEnabled"
-												>
-													{formatNumberWithDelimiters(
-														netUsageAmount,
-													)}
-												</Text>
+													<Text
+														weight="medium"
+														color="weak"
+														size="xSmall"
+													>
+														Total
+													</Text>
+													<Text
+														size="xSmall"
+														color="secondaryContentOnEnabled"
+													>
+														{formatNumberWithDelimiters(
+															netUsageAmount,
+														)}
+													</Text>
+												</Box>
 											</Box>
 										</Box>
-									</Box>
-								</Tooltip>
-							}
-						></Badge>
+									</Tooltip>
+								}
+							></Badge>
+						</Box>
 					</Box>
-				</Box>
+					<Box ml="40" display="flex" justifyContent="space-between">
+						<Text size="small" color="weak">
+							Capture {productType.toLocaleLowerCase()} for a
+							specific retention period.
+						</Text>
+					</Box>
+				</Stack>
 				<Box
 					display="flex"
 					justifyContent="flex-start"
 					gap="6"
+					ml="40"
 					alignItems="center"
 				>
 					{RETENTION_OPTIONS[productType].length > 1 ? (
@@ -505,18 +539,6 @@ const ProductCard = ({
 								setLimitCents={setLimitCents}
 								defaultLimit={1.3 * predictedCostCents}
 							/>
-							<Tooltip
-								trigger={
-									<IconSolidInformationCircle
-										size={12}
-										color={vars.theme.static.content.weak}
-									/>
-								}
-							>
-								If a billing limit is added, extra{' '}
-								{productType.toLowerCase()} will not be recorded
-								once the limit is reached.
-							</Tooltip>
 						</Box>
 					)}
 				</Box>
@@ -1049,6 +1071,7 @@ const UpdatePlanPage = ({
 								</Text>
 							</Box>
 							<Tooltip
+								delayed
 								trigger={
 									<Text
 										color="strong"
