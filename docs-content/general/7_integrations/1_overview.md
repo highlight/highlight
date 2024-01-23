@@ -50,4 +50,7 @@ Read more about highlight.io's integrations! Have a questions or want to request
     <DocsCard title="Pendo."  href="./pendo-integration.md">
         {"Instrument highlight.io to send pendo events."}
     </DocsCard>
+        <DocsCard title="Grafana."  href="./grafana-integration.md">
+        {"Create Grafana dashboards and alerts from your highlight.io data."}
+    </DocsCard>
 </DocsCardGroup>
