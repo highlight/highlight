@@ -4,7 +4,6 @@ import path from 'path'
 import removeMd from 'remove-markdown'
 import { withPageRouterHighlight } from '../../../../highlight.config'
 import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
-import logger from '../../../../highlight.logger'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 
@@ -24,7 +23,6 @@ const handler = withPageRouterHighlight(async function handler(
 	res: NextApiResponse,
 ) {
 	const searchValue = [req.query.searchValue].flat().join('').toLowerCase()
-	logger.info('running api docs search query', { searchValue })
 	const docPaths = await getDocsPaths(fsp, undefined)
 	const paths: SearchResult[] = await Promise.all(
 		docPaths.map(async (doc) => {
