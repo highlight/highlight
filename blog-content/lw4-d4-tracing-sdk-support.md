@@ -1,5 +1,5 @@
 ---
-title: "Day 5: Tracing SDKs for Next.js, Python, and Go/GORM"
+title: "Day 4: Tracing SDKs for Next.js, Python, and Go/GORM"
 createdAt: 2024-02-02T12:00:00Z
 readingTime: 2
 authorFirstName: Chris
@@ -12,7 +12,7 @@ authorWebsite: 'https://www.chrisesplin.com/'
 authorPFP: 'https://firebasestorage.googleapis.com/v0/b/quiver-pixels-2020.appspot.com/o/F1EQ3eaBqkbEKEHBigolXIlmdut2%2F1408a808-60a6-4102-b636-08ab24041503.jpeg?alt=media&token=5f0ed5d8-c192-4aa3-a75b-3eb6cac9a552'
 image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FE7U4wuSyS5mXKGfDOWsz&w=3840&q=75'
 tags: Launch Week 4
-metaTitle: "Day 5: Tracing SDKs for Next.js, Python, and Go/GORM"
+metaTitle: "Day 4: Tracing SDKs for Next.js, Python, and Go/GORM"
 ---
 
 ## Navigating Complex Tracing Integration
