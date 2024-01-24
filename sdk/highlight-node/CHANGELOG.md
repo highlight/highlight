@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.7.3
+
+### Patch Changes
+
+-   f6308c0ac: fix app/page router blocking on errors in some cases
+
 ## 3.7.2
 
 ### Patch Changes

@@ -1,5 +1,6 @@
 import yaml from 'js-yaml'
 import path from 'path'
+import { removeOrderingPrefix } from '../../../shared/doc'
 
 // ignored files from docs
 export const IGNORED_DOCS_PATHS = new Set<string>([
@@ -57,15 +58,6 @@ interface DocMeta {
 	slug: string
 	createdAt: string
 	updatedAt: string
-}
-
-export const removeOrderingPrefix = (path: string) => {
-	const arrayPath = path.split('/')
-	const cleanPath = arrayPath.map((p) => {
-		const prefixLocation = p.indexOf('_')
-		return prefixLocation === -1 ? p : p.slice(prefixLocation + 1)
-	})
-	return cleanPath.join('/')
 }
 
 export const processDocPath = function (
