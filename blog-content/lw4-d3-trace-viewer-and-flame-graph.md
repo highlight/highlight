@@ -29,7 +29,7 @@ You spot a loading state that lasts as bit too long. What could be causing the s
 
 Is it a network request? You check the Session Replay's embedded network tab and sure enough, you've got a slow API call! But why is it slow? 
 
-Fortunately, your server code is fully instrumented with OpenTelemetry and sending session-matched data to Highlight, so you can click through a flame graph of that network requests traces, all the way down to an auto-instrumented Postgres database call. 
+Fortunately, your server code is fully instrumented with OpenTelemetry and sending session-matched data to Highlight, so you can click through a flame graph of that network requests traces, all the way down to an auto-instrumented Postgres database call. You figure out the exact SQL query that's missing an index.
 
 And you didn't even have to leave the Session Replay recording!
 
