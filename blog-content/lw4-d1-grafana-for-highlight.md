@@ -22,7 +22,7 @@ We’re building sophisticated visualization tools to make Highlight’s dashboa
 Grafana is a powerful compromise that we can use in the meantime to maximize flexibility and reporting power.
 
 ## The Dedicated Plugin
-If you've used Grafana, you know how powerful it can be. Our new Grafana plugin for Highlight can pipe your Highlight data into any Grafana back end. Grafana gives you full control to create wild data visualizations, solving for whatever questions your organization is asking.
+If you've used Grafana, you know how powerful it can be. Our new Grafana plugin for Highlight can pipe your Highlight data into any Grafana deployment. Grafana gives you full control to create wild data visualizations, solving for whatever questions your organization is asking.
 
 ## Installation Flexibility
 The plugin is designed for ease of use and flexibility. It can be installed on your own Grafana instance, giving you full control over your data visualization environment. Alternatively, for a more hands-off approach, the plugin is also available on a Grafana instance managed by Highlight.
