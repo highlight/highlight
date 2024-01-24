@@ -1,4 +1,5 @@
 grammar SearchGrammar;
+options { caseInsensitive = true; }
 
 search_query
   : EOF
@@ -27,6 +28,7 @@ search_expr
   | search_expr or_op search_expr # or_search_expr
   | search_expr implicit_and_op search_expr # implicit_and_search_expr
   | search_key bin_op top_col_expr # key_val_search_expr
+  | search_key exists_op # exists_search_expr
   | top_col_expr # body_search_expr
   ;
 
@@ -44,6 +46,11 @@ implicit_and_op
 
 or_op
   : OR
+  ;
+  
+exists_op
+  : EXISTS
+  | NOT EXISTS
   ;
 
 negation_op
@@ -71,6 +78,7 @@ search_value
 AND : 'AND' ;
 OR : 'OR' ;
 NOT : 'NOT' ;
+EXISTS : 'EXISTS' ;
 BANG : '!' ;
 EQ : '=' ;
 NEQ : '!=' ;
@@ -81,7 +89,7 @@ GTE : '>=' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
 COLON : ':' ;
-ID : [a-zA-Z_0-9.\-*]+ ;
+ID : [A-Z_0-9.\-*]+ ;
 STRING : '"' .*? '"' ;
 VALUE: ~[ \t\n\r\f=><:!)(]+ ;
 WS : [ \t\n\r\f]+ -> skip ;

@@ -5,6 +5,8 @@ import {
 	And_opContext,
 	Bin_opContext,
 	Body_search_exprContext,
+	Exists_opContext,
+	Exists_search_exprContext,
 	Key_val_search_exprContext,
 	Or_opContext,
 	Search_keyContext,
@@ -70,6 +72,13 @@ export class SearchListener extends SearchGrammarListener {
 		this.currentExpression = { start, stop, text } as SearchExpression
 	}
 
+	enterExists_search_expr = (ctx: Exists_search_exprContext) => {
+		const start = ctx.start.start
+		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
+		const text = this.queryString.substring(start, stop + 1)
+		this.currentExpression = { start, stop, text } as SearchExpression
+	}
+
 	enterBody_search_expr = (ctx: Body_search_exprContext) => {
 		const start = ctx.start.start
 		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
@@ -86,6 +95,10 @@ export class SearchListener extends SearchGrammarListener {
 		this.currentExpression.key = ctx.getText()
 	}
 
+	enterExists_op = (ctx: Exists_opContext) => {
+		this.currentExpression.operator = ctx.getText()
+	}
+
 	enterBin_op = (ctx: Bin_opContext) => {
 		this.currentExpression.operator = ctx.getText()
 	}
@@ -99,6 +112,11 @@ export class SearchListener extends SearchGrammarListener {
 			this.currentExpression.key.length +
 				this.currentExpression.operator.length,
 		)
+		this.expressions.push(this.currentExpression)
+		this.currentExpression = { ...DEFAULT_EXPRESSION }
+	}
+
+	exitExists_search_expr = (_ctx: Exists_search_exprContext) => {
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}
