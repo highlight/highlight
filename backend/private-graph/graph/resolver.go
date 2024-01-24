@@ -1934,9 +1934,9 @@ func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace,
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		update := model.Workspace{
 			MicrosoftTeamsTenantId: nil,
-			MicrosoftTeamsChannels: nil,
+			MicrosoftTeamsGroups:   nil,
 		}
-		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id", "microsoft_teams_channels").Updates(&update).Error; err != nil {
+		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id", "microsoft_teams_groups").Updates(&update).Error; err != nil {
 			return e.Wrap(err, "error removing microsoft_teams integration from workspace")
 		}
 
@@ -3479,24 +3479,22 @@ func (r *Resolver) MicrosoftTeamsBotEndpoint(w http.ResponseWriter, req *http.Re
 						return
 					}
 
-					microsoftTeamsChannels, err := microsoft_teams.GetMicrosoftTeamsChannelsFromWorkspace(workspace)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "error extracting microsoft_teams channels from workspace"))
-						break
-					}
+					microsoftTeamsGroups := microsoft_teams.GetMicrosoftTeamsGroupsFromWorkspace(workspace)
 
 					groupID := microsoft_teams.GetAadGroupIDFromActivity(act)
-					delete(microsoftTeamsChannels, groupID)
+					microsoftTeamsGroups = lo.Filter[string](microsoftTeamsGroups, func(item string, _ int) bool {
+						return item != groupID
+					})
 
-					updateFields := []string{"microsoft_teams_channels"}
-					if len(microsoftTeamsChannels) == 0 {
-						updates.MicrosoftTeamsChannels = nil
+					updateFields := []string{"microsoft_teams_groups"}
+					if len(microsoftTeamsGroups) == 0 {
+						updates.MicrosoftTeamsGroups = nil
 						updates.MicrosoftTeamsTenantId = nil
 						updateFields = append(updateFields, "microsoft_teams_tenant_id")
 					} else {
-						channelsJson, _ := json.Marshal(microsoftTeamsChannels)
+						channelsJson, _ := json.Marshal(microsoftTeamsGroups)
 						channelsUpdate := string(channelsJson)
-						updates.MicrosoftTeamsChannels = &channelsUpdate
+						updates.MicrosoftTeamsGroups = &channelsUpdate
 					}
 
 					if err := r.DB.Where(&query).Select(updateFields).Updates(updates).Error; err != nil {
@@ -3524,33 +3522,18 @@ func (r *Resolver) MicrosoftTeamsBotEndpoint(w http.ResponseWriter, req *http.Re
 						return
 					}
 
-					microsoftTeamsChannels := make(map[string][]model.MicrosoftTeamsChannel)
-					if workspace.MicrosoftTeamsChannels != nil && *workspace.MicrosoftTeamsChannels != "" {
-						err := json.Unmarshal([]byte(*workspace.MicrosoftTeamsChannels), &microsoftTeamsChannels)
-
-						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "error transforming ms teams channels into map"))
-							http.Error(w, err.Error(), http.StatusBadRequest)
-							return
-						}
-					}
+					microsoftTeamsGroups := microsoft_teams.GetMicrosoftTeamsGroupsFromWorkspace(workspace)
 
 					groupID := microsoft_teams.GetAadGroupIDFromActivity(act)
 					if groupID != "" {
-						channels, err := microsoft_teams.GetMicrosoftTeamsChannels(*query.MicrosoftTeamsTenantId, groupID)
-						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "error fetching ms teams channels"))
-							http.Error(w, err.Error(), http.StatusBadRequest)
-							return
-						}
-						microsoftTeamsChannels[groupID] = channels
+						microsoftTeamsGroups = append(microsoftTeamsGroups, groupID)
 					}
 
-					channelsJson, _ := json.Marshal(microsoftTeamsChannels)
+					channelsJson, _ := json.Marshal(microsoftTeamsGroups)
 					channelsUpdate := string(channelsJson)
 
 					updates := model.Workspace{
-						MicrosoftTeamsChannels: &channelsUpdate,
+						MicrosoftTeamsGroups: &channelsUpdate,
 					}
 
 					if err := r.DB.Where(&query).Updates(&updates).Error; err != nil {
@@ -3562,7 +3545,6 @@ func (r *Resolver) MicrosoftTeamsBotEndpoint(w http.ResponseWriter, req *http.Re
 					if err != nil {
 						log.WithContext(ctx).Error(e.Wrap(err, "failed to process bot framework request"))
 						http.Error(w, err.Error(), http.StatusBadRequest)
-						return
 					}
 				}
 			}

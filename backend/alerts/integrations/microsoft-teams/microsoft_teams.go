@@ -9,10 +9,10 @@ import (
 	nUrl "net/url"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/infracloudio/msbotbuilder-go/schema"
 	"github.com/pkg/errors"
-	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"golang.org/x/oauth2"
@@ -42,19 +42,18 @@ type TeamsResponse struct {
 	Value   []TeamsResponseValue `json:"value"`
 }
 
-func GetMicrosoftTeamsChannelsFromWorkspace(workspace *model.Workspace) (map[string][]*model.MicrosoftTeamsChannel, error) {
-	microsoftTeamsChannels := make(map[string][]*model.MicrosoftTeamsChannel)
-	if workspace.MicrosoftTeamsChannels != nil && *workspace.MicrosoftTeamsChannels != "" {
-		err := json.Unmarshal([]byte(*workspace.MicrosoftTeamsChannels), &microsoftTeamsChannels)
-
-		return microsoftTeamsChannels, err
+func GetMicrosoftTeamsGroupsFromWorkspace(workspace *model.Workspace) []string {
+	var microsoftTeamsGroups []string
+	if workspace.MicrosoftTeamsGroups != nil && *workspace.MicrosoftTeamsGroups != "" {
+		_ = json.Unmarshal([]byte(*workspace.MicrosoftTeamsGroups), &microsoftTeamsGroups)
 	}
-	return microsoftTeamsChannels, nil
+	return microsoftTeamsGroups
 }
 
-func GetMicrosoftTeamsChannels(tenantID string, teamID string) ([]model.MicrosoftTeamsChannel, error) {
+func GetMicrosoftTeamsChannels(tenantID string, teamID string) ([]*model.MicrosoftTeamsChannel, error) {
 	ctx := context.Background()
 	accessToken, err := GetAccessToken(ctx, tenantID)
+
 
 	if err != nil {
 		return nil, err
@@ -66,12 +65,16 @@ func GetMicrosoftTeamsChannels(tenantID string, teamID string) ([]model.Microsof
 		return nil, err
 	}
 
-	return lo.Map(response.Value, func(team TeamsResponseValue, index int) model.MicrosoftTeamsChannel {
-		return model.MicrosoftTeamsChannel{
+	channels := make([]*model.MicrosoftTeamsChannel, len(response.Value))
+
+	for i, team := range response.Value {
+		channels[i] = &model.MicrosoftTeamsChannel{
 			ID:   team.ID,
 			Name: team.DisplayName,
 		}
-	}), nil
+	}
+
+	return channels, nil
 }
 
 func GetOAuthConfigForTenant(tenantID string) (*oauth2.Config, []oauth2.AuthCodeOption, error) {
@@ -188,16 +191,44 @@ func doRequest[T any](method string, accessToken string, url string, body string
 	return unmarshalled, nil
 }
 
-func GetTeamsChannel(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
+func GetTeamsChannels(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
 	allChannels := []*model.MicrosoftTeamsChannel{}
-	teamsChannels, err := GetMicrosoftTeamsChannelsFromWorkspace(workspace)
+	teamsGroups := GetMicrosoftTeamsGroupsFromWorkspace(workspace)
 
-	if err != nil {
-		return nil, err
+	ch := make(chan []*model.MicrosoftTeamsChannel, len(teamsGroups))
+	errCh := make(chan error)
+
+	defer func() {
+		close(ch)
+		close(errCh)
+	}()
+
+	var wg sync.WaitGroup
+	wg.Add(len(teamsGroups))
+
+	for _, teamGroup := range teamsGroups {
+		go func(teamGroup string) {
+			defer wg.Done()
+
+			channels, err := GetMicrosoftTeamsChannels(*workspace.MicrosoftTeamsTenantId, teamGroup)
+			if err != nil {
+				errCh <- err
+			} else {
+				ch <- channels
+			}
+		}(teamGroup)
 	}
 
-	for _, channels := range teamsChannels {
-		allChannels = append(allChannels, channels...)
+	wg.Wait()
+
+	for {
+		select {
+		case channels := <-ch:
+			allChannels = append(allChannels, channels...)
+		case err := <-errCh:
+			return nil, err // Return the first encountered error
+		default:
+			return allChannels, nil
+		}
 	}
-	return allChannels, nil
 }

@@ -6327,7 +6327,7 @@ func (r *queryResolver) MicrosoftTeamsChannelSuggestions(ctx context.Context, pr
 		return ret, nil
 	}
 
-	channels, err := microsoft_teams.GetTeamsChannel(workspace)
+	channels, err := microsoft_teams.GetTeamsChannels(workspace)
 
 	if err != nil {
 		return ret, nil
