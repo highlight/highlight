@@ -1,5 +1,15 @@
 # @highlight-run/next
 
+## 7.3.5
+
+### Patch Changes
+
+-   f6308c0ac: fix app/page router blocking on errors in some cases
+-   cf0cc6e2a: ensure sourcemap uploading does not break next build
+-   f6308c0ac: fix next/error import for ESNext module resolution
+-   Updated dependencies [f6308c0ac]
+    -   @highlight-run/node@3.7.3
+
 ## 7.3.4
 
 ### Patch Changes

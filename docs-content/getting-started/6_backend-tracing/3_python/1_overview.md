@@ -28,7 +28,7 @@ The Python SDK supports auto-instrumentation tracing for the Django, FastAPI, an
         {"Integrate tracing with Flask."}
     </DocsCard>
     <DocsCard title="Google Cloud Functions" href="./8_google-cloud-functions">
-        {"Get started in GCP"}
+        {"Integrate tracing with Google Cloud Functions"}
     </DocsCard>
     <DocsCard title="Python Libraries" href="./9_python-libraries.md">
         {"Integrate tracing with common Python libraries."}

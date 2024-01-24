@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS log_trace_id_mv;

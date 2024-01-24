@@ -13,6 +13,7 @@ import (
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/segmentio/encoding/json"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -223,7 +224,7 @@ func getSourcemapRequestToken(r *http.Request) string {
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
+		span, ctx := util.StartSpanFromContext(ctx, "middleware.private", util.WithSpanKind(trace.SpanKindServer))
 		defer span.Finish()
 		var err error
 		if token := r.Header.Get("token"); token != "" {

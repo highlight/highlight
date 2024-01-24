@@ -93,6 +93,7 @@ func TestMain(m *testing.M) {
 		DB:               db,
 		Redis:            redisClient,
 		Clickhouse:       chClient,
+		StorageClient:    &storage.FilesystemClient{},
 		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
@@ -360,7 +361,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					}
 				}
 
-				_, structuredStackTrace, err := resolver.getMappedStackTraceString(context.Background(), frames, 1, &errorObj)
+				version := resolver.GetErrorAppVersion(context.Background(), &errorObj)
+				_, structuredStackTrace, err := resolver.getMappedStackTraceString(context.Background(), frames, 1, &errorObj, version)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
 				}

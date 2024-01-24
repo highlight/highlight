@@ -252,7 +252,7 @@ export const TracesList: React.FC<Props> = ({
 
 					<Box alignSelf="center" display="flex">
 						<LinkButton
-							to="https://www.highlight.io/docs/getting-started/tracing/overview"
+							to="https://www.highlight.io/docs/getting-started/native-opentelemetry/tracing"
 							kind="primary"
 							size="small"
 							trackingId="tracing-empty-state_learn-more-setup"

@@ -44,4 +44,5 @@ export type BaseSearchContext = {
 		endDate?: Date,
 		preset?: DateRangePreset,
 	) => void
+	rebaseTime: () => void
 }

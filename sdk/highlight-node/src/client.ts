@@ -455,7 +455,7 @@ export class Highlight {
 						span.end()
 
 						await Promise.allSettled([
-							this.waitForFlush(['highlight-run-with-headers']),
+							this.waitForFlush(),
 							this.flush(),
 						])
 

@@ -7,7 +7,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
 import moment from 'moment'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { Outlet } from 'react-router-dom'
 import { StringParam, useQueryParam, withDefault } from 'use-query-params'
@@ -37,6 +37,7 @@ import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
+import analytics from '@/util/analytics'
 import { formatNumber } from '@/util/numbers'
 
 import * as styles from './TracesPage.css'
@@ -163,6 +164,8 @@ export const TracesPage: React.FC = () => {
 
 		return traceEdges.map((edge) => edge.node)
 	}, [traceEdges])
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<>
