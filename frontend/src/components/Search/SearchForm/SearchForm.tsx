@@ -249,6 +249,7 @@ export const Search: React.FC<{
 	const [getKeys, { loading: keysLoading }] = fetchKeysLazyQuery()
 	const [getKeyValues, { loading: valuesLoading }] = fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
+	const [isPending, startTransition] = React.useTransition()
 
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
@@ -261,7 +262,9 @@ export const Search: React.FC<{
 		activePart.key !== BODY_KEY &&
 		activePart.text.includes(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
-	const showValueSelect = !!activePart.value?.length
+	const showValueSelect =
+		activePart.text === `${activePart.key}${activePart.operator}` ||
+		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(activePart, values)
@@ -290,7 +293,7 @@ export const Search: React.FC<{
 	}
 
 	const handleSetCursorIndex = () => {
-		setCursorIndex(inputRef.current?.selectionStart || 0)
+		setCursorIndex(inputRef.current?.selectionStart || query.length)
 	}
 
 	useEffect(() => {
@@ -369,7 +372,6 @@ export const Search: React.FC<{
 		const isLastPart =
 			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
-		debugger
 		if (item.type === 'Operator') {
 			activePart.operator = value
 			activePart.text =
@@ -399,11 +401,13 @@ export const Search: React.FC<{
 			? (newQuery += ' ')
 			: null
 
-		setQuery(newQuery)
+		startTransition(() => {
+			setQuery(newQuery)
 
-		if (isValueSelect) {
-			submitQuery(newQuery)
-		}
+			if (isValueSelect) {
+				submitQuery(newQuery)
+			}
+		})
 
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
@@ -445,7 +449,7 @@ export const Search: React.FC<{
 		submitQuery(query)
 		comboboxStore.setOpen(false)
 		inputRef.current?.blur()
-		setCursorIndex(-1)
+		handleSetCursorIndex()
 	}
 
 	return (
@@ -516,7 +520,7 @@ export const Search: React.FC<{
 					}}
 					onBlur={() => {
 						submitQuery(query)
-						setCursorIndex(-1)
+						handleSetCursorIndex()
 						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
@@ -526,7 +530,9 @@ export const Search: React.FC<{
 
 						if (
 							e.key === 'Enter' &&
-							(query === '' || !showResults)
+							// Using isPending to prevent blurring when the user is selecting
+							// an item vs submitting the form.
+							(query === '' || !showResults || !isPending)
 						) {
 							e.preventDefault()
 							submitAndBlur()
