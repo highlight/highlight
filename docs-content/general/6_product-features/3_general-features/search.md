@@ -50,6 +50,22 @@ Comparisons are made using **operators**. The following operators are supported:
 * `>` - Greater than
 * `>=` - Greater than or equal to
 
+### Exist & Does Not Exist
+
+You can search if a key exists or does not exist with the `=` and `!=` operators. In traces, for example:
+
+```
+parent_span_id=""
+```
+
+will return all traces with no parent span (i.e. only root level traces). On the other hand:
+
+```
+secure_session_id!=""
+```
+
+will return all traces that have a secure session id (i.e. belong to a session).
+
 ## Logical Combinations
 
 Expressions can be combined using the logical operators `AND`, `OR`, and `NOT`.
