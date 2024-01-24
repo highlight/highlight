@@ -1,7 +1,7 @@
 ---
 title: "Day 5: Tracing SDKs for Next.js, Python, and Go/GORM"
 createdAt: 2024-02-02T12:00:00Z
-readingTime: 3
+readingTime: 2
 authorFirstName: Chris
 authorLastName: Esplin
 authorTitle: Software Engineer
@@ -29,7 +29,9 @@ We're in the process of adding Tracing support to all of our SDKs. If you build 
 
 - **Python**: For the Python community, we've created auto-instrumentation support for popular frameworks like Django, Flask, and FastAPI, alongside common Python libraries. We currently support the `requests` library, Celery, Redis, Boto, Boto3, and SqlAlchemy.
 
-- **Node.js & Next.js**: The Node.js SDK has been upgraded to apply session and request data across related spans. We've integrated these new Node features into our Next.js endpoint wrappers to automatically instrument your Next.js endpoints.
+- **Node.js**: The Node.js SDK has been upgraded to apply session and request data across related spans.
+
+- **Next.js**: We've integrated our new Node.js features into our Next.js endpoint wrappers to automatically instrument your Next.js endpoints. We support Next.js 14, including ISR, SSR, and API endpoints for the Node.js runtime across both App and Page Routers. 
 
 ## Why is this a big deal?
 
