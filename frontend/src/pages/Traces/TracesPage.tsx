@@ -51,7 +51,7 @@ export const TracesPage: React.FC = () => {
 	}>()
 	const [query, setQuery] = useQueryParam(
 		'query',
-		withDefault(StringParam, 'parent_span_id:""'),
+		withDefault(StringParam, 'parent_span_id not exists'),
 	)
 	const {
 		startDate,
