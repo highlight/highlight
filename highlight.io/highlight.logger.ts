@@ -9,9 +9,6 @@ const highlightConfig = {
 
 const pinoConfig = {
 	level: 'debug',
-	transport: {
-		target: 'pino-pretty',
-	},
 } as LoggerOptions
 
 if (process.env.NEXT_RUNTIME === 'nodejs') {
