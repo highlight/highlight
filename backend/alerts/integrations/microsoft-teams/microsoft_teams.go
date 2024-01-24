@@ -191,16 +191,9 @@ func doRequest[T any](method string, accessToken string, url string, body string
 }
 
 func GetMicrosoftTeamsChannelSuggestions(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
-	allChannels := []*model.MicrosoftTeamsChannel{}
 	teamsGroups := GetMicrosoftTeamsGroupsFromWorkspace(workspace)
 
-	ch := make(chan []*model.MicrosoftTeamsChannel, len(teamsGroups))
-	errCh := make(chan error)
-
-	defer func() {
-		close(ch)
-		close(errCh)
-	}()
+	ch := make(chan []*model.MicrosoftTeamsChannel)
 
 	var wg sync.WaitGroup
 	wg.Add(len(teamsGroups))
@@ -210,24 +203,21 @@ func GetMicrosoftTeamsChannelSuggestions(workspace *model.Workspace) ([]*model.M
 			defer wg.Done()
 
 			channels, err := GetMicrosoftTeamsChannels(*workspace.MicrosoftTeamsTenantId, teamGroup)
-			if err != nil {
-				errCh <- err
-			} else {
+			if err == nil {
 				ch <- channels
 			}
 		}(teamGroup)
 	}
 
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
 
-	for {
-		select {
-		case channels := <-ch:
-			allChannels = append(allChannels, channels...)
-		case err := <-errCh:
-			return nil, err // Return the first encountered error
-		default:
-			return allChannels, nil
-		}
+	allChannels := []*model.MicrosoftTeamsChannel{}
+	for channels := range ch {
+		allChannels = append(allChannels, channels...)
 	}
+
+	return allChannels, nil
 }
