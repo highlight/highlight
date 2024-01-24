@@ -423,6 +423,11 @@ export const Search: React.FC<{
 				setCursorIndex(newCursorPosition)
 			}, 0)
 		}
+
+		// TODO: There is a brief flash where the popover is hidden after selecting
+		// an item. This is because we wait a moment before re-fetching keys and we
+		// don't immediately enter the loading state because we debounce the value
+		// for the keys query.
 	}
 
 	const handleRemoveItem = (index: number) => {
