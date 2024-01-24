@@ -23,6 +23,7 @@ Grafana is a powerful compromise that we can use in the meantime to maximize fle
 
 ## The Dedicated Plugin
 If you've used Grafana, you know how powerful it can be. Our new Grafana plugin for Highlight can pipe your Highlight data into any Grafana deployment. Grafana gives you full control to create wild data visualizations, solving for whatever questions your organization is asking.
+Curious how many unique countries users visit your site from? Or are you looking to graph your p99 request latency for each REST API? The Highlight Grafana plugin let's you build these queries and more!
 
 ## Installation Flexibility
 The plugin is designed for ease of use and flexibility. It can be installed on your own Grafana instance, giving you full control over your data visualization environment. Alternatively, for a more hands-off approach, the plugin is also available on a Grafana instance managed by Highlight.
