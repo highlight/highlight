@@ -64,10 +64,13 @@ var traceColumns = []string{
 	"Environment",
 }
 
+// These keys show up as recommendations, but with no recommended values due to high cardinality
 var defaultTraceKeys = []*modelInputs.QueryKey{
-	{Name: "trace_id", Type: modelInputs.KeyTypeString},
-	{Name: "span_id", Type: modelInputs.KeyTypeString},
-	{Name: "duration", Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedTraceKeyTraceID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedTraceKeySpanName), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedTraceKeyDuration), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedTraceKeyParentSpanID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedTraceKeySecureSessionID), Type: modelInputs.KeyTypeString},
 }
 
 var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
@@ -77,9 +80,7 @@ var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	BodyColumn:       "SpanName",
 	AttributesColumn: "TraceAttributes",
 	SelectColumns:    traceColumns,
-	DefaultFilters: map[string]string{
-		highlight.TraceTypeAttribute: fmt.Sprintf("!%s", highlight.TraceTypeHighlightInternal),
-	},
+	DefaultFilter:    fmt.Sprintf("%s!=%s", highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
@@ -89,6 +90,7 @@ var tracesSamplingTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	ReservedKeys:     modelInputs.AllReservedTraceKey,
 	AttributesColumn: "TraceAttributes",
 	SelectColumns:    traceColumns,
+	DefaultFilter:    fmt.Sprintf("%s!=%s", highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedTraceKey]{
@@ -349,7 +351,7 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 		traceKeys = append(traceKeys, defaultTraceKeys...)
 	} else {
 		for _, key := range defaultTraceKeys {
-			if !strings.Contains(key.Name, *query) {
+			if strings.Contains(key.Name, *query) {
 				traceKeys = append(traceKeys, key)
 			}
 		}

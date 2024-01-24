@@ -107,6 +107,12 @@ func (s *BaseSearchGrammarListener) EnterImplicit_and_search_expr(ctx *Implicit_
 func (s *BaseSearchGrammarListener) ExitImplicit_and_search_expr(ctx *Implicit_and_search_exprContext) {
 }
 
+// EnterExists_search_expr is called when production exists_search_expr is entered.
+func (s *BaseSearchGrammarListener) EnterExists_search_expr(ctx *Exists_search_exprContext) {}
+
+// ExitExists_search_expr is called when production exists_search_expr is exited.
+func (s *BaseSearchGrammarListener) ExitExists_search_expr(ctx *Exists_search_exprContext) {}
+
 // EnterKey_val_search_expr is called when production key_val_search_expr is entered.
 func (s *BaseSearchGrammarListener) EnterKey_val_search_expr(ctx *Key_val_search_exprContext) {}
 
@@ -142,6 +148,12 @@ func (s *BaseSearchGrammarListener) EnterOr_op(ctx *Or_opContext) {}
 
 // ExitOr_op is called when production or_op is exited.
 func (s *BaseSearchGrammarListener) ExitOr_op(ctx *Or_opContext) {}
+
+// EnterExists_op is called when production exists_op is entered.
+func (s *BaseSearchGrammarListener) EnterExists_op(ctx *Exists_opContext) {}
+
+// ExitExists_op is called when production exists_op is exited.
+func (s *BaseSearchGrammarListener) ExitExists_op(ctx *Exists_opContext) {}
 
 // EnterNegation_op is called when production negation_op is entered.
 func (s *BaseSearchGrammarListener) EnterNegation_op(ctx *Negation_opContext) {}

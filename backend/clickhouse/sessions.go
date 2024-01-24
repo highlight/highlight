@@ -256,10 +256,7 @@ func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		From("sessions FINAL").
 		Where(sb.And(sb.Equal("ProjectID", projectId),
 			"NOT Excluded",
-			"WithinBillingQuota",
-			sb.Or("NOT Processed",
-				sb.GreaterEqualThan("ActiveLength", 1000),
-				sb.And(sb.IsNull("ActiveLength"), sb.GreaterEqualThan("Length", 1000)))),
+			"WithinBillingQuota"),
 			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
