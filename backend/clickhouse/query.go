@@ -285,8 +285,6 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		Limit(25)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-	sqlStr, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	fmt.Printf("::: sql: %+v\n", sqlStr)
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
