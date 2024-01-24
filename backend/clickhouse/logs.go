@@ -42,6 +42,7 @@ var defaultLogKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedLogKeySecureSessionID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedLogKeySpanID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedLogKeyTraceID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedLogKeyMessage), Type: modelInputs.KeyTypeString},
 }
 
 var logsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
