@@ -185,7 +185,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					py="8"
 					justifyContent="space-between"
 				>
-					{isSetup ? (
+					{isSetup || isSettings ? (
 						<LinkButton
 							to={goBackPath}
 							kind="secondary"
