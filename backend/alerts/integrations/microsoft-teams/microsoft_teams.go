@@ -191,7 +191,7 @@ func doRequest[T any](method string, accessToken string, url string, body string
 	return unmarshalled, nil
 }
 
-func GetTeamsChannels(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
+func GetMicrosoftTeamsChannelSuggestions(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
 	allChannels := []*model.MicrosoftTeamsChannel{}
 	teamsGroups := GetMicrosoftTeamsGroupsFromWorkspace(workspace)
 
