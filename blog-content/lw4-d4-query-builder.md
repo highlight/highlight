@@ -33,7 +33,7 @@ The beauty of our query language lies in its isomorphic nature, seamlessly funct
 
 ## Benefits
 
-1. **Advanced Numeric Filtering**: Need to filter data beyond a certain threshold? Simply use operators like `>`, `<`, `<=`, and `>=`. For example, to filter durations over 10,000, type `duration>10000`.
+1. **Advanced Numeric Filtering**: Need to filter data beyond a certain threshold? Simply use operators like `>`, `<`, `<=`, and `>=`. For example, to find spans that take longer than 10µs, type `duration>10000`.
 
 2. **Enhanced Logical Operations**: Our Query Builder supports `NOT` and `OR` operators, along with grouping statements. For instance, you can easily construct a query like `service_name=private-graph OR (status>=400 service_name=public-graph)`.
 
