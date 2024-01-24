@@ -54,7 +54,6 @@ import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
-import { KeyType } from '@/graph/generated/schemas'
 
 import * as styles from './SearchForm.css'
 
@@ -568,26 +567,7 @@ export const Search: React.FC<{
 								visibleItems.length === 0 && (
 									<Combobox.Item
 										className={styles.comboboxItem}
-										onClick={() => {
-											if (activePart.key === BODY_KEY) {
-												submitAndBlur()
-												return
-											}
-
-											handleItemSelect(
-												showValues
-													? {
-															name: activePart.value,
-															type: 'Value',
-													  }
-													: {
-															name: activePart.value,
-															type: KeyType.String,
-															__typename:
-																'QueryKey',
-													  },
-											)
-										}}
+										onClick={submitAndBlur}
 										store={comboboxStore}
 									>
 										<Stack direction="row" gap="4">
