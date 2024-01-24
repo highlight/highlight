@@ -191,6 +191,11 @@ func (s *searchListener[T]) appendRules(value string) {
 		traceAttributeKey = true
 	}
 
+	// Special case for non-string columns
+	if value == "" && !traceAttributeKey {
+		filterKey = fmt.Sprintf("toString(%s)", filterKey)
+	}
+
 	if s.currentOp == ":" || s.currentOp == "=" {
 		if strings.Contains(value, "*") {
 			value = wildcardValue(value)
