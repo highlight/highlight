@@ -17,16 +17,10 @@ import {
 	QuickStartContent,
 	quickStartContent,
 } from '../../components/QuickstartContent/QuickstartContent'
-import {
-	IGNORED_DOCS_PATHS,
-	processDocPath,
-	removeOrderingPrefix,
-} from '../api/docs/github'
+import { IGNORED_DOCS_PATHS, processDocPath } from '../api/docs/github'
 
 import classNames from 'classnames'
 import { promises as fsp } from 'fs'
-import matter from 'gray-matter'
-import yaml from 'js-yaml'
 import { serialize } from 'next-mdx-remote/serialize'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -47,6 +41,7 @@ import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
 import logger from '../../highlight.logger'
 import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
+import { readMarkdown, removeOrderingPrefix } from '../../shared/doc'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITHUB_LINK = `github.com/highlight/highlight/blob/main/docs-content`
@@ -461,37 +456,6 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			redirect,
 		},
 		revalidate: 60 * 30, // Cache response for 30 minutes
-	}
-}
-
-export const readMarkdown = async (fs_api: any, filePath: string) => {
-	const fileContents = await fs_api.readFile(path.join(filePath))
-	return parseMarkdown(fileContents)
-}
-
-export const parseMarkdown = (
-	fileContents: string,
-): { content: string; data: { [key: string]: any }; links: Set<string> } => {
-	const { content, data } = matter(fileContents, {
-		delimiters: ['---', '---'],
-		engines: {
-			yaml: (s: any) =>
-				yaml.load(s, { schema: yaml.JSON_SCHEMA }) as Object,
-		},
-	})
-	const regex = /(.)\[(.*?)\]\((.*?)\)/g
-	const links = new Set<string>(
-		[...content.matchAll(regex)]
-			.filter((m) => m[1] !== '!')
-			.map((m) => {
-				return m[3]
-			}),
-	)
-
-	return {
-		content,
-		data,
-		links,
 	}
 }
 

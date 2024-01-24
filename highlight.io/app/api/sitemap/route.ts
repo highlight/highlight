@@ -3,13 +3,12 @@ import { gql } from 'graphql-request'
 import { COMPETITORS } from '../../../components/Competitors/competitors'
 import { FEATURES, iFeature } from '../../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../../components/Products/products'
-import { getBlogPaths } from '../../../pages/blog'
 import pino from 'pino'
 import { GraphQLRequest } from '../../../utils/graphql'
 import { createWriteStream } from 'pino-http-send'
 import { withAppRouterHighlight } from '../../../highlight.app.config'
-import { NextRequest } from 'next/server'
 import { getGithubDocsPaths } from '../../../pages/api/docs/github'
+import { getBlogPaths } from '../../../shared/blog'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
@@ -83,7 +82,7 @@ async function generateXML(): Promise<string> {
 	  </urlset>`
 }
 
-export const maxDuration = 5 // This function can run for a maximum of 5 seconds
+export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
 export const GET = withAppRouterHighlight(async function GET() {
