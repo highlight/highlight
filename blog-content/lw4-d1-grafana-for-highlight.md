@@ -17,7 +17,7 @@ metaTitle: "Day 1: Grafana for Highlight"
 
 ## Grafana for Highlight
 Highlight produces mountains of data. Every user session records `traces`, `logs`, `errors` and of course, a video-like `session replay`.
-We’re building sophisticated visualization tools to make Highlight’s dashboards easier to use, but it’ll take years to address every possible use case.
+We’re building sophisticated visualization tools to make Highlight’s dashboards easier to use, but it’ll take a while to address every possible use case.
 
 Grafana is a powerful shortcut that we can take in the meantime to maximize flexibility and reporting power.
 
