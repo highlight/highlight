@@ -27,7 +27,7 @@ Our ClickHouse database has powerful search and filtering tools, but we've got t
 
 At Highlight, we believe in cleaning up after ourselves. We cleaned up this mess with our own little query language, along with an interpreter that we can run on the client or the server.
 
-We've enhanced the Highlight Query Builder to support numeric filtering and intricate query structures involving NOT and OR clauses.
+We've enhanced the Highlight Query Builder to support numeric filtering and intricate query structures involving `NOT` and `OR` clauses.
 
 The beauty of our query language lies in its isomorphic nature, seamlessly functioning from server to client. This not only improves performance but also lays a solid groundwork for future expansion.
 
