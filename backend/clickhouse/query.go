@@ -266,7 +266,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	}))
 
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("Key, sum(Count)").
+	sb.Select("Key, Type, sum(Count)").
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
@@ -280,11 +280,13 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		sb.Where(sb.Equal("Type", typeArg))
 	}
 
-	sb.GroupBy("1").
-		OrderBy("2 DESC, 1").
+	sb.GroupBy("1, 2").
+		OrderBy("3 DESC, 1").
 		Limit(25)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	sqlStr, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	fmt.Printf("::: sql: %+v\n", sqlStr)
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
 	span.SetAttribute("Query", sql)
@@ -300,15 +302,18 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	keys := []*modelInputs.QueryKey{}
 	for rows.Next() {
 		var (
-			key   string
-			count uint64
+			key     string
+			keyType string
+			count   uint64
 		)
-		if err := rows.Scan(&key, &count); err != nil {
+
+		if err := rows.Scan(&key, &keyType, &count); err != nil {
 			return nil, err
 		}
 
 		keys = append(keys, &modelInputs.QueryKey{
 			Name: key,
+			Type: modelInputs.KeyType(keyType),
 		})
 	}
 

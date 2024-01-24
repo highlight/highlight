@@ -369,6 +369,7 @@ export const Search: React.FC<{
 		const isLastPart =
 			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
+		debugger
 		if (item.type === 'Operator') {
 			activePart.operator = value
 			activePart.text =
@@ -564,57 +565,95 @@ export const Search: React.FC<{
 					gutter={10}
 					sameWidth
 				>
-					<Box pt="3">
-						<Combobox.GroupLabel store={comboboxStore}>
-							{activePart.key === BODY_KEY &&
-								visibleItems.length === 0 && (
+					<Box cssClass={styles.comboboxResults}>
+						{activePart.key === BODY_KEY &&
+							activePart.value.length > 0 && (
+								<Combobox.Group
+									className={styles.comboboxGroup}
+									store={comboboxStore}
+								>
 									<Combobox.Item
 										className={styles.comboboxItem}
 										onClick={submitAndBlur}
 										store={comboboxStore}
 									>
 										<Stack direction="row" gap="4">
-											<Text lines="1" color="weak">
+											<Text
+												lines="1"
+												color="weak"
+												size="small"
+											>
 												Show all results for
 											</Text>{' '}
-											<Text>
+											<Text
+												color="secondaryContentText"
+												size="small"
+											>
 												&lsquo;
 												{activePart.value}
 												&rsquo;
 											</Text>
 										</Stack>
 									</Combobox.Item>
-								)}
-						</Combobox.GroupLabel>
-					</Box>
-					<Combobox.Group
-						className={styles.comboboxGroup}
-						store={comboboxStore}
-					>
+								</Combobox.Group>
+							)}
 						{loading && visibleItems.length === 0 && (
-							<Combobox.Item
-								className={styles.comboboxItem}
-								disabled
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
 							>
-								<Text>Loading...</Text>
-							</Combobox.Item>
-						)}
-						{visibleItems.length > 0 &&
-							visibleItems.map((key, index) => (
 								<Combobox.Item
 									className={styles.comboboxItem}
-									key={index}
-									onClick={() => handleItemSelect(key)}
-									store={comboboxStore}
+									disabled
 								>
-									{typeof key === 'string' ? (
-										<Text>{key}</Text>
-									) : (
-										<Text>{key.name}</Text>
-									)}
+									<Text color="secondaryContentText">
+										Loading...
+									</Text>
 								</Combobox.Item>
-							))}
-					</Combobox.Group>
+							</Combobox.Group>
+						)}
+						{visibleItems.length > 0 && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								{!showValues && !showOperators && (
+									<Combobox.GroupLabel store={comboboxStore}>
+										<Box px="10" py="6">
+											<Text
+												color="moderate"
+												size="xxSmall"
+											>
+												Filters
+											</Text>
+										</Box>
+									</Combobox.GroupLabel>
+								)}
+								{visibleItems.map((key, index) => {
+									const badgeText =
+										getSearchResultBadgeText(key)
+
+									return (
+										<Combobox.Item
+											className={styles.comboboxItem}
+											key={index}
+											onClick={() =>
+												handleItemSelect(key)
+											}
+											store={comboboxStore}
+										>
+											<Text color="secondaryContentText">
+												{key.name}
+											</Text>
+											{badgeText && (
+												<Badge label={badgeText} />
+											)}
+										</Combobox.Item>
+									)
+								})}
+							</Combobox.Group>
+						)}
+					</Box>
 					<Box
 						bbr="8"
 						py="4"
@@ -765,4 +804,27 @@ const getVisibleValues = (
 		name: value,
 		type: 'Value',
 	}))
+}
+
+const getSearchResultBadgeText = (key: SearchResult) => {
+	if (key.type === 'Operator') {
+		switch (key.name) {
+			case '=':
+				return 'is'
+			case '!=':
+				return 'is not'
+			case '>':
+				return 'greater'
+			case '>=':
+				return 'greater or equal'
+			case '<':
+				return 'smaller'
+			case '<=':
+				return 'smaller or equal'
+		}
+	} else if (key.type === 'Value') {
+		return undefined
+	} else {
+		return key.type?.toLowerCase()
+	}
 }
