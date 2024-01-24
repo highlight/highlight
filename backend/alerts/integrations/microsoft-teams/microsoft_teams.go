@@ -54,7 +54,6 @@ func GetMicrosoftTeamsChannels(tenantID string, teamID string) ([]*model.Microso
 	ctx := context.Background()
 	accessToken, err := GetAccessToken(ctx, tenantID)
 
-
 	if err != nil {
 		return nil, err
 	}
