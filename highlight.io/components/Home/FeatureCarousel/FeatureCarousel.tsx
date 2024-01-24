@@ -126,14 +126,14 @@ const features: Feature[] = [
 		mobileImage: tracesscreenshot,
 		right: true,
 		shortenWidth: true,
-		beta: true,
 		feature1: 'Powerful Visualization Capabilities',
 		featureImage1: <HiTemplate className="h-[20px] w-[20px]" />,
 		feature2: 'Distributed Tracing Support',
 		featureImage2: <HiGlobe className="h-[20px] w-[20px]" />,
 		feature3: 'OpenTelemetry Support',
 		featureImage3: <HiExclamationCircle className="h-[20px] w-[20px]" />,
-		link: '/docs/getting-started/tracing',
+		// TODO: update this link to new landing page when ready
+		link: '/docs/general/product-features/tracing/overview',
 	},
 
 	{
