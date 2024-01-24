@@ -16,12 +16,14 @@ import { Body_search_exprContext } from './SearchGrammarParser'
 import { And_search_exprContext } from './SearchGrammarParser'
 import { Or_search_exprContext } from './SearchGrammarParser'
 import { Implicit_and_search_exprContext } from './SearchGrammarParser'
+import { Exists_search_exprContext } from './SearchGrammarParser'
 import { Key_val_search_exprContext } from './SearchGrammarParser'
 import { Paren_search_exprContext } from './SearchGrammarParser'
 import { Search_keyContext } from './SearchGrammarParser'
 import { And_opContext } from './SearchGrammarParser'
 import { Implicit_and_opContext } from './SearchGrammarParser'
 import { Or_opContext } from './SearchGrammarParser'
+import { Exists_opContext } from './SearchGrammarParser'
 import { Negation_opContext } from './SearchGrammarParser'
 import { Bin_opContext } from './SearchGrammarParser'
 import { Search_valueContext } from './SearchGrammarParser'
@@ -202,6 +204,18 @@ export default class SearchGrammarListener extends ParseTreeListener {
 		ctx: Implicit_and_search_exprContext,
 	) => void
 	/**
+	 * Enter a parse tree produced by the `exists_search_expr`
+	 * labeled alternative in `SearchGrammarParser.search_expr`.
+	 * @param ctx the parse tree
+	 */
+	enterExists_search_expr?: (ctx: Exists_search_exprContext) => void
+	/**
+	 * Exit a parse tree produced by the `exists_search_expr`
+	 * labeled alternative in `SearchGrammarParser.search_expr`.
+	 * @param ctx the parse tree
+	 */
+	exitExists_search_expr?: (ctx: Exists_search_exprContext) => void
+	/**
 	 * Enter a parse tree produced by the `key_val_search_expr`
 	 * labeled alternative in `SearchGrammarParser.search_expr`.
 	 * @param ctx the parse tree
@@ -265,6 +279,16 @@ export default class SearchGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitOr_op?: (ctx: Or_opContext) => void
+	/**
+	 * Enter a parse tree produced by `SearchGrammarParser.exists_op`.
+	 * @param ctx the parse tree
+	 */
+	enterExists_op?: (ctx: Exists_opContext) => void
+	/**
+	 * Exit a parse tree produced by `SearchGrammarParser.exists_op`.
+	 * @param ctx the parse tree
+	 */
+	exitExists_op?: (ctx: Exists_opContext) => void
 	/**
 	 * Enter a parse tree produced by `SearchGrammarParser.negation_op`.
 	 * @param ctx the parse tree
