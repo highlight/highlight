@@ -19,7 +19,7 @@ metaTitle: "Day 1: Grafana for Highlight"
 Highlight produces mountains of data. Every user session records `traces`, `logs`, `errors` and of course, a video-like `session replay`.
 We’re building sophisticated visualization tools to make Highlight’s dashboards easier to use, but it’ll take a while to address every possible use case.
 
-Grafana is a powerful shortcut that we can take in the meantime to maximize flexibility and reporting power.
+Grafana is a powerful compromise that we can use in the meantime to maximize flexibility and reporting power.
 
 ## The Dedicated Plugin
 If you've used Grafana, you know how powerful it can be. Our new Grafana plugin for Highlight can pipe your Highlight data into any Grafana back end. Grafana gives you full control to create wild data visualizations, solving for whatever questions your organization is asking.
