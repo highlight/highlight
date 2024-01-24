@@ -7,6 +7,7 @@ type Props = React.PropsWithChildren & Ariakit.ComboboxProps
 
 type ComboboxComponent = React.ForwardRefExoticComponent<Props> & {
 	Popover: typeof Popover
+	List: typeof List
 	Item: typeof Item
 	Group: typeof Group
 	GroupLabel: typeof GroupLabel
@@ -42,6 +43,12 @@ export const Popover: React.FC<
 	)
 }
 
+export const List: React.FC<
+	React.PropsWithChildren & Ariakit.ComboboxListProps
+> = ({ children, ...props }) => {
+	return <Ariakit.ComboboxList {...props}>{children}</Ariakit.ComboboxList>
+}
+
 export const Item: React.FC<
 	React.PropsWithChildren & Ariakit.ComboboxItemProps
 > = ({ children, ...props }) => {
@@ -65,6 +72,7 @@ export const GroupLabel: React.FC<
 }
 
 Combobox.Popover = Popover
+Combobox.List = List
 Combobox.Item = Item
 Combobox.Group = Group
 Combobox.GroupLabel = GroupLabel
