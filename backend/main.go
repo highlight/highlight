@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.opentelemetry.io/otel/trace"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	"html/template"
 	"io"
 	"math/rand"
@@ -17,6 +17,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -560,6 +561,14 @@ func main() {
 				if handlerFlag != nil && *handlerFlag != "" {
 					serviceName = *handlerFlag
 				}
+
+				log.WithContext(ctx).Info("Running dd client setup process...")
+				if err := dd.Start(runtimeParsed); err != nil {
+					log.WithContext(ctx).Fatal(e.Wrap(err, "error starting dd clients with error"))
+				} else {
+					defer dd.Stop()
+				}
+
 				err := profiler.Start(profiler.WithService(serviceName), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 				if err != nil {
 					log.Fatal(err)
