@@ -103,6 +103,10 @@ export const CreateErrorSegmentModal = ({
 		}
 	}
 
+	if (!showModal) {
+		return null
+	}
+
 	const loading = creatingErrorSegment || updatingErrorSegment
 	return (
 		<SavedSegmentModal
@@ -112,7 +116,6 @@ export const CreateErrorSegmentModal = ({
 			onHideModal={onHideModal}
 			onSubmit={onSubmit}
 			queryBuilder={<ErrorQueryBuilder readonly />}
-			showModal={showModal}
 			shouldUpdate={shouldUpdate}
 		/>
 	)
