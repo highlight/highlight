@@ -5,6 +5,7 @@ export const footerBottomMobile: string
 export const footerList: string
 export const footerTitle: string
 export const socialDiv: string
+export const socialDivLight: string
 export const socialIcon: string
 export const status: string
 export const statusCircle: string

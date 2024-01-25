@@ -8,6 +8,7 @@ import { GithubPopup } from '../../GithubPopup/GithubPopup'
 import { PrimaryButton } from '../Buttons/PrimaryButton'
 import {
 	HighlightLogo,
+	HighlightLogoLight,
 	HighlightLogoWhite,
 } from '../HighlightLogo/HighlightLogo'
 import { Typography } from '../Typography/Typography'
@@ -49,6 +50,7 @@ const Navbar = ({
 	fixed,
 	title,
 	bg,
+	light,
 }: {
 	hideFreeTrialText?: boolean
 	isDocsPage?: boolean
@@ -56,6 +58,7 @@ const Navbar = ({
 	fixed?: boolean
 	title?: string
 	bg?: string
+	light?: boolean
 }) => {
 	const [scrolled, setScrolled] = useState(false)
 	const [atTop, setAtTop] = useState(true)
@@ -134,6 +137,8 @@ const Navbar = ({
 							<Link href={'/'} className={styles.urlStyle}>
 								{isOpen ? (
 									<HighlightLogoWhite />
+								) : light ? (
+									<HighlightLogoLight />
 								) : (
 									<HighlightLogo />
 								)}
@@ -246,34 +251,47 @@ const Navbar = ({
 								</div>
 							</div>
 						)}
-						{!isDocsPage && (
-							<div
-								className={classNames(
-									styles.navContainer,
-									styles.header,
-									styles.headerCenter,
-								)}
-							>
-								<FeatureDropdown isOpen={scrolled && !fixed} />
-								<Link
-									href="/integrations"
-									className={styles.headerButton}
+						{!isDocsPage ||
+							(light && (
+								<div
+									className={classNames(
+										styles.navContainer,
+										styles.header,
+										styles.headerCenter,
+									)}
 								>
-									<Typography type="copy2">
-										Integrations
-									</Typography>
-								</Link>
-								<Link
-									href="/pricing"
-									className={styles.headerButton}
-								>
-									<Typography type="copy2">
-										Pricing
-									</Typography>
-								</Link>
-								<ResourceDropdown isOpen={scrolled && !fixed} />
-							</div>
-						)}
+									<FeatureDropdown
+										isOpen={scrolled && !fixed}
+										light={light}
+									/>
+									<Link
+										href="/integrations"
+										className={classNames({
+											[styles.headerButtonLight]: light,
+											[styles.headerButton]: !light,
+										})}
+									>
+										<Typography type="copy2">
+											Integrations
+										</Typography>
+									</Link>
+									<Link
+										href="/pricing"
+										className={classNames({
+											[styles.headerButtonLight]: light,
+											[styles.headerButton]: !light,
+										})}
+									>
+										<Typography type="copy2">
+											Pricing
+										</Typography>
+									</Link>
+									<ResourceDropdown
+										isOpen={scrolled && !fixed}
+										light={light}
+									/>
+								</div>
+							))}
 						<div
 							className={classNames(
 								styles.navContainer,
@@ -285,22 +303,30 @@ const Navbar = ({
 								<Link
 									href="/docs"
 									className={classNames(
-										styles.headerButton,
 										styles.headerButtonRight,
+										{
+											[styles.headerButtonLight]: light,
+											[styles.headerButton]: !light,
+										},
 									)}
 								>
 									<Typography type="copy2">Docs</Typography>
 								</Link>
 							)}
-							<a
+							<Link
 								href="https://app.highlight.io/"
-								className={styles.headerButton}
+								className={classNames({
+									[styles.headerButtonLight]: light,
+									[styles.headerButton]: !light,
+								})}
 							>
 								<Typography type="copy2">Sign in</Typography>
-							</a>
+							</Link>
 							<PrimaryButton
 								href="https://app.highlight.io/sign_up"
-								className={styles.signUpButton}
+								className={classNames(styles.signUpButton, {
+									[styles.signUpButtonLight]: light,
+								})}
 							>
 								<Typography type="copy2" emphasis={true}>
 									Sign up
@@ -314,16 +340,30 @@ const Navbar = ({
 									className={classNames(
 										styles.socialButtonWrapper,
 										styles.socialButtonWrapperLeft,
+										{
+											[styles.socialButtonWrapperLight]:
+												light,
+										},
 									)}
 								>
 									<AiFillGithub
 										className={classNames(
 											styles.socialButton,
+											{
+												[styles.socialButtonLight]:
+													light,
+											},
 										)}
 									/>
 								</Link>
 								<div
-									className={styles.socialButtonDivider}
+									className={classNames(
+										styles.socialButtonDivider,
+										{
+											[styles.socialButtonDividerLight]:
+												light,
+										},
+									)}
 								></div>
 								<Link
 									href="https://discord.gg/yxaXEAqgwN"
@@ -332,11 +372,19 @@ const Navbar = ({
 									className={classNames(
 										styles.socialButtonWrapper,
 										styles.socialButtonWrapperRight,
+										{
+											[styles.socialButtonWrapperLight]:
+												light,
+										},
 									)}
 								>
 									<FaDiscord
 										className={classNames(
 											styles.socialButton,
+											{
+												[styles.socialButtonLight]:
+													light,
+											},
 										)}
 									/>
 								</Link>

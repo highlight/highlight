@@ -6,9 +6,9 @@ import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
 import { Typography } from '../Typography/Typography'
 import styles from './Footer.module.scss'
 
-const Footer = () => {
+export const Footer = ({ light }: { light?: boolean }) => {
 	return (
-		<footer>
+		<footer className="bg-dark-background">
 			<div className={styles.footer}>
 				<div className={styles.footerBottom}>
 					<div>
