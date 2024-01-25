@@ -73,7 +73,9 @@ type SearchResult = Keys[0] | { name: string; type: 'Operator' | 'Value' }
 
 const MAX_ITEMS = 25
 
-export const SEARCH_OPERATORS = ['=', '!=', '>', '>=', '<', '<=']
+const NUMERIC_OPERATORS = ['>', '>=', '<', '<=']
+const BOOLEAN_OPERATORS = ['=', '!=']
+export const SEARCH_OPERATORS = [...BOOLEAN_OPERATORS, ...NUMERIC_OPERATORS]
 
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
@@ -273,12 +275,14 @@ export const Search: React.FC<{
 		: getVisibleKeys(query, queryParts, activePart, keys)
 
 	// Show operators when we have an exact match for a key
-	const showOperators = !!visibleItems.find(
-		(item) => item.name === activePart.text,
-	)
+	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
+	const showOperators = !!keyMatch
 
 	if (showOperators) {
-		visibleItems = SEARCH_OPERATORS.map((operator) => ({
+		const operators =
+			keyMatch.type === 'Numeric' ? NUMERIC_OPERATORS : BOOLEAN_OPERATORS
+
+		visibleItems = operators.map((operator) => ({
 			name: operator,
 			type: 'Operator',
 		}))
