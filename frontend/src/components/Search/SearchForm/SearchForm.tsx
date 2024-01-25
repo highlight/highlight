@@ -421,11 +421,13 @@ export const Search: React.FC<{
 			}
 		})
 
-		inputRef.current?.setSelectionRange(
-			newCursorPosition,
-			newCursorPosition,
-		)
-		setCursorIndex(newCursorPosition)
+		setTimeout(() => {
+			inputRef.current?.setSelectionRange(
+				newCursorPosition,
+				newCursorPosition,
+			)
+			setCursorIndex(newCursorPosition)
+		})
 
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
