@@ -126,7 +126,6 @@ const features: Feature[] = [
 		mobileImage: tracesscreenshot,
 		right: true,
 		shortenWidth: true,
-		beta: true,
 		feature1: 'Powerful Visualization Capabilities',
 		featureImage1: <HiTemplate className="h-[20px] w-[20px]" />,
 		feature2: 'Distributed Tracing Support',

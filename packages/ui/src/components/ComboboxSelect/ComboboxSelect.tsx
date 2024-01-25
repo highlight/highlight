@@ -28,7 +28,7 @@ type Props<T extends string | string[]> = {
 	label: string
 	icon?: React.ReactNode
 	value: T | undefined
-	valueRender: React.ReactNode
+	valueRender?: React.ReactNode
 	options: Option[] | undefined
 	onChange: (value: T) => void
 	onChangeQuery?: (value: string) => void

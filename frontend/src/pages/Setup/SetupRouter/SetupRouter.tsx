@@ -1,7 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetProjectQuery } from '@graph/hooks'
 import {
-	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidBell,
@@ -210,12 +209,6 @@ export const SetupRouter = () => {
 							<Stack direction="row" align="center" gap="4">
 								<IconSolidSparkles />
 								<Text>Traces</Text>
-								<Badge
-									size="small"
-									shape="basic"
-									label="Beta"
-									variant="purple"
-								/>
 							</Stack>
 							{tracesIntegration?.integrated && (
 								<IconSolidCheckCircle />

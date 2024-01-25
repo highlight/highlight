@@ -20,7 +20,7 @@ import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { camelCase } from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
@@ -28,11 +28,10 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { NetworkResourceErrors } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceErrors'
 import { NetworkResourceInfo } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceInfo'
 import { NetworkResourceLogs } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceLogs'
+import { NetworkResourceTrace } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceTrace'
 import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
-import { TraceFlameGraph } from '@/pages/Traces/TraceFlameGraph'
-import { TraceProvider, useTrace } from '@/pages/Traces/TraceProvider'
-import { TraceSpanAttributes } from '@/pages/Traces/TraceSpanAttributes'
+import { TraceProvider } from '@/pages/Traces/TraceProvider'
 
 import * as styles from './NetworkResourcePanel.css'
 
@@ -145,9 +144,7 @@ function NetworkResourceDetails({
 	resource: NetworkResource
 	hide: () => void
 }) {
-	const initialized = useRef<boolean>(false)
 	const { resources } = useResourcesContext()
-	const { selectedSpan, traceName } = useTrace()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
@@ -159,6 +156,8 @@ function NetworkResourceDetails({
 	const sessionSecureId = session?.secure_id
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
+	const isNetworkRequest =
+		resource?.initiatorType === 'fetch' || resource?.initiatorType === 'xhr'
 
 	const networkResources = useMemo(() => {
 		return (
@@ -207,19 +206,15 @@ function NetworkResourceDetails({
 			},
 		}
 
-		if (!!traceName) {
+		if (isNetworkRequest) {
 			tabPages[NetworkRequestTabs.Trace] = {
-				page: (
-					<Box p="8">
-						<TraceSpanAttributes span={selectedSpan!} />
-					</Box>
-				),
+				page: <NetworkResourceTrace />,
 			}
 		}
 
 		return tabPages
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [traceName])
+	}, [isNetworkRequest])
 
 	useHotkeys(
 		'h',
@@ -244,17 +239,7 @@ function NetworkResourceDetails({
 	)
 
 	useEffect(() => {
-		if (selectedSpan?.spanID && initialized.current) {
-			setActiveTab(NetworkRequestTabs.Trace)
-		}
-
-		// Don't want to select the trace on the first render.
-		initialized.current = true
-	}, [selectedSpan?.spanID])
-
-	useEffect(() => {
 		setActiveTab(NetworkRequestTabs.Info)
-		initialized.current = false
 	}, [resource.id])
 
 	useEffect(() => {
@@ -345,8 +330,6 @@ function NetworkResourceDetails({
 						Go to
 					</Tag>
 				</Box>
-
-				{traceName && <TraceFlameGraph />}
 			</Box>
 
 			<Tabs<NetworkRequestTabs>

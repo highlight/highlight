@@ -2454,5 +2454,5 @@ type TableConfig[TReservedKey ~string] struct {
 	KeysToColumns    map[TReservedKey]string
 	ReservedKeys     []TReservedKey
 	SelectColumns    []string
-	DefaultFilters   map[string]string
+	DefaultFilter    string
 }

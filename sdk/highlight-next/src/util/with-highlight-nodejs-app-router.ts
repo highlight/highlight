@@ -18,18 +18,14 @@ export function Highlight(options: NodeOptions) {
 			const start = new Date()
 
 			try {
-				const result = await H.runWithHeaders<Promise<Response>>(
+				return await H.runWithHeaders<Promise<Response>>(
 					request.headers,
 					async () => originalHandler(request, context),
 				)
-
-				recordLatency()
-
-				return result
 			} catch (e) {
-				recordLatency()
-
 				throw e
+			} finally {
+				recordLatency()
 			}
 
 			function recordLatency() {

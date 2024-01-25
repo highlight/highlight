@@ -4,7 +4,12 @@ import { H } from './highlight-node'
 import { IncomingHttpHeaders } from 'http'
 
 export declare type HasHeaders = { headers: IncomingHttpHeaders }
-export declare type HasStatus = { statusCode: number; statusMessage: string }
+export declare type HasStatus = {
+	readonly statusCode: number
+	readonly statusMessage: string
+	status: (statusCode: number) => HasStatus
+	send: (body: string) => void
+}
 export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 	req: T,
 	res: S,
@@ -23,20 +28,14 @@ export const Highlight =
 			const start = new Date()
 
 			try {
-				const result = await H.runWithHeaders(req.headers, async () =>
-					originalHandler(req, res),
-				)
-
-				recordLatency()
-
-				return result
+				return await H.runWithHeaders(req.headers, async () => {
+					return await originalHandler(req, res)
+				})
 			} catch (e) {
-				res.statusCode = 500
-				res.statusMessage = 'Internal Server Error'
-
-				recordLatency()
-
+				res.status(500).send('Internal Server Error')
 				throw e
+			} finally {
+				recordLatency()
 			}
 
 			function recordLatency() {

@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -101,7 +102,8 @@ const (
 	ErrFailedToFetch    = "ErrFailedToFetch"
 	ErrFetchNotOk       = "ErrFetchNotOk"
 	// MaxAssetSize = 200 GB storage per ECS node / 64 parallel kafka workers
-	MaxAssetSize = 3 * 1e9
+	MaxAssetSize    = 3 * 1e9
+	MaxSnapshotSize = 128 * 1024 * 1024
 )
 
 type fetcher interface {
@@ -222,6 +224,13 @@ type Snapshot struct {
 }
 
 func NewSnapshot(inputData json.RawMessage, hostUrl *string) (*Snapshot, error) {
+	data := []byte(inputData)
+	hmetric.Histogram(context.Background(), "snapshot-length", float64(len(data)), nil, 1)
+
+	if len(data) > MaxSnapshotSize {
+		return nil, errors.New(fmt.Sprintf("event snapshot too large: %d", len(data)))
+	}
+
 	s := &Snapshot{}
 	if err := s.decode(inputData); err != nil {
 		return nil, err

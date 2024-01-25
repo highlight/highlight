@@ -1,8 +1,12 @@
+import logger from '@/highlight.logger'
+
 type Props = {
 	searchParams: { error?: string }
 }
 
 export default function SsrPage({ searchParams }: Props) {
+	logger.info({}, `ssr page`)
+
 	if (searchParams.error) {
 		throw new Error('🎉 SSR Error: src/app-router/ssr/page.tsx')
 	}

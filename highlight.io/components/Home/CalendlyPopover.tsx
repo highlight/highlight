@@ -43,11 +43,11 @@ export const CalendlyPopover = () => {
 								styles={{ width: '100%', height: '100%' }}
 								utm={{
 									utmCampaign:
-										query.get('utm_campaign') ?? '',
-									utmSource: query.get('utm_source') ?? '',
-									utmMedium: query.get('utm_medium') ?? '',
-									utmContent: query.get('utm_content') ?? '',
-									utmTerm: query.get('utm_term') ?? '',
+										query?.get('utm_campaign') ?? '',
+									utmSource: query?.get('utm_source') ?? '',
+									utmMedium: query?.get('utm_medium') ?? '',
+									utmContent: query?.get('utm_content') ?? '',
+									utmTerm: query?.get('utm_term') ?? '',
 								}}
 							/>
 						</div>

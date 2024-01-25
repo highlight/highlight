@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.opentelemetry.io/otel/trace"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	"html/template"
 	"io"
 	"math/rand"
@@ -17,6 +17,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -554,6 +555,19 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
+			if !util.IsDevOrTestEnv() && !util.IsOnPrem() {
+				serviceName := "worker-service"
+				if handlerFlag != nil && *handlerFlag != "" {
+					serviceName = *handlerFlag
+				}
+
+				log.WithContext(ctx).Info("Running dd client setup process...")
+				if err := dd.Start(serviceName); err != nil {
+					log.WithContext(ctx).Fatal(e.Wrap(err, "error starting dd clients with error"))
+				} else {
+					defer dd.Stop()
+				}
+			}
 			if handlerFlag != nil && *handlerFlag != "" {
 				func() {
 					defer util.RecoverAndCrash()

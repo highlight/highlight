@@ -19,14 +19,18 @@ export default class HighlightWebpackPlugin {
 	}
 
 	apply(compiler: any) {
-		compiler.hooks.afterEmit.tap('HighlightWebpackPlugin', () => {
-			uploadSourcemaps({
-				apiKey: this.apiKey,
-				appVersion: this.appVersion,
-				path: this.path,
-				basePath: this.basePath,
-				allowNoop: true,
-			})
+		compiler.hooks.afterEmit.tap('HighlightWebpackPlugin', async () => {
+			try {
+				await uploadSourcemaps({
+					apiKey: this.apiKey,
+					appVersion: this.appVersion,
+					path: this.path,
+					basePath: this.basePath,
+					allowNoop: true,
+				})
+			} catch (e) {
+				console.error(`Highlight Failed to upload sourcemaps: ${e}`)
+			}
 		})
 		return compiler
 	}

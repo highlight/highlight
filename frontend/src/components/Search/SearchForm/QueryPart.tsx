@@ -105,7 +105,7 @@ export const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
 export const Token = ({ text }: { text: string }): JSX.Element => {
 	const cssClass = text.trim() === '' ? styles.whitspaceTag : ''
 
-	if (SEPARATORS.includes(text)) {
+	if (SEPARATORS.includes(text.toUpperCase())) {
 		return <Box style={{ color: '#E93D82', zIndex: 1 }}>{text}</Box>
 	} else {
 		return (

@@ -2,29 +2,30 @@ import {
 	Badge,
 	Box,
 	IconSolidAcademicCap,
-	IconSolidMenuAlt_2,
-	IconSolidPlayCircle,
 	Stack,
 	Table,
-	Tag,
 	Text,
 } from '@highlight-run/ui/components'
+import useLocalStorage from '@rehooks/local-storage'
 import {
+	ColumnDef,
 	createColumnHelper,
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import React, { Key, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { Key, useMemo, useRef } from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
-import { Trace, TraceEdge } from '@/graph/generated/schemas'
-import { useProjectId } from '@/hooks/useProjectId'
+import { TraceEdge } from '@/graph/generated/schemas'
 import { useParams } from '@/util/react-router/useParams'
+
+import { DEFAULT_TRACE_COLUMNS } from './CustomColumns/columns'
+import { CustomColumnPopover } from './CustomColumns/Popover'
+import { ColumnRenderers } from './CustomColumns/renderers'
 
 type Props = {
 	loading: boolean
@@ -37,7 +38,6 @@ type Props = {
 }
 
 const LOADING_AFTER_HEIGHT = 28
-const GRID_COLUMNS = ['2fr', '1fr', '2fr', '1fr', '2fr', '1.2fr']
 
 export const TracesList: React.FC<Props> = ({
 	loading,
@@ -48,16 +48,12 @@ export const TracesList: React.FC<Props> = ({
 	fetchMoreWhenScrolled,
 	loadingAfter,
 }) => {
-	const { projectId } = useProjectId()
 	const { span_id } = useParams<{ span_id?: string }>()
-	const navigate = useNavigate()
-	const location = useLocation()
 
-	const viewTrace = (trace: Partial<Trace>) => {
-		navigate(
-			`/${projectId}/traces/${trace.traceID}/${trace.spanID}${location.search}`,
-		)
-	}
+	const [selectedColumns, setSelectedColumns] = useLocalStorage(
+		`highlight-traces-table-columns`,
+		DEFAULT_TRACE_COLUMNS,
+	)
 
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreTraces =
@@ -67,122 +63,63 @@ export const TracesList: React.FC<Props> = ({
 
 	const columnHelper = createColumnHelper<TraceEdge>()
 
-	const columns = [
-		columnHelper.accessor('node.spanName', {
-			cell: ({ row, getValue }) => (
-				<Table.Cell onClick={() => viewTrace(row.original.node)}>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-						width="full"
-					>
-						<Stack direction="row" align="center">
-							<Badge
-								variant="outlineGray"
-								shape="basic"
-								size="medium"
-								iconStart={<IconSolidMenuAlt_2 size="12" />}
-							/>
-							<Text lines="1" color="strong">
-								{getValue()}
-							</Text>
-						</Stack>
-						<Table.Discoverable>
-							<Badge
-								variant="outlineGray"
-								label="Open"
-								size="medium"
-							/>
-						</Table.Discoverable>
-					</Box>
-				</Table.Cell>
+	const columnData = useMemo(() => {
+		const gridColumns: string[] = []
+		const columnHeaders = []
+		const columns: ColumnDef<TraceEdge, any>[] = []
+
+		selectedColumns.forEach((column, index) => {
+			const first = index === 0
+
+			gridColumns.push(column.size)
+			columnHeaders.push({
+				id: column.id,
+				component: column.label,
+			})
+
+			// @ts-ignore
+			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
+				cell: ({ row, getValue }) => {
+					const ColumnRenderer =
+						ColumnRenderers[column.type] || ColumnRenderers.string
+
+					return (
+						<ColumnRenderer
+							key={column.id}
+							row={row}
+							getValue={getValue}
+							first={first}
+						/>
+					)
+				},
+			})
+
+			columns.push(accessor)
+		})
+
+		// add custom column
+		gridColumns.push('25px')
+		columnHeaders.push({
+			id: 'edit-column-button',
+			noPadding: true,
+			component: (
+				<CustomColumnPopover
+					selectedColumns={selectedColumns}
+					setSelectedColumns={setSelectedColumns}
+				/>
 			),
-		}),
-		columnHelper.accessor('node.serviceName', {
-			cell: ({ getValue }) => {
-				const serviceName = getValue()
-				return (
-					<Table.Cell>
-						<Text lines="1" title={serviceName}>
-							{serviceName}
-						</Text>
-					</Table.Cell>
-				)
-			},
-		}),
-		columnHelper.accessor('node.traceID', {
-			cell: ({ getValue }) => <Table.Cell>{getValue()}</Table.Cell>,
-		}),
-		columnHelper.accessor('node.parentSpanID', {
-			cell: ({ getValue }) => {
-				const parentSpanID = getValue()
-				return (
-					<Table.Cell>
-						{parentSpanID ? (
-							<Text lines="1">{parentSpanID}</Text>
-						) : (
-							<Text color="secondaryContentOnDisabled">
-								empty
-							</Text>
-						)}
-					</Table.Cell>
-				)
-			},
-		}),
-		columnHelper.accessor('node.secureSessionID', {
-			cell: ({ getValue }) => {
-				const secureSessionID = getValue()
-				return (
-					<Table.Cell
-						onClick={
-							secureSessionID
-								? () => {
-										navigate(
-											`/${projectId}/sessions/${getValue()}`,
-										)
-								  }
-								: undefined
-						}
-					>
-						{secureSessionID ? (
-							<Tag
-								kind="secondary"
-								shape="basic"
-								iconLeft={<IconSolidPlayCircle />}
-							>
-								{secureSessionID}
-							</Tag>
-						) : (
-							<Text color="secondaryContentOnDisabled">
-								empty
-							</Text>
-						)}
-					</Table.Cell>
-				)
-			},
-		}),
-		columnHelper.accessor('node.timestamp', {
-			cell: ({ getValue }) => (
-				<Table.Cell>
-					<Text lines="1">
-						{new Date(getValue()).toLocaleDateString('en-US', {
-							month: 'short',
-							day: 'numeric',
-							year: 'numeric',
-							hour: 'numeric',
-							minute: 'numeric',
-							second: 'numeric',
-						})}
-					</Text>
-				</Table.Cell>
-			),
-		}),
-	]
+		})
+
+		return {
+			gridColumns,
+			columnHeaders,
+			columns,
+		}
+	}, [columnHelper, selectedColumns, setSelectedColumns])
 
 	const table = useReactTable({
 		data: traceEdges,
-		columns,
+		columns: columnData.columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -269,13 +206,15 @@ export const TracesList: React.FC<Props> = ({
 	return (
 		<Table height="full" noBorder>
 			<Table.Head>
-				<Table.Row gridColumns={GRID_COLUMNS}>
-					<Table.Header>Span</Table.Header>
-					<Table.Header>Service</Table.Header>
-					<Table.Header>Trace ID</Table.Header>
-					<Table.Header>Parent Span ID</Table.Header>
-					<Table.Header>Secure Session ID</Table.Header>
-					<Table.Header>Timestamp</Table.Header>
+				<Table.Row gridColumns={columnData.gridColumns}>
+					{columnData.columnHeaders.map((header) => (
+						<Table.Header
+							key={header.id}
+							noPadding={header.noPadding}
+						>
+							{header.component}
+						</Table.Header>
+					))}
 				</Table.Row>
 				{enableFetchMoreTraces && (
 					<Table.Row>
@@ -317,6 +256,7 @@ export const TracesList: React.FC<Props> = ({
 							rowVirtualizer={rowVirtualizer}
 							virtualRowKey={virtualRow.key}
 							isSelected={isSelected}
+							gridColumns={columnData.gridColumns}
 						/>
 					)
 				})}
@@ -342,14 +282,15 @@ type TracesTableRowProps = {
 	rowVirtualizer: any
 	virtualRowKey: Key
 	isSelected: boolean
+	gridColumns: string[]
 }
 
 const TracesTableRow = React.memo<TracesTableRowProps>(
-	({ row, rowVirtualizer, virtualRowKey, isSelected }) => {
+	({ row, rowVirtualizer, virtualRowKey, isSelected, gridColumns }) => {
 		return (
 			<Table.Row
 				data-index={virtualRowKey}
-				gridColumns={GRID_COLUMNS}
+				gridColumns={gridColumns}
 				forwardRef={rowVirtualizer.measureElement}
 				selected={isSelected}
 			>
@@ -369,7 +310,8 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 	(prevProps, nextProps) => {
 		return (
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
-			prevProps.isSelected === nextProps.isSelected
+			prevProps.isSelected === nextProps.isSelected &&
+			prevProps.gridColumns === nextProps.gridColumns
 		)
 	},
 )
