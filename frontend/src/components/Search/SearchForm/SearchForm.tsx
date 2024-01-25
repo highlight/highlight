@@ -282,9 +282,15 @@ export const Search: React.FC<{
 		}))
 	}
 
-	// Limit number of items shown
+	// Limit number of items shown.
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
+	// TODO: There is a brief flash where the popover is hidden when moving the
+	// cursor to the end of the query input. This is because we wait a moment
+	// before re-fetching keys and we don't immediately enter the loading state
+	// because we debounce the value for the keys query. Should do something to
+	// show keys when the activePart.value === ''. Would need to pull keys from
+	// the cache or something for them to be shown immediately.
 	const showResults = loading || visibleItems.length > 0 || showValueSelect
 	const isDirty = query !== ''
 
@@ -293,7 +299,9 @@ export const Search: React.FC<{
 	}
 
 	const handleSetCursorIndex = () => {
-		setCursorIndex(inputRef.current?.selectionStart || query.length)
+		if (!isPending) {
+			setCursorIndex(inputRef.current?.selectionStart || query.length)
+		}
 	}
 
 	useEffect(() => {
@@ -387,7 +395,7 @@ export const Search: React.FC<{
 			activePart.value = ''
 		}
 
-		const newCursorPosition =
+		let newCursorPosition =
 			activePart.start +
 			activePart.key.length +
 			activePart.operator.length +
@@ -398,7 +406,7 @@ export const Search: React.FC<{
 		// Add space if it's the last part and a value is selected so people can
 		// start entering the next part.
 		isLastPart && isValueSelect && !newQuery.endsWith(' ')
-			? (newQuery += ' ')
+			? (newQuery += ' ') && (newCursorPosition += 1)
 			: null
 
 		startTransition(() => {
@@ -412,22 +420,14 @@ export const Search: React.FC<{
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
 
-		if (!isLastPart) {
-			// Move cursor to end of selected value if not editing the last part.
-			setTimeout(() => {
-				inputRef.current?.setSelectionRange(
-					newCursorPosition,
-					newCursorPosition,
-				)
+		setTimeout(() => {
+			inputRef.current?.setSelectionRange(
+				newCursorPosition,
+				newCursorPosition,
+			)
 
-				setCursorIndex(newCursorPosition)
-			}, 0)
-		}
-
-		// TODO: There is a brief flash where the popover is hidden after selecting
-		// an item. This is because we wait a moment before re-fetching keys and we
-		// don't immediately enter the loading state because we debounce the value
-		// for the keys query.
+			setCursorIndex(newCursorPosition)
+		}, 0)
 	}
 
 	const handleRemoveItem = (index: number) => {
