@@ -61,7 +61,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v76/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 	"gorm.io/gorm"
 
 	_ "github.com/urfave/cli/v2"
@@ -563,17 +562,11 @@ func main() {
 				}
 
 				log.WithContext(ctx).Info("Running dd client setup process...")
-				if err := dd.Start(runtimeParsed); err != nil {
+				if err := dd.Start(serviceName); err != nil {
 					log.WithContext(ctx).Fatal(e.Wrap(err, "error starting dd clients with error"))
 				} else {
 					defer dd.Stop()
 				}
-
-				err := profiler.Start(profiler.WithService(serviceName), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer profiler.Stop()
 			}
 			if handlerFlag != nil && *handlerFlag != "" {
 				func() {
