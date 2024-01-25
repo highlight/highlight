@@ -1,5 +1,5 @@
 [package]
-name = "sync"
+name = "highlightio-example-sync"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 dotenvy = "0.15"
 highlightio = { path = "../../" }
-log = "0.4"
+log = { workspace = true }
