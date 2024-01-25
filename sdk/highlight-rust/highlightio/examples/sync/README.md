@@ -1,4 +1,4 @@
-# Highlight.io synchoronous example
+# Highlight.io synchronous example
 
 ## Environment variables (.env)
 ```env
