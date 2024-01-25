@@ -102,7 +102,8 @@ const (
 	ErrFailedToFetch    = "ErrFailedToFetch"
 	ErrFetchNotOk       = "ErrFetchNotOk"
 	// MaxAssetSize = 200 GB storage per ECS node / 64 parallel kafka workers
-	MaxAssetSize = 3 * 1e9
+	MaxAssetSize    = 3 * 1e9
+	MaxSnapshotSize = 64 * 1024 * 1024
 )
 
 type fetcher interface {
@@ -226,7 +227,7 @@ func NewSnapshot(inputData json.RawMessage, hostUrl *string) (*Snapshot, error) 
 	data := []byte(inputData)
 	hmetric.Histogram(context.Background(), "snapshot-length", float64(len(data)), nil, 1)
 
-	if len(data) > 16*1024*1024 {
+	if len(data) > MaxSnapshotSize {
 		return nil, errors.New(fmt.Sprintf("event snapshot too large: %d", len(data)))
 	}
 
