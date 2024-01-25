@@ -1,5 +1,5 @@
 [package]
-name = "tokio-current-thread"
+name = "highlightio-example-tokio-current-thread"
 version = "0.1.0"
 edition = "2021"
 
