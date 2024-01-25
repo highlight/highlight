@@ -122,6 +122,7 @@ const AlertsSetupHeader: React.FC = function () {
 
 export const AlertsSetup: React.FC = function () {
 	const { projectId } = useProjectId()
+	const navigate = useNavigate()
 	const [alertsSetup] = useIntegratedLocalStorage(projectId, 'alerts')
 	const [hidden, setHidden] = useState<boolean>()
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
@@ -156,6 +157,7 @@ export const AlertsSetup: React.FC = function () {
 								size="small"
 								emphasis="high"
 								trackingId="setup-alerts-configure"
+								onClick={() => navigate(`/${projectId}/alerts`)}
 							>
 								Go to alerts
 							</Button>
@@ -163,6 +165,12 @@ export const AlertsSetup: React.FC = function () {
 								kind="secondary"
 								emphasis="low"
 								trackingId="setup-alerts-learn-more"
+								onClick={() =>
+									window.open(
+										'https://www.highlight.io/docs/general/product-features/general-features/alerts',
+										'_blank',
+									)
+								}
 							>
 								Learn more
 							</Button>
