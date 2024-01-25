@@ -16,7 +16,6 @@ import {
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
-import { useDebouncedValue } from '@hooks/useDebouncedValue'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -54,6 +53,7 @@ import {
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
+import { useDebounce } from '@/hooks/useDebounce'
 
 import * as styles from './SearchForm.css'
 
@@ -254,7 +254,9 @@ export const Search: React.FC<{
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
 	const activePart = getActivePart(cursorIndex, queryParts)
-	const debouncedKeyValue = useDebouncedValue<string>(activePart.value)
+	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
+		activePart.value,
+	)
 
 	// TODO: code smell, user is not able to use "message" as a search key
 	// because we are reserving it for the body implicitly
@@ -285,12 +287,6 @@ export const Search: React.FC<{
 	// Limit number of items shown.
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
-	// TODO: There is a brief flash where the popover is hidden when moving the
-	// cursor to the end of the query input. This is because we wait a moment
-	// before re-fetching keys and we don't immediately enter the loading state
-	// because we debounce the value for the keys query. Should do something to
-	// show keys when the activePart.value === ''. Would need to pull keys from
-	// the cache or something for them to be shown immediately.
 	const showResults = loading || visibleItems.length > 0 || showValueSelect
 	const isDirty = query !== ''
 
@@ -316,13 +312,22 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query: debouncedKeyValue,
+				query: debouncedValue,
 			},
+			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
 				setKeys(data.keys)
 			},
 		})
-	}, [debouncedKeyValue, showValues, startDate, endDate, project_id, getKeys])
+	}, [debouncedValue, showValues, startDate, endDate, project_id, getKeys])
+
+	useEffect(() => {
+		// When we transition to a new key we don't want to wait for the debounce
+		// delay to update the value for key fetching.
+		if (activePart.value === '' && activePart.key === BODY_KEY) {
+			setDebouncedValue('')
+		}
+	}, [activePart.key, activePart.value, setDebouncedValue])
 
 	useEffect(() => {
 		if (!showValues) {
@@ -338,6 +343,7 @@ export const Search: React.FC<{
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
+			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
 				setValues(data.key_values)
 			},
