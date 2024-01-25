@@ -7,6 +7,7 @@ import {
 	DateRangePicker,
 	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
+	IconSolidClock,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
@@ -136,6 +137,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		projectId,
 	})
 
+	const displaySeparator =
+		!!SegmentMenu && (!!actions || !hideCreateAlert || !hideDatePicker)
+
 	return (
 		<>
 			{SegmentModals}
@@ -158,19 +162,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					onFormSubmit={onFormSubmit}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
-					{actions && actions({ query, startDate, endDate })}
-					{!hideDatePicker && (
-						<DateRangePicker
-							emphasis="low"
-							selectedValue={{
-								startDate,
-								endDate,
-								selectedPreset,
-							}}
-							onDatesChange={onDatesChange}
-							presets={presets}
-							minDate={minDate}
-							disabled={timeMode === 'permalink'}
+					{SegmentMenu}
+					{displaySeparator && (
+						<Box
+							as="span"
+							borderRight="dividerWeak"
+							style={{ height: 18, margin: 'auto' }}
 						/>
 					)}
 					{!hideCreateAlert && (
@@ -203,7 +200,22 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							Create alert
 						</Button>
 					)}
-					{SegmentMenu}
+					{actions && actions({ query, startDate, endDate })}
+					{!hideDatePicker && (
+						<DateRangePicker
+							emphasis="medium"
+							iconLeft={<IconSolidClock />}
+							selectedValue={{
+								startDate,
+								endDate,
+								selectedPreset,
+							}}
+							onDatesChange={onDatesChange}
+							presets={presets}
+							minDate={minDate}
+							disabled={timeMode === 'permalink'}
+						/>
+					)}
 				</Box>
 			</Box>
 		</>
