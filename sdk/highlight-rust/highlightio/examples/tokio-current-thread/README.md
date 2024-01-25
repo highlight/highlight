@@ -1,4 +1,4 @@
-# Highlight.io asynchronous (tokio, rt-multi-thread) example
+# Highlight.io asynchronous (tokio, rt) example
 
 ## Environment variables (.env)
 ```env

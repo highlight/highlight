@@ -3,6 +3,7 @@ members = [
     "highlightio",
     "highlightio/examples/sync",
     "highlightio/examples/tokio",
+    "highlightio/examples/tokio-current-thread",
 ]
 resolver = "2"
 
