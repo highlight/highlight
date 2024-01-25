@@ -52,20 +52,24 @@ export const CustomColumnPopover: React.FC<Props> = ({
 		}
 	}, [debouncedQuery, startDate, endDate, project_id, getKeys])
 
+	const defaultColumnOptions = useMemo(() => {
+		const seletedColumnHash = selectedColumns.reduce((acc, column) => {
+			acc[column.id] = column
+
+			return acc
+		}, {} as Record<string, CustomColumn>)
+
+		const defaultColumnHash = {
+			...seletedColumnHash,
+			...HIGHLIGHT_STANDARD_COLUMNS,
+		}
+
+		return Object.values(defaultColumnHash)
+	}, [selectedColumns])
+
 	const columnOptions = useMemo(() => {
 		if (!data || !debouncedQuery) {
-			const seletedColumnHash = selectedColumns.reduce((acc, column) => {
-				acc[column.id] = column
-
-				return acc
-			}, {} as Record<string, CustomColumn>)
-
-			const defaultColumnHash = {
-				...seletedColumnHash,
-				...HIGHLIGHT_STANDARD_COLUMNS,
-			}
-
-			return Object.values(defaultColumnHash)
+			return defaultColumnOptions
 		}
 
 		const { keys } = data
@@ -88,23 +92,12 @@ export const CustomColumnPopover: React.FC<Props> = ({
 	}, [data, debouncedQuery])
 
 	const allColumnsHash = useMemo(() => {
-		const allColumns = [...selectedColumns, ...columnOptions]
-
-		return allColumns.reduce((acc, column) => {
+		return [...selectedColumns, ...columnOptions].reduce((acc, column) => {
 			acc[column.id] = column
 
 			return acc
 		}, {} as Record<string, CustomColumn>)
 	}, [selectedColumns, columnOptions])
-
-	const comboboxOptions = useMemo(() => {
-		if (loading) return []
-
-		return columnOptions.map((o) => ({
-			key: o.id,
-			render: o.label,
-		}))
-	}, [columnOptions, loading])
 
 	const handleColumnValueChange = (updatedValue: string[]) => {
 		if (!updatedValue || !updatedValue.length) {
@@ -114,6 +107,13 @@ export const CustomColumnPopover: React.FC<Props> = ({
 		setSelectedColumns(updatedColumns)
 	}
 
+	const options = loading
+		? []
+		: columnOptions.map((o) => ({
+				key: o.id,
+				render: o.label,
+		  }))
+
 	return (
 		<ComboboxSelect
 			label="Selected columns"
@@ -121,7 +121,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 			onChange={handleColumnValueChange}
 			icon={<IconSolidDotsHorizontal />}
 			value={value}
-			options={comboboxOptions}
+			options={options}
 			cssClass={styles.selectButton}
 			onChangeQuery={setQuery}
 		/>
