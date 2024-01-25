@@ -8,12 +8,17 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 )
 
-func AssignSearchFilters[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) {
+func AssignSearchFilters[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) listener.Filters {
 	is := antlr.NewInputStream(query + " " + tableConfig.DefaultFilter)
 	lexer := parser.NewSearchGrammarLexer(is)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := parser.NewSearchGrammarParser(stream)
-	listener := listener.NewSearchListener(sqlBuilder, tableConfig)
+	l := listener.NewSearchListener(sqlBuilder, tableConfig)
+	antlr.ParseTreeWalkerDefault.Walk(l, p.Search_query())
+	return l.GetFilters()
+}
 
-	antlr.ParseTreeWalkerDefault.Walk(listener, p.Search_query())
+func Parse[T ~string](query string, tableConfig model.TableConfig[T]) listener.Filters {
+	sqlBuilder := sqlbuilder.NewSelectBuilder().Select("*").From("t")
+	return AssignSearchFilters(sqlBuilder, query, tableConfig)
 }

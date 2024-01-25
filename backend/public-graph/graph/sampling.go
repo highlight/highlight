@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/parser"
 	"hash/fnv"
 	"regexp"
 	"time"
@@ -19,7 +20,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 )
@@ -383,18 +383,20 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		return true
 	}
 
-	filters := queryparser.Parse(query)
-
 	excluded := func() bool {
 		switch product {
 		case privateModel.ProductTypeSessions:
-			return clickhouse.SessionMatchesQuery(object.(*model.Session), &filters)
+			filters := parser.Parse(query, clickhouse.SessionsTableConfig)
+			return clickhouse.SessionMatchesQuery(object.(*model.Session), filters)
 		case privateModel.ProductTypeErrors:
-			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), &filters)
+			filters := parser.Parse(query, clickhouse.ErrorObjectsTableConfig)
+			return clickhouse.ErrorMatchesQuery(object.(*modelInputs.BackendErrorObjectInput), filters)
 		case privateModel.ProductTypeLogs:
-			return clickhouse.LogMatchesQuery(object.(*clickhouse.LogRow), &filters)
+			filters := parser.Parse(query, clickhouse.LogsTableConfig)
+			return clickhouse.LogMatchesQuery(object.(*clickhouse.LogRow), filters)
 		case privateModel.ProductTypeTraces:
-			return clickhouse.TraceMatchesQuery(object.(*clickhouse.TraceRow), &filters)
+			filters := parser.Parse(query, clickhouse.TracesTableConfig)
+			return clickhouse.TraceMatchesQuery(object.(*clickhouse.TraceRow), filters)
 		}
 		return false
 	}()

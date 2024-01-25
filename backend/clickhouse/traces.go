@@ -3,13 +3,13 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/parser/listener"
 	"strings"
 	"time"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
 	"golang.org/x/exp/slices"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -363,6 +363,6 @@ func (client *Client) TracesMetrics(ctx context.Context, projectID int, startDat
 	return KeysAggregated(ctx, client, TraceMetricsTable, projectID, startDate, endDate, query, nil)
 }
 
-func TraceMatchesQuery(trace *TraceRow, filters *queryparser.Filters) bool {
+func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {
 	return matchesQuery(trace, TracesTableConfig, filters)
 }
