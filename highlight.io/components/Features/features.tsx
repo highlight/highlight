@@ -64,9 +64,10 @@ const pythonSnippet: string = `import highlight_io
 H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
 `
 
-const tracingSnippet: string = `import highlight_io
-
-H = highlight_io.H("<YOUR_PROJECT_ID>")
+const tracingSnippet: string = `H.init("<YOUR_PROJECT_ID>", {
+	tracingOrigins: ['localhost', 'example.myapp.com/backend'],
+    ...
+});
 `
 
 export const FEATURES: { [k: string]: iFeature } = {
