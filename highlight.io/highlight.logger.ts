@@ -9,20 +9,6 @@ const highlightConfig = {
 
 const pinoConfig = {
 	level: 'debug',
-	transport: {
-		targets: [
-			{
-				target: 'pino/file',
-				options: { destination: 1 }, // this writes to STDOUT
-				level: 'debug',
-			},
-			{
-				target: '@highlight-run/pino',
-				options: highlightConfig,
-				level: 'debug',
-			},
-		],
-	},
 } as LoggerOptions
 
 if (process.env.NEXT_RUNTIME === 'nodejs') {

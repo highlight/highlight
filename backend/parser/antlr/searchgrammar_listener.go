@@ -50,6 +50,9 @@ type SearchGrammarListener interface {
 	// EnterImplicit_and_search_expr is called when entering the implicit_and_search_expr production.
 	EnterImplicit_and_search_expr(c *Implicit_and_search_exprContext)
 
+	// EnterExists_search_expr is called when entering the exists_search_expr production.
+	EnterExists_search_expr(c *Exists_search_exprContext)
+
 	// EnterKey_val_search_expr is called when entering the key_val_search_expr production.
 	EnterKey_val_search_expr(c *Key_val_search_exprContext)
 
@@ -67,6 +70,9 @@ type SearchGrammarListener interface {
 
 	// EnterOr_op is called when entering the or_op production.
 	EnterOr_op(c *Or_opContext)
+
+	// EnterExists_op is called when entering the exists_op production.
+	EnterExists_op(c *Exists_opContext)
 
 	// EnterNegation_op is called when entering the negation_op production.
 	EnterNegation_op(c *Negation_opContext)
@@ -119,6 +125,9 @@ type SearchGrammarListener interface {
 	// ExitImplicit_and_search_expr is called when exiting the implicit_and_search_expr production.
 	ExitImplicit_and_search_expr(c *Implicit_and_search_exprContext)
 
+	// ExitExists_search_expr is called when exiting the exists_search_expr production.
+	ExitExists_search_expr(c *Exists_search_exprContext)
+
 	// ExitKey_val_search_expr is called when exiting the key_val_search_expr production.
 	ExitKey_val_search_expr(c *Key_val_search_exprContext)
 
@@ -136,6 +145,9 @@ type SearchGrammarListener interface {
 
 	// ExitOr_op is called when exiting the or_op production.
 	ExitOr_op(c *Or_opContext)
+
+	// ExitExists_op is called when exiting the exists_op production.
+	ExitExists_op(c *Exists_opContext)
 
 	// ExitNegation_op is called when exiting the negation_op production.
 	ExitNegation_op(c *Negation_opContext)

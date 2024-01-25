@@ -491,7 +491,10 @@ export const Search: React.FC<{
 							submitAndBlur()
 						}
 
-						if (e.key === 'Enter' && query === '') {
+						if (
+							e.key === 'Enter' &&
+							(query === '' || !showResults)
+						) {
 							e.preventDefault()
 							submitAndBlur()
 						}

@@ -1,15 +1,14 @@
 import { promises as fsp } from 'fs'
 import { gql } from 'graphql-request'
-import { NextApiRequest, NextApiResponse } from 'next'
-import { COMPETITORS } from '../../components/Competitors/competitors'
-import { FEATURES, iFeature } from '../../components/Features/features'
-import { iProduct, PRODUCTS } from '../../components/Products/products'
-import { getBlogPaths } from '../blog'
-import { getGithubDocsPaths } from './docs/github'
+import { COMPETITORS } from '../../../components/Competitors/competitors'
+import { FEATURES, iFeature } from '../../../components/Features/features'
+import { iProduct, PRODUCTS } from '../../../components/Products/products'
 import pino from 'pino'
-import { GraphQLRequest } from '../../utils/graphql'
+import { GraphQLRequest } from '../../../utils/graphql'
 import { createWriteStream } from 'pino-http-send'
-import { withPageRouterHighlight } from '../../highlight.config'
+import { withAppRouterHighlight } from '../../../highlight.app.config'
+import { getGithubDocsPaths } from '../../../pages/api/docs/github'
+import { getBlogPaths } from '../../../shared/blog'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
@@ -83,13 +82,15 @@ async function generateXML(): Promise<string> {
 	  </urlset>`
 }
 
-const handler = withPageRouterHighlight(async function handler(
-	req: NextApiRequest,
-	res: NextApiResponse,
-) {
-	res.setHeader('Content-Type', 'text/xml')
-	// Instructing the Vercel edge to cache the file
-	res.setHeader('Cache-control', 'stale-while-revalidate, s-maxage=3600')
-	res.status(200).end(await generateXML())
+export const maxDuration = 300
+export const dynamic = 'force-dynamic'
+
+export const GET = withAppRouterHighlight(async function GET() {
+	return new Response(await generateXML(), {
+		headers: {
+			'Content-Type': 'text/xml',
+			'Cache-control': 'stale-while-revalidate, s-maxage=3600',
+		},
+		status: 200,
+	})
 })
-export default handler

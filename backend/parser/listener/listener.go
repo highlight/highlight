@@ -87,6 +87,9 @@ func (s *searchListener[T]) EnterBody_search_expr(ctx *parser.Body_search_exprCo
 }
 func (s *searchListener[T]) ExitBody_search_expr(ctx *parser.Body_search_exprContext) {}
 
+func (s *searchListener[T]) EnterExists_search_expr(ctx *parser.Exists_search_exprContext) {}
+func (s *searchListener[T]) ExitExists_search_expr(ctx *parser.Exists_search_exprContext)  {}
+
 func (s *searchListener[T]) EnterAnd_search_expr(ctx *parser.And_search_exprContext) {}
 func (s *searchListener[T]) ExitAnd_search_expr(ctx *parser.And_search_exprContext) {
 	rules := s.rules[len(s.rules)-2:]
@@ -134,6 +137,21 @@ func (s *searchListener[T]) EnterBin_op(ctx *parser.Bin_opContext) {
 }
 func (s *searchListener[T]) ExitBin_op(ctx *parser.Bin_opContext) {}
 
+func (s *searchListener[T]) EnterExists_op(ctx *parser.Exists_opContext) {}
+func (s *searchListener[T]) ExitExists_op(ctx *parser.Exists_opContext) {
+	op := strings.ToUpper(ctx.GetText())
+	switch op {
+	case "EXISTS":
+		s.currentOp = "!="
+	case "NOTEXISTS":
+		s.currentOp = "="
+	default:
+		fmt.Printf("Unknown exists operator: %s\n", op)
+	}
+
+	s.appendRules("")
+}
+
 func (s *searchListener[T]) EnterSearch_value(ctx *parser.Search_valueContext) {
 	value := strings.Trim(ctx.GetText(), "\"")
 	s.appendRules(value)
@@ -171,6 +189,11 @@ func (s *searchListener[T]) appendRules(value string) {
 	filterKey, ok := s.tableConfig.KeysToColumns[T(s.currentKey)]
 	if !ok {
 		traceAttributeKey = true
+	}
+
+	// Special case for non-string columns
+	if value == "" && !traceAttributeKey {
+		filterKey = fmt.Sprintf("toString(%s)", filterKey)
 	}
 
 	if s.currentOp == ":" || s.currentOp == "=" {

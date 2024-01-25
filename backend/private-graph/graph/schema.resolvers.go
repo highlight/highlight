@@ -5688,8 +5688,7 @@ from sessions final
 WHERE sessions.ProjectID = %d
   AND NOT Excluded
   AND WithinBillingQuota
-  AND (NOT Processed OR ActiveLength >= 1000 OR (ActiveLength IS NULL AND Length >= 1000))
-  and ID in (%s)
+  AND ID in (%s)
 group by 1 order by num_sessions desc;
 `, project.ID, project.ID, project.ID, sql)
 	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
