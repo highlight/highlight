@@ -2560,7 +2560,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling snapshot"))
+						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
 						continue
 					}
 
