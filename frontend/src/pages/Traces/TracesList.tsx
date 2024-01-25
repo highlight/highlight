@@ -15,7 +15,6 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { startCase } from 'lodash'
 import React, { Key, useMemo, useRef } from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
@@ -75,7 +74,7 @@ export const TracesList: React.FC<Props> = ({
 			gridColumns.push(column.size)
 			columnHeaders.push({
 				id: column.id,
-				component: startCase(column.label),
+				component: column.label,
 			})
 
 			// @ts-ignore

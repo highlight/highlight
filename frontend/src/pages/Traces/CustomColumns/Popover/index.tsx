@@ -85,7 +85,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 				label: key.name,
 				type: 'string',
 				size: '1fr',
-				accessKey: convertKey(key.name),
+				accessKey: `traceAttributes.${key.name}`,
 			} as CustomColumn
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,7 +111,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 		? []
 		: columnOptions.map((o) => ({
 				key: o.id,
-				render: o.label,
+				render: o.id,
 		  }))
 
 	return (
@@ -126,17 +126,4 @@ export const CustomColumnPopover: React.FC<Props> = ({
 			onChangeQuery={setQuery}
 		/>
 	)
-}
-
-// snake_case to camelCase, but preserve .
-// sort of brittle but trying to map returned traces keys to
-// attributes in the trace attributes
-const convertKey = (key: string) => {
-	const newKey = key
-		.replace(/(?:^\w|[A-Z]|_\w)/g, function (word, index) {
-			return index === 0 ? word.toLowerCase() : word.toUpperCase()
-		})
-		.replace(/_/g, '')
-
-	return `traceAttributes.${newKey}`
 }
