@@ -69,13 +69,13 @@ print(generate_text(input_text))
 
 The sample code runs inference using a popular HuggingFace model. The critical code path is wrapped with a contextmanager that starts and stops a span to time the duration of execution while reporting useful attributes that can help us debug the root cause of potential problems. Here, we’re reporting the `input` text, the `output` text, and the `num_tokens` sent to the model during inference.
 
-How do ClickHouse Materialized Views relate to this? Well, in Highlight, we store each of these trace spans as a row in a table and provide a powerful search that allows finding interesting spans. We also allow visualizating that data via time-series aggregates to identify trends or learn useful correlations. Materialized Views allow us to continue to store this data in an efficient format while powering these features of search and aggregation.
+How do ClickHouse Materialized Views relate to this? Well, in Highlight, we store each of these trace spans as a row in a table and provide a powerful search that allows finding interesting spans. We also allow visualizing that data via time-series aggregates to identify trends or learn useful correlations. Materialized Views allow us to continue to store this data in an efficient format while powering these features of search and aggregation.
 
 ## ClickHouse Powers Trace Search
 
 Let’s search for cases where the inference was slow so that we can figure out if the size of our input (and the number of input tokens) has an effect on the inference duration.
 
-To write the ClickHouse SQL query, we first need to understand the trace schema as they are stored in the database. The table DDL looks something like this (see it [here](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations/000013_create_traces_table.up.sql) in our repo).
+To write the ClickHouse SQL query, we first need to understand the traces schema, or how they are stored in the database. The table DDL looks something like this (see it [here](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations/000013_create_traces_table.up.sql) in our repo).
 
 ```sql
 CREATE TABLE traces
@@ -94,7 +94,7 @@ PARTITION BY toDate(Timestamp)
 ORDER BY (ProjectId, Timestamp, UUID); 
 ```
 
-While the attributes that are present on all traces are stores as top level columns, traces can have arbitrary custom attributes that can differ. The column `TraceAttributes` is a map that can store all of these values without having to worry about their type. In our ingest that writes data to the table, we format all `TraceAttributes` as strings where the key stores the name of the attribute. This allows us to mix different potential trace attributes within the same table regardless of their data type (where more complex values can be stored as their JSON string representation).
+While the attributes that are present on all traces are stored as top-level columns, traces can have arbitrary custom attributes that can differ. The column `TraceAttributes` is a map that can store all of these values without having to worry about their types. In our ingest that writes data to the table, we format all `TraceAttributes` as strings where the key stores the name of the attribute. This allows us to mix different potential trace attributes within the same table regardless of their data type (where more complex values can be stored as their JSON string representation).
 
 However, this presents a challenge when searching. The Highlight UI auto-completes attribute keys that can be used for searching, but having to scan over the entire table to gather the distinct keys is slow. We also can’t quickly determine which keys have at least one numeric value since we’d need to look at all values in the table to determine that.
 
@@ -124,7 +124,7 @@ GROUP BY ProjectId,
      isNull(toFloat64OrNull(arrayJoin(TraceAttributes).2));
 ```
 
-We define a new table `trace_keys_mv` which is based on the contents of `traces` . The new MV has 5 columns populated based on the `SELECT` query written in the second half of the statement above. In ClickHouse, the materialized view definition looks like a normal `SELECT` query, but it runs asynchronously when data is inserted into the source `traces` table. The `SELECT` statement defines the filters, aggregation, and other logic that transforms the data from the source table before it is written into the destination one. The result is a table with data that is processed per into our desired form. Since data is written as it is inserted into the source table, it can be queried instantly from the materialized view:
+We define a new table `trace_keys_mv` which is based on the contents of `traces` . The new MV has 5 columns populated based on the `SELECT` query written in the second half of the statement above. In ClickHouse, the materialized view definition looks like a normal `SELECT` query, but it runs asynchronously when data is inserted into the source `traces` table. The `SELECT` statement defines the filters, aggregation, and other logic that transforms the data from the source table before it is written into the destination table. The result is a table with data that is processed into our desired form. Since data is written as it is inserted into the source table, it can be queried instantly from the materialized view:
 
 ![Screenshot 2024-01-16 at 4.21.10 PM.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/9f2cb6cb-d135-49d0-9128-719bf1891aa9/97d7c494-cdd5-41da-9059-a441b3321f7c/Screenshot_2024-01-16_at_4.21.10_PM.png)
 
@@ -136,4 +136,4 @@ In PostgreSQL, searching for a single row can be optimized with an index. If you
 
 TODO(vkorolik) 
 
-These two example scratches the surface of how we use ClickHouse materialized views at highlight. If you’d like to learn more or look at the code more closely, check out our [table definitions](https://github.com/highlight/highlight/tree/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations) and [source code](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/traces.go#L120) in our Apache 2.0 licensed GitHub repository. Thanks!
+These two examples scratche the surface of how we use ClickHouse materialized views at Highlight. If you’d like to learn more or look at the code more closely, check out our [table definitions](https://github.com/highlight/highlight/tree/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations) and [source code](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/traces.go#L120) in our Apache 2.0 licensed GitHub repository. Thanks!
