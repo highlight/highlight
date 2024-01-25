@@ -13,7 +13,7 @@ import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { FixedRangePreset } from '@/components/Search/SearchForm/SearchForm'
 import { useSearchTime } from '@/hooks/useSearchTime'
 
-import { CustomColumn, TRACE_COLUMN_OPTIONS } from '../columns'
+import { CustomColumn, HIGHLIGHT_STANDARD_COLUMNS } from '../columns'
 import * as styles from './styles.css'
 
 type Props = {
@@ -54,27 +54,38 @@ export const CustomColumnPopover: React.FC<Props> = ({
 
 	const columnOptions = useMemo(() => {
 		if (!data || !debouncedQuery) {
-			const defaultColumns = [...selectedColumns, ...TRACE_COLUMN_OPTIONS]
-			const defaultColumnHash = defaultColumns.reduce((acc, column) => {
+			const seletedColumnHash = selectedColumns.reduce((acc, column) => {
 				acc[column.id] = column
 
 				return acc
 			}, {} as Record<string, CustomColumn>)
+
+			const defaultColumnHash = {
+				...seletedColumnHash,
+				...HIGHLIGHT_STANDARD_COLUMNS,
+			}
 
 			return Object.values(defaultColumnHash)
 		}
 
 		const { keys } = data
 
-		return keys.map(
-			(key) =>
-				({
-					id: convertKey(key.name),
-					label: key.name,
-					type: 'string',
-					size: '1fr',
-				} as CustomColumn),
-		)
+		return keys.map((key) => {
+			const highlightKey = HIGHLIGHT_STANDARD_COLUMNS[key.name]
+
+			console.log(key, highlightKey, HIGHLIGHT_STANDARD_COLUMNS)
+			if (highlightKey) {
+				return highlightKey
+			}
+
+			return {
+				id: key.name,
+				label: key.name,
+				type: 'string',
+				size: '1fr',
+				accessKey: convertKey(key.name),
+			} as CustomColumn
+		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data, debouncedQuery])
 
@@ -129,6 +140,5 @@ const convertKey = (key: string) => {
 		})
 		.replace(/_/g, '')
 
-	console.log(newKey)
-	return newKey
+	return `traceAttributes.${newKey}`
 }

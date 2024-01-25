@@ -24,10 +24,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { TraceEdge } from '@/graph/generated/schemas'
 import { useParams } from '@/util/react-router/useParams'
 
-import {
-	DEFAULT_TRACE_COLUMNS,
-	HIGHLIGHT_STANDARD_COLUMNS,
-} from './CustomColumns/columns'
+import { DEFAULT_TRACE_COLUMNS } from './CustomColumns/columns'
 import { CustomColumnPopover } from './CustomColumns/Popover'
 import { ColumnRenderers } from './CustomColumns/renderers'
 
@@ -81,15 +78,8 @@ export const TracesList: React.FC<Props> = ({
 				component: startCase(column.label),
 			})
 
-			const isHighlightAttribute = HIGHLIGHT_STANDARD_COLUMNS.includes(
-				column.id,
-			)
-			const accessorName = isHighlightAttribute
-				? `node.${column.id}`
-				: `node.traceAttributes.${column.id}`
-
 			// @ts-ignore
-			const accessor = columnHelper.accessor(accessorName, {
+			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
 				cell: ({ row, getValue }) => {
 					const ColumnRenderer =
 						ColumnRenderers[column.type] || ColumnRenderers.string
