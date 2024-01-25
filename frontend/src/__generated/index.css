@@ -5289,8 +5289,10 @@ body {
   visibility: visible;
 }
 ._1xsdgmb0 {
+  align-items: center;
   border-right: 1px solid transparent;
   color: var(--_1pyqka9d);
+  display: grid;
   line-height: 16px;
   padding: 10px 8px;
 }
@@ -5299,6 +5301,9 @@ body {
 }
 ._65ghl30:hover ._1xsdgmb0:not(:last-of-type) {
   border-right: 1px solid var(--_1pyqka9k);
+}
+._1xsdgmb1 {
+  padding: 0;
 }
 ._13s6meo1 {
   background: transparent;
@@ -7401,6 +7406,9 @@ body {
 }
 ._1yp8bvx1 {
   filter: grayscale(0.5);
+}
+._1rw9tha0 {
+  border: none;
 }
 ._14l2j9r1 {
   font-size: 12px;
