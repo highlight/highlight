@@ -72,8 +72,6 @@ export const CustomColumnPopover: React.FC<Props> = ({
 
 		return keys.map((key) => {
 			const highlightKey = HIGHLIGHT_STANDARD_COLUMNS[key.name]
-
-			console.log(key, highlightKey, HIGHLIGHT_STANDARD_COLUMNS)
 			if (highlightKey) {
 				return highlightKey
 			}
