@@ -84,6 +84,7 @@ require (
 	golang.org/x/sync v0.4.0
 	golang.org/x/text v0.14.0
 	google.golang.org/api v0.149.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.49.1
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.9
 )
@@ -94,6 +95,9 @@ require (
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/longrunning v0.5.4 // indirect
 	github.com/ClickHouse/ch-go v0.58.2 // indirect
+	github.com/DataDog/datadog-go/v5 v5.1.1 // indirect
+	github.com/DataDog/gostackparse v0.5.0 // indirect
+	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/PaesslerAG/gval v1.2.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.22 // indirect
@@ -111,6 +115,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
@@ -158,6 +163,7 @@ require (
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/image v0.13.0 // indirect
+	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/tools v0.9.1 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect

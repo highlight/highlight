@@ -101,6 +101,11 @@ github.com/ClickHouse/clickhouse-go v1.5.4 h1:cKjXeYLNWVJIx2J1K6H2CqyRmfwVJVY1OV
 github.com/ClickHouse/clickhouse-go v1.5.4/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=
 github.com/ClickHouse/clickhouse-go/v2 v2.16.0 h1:rhMfnPewXPnY4Q4lQRGdYuTLRBRKJEIEYHtbUMrzmvI=
 github.com/ClickHouse/clickhouse-go/v2 v2.16.0/go.mod h1:J7SPfIxwR+x4mQ+o8MLSe0oY50NNntEqCIjFe/T1VPM=
+github.com/DataDog/datadog-go/v5 v5.0.2 h1:UFtEe7662/Qojxkw1d6SboAeA0CPI3naKhVASwFn+04=
+github.com/DataDog/datadog-go/v5 v5.0.2/go.mod h1:ZI9JFB4ewXbw1sBnF4sxsR2k1H3xjV+PUAOUsHvKpcU=
+github.com/DataDog/datadog-go/v5 v5.1.1/go.mod h1:KhiYb2Badlv9/rofz+OznKoEF5XKTonWyhx5K83AP8E=
+github.com/DataDog/gostackparse v0.5.0 h1:jb72P6GFHPHz2W0onsN51cS3FkaMDcjb0QzgxxA4gDk=
+github.com/DataDog/gostackparse v0.5.0/go.mod h1:lTfqcJKqS9KnXQGnyQMCugq3u1FP6UZMfWR0aitKFMM=
 github.com/DmitriyVTitov/size v1.1.0 h1:9i2UsP0QpR3MmSv53M/WW7wVoWPZez8UMswDas3GPZ4=
 github.com/DmitriyVTitov/size v1.1.0/go.mod h1:asVR2J1mZ/2yIobW+JomrhJb90qWzWMyuFJs1BX89+Y=
 github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030IGemrRc=
@@ -113,6 +118,7 @@ github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugX
 github.com/Microsoft/go-winio v0.4.17-0.20210211115548-6eac466e5fa3/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
 github.com/Microsoft/go-winio v0.4.17-0.20210324224401-5516f17a5958/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
 github.com/Microsoft/go-winio v0.4.17/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
+github.com/Microsoft/go-winio v0.5.0/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
 github.com/Microsoft/go-winio v0.5.1/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
 github.com/Microsoft/go-winio v0.5.2/go.mod h1:WpS1mjBmmwHBEWmogvA2mj8546UReBk4v8QkMxJ6pZY=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
@@ -762,6 +768,7 @@ github.com/google/pprof v0.0.0-20210226084205-cbba55b83ad5/go.mod h1:kpwsk12EmLe
 github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20210601050228-01bbb1931b22/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20210609004039-a478d1d731e9/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
+github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 h1:K6RDEckDVWvDI9JAJYCmNdQXq6neHJOYx3V6jnqNEec=
 github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/google/s2a-go v0.1.7 h1:60BLSyTrOV4/haCDW4zb1guZItoSq8foHCXrAnjBo/o=
@@ -2119,6 +2126,10 @@ google.golang.org/protobuf v1.27.1/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQ
 google.golang.org/protobuf v1.28.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 google.golang.org/protobuf v1.31.0 h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs8=
 google.golang.org/protobuf v1.31.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
+gopkg.in/DataDog/dd-trace-go.v1 v1.43.1 h1:Dez4VzRQWAI5YXJRBx58BiC0gONGuW/oY4l8fWKzOXY=
+gopkg.in/DataDog/dd-trace-go.v1 v1.43.1/go.mod h1:YL9g+nlUY7ByCffD5pDytAqy99GNbytRV0EBpKuldM4=
+gopkg.in/DataDog/dd-trace-go.v1 v1.49.1 h1:fif50dazXYzwPN9fo3HL9B5WortmUTHxPvzP4pdl68o=
+gopkg.in/DataDog/dd-trace-go.v1 v1.49.1/go.mod h1:Yp02hgfGPr9RXeVx4BgQa8uGKm6QD3DG7PohX2pg7bA=
 gopkg.in/airbrake/gobrake.v2 v2.0.9/go.mod h1:/h5ZAUhDkGaJfjzjKLSjv6zCL6O0LLBxU4K+aSYdM/U=
 gopkg.in/alecthomas/kingpin.v2 v2.2.6/go.mod h1:FMv+mEhP44yOT+4EoQTLFTRgOQ1FBLkstjWtayDeSgw=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
