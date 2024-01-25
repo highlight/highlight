@@ -41,7 +41,7 @@ func Start(rt util.Runtime) error {
 		return err
 	}
 
-	host, err := io.ReadAll(req.Body)
+	host, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
