@@ -273,7 +273,7 @@ export const Search: React.FC<{
 		: getVisibleKeys(query, queryParts, activePart, keys)
 
 	// Show operators when we have an exact match for a key
-	const showOperators = visibleItems.find(
+	const showOperators = !!visibleItems.find(
 		(item) => item.name === activePart.text,
 	)
 
@@ -392,21 +392,19 @@ export const Search: React.FC<{
 				activePart.key === BODY_KEY
 					? `${activePart.text}${activePart.operator}`
 					: `${activePart.key}${activePart.operator}`
+			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
 			activePart.value = quoteQueryValue(value)
 			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
+			activePart.stop = activePart.start + activePart.text.length
 		} else {
 			activePart.key = value
 			activePart.text = value
 			activePart.value = ''
+			activePart.stop = activePart.start + activePart.key.length
 		}
 
-		let newCursorPosition =
-			activePart.start +
-			activePart.key.length +
-			activePart.operator.length +
-			activePart.value.length
-
+		let newCursorPosition = activePart.stop
 		let newQuery = stringifySearchQuery(queryParts)
 
 		// Add space if it's the last part and a value is selected so people can
@@ -423,17 +421,14 @@ export const Search: React.FC<{
 			}
 		})
 
+		inputRef.current?.setSelectionRange(
+			newCursorPosition,
+			newCursorPosition,
+		)
+		setCursorIndex(newCursorPosition)
+
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
-
-		setTimeout(() => {
-			inputRef.current?.setSelectionRange(
-				newCursorPosition,
-				newCursorPosition,
-			)
-
-			setCursorIndex(newCursorPosition)
-		}, 0)
 	}
 
 	const handleRemoveItem = (index: number) => {
@@ -658,6 +653,9 @@ export const Search: React.FC<{
 												handleItemSelect(key)
 											}
 											store={comboboxStore}
+											value={key.name}
+											hideOnClick={false}
+											setValueOnClick={false}
 										>
 											<Text color="secondaryContentText">
 												{key.name}
