@@ -465,6 +465,7 @@ type AllWorkspaceSettings struct {
 	EnableBillingLimits       bool    `gorm:"default:false"` // old plans grandfathered in to true
 	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
+	EnableGrafanaDashboard    bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
