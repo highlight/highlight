@@ -14,17 +14,20 @@
 				}
 			},
 			"entryPoint": null,
-			"portMappings": [],
+			"portMappings": [
+				{
+					"hostPort": 8126,
+					"protocol": "tcp",
+					"containerPort": 8126
+				}
+			],
 			"command": null,
 			"linuxParameters": null,
-			"cpu": 0,
+			"cpu": 100,
+			"memory": 256,
 			"environment": [
 				{
 					"name": "DD_APM_ENABLED",
-					"value": "true"
-				},
-				{
-					"name": "ECS_FARGATE",
 					"value": "true"
 				}
 			],
@@ -40,11 +43,10 @@
 				}
 			],
 			"dockerSecurityOptions": null,
-			"memory": null,
 			"memoryReservation": null,
 			"volumesFrom": [],
 			"stopTimeout": null,
-			"image": "datadog/agent:latest",
+			"image": "public.ecr.aws/datadog/agent:latest",
 			"startTimeout": null,
 			"firelensConfiguration": null,
 			"dependsOn": null,
