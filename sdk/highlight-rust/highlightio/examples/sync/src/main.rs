@@ -14,5 +14,8 @@ fn main() {
     warn!("This is a warn! log.");
     error!("This is an error! log.");
 
-    h.capture_error(&std::io::Error::new(std::io::ErrorKind::Other, "This is a dummy error."));
+    h.capture_error(&std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "This is a dummy error.",
+    ));
 }

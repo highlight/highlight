@@ -1,14 +1,35 @@
-#[cfg(not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread", feature = "async-std")))]
+#[cfg(not(any(
+    feature = "sync",
+    feature = "tokio",
+    feature = "tokio-current-thread",
+    feature = "async-std"
+)))]
 compile_error!("No runtime enabled for highlightio, please specify one of the following features: sync (default), tokio, tokio-current-thread, async-std");
 
-use std::{borrow::Cow, error::Error, sync::Arc, time::{Duration, SystemTime}};
+use std::{
+    borrow::Cow,
+    error::Error,
+    sync::Arc,
+    time::{Duration, SystemTime},
+};
 
 use log::{Level, Log};
-use opentelemetry::{global, logs::{LogRecordBuilder, Logger as _, Severity}, trace::{TraceContextExt, Tracer as _}, KeyValue};
-use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
-use opentelemetry_otlp::{WithExportConfig, OtlpLogPipeline, OtlpTracePipeline, LogExporterBuilder, SpanExporterBuilder};
-use opentelemetry_sdk::{logs::{self, Logger}, resource::Resource, trace::{self, BatchConfig, Span, Tracer}};
 pub use opentelemetry::trace::Span as SpanTrait;
+use opentelemetry::{
+    global,
+    logs::{LogRecordBuilder, Logger as _, Severity},
+    trace::{TraceContextExt, Tracer as _},
+    KeyValue,
+};
+use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
+use opentelemetry_otlp::{
+    LogExporterBuilder, OtlpLogPipeline, OtlpTracePipeline, SpanExporterBuilder, WithExportConfig,
+};
+use opentelemetry_sdk::{
+    logs::{self, Logger},
+    resource::Resource,
+    trace::{self, BatchConfig, Span, Tracer},
+};
 
 mod error;
 
@@ -25,7 +46,12 @@ struct HighlightInner {
 pub struct Highlight(Arc<HighlightInner>);
 
 impl Highlight {
-    #[cfg(not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread", feature = "async-std")))]
+    #[cfg(not(any(
+        feature = "sync",
+        feature = "tokio",
+        feature = "tokio-current-thread",
+        feature = "async-std"
+    )))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -38,10 +64,7 @@ impl Highlight {
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
     ) -> Result<(Logger, Tracer), HighlightError> {
-        Ok((
-            logging.install_simple()?,
-            tracing.install_simple()?,
-        ))
+        Ok((logging.install_simple()?, tracing.install_simple()?))
     }
 
     #[cfg(all(feature = "tokio-current-thread", not(feature = "sync")))]
@@ -55,7 +78,10 @@ impl Highlight {
         ))
     }
 
-    #[cfg(all(feature = "tokio", not(any(feature = "sync", feature = "tokio-current-thread"))))]
+    #[cfg(all(
+        feature = "tokio",
+        not(any(feature = "sync", feature = "tokio-current-thread"))
+    ))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -66,8 +92,10 @@ impl Highlight {
         ))
     }
 
-    
-    #[cfg(all(feature = "async-std", not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread"))))]
+    #[cfg(all(
+        feature = "async-std",
+        not(any(feature = "sync", feature = "tokio", feature = "tokio-current-thread"))
+    ))]
     fn install_pipelines(
         logging: OtlpLogPipeline<LogExporterBuilder>,
         tracing: OtlpTracePipeline<SpanExporterBuilder>,
@@ -79,55 +107,58 @@ impl Highlight {
     }
 
     fn get_default_resource(project_id: String) -> Resource {
-        Resource::new(vec![
-            KeyValue::new("highlight.project_id", project_id.clone()),
-        ])
+        Resource::new(vec![KeyValue::new(
+            "highlight.project_id",
+            project_id.clone(),
+        )])
     }
 
     /// Initialize Highlight using a custom logger.
-    /// 
+    ///
     /// Highlight automatically uses env_logger to emit your log messages onto the command line.
     /// If you want to use a different logger, initialize with this function instead.
-    pub fn init_with_logger(project_id: impl ToString, log_logger: impl Log + 'static) -> Result<Highlight, HighlightError> {
+    pub fn init_with_logger(
+        project_id: impl ToString,
+        log_logger: impl Log + 'static,
+    ) -> Result<Highlight, HighlightError> {
         let project_id = project_id.to_string();
-        
+
         // TODO: missing batch config
         let logging = opentelemetry_otlp::new_pipeline()
             .logging()
             .with_log_config(
-                logs::Config::default().with_resource(Self::get_default_resource(project_id.clone()))
+                logs::Config::default()
+                    .with_resource(Self::get_default_resource(project_id.clone())),
             )
             .with_exporter(
                 opentelemetry_otlp::new_exporter()
                     .http()
                     .with_endpoint("https://otel.highlight.io:4318"),
             );
-        
+
         let tracing = opentelemetry_otlp::new_pipeline()
             .tracing()
             .with_trace_config(
                 trace::config()
                     .with_sampler(trace::Sampler::AlwaysOn)
-                    .with_resource(Self::get_default_resource(project_id.to_string()))
+                    .with_resource(Self::get_default_resource(project_id.to_string())),
             )
             .with_batch_config(
                 BatchConfig::default()
                     .with_scheduled_delay(Duration::from_millis(1000))
                     .with_max_export_batch_size(128)
-                    .with_max_queue_size(1024)
+                    .with_max_queue_size(1024),
             )
             .with_exporter(
                 opentelemetry_otlp::new_exporter()
                     .http()
                     .with_endpoint("https://otel.highlight.io:4318"),
             );
-        
+
         let (logger, tracer) = Self::install_pipelines(logging, tracing)?;
 
         let layer = OpenTelemetryTracingBridge::new(&global::logger_provider());
-        tracing_subscriber::registry()
-            .with(layer)
-            .init();
+        tracing_subscriber::registry().with(layer).init();
 
         let h = Highlight(Arc::new(HighlightInner {
             log_logger: Box::new(log_logger),
@@ -143,14 +174,11 @@ impl Highlight {
 
     /// Initialize Highlight
     pub fn init(project_id: impl ToString) -> Result<Highlight, HighlightError> {
-        Self::init_with_logger(
-            project_id,
-            env_logger::Logger::from_default_env(),
-        )
+        Self::init_with_logger(project_id, env_logger::Logger::from_default_env())
     }
 
     /// Capture an error with session info
-    /// 
+    ///
     /// Like Highlight::capture_error, but also lets you provide your session_id and request_id
     pub fn capture_error_with_session(
         &self,
@@ -162,28 +190,26 @@ impl Highlight {
             cx.span().record_error(err);
 
             if let Some(session_id) = session_id {
-                cx.span().set_attribute(
-                    KeyValue::new("highlight.session_id", session_id),
-                );
+                cx.span()
+                    .set_attribute(KeyValue::new("highlight.session_id", session_id));
             }
 
             if let Some(request_id) = request_id {
-                cx.span().set_attribute(
-                    KeyValue::new("highlight.trace_id", request_id),
-                );
+                cx.span()
+                    .set_attribute(KeyValue::new("highlight.trace_id", request_id));
             }
         });
     }
 
     /// Capture an error
-    /// 
+    ///
     /// Explicitly captures any type with trait Error and sends it to Highlight.
     pub fn capture_error(&self, err: &dyn Error) {
         self.capture_error_with_session(err, None, None);
     }
 
     /// Create a span
-    /// 
+    ///
     /// Creates a span for tracing. You can end it with span.end() by importing highlightio::SpanTrait.
     pub fn span(&self, name: impl Into<Cow<'static, str>>) -> Span {
         self.0.tracer.start(name)
@@ -198,19 +224,17 @@ impl log::Log for Highlight {
     fn log(&self, record: &log::Record) {
         self.0.logger.emit(
             LogRecordBuilder::new()
-                .with_severity_number(
-                    match record.level() {
-                        Level::Trace => Severity::Trace,
-                        Level::Debug => Severity::Debug,
-                        Level::Info => Severity::Info,
-                        Level::Warn => Severity::Warn,
-                        Level::Error => Severity::Error,
-                    }
-                )
+                .with_severity_number(match record.level() {
+                    Level::Trace => Severity::Trace,
+                    Level::Debug => Severity::Debug,
+                    Level::Info => Severity::Info,
+                    Level::Warn => Severity::Warn,
+                    Level::Error => Severity::Error,
+                })
                 .with_severity_text(record.level().to_string())
                 .with_body(format!("{}", record.args()).into())
                 .with_observed_timestamp(SystemTime::now())
-                .build()
+                .build(),
         );
 
         self.0.log_logger.log(record);
