@@ -12,6 +12,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -489,6 +490,11 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		return nil, errors.New("no metric types provided")
 	}
 
+	// ZANETODO: testing
+	if bucketBy == modelInputs.MetricBucketByNone.String() {
+		bucketBy = modelInputs.MetricBucketByHistogram.String()
+	}
+
 	if bucketBy == modelInputs.MetricBucketByNone.String() {
 		nBuckets = 1
 	}
@@ -503,7 +509,8 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	attributesColumn := sampleableConfig.tableConfig.AttributesColumn
 
 	var metricColName string
-	if col, found := keysToColumns[T(strings.ToLower(column))]; found {
+	col, isTopLevelCol := keysToColumns[T(strings.ToLower(column))]
+	if isTopLevelCol {
 		metricColName = col
 	} else {
 		metricColName = "toFloat64OrNull(" + attributesColumn + "[%s])"
@@ -520,9 +527,28 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		selectArgs = []interface{}{}
 	}
 
-	fnStr := strings.Join(lo.Map(metricTypes, func(agg modelInputs.MetricAggregator, _ int) string {
-		return ", " + getFnStr(agg, metricColName, useSampling)
-	}), "")
+	selectStr := ""
+	if bucketBy == modelInputs.MetricBucketByHistogram.String() {
+		selectStr += fmt.Sprintf("toUInt64(intDiv((%s - min(%s) OVER ()) * 48, (max(%s) OVER () - min(%s) OVER ()))) as s1", metricColName, metricColName, metricColName, metricColName)
+		if !isTopLevelCol {
+			selectArgs = append(selectArgs, []interface{}{column, column, column, column}...)
+		}
+		if useSampling {
+			selectStr += ", _sample_factor"
+		} else {
+			selectStr += ", 1.0"
+		}
+	} else {
+		selectStr += fmt.Sprintf("toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)))", nBuckets, startTimestamp, endTimestamp, startTimestamp)
+		if useSampling {
+			selectStr += ", any(_sample_factor)"
+		} else {
+			selectStr += ", 1.0"
+		}
+		selectStr += strings.Join(lo.Map(metricTypes, func(agg modelInputs.MetricAggregator, _ int) string {
+			return ", " + getFnStr(agg, metricColName, useSampling)
+		}), "")
+	}
 
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
@@ -531,14 +557,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		config = sampleableConfig.samplingTableConfig
 		fromSb, err = makeSelectBuilder(
 			config,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), any(_sample_factor)%s",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-				fnStr,
-			),
+			selectStr,
 			selectArgs,
 			groupBy,
 			projectID,
@@ -551,14 +570,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		config = sampleableConfig.tableConfig
 		fromSb, err = makeSelectBuilder(
 			config,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d))), 1.0%s",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-				fnStr,
-			),
+			selectStr,
 			selectArgs,
 			groupBy,
 			projectID,
@@ -636,11 +648,25 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	for i := base; i < base+len(groupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
+
+	if bucketBy == modelInputs.MetricBucketByHistogram.String() {
+		innerSb := fromSb
+		fromSb = sqlbuilder.NewSelectBuilder()
+		if useSampling {
+			fromSb.Select("s1, any(_sample_factor), round(count() * any(_sample_factor))")
+		} else {
+			fromSb.Select("s1, 1.0, toFloat64(count())")
+		}
+		fromSb.From(fromSb.BuilderAs(innerSb, "inner"))
+	}
+
 	fromSb.GroupBy(groupByCols...)
 	fromSb.OrderBy(groupByCols...)
 	fromSb.Limit(10000)
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	log.WithContext(ctx).Info(str)
 
 	metrics := &modelInputs.MetricsBuckets{
 		Buckets: []*modelInputs.MetricBucket{},
@@ -663,7 +689,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 
 	groupByColResults := make([]string, len(groupBy))
 	metricResults := make([]*float64, len(metricTypes))
-	scanResults := make([]interface{}, 2+len(groupByColResults) + +len(metricResults))
+	scanResults := make([]interface{}, 2+len(groupByColResults)+len(metricResults))
 	scanResults[0] = &groupKey
 	scanResults[1] = &sampleFactor
 	for idx := range metricTypes {

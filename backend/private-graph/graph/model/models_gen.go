@@ -1425,16 +1425,18 @@ type MetricBucketBy string
 const (
 	MetricBucketByNone      MetricBucketBy = "None"
 	MetricBucketByTimestamp MetricBucketBy = "Timestamp"
+	MetricBucketByHistogram MetricBucketBy = "Histogram"
 )
 
 var AllMetricBucketBy = []MetricBucketBy{
 	MetricBucketByNone,
 	MetricBucketByTimestamp,
+	MetricBucketByHistogram,
 }
 
 func (e MetricBucketBy) IsValid() bool {
 	switch e {
-	case MetricBucketByNone, MetricBucketByTimestamp:
+	case MetricBucketByNone, MetricBucketByTimestamp, MetricBucketByHistogram:
 		return true
 	}
 	return false

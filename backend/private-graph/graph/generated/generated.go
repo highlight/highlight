@@ -11589,6 +11589,7 @@ enum MetricColumn {
 enum MetricBucketBy {
 	None
 	Timestamp
+	Histogram
 }
 
 type MetricBucket {

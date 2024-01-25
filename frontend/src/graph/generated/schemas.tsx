@@ -956,6 +956,8 @@ export enum MetricAggregator {
 export type MetricBucket = {
 	__typename?: 'MetricBucket'
 	bucket_id: Scalars['UInt64']
+	bucket_max: Scalars['Float']
+	bucket_min: Scalars['Float']
 	column: MetricColumn
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
@@ -963,6 +965,7 @@ export type MetricBucket = {
 }
 
 export enum MetricBucketBy {
+	Histogram = 'Histogram',
 	None = 'None',
 	Timestamp = 'Timestamp',
 }

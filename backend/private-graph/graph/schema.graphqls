@@ -1043,10 +1043,13 @@ enum MetricColumn {
 enum MetricBucketBy {
 	None
 	Timestamp
+	Histogram
 }
 
 type MetricBucket {
 	bucket_id: UInt64!
+	bucket_min: Float!
+	bucket_max: Float!
 	group: [String!]!
 	column: MetricColumn!
 	metric_type: MetricAggregator!

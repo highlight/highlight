@@ -14,6 +14,7 @@ export const columnOptions: { value: string; label: string }[] = [{ value: 'dura
 
 export const bucketByOptions: { value: string; label: string }[] = [
   { value: 'Timestamp', label: 'Timestamp' },
+  { value: 'Histogram', label: 'Histogram' },
   { value: 'None', label: 'None' },
 ];
 

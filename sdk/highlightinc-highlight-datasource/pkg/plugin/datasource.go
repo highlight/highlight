@@ -235,6 +235,8 @@ const (
 
 type MetricBucket struct {
 	BucketID    uint64           `json:"bucket_id" graphql:"bucket_id"`
+	BucketMin   float64          `json:"bucket_min" graphql:"bucket_min"`
+	BucketMax   float64          `json:"bucket_max" graphql:"bucket_max"`
 	Group       []string         `json:"group" graphql:"group"`
 	Column      string           `json:"column" graphql:"column"`
 	MetricType  MetricAggregator `json:"metric_type" graphql:"metric_type"`
@@ -367,18 +369,20 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	}
 
 	bucketIds := []uint64{}
+	bucketMaxs := []uint64{}
 	for i := uint64(0); i < result.BucketCount; i++ {
 		bucketIds = append(bucketIds, i)
+		bucketMaxs = append(bucketMaxs, i+1)
 	}
 
 	frame := data.NewFrame("response")
 
-	timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
-		return from.Add(
-			time.Duration(float64(i) / float64(result.BucketCount) * float64(to.Sub(from))))
-	})
+	if input.BucketBy == "Timestamp" {
+		timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
+			return from.Add(
+				time.Duration(float64(i) / float64(result.BucketCount) * float64(to.Sub(from))))
+		})
 
-	if input.BucketBy != "None" {
 		frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
 	}
 
@@ -389,6 +393,11 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	metricGroups := lo.Uniq(lo.Map(result.Buckets, func(bucket *MetricBucket, _ int) string {
 		return strings.Join(bucket.Group, "-")
 	}))
+
+	if input.BucketBy == "Histogram" {
+		frame.Fields = append(frame.Fields, data.NewField("xMin", nil, []uint64{0, 2, 9}))
+		frame.Fields = append(frame.Fields, data.NewField("xMax", nil, []uint64{2, 5, 13}))
+	}
 
 	for _, metricType := range metricTypes {
 		for _, metricGroup := range metricGroups {
@@ -401,7 +410,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 				values[bucket.BucketID] = pointy.Float64(bucket.MetricValue)
 			}
 
-			frame.Fields = append(frame.Fields, data.NewField(string(metricType)+"."+metricGroup, nil, values))
+			frame.Fields = append(frame.Fields, data.NewField("counts", nil, []uint64{100, 200, 500}))
 		}
 	}
 
