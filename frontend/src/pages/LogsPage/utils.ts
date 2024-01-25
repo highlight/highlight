@@ -38,10 +38,12 @@ export const findMatchingLogAttributes = (
 		return {}
 	}
 
-	const bodyQueryValue = queryParts.find(
-		(term): term is SearchExpression =>
-			'key' in term && term.key === 'body',
-	)?.value
+	const bodyQueryValues = queryParts
+		.filter(
+			(term): term is SearchExpression =>
+				'key' in term && term.key === bodyKey,
+		)
+		.map((term) => term.value.replace(/^"|"$/g, ''))
 
 	Object.entries(logAttributes).forEach(([key, value]) => {
 		const isString = typeof value === 'string'
@@ -54,12 +56,13 @@ export const findMatchingLogAttributes = (
 			return
 		}
 
+		const bodyQueryValue = bodyQueryValues.find(
+			(bodyQueryValue) =>
+				value.toLowerCase().indexOf(bodyQueryValue.toLowerCase()) > -1,
+		)
+
 		let matchingAttribute: string | undefined = undefined
-		if (
-			bodyQueryValue &&
-			key === bodyKey &&
-			value.toLowerCase().indexOf(bodyQueryValue.toLowerCase()) !== -1
-		) {
+		if (bodyQueryValue && key === bodyKey) {
 			matchingAttribute = bodyQueryValue
 		} else {
 			const fullKey = [...attributeKeyBase, key].join('.')
