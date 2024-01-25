@@ -171,7 +171,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Topic:        pool.Topic,
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
-			Compression:  kafka.Zstd,
+			Compression:  kafka.Snappy,
 			// synchronous mode so that we can ensure messages are sent before we return
 			Async:        false,
 			BatchSize:    1,
