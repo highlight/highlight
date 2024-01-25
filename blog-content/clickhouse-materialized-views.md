@@ -126,14 +126,39 @@ GROUP BY ProjectId,
 
 We define a new table `trace_keys_mv` which is based on the contents of `traces` . The new MV has 5 columns populated based on the `SELECT` query written in the second half of the statement above. In ClickHouse, the materialized view definition looks like a normal `SELECT` query, but it runs asynchronously when data is inserted into the source `traces` table. The `SELECT` statement defines the filters, aggregation, and other logic that transforms the data from the source table before it is written into the destination table. The result is a table with data that is processed into our desired form. Since data is written as it is inserted into the source table, it can be queried instantly from the materialized view:
 
-![Screenshot 2024-01-16 at 4.21.10 PM.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/9f2cb6cb-d135-49d0-9128-719bf1891aa9/97d7c494-cdd5-41da-9059-a441b3321f7c/Screenshot_2024-01-16_at_4.21.10_PM.png)
+![traces list](/images/blog/clickhouse-materialized-views/traces.png)
 
 The only downside is that each materialized view created consumes additional CPU, memory, and disk on the ClickHouse cluster, since inserted data must be processed and written into the new form.
 
 ## Materialized Views for Fast Row Lookup
 
-In PostgreSQL, searching for a single row can be optimized with an index. If you have more than one query pattern, you can create multiple indexes on combinations of columns used. In ClickHouse on the other hand, you only have one primary key for the table that has significant query performance. Thankfully, we can use materialized views to create other versions of the table with a different partitioning scheme, allowing us to efficiently query in other ways
+In PostgreSQL, searching for a single row can be optimized with an index. If you have more than one query pattern, you can create multiple indexes on combinations of columns used. In ClickHouse on the other hand, you only have one primary key for the table that has significant query performance. Thankfully, we can use materialized views to create other versions of the table with a different partitioning scheme, allowing us to efficiently query in other ways. For example, the following materialized view creates a copy of our `traces` table `ORDER BY (ProjectId, TraceId)` rather than `ORDER BY (ProjectId, Timestamp, UUID)`.
 
-TODO(vkorolik) 
+```sql
+CREATE TABLE IF NOT EXISTS traces_by_id (
+    `Timestamp` DateTime64(9),
+    `UUID` UUID,
+    `TraceId` String,
+    `SpanId` String
+    -- ... --
+) ENGINE = MergeTree
+ORDER BY (ProjectId, TraceId) TTL toDateTime(Timestamp) + toIntervalDay(30);
+CREATE MATERIALIZED VIEW IF NOT EXISTS traces_by_id_mv TO traces_by_id (
+    `Timestamp` DateTime64(9),
+    `UUID` UUID,
+    `TraceId` String,
+    `SpanId` String,
 
-These two examples scratche the surface of how we use ClickHouse materialized views at Highlight. If you’d like to learn more or look at the code more closely, check out our [table definitions](https://github.com/highlight/highlight/tree/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations) and [source code](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/traces.go#L120) in our Apache 2.0 licensed GitHub repository. Thanks!
+    -- ... --
+) AS
+SELECT *
+FROM traces;
+```
+
+While the `traces` table provides efficient lookup of traces for a given time range (sorted by time), the `traces_by_id` table offers fast lookup of a trace for a given `TraceId`. We rely on this in the highlight traces UI to build a flame graph, where we query for all spans for a given trace:
+
+![highlight trace lookup](/images/blog/clickhouse-materialized-views/highlight.png)
+
+These two examples scratch the surface of how we use ClickHouse materialized views at Highlight. If you’d like to learn more or look at the code more closely, check out our [table definitions](https://github.com/highlight/highlight/tree/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/migrations) and [source code](https://github.com/highlight/highlight/blob/77d7ad357d921d9826e52ca2cfcf87ea7e684303/backend/clickhouse/traces.go#L120) in our Apache 2.0 licensed GitHub repository. Thanks!
+
+![grafana trace metrics](/images/blog/clickhouse-materialized-views/grafana.png)
