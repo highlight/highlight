@@ -2219,7 +2219,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version)))
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
-			} else if mapped != nil {
+			} else if mapped != nil && *mapped != "null" {
 				errorToInsert.MappedStackTrace = mapped
 				structuredStackTrace = structured
 			}
