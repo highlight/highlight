@@ -20,7 +20,7 @@ During our last Launch Week, we unveiled our tracing product in beta, marking a 
 
 ### Flame Graphs for Efficient Analysis
 
-Highlight's new Flame Graphs are allow you to swiftly see where time is being spent in a trace. This visual representation makes it easier to pinpoint performance bottlenecks and areas requiring attention in your application.
+Highlight's new Flame Graphs allow you to swiftly see where time is being spent in a trace. This visual representation makes it easier to pinpoint performance bottlenecks and areas requiring attention in your application.
 
 ### Trace Details in Network Request Sessions
 Imagine you're browsing a user's Session Replay recording.
