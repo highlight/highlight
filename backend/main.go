@@ -601,6 +601,8 @@ func main() {
 			}()
 			// in `all` mode, refresh materialized views every hour
 			go func() {
+				w.StartLogAlertWatcher(ctx)
+				w.StartMetricMonitorWatcher(ctx)
 				w.RefreshMaterializedViews(ctx)
 				for range time.Tick(time.Hour) {
 					w.RefreshMaterializedViews(ctx)
