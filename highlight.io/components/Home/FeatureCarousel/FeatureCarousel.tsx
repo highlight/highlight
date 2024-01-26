@@ -132,8 +132,7 @@ const features: Feature[] = [
 		featureImage2: <HiGlobe className="h-[20px] w-[20px]" />,
 		feature3: 'OpenTelemetry Support',
 		featureImage3: <HiExclamationCircle className="h-[20px] w-[20px]" />,
-		// TODO: update this link to new landing page when ready
-		link: '/docs/general/product-features/tracing/overview',
+		link: '/traces',
 	},
 
 	{
