@@ -13826,6 +13826,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_unlisted_sharing
 			enable_ingest_sampling
 			enable_data_deletion
+			enable_grafana_dashboard
 		}
 	}
 `
