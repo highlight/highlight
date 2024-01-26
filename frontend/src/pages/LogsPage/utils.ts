@@ -70,9 +70,9 @@ export const findMatchingLogAttributes = (
 				}
 
 				const queryKey = term.key.toLowerCase()
-				const queryValue = term.value.toLowerCase()
+				const queryValue = term.value?.toLowerCase()
 
-				if (queryKey === fullKey) {
+				if (queryKey && queryKey === fullKey) {
 					matchingAttribute = queryValue
 				}
 			})
