@@ -47,7 +47,7 @@ require (
 	github.com/golang/snappy v0.0.4
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/uuid v1.4.0
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.1
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/go-oauth2-redis/v4 v4.1.4
@@ -196,7 +196,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/sso v1.4.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.7.2 // indirect
-	github.com/bwmarrin/discordgo v0.26.1
+	github.com/bwmarrin/discordgo v0.27.1
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dghubble/sling v1.1.0 // indirect
 	github.com/gammazero/deque v0.1.0 // indirect
@@ -227,10 +227,10 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tdewolff/parse v2.3.4+incompatible
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
