@@ -25,7 +25,7 @@ Highlight's new Flame Graphs are allow you to swiftly see where time is being sp
 ### Trace Details in Network Request Sessions
 Imagine you're browsing a user's Session Replay recording.
 
-You spot a loading state that lasts as bit too long. What could be causing the slow down?
+You spot a loading state that lasts a bit too long. What could be causing the slow down?
 
 Is it a network request? You check the Session Replay's embedded network tab and sure enough, you've got a slow API call! But why is it slow? 
 
