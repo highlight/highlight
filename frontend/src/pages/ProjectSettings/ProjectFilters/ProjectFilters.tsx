@@ -274,17 +274,17 @@ export const ProjectProductFilters: React.FC<{
 		) {
 			const params = {} as { [key: string]: string }
 			for (const pair of (c?.exclusion_query ?? '').split(' ')) {
-				const [key, value] = pair.split(':')
+				const [key, value] = pair.split('=')
 				if (key && value) {
 					let op: Operator = 'is'
-					let v = value
-					if (value.startsWith('-')) {
+					let k = key
+					if (k.endsWith('!')) {
 						op = 'is_not'
-						v = value.slice(1)
+						k = k.slice(0, -1)
 					}
 					params[
-						`${product.toLowerCase().slice(0, -1)}_${key}`
-					] = `${op}:${v}`
+						`${product.toLowerCase().slice(0, -1)}_${k}`
+					] = `${op}:${value}`
 				}
 			}
 			;(product === ProductType.Sessions
@@ -319,9 +319,9 @@ export const ProjectProductFilters: React.FC<{
 				if (product === ProductType.Errors && k === 'timestamp')
 					continue
 				if (v.indexOf(' ') !== -1) {
-					rules.push(`${k}:${op === 'is_not' ? '-' : ''}"${v}"`)
+					rules.push(`${k}${op === 'is_not' ? '!' : ''}="${v}"`)
 				} else {
-					rules.push(`${k}:${op === 'is_not' ? '-' : ''}${v}`)
+					rules.push(`${k}${op === 'is_not' ? '!' : ''}=${v}`)
 				}
 			}
 			formStore.setValue('exclusionQuery', rules.join(' '))
