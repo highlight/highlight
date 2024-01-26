@@ -251,5 +251,14 @@ func (s *searchListener[T]) appendRules(value string) {
 }
 
 func wildcardValue(value string) string {
-	return "%" + strings.ReplaceAll(strings.ReplaceAll(value, "_", "\\_"), "*", "%") + "%"
+	value = strings.ReplaceAll(strings.ReplaceAll(value, "_", "\\_"), "*", "%")
+
+	if !strings.HasPrefix(value, "%") {
+		value = "%" + value
+	}
+	if !strings.HasSuffix(value, "%") {
+		value = value + "%"
+	}
+
+	return value
 }
