@@ -27,6 +27,8 @@ We're excited to introduce a powerful and flexible solution combining OpenTeleme
 
 Highlight complements OpenTelemetry by significantly reducing the engineering overhead associated with storing and visualizing this data. Simply point your OpenTelemetry collector to Highlight - whether Cloud or Self-Hosted - and we take care of the rest. Using Kafka and ClickHouse, we ingest the data efficiently and provide you with a robust UI for searching and viewing your application's tracing data.
 
+Get started with [Highlight's Native OpenTelemetry docs](https://www.highlight.io/docs/getting-started/native-opentelemetry/overview).
+
 ## Key Benefits of Integrating OpenTelemetry with Highlight
 
 1. **Vendor Agnostic Instrumentation**: Application instrumentation using OpenTelemetry is agnostic to the destination of your data. This freedom protects you from vendor lock-in and provides flexibility in your observability strategy.
