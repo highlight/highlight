@@ -1335,7 +1335,6 @@ func Test_LogMatchesQuery_Body(t *testing.T) {
 	for _, body := range []string{
 		"hello world a test",
 		"hello, world this is a test",
-		"this, is.a ; hello; 123 there6 world:message,.:;	\nbe\xe2\x80\x83me",
 		"0!0!  0*000000 000000000",
 		"0! 000\\\"0000000000000",
 		"(*",

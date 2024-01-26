@@ -225,14 +225,8 @@ func (s *searchListener[T]) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 func (s *searchListener[T]) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *searchListener[T]) appendRules(value string) {
-	filterKey, ok := s.tableConfig.KeysToColumns[T(s.currentKey)]
-	traceAttributeKey := false
-	if !ok {
-		traceAttributeKey = true
-	}
-
 	// Body column filters
-	if filterKey == s.tableConfig.BodyColumn {
+	if s.currentKey == s.tableConfig.BodyColumn {
 		containsSpecialChars, _ := regexp.MatchString(`[^a-zA-Z0-9]`, value)
 
 		if containsSpecialChars {
@@ -253,6 +247,12 @@ func (s *searchListener[T]) appendRules(value string) {
 		}
 
 		return
+	}
+
+	traceAttributeKey := false
+	filterKey, ok := s.tableConfig.KeysToColumns[T(s.currentKey)]
+	if !ok {
+		traceAttributeKey = true
 	}
 
 	// Special case for non-string columns

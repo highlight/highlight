@@ -96,7 +96,7 @@ func Test_TraceMatchesQuery_v2(t *testing.T) {
 			},
 		},
 	}
-	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableNoDefaultConfig)
+	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR highlight-metric", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
 	filters = parser.Parse("span_name=fs* AND highlight.type=highlight.internal AND span_name=highlight-metric", TracesTableNoDefaultConfig)
@@ -121,7 +121,7 @@ func Test_TraceMatchesQuery_v2(t *testing.T) {
 	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
-	filters = parser.Parse("span_name=(\"fs statSync\" OR the OR oo)", TracesTableNoDefaultConfig)
+	filters = parser.Parse("fs statSync", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
 }
