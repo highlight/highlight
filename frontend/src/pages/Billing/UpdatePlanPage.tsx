@@ -999,6 +999,7 @@ const UpdatePlanPage = ({
 							>
 								<Box
 									display="flex"
+									alignItems="center"
 									justifyContent="space-between"
 									gap="8"
 									width="full"
