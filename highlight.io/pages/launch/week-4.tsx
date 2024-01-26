@@ -53,18 +53,20 @@ const LaunchPage = () => {
 						Launch Week 4
 					</h2>
 
-					<a
-						className="flex flex-shrink-0 max-w-[220px] items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-xl shadow-sm hover:shadow-none"
-						href="https://www.youtube.com/watch?v=TQ3IKckZCn0"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<HiPlay />
+					<div className="flex justify-center mt-8">
+						<a
+							className="flex flex-shrink-0 items-center gap-1 bg-[#1A1523] text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-none"
+							href="https://www.youtube.com/watch?v=TQ3IKckZCn0"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<HiPlay />
 
-						<Typography type="copy4" emphasis>
-							Watch Launch Videos
-						</Typography>
-					</a>
+							<Typography type="copy4" emphasis>
+								Watch Launch Videos
+							</Typography>
+						</a>
+					</div>
 				</div>
 				<div className="flex justify-center max-w-[550px] md:max-w-[1200px] mx-auto">
 					<div className="w-full h-6 border-x-[1px] text-black mt-20 mx-8" />
