@@ -72,6 +72,7 @@ export const findMatchingLogAttributes = (
 				const queryKey = term.key.toLowerCase()
 				const queryValue = term.value?.toLowerCase()
 
+				// TODO: skips when using the exists operator, but we may want to support showing all values
 				if (queryValue && queryKey === fullKey) {
 					matchingAttribute = queryValue
 				}
