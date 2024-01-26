@@ -25,7 +25,7 @@ Even worse, many observability solutions create vendor lock-in. All of that trac
 
 We're excited to introduce a powerful and flexible solution combining OpenTelemetry (OTel) with Highlight. OpenTelemetry provides comprehensive tracing, logging, metrics, and error monitoring capabilities for your application without vendor lock-in. It's a solution that is both opinionated and adaptable in terms of data storage - you can stream data to ClickHouse, Prometheus, or other open-source databases using their processors and exporters.
 
-Highlight complements OpenTelemetry by significantly reducing the engineering overhead associated with storing and visualizing this data. Simply point your OpenTelemetry collector to Highlight - whether Cloud or Self-Hosted - and we take care of the rest. Using Kafka and ClickHouse, we ingest the data efficiently and provide you with a robust UI for searching and viewing your application's tracing data.
+Highlight complements OpenTelemetry by significantly reducing the engineering overhead associated with storing and visualizing this data. Simply point your OpenTelemetry collector to Highlight - whether Cloud or Self-Hosted - and we take care of the rest. Using Kafka and ClickHouse, we ingest the data efficiently and provide you with a robust UI for searching and viewing your application's tracing data. At the same time, Highlight traces and logs attribute fine-grained server-side data to the frontend sessions, allowing you to watch user actions that run specific backend code.
 
 Get started with [Highlight's Native OpenTelemetry docs](https://www.highlight.io/docs/getting-started/native-opentelemetry/overview).
 
