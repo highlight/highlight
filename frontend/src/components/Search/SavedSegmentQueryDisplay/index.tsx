@@ -44,6 +44,10 @@ export const SavedSegmentQueryDisplay: React.FC<Props> = ({ query }) => {
 						{group.tokens.map((token, index) => {
 							const { text } = token
 
+							if (token.type === SearchGrammarParser.EOF) {
+								return null
+							}
+
 							return (
 								<Token key={`${text}-${index}`} text={text} />
 							)
