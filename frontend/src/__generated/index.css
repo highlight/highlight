@@ -6018,16 +6018,24 @@ body {
   z-index: 10;
 }
 ._10xh0c2d {
-  cursor: pointer;
-  padding: 12px 10px;
+  overflow-y: scroll;
 }
-._10xh0c2d:hover {
+._10xh0c2e {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  height: 30px;
+  padding: 0 10px;
+}
+._10xh0c2e:hover {
   background-color: var(--_1pyqka9t);
 }
-._10xh0c2d[data-active-item] {
+._10xh0c2e[data-active-item] {
   background-color: var(--_1pyqka9u);
 }
-._10xh0c2f + ._10xh0c2f {
+._10xh0c2g + ._10xh0c2g {
   border-top: var(--_1pyqka91o) solid 1px;
 }
 ._1wt9z3q0 {
