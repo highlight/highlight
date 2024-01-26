@@ -73,8 +73,9 @@ type SearchResult = Keys[0] | { name: string; type: 'Operator' | 'Value' }
 
 const MAX_ITEMS = 25
 
-const NUMERIC_OPERATORS = ['>', '>=', '<', '<=']
-const BOOLEAN_OPERATORS = ['=', '!=']
+const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS']
+const NUMERIC_OPERATORS = ['>', '>=', '<', '<='].concat(EXISTS_OPERATORS)
+const BOOLEAN_OPERATORS = ['=', '!='].concat(EXISTS_OPERATORS)
 export const SEARCH_OPERATORS = [...BOOLEAN_OPERATORS, ...NUMERIC_OPERATORS]
 
 export type SearchFormProps = {
@@ -386,11 +387,14 @@ export const Search: React.FC<{
 
 	const handleItemSelect = (item: SearchResult) => {
 		const isValueSelect = item.type === 'Value'
-		const value = item.name
+		let value = item.name
 		const isLastPart =
 			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
 		if (item.type === 'Operator') {
+			if (EXISTS_OPERATORS.includes(item.name)) {
+				value = ' ' + value
+			}
 			activePart.operator = value
 			activePart.text =
 				activePart.key === BODY_KEY
@@ -842,6 +846,10 @@ const getSearchResultBadgeText = (key: SearchResult) => {
 				return 'smaller'
 			case '<=':
 				return 'smaller or equal'
+			case 'EXISTS':
+				return 'exists'
+			case 'NOT EXISTS':
+				return 'does not exist'
 		}
 	} else if (key.type === 'Value') {
 		return undefined
