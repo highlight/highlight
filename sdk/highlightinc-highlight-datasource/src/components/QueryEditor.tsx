@@ -60,6 +60,11 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
     return keys.map((k) => ({ value: k.Name, label: k.Name }));
   };
 
+  const loadBucketByOptions = async (table: Table | undefined, query: string) => {
+    let options = await loadColumnOptions(table, query);
+    return bucketByOptions.concat(options);
+  };
+
   return (
     <div>
       <InlineFieldRow>
@@ -126,7 +131,13 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Bucket by" labelWidth={10}>
-          <Select value={bucketBy} onChange={onBucketByChange} options={bucketByOptions} />
+          <AsyncSelect
+            key={table}
+            defaultOptions
+            value={{ name: bucketBy, label: bucketBy }}
+            onChange={onBucketByChange}
+            loadOptions={(q) => loadBucketByOptions(table, q)}
+          />
         </InlineField>
       </InlineFieldRow>
     </div>

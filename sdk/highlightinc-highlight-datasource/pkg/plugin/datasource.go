@@ -394,10 +394,10 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 		return strings.Join(bucket.Group, "-")
 	}))
 
-	if input.BucketBy == "Histogram" {
-		frame.Fields = append(frame.Fields, data.NewField("xMin", nil, []uint64{0, 2, 9}))
-		frame.Fields = append(frame.Fields, data.NewField("xMax", nil, []uint64{2, 5, 13}))
-	}
+	// if input.BucketBy == "Histogram" {
+	// 	frame.Fields = append(frame.Fields, data.NewField("xMin", nil, []uint64{0, 2, 9}))
+	// 	frame.Fields = append(frame.Fields, data.NewField("xMax", nil, []uint64{2, 5, 13}))
+	// }
 
 	for _, metricType := range metricTypes {
 		for _, metricGroup := range metricGroups {
@@ -410,7 +410,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 				values[bucket.BucketID] = pointy.Float64(bucket.MetricValue)
 			}
 
-			frame.Fields = append(frame.Fields, data.NewField("counts", nil, []uint64{100, 200, 500}))
+			frame.Fields = append(frame.Fields, data.NewField(string(metricType)+"."+metricGroup, nil, values))
 		}
 	}
 

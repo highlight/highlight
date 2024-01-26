@@ -447,20 +447,12 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config mode
 	return true
 }
 
-func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSampling bool) string {
+func getFnStr(aggregator modelInputs.MetricAggregator, column string) string {
 	switch aggregator {
 	case modelInputs.MetricAggregatorCount:
-		if useSampling {
-			return "round(count() * any(_sample_factor))"
-		} else {
-			return "toFloat64(count())"
-		}
+		return "round(count() * any(sample_factor))"
 	case modelInputs.MetricAggregatorCountDistinctKey:
-		if useSampling {
-			return fmt.Sprintf("round(count(distinct TraceAttributes['%s']) * any(_sample_factor))", highlight.TraceKeyAttribute)
-		} else {
-			return fmt.Sprintf("toFloat64(count(distinct TraceAttributes['%s']))", highlight.TraceKeyAttribute)
-		}
+		return fmt.Sprintf("round(count(distinct TraceAttributes['%s']) * any(sample_factor))", highlight.TraceKeyAttribute)
 	case modelInputs.MetricAggregatorMin:
 		return fmt.Sprintf("toFloat64(min(%s))", column)
 	case modelInputs.MetricAggregatorAvg:
@@ -476,11 +468,7 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 	case modelInputs.MetricAggregatorMax:
 		return fmt.Sprintf("toFloat64(max(%s))", column)
 	case modelInputs.MetricAggregatorSum:
-		if useSampling {
-			return fmt.Sprintf("sum(%s) * any(_sample_factor)", column)
-		} else {
-			return fmt.Sprintf("sum(%s)", column)
-		}
+		return fmt.Sprintf("sum(%s) * any(sample_factor)", column)
 	}
 	return ""
 }
@@ -490,17 +478,12 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		return nil, errors.New("no metric types provided")
 	}
 
-	// ZANETODO: testing
-	if bucketBy == modelInputs.MetricBucketByNone.String() {
-		bucketBy = modelInputs.MetricBucketByHistogram.String()
-	}
-
 	if bucketBy == modelInputs.MetricBucketByNone.String() {
 		nBuckets = 1
 	}
 
-	startTimestamp := uint64(params.DateRange.StartDate.Unix())
-	endTimestamp := uint64(params.DateRange.EndDate.Unix())
+	startTimestamp := int64(params.DateRange.StartDate.Unix())
+	endTimestamp := int64(params.DateRange.EndDate.Unix())
 	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
 
 	var selectArgs []interface{}
@@ -513,12 +496,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	if isTopLevelCol {
 		metricColName = col
 	} else {
-		metricColName = "toFloat64OrNull(" + attributesColumn + "[%s])"
-		for _, mt := range metricTypes {
-			if mt != modelInputs.MetricAggregatorCount {
-				selectArgs = append(selectArgs, column)
-			}
-		}
+		metricColName = fmt.Sprintf("toFloat64OrNull("+attributesColumn+"['%s'])", column)
 	}
 
 	switch column {
@@ -527,27 +505,40 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		selectArgs = []interface{}{}
 	}
 
-	selectStr := ""
-	if bucketBy == modelInputs.MetricBucketByHistogram.String() {
-		selectStr += fmt.Sprintf("toUInt64(intDiv((%s - min(%s) OVER ()) * 48, (max(%s) OVER () - min(%s) OVER ()))) as s1", metricColName, metricColName, metricColName, metricColName)
-		if !isTopLevelCol {
-			selectArgs = append(selectArgs, []interface{}{column, column, column, column}...)
-		}
-		if useSampling {
-			selectStr += ", _sample_factor"
-		} else {
-			selectStr += ", 1.0"
-		}
+	var bucketColName string
+	bucketCol, bucketColIsTopLevel := keysToColumns[T(strings.ToLower(bucketBy))]
+	if bucketColIsTopLevel {
+		bucketColName = bucketCol
 	} else {
-		selectStr += fmt.Sprintf("toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)))", nBuckets, startTimestamp, endTimestamp, startTimestamp)
-		if useSampling {
-			selectStr += ", any(_sample_factor)"
-		} else {
-			selectStr += ", 1.0"
+		bucketColName = fmt.Sprintf("toFloat64OrNull("+attributesColumn+"['%s'])", bucketBy)
+	}
+
+	bucketExpr := "toFloat64(Timestamp)"
+	if bucketBy != modelInputs.MetricBucketByNone.String() && bucketBy != modelInputs.MetricBucketByTimestamp.String() {
+		bucketExpr = fmt.Sprintf("toFloat64(%s)", bucketColName)
+	}
+
+	minExpr := fmt.Sprintf("min(%s) OVER ()", bucketExpr)
+	maxExpr := fmt.Sprintf("max(%s) OVER ()", bucketExpr)
+
+	if bucketBy == modelInputs.MetricBucketByTimestamp.String() || bucketBy == modelInputs.MetricBucketByNone.String() {
+		minExpr = strconv.FormatInt(startTimestamp, 10)
+		maxExpr = strconv.FormatInt(endTimestamp, 10)
+	}
+
+	selectStr := fmt.Sprintf("toUInt64(intDiv((%s - %s) * %d, (%s - %s))) as bucket_index", bucketExpr, minExpr, nBuckets, maxExpr, minExpr)
+
+	if useSampling {
+		selectStr += ", _sample_factor as sample_factor"
+	} else {
+		selectStr += ", 1.0 as sample_factor"
+	}
+
+	for _, mt := range metricTypes {
+		if mt != modelInputs.MetricAggregatorCount {
+			selectStr += fmt.Sprintf(", %s as metric_value", metricColName)
+			break
 		}
-		selectStr += strings.Join(lo.Map(metricTypes, func(agg modelInputs.MetricAggregator, _ int) string {
-			return ", " + getFnStr(agg, metricColName, useSampling)
-		}), "")
 	}
 
 	var fromSb *sqlbuilder.SelectBuilder
@@ -622,7 +613,7 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		} else {
 			col = fmt.Sprintf("toFloat64OrNull("+attributesColumn+"[%s])", innerSb.Var(col))
 		}
-		limitFn = getFnStr(*limitAggregator, col, useSampling)
+		limitFn = getFnStr(*limitAggregator, col)
 
 		innerSb.GroupBy(groupByIndexes...).
 			OrderBy(fmt.Sprintf("%s DESC", limitFn)).
@@ -649,16 +640,14 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
 
-	if bucketBy == modelInputs.MetricBucketByHistogram.String() {
-		innerSb := fromSb
-		fromSb = sqlbuilder.NewSelectBuilder()
-		if useSampling {
-			fromSb.Select("s1, any(_sample_factor), round(count() * any(_sample_factor))")
-		} else {
-			fromSb.Select("s1, 1.0, toFloat64(count())")
-		}
-		fromSb.From(fromSb.BuilderAs(innerSb, "inner"))
+	innerSb := fromSb
+	fromSb = sqlbuilder.NewSelectBuilder()
+	outerSelect := "bucket_index, any(sample_factor)"
+	for _, metricType := range metricTypes {
+		outerSelect += ", " + getFnStr(metricType, "metric_value")
 	}
+	fromSb.Select(outerSelect)
+	fromSb.From(fromSb.BuilderAs(innerSb, "inner"))
 
 	fromSb.GroupBy(groupByCols...)
 	fromSb.OrderBy(groupByCols...)

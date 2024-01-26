@@ -709,6 +709,8 @@ type ComplexityRoot struct {
 
 	MetricBucket struct {
 		BucketID    func(childComplexity int) int
+		BucketMax   func(childComplexity int) int
+		BucketMin   func(childComplexity int) int
 		Column      func(childComplexity int) int
 		Group       func(childComplexity int) int
 		MetricType  func(childComplexity int) int
@@ -4836,6 +4838,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricBucket.BucketID(childComplexity), true
+
+	case "MetricBucket.bucket_max":
+		if e.complexity.MetricBucket.BucketMax == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.BucketMax(childComplexity), true
+
+	case "MetricBucket.bucket_min":
+		if e.complexity.MetricBucket.BucketMin == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.BucketMin(childComplexity), true
 
 	case "MetricBucket.column":
 		if e.complexity.MetricBucket.Column == nil {
@@ -11594,6 +11610,8 @@ enum MetricBucketBy {
 
 type MetricBucket {
 	bucket_id: UInt64!
+	bucket_min: Float!
+	bucket_max: Float!
 	group: [String!]!
 	column: MetricColumn!
 	metric_type: MetricAggregator!
@@ -38596,6 +38614,94 @@ func (ec *executionContext) fieldContext_MetricBucket_bucket_id(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricBucket_bucket_min(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_bucket_min(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketMin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_bucket_min(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricBucket_bucket_max(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_bucket_max(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketMax, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_bucket_max(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricBucket_group(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MetricBucket_group(ctx, field)
 	if err != nil {
@@ -39710,6 +39816,10 @@ func (ec *executionContext) fieldContext_MetricsBuckets_buckets(ctx context.Cont
 			switch field.Name {
 			case "bucket_id":
 				return ec.fieldContext_MetricBucket_bucket_id(ctx, field)
+			case "bucket_min":
+				return ec.fieldContext_MetricBucket_bucket_min(ctx, field)
+			case "bucket_max":
+				return ec.fieldContext_MetricBucket_bucket_max(ctx, field)
 			case "group":
 				return ec.fieldContext_MetricBucket_group(ctx, field)
 			case "column":
@@ -80410,6 +80520,20 @@ func (ec *executionContext) _MetricBucket(ctx context.Context, sel ast.Selection
 		case "bucket_id":
 
 			out.Values[i] = ec._MetricBucket_bucket_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "bucket_min":
+
+			out.Values[i] = ec._MetricBucket_bucket_min(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "bucket_max":
+
+			out.Values[i] = ec._MetricBucket_bucket_max(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

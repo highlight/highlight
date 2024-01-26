@@ -545,6 +545,8 @@ type MatchedErrorTag struct {
 
 type MetricBucket struct {
 	BucketID    uint64           `json:"bucket_id"`
+	BucketMin   float64          `json:"bucket_min"`
+	BucketMax   float64          `json:"bucket_max"`
 	Group       []string         `json:"group"`
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
