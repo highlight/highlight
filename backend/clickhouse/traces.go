@@ -73,13 +73,22 @@ var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedTraceKeySecureSessionID), Type: modelInputs.KeyTypeString},
 }
 
-var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+var TracesTableNoDefaultConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
 	TableName:        TracesTable,
 	KeysToColumns:    traceKeysToColumns,
 	ReservedKeys:     modelInputs.AllReservedTraceKey,
 	BodyColumn:       "SpanName",
 	AttributesColumn: "TraceAttributes",
 	SelectColumns:    traceColumns,
+}
+
+var TracesTableConfig = model.TableConfig[modelInputs.ReservedTraceKey]{
+	TableName:        TracesTableNoDefaultConfig.TableName,
+	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
+	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
+	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
+	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
 	DefaultFilter:    fmt.Sprintf("%s!=%s", highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
 }
 

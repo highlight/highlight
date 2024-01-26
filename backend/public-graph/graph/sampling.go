@@ -395,7 +395,7 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 			filters := parser.Parse(query, clickhouse.LogsTableConfig)
 			return clickhouse.LogMatchesQuery(object.(*clickhouse.LogRow), filters)
 		case privateModel.ProductTypeTraces:
-			filters := parser.Parse(query, clickhouse.TracesTableConfig)
+			filters := parser.Parse(query, clickhouse.TracesTableNoDefaultConfig)
 			return clickhouse.TraceMatchesQuery(object.(*clickhouse.TraceRow), filters)
 		}
 		return false

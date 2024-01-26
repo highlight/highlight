@@ -344,7 +344,7 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 }
 
 // clickhouse token - https://clickhouse.com/docs/en/sql-reference/functions/splitting-merging-functions#tokens
-var nonAlphaNumericChars = regexp.MustCompile(`\s`)
+var nonAlphaNumericChars = regexp.MustCompile(`[^\w:*]`)
 
 func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filter *listener.FilterOperation) bool {
 	bodyFilter := config.BodyColumn != "" && filter.Column == "" && filter.Key == config.BodyColumn
@@ -388,6 +388,8 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 		} else {
 			rowValue = repr(v.FieldByName(chKey))
 		}
+	} else if field := v.FieldByName(filter.Key); field.IsValid() {
+		rowValue = repr(field)
 	} else if config.AttributesColumn != "" {
 		value := v.FieldByName(config.AttributesColumn)
 		if value.Kind() == reflect.Map {
@@ -426,6 +428,7 @@ func matchFilter[TObj interface{}, TReservedKey ~string](row *TObj, config model
 }
 
 func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config model.TableConfig[TReservedKey], filters listener.Filters) bool {
+	// if multiple filters are passed in, assume an AND operation between them
 	for _, filter := range filters {
 		switch filter.Operator {
 		case listener.OperatorAnd:
@@ -434,16 +437,21 @@ func matchesQuery[TObj interface{}, TReservedKey ~string](row *TObj, config mode
 					return false
 				}
 			}
-			return true
 		case listener.OperatorOr:
+			var anyMatch bool
 			for _, childFilter := range filter.Filters {
 				if matchesQuery(row, config, listener.Filters{childFilter}) {
-					return true
+					anyMatch = true
+					break
 				}
 			}
-			return false
+			if !anyMatch {
+				return false
+			}
 		default:
-			return matchFilter(row, config, filter)
+			if !matchFilter(row, config, filter) {
+				return false
+			}
 		}
 	}
 	return true

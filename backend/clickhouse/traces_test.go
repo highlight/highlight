@@ -27,7 +27,7 @@ func TestBatchWriteTraceRows(t *testing.T) {
 
 func Test_TraceMatchesQuery(t *testing.T) {
 	trace := TraceRow{}
-	filters := parser.Parse("os.type:linux resource_name:worker.* service_name:all", TracesTableConfig)
+	filters := parser.Parse("os.type:linux resource_name:worker.* service_name:all", TracesTableNoDefaultConfig)
 	matches := TraceMatchesQuery(&trace, filters)
 	assert.False(t, matches)
 
@@ -38,16 +38,19 @@ func Test_TraceMatchesQuery(t *testing.T) {
 			"resource_name": "worker.kafka.process",
 		},
 	}
-	filters = parser.Parse("os.type:linux resource_name:worker.* service_name:all", TracesTableConfig)
+	filters = parser.Parse("os.type:linux resource_name:worker.* service_name:all", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
 }
 
 func Test_TraceMatchesQuery_v2(t *testing.T) {
 	trace := TraceRow{}
-	filters := parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableConfig)
+	filters := parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableNoDefaultConfig)
 	matches := TraceMatchesQuery(&trace, filters)
 	assert.False(t, matches)
+	filters = parser.Parse("", TracesTableNoDefaultConfig)
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.True(t, matches)
 
 	trace = TraceRow{
 		UUID:            "ac6e7d25-c70c-4ed0-9c7d-b9653f1b3f07",
@@ -63,9 +66,15 @@ func Test_TraceMatchesQuery_v2(t *testing.T) {
 		Environment:     "prod",
 		StatusCode:      "Unset",
 	}
-	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableConfig)
+	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
+	filters = parser.Parse("span_name=*bean-fs* OR highlight.type=oof OR span_name=swag", TracesTableNoDefaultConfig)
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.False(t, matches)
+	filters = parser.Parse("span_name=*fs* AND highlight.type=highlight.internal AND span_name=highlight-metric", TracesTableNoDefaultConfig)
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.False(t, matches)
 
 	trace = TraceRow{
 		UUID:            "3f25ebd5-a0db-457e-8230-e098eb57725b",
@@ -87,9 +96,12 @@ func Test_TraceMatchesQuery_v2(t *testing.T) {
 			},
 		},
 	}
-	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableConfig)
+	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
+	filters = parser.Parse("span_name=fs* AND highlight.type=highlight.internal AND span_name=highlight-metric", TracesTableNoDefaultConfig)
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.False(t, matches)
 
 	trace = TraceRow{
 		UUID:            "069e75d3-047a-4b6a-9047-a397d0cfc71a",
@@ -106,7 +118,10 @@ func Test_TraceMatchesQuery_v2(t *testing.T) {
 		Environment:     "production",
 		StatusCode:      "Unset",
 	}
-	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableConfig)
+	filters = parser.Parse("span_name=fs* OR highlight.type=highlight.internal OR span_name=highlight-metric", TracesTableNoDefaultConfig)
+	matches = TraceMatchesQuery(&trace, filters)
+	assert.True(t, matches)
+	filters = parser.Parse("span_name=(\"fs statSync\" OR the OR oo)", TracesTableNoDefaultConfig)
 	matches = TraceMatchesQuery(&trace, filters)
 	assert.True(t, matches)
 }
