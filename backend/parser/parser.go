@@ -6,14 +6,10 @@ import (
 	parser "github.com/highlight-run/highlight/backend/parser/antlr"
 	"github.com/highlight-run/highlight/backend/parser/listener"
 	"github.com/huandu/go-sqlbuilder"
-	"strings"
 )
 
 func AssignSearchFilters[T ~string](sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig[T]) listener.Filters {
-	if !strings.Contains(query, "IsIngestedBy") {
-		query = query + " " + tableConfig.DefaultFilter
-	}
-	is := antlr.NewInputStream(query)
+	is := antlr.NewInputStream(query + " " + tableConfig.DefaultFilter)
 	lexer := parser.NewSearchGrammarLexer(is)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := parser.NewSearchGrammarParser(stream)

@@ -2038,6 +2038,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 	// TODO(vkorolik) write to an actual metrics table
 	var messages []*kafka_queue.Message
 	for _, traceRow := range traceRows {
+		if !r.IsTraceIngested(ctx, traceRow) {
+			continue
+		}
 		messages = append(messages, &kafka_queue.Message{
 			Type: kafka_queue.PushTraces,
 			PushTraces: &kafka_queue.PushTracesArgs{
