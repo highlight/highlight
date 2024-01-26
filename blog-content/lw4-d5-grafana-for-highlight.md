@@ -30,7 +30,7 @@ The plugin is designed for ease of use and flexibility. It can be installed on y
 
 ## Benefits of the Grafana Plugin for Highlight
 
-1. **Custom Dashboards**: Grafana for Highlight will help you build custom dashboards using metrics recorded by Highlight.
+1. **Custom Dashboards**: Grafana for Highlight will help you build custom dashboards using metrics recorded by Highlight. Extract structured data from all of the products in highlight.
 
 2. **Comprehensive Support**: The plugin offers full Grafana support for all Highlight resources, including Traces, Logs, Session Replay, and Errors.
 
