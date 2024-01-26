@@ -1,5 +1,5 @@
 ---
-title: "Day 1: Simplify tracing with OpenTelemetry and Highlight"
+title: "Day 1: OpenTelemetry on Highlight"
 createdAt: 2024-01-30T12:00:00Z
 readingTime: 3
 authorFirstName: Chris
