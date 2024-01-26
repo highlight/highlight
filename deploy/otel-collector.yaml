@@ -13,13 +13,14 @@ exporters:
     otlphttp:
         endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
+        timeout: 30s
         sending_queue:
             num_consumers: 64
             queue_size: 16384
         retry_on_failure:
             initial_interval: 0.1s
             max_interval: 1s
-            max_elapsed_time: 10s
+            max_elapsed_time: 300s
 processors:
     memory_limiter:
         check_interval: 0.1s

@@ -535,4 +535,4 @@ jobs:
               with:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
-                  cluster: highlight-ec2-prod
+                  cluster: highlight-production-cluster
