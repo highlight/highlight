@@ -1,12 +1,13 @@
 [package]
 name = "highlightio-example-tokio-current-thread"
 version = "0.1.0"
+license = "Apache-2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 dotenvy = "0.15"
-highlightio = { path = "../../", default-features = false, features = ["tokio-current-thread"]}
+highlightio = { path = "../../", default-features = false, features = ["tokio-current-thread"] }
 log = { workspace = true }
 tokio = { workspace = true, features = ["rt"] }
