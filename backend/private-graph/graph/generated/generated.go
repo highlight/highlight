@@ -11615,7 +11615,7 @@ type MetricBucket {
 	group: [String!]!
 	column: MetricColumn!
 	metric_type: MetricAggregator!
-	metric_value: Float!
+	metric_value: Float
 }
 
 type MetricsBuckets {
@@ -38855,14 +38855,11 @@ func (ec *executionContext) _MetricBucket_metric_value(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MetricBucket_metric_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -80563,9 +80560,6 @@ func (ec *executionContext) _MetricBucket(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = ec._MetricBucket_metric_value(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

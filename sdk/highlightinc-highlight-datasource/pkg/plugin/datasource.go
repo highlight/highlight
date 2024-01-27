@@ -369,10 +369,15 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	}
 
 	bucketIds := []uint64{}
-	bucketMaxs := []uint64{}
 	for i := uint64(0); i < result.BucketCount; i++ {
 		bucketIds = append(bucketIds, i)
-		bucketMaxs = append(bucketMaxs, i+1)
+	}
+
+	bucketMins := make([]*float64, result.BucketCount)
+	bucketMaxs := make([]*float64, result.BucketCount)
+	for _, bucket := range result.Buckets {
+		bucketMins[bucket.BucketID] = pointy.Float64(bucket.BucketMin)
+		bucketMaxs[bucket.BucketID] = pointy.Float64(bucket.BucketMax)
 	}
 
 	frame := data.NewFrame("response")
@@ -384,6 +389,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 		})
 
 		frame.Fields = append(frame.Fields, data.NewField("time", nil, timeValues))
+	} else if input.BucketBy != "None" {
+		frame.Fields = append(frame.Fields, data.NewField("xMin", nil, bucketMins))
+		frame.Fields = append(frame.Fields, data.NewField("xMax", nil, bucketMaxs))
 	}
 
 	metricTypes := lo.Uniq(lo.Map(result.Buckets, func(bucket *MetricBucket, _ int) MetricAggregator {
@@ -393,11 +401,6 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	metricGroups := lo.Uniq(lo.Map(result.Buckets, func(bucket *MetricBucket, _ int) string {
 		return strings.Join(bucket.Group, "-")
 	}))
-
-	// if input.BucketBy == "Histogram" {
-	// 	frame.Fields = append(frame.Fields, data.NewField("xMin", nil, []uint64{0, 2, 9}))
-	// 	frame.Fields = append(frame.Fields, data.NewField("xMax", nil, []uint64{2, 5, 13}))
-	// }
 
 	for _, metricType := range metricTypes {
 		for _, metricGroup := range metricGroups {

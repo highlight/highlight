@@ -7377,8 +7377,11 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		return item.Group[0]
 	}) {
 		count := 0
+
 		for _, g := range groups {
-			count += int(g.MetricValue)
+			if g.MetricValue != nil {
+				count += int(*g.MetricValue)
+			}
 		}
 		result.Buckets = append(result.Buckets, &modelInputs.CategoryHistogramBucket{
 			Category: url,

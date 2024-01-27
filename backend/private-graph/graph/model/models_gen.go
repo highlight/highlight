@@ -550,7 +550,7 @@ type MetricBucket struct {
 	Group       []string         `json:"group"`
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
-	MetricValue float64          `json:"metric_value"`
+	MetricValue *float64         `json:"metric_value"`
 }
 
 type MetricPreview struct {

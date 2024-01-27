@@ -3205,7 +3205,10 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 		return nil, err
 	}
 	bucketLength := params.DateRange.EndDate.Sub(params.DateRange.StartDate) / numBuckets
-	return lo.Map(metrics.Buckets, func(item *modelInputs.MetricBucket, index int) *modelInputs.DashboardPayload {
+	nonNil := lo.Filter(metrics.Buckets, func(item *modelInputs.MetricBucket, _ int) bool {
+		return item.MetricValue != nil
+	})
+	return lo.Map(nonNil, func(item *modelInputs.MetricBucket, index int) *modelInputs.DashboardPayload {
 		var group *string
 		if len(item.Group) > 0 {
 			group = pointy.String(strings.Join(item.Group, "-"))
@@ -3213,7 +3216,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 		date := params.DateRange.StartDate.Add(bucketLength * time.Duration(item.BucketID))
 		return &modelInputs.DashboardPayload{
 			Date:       date.Format(time.RFC3339),
-			Value:      item.MetricValue,
+			Value:      *item.MetricValue,
 			Aggregator: agg,
 			Group:      group,
 		}

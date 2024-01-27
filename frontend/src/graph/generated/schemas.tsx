@@ -961,7 +961,7 @@ export type MetricBucket = {
 	column: MetricColumn
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
-	metric_value: Scalars['Float']
+	metric_value?: Maybe<Scalars['Float']>
 }
 
 export enum MetricBucketBy {
