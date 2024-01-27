@@ -24,6 +24,8 @@ import { PythonGCPContext } from './backend/python/gcp'
 import { PythonOtherContext } from './backend/python/other'
 import { RubyOtherContent } from './backend/ruby/other'
 import { RubyRailsContent } from './backend/ruby/rails'
+import { RustOtherContent } from './backend/rust/other'
+import { RustActixContent } from './backend/rust/actix'
 import { AngularContent } from './frontend/angular'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
@@ -52,6 +54,8 @@ import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
+import { RustOtherLogContent } from './logging/rust/other'
+import { RustActixLogContent } from './logging/rust/actix'
 import { SyslogContent } from './logging/syslog'
 import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
@@ -150,6 +154,8 @@ export enum QuickStartType {
 	File = 'file',
 	RubyOther = 'other',
 	RubyRails = 'rails',
+	RustOther = 'other',
+	RustActix = 'actix',
 	JavaOther = 'other',
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
@@ -228,6 +234,14 @@ export const quickStartContent = {
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
 		},
+		rust: {
+			title: 'Rust',
+			subtitle:
+				'Select your Rust framework to install error monitoring for your application.',
+			logoUrl: siteUrl('/images/quickstart/rust.svg'),
+			[QuickStartType.RustActix]: RustActixContent,
+			[QuickStartType.RustOther]: RustOtherContent,
+		},
 		java: {
 			title: 'Java',
 			subtitle:
@@ -291,6 +305,14 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
+		},
+		rust: {
+			title: 'Rust',
+			subtitle:
+				'Select your Rust framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/rust.svg'),
+			[QuickStartType.RustActix]: RustActixLogContent,
+			[QuickStartType.RustOther]: RustOtherLogContent,
 		},
 		java: {
 			title: 'Java',
