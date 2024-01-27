@@ -1,6 +1,6 @@
 ---
 title: "Day 2: Supercharging the Highlight Query Builder"
-createdAt: 2024-02-01T12:00:00Z
+createdAt: 2024-01-30T12:00:00Z
 readingTime: 3
 authorFirstName: Chris
 authorLastName: Esplin

@@ -1,6 +1,6 @@
 ---
 title: "Day 5: Grafana for Highlight"
-createdAt: 2024-01-29T12:00:00Z
+createdAt: 2024-02-02T12:00:00Z
 readingTime: 3
 authorFirstName: Chris
 authorLastName: Esplin

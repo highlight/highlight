@@ -1,6 +1,6 @@
 ---
 title: "Day 4: Tracing SDKs for Next.js, Python, and Go/GORM"
-createdAt: 2024-02-02T12:00:00Z
+createdAt: 2024-02-01T12:00:00Z
 readingTime: 2
 authorFirstName: Chris
 authorLastName: Esplin
