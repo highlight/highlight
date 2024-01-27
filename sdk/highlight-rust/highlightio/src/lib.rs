@@ -18,7 +18,7 @@ pub use opentelemetry::trace::Span as SpanTrait;
 use opentelemetry::{
     global,
     logs::{LogRecordBuilder, Logger as _, Severity},
-    trace::{TraceContextExt, Tracer as _},
+    trace::{Status, TraceContextExt, Tracer as _},
     KeyValue,
 };
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
@@ -27,6 +27,7 @@ use opentelemetry_otlp::{
 };
 use opentelemetry_sdk::{
     logs::{self, Logger},
+    propagation::TraceContextPropagator,
     resource::Resource,
     trace::{self, BatchConfig, Span, Tracer},
 };
@@ -36,8 +37,13 @@ mod error;
 pub use error::HighlightError;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
+pub mod otel {
+    pub use opentelemetry::KeyValue;
+}
+
 struct HighlightInner {
-    log_logger: Box<dyn Log>,
+    project_id: String,
+    log_logger: Option<Box<dyn Log>>,
     logger: Logger,
     tracer: Tracer,
 }
@@ -113,17 +119,7 @@ impl Highlight {
         )])
     }
 
-    /// Initialize Highlight using a custom logger.
-    ///
-    /// Highlight automatically uses env_logger to emit your log messages onto the command line.
-    /// If you want to use a different logger, initialize with this function instead.
-    pub fn init_with_logger(
-        project_id: impl ToString,
-        log_logger: impl Log + 'static,
-    ) -> Result<Highlight, HighlightError> {
-        let project_id = project_id.to_string();
-
-        // TODO: missing batch config
+    fn make_install_pipelines(project_id: String) -> Result<(Logger, Tracer), HighlightError> {
         let logging = opentelemetry_otlp::new_pipeline()
             .logging()
             .with_log_config(
@@ -155,13 +151,28 @@ impl Highlight {
                     .with_endpoint("https://otel.highlight.io:4318"),
             );
 
-        let (logger, tracer) = Self::install_pipelines(logging, tracing)?;
+        Self::install_pipelines(logging, tracing)
+    }
+
+    /// Initialize Highlight using a custom logger.
+    ///
+    /// Highlight automatically uses env_logger to emit your log messages onto the command line.
+    /// If you want to use a different logger, initialize with this function instead.
+    pub fn init_with_logger(
+        project_id: impl ToString,
+        log_logger: impl Log + 'static,
+    ) -> Result<Highlight, HighlightError> {
+        let project_id = project_id.to_string();
+
+        global::set_text_map_propagator(TraceContextPropagator::new());
+        let (logger, tracer) = Self::make_install_pipelines(project_id.clone())?;
 
         let layer = OpenTelemetryTracingBridge::new(&global::logger_provider());
         tracing_subscriber::registry().with(layer).init();
 
         let h = Highlight(Arc::new(HighlightInner {
-            log_logger: Box::new(log_logger),
+            project_id,
+            log_logger: Some(Box::new(log_logger)),
             logger,
             tracer,
         }));
@@ -198,6 +209,8 @@ impl Highlight {
                 cx.span()
                     .set_attribute(KeyValue::new("highlight.trace_id", request_id));
             }
+
+            cx.span().set_status(Status::error(format!("{:?}", err)));
         });
     }
 
@@ -213,6 +226,11 @@ impl Highlight {
     /// Creates a span for tracing. You can end it with span.end() by importing highlightio::SpanTrait.
     pub fn span(&self, name: impl Into<Cow<'static, str>>) -> Span {
         self.0.tracer.start(name)
+    }
+
+    /// Returns the project ID.
+    pub fn project_id(&self) -> String {
+        self.0.project_id.clone()
     }
 }
 
@@ -237,7 +255,9 @@ impl log::Log for Highlight {
                 .build(),
         );
 
-        self.0.log_logger.log(record);
+        if let Some(logger) = &self.0.log_logger {
+            logger.log(record)
+        }
     }
 
     fn flush(&self) {
