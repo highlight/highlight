@@ -35,15 +35,43 @@ use opentelemetry_sdk::{
 mod error;
 
 pub use error::HighlightError;
+use opentelemetry_semantic_conventions::resource::{SERVICE_NAME, SERVICE_VERSION};
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 pub mod otel {
     pub use opentelemetry::KeyValue;
 }
 
+pub struct HighlightConfig {
+    /// Your highlight.io Project ID
+    pub project_id: String,
+
+    /// The name of your app.
+    pub service_name: Option<String>,
+
+    /// The version of your app. We recommend setting this to the most recent deploy SHA of your app.
+    pub service_version: Option<String>,
+
+    /// The current logger (implements log::Log).
+    /// 
+    /// By default, Highlight will initialize an env_logger for you, but if you want to provide a custom logger, you can specify it here.
+    /// If you provide a custom logger, do not make it global, as Highlight will do it for you.
+    pub logger: Box<dyn Log>,
+}
+
+impl Default for HighlightConfig {
+    fn default() -> Self {
+        Self {
+            project_id: Default::default(),
+            service_name: Default::default(),
+            service_version: Default::default(),
+            logger: Box::new(env_logger::Logger::from_default_env()),
+        }
+    }
+}
+
 struct HighlightInner {
-    project_id: String,
-    log_logger: Option<Box<dyn Log>>,
+    config: HighlightConfig,
     logger: Logger,
     tracer: Tracer,
 }
@@ -112,19 +140,27 @@ impl Highlight {
         ))
     }
 
-    fn get_default_resource(project_id: String) -> Resource {
-        Resource::new(vec![KeyValue::new(
-            "highlight.project_id",
-            project_id.clone(),
-        )])
+    fn get_default_resource(config: &HighlightConfig) -> Resource {
+        let mut attrs = Vec::with_capacity(2);
+        attrs.push(KeyValue::new("highlight.project_id", config.project_id.clone()));
+
+        if let Some(service_name) = &config.service_name {
+            attrs.push(KeyValue::new(SERVICE_NAME, service_name.to_owned()));
+        }
+
+        if let Some(service_version) = &config.service_version {
+            attrs.push(KeyValue::new(SERVICE_VERSION, service_version.to_owned()));
+        }
+
+        Resource::new(attrs)
     }
 
-    fn make_install_pipelines(project_id: String) -> Result<(Logger, Tracer), HighlightError> {
+    fn make_install_pipelines(config: &HighlightConfig) -> Result<(Logger, Tracer), HighlightError> {
         let logging = opentelemetry_otlp::new_pipeline()
             .logging()
             .with_log_config(
                 logs::Config::default()
-                    .with_resource(Self::get_default_resource(project_id.clone())),
+                    .with_resource(Self::get_default_resource(config)),
             )
             .with_exporter(
                 opentelemetry_otlp::new_exporter()
@@ -137,7 +173,7 @@ impl Highlight {
             .with_trace_config(
                 trace::config()
                     .with_sampler(trace::Sampler::AlwaysOn)
-                    .with_resource(Self::get_default_resource(project_id.to_string())),
+                    .with_resource(Self::get_default_resource(config)),
             )
             .with_batch_config(
                 BatchConfig::default()
@@ -154,25 +190,20 @@ impl Highlight {
         Self::install_pipelines(logging, tracing)
     }
 
-    /// Initialize Highlight using a custom logger.
-    ///
-    /// Highlight automatically uses env_logger to emit your log messages onto the command line.
-    /// If you want to use a different logger, initialize with this function instead.
-    pub fn init_with_logger(
-        project_id: impl ToString,
-        log_logger: impl Log + 'static,
-    ) -> Result<Highlight, HighlightError> {
-        let project_id = project_id.to_string();
+    /// Initialize Highlight.
+    pub fn init(config: HighlightConfig) -> Result<Highlight, HighlightError> {
+        if config.project_id == String::default() {
+            return Err(HighlightError::Config("You must specify a project_id in your HighlightConfig".to_string()));
+        }
 
         global::set_text_map_propagator(TraceContextPropagator::new());
-        let (logger, tracer) = Self::make_install_pipelines(project_id.clone())?;
+        let (logger, tracer) = Self::make_install_pipelines(&config)?;
 
         let layer = OpenTelemetryTracingBridge::new(&global::logger_provider());
         tracing_subscriber::registry().with(layer).init();
 
         let h = Highlight(Arc::new(HighlightInner {
-            project_id,
-            log_logger: Some(Box::new(log_logger)),
+            config,
             logger,
             tracer,
         }));
@@ -181,11 +212,6 @@ impl Highlight {
         log::set_max_level(log::LevelFilter::Trace);
 
         Ok(h)
-    }
-
-    /// Initialize Highlight
-    pub fn init(project_id: impl ToString) -> Result<Highlight, HighlightError> {
-        Self::init_with_logger(project_id, env_logger::Logger::from_default_env())
     }
 
     /// Capture an error with session info
@@ -230,7 +256,7 @@ impl Highlight {
 
     /// Returns the project ID.
     pub fn project_id(&self) -> String {
-        self.0.project_id.clone()
+        self.0.config.project_id.clone()
     }
 }
 
@@ -255,9 +281,7 @@ impl log::Log for Highlight {
                 .build(),
         );
 
-        if let Some(logger) = &self.0.log_logger {
-            logger.log(record)
-        }
+        self.0.config.logger.log(record);
     }
 
     fn flush(&self) {

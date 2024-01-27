@@ -1,4 +1,4 @@
-use highlightio::Highlight;
+use highlightio::{Highlight, HighlightConfig};
 use log::{debug, error, info, trace, warn};
 
 fn main() {
@@ -6,7 +6,10 @@ fn main() {
 
     let project_id = std::env::var("PROJECT_ID").expect("PROJECT_ID env var not specified.");
 
-    let h = Highlight::init(project_id).expect("Failed to initialize Highlight.io");
+    let h = Highlight::init(HighlightConfig {
+        project_id,
+        ..Default::default()
+    }).expect("Failed to initialize Highlight.io");
 
     trace!("This is a trace! log. {:?}", "hi!");
     debug!("This is a debug! log. {}", 3 * 3);

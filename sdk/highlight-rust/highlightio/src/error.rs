@@ -3,6 +3,10 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum HighlightError {
+    /// Config error during setup
+    #[error("Highlight Config error: {0}")]
+    Config(String),
+
     /// Errors from the log SDK
     #[error(transparent)]
     Log(LogError),

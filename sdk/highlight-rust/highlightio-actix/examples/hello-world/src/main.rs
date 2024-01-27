@@ -1,5 +1,5 @@
 use actix_web::{get, App, Error, HttpServer, Responder};
-use highlightio_actix::{highlight::Highlight, HighlightActix};
+use highlightio_actix::{highlight::{Highlight, HighlightConfig}, HighlightActix};
 use log::info;
 
 #[get("/")]
@@ -22,7 +22,10 @@ async fn main() -> Result<(), Error> {
 
     let project_id = std::env::var("PROJECT_ID").expect("PROJECT_ID env var not specified.");
 
-    let h = Highlight::init(project_id).expect("Failed to initialize Highlight.io");
+    let h = Highlight::init(HighlightConfig {
+        project_id,
+        ..Default::default()
+    }).expect("Failed to initialize Highlight.io");
 
     HttpServer::new(move || {
         App::new()
