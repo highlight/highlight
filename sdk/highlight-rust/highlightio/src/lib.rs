@@ -247,7 +247,7 @@ impl log::Log for Highlight {
     }
 }
 
-impl Drop for Highlight {
+impl Drop for HighlightInner {
     fn drop(&mut self) {
         global::shutdown_logger_provider();
         global::shutdown_tracer_provider();
