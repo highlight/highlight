@@ -3,6 +3,7 @@ on:
     push:
         branches:
             - 'main'
+            - 'vadim/limit-read-message'
         paths:
             - 'go.work'
             - 'go.work.sum'
