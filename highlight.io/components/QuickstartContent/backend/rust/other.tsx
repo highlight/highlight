@@ -8,25 +8,25 @@ export const RustOtherContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
 		{
-            title: 'Install the Highlight Rust SDK.',
-            content: 'Add Highlight to your Config.toml. You\'ll need to pick your features based on what kind of runtime your project uses. If everything is synchronous, you can use the default features. If you\'re using `tokio` with `rt-multi-thread` (default), turn off default features and use the feature `tokio`. If you\'re using `tokio` with `rt`, turn off default features and use the feature `tokio-current-thread`. If you\'re using `async-std`, turn off default features and use the feature `async-std`.',
-            code: [
-                {
-                    text: `[dependencies.highlightio]
+			title: 'Install the Highlight Rust SDK.',
+			content:
+				"Add Highlight to your Config.toml. You'll need to pick your features based on what kind of runtime your project uses. If everything is synchronous, you can use the default features. If you're using `tokio` with `rt-multi-thread` (default), turn off default features and use the feature `tokio`. If you're using `tokio` with `rt`, turn off default features and use the feature `tokio-current-thread`. If you're using `async-std`, turn off default features and use the feature `async-std`.",
+			code: [
+				{
+					text: `[dependencies.highlightio]
 version = "1"
 default-features = ...
 features = [...]`,
-                    language: 'toml',
-                },
-            ],
-        },
-        {
-            title: 'Initialize the Highlight Rust SDK.',
-            content:
-                "`highlightio::Highlight::init` initializes the SDK.",
-            code: [
-                {
-                    text: `use highlightio::{Highlight, HighlightConfig};
+					language: 'toml',
+				},
+			],
+		},
+		{
+			title: 'Initialize the Highlight Rust SDK.',
+			content: '`highlightio::Highlight::init` initializes the SDK.',
+			code: [
+				{
+					text: `use highlightio::{Highlight, HighlightConfig};
 
 // or async fn main() with #[tokio::main] if you're using tokio, etc.
 fn main() {
@@ -39,10 +39,10 @@ fn main() {
 
     // ...
 }`,
-                    language: 'rust',
-                },
-            ],
-        },
+					language: 'rust',
+				},
+			],
+		},
 		{
 			title: 'Capture errors.',
 			content:

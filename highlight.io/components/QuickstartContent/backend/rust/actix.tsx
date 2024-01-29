@@ -10,23 +10,23 @@ export const RustActixContent: QuickStartContent = {
 	entries: [
 		frontendInstallSnippet,
 		{
-            title: 'Install the Highlight Rust actix SDK.',
-            content: 'Add Highlight to your Config.toml.',
-            code: [
-                {
-                    text: `[dependencies]
+			title: 'Install the Highlight Rust actix SDK.',
+			content: 'Add Highlight to your Config.toml.',
+			code: [
+				{
+					text: `[dependencies]
 highlightio-actix = "1"`,
-                    language: 'toml',
-                },
-            ],
-        },
-        {
-            title: 'Initialize the Highlight Rust SDK and actix Middleware.',
-            content:
-                "`highlightio_actix::highlight::Highlight::init` initializes the SDK, and adding the `highlightio_actix::HighlightActix` middleware will start tracing actix.",
-            code: [
-                {
-                    text: `use actix_web::{App, Error, HttpServer};
+					language: 'toml',
+				},
+			],
+		},
+		{
+			title: 'Initialize the Highlight Rust SDK and actix Middleware.',
+			content:
+				'`highlightio_actix::highlight::Highlight::init` initializes the SDK, and adding the `highlightio_actix::HighlightActix` middleware will start tracing actix.',
+			code: [
+				{
+					text: `use actix_web::{App, Error, HttpServer};
 use highlightio_actix::{highlight::{Highlight, HighlightConfig}, HighlightActix};
 
 // ...your services...
@@ -51,11 +51,11 @@ async fn main() -> Result<(), Error> {
 
     Ok(())
 }`,
-                    language: 'rust',
-                },
-            ],
-        },
-        {
+					language: 'rust',
+				},
+			],
+		},
+		{
 			title: 'Verify your errors are being recorded.',
 			content:
 				"Now that you've set everything up, you can verify that the backend error handling works by throwing an error in a service. Visit the [highlight errors page](http://app.highlight.io/errors) and check that backend errors are coming in.",
