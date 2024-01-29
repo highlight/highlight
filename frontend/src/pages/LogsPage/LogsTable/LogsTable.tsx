@@ -1,5 +1,9 @@
 import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
+import {
+	CustomColumnPopover,
+	LogCustomColumn,
+} from '@components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
@@ -13,8 +17,8 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import {
-	CustomColumn,
 	DEFAULT_LOG_COLUMNS,
+	HIGHLIGHT_STANDARD_COLUMNS,
 } from '@pages/LogsPage/LogsTable/CustomColumns/columns'
 import { ColumnRenderers } from '@pages/LogsPage/LogsTable/CustomColumns/renderers'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
@@ -35,8 +39,8 @@ import React, { Key, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
+import { useGetLogsKeysLazyQuery } from '@/graph/generated/hooks'
 import { LogEdge } from '@/graph/generated/schemas'
-import { CustomColumnPopover } from '@/pages/LogsPage/LogsTable/CustomColumns/Popover'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import { LogDetails, LogValue } from './LogDetails'
@@ -117,8 +121,8 @@ type LogsTableInnerProps = {
 	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
-	selectedColumns?: CustomColumn[]
-	setSelectedColumns?: (columns: CustomColumn[]) => void
+	selectedColumns?: LogCustomColumn[]
+	setSelectedColumns?: (columns: LogCustomColumn[]) => void
 }
 
 const LOADING_AFTER_HEIGHT = 28
@@ -210,6 +214,9 @@ const LogsTableInner = ({
 					<CustomColumnPopover
 						selectedColumns={selectedColumns}
 						setSelectedColumns={setSelectedColumns}
+						standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
+						attributePrefix="logAttributes"
+						getKeysLazyQuery={useGetLogsKeysLazyQuery}
 					/>
 				),
 			})
