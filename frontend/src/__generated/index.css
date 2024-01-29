@@ -7392,6 +7392,17 @@ body {
 ._1rw9tha0 {
   border: none;
 }
+._1rw9tha1 {
+  width: 300px;
+}
+._1rw9tha2 {
+  line-height: 25px;
+  overflow: hidden;
+  width: 250px;
+}
+._1rw9tha3 {
+  overflow-wrap: break-word;
+}
 ._14l2j9r1 {
   font-size: 12px;
 }

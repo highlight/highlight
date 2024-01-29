@@ -1,8 +1,11 @@
 import { useGetTracesKeysLazyQuery } from '@graph/hooks'
 import {
+	Box,
 	ComboboxSelect,
 	DEFAULT_TIME_PRESETS,
 	IconSolidDotsHorizontal,
+	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
 import { useParams } from '@util/react-router/useParams'
@@ -111,18 +114,29 @@ export const CustomColumnPopover: React.FC<Props> = ({
 		? []
 		: columnOptions.map((o) => ({
 				key: o.id,
-				render: o.id,
+				render: (
+					<Tooltip
+						trigger={
+							<Text lines="1" cssClass={styles.selectOption}>
+								{o.id}
+							</Text>
+						}
+					>
+						<Box cssClass={styles.selectOptionTooltip}>{o.id}</Box>
+					</Tooltip>
+				),
 		  }))
 
 	return (
 		<ComboboxSelect
 			label="Selected columns"
-			queryPlaceholder="Search..."
+			queryPlaceholder="Search attributes..."
 			onChange={handleColumnValueChange}
 			icon={<IconSolidDotsHorizontal />}
 			value={value}
 			options={options}
 			cssClass={styles.selectButton}
+			popoverCssClass={styles.selectPopover}
 			onChangeQuery={setQuery}
 		/>
 	)
