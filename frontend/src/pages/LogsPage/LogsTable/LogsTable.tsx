@@ -12,13 +12,16 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
+import {
+	CustomColumn,
+	DEFAULT_LOG_COLUMNS,
+} from '@pages/LogsPage/LogsTable/CustomColumns/columns'
+import { ColumnRenderers } from '@pages/LogsPage/LogsTable/CustomColumns/renderers'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
-import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
-import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
-import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
+	ColumnDef,
 	createColumnHelper,
 	ExpandedState,
 	flexRender,
@@ -27,11 +30,13 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import React, { Key, useEffect, useRef, useState } from 'react'
+import { isEqual } from 'lodash'
+import React, { Key, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
 import { LogEdge } from '@/graph/generated/schemas'
+import { CustomColumnPopover } from '@/pages/LogsPage/LogsTable/CustomColumns/Popover'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import { LogDetails, LogValue } from './LogDetails'
@@ -112,11 +117,17 @@ type LogsTableInnerProps = {
 	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
+	selectedColumns?: CustomColumn[]
+	setSelectedColumns?: (columns: CustomColumn[]) => void
 }
 
 const LOADING_AFTER_HEIGHT = 28
 
-const GRID_COLUMNS = ['32px', '175px', '75px', '1fr']
+type ColumnHeader = {
+	id: string
+	component: React.ReactNode
+	noPadding?: boolean
+}
 
 const LogsTableInner = ({
 	logEdges,
@@ -128,6 +139,8 @@ const LogsTableInner = ({
 	clearMoreLogs,
 	handleAdditionalLogsDateChange,
 	fetchMoreWhenScrolled,
+	selectedColumns = DEFAULT_LOG_COLUMNS,
+	setSelectedColumns,
 }: LogsTableInnerProps) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const enableFetchMoreLogs =
@@ -138,54 +151,80 @@ const LogsTableInner = ({
 
 	const columnHelper = createColumnHelper<LogEdge>()
 
-	const columns = [
-		columnHelper.accessor('cursor', {
-			cell: ({ row }) => {
-				return (
-					<Box flexShrink={0} display="flex">
-						{row.getIsExpanded() ? (
-							<IconExpanded />
-						) : (
-							<IconCollapsed />
-						)}
-					</Box>
-				)
-			},
-		}),
-		columnHelper.accessor('node.timestamp', {
-			cell: ({ getValue }) => (
-				<Box pt="2">
-					<LogTimestamp timestamp={getValue()} />
-				</Box>
-			),
-		}),
-		columnHelper.accessor('node.level', {
-			cell: ({ getValue }) => (
-				<Box pt="2">
-					<LogLevel level={getValue()} />
-				</Box>
-			),
-		}),
-		columnHelper.accessor('node.message', {
-			cell: ({ row, getValue }) => {
-				const rowExpanded = row.getIsExpanded()
+	const columnData = useMemo(() => {
+		const gridColumns: string[] = []
+		const columnHeaders: ColumnHeader[] = []
+		const columns: ColumnDef<LogEdge, any>[] = []
 
-				return (
-					<Stack gap="2" pt="2">
-						<LogMessage
+		gridColumns.push('32px')
+		columnHeaders.push({ id: 'cursor', component: '' })
+		columns.push(
+			columnHelper.accessor('cursor', {
+				cell: ({ row }) => {
+					return (
+						<Table.Cell alignItems="flex-start">
+							<Box flexShrink={0} display="flex" width="full">
+								{row.getIsExpanded() ? (
+									<IconExpanded />
+								) : (
+									<IconCollapsed />
+								)}
+							</Box>
+						</Table.Cell>
+					)
+				},
+			}),
+		)
+
+		selectedColumns.forEach((column) => {
+			gridColumns.push(column.size)
+			columnHeaders.push({ id: column.id, component: column.label })
+
+			// @ts-ignore
+			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
+				cell: ({ row, getValue }) => {
+					const ColumnRenderer =
+						ColumnRenderers[column.type] || ColumnRenderers.string
+
+					return (
+						<ColumnRenderer
+							key={column.id}
+							row={row}
+							getValue={getValue}
 							queryParts={queryParts}
-							message={getValue()}
-							expanded={rowExpanded}
 						/>
-					</Stack>
-				)
-			},
-		}),
-	]
+					)
+				},
+			})
+
+			columns.push(accessor)
+		})
+
+		if (setSelectedColumns) {
+			// add custom column
+			gridColumns.push('25px')
+			columnHeaders.push({
+				id: 'edit-column-button',
+				noPadding: true,
+				component: (
+					<CustomColumnPopover
+						selectedColumns={selectedColumns}
+						setSelectedColumns={setSelectedColumns}
+					/>
+				),
+			})
+		}
+
+		return {
+			gridColumns,
+			columnHeaders,
+			columns,
+		}
+	}, [columnHelper, queryParts, selectedColumns, setSelectedColumns])
 
 	const table = useReactTable({
 		data: logEdges,
-		columns,
+		columns: columnData.columns,
 		state: {
 			expanded,
 		},
@@ -258,11 +297,15 @@ const LogsTableInner = ({
 	return (
 		<Table height="full" noBorder>
 			<Table.Head>
-				<Table.Row gridColumns={GRID_COLUMNS}>
-					<Table.Header />
-					<Table.Header>Timestamp</Table.Header>
-					<Table.Header>Level</Table.Header>
-					<Table.Header>Body</Table.Header>
+				<Table.Row gridColumns={columnData.gridColumns}>
+					{columnData.columnHeaders.map((header) => (
+						<Table.Header
+							key={header.id}
+							noPadding={header.noPadding}
+						>
+							{header.component}
+						</Table.Header>
+					))}
 				</Table.Row>
 				{enableFetchMoreLogs && (
 					<Table.Row>
@@ -297,6 +340,7 @@ const LogsTableInner = ({
 							expanded={row.getIsExpanded()}
 							virtualRowKey={virtualRow.key}
 							queryParts={queryParts}
+							gridColumns={columnData.gridColumns}
 						/>
 					)
 				})}
@@ -330,10 +374,18 @@ type LogsTableRowProps = {
 	expanded: boolean
 	virtualRowKey: Key
 	queryParts: SearchExpression[]
+	gridColumns: string[]
 }
 
 const LogsTableRow = React.memo<LogsTableRowProps>(
-	({ row, rowVirtualizer, expanded, virtualRowKey, queryParts }) => {
+	({
+		row,
+		rowVirtualizer,
+		expanded,
+		virtualRowKey,
+		queryParts,
+		gridColumns,
+	}) => {
 		const attributesRow = (row: any) => {
 			const log = row.original.node
 			const rowExpanded = row.getIsExpanded()
@@ -392,22 +444,19 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 				ref={rowVirtualizer.measureElement}
 			>
 				<Table.Row
-					gridColumns={GRID_COLUMNS}
+					gridColumns={gridColumns}
 					onClick={row.getToggleExpandedHandler()}
 					selected={expanded}
 					className={styles.dataRow}
 				>
 					{row.getVisibleCells().map((cell: any) => {
 						return (
-							<Table.Cell
-								key={cell.column.id}
-								alignItems="flex-start"
-							>
+							<React.Fragment key={cell.column.id}>
 								{flexRender(
 									cell.column.columnDef.cell,
 									cell.getContext(),
 								)}
-							</Table.Cell>
+							</React.Fragment>
 						)
 					})}
 				</Table.Row>
@@ -418,7 +467,8 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 	(prevProps, nextProps) => {
 		return (
 			prevProps.expanded === nextProps.expanded &&
-			prevProps.virtualRowKey === nextProps.virtualRowKey
+			prevProps.virtualRowKey === nextProps.virtualRowKey &&
+			isEqual(prevProps.gridColumns, nextProps.gridColumns)
 		)
 	},
 )
