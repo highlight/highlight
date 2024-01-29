@@ -15,6 +15,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { isEqual } from 'lodash'
 import React, { Key, useMemo, useRef } from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
@@ -311,7 +312,7 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 		return (
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
 			prevProps.isSelected === nextProps.isSelected &&
-			prevProps.gridColumns === nextProps.gridColumns
+			isEqual(prevProps.gridColumns, nextProps.gridColumns)
 		)
 	},
 )

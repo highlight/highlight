@@ -154,7 +154,6 @@ const DurationRenderer: React.FC<ColumnRendererProps> = ({
 	getValue,
 	first,
 }) => {
-	// currently receiving in ms
 	const duration = getTraceDurationString(getValue())
 	return (
 		<ColumnWrapper first={first} row={row}>
