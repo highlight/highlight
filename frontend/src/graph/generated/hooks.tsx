@@ -13190,6 +13190,7 @@ export const GetLogsDocument = gql`
 					serviceName
 					serviceVersion
 					environment
+					projectID
 				}
 			}
 			pageInfo {
