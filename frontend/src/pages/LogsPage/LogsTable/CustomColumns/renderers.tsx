@@ -42,7 +42,6 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 	const navigate = useNavigate()
 	const secureSessionID = getValue()
 	const log = row.original.node
-
 	const onClick = secureSessionID
 		? (e: any) => {
 				e.stopPropagation()
@@ -52,17 +51,19 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 
 	return (
 		<Table.Cell alignItems="flex-start" onClick={onClick} py="4">
-			{secureSessionID ? (
-				<Tag
-					kind="secondary"
-					shape="basic"
-					iconLeft={<IconSolidPlayCircle />}
-				>
-					{secureSessionID}
-				</Tag>
-			) : (
-				<Text color="secondaryContentOnDisabled">empty</Text>
-			)}
+			<span>
+				{secureSessionID ? (
+					<Tag
+						kind="secondary"
+						shape="basic"
+						iconLeft={<IconSolidPlayCircle />}
+					>
+						{secureSessionID}
+					</Tag>
+				) : (
+					<Text color="secondaryContentOnDisabled">empty</Text>
+				)}
+			</span>
 		</Table.Cell>
 	)
 }
