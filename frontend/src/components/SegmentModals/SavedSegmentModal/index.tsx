@@ -63,7 +63,7 @@ export const SavedSegmentModal = ({
 						autoFocus
 					/>
 					<Box borderTop="dividerWeak" my="12" width="full" />
-					<Box>
+					<Box mb="4" gap="4" display="flex" flexDirection="column">
 						<Form.Label
 							label="Filters"
 							name={formStore.names.filters}

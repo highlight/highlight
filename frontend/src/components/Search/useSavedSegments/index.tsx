@@ -342,6 +342,7 @@ export const useSavedSegments = ({
 							size="small"
 							emphasis="low"
 							kind="secondary"
+							onClick={(e: any) => e.preventDefault()}
 						>
 							<Box gap="4" display="flex" alignItems="center">
 								<IconSolidSegment size={16} color={colors.n9} />
