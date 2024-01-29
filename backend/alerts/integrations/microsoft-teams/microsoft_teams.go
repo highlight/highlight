@@ -9,13 +9,14 @@ import (
 	nUrl "net/url"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/infracloudio/msbotbuilder-go/schema"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"golang.org/x/oauth2"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -23,7 +24,14 @@ var (
 	MicrosoftGraphUrl = "https://graph.microsoft.com/v1.0"
 )
 
-type TeamsResponseValue struct {
+type TeamResponse struct {
+	OdataId     string `json:"@odata.id"`
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+	Description string `json:"description"`
+}
+
+type ChannelResponse struct {
 	OdataId             string `json:"@odata.id"`
 	ID                  string `json:"id"`
 	CreatedDateTime     string `json:"createdDateTime"`
@@ -36,21 +44,33 @@ type TeamsResponseValue struct {
 	MembershipType      string `json:"membershipType"`
 }
 
-type TeamsResponse struct {
-	Context string               `json:"@odata.context"`
-	Count   int                  `json:"@odata.count"`
-	Value   []TeamsResponseValue `json:"value"`
+type GraphResponse[T any] struct {
+	Context string `json:"@odata.context"`
+	Count   int    `json:"@odata.count"`
+	Value   []T    `json:"value"`
 }
 
-func GetMicrosoftTeamsGroupsFromWorkspace(workspace *model.Workspace) []string {
-	var microsoftTeamsGroups []string
-	if workspace.MicrosoftTeamsGroups != nil && *workspace.MicrosoftTeamsGroups != "" {
-		_ = json.Unmarshal([]byte(*workspace.MicrosoftTeamsGroups), &microsoftTeamsGroups)
+func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
+	if workspace.MicrosoftTeamsTenantId == nil {
+		return nil, errors.Errorf("MicrosoftTeamsTenantId is nil: workspace %d", workspace.ID)
 	}
-	return microsoftTeamsGroups
+
+	ctx := context.Background()
+	accessToken, err := GetAccessToken(ctx, *workspace.MicrosoftTeamsTenantId)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/teams", MicrosoftGraphUrl)
+	response, err := doGetRequest[*GraphResponse[TeamResponse]](accessToken.AccessToken, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Value, nil
 }
 
-func GetMicrosoftTeamsChannels(tenantID string, teamID string) ([]*model.MicrosoftTeamsChannel, error) {
+func GetChannels(tenantID string, teamResponse TeamResponse) ([]*model.MicrosoftTeamsChannel, error) {
 	ctx := context.Background()
 	accessToken, err := GetAccessToken(ctx, tenantID)
 
@@ -58,18 +78,18 @@ func GetMicrosoftTeamsChannels(tenantID string, teamID string) ([]*model.Microso
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/teams/%s/allChannels", MicrosoftGraphUrl, teamID)
-	response, err := doGetRequest[*TeamsResponse](accessToken.AccessToken, url)
+	url := fmt.Sprintf("%s/teams/%s/allChannels", MicrosoftGraphUrl, teamResponse.ID)
+	response, err := doGetRequest[*GraphResponse[ChannelResponse]](accessToken.AccessToken, url)
 	if err != nil {
 		return nil, err
 	}
 
 	channels := make([]*model.MicrosoftTeamsChannel, len(response.Value))
 
-	for i, team := range response.Value {
+	for i, channel := range response.Value {
 		channels[i] = &model.MicrosoftTeamsChannel{
-			ID:   team.ID,
-			Name: team.DisplayName,
+			ID:   channel.ID,
+			Name: fmt.Sprintf("%s > %s", teamResponse.DisplayName, channel.DisplayName),
 		}
 	}
 
@@ -190,34 +210,31 @@ func doRequest[T any](method string, accessToken string, url string, body string
 	return unmarshalled, nil
 }
 
-func GetMicrosoftTeamsChannelSuggestions(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
-	teamsGroups := GetMicrosoftTeamsGroupsFromWorkspace(workspace)
+func GetChannelSuggestions(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
+	teams, err := GetTeamsFromWorkspace(workspace)
+	if err != nil {
+		return nil, err
+	}
 
-	ch := make(chan []*model.MicrosoftTeamsChannel)
+	allChannels := make([][]*model.MicrosoftTeamsChannel, len(teams))
 
-	var wg sync.WaitGroup
-	wg.Add(len(teamsGroups))
-
-	for _, teamGroup := range teamsGroups {
-		go func(teamGroup string) {
-			defer wg.Done()
-
-			channels, err := GetMicrosoftTeamsChannels(*workspace.MicrosoftTeamsTenantId, teamGroup)
-			if err == nil {
-				ch <- channels
+	var g errgroup.Group
+	for idx, team := range teams {
+		idx := idx
+		team := team
+		g.Go(func() error {
+			channels, err := GetChannels(*workspace.MicrosoftTeamsTenantId, team)
+			if err != nil {
+				return err
 			}
-		}(teamGroup)
+			allChannels[idx] = channels
+			return nil
+		})
 	}
 
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	allChannels := []*model.MicrosoftTeamsChannel{}
-	for channels := range ch {
-		allChannels = append(allChannels, channels...)
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
-	return allChannels, nil
+	return lo.Flatten(allChannels), nil
 }

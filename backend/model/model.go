@@ -266,7 +266,6 @@ type Workspace struct {
 	JiraDomain                  *string
 	JiraCloudID                 *string
 	MicrosoftTeamsTenantId      *string
-	MicrosoftTeamsGroups        *string // json []string
 	SlackChannels               *string
 	LinearAccessToken           *string
 	VercelAccessToken           *string
