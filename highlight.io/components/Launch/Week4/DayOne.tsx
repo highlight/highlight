@@ -14,7 +14,7 @@ const DayOne = () => {
 
 	function handleCopy(str: string) {
 		navigator.clipboard.writeText(
-			'https://highlight.io/launch/week-3' + str,
+			'https://highlight.io/launch/week-4' + str,
 		)
 
 		setCopy(true)
@@ -28,7 +28,7 @@ const DayOne = () => {
 			<div className="w-full h-6 border-x-[1px] border-[#C8C7CB] text-black mx-auto max-w-[550px] md:max-w-[1200px]" />
 			<div className="flex flex-col gap-2 lg:flex-row justify-between items-center border-x-[1px] border-b-[1px] border-[#C8C7CB] lg:h-[58px] px-4">
 				<Typography className="text-[#6F6E77]" type="copy3" emphasis>
-					Day 1: January 28th
+					Day 1: January 29th
 				</Typography>
 
 				<div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 mb-4 lg:mb-0">
