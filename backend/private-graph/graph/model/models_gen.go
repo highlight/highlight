@@ -474,6 +474,7 @@ type LinearTeam struct {
 }
 
 type Log struct {
+	ProjectID       int                    `json:"projectID"`
 	Timestamp       time.Time              `json:"timestamp"`
 	Level           LogLevel               `json:"level"`
 	Message         string                 `json:"message"`

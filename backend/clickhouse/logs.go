@@ -52,6 +52,7 @@ var logsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
 	BodyColumn:       "Body",
 	AttributesColumn: "LogAttributes",
 	SelectColumns: []string{
+		"ProjectId",
 		"Timestamp",
 		"UUID",
 		"SeverityText",
@@ -142,6 +143,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			ServiceName     string
 			ServiceVersion  string
 			Environment     string
+			ProjectId       uint32
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
@@ -161,6 +163,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 				ServiceName:     &result.ServiceName,
 				ServiceVersion:  &result.ServiceVersion,
 				Environment:     &result.Environment,
+				ProjectID:       int(result.ProjectId),
 			},
 		}, nil
 	}

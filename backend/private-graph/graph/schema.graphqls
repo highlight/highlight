@@ -784,6 +784,7 @@ interface Connection {
 }
 
 type Log {
+	projectID: Int!
 	timestamp: Timestamp!
 	level: LogLevel!
 	message: String!
