@@ -12,6 +12,7 @@ export const gridItem: string
 export const header: string
 export const headerBorder: string
 export const headerButton: string
+export const headerButtonLight: string
 export const headerButtonRight: string
 export const headerCenter: string
 export const headerInner: string
@@ -42,11 +43,15 @@ export const popover: string
 export const popoverButton: string
 export const popoverPanel: string
 export const signUpButton: string
+export const signUpButtonLight: string
 export const socialButton: string
 export const socialButtonContainer: string
 export const socialButtonDivider: string
+export const socialButtonDividerLight: string
+export const socialButtonLight: string
 export const socialButtonWrapper: string
 export const socialButtonWrapperLeft: string
+export const socialButtonWrapperLight: string
 export const socialButtonWrapperRight: string
 export const urlStyle: string
 export const white: string
