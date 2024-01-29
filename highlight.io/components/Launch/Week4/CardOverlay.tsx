@@ -1,8 +1,10 @@
-import { HiTerminal } from 'react-icons/hi'
+import { HiSearchCircle, HiTemplate, HiTerminal } from 'react-icons/hi'
 import { Typography } from '../../common/Typography/Typography'
 
 const icons = {
 	1: <HiTerminal className="text-[#6F6E77]" />,
+	2: <HiSearchCircle className="text-[#6F6E77]" />,
+	3: <HiTemplate className="text-[#6F6E77]" />,
 }
 
 type IconKeys = keyof typeof icons
@@ -13,19 +15,23 @@ const CardOverlay = ({
 	category,
 	buttonText,
 	buttonLink,
-	day,
+	halfWidth,
+	slot,
 }: {
 	header: string
 	subheader?: string
 	category: string
-	day: IconKeys
+	slot: IconKeys
+	halfWidth?: boolean
 	buttonText?: string
 	buttonLink?: string
 }) => {
 	return (
-		<div className="absolute px-3 top-4 left-2 h-full flex flex-col gap-2 md:w-1/2">
+		<div
+			className={`absolute px-3 top-4 left-2 h-full flex flex-col gap-2`}
+		>
 			<div className="flex items-center gap-2 opacity-80">
-				{icons[day]}
+				{icons[slot]}
 				<Typography
 					className="text-[#6F6E77] leading-[28px]"
 					type="copy3"

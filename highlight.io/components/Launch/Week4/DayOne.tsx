@@ -33,7 +33,7 @@ const DayOne = () => {
 
 				<div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 mb-4 lg:mb-0">
 					<Link
-						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:border-[#1A1523] hover:border-opacity-70 transition-all"
+						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
 						href="/docs/getting-started/native-opentelemetry/overview"
 					>
 						<HiDocumentText />
@@ -43,7 +43,7 @@ const DayOne = () => {
 						</Typography>
 					</Link>
 					<Link
-						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:border-[#1A1523] hover:border-opacity-70 transition-all"
+						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
 						href="/blog/lw4-d1-open-telemetry"
 					>
 						<HiBookOpen />
@@ -53,7 +53,7 @@ const DayOne = () => {
 						</Typography>
 					</Link>
 					<a
-						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:border-[#1A1523] hover:border-opacity-70 transition-all"
+						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
 						href="https://youtu.be/rfz1hMIBblI"
 						target="_blank"
 						rel="noopener noreferrer"
@@ -91,7 +91,7 @@ const DayOne = () => {
 					)}
 				>
 					<Image
-						className="flex object-cover h-[450px] absolute object-left"
+						className="flex object-cover h-[450px] absolute object-center"
 						src="/images/launch/week-4/otel.webp"
 						alt=""
 						height="450"
@@ -100,7 +100,7 @@ const DayOne = () => {
 					<CardOverlay
 						header="Highlight w/ OTEL."
 						category="Highlight / System"
-						day={1}
+						slot={1}
 					/>
 				</div>
 			</div>
