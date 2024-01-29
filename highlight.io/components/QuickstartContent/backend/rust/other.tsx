@@ -17,7 +17,7 @@ export const RustOtherContent: QuickStartContent = {
 version = "1"
 default-features = ...
 features = [...]`,
-					language: 'toml',
+					language: '',
 				},
 			],
 		},
@@ -28,7 +28,8 @@ features = [...]`,
 				{
 					text: `use highlightio::{Highlight, HighlightConfig};
 
-// or async fn main() with #[tokio::main] if you're using tokio, etc.
+// or async fn main()
+// with #[tokio::main] if you're using tokio, etc.
 fn main() {
     let h = Highlight::init(HighlightConfig {
         project_id: "<YOUR_PROJECT_ID>".to_string(),
@@ -74,7 +75,10 @@ fn main() {
 					text: `fn main() {
     // ...
 
-    let e = std::io::Error::new(std::io::ErrorKind::Other, "This is a test error.");
+    let e = std::io::Error::new(
+		std::io::ErrorKind::Other,
+		"This is a test error."
+	);
     h.capture_error(&e);
 }`,
 					language: 'rust',

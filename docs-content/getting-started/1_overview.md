@@ -60,6 +60,9 @@ Highlight.io also supports reporting errors from your backend and mapping these 
     <DocsCard title="Java" href="./4_backend-sdk/java/1_overview.md">
         {"Get started with error monitoring in Java"}
     </DocsCard>
+    <DocsCard title="Rust" href="./4_backend-sdk/rust/1_overview.md">
+        {"Get started with error monitoring in Rust"}
+    </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/2_error-monitoring.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
@@ -86,6 +89,9 @@ Highlight.io also supports logging from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="Java" href="./backend-logging/05_java/1_overview.md">
         {"Get started with logging in Java"}
+    </DocsCard>
+    <DocsCard title="Rust" href="./backend-logging/12_rust/1_overview.md">
+        {"Get started with logging in Rust"}
     </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/3_logging.md">
         {"Get started with OpenTelemetry"}
@@ -127,6 +133,9 @@ Highlight.io also supports tracing from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="Python" href="./backend-tracing/3_python/1_overview.md">
         {"Get started with tracing in Python"}
+    </DocsCard>
+    <DocsCard title="Rust" href="./backend-tracing/4_rust/1_overview.md">
+        {"Get started with tracing in Rust"}
     </DocsCard>
     <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
         {"Get started with tracing in OpenTelemetry"}

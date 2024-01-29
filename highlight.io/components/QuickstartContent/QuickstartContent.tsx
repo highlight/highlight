@@ -73,6 +73,7 @@ import { PythonFlaskTracesContent } from './traces/python/flask'
 import { PythonGCPTracesContent } from './traces/python/gcp'
 import { PythonManualTracesContent } from './traces/python/manual'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
+import { RustTracesContent } from './traces/rust'
 
 export type QuickStartOptions = {
 	title: string
@@ -375,6 +376,14 @@ export const quickStartContent = {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
+		},
+		rust: {
+			title: 'Rust',
+			subtitle:
+				'Select your Rust framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/rust.svg'),
+			[QuickStartType.RustOther]: RustTracesContent,
+			[QuickStartType.RustActix]: RustTracesContent,
 		},
 	},
 	other: {

@@ -16,7 +16,7 @@ export const RustActixContent: QuickStartContent = {
 				{
 					text: `[dependencies]
 highlightio-actix = "1"`,
-					language: 'toml',
+					language: '',
 				},
 			],
 		},
@@ -64,7 +64,10 @@ async fn main() -> Result<(), Error> {
 					text: `// ...
 #[get("/error")]
 async fn error() -> Result<impl Responder, std::io::Error> {
-    Err(std::io::Error::new(std::io::ErrorKind::Other, "Test error"))?;
+    Err(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "Test error"
+    ))?;
 
     Ok(format!("You shouldn't be able to see this."))
 }
