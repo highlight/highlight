@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import Link from 'next/link'
-import { FaGithub, FaLinkedinIn, FaTwitter } from 'react-icons/fa'
+import { FaGithub, FaLinkedinIn } from 'react-icons/fa'
+import { FaXTwitter } from 'react-icons/fa6'
 import { COMPETITORS } from '../../Competitors/competitors'
 import { PRODUCTS } from '../../Products/products'
 import {
@@ -32,7 +33,7 @@ export const Footer = ({ light }: { light?: boolean }) => {
 							}
 							href="https://twitter.com/highlightio"
 						>
-							<FaTwitter className="w-[24px] h-[24px]" />
+							<FaXTwitter className="w-[24px] h-[24px]" />
 						</a>
 						<a
 							className={
@@ -243,7 +244,7 @@ export const Footer = ({ light }: { light?: boolean }) => {
 				</div>
 				<div className={styles.socialDiv}>
 					<a href="https://twitter.com/highlightio">
-						<FaTwitter className={styles.socialIcon} />
+						<FaXTwitter className={styles.socialIcon} />
 					</a>
 					<a href="https://www.linkedin.com/company/highlightrun">
 						<FaLinkedinIn className={styles.socialIcon} />
