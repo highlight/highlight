@@ -623,6 +623,9 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 														size="small"
 														emphasis="low"
 														kind="secondary"
+														onClick={(e: any) =>
+															e.preventDefault()
+														}
 													>
 														<Box
 															gap="4"

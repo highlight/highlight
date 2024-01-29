@@ -98,6 +98,10 @@ export const CreateSavedSegmentModal: React.FC<Props> = ({
 		}
 	}
 
+	if (!showModal) {
+		return null
+	}
+
 	return (
 		<SavedSegmentModal
 			context={entityType}
@@ -106,7 +110,6 @@ export const CreateSavedSegmentModal: React.FC<Props> = ({
 			onHideModal={onHideModal}
 			onSubmit={onSubmit}
 			queryBuilder={<SavedSegmentQueryDisplay query={query} />}
-			showModal={showModal}
 			shouldUpdate={shouldUpdate}
 		/>
 	)

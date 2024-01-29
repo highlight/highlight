@@ -41,11 +41,11 @@ const LaunchPage = () => {
 			<Navbar hideBanner hideGitHubPopup bg="white" light />
 			<main className="scroll-smooth bg-[#F9F9F9] mb-32">
 				<div className="relative flex flex-col pt-20 text-center px-8 z-50 pb-20">
-					<div className="w-full flex justify-center text-[#6F6E77] text-opacity-80 z-50">
+					<div className="w-full flex justify-center text-[#3b3b40] text-opacity-80 z-50">
 						<Typography
 							type="copy3"
 							emphasis
-							className="px-2 pt-1 rounded-t-lg border-x-[1px] border-t-[1px] border-[#C8C7CB]"
+							className="px-2 pt-1 rounded-t-[6px] border-x-[1px] border-t-[1px] border-[#a4a4b3]"
 						>
 							January 28th - February 2rd 2024
 						</Typography>
@@ -65,8 +65,8 @@ const LaunchPage = () => {
 
 					<div className="flex justify-center mt-8 z-50">
 						<a
-							className="flex flex-shrink-0 items-center gap-1 bg-[#1A1523] text-white px-4 py-2 rounded-xl shadow-sm hover:shadow-none cursor-pointer"
-							href="https://www.youtube.com/watch?v=gnerXJPUb8Y&list=PLtIz-bpzHkhg90SVmzlm2Yp0BJLs2L1Ol&index=6"
+							className="flex flex-shrink-0 items-center gap-1 bg-[#1A1523] text-white px-4 py-2 rounded-[6px] shadow-sm hover:shadow-none cursor-pointer"
+							href="https://www.youtube.com/playlist?list=PLtIz-bpzHkhgdmtFF6s277-02Dv-Ent8U"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
@@ -77,9 +77,6 @@ const LaunchPage = () => {
 							</Typography>
 						</a>
 					</div>
-					<div className="absolute bottom-0 w-full flex justify-center max-w-[550px] md:max-w-[1200px] mx-auto pt-20">
-						<div className="w-full h-6 border-x-[1px] text-black mx-8" />
-					</div>
 				</div>
 
 				<div className="grid grid-cols-1 lg:grid-cols-2 max-w-[550px] md:max-w-[1200px] mx-auto px-8">
@@ -89,17 +86,17 @@ const LaunchPage = () => {
 							scrollToDay(day)
 						}}
 						href={'/launch-week-2#day-' + day.toString()}
-						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-[1px] border-[#EEEDEF] flex-shrink-0 hover:text-opacity-100 transition-all"
+						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all"
 					>
 						<Typography type="copy4" emphasis>
 							Go to Day {day}
 						</Typography>
-						<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded-full" />
+						<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded-[6px]" />
 					</Link>
 
 					<Link
 						href="https://twitter.com/highlightio?lang=en"
-						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-x-[1px] md:border-l-transparent border-y-[1px] border-[#EEEDEF] flex-shrink-0 hover:text-opacity-100 transition-all"
+						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-x-[1px] md:border-l-transparent border-y-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<BsTwitter className="w-6 h-6" />
@@ -107,7 +104,7 @@ const LaunchPage = () => {
 								Keep in touch on Twitter
 							</Typography>
 						</div>
-						<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded-full" />
+						<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded-[6px]" />
 					</Link>
 
 					{/* <Link */}
@@ -125,7 +122,7 @@ const LaunchPage = () => {
 					{/* 			Check in on Hacker News */}
 					{/* 		</Typography> */}
 					{/* 	</div> */}
-					{/* 	<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded-full" /> */}
+					{/* 	<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded" /> */}
 					{/* </Link> */}
 				</div>
 				<div className="flex flex-col items-center w-full max-w-[550px] md:max-w-[1200px] mx-auto px-8">

@@ -91,8 +91,11 @@ export const CreateSegmentModal: React.FC<Props> = ({
 		}
 	}
 
-	const loading = updatingSegment || creatingSegment
+	if (!showModal) {
+		return null
+	}
 
+	const loading = updatingSegment || creatingSegment
 	return (
 		<SavedSegmentModal
 			context="Session"
@@ -101,7 +104,6 @@ export const CreateSegmentModal: React.FC<Props> = ({
 			onHideModal={onHideModal}
 			onSubmit={onSubmit}
 			queryBuilder={<SessionQueryBuilder readonly />}
-			showModal={showModal}
 			shouldUpdate={shouldUpdate}
 		/>
 	)
