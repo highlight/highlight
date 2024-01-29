@@ -9,7 +9,7 @@ import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 import DayOne from '../../components/Launch/Week4/DayOne'
 import HiddenDay from '../../components/Launch/Week4/HiddenDay'
-import preview from '../../public/images/launch/week-3/ogimage.png'
+import preview from '../../public/images/launch/week-4/meta.png'
 
 const LaunchPage = () => {
 	const day = 1
@@ -47,7 +47,7 @@ const LaunchPage = () => {
 							emphasis
 							className="px-2 pt-1 rounded-t-lg border-x-[1px] border-t-[1px] border-[#C8C7CB]"
 						>
-							January 28th - February 3rd 2024
+							January 28th - February 2rd 2024
 						</Typography>
 					</div>
 					<h2 className="text-[#1A1523] z-50 leading-none">
