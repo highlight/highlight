@@ -51,6 +51,7 @@ const Navbar = ({
 	title,
 	bg,
 	light,
+	hideGitHubPopup,
 }: {
 	hideFreeTrialText?: boolean
 	isDocsPage?: boolean
@@ -59,6 +60,7 @@ const Navbar = ({
 	title?: string
 	bg?: string
 	light?: boolean
+	hideGitHubPopup?: boolean
 }) => {
 	const [scrolled, setScrolled] = useState(false)
 	const [atTop, setAtTop] = useState(true)
@@ -89,7 +91,7 @@ const Navbar = ({
 
 	return (
 		<>
-			<GithubPopup />
+			{!hideGitHubPopup && <GithubPopup />}
 			{!hideBanner && (
 				<Link
 					href="/startups"
@@ -122,7 +124,10 @@ const Navbar = ({
 								atTop
 									? 'border-opacity-0'
 									: 'border-opacity-100'
-							} border-b-[1px] border-divider-on-dark transition-color duration-300`,
+							} ${
+								light ? '' : 'border-divider-on-dark'
+							} border-b-[1px] transition-color duration-300`,
+
 							{
 								[styles.openHeader]: isOpen,
 							},

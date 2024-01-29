@@ -1,38 +1,34 @@
 import classNames from 'classnames'
-import { BsTwitter } from 'react-icons/bs'
 import { Typography } from '../../common/Typography/Typography'
 
+import { BsTwitter } from 'react-icons/bs'
 import styles from './Launch.module.scss'
 
 const HiddenDay = ({ title }: { title: string }) => {
 	return (
-		<div id="day-1" className="w-full max-w-[550px] md:max-w-none">
-			<div className="group flex items-center gap-2 cursor-pointer">
-				<Typography
-					className="text-darker-copy-on-dark"
-					type="copy3"
-					emphasis
-				>
+		<div id="day-1" className="w-full max-w-[550px] md:max-w-none z-50">
+			<div className="w-full h-6 border-x-[1px] text-black mx-auto max-w-[550px] md:max-w-[1200px]" />
+			<div className="flex flex-col gap-2 lg:flex-row justify-between items-center border-x-[1px] border-b-[1px] lg:h-[58px] px-4">
+				<Typography className="text-[#6F6E77]" type="copy3" emphasis>
 					{title}
 				</Typography>
 			</div>
 
 			<div
 				className={classNames(
-					styles.gridContainer,
 					'grid-rows-1 md:grid-cols-2 max-w-[550px] md:max-w-none mx-auto h-[250px] md:h-[450px]',
 				)}
 			>
 				<div
 					className={classNames(
-						'col-span-2 bg-black border-[2px] border-[#34343A] h-[250px] md:h-[450px] w-full',
+						'col-span-2 border-[1px] h-[250px] md:h-[450px] w-full',
 						styles.gridItem,
 					)}
 				>
 					<div className="flex flex-col h-full justify-center">
 						<div className="flex flex-col gap-2 items-center mx-auto">
 							<Typography
-								className="px-4 py-1 bg-[#34343A] text-copy-on-dark rounded-md "
+								className="bg-[#6F6E77] bg-opacity-[0.2] px-4 py-1 text-[#6F6E77] rounded-md "
 								type="copy3"
 								emphasis
 							>
@@ -46,7 +42,7 @@ const HiddenDay = ({ title }: { title: string }) => {
 							>
 								<BsTwitter className="h-5 w-5 text-[#26a7de]" />
 								<Typography
-									className="text-copy-on-light group-hover:text-[#26a7de]"
+									className="text-[#6f6e77] group-hover:text-[#26a7de]"
 									type="copy3"
 									emphasis
 								>
@@ -60,5 +56,4 @@ const HiddenDay = ({ title }: { title: string }) => {
 		</div>
 	)
 }
-
 export default HiddenDay

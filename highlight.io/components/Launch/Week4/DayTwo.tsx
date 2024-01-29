@@ -9,12 +9,12 @@ import { HiBookOpen, HiDocumentText, HiPlay } from 'react-icons/hi2'
 import CardOverlay from './CardOverlay'
 import styles from './Launch.module.scss'
 
-const DayOne = () => {
+const DayTwo = () => {
 	const [copy, setCopy] = useState(false)
 
 	function handleCopy(str: string) {
 		navigator.clipboard.writeText(
-			'https://highlight.io/launch/week-3' + str,
+			'https://highlight.io/launch/week-4' + str,
 		)
 
 		setCopy(true)
@@ -33,7 +33,7 @@ const DayOne = () => {
 
 				<div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 mb-4 lg:mb-0">
 					<Link
-						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-xl hover:border-[#1A1523] hover:border-opacity-70 transition-all"
+						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-xl shadow-sm hover:shadow-none"
 						href="/docs/getting-started/native-opentelemetry/overview"
 					>
 						<HiDocumentText />
@@ -43,7 +43,7 @@ const DayOne = () => {
 						</Typography>
 					</Link>
 					<Link
-						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-xl hover:border-[#1A1523] hover:border-opacity-70 transition-all"
+						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-xl shadow-sm hover:shadow-none"
 						href="/lw4-d1-open-telemetry"
 					>
 						<HiBookOpen />
@@ -53,7 +53,7 @@ const DayOne = () => {
 						</Typography>
 					</Link>
 					<a
-						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-xl hover:border-[#1A1523] hover:border-opacity-70 transition-all"
+						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-xl shadow-sm hover:shadow-none"
 						href="https://youtu.be/rfz1hMIBblI"
 						target="_blank"
 						rel="noopener noreferrer"
@@ -107,4 +107,4 @@ const DayOne = () => {
 		</div>
 	)
 }
-export default DayOne
+export default DayTwo
