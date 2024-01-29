@@ -6437,6 +6437,20 @@ body {
 .g2tqod2 {
   border-bottom: 1px solid var(--_1pyqka9k) !important;
 }
+.gcbotn0 {
+  border: none;
+}
+.gcbotn1 {
+  width: 300px;
+}
+.gcbotn2 {
+  line-height: 25px;
+  overflow: hidden;
+  width: 250px;
+}
+.gcbotn3 {
+  overflow-wrap: break-word;
+}
 .szxd8q0 .szxd8q0 {
   padding-left: 22px;
 }
