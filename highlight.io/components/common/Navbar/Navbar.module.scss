@@ -125,6 +125,25 @@
 	}
 }
 
+.headerButtonLight {
+	padding: 0 var(--size-small);
+	display: inline-flex;
+	align-items: center;
+	gap: var(--size-small);
+	color: #1a1523;
+	transition: opacity 0.2s ease;
+	text-decoration: none;
+	cursor: pointer;
+	outline: none;
+	font-weight: 400;
+	opacity: 0.72;
+
+	&:hover {
+		opacity: 1;
+		color: #1a1523;
+	}
+}
+
 .headerButtonRight {
 	padding: 0 var(--size-xxSmall);
 }
@@ -228,6 +247,18 @@
 	}
 }
 
+.signUpButtonLight {
+	border: 1px solid #e4e2e4 !important;
+	background-color: transparent !important;
+	color: #1a1523 !important;
+	opacity: 0.72;
+
+	&:hover {
+		background-color: #1a1523 !important;
+		color: white !important;
+	}
+}
+
 .headerLeft {
 	display: flex;
 	gap: var(--size-xSmall);
@@ -284,6 +315,17 @@
 	}
 }
 
+.socialButtonWrapperLight {
+	border: 1px solid #e4e2e4;
+	cursor: pointer;
+
+	&:hover {
+		background-color: #1a1523 !important;
+		opacity: 0.72;
+		color: white !important;
+	}
+}
+
 .socialButton {
 	color: var(--color-secondary-200);
 	width: 24px;
@@ -291,6 +333,16 @@
 
 	:hover > & {
 		color: var(--color-primary-background) !important;
+	}
+}
+
+.socialButtonLight {
+	color: #1a1523;
+	opacity: 0.72;
+
+	:hover > & {
+		color: white;
+		opacity: 1;
 	}
 }
 
@@ -309,6 +361,10 @@
 .socialButtonDivider {
 	width: 1px;
 	background-color: var(--color-secondary-200);
+}
+
+.socialButtonDividerLight {
+	background-color: #e4e2e4;
 }
 
 .urlStyle {

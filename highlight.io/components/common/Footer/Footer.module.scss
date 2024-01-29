@@ -29,15 +29,42 @@
 		word-break: normal;
 
 		a {
-			color: var(--copy-on-dark);
+			color: white;
 			font-weight: 400;
 			text-decoration: none;
 			transition: color 0.2s ease;
 		}
 
 		a:hover {
-			color: var(--color-secondary-300);
+			color: var(--color-primary-300);
 			cursor: pointer;
+		}
+	}
+}
+
+.footerListLight {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	margin-right: var(--size-xxLarge);
+
+	li {
+		padding: var(--size-xSmall) 0;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+		word-break: normal;
+
+		a {
+			color: #6f6e77;
+			font-weight: 400;
+			text-decoration: none;
+			transition: color 0.2s ease;
+		}
+
+		a:hover {
+			cursor: pointer;
+			color: black;
 		}
 	}
 }
@@ -82,6 +109,18 @@
 
 		&:hover {
 			color: var(--color-secondary-300);
+		}
+	}
+}
+
+.socialDivLight {
+	.socialIcon {
+		color: #1a1523;
+		opacity: 0.72;
+		transition: opacity 0.2s ease;
+
+		&:hover {
+			opacity: 1;
 		}
 	}
 }

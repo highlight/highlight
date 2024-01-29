@@ -528,6 +528,7 @@ type AllWorkspaceSettings {
 	enable_unlisted_sharing: Boolean!
 	enable_ingest_sampling: Boolean!
 	enable_data_deletion: Boolean!
+	enable_grafana_dashboard: Boolean!
 }
 
 type Account {

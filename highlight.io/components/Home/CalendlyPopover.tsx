@@ -3,9 +3,9 @@
 import { Popover } from '@headlessui/react'
 import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
+import { useSearchParams } from 'next/navigation'
 import { InlineWidget } from 'react-calendly'
 import { Typography } from '../common/Typography/Typography'
-import { useSearchParams } from 'next/navigation'
 
 export const CalendlyPopover = () => {
 	const query = useSearchParams()

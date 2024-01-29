@@ -176,7 +176,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Clie
 			StartDate: start,
 			EndDate:   end,
 		}); err != nil {
-			log.WithContext(ctx).Error(err)
+			log.WithContext(ctx).WithError(err).Error("failed to send discord log alert")
 		}
 
 		emailsToNotify, err := model.GetEmailsToNotify(alert.EmailsToNotify)
