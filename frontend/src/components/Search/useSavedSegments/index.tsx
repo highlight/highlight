@@ -2,18 +2,18 @@ import { SavedSegmentEntityType } from '@graph/schemas'
 import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
+	IconSolidCheck,
 	IconSolidCheveronDown,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
 	IconSolidPencil,
-	IconSolidPlusCircle,
-	IconSolidRefresh,
-	IconSolidSave,
+	IconSolidPlus,
 	IconSolidSegment,
 	IconSolidTrash,
 	Menu,
 	Text,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { message } from 'antd'
 import { forEach } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -168,58 +168,140 @@ export const useSavedSegments = ({
 		[segmentData?.saved_segments],
 	)
 
-	const segmentActionButton = useMemo(() => {
-		if (mode === BuilderMode.CUSTOM) {
+	const menuOptions = useMemo(() => {
+		const segmentMenuOptions = () => {
 			return (
-				<Menu.Button
-					kind="secondary"
-					emphasis="medium"
-					iconLeft={<IconSolidSave size={12} />}
-					onClick={(e: React.MouseEvent) => {
-						e.preventDefault()
-						setSegmentModalState(SegmentModalState.CREATE)
-					}}
-					disabled={!query.trim()}
-				>
-					Save
-				</Menu.Button>
-			)
-		} else if (
-			mode === BuilderMode.SEGMENT_UPDATE ||
-			mode === BuilderMode.SEGMENT
-		) {
-			const buttonProps =
-				mode === BuilderMode.SEGMENT_UPDATE
-					? {
-							kind: 'primary' as const,
-							emphasis: 'high' as const,
-					  }
-					: {
-							kind: 'secondary' as const,
-							emphasis: 'medium' as const,
-					  }
-
-			return (
-				<Menu.Button
-					iconLeft={<IconSolidSegment size={12} />}
-					iconRight={<IconSolidCheveronDown size={12} />}
-					{...buttonProps}
-				>
-					<Text lines="1">{selectedSegment?.name}</Text>
-				</Menu.Button>
+				<>
+					<Menu.Item
+						onClick={(e) => {
+							e.stopPropagation()
+							selectSegment()
+						}}
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							width="full"
+							gap="2"
+						>
+							<IconSolidCheck
+								size={14}
+								color={vars.color.p10}
+								style={{
+									visibility: !selectedSegment
+										? 'visible'
+										: 'hidden',
+								}}
+							/>
+							<Text lines="1">- none -</Text>
+						</Box>
+					</Menu.Item>
+					{segmentOptions.map((segment, idx) => {
+						const isSelected = selectedSegment?.id === segment.id
+						return (
+							<Menu.Item
+								key={idx}
+								onClick={(e) => {
+									e.stopPropagation()
+									selectSegment(segment)
+								}}
+							>
+								<Box
+									display="flex"
+									alignItems="center"
+									width="full"
+									gap="2"
+								>
+									<IconSolidCheck
+										size={14}
+										color={vars.color.p10}
+										style={{
+											visibility: isSelected
+												? 'visible'
+												: 'hidden',
+										}}
+									/>
+									<Text lines="1">{segment.name}</Text>
+								</Box>
+							</Menu.Item>
+						)
+					})}
+				</>
 			)
 		}
-	}, [mode, query, selectedSegment?.name])
 
-	const alteredSegmentSettings = useMemo(() => {
+		if (!selectedSegment) {
+			return (
+				<>
+					<Box background="n1" borderBottom="secondary" p="8" mb="4">
+						<Text
+							weight="medium"
+							size="xxSmall"
+							color="n11"
+							userSelect="none"
+						>
+							Select Segment
+						</Text>
+					</Box>
+					{segmentMenuOptions()}
+					<Menu.Divider />
+					<Menu.Item
+						onClick={(e) => {
+							e.preventDefault()
+							setSegmentModalState(SegmentModalState.CREATE)
+						}}
+						disabled={!query.trim()}
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="4"
+							userSelect="none"
+						>
+							<IconSolidPlus size={16} color={colors.n9} />
+							<Text>New segment</Text>
+						</Box>
+					</Menu.Item>
+				</>
+			)
+		}
+
 		return (
 			<>
+				<Box background="n1" borderBottom="secondary" p="8" mb="4">
+					<Text
+						weight="medium"
+						size="xxSmall"
+						color="n11"
+						userSelect="none"
+					>
+						Segment settings
+					</Text>
+				</Box>
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						setSegmentModalState(SegmentModalState.EDIT_NAME)
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconSolidPencil size={16} color={colors.n9} />
+						Edit segment name
+					</Box>
+				</Menu.Item>
 				<Menu.Item
 					onClick={(e) => {
 						e.stopPropagation()
 						updateSegment()
 					}}
-					disabled={!query.trim()}
+					disabled={
+						!query.trim() || mode !== BuilderMode.SEGMENT_UPDATE
+					}
 				>
 					<Box
 						display="flex"
@@ -244,9 +326,48 @@ export const useSavedSegments = ({
 						gap="4"
 						userSelect="none"
 					>
-						<IconSolidPlusCircle size={16} color={colors.n9} />
-						Save as a new segment
+						<IconSolidDocumentDuplicate
+							size={16}
+							color={colors.n9}
+						/>
+						Duplicate segment
 					</Box>
+				</Menu.Item>
+				<Menu.Item>
+					<Menu>
+						<Menu.Button
+							style={{
+								paddingLeft: 0,
+							}}
+							size="small"
+							emphasis="low"
+							kind="secondary"
+							onClick={(e: any) => e.preventDefault()}
+						>
+							<Box gap="4" display="flex" alignItems="center">
+								<IconSolidSegment size={16} color={colors.n9} />
+								Select other segment
+							</Box>
+						</Menu.Button>
+						<Menu.List cssClass={styles.menuList}>
+							<Box
+								background="n1"
+								borderBottom="secondary"
+								p="8"
+								mb="4"
+							>
+								<Text
+									weight="medium"
+									size="xxSmall"
+									color="n11"
+									userSelect="none"
+								>
+									Select Segment
+								</Text>
+							</Box>
+							{segmentMenuOptions()}
+						</Menu.List>
+					</Menu>
 				</Menu.Item>
 				<Menu.Item
 					onClick={(e) => {
@@ -255,6 +376,7 @@ export const useSavedSegments = ({
 							selectSegment(selectedSegment)
 						}
 					}}
+					disabled={mode !== BuilderMode.SEGMENT_UPDATE}
 				>
 					<Box
 						display="flex"
@@ -262,161 +384,71 @@ export const useSavedSegments = ({
 						gap="4"
 						userSelect="none"
 					>
-						<IconSolidRefresh size={16} color={colors.n9} />
+						<IconSolidSegment size={16} color={colors.n9} />
 						Reset to segment filters
 					</Box>
 				</Menu.Item>
-
 				<Menu.Divider />
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						setSegmentModalState(SegmentModalState.DELETE)
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconSolidTrash size={16} color={colors.n9} />
+						Delete current segment
+					</Box>
+				</Menu.Item>
 			</>
 		)
-	}, [duplicateSegment, query, selectSegment, selectedSegment, updateSegment])
+	}, [
+		duplicateSegment,
+		mode,
+		query,
+		segmentOptions,
+		selectSegment,
+		selectedSegment,
+		updateSegment,
+	])
 
 	const SegmentMenu = useMemo(() => {
 		if (!entityType) {
 			return null
 		}
 
+		const buttonProps =
+			mode === BuilderMode.SEGMENT_UPDATE
+				? {
+						kind: 'primary' as const,
+						emphasis: 'high' as const,
+				  }
+				: {
+						kind: 'secondary' as const,
+						emphasis: 'medium' as const,
+				  }
+
 		return (
-			<>
-				<Menu placement="bottom-end">
-					{segmentActionButton}
-					<Menu.List cssClass={styles.menuList}>
-						<Box
-							background="n2"
-							borderBottom="secondary"
-							p="8"
-							mb="4"
-						>
-							<Text
-								weight="medium"
-								size="xxSmall"
-								color="n11"
-								userSelect="none"
-							>
-								Segment settings
-							</Text>
-						</Box>
-						{mode === BuilderMode.SEGMENT_UPDATE
-							? alteredSegmentSettings
-							: null}
-
-						<Menu.Item
-							onClick={(e) => {
-								e.stopPropagation()
-								setSegmentModalState(
-									SegmentModalState.EDIT_NAME,
-								)
-							}}
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								gap="4"
-								userSelect="none"
-							>
-								<IconSolidPencil size={16} color={colors.n9} />
-								Edit segment name
-							</Box>
-						</Menu.Item>
-
-						<Menu.Item
-							onClick={(e) => {
-								e.stopPropagation()
-								duplicateSegment()
-							}}
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								gap="4"
-								userSelect="none"
-							>
-								<IconSolidDocumentDuplicate
-									size={16}
-									color={colors.n9}
-								/>
-								Duplicate segment
-							</Box>
-						</Menu.Item>
-
-						<Menu.Divider />
-						<Menu.Item
-							onClick={(e) => {
-								e.stopPropagation()
-								setSegmentModalState(SegmentModalState.DELETE)
-							}}
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								gap="4"
-								userSelect="none"
-							>
-								<IconSolidTrash size={16} color={colors.n9} />
-								Delete segment
-							</Box>
-						</Menu.Item>
-					</Menu.List>
-				</Menu>
-
-				<Menu>
-					<Menu.Button
-						kind="secondary"
-						disabled={segmentsLoading}
-						emphasis="medium"
-						icon={<IconSolidSegment size={12} />}
-					/>
-					<Menu.List cssClass={styles.menuList}>
-						<Box
-							background="n2"
-							borderBottom="secondary"
-							p="8"
-							mb="4"
-						>
-							<Text
-								weight="medium"
-								size="xxSmall"
-								color="n11"
-								userSelect="none"
-							>
-								Segments
-							</Text>
-						</Box>
-						{segmentOptions.map((segment, idx) => (
-							<Menu.Item
-								key={idx}
-								onClick={(e) => {
-									e.stopPropagation()
-									selectSegment(segment)
-								}}
-							>
-								<Text lines="1">{segment.name}</Text>
-							</Menu.Item>
-						))}
-						{segmentOptions.length > 0 && <Menu.Divider />}
-						<Menu.Item
-							onClick={(e) => {
-								e.stopPropagation()
-								selectSegment()
-							}}
-						>
-							Reset to defaults
-						</Menu.Item>
-					</Menu.List>
-				</Menu>
-			</>
+			<Menu>
+				<Menu.Button
+					disabled={segmentsLoading}
+					iconLeft={<IconSolidSegment size={12} />}
+					iconRight={<IconSolidCheveronDown size={12} />}
+					{...buttonProps}
+				>
+					{selectedSegment?.name && (
+						<Text lines="1">{selectedSegment?.name}</Text>
+					)}
+				</Menu.Button>
+				<Menu.List cssClass={styles.menuList}>{menuOptions}</Menu.List>
+			</Menu>
 		)
-	}, [
-		alteredSegmentSettings,
-		duplicateSegment,
-		entityType,
-		mode,
-		segmentActionButton,
-		segmentOptions,
-		segmentsLoading,
-		selectSegment,
-	])
+	}, [entityType, menuOptions, mode, segmentsLoading, selectedSegment?.name])
 
 	const SegmentModals = useMemo(() => {
 		if (!entityType) {

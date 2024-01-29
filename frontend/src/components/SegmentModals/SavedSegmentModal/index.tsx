@@ -1,14 +1,19 @@
 import { Button } from '@components/Button'
-import Input from '@components/Input/Input'
-import Modal from '@components/Modal/Modal'
-import ModalBody from '@components/ModalBody/ModalBody'
+import { Modal } from '@components/Modal/ModalV2'
+import {
+	Box,
+	Form,
+	IconSolidInformationCircle,
+	Stack,
+	Text,
+	useFormStore,
+} from '@highlight-run/ui/components'
 import { Maybe } from 'graphql/jsutils/Maybe'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 import { Segment } from '@/graph/generated/schemas'
 
 import { ContextType } from '../utils'
-import * as styles from './style.css'
 
 interface Props {
 	context: ContextType
@@ -18,7 +23,6 @@ interface Props {
 	onSubmit: (name: string) => void
 	queryBuilder: React.ReactNode
 	shouldUpdate: boolean
-	showModal: boolean
 }
 
 export const SavedSegmentModal = ({
@@ -29,77 +33,90 @@ export const SavedSegmentModal = ({
 	onSubmit,
 	queryBuilder,
 	shouldUpdate,
-	showModal,
 }: Props) => {
-	const [newSegmentName, setNewSegmentName] = useState(
-		currentSegment?.name ?? '',
-	)
-
-	useEffect(() => {
-		if (shouldUpdate && currentSegment?.name) {
-			setNewSegmentName(currentSegment?.name)
-		} else {
-			setNewSegmentName('')
-		}
-	}, [currentSegment?.name, shouldUpdate])
+	const formStore = useFormStore({
+		defaultValues: {
+			name: currentSegment?.name || '',
+			filters: '',
+		},
+	})
 
 	const handleSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
 
-		if (!newSegmentName) {
-			return
-		}
-
+		const newSegmentName = formStore.getValue(formStore.names.name)
 		onSubmit(newSegmentName)
 	}
 
 	return (
 		<Modal
-			title={shouldUpdate ? 'Update a Segment' : 'Create a Segment'}
-			visible={showModal}
-			onCancel={onHideModal}
-			style={{ display: 'flex' }}
-			width={500}
-			destroyOnClose
+			title={shouldUpdate ? 'Update Segment' : 'Create Segment'}
+			onClose={onHideModal}
 		>
-			<ModalBody>
-				<form onSubmit={handleSubmit}>
-					<p className={styles.modalSubTitle}>
-						Segments allow you to save search queries that target a
-						specific set of sessions.
-					</p>
-					<div className={styles.queryBuilderContainer}>
-						{queryBuilder}
-					</div>
-					<Input
-						name="name"
-						value={newSegmentName}
-						onChange={(e) => {
-							setNewSegmentName(e.target.value)
-						}}
-						placeholder="Segment Name"
+			<Stack py="8" px="12" style={{ maxWidth: 500 }}>
+				<Form onSubmit={handleSubmit} store={formStore}>
+					<Form.Input
+						name={formStore.names.name}
+						label="Segment Name"
+						placeholder="Type name..."
+						type="name"
 						autoFocus
 					/>
-					<Button
-						trackingId={
-							shouldUpdate
-								? `Update${context}Segment`
-								: `Save${context}Segment`
-						}
-						style={{
-							width: '100%',
-							marginTop: 24,
-							justifyContent: 'center',
-						}}
-						kind="primary"
-						type="submit"
-						disabled={!newSegmentName}
-						loading={loading}
+					<Box borderTop="dividerWeak" my="12" width="full" />
+					<Box mb="4" gap="4" display="flex" flexDirection="column">
+						<Form.Label
+							label="Filters"
+							name={formStore.names.filters}
+						/>
+						{queryBuilder}
+					</Box>
+					<Box
+						alignItems="flex-start"
+						color="moderate"
+						display="flex"
+						gap="4"
+						py="12"
 					>
-						{shouldUpdate ? 'Update Segment' : 'Save As Segment'}
-					</Button>
-				</form>
-			</ModalBody>
+						<IconSolidInformationCircle />
+						<Box pt="2">
+							<Text>
+								Segments allow you to save search queries that
+								target a specific set of sessions.
+							</Text>
+						</Box>
+					</Box>
+					<Box
+						display="flex"
+						justifyContent="flex-end"
+						gap="8"
+						pt="12"
+					>
+						<Button
+							trackingId={`Cancel${context}Segment`}
+							kind="secondary"
+							emphasis="medium"
+							onClick={onHideModal}
+						>
+							Cancel
+						</Button>
+						<Button
+							trackingId={
+								shouldUpdate
+									? `Update${context}Segment`
+									: `Save${context}Segment`
+							}
+							kind="primary"
+							type="submit"
+							disabled={!formStore.useValue(formStore.names.name)}
+							loading={loading}
+						>
+							{shouldUpdate
+								? 'Update Segment'
+								: 'Save as Segment'}
+						</Button>
+					</Box>
+				</Form>
+			</Stack>
 		</Modal>
 	)
 }
