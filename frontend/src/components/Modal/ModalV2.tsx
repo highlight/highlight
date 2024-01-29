@@ -5,6 +5,7 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
+import type { sprinkles } from '@highlight-run/ui/sprinkles'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import React from 'react'
@@ -16,11 +17,30 @@ import * as style from './ModalV2.css'
 export const Modal: React.FC<
 	React.PropsWithChildren<{
 		onClose?: () => void
+		justifyContent?: Pick<
+			Parameters<typeof sprinkles>[0],
+			'justifyContent'
+		>['justifyContent']
+		width?: Pick<Parameters<typeof sprinkles>[0], 'width'>['width']
+		height?: Pick<Parameters<typeof sprinkles>[0], 'height'>['height']
+		innerWidth?: Pick<Parameters<typeof sprinkles>[0], 'width'>['width']
+		innerHeight?: Pick<Parameters<typeof sprinkles>[0], 'height'>['height']
 		maxHeight?: string
 		title?: string
 		footer?: React.ReactNode
 	}>
-> = ({ children, maxHeight, onClose, title, footer }) => {
+> = ({
+	children,
+	width,
+	height,
+	innerWidth,
+	innerHeight,
+	maxHeight,
+	justifyContent,
+	onClose,
+	title,
+	footer,
+}) => {
 	return (
 		<Box
 			width="screen"
@@ -39,6 +59,9 @@ export const Modal: React.FC<
 			onClick={onClose}
 		>
 			<Stack
+				justifyContent={justifyContent}
+				width={width}
+				height={height}
 				gap="12"
 				cssClass={clsx(styledVerticalScrollbar, style.modalInner)}
 				style={{
@@ -46,10 +69,13 @@ export const Modal: React.FC<
 				}}
 			>
 				<Box
+					width={innerWidth}
+					height={innerHeight}
 					display="flex"
 					flexDirection="column"
 					borderRadius="8"
 					border="secondary"
+					shadow="medium"
 					backgroundColor="white"
 					onClick={(e) => e.stopPropagation()}
 				>
