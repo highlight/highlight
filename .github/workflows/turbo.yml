@@ -164,7 +164,7 @@ jobs:
                   submodules: recursive
 
             - name: Setup Node.js environment
-              uses: buildjet/setup-node@v3
+              uses: buildjet/setup-node@v4
               with:
                   node-version: lts/*
                   cache: 'yarn'
@@ -280,7 +280,7 @@ jobs:
                   submodules: recursive
 
             - name: Setup Node.js environment
-              uses: buildjet/setup-node@v3
+              uses: buildjet/setup-node@v4
               with:
                   node-version: lts/*
                   cache: 'yarn'
