@@ -29,7 +29,6 @@ import {
 	getTimeStringFromDate,
 	getTimeInfo,
 } from './helpers'
-import { set } from 'lodash'
 
 export type DateRangePreset = {
 	unit: moment.DurationInputArg2

@@ -34,6 +34,7 @@ type Props<T extends string | string[]> = {
 	onChangeQuery?: (value: string) => void
 	queryPlaceholder?: string
 	cssClass?: ClassValue | ClassValue[]
+	popoverCssClass?: ClassValue | ClassValue[]
 	creatableRender?: (key: string) => React.ReactNode | undefined
 	defaultOpen?: boolean
 	disabled?: boolean
@@ -50,6 +51,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	onChangeQuery,
 	queryPlaceholder,
 	cssClass,
+	popoverCssClass,
 	creatableRender,
 	defaultOpen,
 	disabled,
@@ -114,7 +116,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 			</Select>
 			<SelectPopover
 				store={select}
-				className={styles.selectPopover}
+				className={clsx([styles.selectPopover, popoverCssClass])}
 				gutter={4}
 				autoFocusOnHide={false}
 			>

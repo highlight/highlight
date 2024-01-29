@@ -1,6 +1,7 @@
 import { Box } from '@highlight-run/ui/components'
 import React from 'react'
 
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import { Token } from '@/components/Search/SearchForm/QueryPart'
 import { buildTokenGroups } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
@@ -28,6 +29,10 @@ export const SavedSegmentQueryDisplay: React.FC<Props> = ({ query }) => {
 					return <span key={index}>{term}</span>
 				}
 
+				if (group.tokens[0].type === SearchGrammarParser.EOF) {
+					return null
+				}
+
 				return (
 					<Box
 						key={term}
@@ -38,6 +43,10 @@ export const SavedSegmentQueryDisplay: React.FC<Props> = ({ query }) => {
 					>
 						{group.tokens.map((token, index) => {
 							const { text } = token
+
+							if (token.type === SearchGrammarParser.EOF) {
+								return null
+							}
 
 							return (
 								<Token key={`${text}-${index}`} text={text} />

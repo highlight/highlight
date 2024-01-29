@@ -149,7 +149,7 @@ export const SessionFeedV3 = React.memo(() => {
 	const {
 		searchQuery,
 		setSearchQuery,
-		selectedSegment,
+		selectedPreset,
 		endDate,
 		page,
 		setPage,
@@ -233,7 +233,7 @@ export const SessionFeedV3 = React.memo(() => {
 			(result) => result?.data?.sessions_clickhouse.totalCount,
 			[],
 		),
-		skip: !selectedSegment,
+		skip: !selectedPreset,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
