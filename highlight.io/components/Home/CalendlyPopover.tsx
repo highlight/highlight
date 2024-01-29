@@ -3,9 +3,9 @@
 import { Popover } from '@headlessui/react'
 import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
+import { useSearchParams } from 'next/navigation'
 import { InlineWidget } from 'react-calendly'
 import { Typography } from '../common/Typography/Typography'
-import { useSearchParams } from 'next/navigation'
 
 export const CalendlyPopover = () => {
 	const query = useSearchParams()
@@ -43,11 +43,11 @@ export const CalendlyPopover = () => {
 								styles={{ width: '100%', height: '100%' }}
 								utm={{
 									utmCampaign:
-										query.get('utm_campaign') ?? '',
-									utmSource: query.get('utm_source') ?? '',
-									utmMedium: query.get('utm_medium') ?? '',
-									utmContent: query.get('utm_content') ?? '',
-									utmTerm: query.get('utm_term') ?? '',
+										query?.get('utm_campaign') ?? '',
+									utmSource: query?.get('utm_source') ?? '',
+									utmMedium: query?.get('utm_medium') ?? '',
+									utmContent: query?.get('utm_content') ?? '',
+									utmTerm: query?.get('utm_term') ?? '',
 								}}
 							/>
 						</div>

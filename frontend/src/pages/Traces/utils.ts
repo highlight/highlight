@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 import { Trace } from '@/graph/generated/schemas'
 
 export const getFirstSpan = (trace: Trace[]) => {
@@ -156,4 +158,42 @@ export const spanOverlaps = (span1: Trace, span2: Trace) => {
 		(span1EndTime >= span2StartTime && span1EndTime <= span2EndTime) ||
 		(span1StartTime <= span2StartTime && span1EndTime >= span2EndTime)
 	)
+}
+
+// Transform a raw value to a human readable string with nanosecond precision.
+// Use the highest unit that results in a value greater than 1.
+export const humanizeDuration = (nanoseconds: number): string => {
+	const microsecond = 1000
+	const millisecond = microsecond * 1000
+	const second = millisecond * 1000
+	const minute = second * 60
+	const hour = minute * 60
+
+	if (nanoseconds >= hour) {
+		const hours = nanoseconds / hour
+		return `${Number(hours.toFixed(1))}h`
+	} else if (nanoseconds >= minute) {
+		const minutes = nanoseconds / minute
+		return `${Number(minutes.toFixed(1))}m`
+	} else if (nanoseconds >= second) {
+		const seconds = nanoseconds / second
+		return `${Number(seconds.toFixed(1))}s`
+	} else if (nanoseconds >= millisecond) {
+		const milliseconds = nanoseconds / millisecond
+		return `${Number(milliseconds.toFixed(1))}ms`
+	} else if (nanoseconds >= microsecond) {
+		const microseconds = nanoseconds / microsecond
+		return `${Number(microseconds.toFixed(1))}µs`
+	} else {
+		return `${nanoseconds}ns`
+	}
+}
+
+export const formatDateWithNanoseconds = (dateString: string) => {
+	const [dateTime, nanoseconds] = dateString.split('.')
+	const [nanoWithoutZ] = nanoseconds.split('Z')
+	const momentDate = moment(dateTime)
+	const formattedDateTime = momentDate.format('M/D/YYYY, h:mm:ss')
+	const amPm = momentDate.format('a')
+	return `${formattedDateTime}.${nanoWithoutZ} ${amPm}`
 }

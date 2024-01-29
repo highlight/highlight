@@ -3,7 +3,7 @@ import { Button } from '@components/Button'
 import CommandBar from '@components/CommandBar/CommandBar'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
-import { betaTag, linkStyle } from '@components/Header/styles.css'
+import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import {
@@ -29,6 +29,7 @@ import {
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
+	IconSolidGrafana,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidOfficeBuilding,
@@ -70,6 +71,7 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 import { generateRandomColor } from '@/util/color'
 
@@ -129,6 +131,13 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const isSetup = parts.indexOf('setup') !== -1
 	const { isSettings } = useIsSettingsPath()
 
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
+	const enableGrafanaDashboard =
+		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
+
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
 
@@ -148,7 +157,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'traces',
 			icon: IconSolidSparkles,
-			isBeta: true,
 		},
 		{
 			key: 'alerts',
@@ -171,6 +179,32 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			displayValue: workspace?.name,
 		}))
 	}, [workspacesData?.workspaces, workspacesData?.joinable_workspaces])
+
+	let grafanaItem = (
+		<Menu.Item disabled={!enableGrafanaDashboard}>
+			<Box display="flex" alignItems="center" gap="4">
+				<IconSolidGrafana
+					size={14}
+					color={vars.theme.interactive.fill.secondary.content.text}
+				/>
+				Grafana Dashboard
+				<Badge
+					shape="basic"
+					size="small"
+					variant="outlineGray"
+					label="Enterprise"
+				/>
+			</Box>
+		</Menu.Item>
+	)
+
+	if (enableGrafanaDashboard) {
+		grafanaItem = (
+			<Link to="https://grafana.highlight.io/" className={linkStyle}>
+				{grafanaItem}
+			</Link>
+		)
+	}
 
 	return (
 		<>
@@ -251,11 +285,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												trackingId={`header-link-click-${p.key}`}
 											>
 												{titleCaseString(p.key)}
-												{p.isBeta ? (
-													<Box cssClass={betaTag}>
-														Beta
-													</Box>
-												) : null}
 											</LinkButton>
 										)
 									})}
@@ -375,6 +404,8 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Box>
 												</Menu.Item>
 											</Link>
+											<Menu.Divider />
+											{grafanaItem}
 										</Menu.List>
 									</Menu>
 								</Box>

@@ -50,6 +50,22 @@ Comparisons are made using **operators**. The following operators are supported:
 * `>` - Greater than
 * `>=` - Greater than or equal to
 
+### Exist & Not Exist
+
+You can search if a key exists or does not exist with the `exists` operator. For example,
+if you wanted all the traces with a connected session, you would do use the following query:
+
+```
+secure_session_id exists
+```
+
+The `exists` also works with the `not` keyword. An example is when you only want the root level
+spans when searching traces, then you would use this query
+
+```
+parent_span_id not exists
+```
+
 ## Logical Combinations
 
 Expressions can be combined using the logical operators `AND`, `OR`, and `NOT`.

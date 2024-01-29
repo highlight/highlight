@@ -1,29 +1,20 @@
+import type { LoggerOptions } from 'pino'
+import type { NodeOptions } from '@highlight-run/node'
+
 const highlightConfig = {
-	projectID: '1',
+	projectID: '4d7k1xeo',
 	serviceName: 'highlight-io-pino',
 	serviceVersion: 'git-sha',
 } as NodeOptions
 
-let pinoConfig = {
+const pinoConfig = {
 	level: 'debug',
-	transport: {
-		target: '@highlight-run/pino',
-		options: highlightConfig,
-	},
 } as LoggerOptions
 
-if (
-	typeof process.env.NEXT_RUNTIME === 'undefined' ||
-	process.env.NEXT_RUNTIME === 'nodejs'
-) {
+if (process.env.NEXT_RUNTIME === 'nodejs') {
 	const { H } = require('@highlight-run/node')
 	H.init(highlightConfig)
 }
 
-import type { LoggerOptions } from 'pino'
-import pino from 'pino'
-import type { NodeOptions } from '@highlight-run/node'
-
-const logger = pino(pinoConfig)
-
+const logger = require('pino')(pinoConfig)
 export default logger

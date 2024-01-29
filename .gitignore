@@ -54,5 +54,5 @@ temp
 .rollup.cache
 
 scripts/invoices.csv
-**/grafana
+sdk/highlightinc-highlight-datasource/grafana/
 

@@ -38,9 +38,9 @@ const FeatureDropdown = ({
 			sameTab: true,
 		},
 		{
-			title: 'Integrations',
-			icon: <Icons.HiLightningBolt className={styles.copyOnLight} />,
-			link: '/integrations',
+			title: 'Traces',
+			icon: <Icons.HiSparkles className={styles.copyOnLight} />,
+			link: '/traces',
 			sameTab: true,
 		},
 	]

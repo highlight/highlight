@@ -1,15 +1,9 @@
 import pino from 'pino'
 import { CONSTANTS } from './constants'
 import { H } from '@highlight-run/node'
+import { config } from './instrumentation'
 
 export function startPino() {
-	const config = {
-		projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID ?? '1',
-		debug: true,
-		serviceName: 'e2e-express-pino-manual-init',
-		serviceVersion: 'git-sha',
-		otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
-	}
 	H.init(config)
 
 	const logger = pino({

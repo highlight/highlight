@@ -465,6 +465,7 @@ type AllWorkspaceSettings struct {
 	EnableBillingLimits       bool    `gorm:"default:false"` // old plans grandfathered in to true
 	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
+	EnableGrafanaDashboard    bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -2454,5 +2455,5 @@ type TableConfig[TReservedKey ~string] struct {
 	KeysToColumns    map[TReservedKey]string
 	ReservedKeys     []TReservedKey
 	SelectColumns    []string
-	DefaultFilters   map[string]string
+	DefaultFilter    string
 }
