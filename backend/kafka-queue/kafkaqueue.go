@@ -3,20 +3,21 @@ package kafka_queue
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/util"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
-	"github.com/segmentio/encoding/json"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
 
 // KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.

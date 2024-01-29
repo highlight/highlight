@@ -1,9 +1,8 @@
 package util
 
 import (
+	"encoding/json"
 	"strings"
-
-	"github.com/segmentio/encoding/json"
 )
 
 func JsonStringToStringArray(s string) []*string {

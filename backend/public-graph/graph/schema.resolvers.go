@@ -6,23 +6,24 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
+
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/segmentio/encoding/json"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
 )
 
 // InitializeSession is the resolver for the initializeSession field.

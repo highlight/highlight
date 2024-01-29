@@ -3,6 +3,7 @@ package lambda
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,12 +13,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/hashicorp/go-retryablehttp"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/lambda-functions/sessionInsights/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/segmentio/encoding/json"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/pkg/errors"

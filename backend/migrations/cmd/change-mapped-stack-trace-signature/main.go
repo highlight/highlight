@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 
 	e "github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/model"

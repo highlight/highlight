@@ -2,16 +2,17 @@ package payload
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/andybalholm/brotli"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/model"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	"github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
-	log "github.com/sirupsen/logrus"
 )
 
 type CompressedWriter struct {
