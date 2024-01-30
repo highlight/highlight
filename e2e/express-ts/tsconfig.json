@@ -11,6 +11,7 @@
 		"skipLibCheck": true,
 		"outDir": "dist",
 		"sourceMap": true,
+		"inlineSources": true
 	},
 	"include": [
 		"src/*.ts",

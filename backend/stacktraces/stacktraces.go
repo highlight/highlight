@@ -7,9 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	publicModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
+
+	publicModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 type Language string

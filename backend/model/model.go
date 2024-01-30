@@ -12,10 +12,11 @@ import (
 	"strings"
 	"time"
 
-	Email "github.com/highlight-run/highlight/backend/email"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
+
+	Email "github.com/highlight-run/highlight/backend/email"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"
@@ -466,6 +467,7 @@ type AllWorkspaceSettings struct {
 	EnableBillingLimits       bool    `gorm:"default:false"` // old plans grandfathered in to true
 	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
+	EnableGrafanaDashboard    bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -1709,7 +1711,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		// in case this partition was already attached by a previous failed migration, this will fail.
 		// ignore errors
 		DB.Exec(fmt.Sprintf(`
-			ALTER TABLE error_object_embeddings_partitioned 
+			ALTER TABLE error_object_embeddings_partitioned
 			ATTACH PARTITION error_object_embeddings_partitioned_%d
 			FOR VALUES IN ('%d');
 		`, i, i))
@@ -2446,4 +2448,14 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 	}
 
 	return nil
+}
+
+type TableConfig[TReservedKey ~string] struct {
+	TableName        string
+	BodyColumn       string
+	AttributesColumn string
+	KeysToColumns    map[TReservedKey]string
+	ReservedKeys     []TReservedKey
+	SelectColumns    []string
+	DefaultFilter    string
 }

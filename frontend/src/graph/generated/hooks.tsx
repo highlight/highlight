@@ -7427,7 +7427,6 @@ export const GetSessionsReportDocument = gql`
 	query GetSessionsReport($project_id: ID!, $query: ClickhouseQuery!) {
 		sessions_report(project_id: $project_id, query: $query) {
 			key
-			user_properties
 			num_sessions
 			num_days_visited
 			num_months_visited
@@ -13986,6 +13985,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_unlisted_sharing
 			enable_ingest_sampling
 			enable_data_deletion
+			enable_grafana_dashboard
 		}
 	}
 `

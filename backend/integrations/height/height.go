@@ -13,8 +13,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
+
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 
 	"golang.org/x/oauth2"
 )

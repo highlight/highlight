@@ -12,11 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"golang.org/x/oauth2"
+
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
-	"golang.org/x/oauth2"
+
+	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var (

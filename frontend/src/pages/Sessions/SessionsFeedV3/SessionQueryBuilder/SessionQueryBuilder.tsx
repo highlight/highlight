@@ -12,13 +12,9 @@ import QueryBuilder, {
 	BOOLEAN_OPERATORS,
 	CUSTOM_TYPE,
 	CustomField,
-	deserializeRules,
 	FetchFieldVariables,
-	getAbsoluteEndTime,
-	getAbsoluteStartTime,
 	QueryBuilderProps,
 	RANGE_OPERATORS,
-	SelectOption,
 	TIME_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
 import { CreateSegmentModal } from '@/pages/Sessions/SearchSidebar/SegmentModals/CreateSegmentModal'
@@ -43,12 +39,6 @@ export const InitialSearchParamsForUrl = {
 	environments: undefined,
 	app_versions: undefined,
 } as const
-
-export const TIME_RANGE_FIELD: SelectOption = {
-	kind: 'single',
-	label: 'created_at',
-	value: 'custom_created_at',
-}
 
 export const CUSTOM_FIELDS: CustomField[] = [
 	{
@@ -155,21 +145,11 @@ const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 
 	const searchContext = useSearchContext()
 
-	const { rules: serializedRules }: { rules: any } = JSON.parse(
-		searchContext.searchQuery,
-	)
-	const newRules = deserializeRules(serializedRules)
-	const timeRange = newRules.find(
-		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
-	)
-
-	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
-	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
 	const { data: fieldData } = useGetFieldTypesClickhouseQuery({
 		variables: {
 			project_id: projectId,
-			start_date: startDate!,
-			end_date: endDate!,
+			start_date: searchContext.startDate.toISOString(),
+			end_date: searchContext.endDate.toISOString(),
 		},
 		skip: !projectId,
 		fetchPolicy: 'cache-and-network',
@@ -178,7 +158,6 @@ const SessionQueryBuilder = React.memo((props: Partial<QueryBuilderProps>) => {
 	return (
 		<QueryBuilder
 			searchContext={searchContext}
-			timeRangeField={props.timeRangeField ?? TIME_RANGE_FIELD}
 			customFields={props.customFields ?? CUSTOM_FIELDS}
 			fetchFields={props.fetchFields ?? fetchFields}
 			fieldData={props.fieldData ?? fieldData}

@@ -1,4 +1,3 @@
-import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const priceSubtitle = style({
@@ -9,9 +8,7 @@ export const predictedCost = style({
 	width: 200,
 })
 
-export const costBreakdown = style({
-	backgroundColor: vars.color.n2,
-})
+export const costBreakdown = style({})
 
 export const costLineItem = style({
 	height: 16,

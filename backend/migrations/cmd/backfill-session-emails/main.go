@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/highlight-run/highlight/backend/model"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 const batchSize = 100

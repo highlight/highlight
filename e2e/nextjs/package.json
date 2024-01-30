@@ -14,6 +14,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
+		"@highlight-run/pino": "workspace:*",
 		"@next/env": "^13.5.4",
 		"@tanstack/react-query": "^4.35.7",
 		"@trpc/client": "^10.38.5",
@@ -32,6 +33,8 @@
 		"next": "13.5.4",
 		"next-build-id": "^3.0.0",
 		"pg": "^8.11.3",
+		"pino": "^8.17.2",
+		"pino-pretty": "^10.3.1",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"typescript": "5.2.2",

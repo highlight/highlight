@@ -2,12 +2,12 @@ import moment from 'moment'
 import { stringify } from 'query-string'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
-import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import {
-	DEFAULT_OPERATOR,
-	SearchParam,
-	stringifySearchQuery,
-} from '@/components/Search/SearchForm/utils'
+	AndOrExpression,
+	SearchExpression,
+} from '@/components/Search/Parser/listener'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+import { DEFAULT_OPERATOR } from '@/components/Search/SearchForm/utils'
 import {
 	LogLevel,
 	LogSource,
@@ -29,22 +29,25 @@ export const isSignificantDateRange = (startDate: Date, endDate: Date) => {
 const bodyKey = ReservedLogKey['Message']
 
 export const findMatchingLogAttributes = (
-	queryTerms: SearchParam[],
+	queryParts: Array<SearchExpression | AndOrExpression>,
 	logAttributes: object | string,
 	matchingAttributes: any = {},
 	attributeKeyBase: string[] = [],
 ): { [key: string]: { match: string; value: string } } => {
-	if (!queryTerms?.length || !logAttributes) {
+	if (!queryParts?.length || !logAttributes) {
 		return {}
 	}
 
-	const bodyQueryValue = queryTerms.find((term) => term.key === 'body')?.value
+	const bodyQueryValue = queryParts.find(
+		(term): term is SearchExpression =>
+			'key' in term && term.key === 'body',
+	)?.value
 
 	Object.entries(logAttributes).forEach(([key, value]) => {
 		const isString = typeof value === 'string'
 
 		if (!isString) {
-			findMatchingLogAttributes(queryTerms, value, matchingAttributes, [
+			findMatchingLogAttributes(queryParts, value, matchingAttributes, [
 				...attributeKeyBase,
 				key,
 			])
@@ -61,11 +64,16 @@ export const findMatchingLogAttributes = (
 		} else {
 			const fullKey = [...attributeKeyBase, key].join('.')
 
-			queryTerms.some((term) => {
-				const queryKey = term.key.toLowerCase()
-				const queryValue = term.value.toLowerCase()
+			queryParts.some((term) => {
+				if (!('key' in term)) {
+					return false
+				}
 
-				if (queryKey === fullKey) {
+				const queryKey = term.key.toLowerCase()
+				const queryValue = term.value?.toLowerCase()
+
+				// TODO: skips when using the exists operator, but we may want to support showing all values
+				if (queryValue && queryKey === fullKey) {
 					matchingAttribute = queryValue
 				}
 			})
@@ -91,38 +99,22 @@ export const buildSessionParams = ({
 	levels: LogLevel[]
 	sources: LogSource[]
 }) => {
-	const queryParams: SearchParam[] = []
-	let offsetStart = 1
+	let query = ''
 
 	if (session?.secure_id) {
-		queryParams.push({
-			key: ReservedLogKey.SecureSessionId,
-			operator: DEFAULT_OPERATOR,
-			value: session.secure_id,
-			offsetStart: offsetStart++,
-		})
+		query += `${ReservedLogKey.SecureSessionId}${DEFAULT_OPERATOR}${session.secure_id}`
 	}
 
 	levels.forEach((level) => {
-		queryParams.push({
-			key: ReservedLogKey.Level,
-			operator: DEFAULT_OPERATOR,
-			value: level,
-			offsetStart: offsetStart++,
-		})
+		query += ` ${ReservedLogKey.Level}${DEFAULT_OPERATOR}${level}`
 	})
 
 	sources.forEach((source) => {
-		queryParams.push({
-			key: ReservedLogKey.Source,
-			operator: DEFAULT_OPERATOR,
-			value: source,
-			offsetStart: offsetStart++,
-		})
+		query += ` ${ReservedLogKey.Source}${DEFAULT_OPERATOR}${source}`
 	})
 
 	return {
-		query: stringifySearchQuery(queryParams),
+		query: query.trim(),
 		date_range: {
 			start_date: moment(session?.created_at),
 			end_date: moment(session?.created_at).add(4, 'hours'),

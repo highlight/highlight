@@ -9,9 +9,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
+
+	"github.com/pkg/errors"
+
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var (

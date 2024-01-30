@@ -177,8 +177,9 @@ type ClickUpTeam struct {
 }
 
 type ClickhouseQuery struct {
-	IsAnd bool       `json:"isAnd"`
-	Rules [][]string `json:"rules"`
+	IsAnd     bool                    `json:"isAnd"`
+	Rules     [][]string              `json:"rules"`
+	DateRange *DateRangeRequiredInput `json:"dateRange"`
 }
 
 type DashboardDefinition struct {
@@ -779,7 +780,6 @@ type SessionsReportRow struct {
 	MaxLengthMins         float64 `json:"max_length_mins"`
 	TotalLengthMins       float64 `json:"total_length_mins"`
 	Location              string  `json:"location"`
-	UserProperties        *string `json:"user_properties"`
 }
 
 type SlackSyncResponse struct {

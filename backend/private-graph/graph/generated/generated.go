@@ -146,13 +146,14 @@ type ComplexityRoot struct {
 	}
 
 	AllWorkspaceSettings struct {
-		AIApplication         func(childComplexity int) int
-		AIInsights            func(childComplexity int) int
-		EnableDataDeletion    func(childComplexity int) int
-		EnableIngestSampling  func(childComplexity int) int
-		EnableSessionExport   func(childComplexity int) int
-		EnableUnlistedSharing func(childComplexity int) int
-		WorkspaceID           func(childComplexity int) int
+		AIApplication          func(childComplexity int) int
+		AIInsights             func(childComplexity int) int
+		EnableDataDeletion     func(childComplexity int) int
+		EnableGrafanaDashboard func(childComplexity int) int
+		EnableIngestSampling   func(childComplexity int) int
+		EnableSessionExport    func(childComplexity int) int
+		EnableUnlistedSharing  func(childComplexity int) int
+		WorkspaceID            func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -1330,7 +1331,6 @@ type ComplexityRoot struct {
 		NumSessions           func(childComplexity int) int
 		TotalActiveLengthMins func(childComplexity int) int
 		TotalLengthMins       func(childComplexity int) int
-		UserProperties        func(childComplexity int) int
 	}
 
 	SlackSyncResponse struct {
@@ -2379,6 +2379,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.EnableDataDeletion(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_grafana_dashboard":
+		if e.complexity.AllWorkspaceSettings.EnableGrafanaDashboard == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableGrafanaDashboard(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_ingest_sampling":
 		if e.complexity.AllWorkspaceSettings.EnableIngestSampling == nil {
@@ -9508,13 +9515,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionsReportRow.TotalLengthMins(childComplexity), true
 
-	case "SessionsReportRow.user_properties":
-		if e.complexity.SessionsReportRow.UserProperties == nil {
-			break
-		}
-
-		return e.complexity.SessionsReportRow.UserProperties(childComplexity), true
-
 	case "SlackSyncResponse.newChannelsAddedCount":
 		if e.complexity.SlackSyncResponse.NewChannelsAddedCount == nil {
 			break
@@ -10720,7 +10720,6 @@ type SessionsReportRow {
 	max_length_mins: Float!
 	total_length_mins: Float!
 	location: String!
-	user_properties: String
 }
 
 type TimelineIndicatorEvent {
@@ -11145,6 +11144,7 @@ type AllWorkspaceSettings {
 	enable_unlisted_sharing: Boolean!
 	enable_ingest_sampling: Boolean!
 	enable_data_deletion: Boolean!
+	enable_grafana_dashboard: Boolean!
 }
 
 type Account {
@@ -11758,6 +11758,7 @@ input DateHistogramOptions {
 input ClickhouseQuery {
 	isAnd: Boolean!
 	rules: [[String!]!]!
+	dateRange: DateRangeRequiredInput!
 }
 
 enum NetworkRequestAttribute {
@@ -23027,6 +23028,50 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_data_deletion(ctx conte
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_data_deletion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_grafana_dashboard(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableGrafanaDashboard, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -40815,6 +40860,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx, field)
 			case "enable_data_deletion":
 				return ec.fieldContext_AllWorkspaceSettings_enable_data_deletion(ctx, field)
+			case "enable_grafana_dashboard":
+				return ec.fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -51293,8 +51340,6 @@ func (ec *executionContext) fieldContext_Query_sessions_report(ctx context.Conte
 				return ec.fieldContext_SessionsReportRow_total_length_mins(ctx, field)
 			case "location":
 				return ec.fieldContext_SessionsReportRow_location(ctx, field)
-			case "user_properties":
-				return ec.fieldContext_SessionsReportRow_user_properties(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SessionsReportRow", field.Name)
 		},
@@ -54864,6 +54909,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_ingest_sampling(ctx, field)
 			case "enable_data_deletion":
 				return ec.fieldContext_AllWorkspaceSettings_enable_data_deletion(ctx, field)
+			case "enable_grafana_dashboard":
+				return ec.fieldContext_AllWorkspaceSettings_enable_grafana_dashboard(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -66743,47 +66790,6 @@ func (ec *executionContext) fieldContext_SessionsReportRow_location(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionsReportRow_user_properties(ctx context.Context, field graphql.CollectedField, obj *model.SessionsReportRow) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionsReportRow_user_properties(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserProperties, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionsReportRow_user_properties(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionsReportRow",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _SlackSyncResponse_success(ctx context.Context, field graphql.CollectedField, obj *model.SlackSyncResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SlackSyncResponse_success(ctx, field)
 	if err != nil {
@@ -75083,7 +75089,7 @@ func (ec *executionContext) unmarshalInputClickhouseQuery(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"isAnd", "rules"}
+	fieldsInOrder := [...]string{"isAnd", "rules", "dateRange"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -75103,6 +75109,14 @@ func (ec *executionContext) unmarshalInputClickhouseQuery(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
 			it.Rules, err = ec.unmarshalNString2ᚕᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dateRange":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateRange"))
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -77086,6 +77100,13 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 		case "enable_data_deletion":
 
 			out.Values[i] = ec._AllWorkspaceSettings_enable_data_deletion(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "enable_grafana_dashboard":
+
+			out.Values[i] = ec._AllWorkspaceSettings_enable_grafana_dashboard(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -87444,10 +87465,6 @@ func (ec *executionContext) _SessionsReportRow(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "user_properties":
-
-			out.Values[i] = ec._SessionsReportRow_user_properties(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

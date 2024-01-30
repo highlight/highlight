@@ -18,11 +18,12 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	github2 "github.com/google/go-github/v50/github"
+	"github.com/sashabaranov/go-openai"
+
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/integrations/gitlab"
 	"github.com/highlight-run/highlight/backend/integrations/jira"
-	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
 
@@ -30,6 +31,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/highlight-run/go-resthooks"
+
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -47,6 +49,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"gorm.io/gorm"
+
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/openlyinc/pointy"
@@ -59,7 +63,6 @@ import (
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/client"
 	"github.com/stripe/stripe-go/v76/webhook"
-	"gorm.io/gorm"
 
 	"github.com/highlight-run/workerpool"
 

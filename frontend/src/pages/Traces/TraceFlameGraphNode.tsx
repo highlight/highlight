@@ -18,42 +18,54 @@ type Props = {
 
 type ThemeKey = 'purple' | 'red' | 'green' | 'yellow'
 
+// TODO: Update with new colors once new theme vars are in place. Will also need
+// to add disabled colors once we have disabled spans.
 const spanThemes: {
 	[key in ThemeKey]: {
 		background: string
 		border: string
 		color: string
-		selectedBackend: string
+		selectedBackground: string
 		selectedColor: string
+		errorBorder: string
+		errorBorderSelected: string
 	}
 } = {
 	purple: {
-		background: '#e7defc',
-		border: '#6346af',
-		color: '#6346af',
-		selectedBackend: '#6346af',
+		background: 'rgba(247, 237, 254, 1)',
+		border: 'rgba(209, 175, 236, 1)',
+		color: 'rgba(129, 69, 181, 1)',
+		selectedBackground: 'rgba(142, 78, 198, 1)',
 		selectedColor: '#fff',
+		errorBorder: 'rgba(190, 147, 228, 1)',
+		errorBorderSelected: 'rgba(190, 147, 228, 1)',
 	},
 	red: {
-		background: '#fdd8d8',
-		border: '#cd2b31',
-		color: '#cd2b31',
-		selectedBackend: '#cd2b31',
+		background: 'rgba(255, 239, 239, 1)',
+		border: 'rgba(243, 174, 175, 1)',
+		color: 'rgba(205, 43, 49, 1)',
+		selectedBackground: 'rgba(229, 72, 77, 1)',
 		selectedColor: '#fff',
+		errorBorder: 'rgba(235, 144, 145, 1)',
+		errorBorderSelected: 'rgba(235, 144, 145, 1)',
 	},
 	green: {
-		background: '#ccebd7',
-		border: '#30a46c',
-		color: '#18794E',
-		selectedBackend: '#30a46c',
+		background: 'rgba(233, 246, 233, 1)',
+		border: 'rgba(148, 206, 154, 1)',
+		color: 'rgba(42, 126, 59, 1)',
+		selectedBackground: 'rgba(70, 167, 88, 1)',
 		selectedColor: '#fff',
+		errorBorder: 'rgba(101, 186, 116, 1)',
+		errorBorderSelected: 'rgba(101, 186, 116, 1)',
 	},
 	yellow: {
-		background: '#ffe3a2',
-		border: '#ffb224',
-		color: '#ad5700',
-		selectedBackend: '#ee9d2b',
-		selectedColor: '#fff',
+		background: 'rgba(255, 250, 184, 1)',
+		border: 'rgba(228, 199, 103, 1)',
+		color: 'rgba(158, 108, 0, 1)',
+		selectedBackground: 'rgba(255, 230, 41, 1)',
+		selectedColor: 'rgba(158, 108, 0, 1)',
+		errorBorder: 'rgba(213, 174, 57, 1)',
+		errorBorderSelected: 'rgba(213, 174, 57, 1)',
 	},
 }
 
@@ -79,18 +91,12 @@ export const TraceFlameGraphNode = memo<Props>(
 		const isSelectedSpan = selectedSpan?.spanID === span.spanID
 		const isHoveredSpan = hoveredSpan?.spanID === span.spanID
 		const hasError = errors.find((error) => error.span_id === span.spanID)
-		const isDbSpan = !!span.traceAttributes?.db?.system
-		const isFrontendSpan =
-			span.traceAttributes?.highlight?.type === 'http.request'
-		const themeName = isDbSpan
-			? 'yellow'
-			: isFrontendSpan
-			? 'green'
-			: 'purple'
-		const theme = spanThemes[themeName] ?? spanThemes['purple']
-		const fill = isSelectedSpan ? theme.selectedBackend : theme.background
+		const theme = getSpanTheme(span)
+		const fill = isSelectedSpan
+			? theme.selectedBackground
+			: theme.background
 		const color = isSelectedSpan ? theme.selectedColor : theme.color
-		const stroke = isSelectedSpan ? theme.selectedBackend : theme.border
+		const stroke = isSelectedSpan ? theme.selectedBackground : theme.border
 
 		const distanceFromParent = span.parent?.depth
 			? span.depth - span.parent.depth
@@ -168,7 +174,7 @@ export const TraceFlameGraphNode = memo<Props>(
 									fontSize: '12px',
 									marginLeft: '4px',
 									marginRight: '4px',
-									lineHeight: '1.5',
+									lineHeight: `${lineHeight}px`,
 									padding: '0',
 									fontWeight: '500',
 									textAlign: 'left',
@@ -190,3 +196,14 @@ export const TraceFlameGraphNode = memo<Props>(
 		return prevProps.zoom === nextProps.zoom
 	},
 )
+
+export const getSpanTheme = (span?: FlameGraphSpan) => {
+	if (!span) return spanThemes['purple']
+
+	const isDbSpan = !!span.traceAttributes?.db?.system
+	const isFrontendSpan =
+		span.traceAttributes?.highlight?.type === 'http.request'
+	const themeName = isDbSpan ? 'yellow' : isFrontendSpan ? 'green' : 'purple'
+
+	return spanThemes[themeName] ?? spanThemes['purple']
+}

@@ -17,14 +17,16 @@ import (
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
+	"gorm.io/gorm"
+
+	"github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
+
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/lambda-functions/sessionInsights/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/pkg/errors"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"gorm.io/gorm"
 )
 
 type Handlers interface {

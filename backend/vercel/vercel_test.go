@@ -3,12 +3,13 @@ package vercel
 import (
 	"context"
 	"encoding/json"
-	"github.com/openlyinc/pointy"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/openlyinc/pointy"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateLogDrain(t *testing.T) {

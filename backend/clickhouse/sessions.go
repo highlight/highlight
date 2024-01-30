@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -235,34 +234,14 @@ func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 	}
 	useRandomSample := sampleRuleFound && groupBy == nil
 
-	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
-		return r.Field == timeRangeField
-	})
-	if !found {
-		end := time.Now().UTC()
-		start := end.AddDate(0, 0, -30)
-		timeRangeRule = Rule{
-			Field: timeRangeField,
-			Op:    BetweenDate,
-			Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
-		}
-		rules = append(rules, timeRangeRule)
+	end := query.DateRange.EndDate.UTC()
+	start := query.DateRange.StartDate.UTC()
+	timeRangeRule := Rule{
+		Field: timeRangeField,
+		Op:    BetweenDate,
+		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
 	}
-	if len(timeRangeRule.Val) != 1 {
-		return "", nil, false, fmt.Errorf("unexpected length of time range value: %s", timeRangeRule.Val)
-	}
-	start, end, found := strings.Cut(timeRangeRule.Val[0], "_")
-	if !found {
-		return "", nil, false, fmt.Errorf("separator not found for time range: %s", timeRangeRule.Val[0])
-	}
-	startTime, err := time.Parse(timeFormat, start)
-	if err != nil {
-		return "", nil, false, err
-	}
-	endTime, err := time.Parse(timeFormat, end)
-	if err != nil {
-		return "", nil, false, err
-	}
+	rules = append(rules, timeRangeRule)
 
 	if useRandomSample {
 		salt, err := strconv.ParseUint(sampleRule.Val[0], 16, 64)
@@ -277,14 +256,11 @@ func GetSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 		From("sessions FINAL").
 		Where(sb.And(sb.Equal("ProjectID", projectId),
 			"NOT Excluded",
-			"WithinBillingQuota",
-			sb.Or("NOT Processed",
-				sb.GreaterEqualThan("ActiveLength", 1000),
-				sb.And(sb.IsNull("ActiveLength"), sb.GreaterEqualThan("Length", 1000)))),
+			"WithinBillingQuota"),
 			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
-	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
+	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, start, end, sb)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -462,11 +438,11 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	return client.conn.Exec(ctx, sql, args...)
 }
 
-var sessionsTableConfig = tableConfig[string]{
-	tableName:        SessionsTable,
-	keysToColumns:    fieldMap,
-	attributesColumn: "Fields",
-	reservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
+var sessionsTableConfig = model.TableConfig[string]{
+	TableName:        SessionsTable,
+	KeysToColumns:    fieldMap,
+	AttributesColumn: "Fields",
+	ReservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
 		return item.String()
 	}),
 }
@@ -475,10 +451,10 @@ func SessionMatchesQuery(session *model.Session, filters *queryparser.Filters) b
 	return matchesQuery(session, sessionsTableConfig, filters)
 }
 
-var sessionsJoinedTableConfig = tableConfig[modelInputs.ReservedSessionKey]{
-	tableName:        "sessions_joined_vw",
-	attributesColumn: "SessionAttributes",
-	reservedKeys:     modelInputs.AllReservedSessionKey,
+var sessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
+	TableName:        "sessions_joined_vw",
+	AttributesColumn: "SessionAttributes",
+	ReservedKeys:     modelInputs.AllReservedSessionKey,
 }
 
 var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{

@@ -9,14 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/util"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
 
 // KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
@@ -26,8 +27,8 @@ const ConsumerGroupName = "group-default"
 
 const (
 	TaskRetries           = 2
-	prefetchQueueCapacity = 8
-	MaxMessageSizeBytes   = 16 * 1000 * 1000 // MB
+	prefetchQueueCapacity = 100
+	MaxMessageSizeBytes   = 128 * 1024 * 1024 // MiB
 )
 
 var (
@@ -101,7 +102,9 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	brokers := strings.Split(servers, ",")
 	groupID := strings.Join([]string{ConsumerGroupName, topic}, "_")
 
-	tlsConfig := &tls.Config{}
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	var mechanism sasl.Mechanism
 	var dialer *kafka.Dialer
 	var transport *kafka.Transport
@@ -170,21 +173,30 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Balancer:     &kafka.Hash{},
 			RequiredAcks: kafka.RequireOne,
 			Compression:  kafka.Zstd,
-			Async:        true,
-			// override batch limit to be our message max size
+			// synchronous mode so that we can ensure messages are sent before we return
+			Async:        false,
+			BatchSize:    1,
 			BatchBytes:   MaxMessageSizeBytes,
-			BatchSize:    1_000,
 			BatchTimeout: time.Second,
 			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
-			MaxAttempts:  10,
+			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "producer",
+				"topic":       topic,
+			}).Debugf),
+			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "producer",
+				"topic":       topic,
+			}).Errorf),
 		}
 
 		if configOverride != nil {
 			deref := *configOverride
 			if deref.Async != nil {
 				pool.kafkaP.Async = *deref.Async
-				pool.kafkaP.BatchSize = 100
+				pool.kafkaP.BatchSize = 1_000
 			}
 			if deref.MessageSizeBytes != nil {
 				pool.kafkaP.BatchBytes = *deref.MessageSizeBytes
@@ -204,19 +216,32 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			Brokers:           brokers,
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
-			SessionTimeout:    10 * time.Second,
+			ReadLagInterval:   time.Second,
+			SessionTimeout:    30 * time.Second,
 			RebalanceTimeout:  rebalanceTimeout,
-			ReadBatchTimeout:  KafkaOperationTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
+			MinBytes:          1,
 			MaxBytes:          MaxMessageSizeBytes,
-			MaxWait:           time.Second,
+			MaxWait:           KafkaOperationTimeout,
+			ReadBatchTimeout:  KafkaOperationTimeout,
+			ReadBackoffMin:    time.Nanosecond,
+			ReadBackoffMax:    5 * time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval:        time.Second,
-			MaxAttempts:           10,
 			WatchPartitionChanges: true,
+			Logger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "consumer",
+				"topic":       topic,
+			}).Debugf),
+			ErrorLogger: kafka.LoggerFunc(log.WithFields(log.Fields{
+				"code.module": "kafkaqueue",
+				"mode":        "consumer",
+				"topic":       topic,
+			}).Errorf),
 			GroupBalancers: []kafka.GroupBalancer{
 				kafka.RackAffinityGroupBalancer{Rack: rack},
 			},
@@ -326,7 +351,7 @@ func (p *Queue) Receive(ctx context.Context) (msg *Message) {
 	}
 	msg, err = p.deserializeMessage(m.Value)
 	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to deserialize message"))
+		log.WithContext(ctx).WithField("topic", p.Topic).WithField("partition", m.Partition).WithField("msgBytes", len(m.Value)).Error(errors.Wrap(err, "failed to deserialize message"))
 		return nil
 	}
 	msg.KafkaMessage = &m
@@ -432,6 +457,9 @@ func (p *Queue) serializeMessage(msg *Message) (compressed []byte, err error) {
 }
 
 func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error) {
+	if int64(len(compressed)) >= p.MessageSizeBytes {
+		return nil, errors.New("message too large")
+	}
 	if err := json.Unmarshal(compressed, &msg); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshall msg")
 	}

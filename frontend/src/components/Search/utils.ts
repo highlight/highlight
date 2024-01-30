@@ -1,17 +1,17 @@
 import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from 'antlr4'
 
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
 import {
-	Expression,
 	SearchErrorListener,
+	SearchExpression,
 	SearchListener,
 } from '@/components/Search/Parser/listener'
-import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
+import {
+	BODY_KEY,
+	DEFAULT_OPERATOR,
+} from '@/components/Search/SearchForm/utils'
 
-import SearchGrammarLexer from './Parser/SearchGrammarLexer'
-
-// We don't have a type from the generated lexer for this token type, so create
-//
-export const STRING_TYPE = 100
+import SearchGrammarLexer from './Parser/antlr/SearchGrammarLexer'
 
 export const buildParser = (input: string) => {
 	const chars = new CharStream(input)
@@ -23,21 +23,33 @@ export const buildParser = (input: string) => {
 
 export const parseSearch = (input: string) => {
 	const { parser, tokens } = buildParser(input)
-	const queryParts: Expression[] = []
+	const queryParts: SearchExpression[] = []
 
-	// Setup a custom error listener. The default listener prints a lot of noise.
+	// The default listener prints a lot of noise, so remove it and set up a
+	// custom listener.
 	parser.removeErrorListeners()
 	parser.addErrorListener(new SearchErrorListener())
 
-	const tree = parser.search_query()
 	const listener = new SearchListener(input, queryParts)
 
-	// Walk the tree created during the parse, trigger callbacks
+	// Walk the tree created during the parse + trigger callbacks.
+	const tree = parser.search_query()
 	ParseTreeWalker.DEFAULT.walk(listener, tree)
+
+	if (input.trim() === '') {
+		queryParts.push({
+			key: BODY_KEY,
+			operator: DEFAULT_OPERATOR,
+			value: '',
+			text: '',
+			start: input.length - 1,
+			stop: input.length - 1,
+		})
+	}
 
 	return {
 		queryParts,
-		tokenGroups: groupTokens(tokens.tokens, queryParts, input),
+		tokens: tokens.tokens,
 	}
 }
 
@@ -50,7 +62,7 @@ export type SearchToken = {
 
 export const groupTokens = (
 	tokens: Token[],
-	expressions: Expression[],
+	expressions: SearchExpression[],
 	query: string,
 ) => {
 	const groupedTokens: {

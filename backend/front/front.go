@@ -3,14 +3,15 @@ package front
 import (
 	"context"
 	"encoding/json"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type OAuthToken struct {

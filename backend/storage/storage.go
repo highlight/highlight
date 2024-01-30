@@ -20,10 +20,11 @@ import (
 	"github.com/rs/cors"
 	"github.com/samber/lo"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/andybalholm/brotli"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -32,12 +33,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 var (

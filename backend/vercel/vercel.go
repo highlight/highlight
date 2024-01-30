@@ -13,14 +13,16 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
-	model2 "github.com/highlight-run/highlight/backend/model"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+
 	"github.com/pkg/errors"
+
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 const (

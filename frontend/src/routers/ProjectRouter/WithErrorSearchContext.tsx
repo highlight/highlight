@@ -3,10 +3,7 @@ import { useState } from 'react'
 
 import { useGetBaseSearchContext } from '@/context/SearchState'
 import { EmptyErrorsSearchQuery } from '@/pages/Errors/ErrorsPage'
-import {
-	CUSTOM_FIELDS,
-	TIME_RANGE_FIELD,
-} from '@/pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import { CUSTOM_FIELDS } from '@/pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 
 const WithErrorSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
@@ -16,7 +13,6 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren> = ({
 		EmptyErrorsSearchQuery,
 		'highlightSegmentPickerForErrorsSelectedSegmentId',
 		CUSTOM_FIELDS,
-		TIME_RANGE_FIELD,
 	)
 
 	const [searchResultSecureIds, setSearchResultSecureIds] = useState<

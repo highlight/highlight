@@ -18,10 +18,12 @@ import (
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
+	"gorm.io/gorm"
+
+	"github.com/pkg/errors"
+
 	"github.com/highlight-run/highlight/backend/lambda-functions/journeys/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 const normalnessTimeout = 10 * 60 * 1000

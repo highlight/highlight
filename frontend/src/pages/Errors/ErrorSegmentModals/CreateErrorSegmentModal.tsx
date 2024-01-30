@@ -11,12 +11,8 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React from 'react'
 
-import { SearchOption } from '@/components/Select/SearchSelect/SearchSelect'
-import { removeTimeField } from '@/context/SearchState'
-
 interface Props {
 	showModal: boolean
-	timeRangeField: SearchOption
 	onHideModal: () => void
 	/** Called after a segment is created. */
 	afterCreateHandler?: (segmentId: string, segmentValue: string) => void
@@ -25,7 +21,6 @@ interface Props {
 
 export const CreateErrorSegmentModal = ({
 	showModal,
-	timeRangeField,
 	onHideModal,
 	afterCreateHandler,
 	currentSegment,
@@ -55,18 +50,13 @@ export const CreateErrorSegmentModal = ({
 			return
 		}
 
-		const queryWithoutTimeRange = removeTimeField(
-			searchQuery,
-			timeRangeField,
-		)
-
 		if (shouldUpdate) {
 			editErrorSegment({
 				variables: {
 					project_id: project_id!,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					query: queryWithoutTimeRange,
+					query: searchQuery,
 				},
 				onCompleted: () => {
 					message.success(
@@ -113,6 +103,10 @@ export const CreateErrorSegmentModal = ({
 		}
 	}
 
+	if (!showModal) {
+		return null
+	}
+
 	const loading = creatingErrorSegment || updatingErrorSegment
 	return (
 		<SavedSegmentModal
@@ -122,7 +116,6 @@ export const CreateErrorSegmentModal = ({
 			onHideModal={onHideModal}
 			onSubmit={onSubmit}
 			queryBuilder={<ErrorQueryBuilder readonly />}
-			showModal={showModal}
 			shouldUpdate={shouldUpdate}
 		/>
 	)

@@ -1,0 +1,55 @@
+.gridContainer {
+	display: grid;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.gridItem {
+	position: relative;
+	overflow: hidden;
+
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+}
+
+.gridItemInteractive:hover {
+	// border: 1px solid #ffffff;
+	// cursor: pointer;
+}
+
+.gridTitle {
+	text-align: center;
+	font-family: Poppins;
+	font-size: 42px;
+	font-style: normal;
+	font-weight: 600;
+	line-height: 100%; /* 42px */
+
+	background: linear-gradient(
+		to right,
+		#fff,
+		#fff,
+		#fff,
+		#fff,
+		#7828f5,
+		#2d1b53,
+		#2d1b53
+	);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	-webkit-text-stroke: 0.5px white;
+}
+
+.gridItem .chevronRight {
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+}
+
+.gridItem:hover .chevronRight {
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+	transform: translateX(4px);
+}

@@ -5,6 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
@@ -12,17 +18,14 @@ import (
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
-	"github.com/highlight-run/highlight/backend/model"
-	hredis "github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/util"
 	oredis "github.com/highlight/go-oauth2-redis/v4"
 	e "github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
-	"net/http"
-	"strings"
-	"time"
+
+	"github.com/highlight-run/highlight/backend/model"
+	hredis "github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 const CookieName = "highlightOAuth"

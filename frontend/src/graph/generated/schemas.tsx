@@ -146,6 +146,7 @@ export type AllWorkspaceSettings = {
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
 	enable_data_deletion: Scalars['Boolean']
+	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
@@ -230,6 +231,7 @@ export type ClickUpTeam = {
 }
 
 export type ClickhouseQuery = {
+	dateRange: DateRangeRequiredInput
 	isAnd: Scalars['Boolean']
 	rules: Array<Array<Scalars['String']>>
 }
@@ -3157,7 +3159,6 @@ export type SessionsReportRow = {
 	num_sessions: Scalars['UInt64']
 	total_active_length_mins: Scalars['Float']
 	total_length_mins: Scalars['Float']
-	user_properties?: Maybe<Scalars['String']>
 }
 
 export type SlackSyncResponse = {

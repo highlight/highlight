@@ -1,7 +1,9 @@
 import { Trace } from '@/graph/generated/schemas'
 
 import {
+	formatDateWithNanoseconds,
 	getTraceTimes,
+	humanizeDuration,
 	organizeSpansForFlameGraph,
 	organizeSpansWithChildren,
 	spanOverlaps,
@@ -163,5 +165,26 @@ describe('spanOverlaps', () => {
 		span1 = { spanID: 'a', startTime: 100, duration: 200 } as Trace
 		span2 = { spanID: 'b', startTime: 50, duration: 300 } as Trace
 		expect(spanOverlaps(span1, span2)).toEqual(true)
+	})
+})
+
+describe('humanizeDuration', () => {
+	it('should return a humanized duration', () => {
+		expect(humanizeDuration(1000000000 * 0.0001)).toEqual('100µs')
+		expect(humanizeDuration(1000000000 * 0.5)).toEqual('500ms')
+		expect(humanizeDuration(1000000000 + 1000000000 * 0.5)).toEqual('1.5s')
+		expect(humanizeDuration(1000000000 * 60)).toEqual('1m')
+		expect(humanizeDuration(1000000000 * 60 + 1000000000 * 30)).toEqual(
+			'1.5m',
+		)
+		expect(humanizeDuration(1000000000 * 60 * 60)).toEqual('1h')
+	})
+})
+
+describe('formatDateWithNanoseconds', () => {
+	it('should return a formatted date', () => {
+		expect(
+			formatDateWithNanoseconds('2024-01-19T20:42:28.969825Z'),
+		).toEqual('1/19/2024, 8:42:28.969825 pm')
 	})
 })

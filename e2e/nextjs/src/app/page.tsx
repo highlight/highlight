@@ -9,8 +9,10 @@ import Link from 'next/link'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
 import { Canvas } from '@/app/components/canvas'
+import logger from '@/highlight.logger'
 
 export default function Home() {
+	logger.info({}, `Home page component`)
 	return (
 		<main style={{ padding: '2rem' }}>
 			<HighlightIdentify />

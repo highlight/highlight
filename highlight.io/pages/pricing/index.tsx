@@ -1,4 +1,4 @@
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { NextPage } from 'next'
 import Image from 'next/image'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
@@ -20,10 +20,11 @@ import Stopwatch from '../../public/images/stopwatch.svg'
 import TagLoyalty from '../../public/images/tag-loyalty.svg'
 import Wallet from '../../public/images/wallet.svg'
 
-import { RadioGroup } from '@headlessui/react'
+import { Popover, RadioGroup } from '@headlessui/react'
 import * as Slider from '@radix-ui/react-slider'
 import classNames from 'classnames'
 import { useState } from 'react'
+import { InlineWidget } from 'react-calendly'
 import Collapsible from 'react-collapsible'
 import { Section } from '../../components/common/Section/Section'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
@@ -458,8 +459,8 @@ const priceTiers: Record<TierName, PricingTier> = {
 					'Exposure to a Grafana instance for visualization of traces/metrics/logs',
 			},
 		],
-		buttonLabel: 'Contact us',
-		buttonLink: 'mailto:sales@highlight.io',
+		buttonLabel: 'Contact Us',
+		buttonLink: '',
 	},
 }
 
@@ -487,6 +488,7 @@ const PlanTable = () => {
 
 const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 	const { features, badgeText, calculateUsage } = tier
+	const [calendlyOpen, setCalendlyOpen] = useState(false)
 
 	return (
 		<div
@@ -526,13 +528,46 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					</div>
 				))}
 			</div>
+			<Popover className="relative inline-flex flex-col items-center">
+				{({ open, close }) => (
+					<Popover.Panel
+						static
+						className={classNames(
+							'fixed inset-0 z-50 grid place-items-center w-screen h-screen pointer-events-none',
+							!calendlyOpen && 'hidden',
+						)}
+					>
+						<div className="min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity max-[652px]:pt-14 pointer-events-auto">
+							<InlineWidget
+								url="https://calendly.com/d/2gt-rw5-qg5/highlight-demo-call"
+								styles={{ width: '100%', height: '100%' }}
+							/>
+						</div>
+						<button
+							className="absolute grid w-10 h-10 rounded-full place-content-center bg-divider-on-dark max-[652px]:right-2 max-[652px]:top-2 right-10 top-10 hover:brightness-150 transition-all pointer-events-auto"
+							onClick={() => setCalendlyOpen(false)}
+						>
+							<XMarkIcon className="w-5 h-5" />
+						</button>
+					</Popover.Panel>
+				)}
+			</Popover>
 			<div className="px-5 pb-5 flex flex-col gap-2.5">
-				<PrimaryButton
-					href={tier.buttonLink}
-					className={homeStyles.hollowButton}
-				>
-					{tier.buttonLabel}
-				</PrimaryButton>
+				{tier.buttonLink === '' ? (
+					<PrimaryButton
+						className={homeStyles.hollowButton}
+						onClick={() => setCalendlyOpen(true)}
+					>
+						{tier.buttonLabel}
+					</PrimaryButton>
+				) : (
+					<PrimaryButton
+						href={tier.buttonLink}
+						className={homeStyles.hollowButton}
+					>
+						{tier.buttonLabel}
+					</PrimaryButton>
+				)}
 				{calculateUsage && (
 					<div
 						onClick={(e) => {

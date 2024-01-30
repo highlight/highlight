@@ -16,19 +16,21 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"gorm.io/gorm"
+
 	"github.com/aws/smithy-go/ptr"
+	"github.com/pkg/errors"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
+
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
-	"github.com/pkg/errors"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-	"gorm.io/gorm"
 )
 
 type SendSlackAlertInput struct {

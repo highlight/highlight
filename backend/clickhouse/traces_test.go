@@ -75,7 +75,7 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 
 	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "environment:production environment:development",
+		Query:     "environment:(production OR development)",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)

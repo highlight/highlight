@@ -1,42 +1,41 @@
 import { Series } from '@components/Histogram/Histogram'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { useGetErrorsHistogramClickhouseQuery } from '@graph/hooks'
-import { DateHistogramBucketSize } from '@graph/schemas'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useParams } from '@util/react-router/useParams'
-import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
-import React, { useCallback } from 'react'
-
-import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
-
-import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
+import { roundFeedDate } from '@util/time'
+import React from 'react'
 
 const ErrorFeedHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 	({ readonly }) => {
 		const { project_id } = useParams<{ project_id: string }>()
-		const { searchQuery, backendSearchQuery, setSearchQuery } =
-			useErrorSearchContext()
+		const {
+			searchQuery,
+			startDate,
+			endDate,
+			histogramBucketSize,
+			setSearchTime,
+		} = useErrorSearchContext()
 		const { loading, data } = useGetErrorsHistogramClickhouseQuery({
 			variables: {
 				query: JSON.parse(searchQuery),
 				project_id: project_id!,
 				histogram_options: {
-					bucket_size:
-						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+					bucket_size: histogramBucketSize,
 					time_zone:
 						Intl.DateTimeFormat().resolvedOptions().timeZone ??
 						'UTC',
 					bounds: {
 						start_date: roundFeedDate(
-							backendSearchQuery?.startDate.toISOString() ?? null,
+							startDate.toISOString() ?? null,
 						).format(),
 						end_date: roundFeedDate(
-							backendSearchQuery?.endDate.toISOString() ?? null,
+							endDate.toISOString() ?? null,
 						).format(),
 					},
 				},
 			},
-			skip: !backendSearchQuery?.childSearchQuery || !project_id,
+			skip: !histogramBucketSize || !project_id,
 			fetchPolicy: 'network-only',
 		})
 
@@ -61,26 +60,13 @@ const ErrorFeedHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			]
 		}
 
-		const updateTimeRange = useCallback(
-			(newStartTime: Date, newEndTime: Date) => {
-				setSearchQuery((query) =>
-					updateQueriedTimeRange(
-						query || '',
-						TIME_RANGE_FIELD,
-						serializeAbsoluteTimeRange(newStartTime, newEndTime),
-					),
-				)
-			},
-			[setSearchQuery],
-		)
-
 		return (
 			<SearchResultsHistogram
 				seriesList={histogram.seriesList}
 				bucketTimes={histogram.bucketTimes}
-				bucketSize={backendSearchQuery?.histogramBucketSize}
+				bucketSize={histogramBucketSize}
 				loading={loading}
-				updateTimeRange={updateTimeRange}
+				updateTimeRange={setSearchTime}
 				barGap={2.4}
 				readonly={readonly}
 			/>

@@ -1,7 +1,9 @@
 package graph
 
 import (
+	"compress/gzip"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,10 +20,22 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 
+	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/mssola/user_agent"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
@@ -45,16 +59,6 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	"github.com/mssola/user_agent"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/attribute"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // This file will not be regenerated automatically.
@@ -356,8 +360,7 @@ func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.Error
 	return session.AppVersion
 }
 
-func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
-	version := r.GetErrorAppVersion(ctx, errorObj)
+func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject, version *string) (*string, []*privateModel.ErrorTrace, error) {
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
 	if err != nil {
@@ -479,7 +482,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 }
 
 func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, projectID int, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "public-resolver", util.ResourceName("GetTopErrorGroupMatchByEmbedding"))
+	span, ctx := util.StartSpanFromContext(ctx, "public-resolver", util.ResourceName("GetTopErrorGroupMatchByEmbedding"), util.WithSpanKind(trace.SpanKindServer), util.Tag("projectID", projectID))
 	defer span.Finish()
 
 	result := struct {
@@ -2210,14 +2213,30 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
-		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
-		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, nil)
+		var stackFrameInput []*publicModel.StackFrameInput
 
+		if err := json.Unmarshal([]byte(v.StackTrace), &stackFrameInput); err == nil {
+			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version)))
+			if err != nil {
+				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
+			} else if mapped != nil && *mapped != "null" {
+				errorToInsert.MappedStackTrace = mapped
+				structuredStackTrace = structured
+			}
+		}
+
+		stack := errorToInsert.MappedStackTrace
+		if stack == nil {
+			stack = &v.StackTrace
+		}
+
+		mapped, structured, err := r.Store.EnhancedStackTrace(ctx, *stack, workspace, &project, errorToInsert, nil)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
-		} else if mappedStackTrace != nil {
-			errorToInsert.MappedStackTrace = mappedStackTrace
+			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", *stack)
+		} else if mapped != nil {
+			errorToInsert.MappedStackTrace = mapped
+			structuredStackTrace = structured
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
@@ -2429,6 +2448,25 @@ type PushPayloadChunk struct {
 	websocketEvents []*any
 }
 
+func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
+	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
+	if err != nil {
+		return err
+	}
+
+	js, err := io.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	var payload kafka_queue.PushPayloadArgs
+	if err = json.Unmarshal(js, &payload); err != nil {
+		return err
+	}
+
+	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
+}
+
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	// old clients do not send web socket events, so the value can be nil.
 	// use this str as a simpler way to reference
@@ -2523,7 +2561,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling snapshot"))
+						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
 						continue
 					}
 
@@ -2746,14 +2784,28 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ServiceName:    sessionObj.ServiceName,
 			}
 
-			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
+			var structuredStackTrace []*privateModel.ErrorTrace
+			mapped, structured, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert, r.GetErrorAppVersion(ctx, errorToInsert))
 
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
-				continue
+			} else {
+				errorToInsert.MappedStackTrace = mapped
+				structuredStackTrace = structured
 			}
 
-			errorToInsert.MappedStackTrace = mappedStackTrace
+			stack := errorToInsert.MappedStackTrace
+			if stack == nil {
+				stack = errorToInsert.StackTrace
+			}
+			// use github enhancement for frontend errors
+			mapped, structured, err = r.Store.EnhancedStackTrace(ctx, *stack, workspace, project, errorToInsert, nil)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("stacktrace", v.StackTrace).Errorf("Failed to generate frontend structured stacktrace %v", v.StackTrace)
+			} else if mapped != nil {
+				errorToInsert.MappedStackTrace = mapped
+				structuredStackTrace = structured
+			}
 
 			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
 

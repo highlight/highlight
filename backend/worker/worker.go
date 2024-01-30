@@ -15,8 +15,19 @@ import (
 
 	"github.com/samber/lo"
 
+	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
+
 	"github.com/aws/smithy-go/ptr"
 	"github.com/golang/snappy"
+	"github.com/highlight-run/workerpool"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	"github.com/shirou/gopsutil/mem"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
@@ -36,17 +47,8 @@ import (
 	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/highlight-run/workerpool"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
-	"github.com/shirou/gopsutil/mem"
-	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/attribute"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
 )
 
 // Worker is a job runner that parses sessions
@@ -329,6 +331,19 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs,
 			task.PushPayload.PayloadID); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.PushCompressedPayload:
+		if task.PushCompressedPayload == nil {
+			break
+		}
+		if err := w.PublicResolver.ProcessCompressedPayload(
+			ctx,
+			task.PushCompressedPayload.SessionSecureID,
+			task.PushCompressedPayload.PayloadID,
+			task.PushCompressedPayload.Data,
+		); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}

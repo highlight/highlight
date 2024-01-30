@@ -14,19 +14,21 @@ import (
 
 	"github.com/samber/lo"
 
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+
 	"github.com/go-chi/chi"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
 type Handler struct {
@@ -325,6 +327,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					Type: kafkaqueue.PushBackendPayload,
 					PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 						ProjectVerboseID: pointy.String(projectID),
+						SessionSecureID:  pointy.String(sessionID),
 						Errors:           []*model.BackendErrorObjectInput{errorObject},
 					}})
 			}

@@ -13,12 +13,13 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/aws/smithy-go/ptr"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
-	log "github.com/sirupsen/logrus"
 )
 
 const GITHUB_ERROR_CONTEXT_LINES = 5

@@ -2365,7 +2365,6 @@ export type GetSessionsReportQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionsReportRow' } & Pick<
 			Types.SessionsReportRow,
 			| 'key'
-			| 'user_properties'
 			| 'num_sessions'
 			| 'num_days_visited'
 			| 'num_months_visited'
@@ -4661,6 +4660,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'enable_unlisted_sharing'
 			| 'enable_ingest_sampling'
 			| 'enable_data_deletion'
+			| 'enable_grafana_dashboard'
 		>
 	>
 }

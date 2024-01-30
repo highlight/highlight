@@ -8,16 +8,18 @@ import (
 	"testing"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/aws/smithy-go/ptr"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
 	"github.com/go-test/deep"
 	"github.com/kylelemons/godebug/pretty"

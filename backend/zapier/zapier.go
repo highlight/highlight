@@ -8,14 +8,16 @@ import (
 	"os"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/dchest/uniuri"
 	"github.com/go-chi/chi"
 	"github.com/golang-jwt/jwt"
-	resthooks "github.com/highlight-run/go-resthooks"
-	model "github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/go-resthooks"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 var (

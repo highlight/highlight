@@ -8,10 +8,11 @@ import (
 	"os"
 
 	"github.com/andybalholm/brotli"
-	"github.com/highlight-run/highlight/backend/model"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/model"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
 
 type CompressedWriter struct {

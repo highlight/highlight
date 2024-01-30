@@ -3,10 +3,10 @@ package alerts
 import (
 	"encoding/json"
 
-	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/openlyinc/pointy"
 
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/pkg/errors"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"

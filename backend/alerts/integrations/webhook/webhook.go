@@ -7,10 +7,11 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/highlight-run/highlight/backend/alerts/integrations"
-	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/alerts/integrations"
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 type ErrorAlertWebhook struct {

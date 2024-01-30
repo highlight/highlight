@@ -28,6 +28,7 @@ from highlight_io.integrations.boto3sqs import Boto3SQSIntegration
 from highlight_io.integrations.celery import CeleryIntegration
 from highlight_io.integrations.redis import RedisIntegration
 from highlight_io.integrations.requests import RequestsIntegration
+from highlight_io.integrations.sqlalchemy import SQLAlchemyIntegration
 from highlight_io.utils.lru_cache import LRUCache
 
 DEFAULT_INTEGRATIONS = [
@@ -36,6 +37,7 @@ DEFAULT_INTEGRATIONS = [
     CeleryIntegration,
     RedisIntegration,
     RequestsIntegration,
+    SQLAlchemyIntegration,
 ]
 
 
@@ -199,6 +201,7 @@ class H(object):
         self,
         session_id: typing.Optional[str] = "",
         request_id: typing.Optional[str] = "",
+        span_name: typing.Optional[str] = "highlight-ctx",
         attributes: typing.Optional[typing.Dict[str, any]] = None,
     ) -> Span:
         """
@@ -218,6 +221,7 @@ class H(object):
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
         :param attributes: additional attributes to attribute to this error.
+        :param span_name: span name to record.
         :return: Span
         """
         # in case the otel library is in a non-recording context, do nothing
@@ -226,7 +230,7 @@ class H(object):
             return
 
         with self.tracer.start_as_current_span(
-            "highlight-ctx", record_exception=False, set_status_on_exception=False
+            span_name, record_exception=False, set_status_on_exception=False
         ) as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})

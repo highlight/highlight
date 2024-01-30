@@ -58,45 +58,37 @@ export const tryCastDate = (date: Maybe<string> | undefined) => {
 }
 
 export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
-	[RetentionPeriod.ThirtyDays]: '30 days',
-	[RetentionPeriod.ThreeMonths]: '3 months',
-	[RetentionPeriod.SixMonths]: '6 months',
-	[RetentionPeriod.TwelveMonths]: '12 months',
-	[RetentionPeriod.TwoYears]: '2 years',
-	[RetentionPeriod.ThreeYears]: '3 years',
+	[RetentionPeriod.ThirtyDays]: '30 day retention',
+	[RetentionPeriod.ThreeMonths]: '3 month retention',
+	[RetentionPeriod.SixMonths]: '6 month retention',
+	[RetentionPeriod.TwelveMonths]: '12 month retention',
+	[RetentionPeriod.TwoYears]: '2 year retention',
+	[RetentionPeriod.ThreeYears]: '3 year retention',
 }
 
 export const getMeterAmounts = (
 	data: GetBillingDetailsForProjectQuery,
 ): { [K in ProductType]: [number, number | undefined] } => {
 	const sessionsMeter = data.billingDetailsForProject?.meter ?? 0
-	const sessionsQuota =
-		data.billingDetailsForProject?.plan.sessionsLimit === undefined &&
-		data.billingDetailsForProject?.sessionsBillingLimit === undefined
-			? undefined
-			: (data.billingDetailsForProject?.plan.sessionsLimit ?? 0) +
-			  (data.billingDetailsForProject?.sessionsBillingLimit ?? 0)
+	const sessionsQuota = data.billingDetailsForProject?.sessionsBillingLimit
+		? data.billingDetailsForProject.plan.sessionsLimit +
+		  (data.billingDetailsForProject.sessionsBillingLimit ?? 0)
+		: undefined
 	const errorsMeter = data.billingDetailsForProject?.errorsMeter ?? 0
-	const errorsQuota =
-		data.billingDetailsForProject?.plan.errorsLimit === undefined &&
-		data.billingDetailsForProject?.errorsBillingLimit === undefined
-			? undefined
-			: (data.billingDetailsForProject?.plan.errorsLimit ?? 0) +
-			  (data.billingDetailsForProject?.errorsBillingLimit ?? 0)
+	const errorsQuota = data.billingDetailsForProject?.errorsBillingLimit
+		? data.billingDetailsForProject.plan.errorsLimit +
+		  (data.billingDetailsForProject.errorsBillingLimit ?? 0)
+		: undefined
 	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
-	const logsQuota =
-		data.billingDetailsForProject?.plan.logsLimit === undefined &&
-		data.billingDetailsForProject?.logsBillingLimit === undefined
-			? undefined
-			: (data.billingDetailsForProject?.plan.logsLimit ?? 0) +
-			  (data.billingDetailsForProject?.logsBillingLimit ?? 0)
+	const logsQuota = data.billingDetailsForProject?.logsBillingLimit
+		? data.billingDetailsForProject.plan.logsLimit +
+		  (data.billingDetailsForProject.logsBillingLimit ?? 0)
+		: undefined
 	const tracesMeter = data.billingDetailsForProject?.tracesMeter ?? 0
-	const tracesQuota =
-		data.billingDetailsForProject?.plan.tracesLimit === undefined &&
-		data.billingDetailsForProject?.tracesBillingLimit === undefined
-			? undefined
-			: (data.billingDetailsForProject?.plan.tracesLimit ?? 0) +
-			  (data.billingDetailsForProject?.tracesBillingLimit ?? 0)
+	const tracesQuota = data.billingDetailsForProject?.tracesBillingLimit
+		? data.billingDetailsForProject.plan.tracesLimit +
+		  (data.billingDetailsForProject.tracesBillingLimit ?? 0)
+		: undefined
 	return {
 		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
 		[ProductType.Errors]: [errorsMeter, errorsQuota],

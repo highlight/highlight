@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
 import { Client } from 'pg'
 import { statfsSync } from 'node:fs'
+import logger from '@/highlight.logger'
 
 export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,
@@ -14,7 +15,7 @@ export const GET = withAppRouterHighlight(async function GET(
 	let result: { rows: { message: string }[] } = { rows: [{ message: '' }] }
 
 	console.info('Here: /api/app-router-test/route.ts 💘💘💘', { sql, success })
-
+	logger.info({ sql, success }, `app router test get`)
 	if (sql === 'true') {
 		try {
 			console.info('😇 Connecting to Postgres...')
@@ -59,6 +60,7 @@ export const GET = withAppRouterHighlight(async function GET(
 export const POST = withAppRouterHighlight(async function POST(
 	request: Request,
 ) {
+	logger.info({}, `app router test post`)
 	const headers = Object.fromEntries(request.headers.entries())
 
 	return NextResponse.json({

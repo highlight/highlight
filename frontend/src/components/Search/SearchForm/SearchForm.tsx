@@ -6,8 +6,8 @@ import {
 	Combobox,
 	DateRangePicker,
 	DateRangePreset,
-	DateRangeValue,
 	DEFAULT_TIME_PRESETS,
+	IconSolidClock,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
@@ -17,13 +17,12 @@ import {
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
-import { useDebouncedValue } from '@hooks/useDebouncedValue'
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	DateTimeParam,
@@ -34,26 +33,28 @@ import {
 
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
-import SearchGrammarParser from '@/components/Search/Parser/SearchGrammarParser'
+import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
+import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
 	TIME_FORMAT,
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
+import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
 import {
 	BODY_KEY,
+	buildTokenGroups,
 	DEFAULT_OPERATOR,
-	parseSearchQuery,
 	quoteQueryValue,
-	SearchParam,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
-import { parseSearch, SearchToken } from '@/components/Search/utils'
+import { parseSearch } from '@/components/Search/utils'
 import {
 	useGetLogsKeysLazyQuery,
 	useGetLogsKeyValuesLazyQuery,
 	useGetTracesKeysLazyQuery,
 	useGetTracesKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
+import { useDebounce } from '@/hooks/useDebounce'
 
 import * as styles from './SearchForm.css'
 
@@ -69,18 +70,24 @@ type FetchValues =
 	| typeof useGetTracesKeyValuesLazyQuery
 
 type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
+type SearchResult = Keys[0] | { name: string; type: 'Operator' | 'Value' }
 
-const MAX_ITEMS = 10
+const MAX_ITEMS = 25
+
+const EXISTS_OPERATORS = ['EXISTS', 'NOT EXISTS']
+const NUMERIC_OPERATORS = ['>', '>=', '<', '<='].concat(EXISTS_OPERATORS)
+const BOOLEAN_OPERATORS = ['=', '!='].concat(EXISTS_OPERATORS)
+export const SEARCH_OPERATORS = [...BOOLEAN_OPERATORS, ...NUMERIC_OPERATORS]
 
 export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
 	startDate: Date
 	endDate: Date
-	datePickerValue: DateRangeValue
+	selectedPreset?: DateRangePreset
 	onDatesChange: (
-		startDate?: Date,
-		endDate?: Date,
+		startDate: Date,
+		endDate: Date,
 		preset?: DateRangePreset,
 	) => void
 	presets: DateRangePreset[]
@@ -103,7 +110,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
 	startDate,
 	endDate,
-	datePickerValue,
+	selectedPreset,
 	fetchKeysLazyQuery,
 	fetchValuesLazyQuery,
 	onDatesChange,
@@ -134,6 +141,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		projectId,
 	})
 
+	const displaySeparator =
+		!!SegmentMenu && (!!actions || !hideCreateAlert || !hideDatePicker)
+
 	return (
 		<>
 			{SegmentModals}
@@ -156,15 +166,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					onFormSubmit={onFormSubmit}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
-					{actions && actions({ query, startDate, endDate })}
-					{!hideDatePicker && (
-						<DateRangePicker
-							emphasis="low"
-							selectedValue={datePickerValue}
-							onDatesChange={onDatesChange}
-							presets={presets}
-							minDate={minDate}
-							disabled={timeMode === 'permalink'}
+					{SegmentMenu}
+					{displaySeparator && (
+						<Box
+							as="span"
+							borderRight="dividerWeak"
+							style={{ height: 18, margin: 'auto' }}
 						/>
 					)}
 					{!hideCreateAlert && (
@@ -197,7 +204,22 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							Create alert
 						</Button>
 					)}
-					{SegmentMenu}
+					{actions && actions({ query, startDate, endDate })}
+					{!hideDatePicker && (
+						<DateRangePicker
+							emphasis="medium"
+							iconLeft={<IconSolidClock />}
+							selectedValue={{
+								startDate,
+								endDate,
+								selectedPreset,
+							}}
+							onDatesChange={onDatesChange}
+							presets={presets}
+							minDate={minDate}
+							disabled={timeMode === 'permalink'}
+						/>
+					)}
 				</Box>
 			</Box>
 		</>
@@ -234,40 +256,55 @@ export const Search: React.FC<{
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
+	const [keys, setKeys] = useState<Keys | undefined>()
+	const [values, setValues] = useState<string[] | undefined>()
 	const comboboxStore = useComboboxStore({
 		defaultValue: query ?? '',
 	})
-	const [getKeys, { data: keysData, loading: keysLoading }] =
-		fetchKeysLazyQuery()
-	const [getKeyValues, { data, loading: valuesLoading }] =
-		fetchValuesLazyQuery()
+	const [getKeys, { loading: keysLoading }] = fetchKeysLazyQuery()
+	const [getKeyValues, { loading: valuesLoading }] = fetchValuesLazyQuery()
 	const [cursorIndex, setCursorIndex] = useState(0)
+	const [isPending, startTransition] = React.useTransition()
 
-	// TODO: Remove queryTerms and only use tokenGroups. See #7298 for details.
-	const queryTerms = parseSearchQuery(query)
-	const { tokenGroups } = parseSearch(query)
-	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
-	const activeTerm = queryTerms[activeTermIndex]
-	const debouncedKeyValue = useDebouncedValue<string>(activeTerm.value)
+	const { queryParts, tokens } = parseSearch(query)
+	const tokenGroups = buildTokenGroups(tokens, queryParts, query)
+	const activePart = getActivePart(cursorIndex, queryParts)
+	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
+		activePart.value,
+	)
 
 	// TODO: code smell, user is not able to use "message" as a search key
 	// because we are reserving it for the body implicitly
 	const showValues =
-		activeTerm.key !== BODY_KEY &&
-		!!keysData?.keys?.find((k) => k.name === activeTerm.key)
+		activePart.key !== BODY_KEY &&
+		activePart.text.includes(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
-	const showTermSelect = !!activeTerm.value.length
+	const showValueSelect =
+		activePart.text === `${activePart.key}${activePart.operator}` ||
+		!!activePart.value?.length
 
-	const values = data?.key_values
+	let visibleItems: SearchResult[] = showValues
+		? getVisibleValues(activePart, values)
+		: getVisibleKeys(query, queryParts, activePart, keys)
 
-	const visibleItems = showValues
-		? getVisibleValues(activeTerm, values)
-		: getVisibleKeys(query, queryTerms, activeTerm, keysData?.keys)
+	// Show operators when we have an exact match for a key
+	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
+	const showOperators = !!keyMatch
 
-	// Limit number of items shown
+	if (showOperators) {
+		const operators =
+			keyMatch.type === 'Numeric' ? NUMERIC_OPERATORS : BOOLEAN_OPERATORS
+
+		visibleItems = operators.map((operator) => ({
+			name: operator,
+			type: 'Operator',
+		}))
+	}
+
+	// Limit number of items shown.
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
-	const showResults = loading || visibleItems.length > 0 || showTermSelect
+	const showResults = loading || visibleItems.length > 0 || showValueSelect
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
@@ -275,7 +312,9 @@ export const Search: React.FC<{
 	}
 
 	const handleSetCursorIndex = () => {
-		setCursorIndex(inputRef.current?.selectionStart || 0)
+		if (!isPending) {
+			setCursorIndex(inputRef.current?.selectionStart || query.length)
+		}
 	}
 
 	useEffect(() => {
@@ -290,10 +329,22 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query: debouncedKeyValue,
+				query: debouncedValue,
+			},
+			fetchPolicy: 'cache-first',
+			onCompleted: (data) => {
+				setKeys(data.keys)
 			},
 		})
-	}, [debouncedKeyValue, showValues, startDate, endDate, project_id, getKeys])
+	}, [debouncedValue, showValues, startDate, endDate, project_id, getKeys])
+
+	useEffect(() => {
+		// When we transition to a new key we don't want to wait for the debounce
+		// delay to update the value for key fetching.
+		if (activePart.value === '' && activePart.key === BODY_KEY) {
+			setDebouncedValue('')
+		}
+	}, [activePart.key, activePart.value, setDebouncedValue])
 
 	useEffect(() => {
 		if (!showValues) {
@@ -303,15 +354,19 @@ export const Search: React.FC<{
 		getKeyValues({
 			variables: {
 				project_id: project_id!,
-				key_name: activeTerm.key,
+				key_name: activePart.key,
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
+			fetchPolicy: 'cache-first',
+			onCompleted: (data) => {
+				setValues(data.key_values)
+			},
 		})
 	}, [
-		activeTerm.key,
+		activePart.key,
 		endDate,
 		getKeyValues,
 		project_id,
@@ -326,6 +381,12 @@ export const Search: React.FC<{
 	}, [initialQuery])
 
 	useEffect(() => {
+		if (!showValues) {
+			setValues(undefined)
+		}
+	}, [showValues])
+
+	useEffect(() => {
 		if (query === '') {
 			setTimeout(() => {
 				comboboxStore.setActiveId(null)
@@ -336,65 +397,88 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	// TODO: Fix squashing body when selecting key. To repro, type "asdf " and
-	// note how the dropdown opens. If you select a key from the list it
-	// ends up removing the body term.
-	const handleItemSelect = (key: Keys[0] | string, noQuotes?: boolean) => {
-		const isValueSelect = typeof key === 'string'
-		const activeTermKey = queryTerms[activeTermIndex].key
-		const isLastTerm = activeTermIndex === queryTerms.length - 1
-		const prefix = activeTerm.value.startsWith('-') ? '-' : ''
+	const handleItemSelect = (item: SearchResult) => {
+		const isValueSelect = item.type === 'Value'
+		let value = item.name
+		const isLastPart =
+			activePart.stop >= (queryParts[queryParts.length - 1]?.stop ?? 0)
 
-		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = !!noQuotes
-				? key
-				: `${prefix}${quoteQueryValue(key)}`
-		} else {
-			if (activeTermKey === BODY_KEY && activeTerm.value.endsWith(' ')) {
-				queryTerms[activeTermIndex].value =
-					queryTerms[activeTermIndex].value.trim()
-
-				queryTerms.push({
-					key: key.name,
-					value: '',
-					operator: DEFAULT_OPERATOR,
-					offsetStart: query.length,
-				})
-			} else {
-				queryTerms[activeTermIndex].key = key.name
-				queryTerms[activeTermIndex].value = ''
+		if (item.type === 'Operator') {
+			if (EXISTS_OPERATORS.includes(item.name)) {
+				value = ' ' + value
 			}
+			activePart.operator = value
+			activePart.text =
+				activePart.key === BODY_KEY
+					? `${activePart.text}${activePart.operator}`
+					: `${activePart.key}${activePart.operator}`
+			activePart.stop = activePart.start + activePart.text.length
+		} else if (isValueSelect) {
+			activePart.value = quoteQueryValue(value)
+			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
+			activePart.stop = activePart.start + activePart.text.length
+		} else {
+			activePart.key = value
+			activePart.text = value
+			activePart.value = ''
+			activePart.stop = activePart.start + activePart.key.length
 		}
 
-		let newQuery = stringifySearchQuery(queryTerms)
-		// Add space if it's the last term and a value is selected so people can
-		// start entering the next term.
-		isLastTerm && isValueSelect ? (newQuery += ' ') : null
+		let newCursorPosition = activePart.stop
+		let newQuery = stringifySearchQuery(queryParts)
 
-		setQuery(newQuery)
+		// Add space if it's the last part and a value is selected so people can
+		// start entering the next part.
+		isLastPart && isValueSelect && !newQuery.endsWith(' ')
+			? (newQuery += ' ') && (newCursorPosition += 1)
+			: null
 
-		if (isValueSelect) {
-			submitQuery(newQuery)
-		}
+		startTransition(() => {
+			setQuery(newQuery)
+
+			if (isValueSelect) {
+				submitQuery(newQuery)
+			}
+		})
+
+		setTimeout(() => {
+			inputRef.current?.setSelectionRange(
+				newCursorPosition,
+				newCursorPosition,
+			)
+			setCursorIndex(newCursorPosition)
+		})
 
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
 	}
 
 	const handleRemoveItem = (index: number) => {
-		const groups = [...tokenGroups]
-		const hasTrailingWhitespace = groups[index + 1]?.[0]?.text.trim() === ''
-		const numItemsToRemove = hasTrailingWhitespace ? 2 : 1
-		groups.splice(index, numItemsToRemove)
-		const newQuery = groups
-			.flat()
-			.map((t) => t.text)
+		const newTokenGroups = [...tokenGroups]
+		newTokenGroups.splice(index, 1)
+		const newQuery = newTokenGroups
+			.map((tokenGroup) =>
+				tokenGroup.tokens
+					.map((token) =>
+						token.type === SearchGrammarParser.EOF
+							? ''
+							: token.text,
+					)
+					.join(''),
+			)
 			.join('')
+			.trim()
+
 		setQuery(newQuery)
 		submitQuery(newQuery)
 	}
 
-	let currentIndex = 0
+	const submitAndBlur = () => {
+		submitQuery(query)
+		comboboxStore.setOpen(false)
+		inputRef.current?.blur()
+		handleSetCursorIndex()
+	}
 
 	return (
 		<Box
@@ -423,23 +507,21 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 38,
 					}}
 				>
-					{tokenGroups.map((group, index) => {
-						const term = group.map((token) => token.text).join('')
-						const nextIndex = currentIndex + term.length
-						const active =
-							cursorIndex >= currentIndex &&
-							cursorIndex <= nextIndex
-						currentIndex = nextIndex
+					{tokenGroups.map((tokenGroup, index) => {
+						if (tokenGroup.tokens.length === 0) {
+							return null
+						}
 
 						return (
-							<TermTag
-								key={index}
-								term={term}
-								index={index}
-								active={active}
-								tokens={group}
-								onRemoveItem={handleRemoveItem}
-							/>
+							<Fragment key={index}>
+								<QueryPart
+									cursorIndex={cursorIndex}
+									index={index}
+									tokenGroup={tokenGroup}
+									showValues={showValues}
+									onRemoveItem={handleRemoveItem}
+								/>
+							</Fragment>
 						)
 					})}
 				</Box>
@@ -455,6 +537,10 @@ export const Search: React.FC<{
 					})}
 					value={query}
 					onChange={(e) => {
+						// Need to update cursor position before updating the query for all
+						// cursor-based logic to work.
+						handleSetCursorIndex()
+
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
 						// after a delay or blurring the input.
@@ -462,13 +548,22 @@ export const Search: React.FC<{
 					}}
 					onBlur={() => {
 						submitQuery(query)
+						handleSetCursorIndex()
 						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
-						if (e.key === 'Enter' && query === '') {
+						if (e.key === 'Escape') {
+							submitAndBlur()
+						}
+
+						if (
+							e.key === 'Enter' &&
+							// Using isPending to prevent blurring when the user is selecting
+							// an item vs submitting the form.
+							(query === '' || !showResults || !isPending)
+						) {
 							e.preventDefault()
-							submitQuery(query)
-							comboboxStore.setOpen(false)
+							submitAndBlur()
 						}
 					}}
 					onKeyUp={handleSetCursorIndex}
@@ -504,67 +599,98 @@ export const Search: React.FC<{
 					gutter={10}
 					sameWidth
 				>
-					<Box pt="3">
-						<Combobox.GroupLabel store={comboboxStore}>
-							{activeTerm.value && (
-								<Combobox.Item
-									className={styles.comboboxItem}
-									onClick={() =>
-										handleItemSelect(activeTerm.value, true)
-									}
+					<Box cssClass={styles.comboboxResults}>
+						{activePart.key === BODY_KEY &&
+							activePart.value.length > 0 && (
+								<Combobox.Group
+									className={styles.comboboxGroup}
 									store={comboboxStore}
 								>
-									<Stack direction="row" gap="4">
-										{activeTerm.key === BODY_KEY ? (
-											<>
-												<Text lines="1" color="weak">
-													Show all results for
-												</Text>{' '}
-												<Text>
-													&lsquo;{activeTerm.value}
-													&rsquo;
-												</Text>
-											</>
-										) : (
-											<Text>{activeTerm.value}</Text>
-										)}
-									</Stack>
-								</Combobox.Item>
+									<Combobox.Item
+										className={styles.comboboxItem}
+										onClick={submitAndBlur}
+										store={comboboxStore}
+									>
+										<Stack direction="row" gap="4">
+											<Text
+												lines="1"
+												color="weak"
+												size="small"
+											>
+												Show all results for
+											</Text>{' '}
+											<Text
+												color="secondaryContentText"
+												size="small"
+											>
+												&lsquo;
+												{activePart.value}
+												&rsquo;
+											</Text>
+										</Stack>
+									</Combobox.Item>
+								</Combobox.Group>
 							)}
-						</Combobox.GroupLabel>
-					</Box>
-					<Combobox.Group
-						className={styles.comboboxGroup}
-						store={comboboxStore}
-					>
-						{loading && (
-							<Combobox.Item
-								className={styles.comboboxItem}
-								disabled
-							>
-								<Text>Loading...</Text>
-							</Combobox.Item>
-						)}
-						{visibleItems.map((key, index) => (
-							<Combobox.Item
-								className={styles.comboboxItem}
-								key={index}
-								onClick={() => handleItemSelect(key)}
+						{loading && visibleItems.length === 0 && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
 								store={comboboxStore}
 							>
-								{typeof key === 'string' ? (
-									<Text>{key}</Text>
-								) : (
-									<Stack direction="row" gap="8">
-										<Text>{key.name}:</Text>{' '}
-										<Text color="weak">
-											{key.type.toLowerCase()}
-										</Text>
-									</Stack>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									disabled
+								>
+									<Text color="secondaryContentText">
+										Loading...
+									</Text>
+								</Combobox.Item>
+							</Combobox.Group>
+						)}
+						{visibleItems.length > 0 && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								{!showValues && !showOperators && (
+									<Combobox.GroupLabel store={comboboxStore}>
+										<Box px="10" py="6">
+											<Text
+												color="moderate"
+												size="xxSmall"
+											>
+												Filters
+											</Text>
+										</Box>
+									</Combobox.GroupLabel>
 								)}
-							</Combobox.Item>
-						))}
-					</Combobox.Group>
+								{visibleItems.map((key, index) => {
+									const badgeText =
+										getSearchResultBadgeText(key)
+
+									return (
+										<Combobox.Item
+											className={styles.comboboxItem}
+											key={index}
+											onClick={() =>
+												handleItemSelect(key)
+											}
+											store={comboboxStore}
+											value={key.name}
+											hideOnClick={false}
+											setValueOnClick={false}
+										>
+											<Text color="secondaryContentText">
+												{key.name}
+											</Text>
+											{badgeText && (
+												<Badge label={badgeText} />
+											)}
+										</Combobox.Item>
+									)
+								})}
+							</Combobox.Group>
+						)}
+					</Box>
 					<Box
 						bbr="8"
 						py="4"
@@ -621,7 +747,7 @@ export const Search: React.FC<{
 						>
 							<LinkButton
 								trackingId="search-form_search-specification-docs-link"
-								to="https://www.highlight.io/docs/general/product-features/logging/log-search#attributes-search"
+								to="https://www.highlight.io/docs/general/product-features/general-features/search"
 								target="_blank"
 								size="xSmall"
 								kind="secondary"
@@ -638,122 +764,108 @@ export const Search: React.FC<{
 	)
 }
 
-const SEPARATORS = SearchGrammarParser.literalNames.map((name) =>
-	name?.replaceAll("'", ''),
-)
-
-const TermTag: React.FC<{
-	active: boolean
-	index: number
-	term: string
-	tokens: SearchToken[]
-	onRemoveItem: (index: number) => void
-}> = ({ active, index, term, tokens, onRemoveItem }) => {
-	if (term.trim().length === 0) {
-		return <span>{term}</span>
-	}
-
-	return (
-		<>
-			<Box
-				cssClass={clsx(styles.comboboxTag, {
-					[styles.comboboxTagActive]: active,
-				})}
-				py="6"
-				position="relative"
-				whiteSpace="nowrap"
-			>
-				<IconSolidXCircle
-					className={styles.comboboxTagClose}
-					size={13}
-					onClick={() => onRemoveItem(index)}
-				/>
-				{tokens.map((token, index) => {
-					const { text } = token
-					const key = `${text}-${index}`
-
-					if (SEPARATORS.includes(text)) {
-						return (
-							<Box
-								key={key}
-								style={{ color: '#E93D82', zIndex: 1 }}
-							>
-								{text}
-							</Box>
-						)
-					} else {
-						return (
-							<Box key={key} style={{ zIndex: 1 }}>
-								{text}
-							</Box>
-						)
-					}
-				})}
-
-				<Box cssClass={styles.comboboxTagBackground} />
-			</Box>
-		</>
-	)
-}
-
-const getActiveTermIndex = (
+const getActivePart = (
 	cursorIndex: number,
-	params: SearchParam[],
-): number => {
-	let activeTermIndex
+	queryParts: SearchExpression[],
+): SearchExpression => {
+	let activePartIndex
 
-	params.find((param, index) => {
-		if (param.offsetStart <= cursorIndex) {
-			activeTermIndex = index
+	queryParts.find((param, index) => {
+		if (param.stop < cursorIndex - 1) {
 			return false
 		}
 
+		activePartIndex = index
 		return true
 	})
 
-	return activeTermIndex === undefined ? params.length - 1 : activeTermIndex
+	if (activePartIndex === undefined) {
+		const activePart = {
+			key: BODY_KEY,
+			operator: DEFAULT_OPERATOR,
+			value: '',
+			text: '',
+			start: 1,
+			stop: 1,
+		}
+		queryParts.push(activePart)
+		return activePart
+	} else {
+		return queryParts[activePartIndex]
+	}
 }
 
 const getVisibleKeys = (
 	queryText: string,
-	queryTerms: SearchParam[],
-	activeQueryTerm: SearchParam,
+	queryParts: SearchExpression[],
+	activeQueryPart?: SearchExpression,
 	keys?: Keys,
 ) => {
-	const startingNewTerm = queryText.endsWith(' ')
-	const activeTermKeys = queryTerms.map((term) => term.key)
-	keys = keys?.filter((key) => activeTermKeys.indexOf(key.name) === -1)
+	const startingNewPart = queryText.endsWith(' ')
+	const activePartKeys = queryParts.map((part) => part.key)
+	keys = keys?.filter((key) => activePartKeys.indexOf(key.name) === -1)
 
 	return (
 		keys?.filter(
 			(key) =>
-				// If it's a new term, don't filter results.
-				startingNewTerm ||
+				// If it's a new part, don't filter results.
+				startingNewPart ||
 				// Only filter for body queries
-				(activeQueryTerm.key === BODY_KEY &&
-					// Don't filter if no query term
-					(!activeQueryTerm.value.length ||
-						startingNewTerm ||
+				(activeQueryPart?.key === BODY_KEY &&
+					// Don't filter if no query part
+					(!activeQueryPart.value?.length ||
+						startingNewPart ||
 						// Filter empty results
 						(key.name.length > 0 &&
-							// Only show results that contain the term
-							key.name.indexOf(activeQueryTerm.value) > -1))),
+							// Only show results that contain the part
+							key.name.indexOf(activeQueryPart.value) > -1))),
 		) || []
 	)
 }
 
-const getVisibleValues = (activeQueryTerm: SearchParam, values?: string[]) => {
-	const activeTerm = activeQueryTerm.value.replace('-', '')
-
-	return (
+const getVisibleValues = (
+	activeQueryPart?: SearchExpression,
+	values?: string[],
+): SearchResult[] => {
+	const activePart = activeQueryPart?.value ?? ''
+	const filteredValues =
 		values?.filter(
 			(v) =>
 				// Don't filter if no value has been typed
-				!activeTerm.length ||
-				// Exclude the current term since that is given special treatment
-				(v !== activeTerm &&
-					// Return values that match the query term
-					v.indexOf(activeTerm) > -1),
+				!activePart.length ||
+				// Return values that match the query part
+				v.indexOf(activePart) > -1,
 		) || []
-	)
+
+	return filteredValues.map((value) => ({
+		name: value,
+		type: 'Value',
+	}))
+}
+
+const getSearchResultBadgeText = (key: SearchResult) => {
+	if (key.type === 'Operator') {
+		switch (key.name) {
+			case '=':
+				return 'is'
+			case '!=':
+				return 'is not'
+			case '>':
+				return 'greater'
+			case '>=':
+				return 'greater or equal'
+			case '<':
+				return 'smaller'
+			case '<=':
+				return 'smaller or equal'
+			case 'EXISTS':
+				return 'exists'
+			case 'NOT EXISTS':
+				return 'does not exist'
+		}
+	} else if (key.type === 'Value') {
+		return undefined
+	} else {
+		return key.type?.toLowerCase()
+	}
 }

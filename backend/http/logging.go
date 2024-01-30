@@ -13,12 +13,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+
 	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-	log "github.com/sirupsen/logrus"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
 const (

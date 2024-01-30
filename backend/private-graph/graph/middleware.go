@@ -13,18 +13,21 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-oauth2/oauth2/v4"
+	e "github.com/pkg/errors"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/util"
-	e "github.com/pkg/errors"
 )
 
 type APITokenHandler func(ctx context.Context, apiKey string) (*int, error)
@@ -222,7 +225,7 @@ func getSourcemapRequestToken(r *http.Request) string {
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		span, ctx := util.StartSpanFromContext(ctx, "middleware.private")
+		span, ctx := util.StartSpanFromContext(ctx, "middleware.private", util.WithSpanKind(trace.SpanKindServer))
 		defer span.Finish()
 		var err error
 		if token := r.Header.Get("token"); token != "" {

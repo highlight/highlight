@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
@@ -35,13 +37,21 @@ var logKeysToColumns = map[modelInputs.ReservedLogKey]string{
 	modelInputs.ReservedLogKeyEnvironment:     "Environment",
 }
 
-var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
-	tableName:        LogsTable,
-	keysToColumns:    logKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedLogKey,
-	bodyColumn:       "Body",
-	attributesColumn: "LogAttributes",
-	selectColumns: []string{
+// These keys show up as recommendations, but with no recommended values due to high cardinality
+var defaultLogKeys = []*modelInputs.QueryKey{
+	{Name: string(modelInputs.ReservedLogKeySecureSessionID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedLogKeySpanID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedLogKeyTraceID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedLogKeyMessage), Type: modelInputs.KeyTypeString},
+}
+
+var logsTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+	TableName:        LogsTable,
+	KeysToColumns:    logKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedLogKey,
+	BodyColumn:       "Body",
+	AttributesColumn: "LogAttributes",
+	SelectColumns: []string{
 		"Timestamp",
 		"UUID",
 		"SeverityText",
@@ -57,12 +67,12 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 	},
 }
 
-var logsSamplingTableConfig = tableConfig[modelInputs.ReservedLogKey]{
-	tableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
-	keysToColumns:    logKeysToColumns,
-	reservedKeys:     modelInputs.AllReservedLogKey,
-	bodyColumn:       "Body",
-	attributesColumn: "LogAttributes",
+var logsSamplingTableConfig = model.TableConfig[modelInputs.ReservedLogKey]{
+	TableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
+	KeysToColumns:    logKeysToColumns,
+	ReservedKeys:     modelInputs.AllReservedLogKey,
+	BodyColumn:       "Body",
+	AttributesColumn: "LogAttributes",
 }
 
 var logsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedLogKey]{
@@ -444,7 +454,22 @@ func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate, query, typeArg)
+	logKeys, err := KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate, query, typeArg)
+	if err != nil {
+		return nil, err
+	}
+
+	if query == nil || *query == "" {
+		logKeys = append(logKeys, defaultLogKeys...)
+	} else {
+		for _, key := range defaultLogKeys {
+			if strings.Contains(key.Name, *query) {
+				logKeys = append(logKeys, key)
+			}
+		}
+	}
+
+	return logKeys, nil
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {

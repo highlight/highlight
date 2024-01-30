@@ -13,14 +13,15 @@ import (
 	"strings"
 	"time"
 
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"gorm.io/gorm"
 
-	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 type EmbeddingType string
