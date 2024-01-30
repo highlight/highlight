@@ -1,9 +1,10 @@
 // src/components/Search/SearchForm/SearchForm.css.ts
-var combobox = "_10xh0c22 mt0ih23k mt0ih241 mt0ih24i mt0ih24z";
-var comboboxGroup = "_10xh0c2f mt0ih28g mt0ih28a _14ud0dc1";
-var comboboxItem = "_10xh0c2d";
+var combobox = "_10xh0c22 mt0ih23m mt0ih245 mt0ih24o mt0ih257";
+var comboboxGroup = "_10xh0c2g mt0ih23l mt0ih244";
+var comboboxItem = "_10xh0c2e";
 var comboboxNotEmpty = "_10xh0c23";
 var comboboxPopover = "_10xh0c2c";
+var comboboxResults = "_10xh0c2d _14ud0dc1";
 var comboboxTag = "_10xh0c26";
 var comboboxTagActive = "_10xh0c28";
 var comboboxTagBackground = "_10xh0c27";
@@ -19,6 +20,7 @@ export {
   comboboxItem,
   comboboxNotEmpty,
   comboboxPopover,
+  comboboxResults,
   comboboxTag,
   comboboxTagActive,
   comboboxTagBackground,

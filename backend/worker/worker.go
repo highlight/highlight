@@ -3,6 +3,7 @@ package worker
 import (
 	"container/list"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"github.com/samber/lo"
-	"github.com/segmentio/encoding/json"
 
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
@@ -21,6 +21,13 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/golang/snappy"
+	"github.com/highlight-run/workerpool"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	"github.com/shirou/gopsutil/mem"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
@@ -40,14 +47,8 @@ import (
 	tempalerts "github.com/highlight-run/highlight/backend/temp-alerts"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/highlight-run/workerpool"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
-	"github.com/shirou/gopsutil/mem"
-	log "github.com/sirupsen/logrus"
 )
 
 // Worker is a job runner that parses sessions

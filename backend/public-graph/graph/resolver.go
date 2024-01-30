@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/fnv"
@@ -16,7 +17,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/segmentio/encoding/json"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 
@@ -29,6 +29,13 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/mssola/user_agent"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
@@ -52,12 +59,6 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	"github.com/mssola/user_agent"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
 )
 
 // This file will not be regenerated automatically.
@@ -2219,7 +2220,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert, pointy.String(fmt.Sprintf("%s-%s", v.Service.Name, v.Service.Version)))
 			if err != nil {
 				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
-			} else if mapped != nil {
+			} else if mapped != nil && *mapped != "null" {
 				errorToInsert.MappedStackTrace = mapped
 				structuredStackTrace = structured
 			}
@@ -2560,7 +2561,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling snapshot"))
+						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
 						continue
 					}
 

@@ -1,11 +1,11 @@
 package projectpath
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/segmentio/encoding/json"
 )
 
 const ConfigFile = "v1.json"

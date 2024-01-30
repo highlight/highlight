@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,18 +21,18 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/segmentio/encoding/json"
+	"github.com/lukasbob/srcset"
+	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	"github.com/tdewolff/parse/css"
 
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/lukasbob/srcset"
-	"github.com/pkg/errors"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
-	"github.com/tdewolff/parse/css"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
 
 type EventType int
@@ -101,7 +102,8 @@ const (
 	ErrFailedToFetch    = "ErrFailedToFetch"
 	ErrFetchNotOk       = "ErrFetchNotOk"
 	// MaxAssetSize = 200 GB storage per ECS node / 64 parallel kafka workers
-	MaxAssetSize = 3 * 1e9
+	MaxAssetSize    = 3 * 1e9
+	MaxSnapshotSize = 64 * 1024 * 1024
 )
 
 type fetcher interface {
@@ -222,6 +224,13 @@ type Snapshot struct {
 }
 
 func NewSnapshot(inputData json.RawMessage, hostUrl *string) (*Snapshot, error) {
+	data := []byte(inputData)
+	hmetric.Histogram(context.Background(), "snapshot-length", float64(len(data)), nil, 1)
+
+	if len(data) > MaxSnapshotSize {
+		return nil, errors.New(fmt.Sprintf("event snapshot too large: %d", len(data)))
+	}
+
 	s := &Snapshot{}
 	if err := s.decode(inputData); err != nil {
 		return nil, err
