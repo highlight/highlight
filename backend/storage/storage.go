@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/gob"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -18,7 +19,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/rs/cors"
 	"github.com/samber/lo"
-	"github.com/segmentio/encoding/json"
 
 	"golang.org/x/sync/errgroup"
 
@@ -33,12 +33,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 var (

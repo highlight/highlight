@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	"html/template"
 	"io"
 	"math/rand"
@@ -15,9 +14,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/embeddings"
+	dd "github.com/highlight-run/highlight/backend/datadog"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/highlight-run/highlight/backend/embeddings"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -30,6 +32,14 @@ import (
 	"github.com/go-chi/httplog"
 	"github.com/gorilla/websocket"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/workerpool"
+	e "github.com/pkg/errors"
+	"github.com/rs/cors"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v76/client"
+	"gorm.io/gorm"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -51,17 +61,10 @@ import (
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/highlight-run/workerpool"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	htrace "github.com/highlight/highlight/sdk/highlight-go/trace"
-	e "github.com/pkg/errors"
-	"github.com/rs/cors"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v76/client"
-	"gorm.io/gorm"
 
 	_ "github.com/urfave/cli/v2"
 	_ "gorm.io/gorm"
@@ -563,7 +566,7 @@ func main() {
 
 				log.WithContext(ctx).Info("Running dd client setup process...")
 				if err := dd.Start(serviceName); err != nil {
-					log.WithContext(ctx).Fatal(e.Wrap(err, "error starting dd clients with error"))
+					log.WithContext(ctx).Error(e.Wrap(err, "error starting dd clients with error"))
 				} else {
 					defer dd.Stop()
 				}

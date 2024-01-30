@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	model2 "github.com/highlight-run/highlight/backend/model"
-	"github.com/segmentio/encoding/json"
 
 	"github.com/samber/lo"
 
@@ -19,15 +19,16 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
 	"github.com/go-chi/chi"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 type Handler struct {

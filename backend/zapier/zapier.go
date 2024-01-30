@@ -2,21 +2,22 @@ package zapier
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/segmentio/encoding/json"
 	"gorm.io/gorm"
 
 	"github.com/dchest/uniuri"
 	"github.com/go-chi/chi"
 	"github.com/golang-jwt/jwt"
 	"github.com/highlight-run/go-resthooks"
-	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 var (
