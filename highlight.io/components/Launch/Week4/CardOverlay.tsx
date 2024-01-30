@@ -1,10 +1,16 @@
-import { HiSearchCircle, HiTemplate, HiTerminal } from 'react-icons/hi'
+import {
+	HiSearchCircle,
+	HiSparkles,
+	HiTemplate,
+	HiTerminal,
+} from 'react-icons/hi'
 import { Typography } from '../../common/Typography/Typography'
 
 const icons = {
 	1: <HiTerminal className="text-[#6F6E77]" />,
 	2: <HiSearchCircle className="text-[#6F6E77]" />,
 	3: <HiTemplate className="text-[#6F6E77]" />,
+	4: <HiSparkles className="text-[#6F6E77]" />,
 }
 
 type IconKeys = keyof typeof icons
