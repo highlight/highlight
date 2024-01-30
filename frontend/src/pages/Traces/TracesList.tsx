@@ -18,7 +18,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
 import React, { Key, useMemo, useRef } from 'react'
 
-import { ActionMenu } from '@/components/CustomColumnActions'
+import { CustomColumnActions } from '@/components/CustomColumnActions'
 import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
@@ -236,7 +236,7 @@ export const TracesList: React.FC<Props> = ({
 							>
 								{header.component}
 								{header.showActions && (
-									<ActionMenu
+									<CustomColumnActions
 										columnId={header.id}
 										selectedColumns={selectedColumns}
 										setSelectedColumns={setSelectedColumns}

@@ -37,7 +37,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
 import React, { Key, useEffect, useMemo, useRef, useState } from 'react'
 
-import { ActionMenu } from '@/components/CustomColumnActions'
+import { CustomColumnActions } from '@/components/CustomColumnActions'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
 import { useGetLogsKeysLazyQuery } from '@/graph/generated/hooks'
@@ -323,7 +323,7 @@ const LogsTableInner = ({
 							>
 								{header.component}
 								{header.showActions && (
-									<ActionMenu
+									<CustomColumnActions
 										columnId={header.id}
 										selectedColumns={selectedColumns}
 										setSelectedColumns={setSelectedColumns!}

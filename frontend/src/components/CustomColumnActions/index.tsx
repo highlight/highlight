@@ -3,10 +3,12 @@ import {
 	IconOutlineDotsHorizontal,
 	IconSolidArrowLeft,
 	IconSolidArrowRight,
+	IconSolidClipboardCopy,
 	IconSolidXCircle,
 	Menu,
 	Table,
 } from '@highlight-run/ui/components'
+import { copyToClipboard } from '@util/string'
 import * as React from 'react'
 import { useMemo } from 'react'
 
@@ -20,7 +22,7 @@ type Props = {
 	trackingId: string
 }
 
-export const ActionMenu: React.FC<Props> = ({
+export const CustomColumnActions: React.FC<Props> = ({
 	selectedColumns,
 	setSelectedColumns,
 	columnId,
@@ -56,6 +58,13 @@ export const ActionMenu: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
+	const copyColumn = () => {
+		trackEvent('copy')
+		copyToClipboard(columnId, {
+			onCopyText: 'Copied to clipboard',
+		})
+	}
+
 	const disableLeft = columnIndex === 0
 	const disableRight = columnIndex === selectedColumns.length - 1
 
@@ -86,6 +95,12 @@ export const ActionMenu: React.FC<Props> = ({
 					<Box display="flex" alignItems="center" gap="4">
 						<IconSolidArrowRight size={16} />
 						Move to right column
+					</Box>
+				</Menu.Item>
+				<Menu.Item disabled={disableRight} onClick={copyColumn}>
+					<Box display="flex" alignItems="center" gap="4">
+						<IconSolidClipboardCopy size={16} />
+						Copy search key
 					</Box>
 				</Menu.Item>
 				<Menu.Divider />
