@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { BiChevronRight } from 'react-icons/bi'
 import { BsTwitter } from 'react-icons/bs'
@@ -8,11 +7,12 @@ import { Meta } from '../../components/common/Head/Meta'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 import DayOne from '../../components/Launch/Week4/DayOne'
+import DayTwo from '../../components/Launch/Week4/DayTwo'
 import HiddenDay from '../../components/Launch/Week4/HiddenDay'
 import preview from '../../public/images/launch/week-4/meta.png'
 
 const LaunchPage = () => {
-	const day = 1
+	const day = 2
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
@@ -31,7 +31,6 @@ const LaunchPage = () => {
 					}
 				`}
 			</style>
-			{/* TODO: Add new meta image */}
 			<Meta
 				title="Highlight.io Launch Week 4"
 				description="Discover error monitoring, logging, and session replay with highlight.io. Join us for Launch Week 4 and elevate your tech stack."
@@ -47,22 +46,12 @@ const LaunchPage = () => {
 							emphasis
 							className="px-2 pt-1 rounded-t-[6px] border-x-[1px] border-t-[1px] border-[#a4a4b3]"
 						>
-							January 28th - February 2rd 2024
+							January 29th - February 2rd 2024
 						</Typography>
 					</div>
 					<h2 className="text-[#1A1523] z-50 leading-none">
 						Launch Week 4
 					</h2>
-					<div className="flex justify-center">
-						<Image
-							src="/images/launch/week-4/launch-bg.webp"
-							alt=""
-							width={1198}
-							height={384}
-							className="absolute bottom-0 -z-50 mx-auto"
-						/>
-					</div>
-
 					<div className="flex justify-center mt-8 z-50">
 						<a
 							className="flex flex-shrink-0 items-center gap-1 bg-[#1A1523] text-white px-4 py-2 rounded-[6px] shadow-sm hover:shadow-none cursor-pointer"
@@ -127,7 +116,7 @@ const LaunchPage = () => {
 				</div>
 				<div className="flex flex-col items-center w-full max-w-[550px] md:max-w-[1200px] mx-auto px-8">
 					<DayOne />
-					<HiddenDay title="Day 2: January 30" />
+					<DayTwo />
 					<HiddenDay title="Day 3: January 31" />
 					<HiddenDay title="Day 4: February 1" />
 					<HiddenDay title="Day 5: February 2" />
