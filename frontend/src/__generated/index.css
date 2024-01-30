@@ -6546,6 +6546,12 @@ body {
   display: inline-block;
   padding: 0 4px;
 }
+.g2tqod1 {
+  border-bottom: none !important;
+}
+.g2tqod2 {
+  border-bottom: 1px solid var(--_1pyqka9k) !important;
+}
 .szxd8q0 .szxd8q0 {
   padding-left: 22px;
 }
