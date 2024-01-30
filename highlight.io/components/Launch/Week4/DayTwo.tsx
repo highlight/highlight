@@ -34,7 +34,7 @@ const DayTwo = () => {
 				<div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 mb-4 lg:mb-0">
 					<Link
 						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
-						href="/blog/lw4-d2-open-telemetry"
+						href="/blog/lw4-d2-query-builder"
 					>
 						<HiBookOpen />
 
