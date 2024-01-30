@@ -97,7 +97,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 						Move to right column
 					</Box>
 				</Menu.Item>
-				<Menu.Item disabled={disableRight} onClick={copyColumn}>
+				<Menu.Item onClick={copyColumn}>
 					<Box display="flex" alignItems="center" gap="4">
 						<IconSolidClipboardCopy size={16} />
 						Copy search key
