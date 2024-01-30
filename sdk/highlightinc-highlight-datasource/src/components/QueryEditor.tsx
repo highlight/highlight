@@ -139,6 +139,17 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
             loadOptions={(q) => loadBucketByOptions(table, q)}
           />
         </InlineField>
+        {bucketBy !== undefined && bucketBy !== 'None' && (
+          <InlineField label="Buckets" labelWidth={10}>
+            <AsyncSelect
+              key={table}
+              defaultOptions
+              value={{ name: bucketBy, label: bucketBy }}
+              onChange={onBucketByChange}
+              loadOptions={(q) => loadBucketByOptions(table, q)}
+            />
+          </InlineField>
+        )}
       </InlineFieldRow>
     </div>
   );
