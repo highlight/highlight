@@ -13853,7 +13853,7 @@ __metadata:
     lottie-react: "npm:^2.1.0"
     moment: "npm:2.29.4"
     npm-run-all: "npm:^4.1.5"
-    postcss: "npm:^8.4.16"
+    postcss: "npm:^8.4.33"
     postcss-custom-properties: "npm:^12.1.7"
     postcss-nesting: "npm:^11.2.2"
     postinstall-postinstall: "npm:^2.1.0"
@@ -41473,7 +41473,7 @@ __metadata:
     pino: "npm:^8.15.0"
     pino-http-send: "npm:^0.4.2"
     pino-pretty: "npm:^10.3.1"
-    postcss: "npm:^8.4.21"
+    postcss: "npm:^8.4.33"
     prettier: "npm:^2.8.4"
     prettier-plugin-organize-imports: "npm:^3.2.2"
     pretty-quick: "npm:^3.1.3"
@@ -53784,7 +53784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.2.14, postcss@npm:^8.4.23":
+"postcss@npm:^8.2.14, postcss@npm:^8.4.23, postcss@npm:^8.4.33":
   version: 8.4.33
   resolution: "postcss@npm:8.4.33"
   dependencies:
@@ -53803,17 +53803,6 @@ __metadata:
     picocolors: "npm:^1.0.0"
     source-map-js: "npm:^1.0.2"
   checksum: be297585a4e2642fa2c21ecaecebc2fa6a431f94209f5523f50fa77035db324d41487d97d8418def76119cafd705c9ec302337aba7d78c1edbee8f5207f11000
-  languageName: node
-  linkType: hard
-
-"postcss@npm:^8.4.16, postcss@npm:^8.4.4":
-  version: 8.4.16
-  resolution: "postcss@npm:8.4.16"
-  dependencies:
-    nanoid: "npm:^3.3.4"
-    picocolors: "npm:^1.0.0"
-    source-map-js: "npm:^1.0.2"
-  checksum: e05f3426bde19889b446fae0e4a70f6d8775f2d9905fb9e25f40ed1b0a26d000f7e92a9f2acacf55118bef376100e4e6b6432f42b3876824bc71fea8e0cd0182
   languageName: node
   linkType: hard
 
@@ -53847,6 +53836,17 @@ __metadata:
     picocolors: "npm:^1.0.0"
     source-map-js: "npm:^1.0.2"
   checksum: 57143e3c5ddaba9813ebd81de3e38e3ac198b0a1634e57752d29cd4936f1301eba38e43bda1302859679af047a6efc4366952d294c64358f8b90fbf49ba7d121
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.4":
+  version: 8.4.16
+  resolution: "postcss@npm:8.4.16"
+  dependencies:
+    nanoid: "npm:^3.3.4"
+    picocolors: "npm:^1.0.0"
+    source-map-js: "npm:^1.0.2"
+  checksum: e05f3426bde19889b446fae0e4a70f6d8775f2d9905fb9e25f40ed1b0a26d000f7e92a9f2acacf55118bef376100e4e6b6432f42b3876824bc71fea8e0cd0182
   languageName: node
   linkType: hard
 
