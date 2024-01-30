@@ -46,7 +46,7 @@ const LaunchPage = () => {
 							emphasis
 							className="px-2 pt-1 rounded-t-[6px] border-x-[1px] border-t-[1px] border-[#a4a4b3]"
 						>
-							January 28th - February 2rd 2024
+							January 29th - February 2rd 2024
 						</Typography>
 					</div>
 					<h2 className="text-[#1A1523] z-50 leading-none">
