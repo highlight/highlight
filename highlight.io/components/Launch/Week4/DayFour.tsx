@@ -91,23 +91,24 @@ const DayFour = () => {
 					)}
 				>
 					<Image
-						className="hidden md:flex object-fit h-[450px] absolute object-center"
+						className="hidden md:flex object-cover h-[450px] absolute object-left"
 						src="/images/launch/week-4/sdk.webp"
 						alt=""
 						height="450"
 						width="1150"
 					/>
 					<Image
-						className="flex md:hidden object-cover h-[350px] absolute bottom-0 object-center "
+						className="flex md:hidden object-cover h-[350px] absolute bottom-0 object-left"
 						src="/images/launch/week-4/sdk.webp"
 						alt=""
 						height="350"
 						width="1198"
 					/>
 					<CardOverlay
-						header="Introducing Tracing."
-						category="Tracing"
-						slot={4}
+						header="Your favorite SDKs now supported by Highlight.io."
+						category="SDKs"
+						slot={5}
+						halfWidth
 					/>
 				</div>
 			</div>
