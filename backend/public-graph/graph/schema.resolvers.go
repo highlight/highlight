@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -20,7 +21,6 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
-	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )

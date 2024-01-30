@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -11,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	Email "github.com/highlight-run/highlight/backend/email"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
-	"github.com/segmentio/encoding/json"
+
+	Email "github.com/highlight-run/highlight/backend/email"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 
 	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"

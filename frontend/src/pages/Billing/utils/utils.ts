@@ -58,12 +58,12 @@ export const tryCastDate = (date: Maybe<string> | undefined) => {
 }
 
 export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
-	[RetentionPeriod.ThirtyDays]: '30 days',
-	[RetentionPeriod.ThreeMonths]: '3 months',
-	[RetentionPeriod.SixMonths]: '6 months',
-	[RetentionPeriod.TwelveMonths]: '12 months',
-	[RetentionPeriod.TwoYears]: '2 years',
-	[RetentionPeriod.ThreeYears]: '3 years',
+	[RetentionPeriod.ThirtyDays]: '30 day retention',
+	[RetentionPeriod.ThreeMonths]: '3 month retention',
+	[RetentionPeriod.SixMonths]: '6 month retention',
+	[RetentionPeriod.TwelveMonths]: '12 month retention',
+	[RetentionPeriod.TwoYears]: '2 year retention',
+	[RetentionPeriod.ThreeYears]: '3 year retention',
 }
 
 export const getMeterAmounts = (

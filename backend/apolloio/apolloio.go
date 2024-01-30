@@ -1,13 +1,14 @@
 package apolloio
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/aws/smithy-go/ptr"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
+
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 var apiKey = os.Getenv("APOLLO_IO_API_KEY")

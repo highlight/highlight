@@ -20615,6 +20615,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@remix-run/router@npm:1.6.1":
+  version: 1.6.1
+  resolution: "@remix-run/router@npm:1.6.1"
+  checksum: 7005e258628548db26cb364a9de227fea94fd6347948bba7fb76aef70c8b28a120ff1229feb5fb2f2b2e90a8ea15be535b609591c307b8054828f440cfc9e203
+  languageName: node
+  linkType: hard
+
 "@remix-run/router@npm:1.7.2":
   version: 1.7.2
   resolution: "@remix-run/router@npm:1.7.2"
@@ -31606,10 +31613,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001219, caniuse-lite@npm:^1.0.30001366, caniuse-lite@npm:^1.0.30001370, caniuse-lite@npm:^1.0.30001373, caniuse-lite@npm:^1.0.30001400, caniuse-lite@npm:^1.0.30001406, caniuse-lite@npm:^1.0.30001449, caniuse-lite@npm:^1.0.30001464, caniuse-lite@npm:^1.0.30001503":
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001219, caniuse-lite@npm:^1.0.30001366, caniuse-lite@npm:^1.0.30001370, caniuse-lite@npm:^1.0.30001373, caniuse-lite@npm:^1.0.30001400, caniuse-lite@npm:^1.0.30001406":
   version: 1.0.30001538
   resolution: "caniuse-lite@npm:1.0.30001538"
   checksum: c37f3cc5f8f6a1beff714c641a437f9f2593fe319aec1848ccbbbba4a7cc875886fc07f903a490254bba7d294a8aaa2ee0fc87a71b8d61de35fafb7514a194ef
+  languageName: node
+  linkType: hard
+
+"caniuse-lite@npm:^1.0.30001449, caniuse-lite@npm:^1.0.30001464":
+  version: 1.0.30001472
+  resolution: "caniuse-lite@npm:1.0.30001472"
+  checksum: 7b230863721d9de08464eb98a7db1cd0a0e0bdd09058c8af3c822e516c04d390373db802cb12f4310fbde6713a109bb65b9422dcf8ea17eba0b4c5f558eb2b86
+  languageName: node
+  linkType: hard
+
+"caniuse-lite@npm:^1.0.30001503":
+  version: 1.0.30001515
+  resolution: "caniuse-lite@npm:1.0.30001515"
+  checksum: fad26250e2038dfc509d7bbc1db0d0b8abc43e41ce03f39438005a8d4fd15ff5a253144bc6b1079e659d2187d3fb609b6ea652a65ef0a954d0c8e40ddc1cc1d7
   languageName: node
   linkType: hard
 
@@ -41468,7 +41489,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     react-github-btn: "npm:^1.4.0"
     react-highlight-words: "npm:^0.20.0"
-    react-icons: "npm:^4.7.1"
+    react-icons: "npm:^4.11.0"
     react-is: "npm:^18.2.0"
     react-markdown: "npm:^8.0.4"
     react-stately: "npm:^3.19.0"
@@ -53807,7 +53828,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.19":
+"postcss@npm:^8.4.19, postcss@npm:^8.4.25":
   version: 8.4.25
   resolution: "postcss@npm:8.4.25"
   dependencies:
@@ -53815,6 +53836,17 @@ __metadata:
     picocolors: "npm:^1.0.0"
     source-map-js: "npm:^1.0.2"
   checksum: 08916d50035c36e56024b7d56ed5c2a6d59420fce39e1fda77fcbda308cea6d7c39246adb46ee0649d28020e47a73ff2630a3439991ee82c539a495e6f6997d9
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.26":
+  version: 8.4.27
+  resolution: "postcss@npm:8.4.27"
+  dependencies:
+    nanoid: "npm:^3.3.6"
+    picocolors: "npm:^1.0.0"
+    source-map-js: "npm:^1.0.2"
+  checksum: 57143e3c5ddaba9813ebd81de3e38e3ac198b0a1634e57752d29cd4936f1301eba38e43bda1302859679af047a6efc4366952d294c64358f8b90fbf49ba7d121
   languageName: node
   linkType: hard
 
@@ -56696,6 +56728,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-icons@npm:^4.11.0":
+  version: 4.11.0
+  resolution: "react-icons@npm:4.11.0"
+  peerDependencies:
+    react: "*"
+  checksum: 61f84c7a3f59120659f984828cac72b11c4baf9b78fb71261ab1ab5b2a9df4debd9fa5e9c30ccca23e4f0d9c0713bb5a339390073a8a01f4fe72c024fc526b5f
+  languageName: node
+  linkType: hard
+
 "react-icons@npm:^4.4.0":
   version: 4.8.0
   resolution: "react-icons@npm:4.8.0"
@@ -57097,7 +57138,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.16.0, react-router-dom@npm:^6.4.1":
+"react-router-dom@npm:^6.16.0":
   version: 6.16.0
   resolution: "react-router-dom@npm:6.16.0"
   dependencies:
@@ -57107,6 +57148,19 @@ __metadata:
     react: ">=16.8"
     react-dom: ">=16.8"
   checksum: 31dc3bcfd28ae08bb802347d0d637d8ac7e2db530b92e4c0763a19cee2e40a90d1621519ef304bd2add2bb8e6ef13e94970b2e901cc73159692e04a57fff9080
+  languageName: node
+  linkType: hard
+
+"react-router-dom@npm:^6.4.1":
+  version: 6.11.1
+  resolution: "react-router-dom@npm:6.11.1"
+  dependencies:
+    "@remix-run/router": "npm:1.6.1"
+    react-router: "npm:6.11.1"
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 72d71ac6ca4cada12ac1a7f49ac3769da4f42bf78d49debfdeb84d4a698fe03cde3d8835a66ef25973920e8809ff99cbf5349a94730b8808057f58628f0e491c
   languageName: node
   linkType: hard
 
@@ -57127,6 +57181,17 @@ __metadata:
   peerDependencies:
     react: ">=15"
   checksum: 4631eed91020c73950804c7c7454e74b2eb495f803c5ca60c8b5572ca72cc06e336f3b08d9ee3fa730128a52c4d9e16d1aa7e8b7f85560629117e16d99a01cef
+  languageName: node
+  linkType: hard
+
+"react-router@npm:6.11.1":
+  version: 6.11.1
+  resolution: "react-router@npm:6.11.1"
+  dependencies:
+    "@remix-run/router": "npm:1.6.1"
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 675ea4a0d7034226e0e328c42ce2294e8c4f63534e010810e60827a0305e031d83212c603ba6a8f4dfbe8c663e244ca32880a2b42e6bcab11a1fe480684757d1
   languageName: node
   linkType: hard
 
@@ -59155,6 +59220,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup@npm:^3.10.0":
+  version: 3.16.0
+  resolution: "rollup@npm:3.16.0"
+  dependencies:
+    fsevents: "npm:~2.3.2"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    rollup: dist/bin/rollup
+  checksum: 1d6c484467f882b5e9fa727148f35b2492d52554b1677b3bca25b665f767f18bced7921e995666fd7aabd56af3095704e11962b3fd637abb3da365939863f38c
+  languageName: node
+  linkType: hard
+
+"rollup@npm:^3.18.0":
+  version: 3.20.2
+  resolution: "rollup@npm:3.20.2"
+  dependencies:
+    fsevents: "npm:~2.3.2"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    rollup: dist/bin/rollup
+  checksum: 996b29d8063ef48b62a366cb9a0624701c927d6d71aefe6d2cd2f55b96aafde81a627585c662442ffc9bac6806150202475e43b4f049f02bcda77b180a6f71c9
+  languageName: node
+  linkType: hard
+
 "rollup@npm:^3.2.5":
   version: 3.10.0
   resolution: "rollup@npm:3.10.0"
@@ -59166,6 +59259,20 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: ce2dfda3355125a9022ce519cd7bf2d6f93fe22cdd28802e6c5e5019bc5f39a3b5f606ef5f16a56abd4d8bdb9e12dad0f2efddad0a2280be25c23f6b8ea3f697
+  languageName: node
+  linkType: hard
+
+"rollup@npm:^3.25.2":
+  version: 3.26.2
+  resolution: "rollup@npm:3.26.2"
+  dependencies:
+    fsevents: "npm:~2.3.2"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    rollup: dist/bin/rollup
+  checksum: 845eb251924d8bbeb88bc6e6b30207a1a9c6f1a28a66793f8d55b6674178542273325d7961148e5ffe37018f15a5defa4a62a0166aa700f75425eb4e600b9232
   languageName: node
   linkType: hard
 
@@ -65831,7 +65938,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.1, vite@npm:^4.1.4, vite@npm:^4.3.9, vite@npm:^4.4.0":
+"vite@npm:^3.0.0 || ^4.0.0":
   version: 4.5.1
   resolution: "vite@npm:4.5.1"
   dependencies:
@@ -65871,7 +65978,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.1.8, vite@npm:^3.2.6":
+"vite@npm:^3.1.8":
   version: 3.2.7
   resolution: "vite@npm:3.2.7"
   dependencies:
@@ -65906,6 +66013,200 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 932b700db206708e2d8161db32c36a4754a5d686cbbefcdf102933a480f03dc6fe3c44f058cc1c29ca5a0b601494fe33c55e33a16b80571e6fc913bd97b6ce1b
+  languageName: node
+  linkType: hard
+
+"vite@npm:^3.2.6":
+  version: 3.2.6
+  resolution: "vite@npm:3.2.6"
+  dependencies:
+    esbuild: "npm:^0.15.9"
+    fsevents: "npm:~2.3.2"
+    postcss: "npm:^8.4.18"
+    resolve: "npm:^1.22.1"
+    rollup: "npm:^2.79.1"
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 643528babe82b8bad6104042177ab324f1db512140fdbb4826a73a62249d4c25fa3ef71ec9c86632f21a421ad98667d5092cbedba88fe22ccd51ae0483936813
+  languageName: node
+  linkType: hard
+
+"vite@npm:^4.1.1":
+  version: 4.1.2
+  resolution: "vite@npm:4.1.2"
+  dependencies:
+    esbuild: "npm:^0.16.14"
+    fsevents: "npm:~2.3.2"
+    postcss: "npm:^8.4.21"
+    resolve: "npm:^1.22.1"
+    rollup: "npm:^3.10.0"
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 63e63bfd6a281934aaca4aa26b0e5f7568d35545af6334473ee2fc85b8b25f5cb6460bf7d5ded36584b297a69116406a12a516a282e0a867048090a413fa1752
+  languageName: node
+  linkType: hard
+
+"vite@npm:^4.1.4":
+  version: 4.2.1
+  resolution: "vite@npm:4.2.1"
+  dependencies:
+    esbuild: "npm:^0.17.5"
+    fsevents: "npm:~2.3.2"
+    postcss: "npm:^8.4.21"
+    resolve: "npm:^1.22.1"
+    rollup: "npm:^3.18.0"
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: e12e165eba3c3aa9318948cf0a9daf0090d64ace3b282011abffb2ff3cd4aff1a879de27d0d8e92a5cac4793eef7af4a31de4c7edadaaeb92f5e276497f21b1a
+  languageName: node
+  linkType: hard
+
+"vite@npm:^4.3.9":
+  version: 4.4.6
+  resolution: "vite@npm:4.4.6"
+  dependencies:
+    esbuild: "npm:^0.18.10"
+    fsevents: "npm:~2.3.2"
+    postcss: "npm:^8.4.26"
+    rollup: "npm:^3.25.2"
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    lightningcss: ^1.21.0
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: b9378583f7dd98bcc70893585fe86857eb76298e6583c0e8c4572b830547a81f59ddb73b7da143d83f29e7f4475570c1b850c49ae37e209de96ea587277e50ff
+  languageName: node
+  linkType: hard
+
+"vite@npm:^4.4.0":
+  version: 4.4.3
+  resolution: "vite@npm:4.4.3"
+  dependencies:
+    esbuild: "npm:^0.18.10"
+    fsevents: "npm:~2.3.2"
+    postcss: "npm:^8.4.25"
+    rollup: "npm:^3.25.2"
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    lightningcss: ^1.21.0
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 56b87e077acfc76c835f40666994177d1520cb480ab27634f646689e22ec06ff0574ba2b7f86731430f9abea01e5eb0d9c071bc62dc595a30d4ef749b914a038
   languageName: node
   linkType: hard
 

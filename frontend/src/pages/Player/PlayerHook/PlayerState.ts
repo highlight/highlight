@@ -51,6 +51,7 @@ import analytics from '@util/analytics'
 import log from '@util/log'
 import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
+import { throttle } from 'lodash'
 import moment from 'moment/moment'
 import { MutableRefObject, SetStateAction } from 'react'
 
@@ -589,6 +590,10 @@ const initReplayer = (
 		liveMode: s.isLiveMode,
 		useVirtualDom: false,
 		pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(s.project_id),
+		logger: {
+			log: throttle(console.log, 100),
+			warn: throttle(console.warn, 100),
+		},
 	})
 
 	s.browserExtensionScriptURLs = getBrowserExtensionScriptURLs(events)
