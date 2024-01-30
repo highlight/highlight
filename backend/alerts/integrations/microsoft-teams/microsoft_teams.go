@@ -31,6 +31,16 @@ type TeamResponse struct {
 	Description string `json:"description"`
 }
 
+type TeamsApp struct {
+	Id         string `json:"id"`
+	ExternalId string `json:"externalId"`
+}
+
+type TeamsAppResponse struct {
+	ID       string   `json:"id"`
+	TeamsApp TeamsApp `json:"teamsApp"`
+}
+
 type ChannelResponse struct {
 	OdataId             string `json:"@odata.id"`
 	ID                  string `json:"id"`
@@ -55,6 +65,11 @@ func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
 		return nil, errors.Errorf("MicrosoftTeamsTenantId is nil: workspace %d", workspace.ID)
 	}
 
+	clientId, ok := os.LookupEnv("MICROSOFT_TEAMS_BOT_ID")
+	if !ok || clientId == "" {
+		return nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
+	}
+
 	ctx := context.Background()
 	accessToken, err := GetAccessToken(ctx, *workspace.MicrosoftTeamsTenantId)
 	if err != nil {
@@ -67,7 +82,34 @@ func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
 		return nil, err
 	}
 
-	return response.Value, nil
+	// Filter all teams for teams where the integration is installed
+	found := make([]bool, len(response.Value))
+	var eg errgroup.Group
+	for idx, team := range response.Value {
+		idx := idx
+		team := team
+		eg.Go(func() error {
+			url := fmt.Sprintf("%s/teams/%s/installedApps?$expand=teamsApp", MicrosoftGraphUrl, team.ID)
+			response, _ := doGetRequest[*GraphResponse[TeamsAppResponse]](accessToken.AccessToken, url)
+			if err != nil {
+				return err
+			}
+			for _, value := range response.Value {
+				if value.TeamsApp.Id == clientId || value.TeamsApp.ExternalId == clientId {
+					found[idx] = true
+				}
+			}
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return lo.Filter(response.Value, func(_ TeamResponse, idx int) bool {
+		return found[idx]
+	}), nil
 }
 
 func GetChannels(tenantID string, teamResponse TeamResponse) ([]*model.MicrosoftTeamsChannel, error) {
