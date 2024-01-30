@@ -7,6 +7,7 @@ import Footer from '../../components/common/Footer/Footer'
 import { Meta } from '../../components/common/Head/Meta'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
+import DayFour from '../../components/Launch/Week4/DayFour'
 import DayOne from '../../components/Launch/Week4/DayOne'
 import DayThree from '../../components/Launch/Week4/DayThree'
 import DayTwo from '../../components/Launch/Week4/DayTwo'
@@ -120,7 +121,7 @@ const LaunchPage = () => {
 					<DayOne />
 					<DayTwo />
 					<DayThree />
-					<HiddenDay title="Day 4: February 1" />
+					<DayFour />
 					<HiddenDay title="Day 5: February 2" />
 				</div>
 			</main>
