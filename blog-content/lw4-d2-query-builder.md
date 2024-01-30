@@ -17,7 +17,7 @@ metaTitle: "Day 2: Supercharging the Highlight Query Builder"
 
 ## Parsing Biggish Data
 
-It's not Bit Data™ by any means, but Highlight generates a figurative avalanche of observability data every single day.
+It's not Big Data™ by any means, but Highlight generates a figurative avalanche of observability data every single day.
 
 We recently added Traces to our portfolio, multiplying our database rows yet again.
 
