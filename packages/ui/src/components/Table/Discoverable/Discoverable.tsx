@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import * as styles from './styles.css'
 
 export type Props = {
-	trigger?: 'row' | 'cell'
+	trigger?: 'row' | 'cell' | 'header'
 	children: React.ReactNode
 }
 
@@ -19,6 +19,7 @@ export const Discoverable: React.FC<Props> = ({
 			cssClass={clsx(styles.discoverable, {
 				[styles.rowTrigger]: trigger === 'row',
 				[styles.cellTrigger]: trigger === 'cell',
+				[styles.headerTrigger]: trigger === 'header',
 			})}
 		>
 			{children}

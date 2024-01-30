@@ -35,7 +35,7 @@ export type LogCustomColumn = CustomColumn<LogColumnType>
 type TraceColumnType = 'string' | 'datetime' | 'session' | 'duration'
 export type TraceCustomColumn = CustomColumn<TraceColumnType>
 
-type ValidCustomColumn = CustomColumn<any>
+export type ValidCustomColumn = CustomColumn<any>
 
 type Props = {
 	attributePrefix: string

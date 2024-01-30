@@ -2,6 +2,7 @@ import { style } from '@vanilla-extract/css'
 
 import { cell } from '../Cell/styles.css'
 import { row } from '../Row/styles.css'
+import { header } from '../Header/styles.css'
 
 export const discoverable = style({
 	display: 'flex',
@@ -19,6 +20,14 @@ export const rowTrigger = style({
 export const cellTrigger = style({
 	selectors: {
 		[`${cell}:hover &`]: {
+			visibility: 'visible',
+		},
+	},
+})
+
+export const headerTrigger = style({
+	selectors: {
+		[`${header}:hover &`]: {
 			visibility: 'visible',
 		},
 	},

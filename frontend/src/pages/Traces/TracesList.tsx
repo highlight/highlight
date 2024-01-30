@@ -18,6 +18,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
 import React, { Key, useMemo, useRef } from 'react'
 
+import { ActionMenu } from '@/components/CustomColumnActions'
 import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
@@ -40,6 +41,13 @@ type Props = {
 	resetMoreTraces?: () => void
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	loadingAfter: boolean
+}
+
+type ColumnHeader = {
+	id: string
+	component: React.ReactNode
+	showActions?: boolean
+	noPadding?: boolean
 }
 
 const LOADING_AFTER_HEIGHT = 28
@@ -70,7 +78,7 @@ export const TracesList: React.FC<Props> = ({
 
 	const columnData = useMemo(() => {
 		const gridColumns: string[] = []
-		const columnHeaders = []
+		const columnHeaders: ColumnHeader[] = []
 		const columns: ColumnDef<TraceEdge, any>[] = []
 
 		selectedColumns.forEach((column, index) => {
@@ -80,6 +88,7 @@ export const TracesList: React.FC<Props> = ({
 			columnHeaders.push({
 				id: column.id,
 				component: column.label,
+				showActions: true,
 			})
 
 			// @ts-ignore
@@ -220,7 +229,21 @@ export const TracesList: React.FC<Props> = ({
 							key={header.id}
 							noPadding={header.noPadding}
 						>
-							{header.component}
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="space-between"
+							>
+								{header.component}
+								{header.showActions && (
+									<ActionMenu
+										columnId={header.id}
+										selectedColumns={selectedColumns}
+										setSelectedColumns={setSelectedColumns}
+										trackingId="TracesTableColumn"
+									/>
+								)}
+							</Box>
 						</Table.Header>
 					))}
 				</Table.Row>
@@ -265,6 +288,9 @@ export const TracesList: React.FC<Props> = ({
 							virtualRowKey={virtualRow.key}
 							isSelected={isSelected}
 							gridColumns={columnData.gridColumns}
+							selectedColumnsIds={selectedColumns.map(
+								(c) => c.id,
+							)}
 						/>
 					)
 				})}
@@ -291,6 +317,7 @@ type TracesTableRowProps = {
 	virtualRowKey: Key
 	isSelected: boolean
 	gridColumns: string[]
+	selectedColumnsIds: string[]
 }
 
 const TracesTableRow = React.memo<TracesTableRowProps>(
@@ -319,7 +346,8 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 		return (
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
 			prevProps.isSelected === nextProps.isSelected &&
-			isEqual(prevProps.gridColumns, nextProps.gridColumns)
+			isEqual(prevProps.gridColumns, nextProps.gridColumns) &&
+			isEqual(prevProps.selectedColumnsIds, nextProps.selectedColumnsIds)
 		)
 	},
 )
