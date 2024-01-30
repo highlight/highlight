@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -53,7 +54,6 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
-	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v76"
 	"go.opentelemetry.io/otel/attribute"
@@ -1413,6 +1413,18 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 	columns := []interface{}{"errors_retention_period", "retention_period"}
 	if settings.EnableBillingLimits {
 		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents", "traces_max_cents")
+	} else {
+		// allow disabling products by setting a limit of 0, even when billing limits are disabled
+		for column, value := range map[string]*int{
+			"sessions_max_cents": sessionsLimitCents,
+			"errors_max_cents":   errorsLimitCents,
+			"logs_max_cents":     logsLimitCents,
+			"traces_max_cents":   tracesLimitCents,
+		} {
+			if pointy.IntValue(value, 0) == 0 {
+				columns = append(columns, column)
+			}
+		}
 	}
 	if err := r.DB.WithContext(ctx).Model(&workspace).
 		Select(columns[0], columns[1:]...).

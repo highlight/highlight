@@ -28,13 +28,13 @@ const DayTwo = () => {
 			<div className="w-full h-6 border-x-[1px] border-[#C8C7CB] text-black mx-auto max-w-[550px] md:max-w-[1200px]" />
 			<div className="flex flex-col gap-2 lg:flex-row justify-between items-center border-x-[1px] border-b-[1px] border-[#C8C7CB] lg:h-[58px] px-4">
 				<Typography className="text-[#6F6E77]" type="copy3" emphasis>
-					Day 2: January 30th
+					Day 2: January 30
 				</Typography>
 
 				<div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 mb-4 lg:mb-0">
 					<Link
 						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
-						href="/blog/lw4-d2-open-telemetry"
+						href="/blog/lw4-d2-query-builder"
 					>
 						<HiBookOpen />
 

@@ -2,6 +2,7 @@ package front
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	e "github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
 	log "github.com/sirupsen/logrus"
 )
 

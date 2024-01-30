@@ -256,47 +256,46 @@ const Navbar = ({
 								</div>
 							</div>
 						)}
-						{!isDocsPage ||
-							(light && (
-								<div
-									className={classNames(
-										styles.navContainer,
-										styles.header,
-										styles.headerCenter,
-									)}
+						{!isDocsPage && !light && (
+							<div
+								className={classNames(
+									styles.navContainer,
+									styles.header,
+									styles.headerCenter,
+								)}
+							>
+								<FeatureDropdown
+									isOpen={scrolled && !fixed}
+									light={light}
+								/>
+								<Link
+									href="/integrations"
+									className={classNames({
+										[styles.headerButtonLight]: light,
+										[styles.headerButton]: !light,
+									})}
 								>
-									<FeatureDropdown
-										isOpen={scrolled && !fixed}
-										light={light}
-									/>
-									<Link
-										href="/integrations"
-										className={classNames({
-											[styles.headerButtonLight]: light,
-											[styles.headerButton]: !light,
-										})}
-									>
-										<Typography type="copy2">
-											Integrations
-										</Typography>
-									</Link>
-									<Link
-										href="/pricing"
-										className={classNames({
-											[styles.headerButtonLight]: light,
-											[styles.headerButton]: !light,
-										})}
-									>
-										<Typography type="copy2">
-											Pricing
-										</Typography>
-									</Link>
-									<ResourceDropdown
-										isOpen={scrolled && !fixed}
-										light={light}
-									/>
-								</div>
-							))}
+									<Typography type="copy2">
+										Integrations
+									</Typography>
+								</Link>
+								<Link
+									href="/pricing"
+									className={classNames({
+										[styles.headerButtonLight]: light,
+										[styles.headerButton]: !light,
+									})}
+								>
+									<Typography type="copy2">
+										Pricing
+									</Typography>
+								</Link>
+								<ResourceDropdown
+									isOpen={scrolled && !fixed}
+									light={light}
+								/>
+							</div>
+						)}
 						<div
 							className={classNames(
 								styles.navContainer,

@@ -29,11 +29,13 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import React, { Key, useEffect, useRef, useState } from 'react'
 
+import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
 import { LogEdge } from '@/graph/generated/schemas'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import { LogDetails, LogValue } from './LogDetails'
+import * as styles from './LogsTable.css'
 
 type Props = {
 	loading: boolean
@@ -114,7 +116,7 @@ type LogsTableInnerProps = {
 
 const LOADING_AFTER_HEIGHT = 28
 
-const GRID_COLUMNS = ['175px', '75px', '1fr']
+const GRID_COLUMNS = ['32px', '175px', '75px', '1fr']
 
 const LogsTableInner = ({
 	logEdges,
@@ -137,22 +139,22 @@ const LogsTableInner = ({
 	const columnHelper = createColumnHelper<LogEdge>()
 
 	const columns = [
-		columnHelper.accessor('node.timestamp', {
-			cell: ({ row, getValue }) => (
-				<Box
-					flexShrink={0}
-					flexDirection="row"
-					display="flex"
-					alignItems="center"
-					gap="6"
-				>
-					<Table.Discoverable trigger="row">
+		columnHelper.accessor('cursor', {
+			cell: ({ row }) => {
+				return (
+					<Box flexShrink={0} display="flex">
 						{row.getIsExpanded() ? (
 							<IconExpanded />
 						) : (
 							<IconCollapsed />
 						)}
-					</Table.Discoverable>
+					</Box>
+				)
+			},
+		}),
+		columnHelper.accessor('node.timestamp', {
+			cell: ({ getValue }) => (
+				<Box pt="2">
 					<LogTimestamp timestamp={getValue()} />
 				</Box>
 			),
@@ -166,23 +168,7 @@ const LogsTableInner = ({
 		}),
 		columnHelper.accessor('node.message', {
 			cell: ({ row, getValue }) => {
-				const log = row.original.node
 				const rowExpanded = row.getIsExpanded()
-				const matchedAttributes = findMatchingLogAttributes(
-					queryParts,
-					{
-						...log.logAttributes,
-						environment: log.environment,
-						level: log.level,
-						message: log.message,
-						secure_session_id: log.secureSessionID,
-						service_name: log.serviceName,
-						service_version: log.serviceVersion,
-						source: log.source,
-						span_id: log.spanID,
-						trace_id: log.traceID,
-					},
-				)
 
 				return (
 					<Stack gap="2" pt="2">
@@ -190,30 +176,6 @@ const LogsTableInner = ({
 							queryParts={queryParts}
 							message={getValue()}
 							expanded={rowExpanded}
-						/>
-						{!rowExpanded &&
-							Object.entries(matchedAttributes).length > 0 && (
-								<Box mt="10" ml="20">
-									{Object.entries(matchedAttributes).map(
-										([key, { match, value }]) => {
-											return (
-												<LogValue
-													key={key}
-													label={key}
-													value={value}
-													queryKey={key}
-													queryMatch={match}
-													queryParts={queryParts}
-												/>
-											)
-										},
-									)}
-								</Box>
-							)}
-						<LogDetails
-							matchedAttributes={matchedAttributes}
-							row={row}
-							queryParts={queryParts}
 						/>
 					</Stack>
 				)
@@ -297,6 +259,7 @@ const LogsTableInner = ({
 		<Table height="full" noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={GRID_COLUMNS}>
+					<Table.Header />
 					<Table.Header>Timestamp</Table.Header>
 					<Table.Header>Level</Table.Header>
 					<Table.Header>Body</Table.Header>
@@ -333,6 +296,7 @@ const LogsTableInner = ({
 							rowVirtualizer={rowVirtualizer}
 							expanded={row.getIsExpanded()}
 							virtualRowKey={virtualRow.key}
+							queryParts={queryParts}
 						/>
 					)
 				})}
@@ -365,32 +329,90 @@ type LogsTableRowProps = {
 	rowVirtualizer: any
 	expanded: boolean
 	virtualRowKey: Key
+	queryParts: SearchExpression[]
 }
 
 const LogsTableRow = React.memo<LogsTableRowProps>(
-	({ row, rowVirtualizer, expanded, virtualRowKey }) => {
-		return (
-			<Table.Row
-				data-index={virtualRowKey}
-				gridColumns={GRID_COLUMNS}
-				onClick={row.getToggleExpandedHandler()}
-				forwardRef={rowVirtualizer.measureElement}
-				selected={expanded}
-			>
-				{row.getVisibleCells().map((cell: any) => {
-					return (
-						<Table.Cell
-							key={cell.column.id}
-							alignItems="flex-start"
-						>
-							{flexRender(
-								cell.column.columnDef.cell,
-								cell.getContext(),
+	({ row, rowVirtualizer, expanded, virtualRowKey, queryParts }) => {
+		const attributesRow = (row: any) => {
+			const log = row.original.node
+			const rowExpanded = row.getIsExpanded()
+
+			const matchedAttributes = findMatchingLogAttributes(queryParts, {
+				...log.logAttributes,
+				environment: log.environment,
+				level: log.level,
+				message: log.message,
+				secure_session_id: log.secureSessionID,
+				service_name: log.serviceName,
+				service_version: log.serviceVersion,
+				source: log.source,
+				span_id: log.spanID,
+				trace_id: log.traceID,
+			})
+			const hasAttributes = Object.entries(matchedAttributes).length > 0
+
+			return (
+				<Table.Row selected={expanded} className={styles.attributesRow}>
+					{(rowExpanded || hasAttributes) && (
+						<Table.Cell py="4" pl="32">
+							{!rowExpanded && (
+								<Box>
+									{Object.entries(matchedAttributes).map(
+										([key, { match, value }]) => {
+											return (
+												<LogValue
+													key={key}
+													label={key}
+													value={value}
+													queryKey={key}
+													queryMatch={match}
+													queryParts={queryParts}
+												/>
+											)
+										},
+									)}
+								</Box>
 							)}
+							<LogDetails
+								matchedAttributes={matchedAttributes}
+								row={row}
+								queryParts={queryParts}
+							/>
 						</Table.Cell>
-					)
-				})}
-			</Table.Row>
+					)}
+				</Table.Row>
+			)
+		}
+
+		return (
+			<div
+				key={virtualRowKey}
+				data-index={virtualRowKey}
+				ref={rowVirtualizer.measureElement}
+			>
+				<Table.Row
+					gridColumns={GRID_COLUMNS}
+					onClick={row.getToggleExpandedHandler()}
+					selected={expanded}
+					className={styles.dataRow}
+				>
+					{row.getVisibleCells().map((cell: any) => {
+						return (
+							<Table.Cell
+								key={cell.column.id}
+								alignItems="flex-start"
+							>
+								{flexRender(
+									cell.column.columnDef.cell,
+									cell.getContext(),
+								)}
+							</Table.Cell>
+						)
+					})}
+				</Table.Row>
+				{attributesRow(row)}
+			</div>
 		)
 	},
 	(prevProps, nextProps) => {

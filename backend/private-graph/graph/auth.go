@@ -1,19 +1,20 @@
 package graph
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
 	"time"
 
 	"firebase.google.com/go/auth"
-	"github.com/segmentio/encoding/json"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 type LoginCredentials struct {

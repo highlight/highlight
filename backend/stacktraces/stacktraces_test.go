@@ -2,10 +2,10 @@ package stacktraces
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
-	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"regexp"
@@ -11,6 +12,9 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -18,9 +22,6 @@ import (
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	e "github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
-	log "github.com/sirupsen/logrus"
 )
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
