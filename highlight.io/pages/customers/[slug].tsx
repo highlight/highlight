@@ -159,7 +159,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		id: data.customer.id,
 	})
 
-	console.log(data.customer)
 	return {
 		props: {
 			customer: data.customer,
