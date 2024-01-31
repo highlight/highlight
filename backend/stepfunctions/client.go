@@ -2,17 +2,18 @@ package stepfunctions
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/google/uuid"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
 )
 
 var (

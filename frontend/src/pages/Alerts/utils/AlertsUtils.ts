@@ -1,6 +1,7 @@
 import { GetAlertsPagePayloadQuery } from '@/graph/generated/operations'
 import {
 	DiscordChannelInput,
+	MicrosoftTeamsChannelInput,
 	SanitizedSlackChannelInput,
 } from '@/graph/generated/schemas'
 import {
@@ -45,6 +46,7 @@ export interface AlertForm {
 	excludedEnvironments: string[]
 	slackChannels: SanitizedSlackChannelInput[]
 	discordChannels: DiscordChannelInput[]
+	microsoftTeamsChannels: MicrosoftTeamsChannelInput[]
 	emails: string[]
 	webhookDestinations: string[]
 	loaded: boolean

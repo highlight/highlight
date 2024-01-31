@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -19,7 +20,6 @@ import (
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/segmentio/encoding/json"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"

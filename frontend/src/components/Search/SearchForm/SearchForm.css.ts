@@ -153,9 +153,21 @@ export const comboboxPopover = style({
 	zIndex: 10,
 })
 
+export const comboboxResults = style([
+	styledVerticalScrollbar,
+	{
+		overflowY: 'scroll',
+	},
+])
+
 export const comboboxItem = style({
 	cursor: 'pointer',
-	padding: '12px 10px',
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'space-between',
+	flexDirection: 'row',
+	height: 30,
+	padding: '0 10px',
 	selectors: {
 		'&:hover': {
 			backgroundColor: vars.theme.interactive.fill.secondary.hover,
@@ -168,10 +180,8 @@ export const comboboxItem = style({
 
 export const comboboxGroup = style([
 	sprinkles({
-		overflowY: 'scroll',
-		overflowX: 'hidden',
+		py: '4',
 	}),
-	styledVerticalScrollbar,
 	{
 		selectors: {
 			'& + &': {

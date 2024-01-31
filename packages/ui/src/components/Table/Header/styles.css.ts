@@ -3,8 +3,10 @@ import { vars } from '../../../css/vars'
 import { row } from '../../../components/Table/Row/styles.css'
 
 export const header = style({
+	alignItems: 'center',
 	borderRight: '1px solid transparent',
 	color: vars.theme.static.content.weak,
+	display: 'grid',
 	lineHeight: '16px',
 	padding: '10px 8px',
 	selectors: {
@@ -16,4 +18,8 @@ export const header = style({
 			borderRight: `1px solid ${vars.theme.static.divider.weak}`,
 		},
 	},
+})
+
+export const noPadding = style({
+	padding: 0,
 })

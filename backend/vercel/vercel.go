@@ -2,6 +2,7 @@ package vercel
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,15 +13,16 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+
 	model2 "github.com/highlight-run/highlight/backend/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-	"github.com/samber/lo"
-	"github.com/segmentio/encoding/json"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/pkg/errors"
 
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/pkg/errors"
 )
 
 const (

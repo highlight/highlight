@@ -1106,15 +1106,19 @@ func TestLogsKeys(t *testing.T) {
 	expected := []*modelInputs.QueryKey{
 		{
 			Name: "workspace_id", // workspace_id has more hits so it should be ranked higher
+			Type: "Numeric",
 		},
 		{
 			Name: "service_name",
+			Type: "String",
 		},
 		{
 			Name: "source",
+			Type: "String",
 		},
 		{
 			Name: "user_id",
+			Type: "Numeric",
 		},
 		{
 			Name: "secure_session_id",

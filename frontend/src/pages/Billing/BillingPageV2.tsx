@@ -117,7 +117,7 @@ const UsageCard = ({
 
 	return (
 		<Box px="12" display="flex" gap="12" flexDirection="column">
-			<Box display="flex" gap="4" flexDirection="column">
+			<Box display="flex" gap="8" flexDirection="column">
 				<Box
 					display="flex"
 					justifyContent="space-between"
@@ -149,37 +149,28 @@ const UsageCard = ({
 						size="medium"
 						shape="basic"
 						kind="secondary"
-						label={`Retention: ${RETENTION_PERIOD_LABELS[retentionPeriod]}`}
-						iconEnd={
-							<Tooltip
-								trigger={
-									<IconSolidInformationCircle size={12} />
-								}
-							>
-								{productType} recorded before this date will not
-								be accessible.
-							</Tooltip>
-						}
-					></Badge>
+						label={RETENTION_PERIOD_LABELS[retentionPeriod]}
+					/>
 					{enableBillingLimits ? (
-						<Badge
-							size="medium"
-							shape="basic"
-							kind="secondary"
-							label={`Billing Limit: ${
-								limitFormatted ?? 'Unlimited'
-							}`}
-							iconEnd={
-								<Tooltip
-									trigger={
+						<Tooltip
+							delayed
+							trigger={
+								<Badge
+									size="medium"
+									shape="basic"
+									kind="secondary"
+									label={`Billing Limit: ${
+										limitFormatted ?? 'Unlimited'
+									}`}
+									iconEnd={
 										<IconSolidInformationCircle size={12} />
 									}
-								>
-									{productType} will not be recorded once this
-									billing limit is reached.
-								</Tooltip>
+								></Badge>
 							}
-						></Badge>
+						>
+							{productType} will not be recorded once this billing
+							limit is reached.
+						</Tooltip>
 					) : null}
 					{billingLimitCents === 0 ? (
 						<Tag
@@ -223,7 +214,7 @@ const UsageCard = ({
 							</Text>
 						)}
 						{isOverage && (
-							<Tooltip trigger={<IconSolidExclamation />}>
+							<Tooltip delayed trigger={<IconSolidExclamation />}>
 								{productType} have exceeded your billing limit
 								and are not being recorded.
 							</Tooltip>
@@ -676,6 +667,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 								>
 									{hasExtras && (
 										<Tooltip
+											delayed
 											trigger={
 												<IconSolidInformationCircle
 													size={12}

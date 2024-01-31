@@ -63,6 +63,10 @@ export const DeleteErrorSegmentModal: React.FC<
 			})
 	}
 
+	if (!showModal) {
+		return null
+	}
+
 	return (
 		<DeleteSegmentModal
 			context="Error"
@@ -70,7 +74,6 @@ export const DeleteErrorSegmentModal: React.FC<
 			loading={loading}
 			onSubmit={onSubmit}
 			segmentToDelete={segmentToDelete}
-			showModal={showModal}
 		/>
 	)
 }

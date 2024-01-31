@@ -20,6 +20,8 @@ import {
 	monitoringscreenshotKey,
 	sessionReplayHeroKey,
 	sessionscreenshotKey,
+	tracesHeroKey,
+	tracesscreenshotKey,
 } from '../components/Features/features'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
@@ -32,6 +34,8 @@ import sessionReplayHero from '../public/images/features/sessionReplayHero.png'
 import loggingscreenshot from '../public/images/loggingscreenshot.png'
 import monitoringscreenshot from '../public/images/monitoringscreenshot.png'
 import sessionscreenshot from '../public/images/sessionscreenshot.png'
+import tracingHero from '../public/images/traces.png'
+import tracingscreenshot from '../public/images/tracesmobile.svg'
 
 import { FaPlay } from 'react-icons/fa'
 import {
@@ -43,6 +47,8 @@ import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 const IMAGE_MAP = {
 	[errorMonitoringHeroKey]: errorMonitoringHero,
 	[loggingHeroKey]: loggingHero,
+	[tracesHeroKey]: tracingHero,
+	[tracesscreenshotKey]: tracingscreenshot,
 	[sessionReplayHeroKey]: sessionReplayHero,
 	[loggingscreenshotKey]: loggingscreenshot,
 	[monitoringscreenshotKey]: monitoringscreenshot,
@@ -65,6 +71,12 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 		<>
 			Search & set alerts{' '}
 			<span className="text-color-selected-light">across your logs.</span>
+		</>,
+		<>
+			Measure performance{' '}
+			<span className="text-color-selected-light">
+				across your application.
+			</span>
 		</>,
 	]
 

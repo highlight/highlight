@@ -24,7 +24,7 @@ import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
 import { message as antdMessage } from 'antd'
-import React, { Fragment, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
@@ -119,7 +119,7 @@ export const LogDetails: React.FC<Props> = ({
 	}
 
 	return (
-		<Stack py="6" paddingBottom="0" gap="1">
+		<Stack py="0" gap="1">
 			{Object.entries(logAttributes).map(([key, value], index) => {
 				const isObject = typeof value === 'object'
 
@@ -161,7 +161,7 @@ export const LogDetails: React.FC<Props> = ({
 					),
 			)}
 
-			<Box display="flex" alignItems="center" flexDirection="row" mt="8">
+			<Box display="flex" alignItems="center" flexDirection="row">
 				<Box
 					display="flex"
 					alignItems="center"
@@ -497,7 +497,7 @@ const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 		<Box
 			cssClass={styles.logAttributeLine}
 			display="flex"
-			alignItems="flex-start"
+			alignItems="center"
 			flexDirection="row"
 			gap="4"
 			flexShrink={0}

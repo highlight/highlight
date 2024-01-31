@@ -185,6 +185,7 @@ export const DropdownMenu = function ({
 									size="small"
 									emphasis="low"
 									cssClass={styles.menuButton}
+									onClick={(e: any) => e.preventDefault()}
 								>
 									{getSortOrderDisplayName(
 										sessionFeedConfiguration.sortOrder,
@@ -257,6 +258,7 @@ export const DropdownMenu = function ({
 									size="small"
 									emphasis="low"
 									cssClass={styles.menuButton}
+									onClick={(e: any) => e.preventDefault()}
 								>
 									{formatDatetime(
 										getNow().toISOString(),
@@ -331,6 +333,7 @@ export const DropdownMenu = function ({
 									size="small"
 									emphasis="low"
 									cssClass={styles.menuButton}
+									onClick={(e: any) => e.preventDefault()}
 								>
 									{formatCount(
 										12321,

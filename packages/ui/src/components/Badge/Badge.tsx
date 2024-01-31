@@ -46,10 +46,10 @@ export const Badge: React.FC<Props> = ({
 			textColor = 'good'
 			break
 		case 'gray':
-			textColor = 'moderate'
+			textColor = 'default'
 			break
 		case 'outlineGray':
-			textColor = 'moderate'
+			textColor = 'default'
 			break
 		case 'white':
 			textColor = 'moderate'

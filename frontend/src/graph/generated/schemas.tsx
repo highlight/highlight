@@ -146,6 +146,7 @@ export type AllWorkspaceSettings = {
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
 	enable_data_deletion: Scalars['Boolean']
+	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
@@ -420,6 +421,7 @@ export type ErrorAlert = {
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	Frequency: Scalars['Int']
 	LastAdminToEditID?: Maybe<Scalars['ID']>
+	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name?: Maybe<Scalars['String']>
 	RegexGroups: Array<Maybe<Scalars['String']>>
 	ThresholdWindow?: Maybe<Scalars['Int']>
@@ -742,6 +744,7 @@ export enum IntegrationType {
 	Height = 'Height',
 	Jira = 'Jira',
 	Linear = 'Linear',
+	MicrosoftTeams = 'MicrosoftTeams',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
 	Zapier = 'Zapier',
@@ -844,6 +847,7 @@ export type LogAlert = {
 	EmailsToNotify: Array<Scalars['String']>
 	ExcludedEnvironments: Array<Scalars['String']>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
+	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name: Scalars['String']
 	ThresholdWindow: Scalars['Int']
 	Type: Scalars['String']
@@ -863,6 +867,7 @@ export type LogAlertInput = {
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
 	environments: Array<Scalars['String']>
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
@@ -1035,6 +1040,17 @@ export type MetricsBuckets = {
 	sample_factor: Scalars['Float']
 }
 
+export type MicrosoftTeamsChannel = {
+	__typename?: 'MicrosoftTeamsChannel'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type MicrosoftTeamsChannelInput = {
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
 export type Mutation = {
 	__typename?: 'Mutation'
 	addAdminToWorkspace?: Maybe<Scalars['ID']>
@@ -1155,6 +1171,7 @@ export type MutationCreateErrorAlertArgs = {
 	emails: Array<InputMaybe<Scalars['String']>>
 	environments: Array<InputMaybe<Scalars['String']>>
 	frequency: Scalars['Int']
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	regex_groups: Array<InputMaybe<Scalars['String']>>
@@ -1585,6 +1602,7 @@ export type MutationUpdateErrorAlertArgs = {
 	environments?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
 	error_alert_id: Scalars['ID']
 	frequency?: InputMaybe<Scalars['Int']>
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	regex_groups?: InputMaybe<Array<InputMaybe<Scalars['String']>>>
@@ -1883,6 +1901,7 @@ export type Query = {
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
 	metrics_timeline: Array<Maybe<DashboardPayload>>
+	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
 	newUsersCount?: Maybe<NewUsersCount>
 	new_session_alerts: Array<Maybe<SessionAlert>>
@@ -2368,6 +2387,10 @@ export type QueryMetric_TagsArgs = {
 export type QueryMetrics_TimelineArgs = {
 	metric_name: Scalars['String']
 	params: DashboardParamsInput
+	project_id: Scalars['ID']
+}
+
+export type QueryMicrosoft_Teams_Channel_SuggestionsArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2976,6 +2999,7 @@ export type SessionAlert = {
 	ExcludeRules: Array<Maybe<Scalars['String']>>
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	LastAdminToEditID?: Maybe<Scalars['ID']>
+	MicrosoftTeamsChannelsToNotify: Array<MicrosoftTeamsChannel>
 	Name?: Maybe<Scalars['String']>
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	TrackProperties: Array<Maybe<TrackProperty>>
@@ -2996,6 +3020,7 @@ export type SessionAlertInput = {
 	emails: Array<Scalars['String']>
 	environments: Array<Scalars['String']>
 	exclude_rules: Array<Scalars['String']>
+	microsoft_teams_channels: Array<MicrosoftTeamsChannelInput>
 	name: Scalars['String']
 	project_id: Scalars['ID']
 	slack_channels: Array<SanitizedSlackChannelInput>

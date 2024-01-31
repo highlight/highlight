@@ -69,7 +69,7 @@
 	"compatibilities": ["EXTERNAL", "EC2"],
 	"requiresCompatibilities": ["EC2"],
 	"cpu": "1024",
-	"memory": "8192",
+	"memory": "4096",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64",
 		"operatingSystemFamily": "LINUX"

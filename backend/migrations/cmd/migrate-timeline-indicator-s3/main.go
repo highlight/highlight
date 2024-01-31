@@ -2,21 +2,23 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/segmentio/encoding/json"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/samber/lo"
 
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/storage"
-	"github.com/samber/lo"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/pkg/errors"
+
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/pkg/errors"
 )
 
 const BatchSize = 100

@@ -2,10 +2,10 @@ package model
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
 )
 
 type DiscordChannel struct {
@@ -26,6 +26,32 @@ func (dc *DiscordChannels) Scan(value interface{}) error {
 
 // Value return json value, implement driver.Valuer interface
 func (dc DiscordChannels) Value() (driver.Value, error) {
+	bytes, err := json.Marshal(dc)
+	return string(bytes), err
+}
+
+type MicrosoftTeamsTeam struct {
+	ID string `json:"id"`
+}
+
+type MicrosoftTeamsChannel struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type MicrosoftTeamsChannels []*MicrosoftTeamsChannel
+
+// Scan scan value into Jsonb, implements sql.Scanner interface
+func (dc *MicrosoftTeamsChannels) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+	}
+	return json.Unmarshal(bytes, &dc)
+}
+
+// Value return json value, implement driver.Valuer interface
+func (dc MicrosoftTeamsChannels) Value() (driver.Value, error) {
 	bytes, err := json.Marshal(dc)
 	return string(bytes), err
 }
@@ -53,6 +79,7 @@ func (dc WebhookDestinations) Value() (driver.Value, error) {
 }
 
 type AlertIntegrations struct {
-	DiscordChannelsToNotify DiscordChannels     `gorm:"type:jsonb;default:'[]'" json:"discord_channels_to_notify"`
-	WebhookDestinations     WebhookDestinations `gorm:"type:jsonb;default:'[]'" json:"webhook_destinations"`
+	DiscordChannelsToNotify        DiscordChannels        `gorm:"type:jsonb;default:'[]'" json:"discord_channels_to_notify"`
+	MicrosoftTeamsChannelsToNotify MicrosoftTeamsChannels `gorm:"type:jsonb;default:'[]'" json:"microsoft_teams_channels_to_notify"`
+	WebhookDestinations            WebhookDestinations    `gorm:"type:jsonb;default:'[]'" json:"webhook_destinations"`
 }

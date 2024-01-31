@@ -424,6 +424,7 @@ enum IntegrationType {
 	Height
 	GitHub
 	Jira
+	MicrosoftTeams
 	GitLab
 }
 
@@ -528,6 +529,7 @@ type AllWorkspaceSettings {
 	enable_unlisted_sharing: Boolean!
 	enable_ingest_sampling: Boolean!
 	enable_data_deletion: Boolean!
+	enable_grafana_dashboard: Boolean!
 }
 
 type Account {
@@ -1199,6 +1201,7 @@ input SessionAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
 	environments: [String!]!
@@ -1218,6 +1221,7 @@ input LogAlertInput {
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
 	discord_channels: [DiscordChannelInput!]!
+	microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	webhook_destinations: [WebhookDestinationInput!]!
 	emails: [String!]!
 	environments: [String!]!
@@ -1470,6 +1474,16 @@ input DiscordChannelInput {
 	id: String!
 }
 
+type MicrosoftTeamsChannel {
+	id: String!
+	name: String!
+}
+
+input MicrosoftTeamsChannelInput {
+	name: String!
+	id: String!
+}
+
 type WebhookDestination {
 	url: String!
 	authorization: String
@@ -1486,6 +1500,7 @@ type ErrorAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
@@ -1518,6 +1533,7 @@ type SessionAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
@@ -1539,6 +1555,7 @@ type LogAlert {
 	Name: String!
 	ChannelsToNotify: [SanitizedSlackChannel!]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	MicrosoftTeamsChannelsToNotify: [MicrosoftTeamsChannel!]!
 	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String!]!
 	ExcludedEnvironments: [String!]!
@@ -1937,6 +1954,9 @@ type Query {
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
+	microsoft_teams_channel_suggestions(
+		project_id: ID!
+	): [MicrosoftTeamsChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
@@ -2402,6 +2422,7 @@ type Mutation {
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
 		discord_channels: [DiscordChannelInput!]!
+		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]!
 		environments: [String]!
@@ -2417,6 +2438,7 @@ type Mutation {
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
 		discord_channels: [DiscordChannelInput!]!
+		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		webhook_destinations: [WebhookDestinationInput!]!
 		emails: [String]
 		environments: [String]

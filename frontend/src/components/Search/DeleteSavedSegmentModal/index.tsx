@@ -46,6 +46,10 @@ export const DeleteSavedSegmentModal: React.FC<Props> = ({
 			})
 	}
 
+	if (!showModal) {
+		return null
+	}
+
 	return (
 		<DeleteSegmentModal
 			context={entityType}
@@ -53,7 +57,6 @@ export const DeleteSavedSegmentModal: React.FC<Props> = ({
 			loading={loading}
 			onSubmit={onSubmit}
 			segmentToDelete={segmentToDelete}
-			showModal={showModal}
 		/>
 	)
 }

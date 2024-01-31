@@ -2,11 +2,11 @@ package util
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 
 	e "github.com/pkg/errors"
-	"github.com/segmentio/encoding/json"
 )
 
 // Slim wrapper around sending a request with arbitrary request/response interfaces.
