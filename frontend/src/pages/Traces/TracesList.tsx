@@ -15,16 +15,21 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { isEqual } from 'lodash'
 import React, { Key, useMemo, useRef } from 'react'
 
+import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
+import { useGetTracesKeysLazyQuery } from '@/graph/generated/hooks'
 import { TraceEdge } from '@/graph/generated/schemas'
 import { useParams } from '@/util/react-router/useParams'
 
-import { DEFAULT_TRACE_COLUMNS } from './CustomColumns/columns'
-import { CustomColumnPopover } from './CustomColumns/Popover'
+import {
+	DEFAULT_TRACE_COLUMNS,
+	HIGHLIGHT_STANDARD_COLUMNS,
+} from './CustomColumns/columns'
 import { ColumnRenderers } from './CustomColumns/renderers'
 
 type Props = {
@@ -106,6 +111,9 @@ export const TracesList: React.FC<Props> = ({
 				<CustomColumnPopover
 					selectedColumns={selectedColumns}
 					setSelectedColumns={setSelectedColumns}
+					standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
+					attributePrefix="traceAttributes"
+					getKeysLazyQuery={useGetTracesKeysLazyQuery}
 				/>
 			),
 		})
@@ -311,7 +319,7 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 		return (
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
 			prevProps.isSelected === nextProps.isSelected &&
-			prevProps.gridColumns === nextProps.gridColumns
+			isEqual(prevProps.gridColumns, nextProps.gridColumns)
 		)
 	},
 )

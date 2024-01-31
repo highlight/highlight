@@ -828,6 +828,7 @@ export type Log = {
 	level: LogLevel
 	logAttributes: Scalars['Map']
 	message: Scalars['String']
+	projectID: Scalars['Int']
 	secureSessionID?: Maybe<Scalars['String']>
 	serviceName?: Maybe<Scalars['String']>
 	serviceVersion?: Maybe<Scalars['String']>

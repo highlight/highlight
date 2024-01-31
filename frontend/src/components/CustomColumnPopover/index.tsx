@@ -1,4 +1,7 @@
-import { useGetTracesKeysLazyQuery } from '@graph/hooks'
+import {
+	useGetLogsKeysLazyQuery,
+	useGetTracesKeysLazyQuery,
+} from '@graph/hooks'
 import {
 	Box,
 	ComboboxSelect,
@@ -16,17 +19,40 @@ import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { FixedRangePreset } from '@/components/Search/SearchForm/SearchForm'
 import { useSearchTime } from '@/hooks/useSearchTime'
 
-import { CustomColumn, HIGHLIGHT_STANDARD_COLUMNS } from '../columns'
 import * as styles from './styles.css'
 
+type CustomColumn<T> = {
+	id: string
+	label: string
+	type: T
+	size: string
+	accessKey: string
+}
+
+type LogColumnType = 'string' | 'datetime' | 'session' | 'level' | 'body'
+export type LogCustomColumn = CustomColumn<LogColumnType>
+
+type TraceColumnType = 'string' | 'datetime' | 'session' | 'duration'
+export type TraceCustomColumn = CustomColumn<TraceColumnType>
+
+type ValidCustomColumn = CustomColumn<any>
+
 type Props = {
-	selectedColumns: CustomColumn[]
-	setSelectedColumns: (columns: CustomColumn[]) => void
+	attributePrefix: string
+	selectedColumns: ValidCustomColumn[]
+	standardColumns: Record<string, ValidCustomColumn>
+	setSelectedColumns: (columns: ValidCustomColumn[]) => void
+	getKeysLazyQuery:
+		| typeof useGetTracesKeysLazyQuery
+		| typeof useGetLogsKeysLazyQuery
 }
 
 export const CustomColumnPopover: React.FC<Props> = ({
+	attributePrefix,
 	selectedColumns,
+	standardColumns,
 	setSelectedColumns,
+	getKeysLazyQuery,
 }) => {
 	const { project_id } = useParams()
 	const [query, setQuery] = useState<string>('')
@@ -38,7 +64,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 		initialPreset: FixedRangePreset,
 	})
 
-	const [getKeys, { data, loading }] = useGetTracesKeysLazyQuery()
+	const [getKeys, { data, loading }] = getKeysLazyQuery()
 
 	useEffect(() => {
 		if (debouncedQuery) {
@@ -60,15 +86,15 @@ export const CustomColumnPopover: React.FC<Props> = ({
 			acc[column.id] = column
 
 			return acc
-		}, {} as Record<string, CustomColumn>)
+		}, {} as Record<string, ValidCustomColumn>)
 
 		const defaultColumnHash = {
 			...seletedColumnHash,
-			...HIGHLIGHT_STANDARD_COLUMNS,
+			...standardColumns,
 		}
 
 		return Object.values(defaultColumnHash)
-	}, [selectedColumns])
+	}, [selectedColumns, standardColumns])
 
 	const columnOptions = useMemo(() => {
 		if (!data || !debouncedQuery) {
@@ -78,7 +104,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 		const { keys } = data
 
 		return keys.map((key) => {
-			const highlightKey = HIGHLIGHT_STANDARD_COLUMNS[key.name]
+			const highlightKey = standardColumns[key.name]
 			if (highlightKey) {
 				return highlightKey
 			}
@@ -88,18 +114,18 @@ export const CustomColumnPopover: React.FC<Props> = ({
 				label: key.name,
 				type: 'string',
 				size: '1fr',
-				accessKey: `traceAttributes.${key.name}`,
-			} as CustomColumn
+				accessKey: `${attributePrefix}.${key.name}`,
+			} as ValidCustomColumn
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data, debouncedQuery])
+	}, [data, debouncedQuery, standardColumns])
 
 	const allColumnsHash = useMemo(() => {
 		return [...selectedColumns, ...columnOptions].reduce((acc, column) => {
 			acc[column.id] = column
 
 			return acc
-		}, {} as Record<string, CustomColumn>)
+		}, {} as Record<string, ValidCustomColumn>)
 	}, [selectedColumns, columnOptions])
 
 	const handleColumnValueChange = (updatedValue: string[]) => {

@@ -14,6 +14,7 @@ import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
+import { useLocalStorage } from 'react-use'
 import { useQueryParam } from 'use-query-params'
 
 import {
@@ -33,6 +34,7 @@ import {
 } from '@/graph/generated/hooks'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 
 const LogsPage = () => {
@@ -67,6 +69,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const [query, setQuery] = useQueryParam('query', QueryParam)
+
+	const [selectedColumns, setSelectedColumns] = useLocalStorage(
+		`highlight-logs-table-columns`,
+		DEFAULT_LOG_COLUMNS,
+	)
 
 	const {
 		startDate,
@@ -205,6 +212,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 							handleAdditionalLogsDateChange={rebaseSearchTime}
 							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
+							selectedColumns={selectedColumns}
+							setSelectedColumns={setSelectedColumns}
 						/>
 					</Box>
 				</Box>

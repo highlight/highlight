@@ -633,6 +633,7 @@ type ComplexityRoot struct {
 		Level           func(childComplexity int) int
 		LogAttributes   func(childComplexity int) int
 		Message         func(childComplexity int) int
+		ProjectID       func(childComplexity int) int
 		SecureSessionID func(childComplexity int) int
 		ServiceName     func(childComplexity int) int
 		ServiceVersion  func(childComplexity int) int
@@ -4528,6 +4529,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Log.Message(childComplexity), true
+
+	case "Log.projectID":
+		if e.complexity.Log.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.Log.ProjectID(childComplexity), true
 
 	case "Log.secureSessionID":
 		if e.complexity.Log.SecureSessionID == nil {
@@ -11400,6 +11408,7 @@ interface Connection {
 }
 
 type Log {
+	projectID: Int!
 	timestamp: Timestamp!
 	level: LogLevel!
 	message: String!
@@ -36479,6 +36488,50 @@ func (ec *executionContext) fieldContext_LinearTeam_key(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Log_projectID(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Log_projectID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Log_projectID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Log",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Log_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.Log) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Log_timestamp(ctx, field)
 	if err != nil {
@@ -37942,6 +37995,8 @@ func (ec *executionContext) fieldContext_LogEdge_node(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "projectID":
+				return ec.fieldContext_Log_projectID(ctx, field)
 			case "timestamp":
 				return ec.fieldContext_Log_timestamp(ctx, field)
 			case "level":
@@ -80361,6 +80416,13 @@ func (ec *executionContext) _Log(ctx context.Context, sel ast.SelectionSet, obj 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Log")
+		case "projectID":
+
+			out.Values[i] = ec._Log_projectID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "timestamp":
 
 			out.Values[i] = ec._Log_timestamp(ctx, field, obj)

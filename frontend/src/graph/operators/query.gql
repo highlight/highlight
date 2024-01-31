@@ -2115,6 +2115,7 @@ query GetLogs(
 				serviceName
 				serviceVersion
 				environment
+				projectID
 			}
 		}
 		pageInfo {
