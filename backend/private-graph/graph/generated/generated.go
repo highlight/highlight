@@ -807,7 +807,7 @@ type ComplexityRoot struct {
 		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
 		EmailSignup                      func(childComplexity int, email string) int
 		ExportSession                    func(childComplexity int, sessionSecureID string) int
-		HandleAWSMarketplace             func(childComplexity int, workspaceID int, token string) int
+		HandleAWSMarketplace             func(childComplexity int, workspaceID int, code string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
 		MarkErrorGroupAsViewed           func(childComplexity int, errorSecureID string, viewed *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
@@ -1654,7 +1654,7 @@ type MutationResolver interface {
 	EditSavedSegment(ctx context.Context, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) (*bool, error)
 	DeleteSavedSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
-	HandleAWSMarketplace(ctx context.Context, workspaceID int, token string) (*bool, error)
+	HandleAWSMarketplace(ctx context.Context, workspaceID int, code string) (*bool, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
 	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
@@ -5646,7 +5646,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.HandleAWSMarketplace(childComplexity, args["workspace_id"].(int), args["token"].(string)), true
+		return e.complexity.Mutation.HandleAWSMarketplace(childComplexity, args["workspace_id"].(int), args["code"].(string)), true
 
 	case "Mutation.joinWorkspace":
 		if e.complexity.Mutation.JoinWorkspace == nil {
@@ -12929,7 +12929,7 @@ type Mutation {
 	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
 	# Otherwise, we simply update the subscription.
 	createOrUpdateStripeSubscription(workspace_id: ID!): String
-	handleAWSMarketplace(workspace_id: ID!, token: String!): Boolean
+	handleAWSMarketplace(workspace_id: ID!, code: String!): Boolean
 	updateBillingDetails(workspace_id: ID!): Boolean
 	saveBillingPlan(
 		workspace_id: ID!
@@ -15131,14 +15131,14 @@ func (ec *executionContext) field_Mutation_handleAWSMarketplace_args(ctx context
 	}
 	args["workspace_id"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["token"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+	if tmp, ok := rawArgs["code"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["token"] = arg1
+	args["code"] = arg1
 	return args, nil
 }
 
@@ -42621,7 +42621,7 @@ func (ec *executionContext) _Mutation_handleAWSMarketplace(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().HandleAWSMarketplace(rctx, fc.Args["workspace_id"].(int), fc.Args["token"].(string))
+		return ec.resolvers.Mutation().HandleAWSMarketplace(rctx, fc.Args["workspace_id"].(int), fc.Args["code"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

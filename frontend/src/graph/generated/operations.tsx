@@ -42,6 +42,16 @@ export type CreateOrUpdateStripeSubscriptionMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>
 
+export type HandleAwsMarketplaceMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	code: Types.Scalars['String']
+}>
+
+export type HandleAwsMarketplaceMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'handleAWSMarketplace'
+>
+
 export type SaveBillingPlanMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	sessionsLimitCents?: Types.Maybe<Types.Scalars['Int']>
@@ -5125,6 +5135,7 @@ export const namedOperations = {
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,
 		CreateOrUpdateStripeSubscription:
 			'CreateOrUpdateStripeSubscription' as const,
+		HandleAWSMarketplace: 'HandleAWSMarketplace' as const,
 		SaveBillingPlan: 'SaveBillingPlan' as const,
 		UpdateBillingDetails: 'UpdateBillingDetails' as const,
 		updateErrorGroupState: 'updateErrorGroupState' as const,

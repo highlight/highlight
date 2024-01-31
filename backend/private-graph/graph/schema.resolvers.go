@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/lib/pq"
@@ -1393,7 +1394,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 }
 
 // HandleAWSMarketplace is the resolver for the handleAWSMarketplace field.
-func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID int, token string) (*bool, error) {
+func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID int, code string) (*bool, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
@@ -1403,12 +1404,12 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, err
 	}
 
-	customer, err := r.ResolveAWSMarketplaceToken(ctx, token)
-	if err != nil {
+	var customer marketplacemetering.ResolveCustomerOutput
+	if err := r.Redis.Cache.Get(ctx, code, &customer); err != nil {
 		return nil, err
 	}
 
-	err = r.updateAWSMPBillingDetails(ctx, workspace, customer)
+	err = r.updateAWSMPBillingDetails(ctx, workspace, &customer)
 	if err != nil {
 		return nil, err
 	}

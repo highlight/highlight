@@ -3,7 +3,10 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import {
+	useGetProjectsAndWorkspacesQuery,
+	useHandleAwsMarketplaceMutation,
+} from '@graph/hooks'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
@@ -14,11 +17,14 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import { Landing } from '@pages/Landing/Landing'
-import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
+import {
+	ApplicationContextProvider,
+	useApplicationContext,
+} from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -416,15 +422,27 @@ const GitHubIntegrationCallback = ({
 }
 
 const AWSMPIntegrationCallback = ({
-	id,
-	account,
-	product,
+	workspaceID,
+	code,
 }: {
-	id?: string
-	account?: string
-	product?: string
+	workspaceID: string | null | undefined
+	code: string | null | undefined
 }) => {
-	// TODO(vkorolik)
+	const [handle] = useHandleAwsMarketplaceMutation()
+	const cb = useCallback(async () => {
+		if (workspaceID && code) {
+			await handle({
+				variables: {
+					workspace_id: workspaceID!,
+					code: code!,
+				},
+			})
+		}
+	}, [code, handle, workspaceID])
+	useEffect(() => {
+		cb()
+		return () => {}
+	}, [cb])
 	return null
 }
 
@@ -459,6 +477,7 @@ const IntegrationAuthCallbackPage = () => {
 		integrationName: string
 	}>()
 	const { isAuthLoading } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 	const { setLoadingState } = useAppLoadingContext()
 
 	useEffect(() => {
@@ -475,9 +494,6 @@ const IntegrationAuthCallbackPage = () => {
 		installationId,
 		setupAction,
 		tenantId,
-        id,
-        account,
-        product,
 	} = useMemo(() => {
 		const urlParams = new URLSearchParams(window.location.search)
 		const code = urlParams.get('code')!
@@ -507,9 +523,6 @@ const IntegrationAuthCallbackPage = () => {
 			installationId,
 			setupAction,
 			tenantId,
-            id: urlParams.get('id'),
-            account: urlParams.get('account'),
-            product: urlParams.get('product'),
 		}
 	}, [])
 
@@ -563,10 +576,8 @@ const IntegrationAuthCallbackPage = () => {
 			case 'aws-mp':
 				cb = (
 					<AWSMPIntegrationCallback
-						projectId={projectId}
-						id={id}
-						account={account}
-						product={product}
+						workspaceID={currentWorkspace?.id}
+						code={code}
 					/>
 				)
 				break

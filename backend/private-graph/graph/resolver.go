@@ -18,6 +18,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
+	"github.com/go-redis/cache/v9"
 
 	"github.com/bwmarrin/discordgo"
 	github2 "github.com/google/go-github/v50/github"
@@ -1774,8 +1775,16 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 			return
 		}
 
-		// TODO(vkorolik) write to redis and lookup from frontend graphql operation
-		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?id=%s&account=%s&product=%s", os.Getenv("FRONTEND_URI"), *customer.CustomerIdentifier, *customer.CustomerAWSAccountId, *customer.ProductCode), http.StatusFound)
+		secret, _ := r.GenerateRandomStringURLSafe(64)
+		if err := r.Redis.Cache.Set(&cache.Item{
+			Key:   secret,
+			Value: customer,
+		}); err != nil {
+			log.WithContext(ctx).WithError(err).Error("invalid aws marketplace request: failed to write redis customer token")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		http.Redirect(w, req, fmt.Sprintf("%s/callback/aws-mp?code=%s", os.Getenv("FRONTEND_URI"), secret), http.StatusFound)
 	}
 }
 
