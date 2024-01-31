@@ -2773,6 +2773,7 @@ export enum ReservedSessionKey {
 export enum ReservedTraceKey {
 	Duration = 'duration',
 	Environment = 'environment',
+	HasErrors = 'has_errors',
 	Level = 'level',
 	Message = 'message',
 	Metric = 'metric',
@@ -3279,6 +3280,7 @@ export type Trace = {
 	duration: Scalars['Int']
 	environment: Scalars['String']
 	events?: Maybe<Array<Maybe<TraceEvent>>>
+	hasErrors: Scalars['Boolean']
 	links?: Maybe<Array<Maybe<TraceLink>>>
 	parentSpanID: Scalars['String']
 	projectID: Scalars['Int']

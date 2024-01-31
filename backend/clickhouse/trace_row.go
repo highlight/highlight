@@ -27,6 +27,7 @@ type TraceRow struct {
 	ProjectId       uint32
 	SecureSessionId string
 	Environment     string
+	HasErrors       bool
 }
 
 type Event struct {

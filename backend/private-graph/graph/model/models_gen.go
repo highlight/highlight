@@ -847,6 +847,7 @@ type Trace struct {
 	ServiceName     string                 `json:"serviceName"`
 	ServiceVersion  string                 `json:"serviceVersion"`
 	Environment     string                 `json:"environment"`
+	HasErrors       bool                   `json:"hasErrors"`
 	TraceAttributes map[string]interface{} `json:"traceAttributes"`
 	StatusCode      string                 `json:"statusCode"`
 	StatusMessage   string                 `json:"statusMessage"`
@@ -1986,6 +1987,7 @@ type ReservedTraceKey string
 
 const (
 	ReservedTraceKeyEnvironment     ReservedTraceKey = "environment"
+	ReservedTraceKeyHasErrors       ReservedTraceKey = "has_errors"
 	ReservedTraceKeyLevel           ReservedTraceKey = "level"
 	ReservedTraceKeyMessage         ReservedTraceKey = "message"
 	ReservedTraceKeyMetric          ReservedTraceKey = "metric"
@@ -2003,6 +2005,7 @@ const (
 
 var AllReservedTraceKey = []ReservedTraceKey{
 	ReservedTraceKeyEnvironment,
+	ReservedTraceKeyHasErrors,
 	ReservedTraceKeyLevel,
 	ReservedTraceKeyMessage,
 	ReservedTraceKeyMetric,
@@ -2020,7 +2023,7 @@ var AllReservedTraceKey = []ReservedTraceKey{
 
 func (e ReservedTraceKey) IsValid() bool {
 	switch e {
-	case ReservedTraceKeyEnvironment, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+	case ReservedTraceKeyEnvironment, ReservedTraceKeyHasErrors, ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeyMetric, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
 		return true
 	}
 	return false
