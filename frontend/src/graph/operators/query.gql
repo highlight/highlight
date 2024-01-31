@@ -2442,6 +2442,7 @@ query GetTraces(
 				serviceName
 				serviceVersion
 				environment
+				hasErrors
 				traceAttributes
 				statusCode
 				statusMessage
