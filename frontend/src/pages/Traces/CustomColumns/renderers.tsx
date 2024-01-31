@@ -59,7 +59,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 						size="medium"
 						iconStart={<IconSolidMenuAlt_2 size="12" />}
 					/>
-					{children}
+					<span>{children}</span>
 				</Stack>
 				<Table.Discoverable>
 					<Badge variant="outlineGray" label="Open" size="medium" />
