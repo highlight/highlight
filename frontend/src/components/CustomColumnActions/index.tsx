@@ -7,6 +7,7 @@ import {
 	IconSolidArrowRight,
 	IconSolidClipboardCopy,
 	IconSolidCloudUpload,
+	IconSolidRefresh,
 	IconSolidXCircle,
 	Menu,
 	Stack,
@@ -26,6 +27,7 @@ type Props = {
 	setSelectedColumns: (columns: ValidCustomColumn[]) => void
 	columnId: string
 	trackingId: string
+	standardColumns: Record<string, ValidCustomColumn>
 }
 
 export const CustomColumnActions: React.FC<Props> = ({
@@ -33,6 +35,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 	setSelectedColumns,
 	columnId,
 	trackingId,
+	standardColumns,
 }) => {
 	const [labelModalOpen, setLabelModalOpen] = React.useState(false)
 
@@ -84,6 +87,20 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setSelectedColumns(newColumns)
 	}
 
+	const resetSize = () => {
+		trackEvent('reset')
+		const newColumns = [...selectedColumns]
+
+		const newSize =
+			standardColumns[selectedColumns[columnIndex].label]?.size || '1fr'
+
+		newColumns[columnIndex] = {
+			...selectedColumns[columnIndex],
+			size: newSize,
+		}
+		setSelectedColumns(newColumns)
+	}
+
 	const disableLeft = columnIndex === 0
 	const disableRight = columnIndex === selectedColumns.length - 1
 
@@ -131,6 +148,12 @@ export const CustomColumnActions: React.FC<Props> = ({
 						<Box display="flex" alignItems="center" gap="4">
 							<IconSolidClipboardCopy size={16} />
 							Copy search key
+						</Box>
+					</Menu.Item>
+					<Menu.Item onClick={resetSize}>
+						<Box display="flex" alignItems="center" gap="4">
+							<IconSolidRefresh size={16} />
+							Reset size
 						</Box>
 					</Menu.Item>
 					<Menu.Divider />

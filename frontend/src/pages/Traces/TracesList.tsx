@@ -411,6 +411,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
 						selectedColumns={selectedColumns}
 						setSelectedColumns={setSelectedColumns}
 						trackingId="TracesTableColumn"
+						standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
 					/>
 				)}
 			</Box>
