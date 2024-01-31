@@ -12,7 +12,8 @@ interface TraceKey {
 }
 
 export function QueryEditor({ query, onChange, datasource }: Props) {
-  const { queryText, table, groupBy, metric, column, bucketBy, limitAggregator, limitColumn, limit } = query;
+  const { queryText, table, groupBy, metric, column, bucketBy, bucketCount, limitAggregator, limitColumn, limit } =
+    query;
 
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, queryText: event.target.value });
@@ -38,6 +39,10 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
     onChange({ ...query, bucketBy: option.value });
   };
 
+  const onBucketCountChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange({ ...query, bucketCount: Number(event.target.value) });
+  };
+
   const onLimitAggregatorChange = (option: SelectableValue<string>) => {
     onChange({ ...query, limitAggregator: option.value });
   };
@@ -58,6 +63,11 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
   const loadGroupByOptions = async (table: Table | undefined, query: string) => {
     let keys: TraceKey[] = await datasource.getResource(`${table}-keys`, { query, type: 'String' });
     return keys.map((k) => ({ value: k.Name, label: k.Name }));
+  };
+
+  const loadBucketByOptions = async (table: Table | undefined, query: string) => {
+    let options = await loadColumnOptions(table, query);
+    return bucketByOptions.concat(options);
   };
 
   return (
@@ -126,8 +136,19 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Bucket by" labelWidth={10}>
-          <Select value={bucketBy} onChange={onBucketByChange} options={bucketByOptions} />
+          <AsyncSelect
+            key={table}
+            defaultOptions
+            value={{ name: bucketBy, label: bucketBy }}
+            onChange={onBucketByChange}
+            loadOptions={(q) => loadBucketByOptions(table, q)}
+          />
         </InlineField>
+        {bucketBy !== undefined && bucketBy !== 'None' && (
+          <InlineField label="Buckets" labelWidth={8}>
+            <Input type="number" value={bucketCount} onChange={onBucketCountChange} width={8} />
+          </InlineField>
+        )}
       </InlineFieldRow>
     </div>
   );

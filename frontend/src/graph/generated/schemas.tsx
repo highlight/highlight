@@ -962,13 +962,16 @@ export enum MetricAggregator {
 export type MetricBucket = {
 	__typename?: 'MetricBucket'
 	bucket_id: Scalars['UInt64']
+	bucket_max: Scalars['Float']
+	bucket_min: Scalars['Float']
 	column: MetricColumn
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
-	metric_value: Scalars['Float']
+	metric_value?: Maybe<Scalars['Float']>
 }
 
 export enum MetricBucketBy {
+	Histogram = 'Histogram',
 	None = 'None',
 	Timestamp = 'Timestamp',
 }
@@ -2171,6 +2174,7 @@ export type QueryErrors_KeysArgs = {
 
 export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2344,6 +2348,7 @@ export type QueryLogs_KeysArgs = {
 
 export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2538,6 +2543,7 @@ export type QuerySessions_KeysArgs = {
 
 export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2617,6 +2623,7 @@ export type QueryTraces_KeysArgs = {
 
 export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>

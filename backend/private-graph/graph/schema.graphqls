@@ -1046,14 +1046,17 @@ enum MetricColumn {
 enum MetricBucketBy {
 	None
 	Timestamp
+	Histogram
 }
 
 type MetricBucket {
 	bucket_id: UInt64!
+	bucket_min: Float!
+	bucket_max: Float!
 	group: [String!]!
 	column: MetricColumn!
 	metric_type: MetricAggregator!
-	metric_value: Float!
+	metric_value: Float
 }
 
 type MetricsBuckets {
@@ -2053,6 +2056,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2100,6 +2104,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2128,6 +2133,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2145,6 +2151,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String

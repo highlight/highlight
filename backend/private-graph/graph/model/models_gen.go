@@ -547,10 +547,12 @@ type MatchedErrorTag struct {
 
 type MetricBucket struct {
 	BucketID    uint64           `json:"bucket_id"`
+	BucketMin   float64          `json:"bucket_min"`
+	BucketMax   float64          `json:"bucket_max"`
 	Group       []string         `json:"group"`
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
-	MetricValue float64          `json:"metric_value"`
+	MetricValue *float64         `json:"metric_value"`
 }
 
 type MetricPreview struct {
@@ -1435,16 +1437,18 @@ type MetricBucketBy string
 const (
 	MetricBucketByNone      MetricBucketBy = "None"
 	MetricBucketByTimestamp MetricBucketBy = "Timestamp"
+	MetricBucketByHistogram MetricBucketBy = "Histogram"
 )
 
 var AllMetricBucketBy = []MetricBucketBy{
 	MetricBucketByNone,
 	MetricBucketByTimestamp,
+	MetricBucketByHistogram,
 }
 
 func (e MetricBucketBy) IsValid() bool {
 	switch e {
-	case MetricBucketByNone, MetricBucketByTimestamp:
+	case MetricBucketByNone, MetricBucketByTimestamp, MetricBucketByHistogram:
 		return true
 	}
 	return false
