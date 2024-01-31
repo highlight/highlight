@@ -24,27 +24,27 @@ const DayOne = () => {
 	}
 
 	return (
-		<div id="day-1" className="w-full max-w-[550px] md:max-w-none z-50">
+		<div id="day-3" className="w-full max-w-[550px] md:max-w-none z-50">
 			<div className="w-full h-6 border-x-[1px] border-[#C8C7CB] text-black mx-auto max-w-[550px] md:max-w-[1200px]" />
 			<div className="flex flex-col gap-2 lg:flex-row justify-between items-center border-x-[1px] border-b-[1px] border-[#C8C7CB] lg:h-[58px] px-4">
 				<Typography className="text-[#6F6E77]" type="copy3" emphasis>
-					Day 1: January 29
+					Day 3: January 31
 				</Typography>
 
 				<div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 mb-4 lg:mb-0">
 					<Link
 						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
-						href="/docs/getting-started/native-opentelemetry/overview"
+						href="/traces"
 					>
 						<HiDocumentText />
 
 						<Typography type="copy4" emphasis>
-							How to install OTEL
+							Learn more
 						</Typography>
 					</Link>
 					<Link
 						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
-						href="/blog/lw4-d1-open-telemetry"
+						href="/blog/lw4-d3-trace-viewer-and-flame-graph"
 					>
 						<HiBookOpen />
 
@@ -54,7 +54,7 @@ const DayOne = () => {
 					</Link>
 					<a
 						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
-						href="https://youtu.be/rfz1hMIBblI"
+						href="https://youtu.be/EVdjtgvl968"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -91,16 +91,23 @@ const DayOne = () => {
 					)}
 				>
 					<Image
-						className="flex object-cover h-[350px] md:h-[450px] absolute bottom-0 object-center"
-						src="/images/launch/week-4/otel.webp"
+						className="hidden md:flex object-cover h-[450px] absolute object-center"
+						src="/images/launch/week-4/tracing.webp"
 						alt=""
 						height="450"
 						width="1198"
 					/>
+					<Image
+						className="flex md:hidden object-cover h-[350px] absolute bottom-0 object-center "
+						src="/images/launch/week-4/tracing.webp"
+						alt=""
+						height="350"
+						width="1198"
+					/>
 					<CardOverlay
-						header="Highlight w/ OTEL."
-						category="Highlight / System"
-						slot={1}
+						header="Introducing Tracing."
+						category="Tracing"
+						slot={4}
 					/>
 				</div>
 			</div>

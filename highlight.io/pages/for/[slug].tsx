@@ -120,7 +120,6 @@ const Products = ({ product }: { product: iProduct }) => {
 		if (bugLoaded && leftBugRef.current && rightBugRef.current) {
 			leftBugRef.current.play()
 			rightBugRef.current.play()
-			console.log('playing')
 		}
 	}, [bugLoaded])
 
