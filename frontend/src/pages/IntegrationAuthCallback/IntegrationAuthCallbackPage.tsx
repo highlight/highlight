@@ -24,7 +24,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -422,27 +422,26 @@ const GitHubIntegrationCallback = ({
 }
 
 const AWSMPIntegrationCallback = ({
-	workspaceID,
+	workspaceId,
 	code,
 }: {
-	workspaceID: string | null | undefined
-	code: string | null | undefined
+	workspaceId: string | undefined
+	code: string
 }) => {
+	const navigate = useNavigate()
 	const [handle] = useHandleAwsMarketplaceMutation()
-	const cb = useCallback(async () => {
-		if (workspaceID && code) {
-			await handle({
+	useEffect(() => {
+		if (workspaceId && code) {
+			handle({
 				variables: {
-					workspace_id: workspaceID!,
-					code: code!,
+					workspace_id: workspaceId,
+					code,
 				},
+			}).then(() => {
+				navigate(`/w/${workspaceId}/current-plan/success`)
 			})
 		}
-	}, [code, handle, workspaceID])
-	useEffect(() => {
-		cb()
-		return () => {}
-	}, [cb])
+	}, [code, handle, navigate, workspaceId])
 	return null
 }
 
@@ -576,7 +575,7 @@ const IntegrationAuthCallbackPage = () => {
 			case 'aws-mp':
 				cb = (
 					<AWSMPIntegrationCallback
-						workspaceID={currentWorkspace?.id}
+						workspaceId={currentWorkspace?.id}
 						code={code}
 					/>
 				)
