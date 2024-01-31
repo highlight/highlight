@@ -402,7 +402,9 @@ func main() {
 			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
+		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "microsoft-teams/bot"), privateResolver.MicrosoftTeamsBotEndpoint)
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
+
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(highlightChi.Middleware)
 			r.Use(private.PrivateMiddleware)

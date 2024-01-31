@@ -59,6 +59,9 @@ fragment SessionAlertFragment on SessionAlert {
 	DiscordChannelsToNotify {
 		...DiscordChannelFragment
 	}
+	MicrosoftTeamsChannelsToNotify {
+		...MicrosoftTeamsChannelFragment
+	}
 	WebhookDestinations {
 		url
 		authorization
@@ -89,6 +92,11 @@ fragment SessionAlertFragment on SessionAlert {
 }
 
 fragment DiscordChannelFragment on DiscordChannel {
+	name
+	id
+}
+
+fragment MicrosoftTeamsChannelFragment on MicrosoftTeamsChannel {
 	name
 	id
 }
@@ -1514,9 +1522,22 @@ query GetSlackChannelSuggestion($project_id: ID!) {
 	}
 }
 
+query GetMicrosoftTeamsChannelSuggestion($project_id: ID!) {
+	microsoft_teams_channel_suggestions(project_id: $project_id) {
+		...MicrosoftTeamsChannelFragment
+	}
+}
+
 query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
 	is_integrated_with_slack: is_integrated_with(
 		integration_type: Slack
+		project_id: $project_id
+	)
+}
+
+query GetWorkspaceIsIntegratedWithMicrosoftTeams($project_id: ID!) {
+	is_integrated_with_microsoft_teams: is_integrated_with(
+		integration_type: MicrosoftTeams
 		project_id: $project_id
 	)
 }
@@ -1702,6 +1723,9 @@ query GetLogAlert($id: ID!) {
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		MicrosoftTeamsChannelsToNotify {
+			...MicrosoftTeamsChannelFragment
+		}
 		WebhookDestinations {
 			url
 			authorization
@@ -1731,9 +1755,16 @@ query GetLogAlertsPagePayload($project_id: ID!) {
 		integration_type: Discord
 		project_id: $project_id
 	)
+	is_integrated_with_microsoft_teams: is_integrated_with(
+		integration_type: MicrosoftTeams
+		project_id: $project_id
+	)
 	slack_channel_suggestion(project_id: $project_id) {
 		webhook_channel
 		webhook_channel_id
+	}
+	microsoft_teams_channel_suggestions(project_id: $project_id) {
+		...MicrosoftTeamsChannelFragment
 	}
 	discord_channel_suggestions(project_id: $project_id) {
 		...DiscordChannelFragment
@@ -1761,12 +1792,19 @@ query GetAlertsPagePayload($project_id: ID!) {
 		integration_type: Discord
 		project_id: $project_id
 	)
+	is_integrated_with_microsoft_teams: is_integrated_with(
+		integration_type: MicrosoftTeams
+		project_id: $project_id
+	)
 	slack_channel_suggestion(project_id: $project_id) {
 		webhook_channel
 		webhook_channel_id
 	}
 	discord_channel_suggestions(project_id: $project_id) {
 		...DiscordChannelFragment
+	}
+	microsoft_teams_channel_suggestions(project_id: $project_id) {
+		...MicrosoftTeamsChannelFragment
 	}
 	admins: workspace_admins_by_project_id(project_id: $project_id) {
 		admin {
@@ -1787,6 +1825,9 @@ query GetAlertsPagePayload($project_id: ID!) {
 		}
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
+		}
+		MicrosoftTeamsChannelsToNotify {
+			...MicrosoftTeamsChannelFragment
 		}
 		WebhookDestinations {
 			url
@@ -1859,6 +1900,9 @@ query GetAlertsPagePayload($project_id: ID!) {
 		}
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
+		}
+		MicrosoftTeamsChannelsToNotify {
+			...MicrosoftTeamsChannelFragment
 		}
 		CountThreshold
 		DailyFrequency

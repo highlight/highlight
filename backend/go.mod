@@ -54,6 +54,7 @@ require (
 	github.com/highlight/highlight/sdk/highlight-go v0.9.13
 	github.com/huandu/go-assert v1.1.5
 	github.com/influxdata/go-syslog/v3 v3.0.0
+	github.com/infracloudio/msbotbuilder-go v0.2.5
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
@@ -108,6 +109,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v3 v3.0.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.10 // indirect
@@ -116,6 +118,7 @@ require (
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
@@ -129,6 +132,12 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/lestrrat-go/backoff/v2 v2.0.7 // indirect
+	github.com/lestrrat-go/blackmagic v1.0.0 // indirect
+	github.com/lestrrat-go/httpcc v1.0.0 // indirect
+	github.com/lestrrat-go/iter v1.0.1 // indirect
+	github.com/lestrrat-go/jwx v1.1.7 // indirect
+	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

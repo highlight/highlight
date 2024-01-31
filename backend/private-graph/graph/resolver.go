@@ -33,6 +33,7 @@ import (
 	"github.com/highlight-run/go-resthooks"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
@@ -1870,6 +1871,18 @@ func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToke
 	return nil
 }
 
+func (r *Resolver) AddMicrosoftTeamsToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	updates := &model.Workspace{
+		MicrosoftTeamsTenantId: &code,
+	}
+
+	if err := r.DB.Where(&workspace).Select("microsoft_teams_tenant_id").Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -1913,6 +1926,48 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 		SlackChannels: &channelString,
 	}).Error; err != nil {
 		return e.Wrap(err, "error updating project fields")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveMicrosoftTeamsFromWorkspace(workspace *model.Workspace, projectID int) error {
+
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		update := model.Workspace{
+			MicrosoftTeamsTenantId: nil,
+		}
+		if err := tx.Where(&workspace).Select("microsoft_teams_tenant_id").Updates(&update).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams integration from workspace")
+		}
+
+		microsoftTeamsChannelsToNotify := make(model.MicrosoftTeamsChannels, 0)
+
+		projectAlert := model.Alert{ProjectID: projectID}
+		emptyMicrosoftTeamsChannels := model.AlertIntegrations{
+			MicrosoftTeamsChannelsToNotify: microsoftTeamsChannelsToNotify,
+		}
+
+		if err := tx.Where("project_id = ?", projectID).Updates(model.SessionAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created SessionAlert's")
+		}
+
+		if err := tx.Where(&model.ErrorAlert{Alert: projectAlert}).Updates(model.ErrorAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created ErrorAlert's")
+		}
+
+		// set existing metric monitors to have empty microsoft_teams channels to notify
+		if err := tx.Where(&model.MetricMonitor{ProjectID: projectID}).Updates(model.MetricMonitor{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created MetricMonitor's")
+		}
+
+		if err := tx.Where(&model.LogAlert{Alert: projectAlert}).Updates(model.LogAlert{AlertIntegrations: emptyMicrosoftTeamsChannels}).Error; err != nil {
+			return e.Wrap(err, "error removing microsoft_teams channels from created LogAlert's")
+		}
+
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -3387,6 +3442,30 @@ func (r *Resolver) GetJiraProjects(
 	}
 
 	return jira.GetJiraProjects(workspace, *accessToken)
+}
+
+func (r *Resolver) MicrosoftTeamsBotEndpoint(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
+	bot, err := microsoft_teams.NewMicrosoftTeamsBot("common")
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error making ms bot adapter"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	act, err := bot.ParseRequest(ctx, req)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error parsing bot framework request"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = bot.ProcessActivity(ctx, act, microsoft_teams.BotMessagesHandler)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "failed to process bot framework request"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 func (r *Resolver) GetGitlabProjects(

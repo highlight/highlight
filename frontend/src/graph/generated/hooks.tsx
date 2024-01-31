@@ -62,6 +62,12 @@ export const DiscordChannelFragmentFragmentDoc = gql`
 		id
 	}
 `
+export const MicrosoftTeamsChannelFragmentFragmentDoc = gql`
+	fragment MicrosoftTeamsChannelFragment on MicrosoftTeamsChannel {
+		name
+		id
+	}
+`
 export const SessionAlertFragmentFragmentDoc = gql`
 	fragment SessionAlertFragment on SessionAlert {
 		ChannelsToNotify {
@@ -70,6 +76,9 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		}
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
+		}
+		MicrosoftTeamsChannelsToNotify {
+			...MicrosoftTeamsChannelFragment
 		}
 		WebhookDestinations {
 			url
@@ -100,6 +109,7 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		Type
 	}
 	${DiscordChannelFragmentFragmentDoc}
+	${MicrosoftTeamsChannelFragmentFragmentDoc}
 `
 export const ErrorObjectFragmentDoc = gql`
 	fragment ErrorObject on ErrorObject {
@@ -2833,6 +2843,7 @@ export const CreateErrorAlertDocument = gql`
 		$slack_channels: [SanitizedSlackChannelInput]!
 		$discord_channels: [DiscordChannelInput!]!
 		$webhook_destinations: [WebhookDestinationInput!]!
+		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$emails: [String]!
 		$environments: [String]!
 		$regex_groups: [String]!
@@ -2845,6 +2856,7 @@ export const CreateErrorAlertDocument = gql`
 			name: $name
 			slack_channels: $slack_channels
 			discord_channels: $discord_channels
+			microsoft_teams_channels: $microsoft_teams_channels
 			webhook_destinations: $webhook_destinations
 			emails: $emails
 			environments: $environments
@@ -2895,6 +2907,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      discord_channels: // value for 'discord_channels'
  *      webhook_destinations: // value for 'webhook_destinations'
+ *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
@@ -3302,6 +3315,7 @@ export const UpdateErrorAlertDocument = gql`
 		$threshold_window: Int
 		$slack_channels: [SanitizedSlackChannelInput]
 		$discord_channels: [DiscordChannelInput!]!
+		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 		$webhook_destinations: [WebhookDestinationInput!]!
 		$emails: [String]
 		$environments: [String]
@@ -3316,6 +3330,7 @@ export const UpdateErrorAlertDocument = gql`
 			count_threshold: $count_threshold
 			slack_channels: $slack_channels
 			discord_channels: $discord_channels
+			microsoft_teams_channels: $microsoft_teams_channels
 			webhook_destinations: $webhook_destinations
 			emails: $emails
 			environments: $environments
@@ -3330,6 +3345,10 @@ export const UpdateErrorAlertDocument = gql`
 				webhook_channel_id
 			}
 			DiscordChannelsToNotify {
+				id
+				name
+			}
+			MicrosoftTeamsChannelsToNotify {
 				id
 				name
 			}
@@ -3369,6 +3388,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      discord_channels: // value for 'discord_channels'
+ *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
  *      webhook_destinations: // value for 'webhook_destinations'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
@@ -10869,6 +10889,63 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
 	Types.GetSlackChannelSuggestionQuery,
 	Types.GetSlackChannelSuggestionQueryVariables
 >
+export const GetMicrosoftTeamsChannelSuggestionDocument = gql`
+	query GetMicrosoftTeamsChannelSuggestion($project_id: ID!) {
+		microsoft_teams_channel_suggestions(project_id: $project_id) {
+			...MicrosoftTeamsChannelFragment
+		}
+	}
+	${MicrosoftTeamsChannelFragmentFragmentDoc}
+`
+
+/**
+ * __useGetMicrosoftTeamsChannelSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetMicrosoftTeamsChannelSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMicrosoftTeamsChannelSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMicrosoftTeamsChannelSuggestionQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetMicrosoftTeamsChannelSuggestionQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetMicrosoftTeamsChannelSuggestionQuery,
+		Types.GetMicrosoftTeamsChannelSuggestionQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetMicrosoftTeamsChannelSuggestionQuery,
+		Types.GetMicrosoftTeamsChannelSuggestionQueryVariables
+	>(GetMicrosoftTeamsChannelSuggestionDocument, baseOptions)
+}
+export function useGetMicrosoftTeamsChannelSuggestionLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetMicrosoftTeamsChannelSuggestionQuery,
+		Types.GetMicrosoftTeamsChannelSuggestionQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetMicrosoftTeamsChannelSuggestionQuery,
+		Types.GetMicrosoftTeamsChannelSuggestionQueryVariables
+	>(GetMicrosoftTeamsChannelSuggestionDocument, baseOptions)
+}
+export type GetMicrosoftTeamsChannelSuggestionQueryHookResult = ReturnType<
+	typeof useGetMicrosoftTeamsChannelSuggestionQuery
+>
+export type GetMicrosoftTeamsChannelSuggestionLazyQueryHookResult = ReturnType<
+	typeof useGetMicrosoftTeamsChannelSuggestionLazyQuery
+>
+export type GetMicrosoftTeamsChannelSuggestionQueryResult = Apollo.QueryResult<
+	Types.GetMicrosoftTeamsChannelSuggestionQuery,
+	Types.GetMicrosoftTeamsChannelSuggestionQueryVariables
+>
 export const GetWorkspaceIsIntegratedWithSlackDocument = gql`
 	query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
 		is_integrated_with_slack: is_integrated_with(
@@ -10926,6 +11003,62 @@ export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithSlackQuery,
 	Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithMicrosoftTeamsDocument = gql`
+	query GetWorkspaceIsIntegratedWithMicrosoftTeams($project_id: ID!) {
+		is_integrated_with_microsoft_teams: is_integrated_with(
+			integration_type: MicrosoftTeams
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>(GetWorkspaceIsIntegratedWithMicrosoftTeamsDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithMicrosoftTeamsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>(GetWorkspaceIsIntegratedWithMicrosoftTeamsDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryHookResult =
+	ReturnType<typeof useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery>
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsLazyQueryHookResult =
+	ReturnType<typeof useGetWorkspaceIsIntegratedWithMicrosoftTeamsLazyQuery>
+export type GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryResult =
+	Apollo.QueryResult<
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
+		Types.GetWorkspaceIsIntegratedWithMicrosoftTeamsQueryVariables
+	>
 export const GetWorkspaceIsIntegratedWithLinearDocument = gql`
 	query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 		is_integrated_with_linear: is_integrated_with(
@@ -11916,6 +12049,9 @@ export const GetLogAlertDocument = gql`
 			DiscordChannelsToNotify {
 				...DiscordChannelFragment
 			}
+			MicrosoftTeamsChannelsToNotify {
+				...MicrosoftTeamsChannelFragment
+			}
 			WebhookDestinations {
 				url
 				authorization
@@ -11936,6 +12072,7 @@ export const GetLogAlertDocument = gql`
 		}
 	}
 	${DiscordChannelFragmentFragmentDoc}
+	${MicrosoftTeamsChannelFragmentFragmentDoc}
 `
 
 /**
@@ -11994,9 +12131,16 @@ export const GetLogAlertsPagePayloadDocument = gql`
 			integration_type: Discord
 			project_id: $project_id
 		)
+		is_integrated_with_microsoft_teams: is_integrated_with(
+			integration_type: MicrosoftTeams
+			project_id: $project_id
+		)
 		slack_channel_suggestion(project_id: $project_id) {
 			webhook_channel
 			webhook_channel_id
+		}
+		microsoft_teams_channel_suggestions(project_id: $project_id) {
+			...MicrosoftTeamsChannelFragment
 		}
 		discord_channel_suggestions(project_id: $project_id) {
 			...DiscordChannelFragment
@@ -12014,6 +12158,7 @@ export const GetLogAlertsPagePayloadDocument = gql`
 			value
 		}
 	}
+	${MicrosoftTeamsChannelFragmentFragmentDoc}
 	${DiscordChannelFragmentFragmentDoc}
 `
 
@@ -12075,12 +12220,19 @@ export const GetAlertsPagePayloadDocument = gql`
 			integration_type: Discord
 			project_id: $project_id
 		)
+		is_integrated_with_microsoft_teams: is_integrated_with(
+			integration_type: MicrosoftTeams
+			project_id: $project_id
+		)
 		slack_channel_suggestion(project_id: $project_id) {
 			webhook_channel
 			webhook_channel_id
 		}
 		discord_channel_suggestions(project_id: $project_id) {
 			...DiscordChannelFragment
+		}
+		microsoft_teams_channel_suggestions(project_id: $project_id) {
+			...MicrosoftTeamsChannelFragment
 		}
 		admins: workspace_admins_by_project_id(project_id: $project_id) {
 			admin {
@@ -12101,6 +12253,9 @@ export const GetAlertsPagePayloadDocument = gql`
 			}
 			DiscordChannelsToNotify {
 				...DiscordChannelFragment
+			}
+			MicrosoftTeamsChannelsToNotify {
+				...MicrosoftTeamsChannelFragment
 			}
 			WebhookDestinations {
 				url
@@ -12174,6 +12329,9 @@ export const GetAlertsPagePayloadDocument = gql`
 			DiscordChannelsToNotify {
 				...DiscordChannelFragment
 			}
+			MicrosoftTeamsChannelsToNotify {
+				...MicrosoftTeamsChannelFragment
+			}
 			CountThreshold
 			DailyFrequency
 			disabled
@@ -12190,6 +12348,7 @@ export const GetAlertsPagePayloadDocument = gql`
 		}
 	}
 	${DiscordChannelFragmentFragmentDoc}
+	${MicrosoftTeamsChannelFragmentFragmentDoc}
 	${SessionAlertFragmentFragmentDoc}
 `
 

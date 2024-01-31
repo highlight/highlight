@@ -637,6 +637,7 @@ mutation CreateErrorAlert(
 	$slack_channels: [SanitizedSlackChannelInput]!
 	$discord_channels: [DiscordChannelInput!]!
 	$webhook_destinations: [WebhookDestinationInput!]!
+	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$emails: [String]!
 	$environments: [String]!
 	$regex_groups: [String]!
@@ -649,6 +650,7 @@ mutation CreateErrorAlert(
 		name: $name
 		slack_channels: $slack_channels
 		discord_channels: $discord_channels
+		microsoft_teams_channels: $microsoft_teams_channels
 		webhook_destinations: $webhook_destinations
 		emails: $emails
 		environments: $environments
@@ -810,6 +812,7 @@ mutation UpdateErrorAlert(
 	$threshold_window: Int
 	$slack_channels: [SanitizedSlackChannelInput]
 	$discord_channels: [DiscordChannelInput!]!
+	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
 	$webhook_destinations: [WebhookDestinationInput!]!
 	$emails: [String]
 	$environments: [String]
@@ -824,6 +827,7 @@ mutation UpdateErrorAlert(
 		count_threshold: $count_threshold
 		slack_channels: $slack_channels
 		discord_channels: $discord_channels
+		microsoft_teams_channels: $microsoft_teams_channels
 		webhook_destinations: $webhook_destinations
 		emails: $emails
 		environments: $environments
@@ -838,6 +842,10 @@ mutation UpdateErrorAlert(
 			webhook_channel_id
 		}
 		DiscordChannelsToNotify {
+			id
+			name
+		}
+		MicrosoftTeamsChannelsToNotify {
 			id
 			name
 		}

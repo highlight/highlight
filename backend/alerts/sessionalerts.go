@@ -5,8 +5,8 @@ import (
 
 	"github.com/openlyinc/pointy"
 
+	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
-
 	"github.com/pkg/errors"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
@@ -109,8 +109,9 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		TrackProperties: &trackPropertiesString,
 		ExcludeRules:    excludeRulesString,
 		AlertIntegrations: model.AlertIntegrations{
-			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
-			WebhookDestinations:     webhook.GQLInputToGo(input.WebhookDestinations),
+			DiscordChannelsToNotify:        discord.GQLInputToGo(input.DiscordChannels),
+			MicrosoftTeamsChannelsToNotify: microsoft_teams.GQLInputToGo(input.MicrosoftTeamsChannels),
+			WebhookDestinations:            webhook.GQLInputToGo(input.WebhookDestinations),
 		},
 	}, nil
 }

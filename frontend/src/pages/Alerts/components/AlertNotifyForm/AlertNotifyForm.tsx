@@ -47,6 +47,14 @@ const AlertNotifyForm = () => {
 			id: email,
 		}))
 
+	const microsoftTeamsChannels = (
+		alertsPayload?.microsoft_teams_channel_suggestions ?? []
+	).map(({ name, id }) => ({
+		displayValue: name,
+		value: id,
+		id: id,
+	}))
+
 	return (
 		<Stack gap="12">
 			<Box cssClass={styles.sectionHeader}>
@@ -128,6 +136,43 @@ const AlertNotifyForm = () => {
 					mode="multiple"
 					labelInValue
 					value={formStore.getValue(formStore.names.discordChannels)}
+				/>
+			</Form.NamedSection>
+
+			<Form.NamedSection
+				label="Microsoft Teams channels to notify"
+				name={formStore.names.microsoftTeamsChannels}
+			>
+				<Select
+					aria-label="Microsoft Teams channels to notify"
+					placeholder="Select Microsoft Teams channels"
+					options={microsoftTeamsChannels}
+					optionFilterProp="label"
+					onChange={(values) => {
+						formStore.setValue(
+							formStore.names.microsoftTeamsChannels,
+							values.map((v: any) => ({
+								name: v.label,
+								id: v.value,
+								...v,
+							})),
+						)
+					}}
+					notFoundContent={
+						microsoftTeamsChannels.length === 0 ? (
+							<Link to="/integrations">
+								Connect Highlight with Microsoft Teams
+							</Link>
+						) : (
+							'Microsoft Teams channel not found'
+						)
+					}
+					className={styles.selectContainer}
+					mode="multiple"
+					labelInValue
+					value={formStore.getValue(
+						formStore.names.microsoftTeamsChannels,
+					)}
 				/>
 			</Form.NamedSection>
 
