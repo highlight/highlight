@@ -5715,7 +5715,7 @@ func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query
 
 	q := fmt.Sprintf(`
 select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
-       count(*)                                                        as num_sessions,
+       count(distinct ID)                                              as num_sessions,
        count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
        count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
        avg(ActiveLength) / 1000 / 60                                   as avg_active_length_mins,
