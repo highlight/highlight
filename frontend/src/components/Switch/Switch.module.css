@@ -33,7 +33,7 @@
 	background: var(--color-gray-400);
 
 	&:global(.ant-switch-checked) {
-		background: var(--color-purple);
+		background: #744ed4;
 
 		&.red {
 			background: var(--color-red);

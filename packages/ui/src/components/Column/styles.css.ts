@@ -56,6 +56,8 @@ const negativeMarginValues: { [K in Space]: string } = {
 	'28': '-28px',
 	'32': '-32px',
 	'40': '-40px',
+	'44': '-44px',
+	'48': '-48px',
 } as const
 
 export const negativeMargins = {

@@ -27,6 +27,7 @@ import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
+import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
 interface Props {
 	code: string
@@ -77,6 +78,47 @@ const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
 			}
 		})()
 	}, [code, projectId, next, addSlackToWorkspace, setLoadingState, navigate])
+
+	return null
+}
+
+const MicrosoftTeamsIntegrationCallback = ({
+	code,
+	projectId,
+	next,
+}: Props) => {
+	const navigate = useNavigate()
+	const { setLoadingState } = useAppLoadingContext()
+
+	const { addMicrosoftTeamsToWorkspace } = useMicrosoftTeamsBot()
+	useEffect(() => {
+		let nextUrl = '/integrations'
+		;(async () => {
+			try {
+				if (!projectId || !code) return
+
+				if (next) {
+					nextUrl = `/${projectId}/${next}`
+				} else {
+					nextUrl = `/${projectId}/integrations`
+				}
+
+				await addMicrosoftTeamsToWorkspace(code, projectId)
+			} catch (e: any) {
+				logError(e)
+			} finally {
+				navigate(nextUrl)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [
+		code,
+		projectId,
+		next,
+		addMicrosoftTeamsToWorkspace,
+		setLoadingState,
+		navigate,
+	])
 
 	return null
 }
@@ -412,36 +454,45 @@ const IntegrationAuthCallbackPage = () => {
 		}
 	}, [isAuthLoading, setLoadingState])
 
-	const { code, projectId, workspaceId, next, installationId, setupAction } =
-		useMemo(() => {
-			const urlParams = new URLSearchParams(window.location.search)
-			const code = urlParams.get('code')!
-			const state = urlParams.get('state') || ''
-			const installationId = urlParams.get('installation_id') || ''
-			const setupAction = urlParams.get('setup_action') || ''
-			let projectId: string | undefined = undefined
-			let next: string | undefined = undefined
-			let workspaceId: string | undefined = undefined
-			if (state) {
-				let parsedState: any
-				try {
-					parsedState = JSON.parse(atob(state))
-				} catch (e) {
-					parsedState = JSON.parse(state)
-				}
-				projectId = parsedState['project_id']
-				next = parsedState['next']
-				workspaceId = parsedState['workspace_id']
+	const {
+		code,
+		projectId,
+		workspaceId,
+		next,
+		installationId,
+		setupAction,
+		tenantId,
+	} = useMemo(() => {
+		const urlParams = new URLSearchParams(window.location.search)
+		const code = urlParams.get('code')!
+		const tenantId = urlParams.get('tenant')!
+		const state = urlParams.get('state') || ''
+		const installationId = urlParams.get('installation_id') || ''
+		const setupAction = urlParams.get('setup_action') || ''
+		let projectId: string | undefined = undefined
+		let next: string | undefined = undefined
+		let workspaceId: string | undefined = undefined
+		if (state) {
+			let parsedState: any
+			try {
+				parsedState = JSON.parse(atob(state))
+			} catch (e) {
+				parsedState = JSON.parse(state)
 			}
-			return {
-				code,
-				projectId,
-				next,
-				workspaceId,
-				installationId,
-				setupAction,
-			}
-		}, [])
+			projectId = parsedState['project_id']
+			next = parsedState['next']
+			workspaceId = parsedState['workspace_id']
+		}
+		return {
+			code,
+			projectId,
+			next,
+			workspaceId,
+			installationId,
+			setupAction,
+			tenantId,
+		}
+	}, [])
 
 	const name = integrationName?.toLowerCase() || ''
 
@@ -514,6 +565,14 @@ const IntegrationAuthCallbackPage = () => {
 			return (
 				<SlackIntegrationCallback
 					code={code}
+					projectId={projectId}
+					next={next}
+				/>
+			)
+		case 'microsoft_teams':
+			return (
+				<MicrosoftTeamsIntegrationCallback
+					code={tenantId}
 					projectId={projectId}
 					next={next}
 				/>

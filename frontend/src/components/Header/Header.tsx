@@ -1002,8 +1002,8 @@ const BillingBanner: React.FC = () => {
 
 	if (!bannerMessage && !hasTrial) {
 		const isLaunchWeek = moment().isBetween(
-			'2023-10-16T16:00:00Z', // 10/16/2023 9AM PST
-			'2023-10-21T16:00:00Z',
+			'2024-01-29T16:00:00Z', // 9AM PST
+			'2024-02-03T16:00:00Z',
 		)
 		if (isLaunchWeek) {
 			return <LaunchWeekBanner />
@@ -1111,10 +1111,10 @@ const LaunchWeekBanner = () => {
 
 	const bannerMessage = (
 		<span>
-			Launch Week 3 is here.{' '}
+			Launch Week 4 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/launch/week-3"
+				href="https://www.highlight.io/launch/week-4"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

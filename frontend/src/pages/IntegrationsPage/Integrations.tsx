@@ -18,6 +18,7 @@ import HeightListSelector from '@pages/IntegrationsPage/components/HeightIntegra
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import LinearTeamSelector from '@pages/IntegrationsPage/components/LinearIntegration/LinearTeamSelector'
+import MicrosoftTeamsIntegrationConfig from '@pages/IntegrationsPage/components/MicrosoftTeamsIntegration/MicrosoftTeamsIntegrationConfig'
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
 import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
@@ -37,6 +38,7 @@ import GitlabLogo from '@/static/integrations/gitlab.png'
 import HeightLogo from '@/static/integrations/height.svg'
 import JiraLogo from '@/static/integrations/jira.png'
 import LinearLogo from '@/static/integrations/linear.png'
+import MicrosoftTeamsLogo from '@/static/integrations/microsoft-teams.jpeg'
 import SlackLogo from '@/static/integrations/slack.png'
 import VercelLogo from '@/static/integrations/vercel-icon-dark.svg'
 import ZapierLogo from '@/static/integrations/zapier.png'
@@ -70,17 +72,28 @@ export const SLACK_INTEGRATION: Integration = {
 	name: 'Slack',
 	configurationPath: 'slack',
 	description:
-		'Bring your Highlight comments and alerts to slack as messages.',
+		'Bring your highlight.io comments and alerts to Slack as messages.',
 	icon: SlackLogo,
 	configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
 	hasSettings: false,
+}
+
+export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
+	key: 'microsoft_teams',
+	name: 'Microsoft Teams',
+	configurationPath: 'microsoft_teams',
+	description: 'Receive highlight.io alerts via Microsoft Teams messages.',
+	icon: MicrosoftTeamsLogo,
+	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
+	hasSettings: false,
+	onlyShowForHighlightAdmin: true,
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	key: 'linear',
 	name: 'Linear',
 	configurationPath: 'linear',
-	description: 'Bring your Highlight comments to Linear as issues.',
+	description: 'Bring your highlight.io comments to Linear as issues.',
 	icon: LinearLogo,
 	configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
 	hasSettings: false,
@@ -94,7 +107,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 	key: 'jira',
 	name: 'Jira',
 	configurationPath: 'jira',
-	description: 'Bring your Highlight comments to Jira as issues.',
+	description: 'Bring your highlight.io comments to Jira as issues.',
 	icon: JiraLogo,
 	configurationPage: (opts) => <JiraIntegrationConfig {...opts} />,
 	hasSettings: false,
@@ -108,7 +121,7 @@ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 	key: 'gitlab',
 	name: 'GitLab',
 	configurationPath: 'gitlab',
-	description: 'Bring your Highlight comments to GitLab as issues.',
+	description: 'Bring your highlight.io comments to GitLab as issues.',
 	icon: GitlabLogo,
 	configurationPage: (opts) => <GitlabIntegrationConfig {...opts} />,
 	hasSettings: false,
@@ -123,7 +136,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 	name: 'Zapier',
 	configurationPath: 'zapier',
 	onlyShowForHighlightAdmin: true,
-	description: 'Use Highlight alerts to trigger a Zap.',
+	description: 'Use highlight.io alerts to trigger a Zap.',
 	icon: ZapierLogo,
 	configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
 	hasSettings: false,
@@ -176,7 +189,7 @@ export const DISCORD_INTEGRATION: Integration = {
 	key: 'discord',
 	name: 'Discord',
 	configurationPath: 'discord',
-	description: 'Bring your Highlight alerts to discord as messages.',
+	description: 'Bring your highlight.io alerts to Discord as messages.',
 	icon: DiscordLogo,
 	configurationPage: (opts) => <DiscordIntegrationConfig {...opts} />,
 	hasSettings: false,
@@ -186,7 +199,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	key: 'clickup',
 	name: 'ClickUp',
 	configurationPath: 'clickup',
-	description: 'Create ClickUp tasks from your Highlight comments.',
+	description: 'Create ClickUp tasks from your highlight.io comments.',
 	configurationPage: (opts) => <ClickUpIntegrationConfig {...opts} />,
 	icon: ClickupLogo,
 	hasSettings: true,
@@ -201,7 +214,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	key: 'height',
 	name: 'Height',
 	configurationPath: 'height',
-	description: 'Create Height tasks from your Highlight comments.',
+	description: 'Create Height tasks from your highlight.io comments.',
 	configurationPage: (opts) => <HeightIntegrationConfig {...opts} />,
 	icon: HeightLogo,
 	hasSettings: true,
@@ -239,6 +252,7 @@ const INTEGRATIONS: Integration[] = [
 	HEIGHT_INTEGRATION,
 	GITHUB_INTEGRATION,
 	JIRA_INTEGRATION,
+	MICROSOFT_TEAMS_INTEGRATION,
 	GITLAB_INTEGRATION,
 ]
 

@@ -3,20 +3,21 @@ package kafka_queue
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/util"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
-	"github.com/segmentio/encoding/json"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/util"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 )
 
 // KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
@@ -350,7 +351,7 @@ func (p *Queue) Receive(ctx context.Context) (msg *Message) {
 	}
 	msg, err = p.deserializeMessage(m.Value)
 	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to deserialize message"))
+		log.WithContext(ctx).WithField("topic", p.Topic).WithField("partition", m.Partition).WithField("msgBytes", len(m.Value)).Error(errors.Wrap(err, "failed to deserialize message"))
 		return nil
 	}
 	msg.KafkaMessage = &m
@@ -456,6 +457,9 @@ func (p *Queue) serializeMessage(msg *Message) (compressed []byte, err error) {
 }
 
 func (p *Queue) deserializeMessage(compressed []byte) (msg *Message, error error) {
+	if int64(len(compressed)) >= p.MessageSizeBytes {
+		return nil, errors.New("message too large")
+	}
 	if err := json.Unmarshal(compressed, &msg); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshall msg")
 	}

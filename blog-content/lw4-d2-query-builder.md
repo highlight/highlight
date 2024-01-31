@@ -10,14 +10,14 @@ authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
 authorPFP: 'https://firebasestorage.googleapis.com/v0/b/quiver-pixels-2020.appspot.com/o/F1EQ3eaBqkbEKEHBigolXIlmdut2%2F1408a808-60a6-4102-b636-08ab24041503.jpeg?alt=media&token=5f0ed5d8-c192-4aa3-a75b-3eb6cac9a552'
-image: '/images/blog/launch-week/4/d1-splash.png'
+image: '/images/blog/launch-week/4/d2-splash.png'
 tags: Launch Week 4
 metaTitle: "Day 2: Supercharging the Highlight Query Builder"
 ---
 
 ## Parsing Biggish Data
 
-It's not Bit Data™ by any means, but Highlight generates a figurative avalanche of observability data every single day.
+It's not Big Data™ by any means, but Highlight generates a figurative avalanche of observability data every single day.
 
 We recently added Traces to our portfolio, multiplying our database rows yet again.
 
