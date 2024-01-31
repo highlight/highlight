@@ -13,8 +13,9 @@ type Props = {
 }
 
 const LogMessage = ({ message, expanded, queryParts }: Props) => {
-	const searchWords =
-		queryParts.find((qt) => qt.key === BODY_KEY)?.value.split(' ') || []
+	const searchWords = queryParts
+		.filter((qt) => qt.key === BODY_KEY)
+		.map((qt) => qt.value.replace(/^"|"$/g, ''))
 
 	return (
 		<Text
