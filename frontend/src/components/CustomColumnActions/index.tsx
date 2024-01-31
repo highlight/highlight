@@ -88,7 +88,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 	}
 
 	const resetSize = () => {
-		trackEvent('reset')
+		trackEvent('resetSize')
 		const newColumns = [...selectedColumns]
 
 		const newSize =
