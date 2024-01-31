@@ -321,7 +321,7 @@ const LogsTableInner = ({
 								alignItems="center"
 								justifyContent="space-between"
 							>
-								{header.component}
+								<Text lines="1">{header.component}</Text>
 								{header.showActions && (
 									<CustomColumnActions
 										columnId={header.id}
