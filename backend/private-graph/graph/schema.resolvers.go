@@ -1424,6 +1424,11 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, err
 	}
 
+	// remove used code so that it cannot be associated with another workspace
+	if err := r.Redis.Cache.Delete(ctx, code); err != nil {
+		return nil, err
+	}
+
 	return pointy.Bool(true), nil
 }
 
