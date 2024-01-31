@@ -1,12 +1,10 @@
 // src/pages/Player/RightPlayerPanel/style.css.ts
 var RIGHT_PANEL_WIDTH = 300;
-var playerRightColumn = "ltrwrc0";
-var playerRightPanelContainerHidden = "ltrwrc1";
-var tabContentContainer = "ltrwrc2";
-var tabs = "ltrwrc3";
+var playerRightPanelContainerHidden = "ltrwrc0";
+var tabContentContainer = "ltrwrc1";
+var tabs = "ltrwrc2";
 export {
   RIGHT_PANEL_WIDTH,
-  playerRightColumn,
   playerRightPanelContainerHidden,
   tabContentContainer,
   tabs

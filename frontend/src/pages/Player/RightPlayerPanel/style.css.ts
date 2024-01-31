@@ -2,10 +2,6 @@ import { style } from '@vanilla-extract/css'
 
 export const RIGHT_PANEL_WIDTH = 300
 
-export const playerRightColumn = style({
-	height: `calc(100vh - 108px)`,
-})
-
 export const playerRightPanelContainerHidden = style({
 	position: 'fixed',
 	left: '100%',
