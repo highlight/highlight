@@ -314,6 +314,7 @@ const LogsTableInner = ({
 							selectedColumns={selectedColumns}
 							setSelectedColumns={setSelectedColumns!}
 							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
+							trackingIdPrefix="LogsTableColumn"
 						/>
 					))}
 				</Table.Row>

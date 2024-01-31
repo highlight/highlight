@@ -227,6 +227,7 @@ export const TracesList: React.FC<Props> = ({
 							selectedColumns={selectedColumns}
 							setSelectedColumns={setSelectedColumns!}
 							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
+							trackingIdPrefix="TracesTableColumn"
 						/>
 					))}
 				</Table.Row>

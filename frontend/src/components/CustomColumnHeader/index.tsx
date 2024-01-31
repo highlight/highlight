@@ -16,6 +16,7 @@ type Props = {
 	selectedColumns: ValidCustomColumn[]
 	setSelectedColumns: (columns: ValidCustomColumn[]) => void
 	standardColumns: Record<string, ValidCustomColumn>
+	trackingIdPrefix: string
 }
 
 const MINIMUM_COLUMN_WIDTH = 50
@@ -25,6 +26,7 @@ export const CustomColumnHeader: React.FC<Props> = ({
 	selectedColumns,
 	setSelectedColumns,
 	standardColumns,
+	trackingIdPrefix,
 }) => {
 	const headerRef = useRef<HTMLDivElement>(null)
 
@@ -84,7 +86,7 @@ export const CustomColumnHeader: React.FC<Props> = ({
 						columnId={header.id}
 						selectedColumns={selectedColumns}
 						setSelectedColumns={setSelectedColumns}
-						trackingId="TracesTableColumn"
+						trackingId={trackingIdPrefix}
 						standardColumns={standardColumns}
 					/>
 				)}
