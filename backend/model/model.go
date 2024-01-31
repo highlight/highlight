@@ -135,6 +135,7 @@ var ContextKeys = struct {
 }
 
 var Models = []interface{}{
+	&AWSMarketplaceCustomer{},
 	&MessagesObject{},
 	&EventsObject{},
 	&ErrorObject{},

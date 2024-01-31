@@ -82,7 +82,7 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 
 		updates := map[string]interface{}{}
 		if msg.Action == subscribeSuccess && msg.ProductCode == awsGraduatedProductId {
-			updates["PlanTier"] = model2.PlanTypeGraduated
+			updates["PlanTier"] = model2.PlanTypeUsageBased
 		} else if msg.Action == subscribeFail || msg.Action == unsubscribePending || msg.Action == unsubscribeSuccess {
 			updates["PlanTier"] = model2.PlanTypeFree
 		}

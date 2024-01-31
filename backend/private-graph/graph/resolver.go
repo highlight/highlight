@@ -1294,8 +1294,15 @@ func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
 }
 
 func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspace *model.Workspace, customer *marketplacemetering.ResolveCustomerOutput) error {
-	// TODO(vkorolik) get product metadata and apply it
-	return nil
+	log.WithContext(ctx).WithField("workspace_id", workspace.ID).WithField("customer", *customer).Info("billing update for aws mp")
+	now := time.Now()
+	end := time.Now().AddDate(0, 1, 0)
+	return r.updateBillingDetails(ctx, workspace, &planDetails{
+		tier:               pricing.AWSMPProducts[*customer.ProductCode],
+		unlimitedMembers:   true,
+		billingPeriodStart: &now,
+		billingPeriodEnd:   &end,
+	})
 }
 
 func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustomerID string) error {
@@ -1368,7 +1375,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
+	if _, err := pricing.NewWorker(r.DB, r.Redis, r.Store, r.ClickhouseClient, r.StripeClient, r.AWSMPClient, r.MailClient).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "BILLING_ERROR error reporting usage after updating details")
 	}
 
@@ -1777,8 +1784,10 @@ func (r *Resolver) AWSMPCallback(ctx context.Context) func(http.ResponseWriter, 
 
 		secret, _ := r.GenerateRandomStringURLSafe(64)
 		if err := r.Redis.Cache.Set(&cache.Item{
+			Ctx:   ctx,
 			Key:   secret,
 			Value: customer,
+			TTL:   7 * 24 * time.Hour,
 		}); err != nil {
 			log.WithContext(ctx).WithError(err).Error("invalid aws marketplace request: failed to write redis customer token")
 			w.WriteHeader(http.StatusBadRequest)
