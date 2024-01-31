@@ -13,9 +13,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 
+	"github.com/highlight-run/highlight/backend/queryparser"
+
 	"github.com/aws/smithy-go/ptr"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 func TestMain(m *testing.M) {
@@ -552,7 +555,7 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 	now := time.Now()
 	rows := []*LogRow{
 		NewLogRow(now, 1, WithBody(ctx, "body with space")),
-		NewLogRow(now, 1, WithBody(ctx, "STRIPE_INTEGRATION_ERROR cannot report usage - customer has no subscriptions")),
+		NewLogRow(now, 1, WithBody(ctx, "BILLING_ERROR cannot report usage - customer has no subscriptions")),
 		NewLogRow(now, 1, WithBody(ctx, "STRIPE-INTEGRATION-ERROR cannot report usage - customer has no subscriptions")),
 	}
 
@@ -588,7 +591,7 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "STRIPE_INTEGRATION_ERROR", // ensure we escape "_" correctly
+		Query:     "BILLING_ERROR", // ensure we escape "_" correctly
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)

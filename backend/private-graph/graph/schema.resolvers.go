@@ -24,6 +24,19 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/lib/pq"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v76"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
@@ -48,20 +61,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	highlight "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sashabaranov/go-openai"
-	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v76"
-	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // Author is the resolver for the author field.
@@ -1307,12 +1308,12 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
-		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - couldn't retrieve stripe customer data")
+		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - couldn't retrieve stripe customer data")
 	}
 
 	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
 	if len(c.Subscriptions.Data) > 1 {
-		return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - customer has multiple subscriptions")
+		return nil, e.New("BILLING_ERROR cannot update stripe subscription - customer has multiple subscriptions")
 	}
 
 	subscriptions := c.Subscriptions.Data
@@ -1325,7 +1326,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	// default to unlimited members pricing
 	prices, err := pricing.GetStripePrices(r.StripeClient, workspace, modelInputs.PlanTypeGraduated, pricingInterval, true, &defaultRetention, &defaultRetention)
 	if err != nil {
-		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
+		return nil, e.Wrap(err, "BILLING_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
 
 	newBasePrice := prices[model.PricingProductTypeBase]
@@ -1334,16 +1335,16 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	if len(subscriptions) == 1 {
 		subscription := subscriptions[0]
 		if len(subscription.Items.Data) != 1 {
-			return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - subscription has multiple products")
+			return nil, e.New("BILLING_ERROR cannot update stripe subscription - subscription has multiple products")
 		}
 
 		subscriptionItem := subscription.Items.Data[0]
 		productType, _, _, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
 		if productType == nil {
-			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - nil product from sub %s price %s", subscription.ID, subscriptionItem.Price.ID))
+			return nil, e.New(fmt.Sprintf("BILLING_ERROR cannot update stripe subscription - nil product from sub %s price %s", subscription.ID, subscriptionItem.Price.ID))
 		}
 		if *productType != model.PricingProductTypeBase {
-			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product from sub %s price %s: %s", subscription.ID, subscriptionItem.Price.ID, *productType))
+			return nil, e.New(fmt.Sprintf("BILLING_ERROR cannot update stripe subscription - expecting base product from sub %s price %s: %s", subscription.ID, subscriptionItem.Price.ID, *productType))
 		}
 
 		subscriptionParams := &stripe.SubscriptionParams{
@@ -1391,6 +1392,30 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	return &stripeSession.ID, nil
 }
 
+// HandleAWSMarketplace is the resolver for the handleAWSMarketplace field.
+func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID int, token string) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return nil, err
+	}
+
+	customer, err := r.ResolveAWSMarketplaceToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.updateAWSMPBillingDetails(ctx, workspace, customer)
+	if err != nil {
+		return nil, err
+	}
+
+	return pointy.Bool(true), nil
+}
+
 // UpdateBillingDetails is the resolver for the updateBillingDetails field.
 func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
@@ -1402,7 +1427,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
-	if err := r.updateBillingDetails(ctx, *workspace.StripeCustomerID); err != nil {
+	if err := r.updateStripeBillingDetails(ctx, *workspace.StripeCustomerID); err != nil {
 		return nil, e.Wrap(err, "error updating billing details")
 	}
 

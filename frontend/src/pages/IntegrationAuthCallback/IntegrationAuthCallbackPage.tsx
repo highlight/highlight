@@ -415,6 +415,19 @@ const GitHubIntegrationCallback = ({
 	)
 }
 
+const AWSMPIntegrationCallback = ({
+	id,
+	account,
+	product,
+}: {
+	id?: string
+	account?: string
+	product?: string
+}) => {
+	// TODO(vkorolik)
+	return null
+}
+
 const JiraIntegrationCallback = ({ code, projectId }: Props) => {
 	const { addIntegration } = useJiraIntegration()
 	return (
@@ -462,6 +475,9 @@ const IntegrationAuthCallbackPage = () => {
 		installationId,
 		setupAction,
 		tenantId,
+        id,
+        account,
+        product,
 	} = useMemo(() => {
 		const urlParams = new URLSearchParams(window.location.search)
 		const code = urlParams.get('code')!
@@ -491,6 +507,9 @@ const IntegrationAuthCallbackPage = () => {
 			installationId,
 			setupAction,
 			tenantId,
+            id: urlParams.get('id'),
+            account: urlParams.get('account'),
+            product: urlParams.get('product'),
 		}
 	}, [])
 
@@ -538,6 +557,16 @@ const IntegrationAuthCallbackPage = () => {
 						installationId={installationId}
 						setupAction={setupAction}
 						next={next}
+					/>
+				)
+				break
+			case 'aws-mp':
+				cb = (
+					<AWSMPIntegrationCallback
+						projectId={projectId}
+						id={id}
+						account={account}
+						product={product}
 					/>
 				)
 				break

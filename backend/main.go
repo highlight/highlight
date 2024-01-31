@@ -14,12 +14,10 @@ import (
 	"sync"
 	"time"
 
-	dd "github.com/highlight-run/highlight/backend/datadog"
-
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-
-	"github.com/highlight-run/highlight/backend/embeddings"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -39,6 +37,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v76/client"
 	"gorm.io/gorm"
+
+	dd "github.com/highlight-run/highlight/backend/datadog"
+	"github.com/highlight-run/highlight/backend/embeddings"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
@@ -276,6 +277,12 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to load aws config")
+	}
+	mpm := marketplacemetering.NewFromConfig(cfg)
+
 	var storageClient storage.Client
 	if util.IsInDocker() {
 		log.WithContext(ctx).Info("in docker: using filesystem for object storage")
@@ -334,6 +341,7 @@ func main() {
 		DB:                     db,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
+		AWSMPClient:            mpm,
 		StorageClient:          storageClient,
 		LambdaClient:           lambda,
 		EmbeddingsClient:       embeddings.New(),
@@ -398,6 +406,7 @@ func main() {
 			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
 		})
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, stripeWebhookSecret))
+		r.HandleFunc("/callback/aws-mp", privateResolver.AWSMPCallback(ctx))
 		r.Route("/zapier", func(r chi.Router) {
 			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)
 		})

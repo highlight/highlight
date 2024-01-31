@@ -275,8 +275,9 @@ type Workspace struct {
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	HubspotCompanyID            *int
 	StripeCustomerID            *string
-	PlanTier                    string `gorm:"default:Free"`
-	UnlimitedMembers            bool   `gorm:"default:false"`
+	AWSMarketplaceCustomer      *AWSMarketplaceCustomer `gorm:"foreignKey:WorkspaceID"`
+	PlanTier                    string                  `gorm:"default:Free"`
+	UnlimitedMembers            bool                    `gorm:"default:false"`
 	BillingPeriodStart          *time.Time
 	BillingPeriodEnd            *time.Time
 	NextInvoiceDate             *time.Time
@@ -369,6 +370,14 @@ type WorkspaceAccessRequest struct {
 	Model
 	AdminID                int `gorm:"uniqueIndex"`
 	LastRequestedWorkspace int
+}
+
+type AWSMarketplaceCustomer struct {
+	Model
+	WorkspaceID          int `gorm:"uniqueIndex"`
+	CustomerIdentifier   *string
+	CustomerAWSAccountID *string
+	ProductCode          *string
 }
 
 type Project struct {
