@@ -18,7 +18,6 @@ import {
 	Box,
 	ButtonIcon,
 	Callout,
-	Container,
 	IconSolidExitRight,
 	Text,
 	Tooltip,
@@ -155,12 +154,12 @@ export default function ErrorsV2() {
 				>
 					<Box
 						background="white"
-						border="secondary"
+						border="dividerWeak"
 						borderRadius="6"
 						display="flex"
 						flexDirection="column"
 						height="full"
-						shadow="medium"
+						shadow="small"
 					>
 						<TopBar
 							errorGroup={data?.error_group}
@@ -350,25 +349,27 @@ function ErrorDisplay({
 						</title>
 					</Helmet>
 
-					<div className={styles.errorDetails}>
-						<Container>
-							{loading ? (
-								<LoadingBox />
-							) : (
-								<>
-									<IntegrationCta />
-									<Box pt="24" pb="32">
-										<ErrorTitle errorGroup={errorGroup} />
+					<div className={clsx(styles.errorDetails)}>
+						{loading ? (
+							<LoadingBox />
+						) : (
+							<>
+								<IntegrationCta />
+								<Box
+									pt="24"
+									pb="32"
+									mx="auto"
+									px="20"
+									style={{ maxWidth: 940 }}
+								>
+									<ErrorTitle errorGroup={errorGroup} />
 
-										<ErrorBody errorGroup={errorGroup} />
+									<ErrorBody errorGroup={errorGroup} />
 
-										<ErrorTabContent
-											errorGroup={errorGroup}
-										/>
-									</Box>
-								</>
-							)}
-						</Container>
+									<ErrorTabContent errorGroup={errorGroup} />
+								</Box>
+							</>
+						)}
 					</div>
 				</>
 			)

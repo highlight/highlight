@@ -24,9 +24,7 @@ export const errorDetails = style({
 	borderRadius: '4px',
 	display: 'flex',
 	height: '100%',
-	marginLeft: '0',
 	overflowY: 'scroll',
-	width: '100%',
 })
 
 export const errorMetrics = style({
