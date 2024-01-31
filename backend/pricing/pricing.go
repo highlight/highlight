@@ -806,10 +806,11 @@ func (w *Worker) ReportUsageForWorkspace(ctx context.Context, workspaceID int) (
 }
 
 type WorkspaceUsage = map[model.PricingProductType]int64
-type AWSCustomerUsages = map[int]struct {
+type AWSCustomerUsage struct {
 	Customer *model.AWSMarketplaceCustomer
 	Usage    WorkspaceUsage
 }
+type AWSCustomerUsages = map[int]AWSCustomerUsage
 
 func (w *Worker) reportAWSMPUsages(ctx context.Context, usages AWSCustomerUsages) {
 	var now = time.Now()
@@ -1292,15 +1293,12 @@ func (w *Worker) ReportAllUsage(ctx context.Context) {
 		return
 	}
 
-	var awsWorkspaceUsages AWSCustomerUsages
+	awsWorkspaceUsages := AWSCustomerUsages{}
 	for _, workspace := range workspaces {
 		if usage, err := w.reportUsage(ctx, workspace.ID, nil); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error reporting usage for workspace %d", workspace.ID))
 		} else if workspace.AWSMarketplaceCustomer != nil {
-			awsWorkspaceUsages[workspace.ID] = struct {
-				Customer *model.AWSMarketplaceCustomer
-				Usage    WorkspaceUsage
-			}{workspace.AWSMarketplaceCustomer, usage}
+			awsWorkspaceUsages[workspace.ID] = AWSCustomerUsage{workspace.AWSMarketplaceCustomer, usage}
 		}
 	}
 	w.reportAWSMPUsages(ctx, awsWorkspaceUsages)
