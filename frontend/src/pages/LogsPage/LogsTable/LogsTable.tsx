@@ -312,26 +312,12 @@ const LogsTableInner = ({
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
-						<Table.Header
+						<TableHeader
 							key={header.id}
-							noPadding={header.noPadding}
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								justifyContent="space-between"
-							>
-								<Text lines="1">{header.component}</Text>
-								{header.showActions && (
-									<CustomColumnActions
-										columnId={header.id}
-										selectedColumns={selectedColumns}
-										setSelectedColumns={setSelectedColumns!}
-										trackingId="LogsTableColumn"
-									/>
-								)}
-							</Box>
-						</Table.Header>
+							header={header}
+							selectedColumns={selectedColumns}
+							setSelectedColumns={setSelectedColumns!}
+						/>
 					))}
 				</Table.Row>
 				{enableFetchMoreLogs && (
@@ -499,3 +485,94 @@ const LogsTableRow = React.memo<LogsTableRowProps>(
 		)
 	},
 )
+
+type TableHeaderProps = {
+	header: ColumnHeader
+	selectedColumns: LogCustomColumn[]
+	setSelectedColumns: (columns: LogCustomColumn[]) => void
+}
+
+const TableHeader: React.FC<TableHeaderProps> = ({
+	header,
+	selectedColumns,
+	setSelectedColumns,
+}) => {
+	const headerRef = useRef<HTMLDivElement>(null)
+
+	const columnIndex = useMemo(
+		() => selectedColumns.findIndex((c) => c.id === header.id),
+		[selectedColumns, header.id],
+	)
+
+	const handleDrag = (e: React.MouseEvent) => {
+		const leftElementCoord = headerRef.current?.getBoundingClientRect()
+		const rightElementCoord =
+			headerRef.current?.nextElementSibling?.getBoundingClientRect()
+
+		if (
+			leftElementCoord &&
+			rightElementCoord &&
+			e.pageX > leftElementCoord.left &&
+			e.pageX < rightElementCoord.right
+		) {
+			const leftElementWidth = leftElementCoord.width
+			const rightElementWidth = rightElementCoord.width
+			const leftElementNewWidth = e.pageX - leftElementCoord.left
+			const rightElementNewWidth =
+				rightElementWidth - (leftElementNewWidth - leftElementWidth)
+
+			const newSelectedColumns = [...selectedColumns]
+			newSelectedColumns[columnIndex] = {
+				...newSelectedColumns[columnIndex],
+				size: `${leftElementNewWidth}px`,
+			}
+			newSelectedColumns[columnIndex + 1] = {
+				...newSelectedColumns[columnIndex + 1],
+				size: `${rightElementNewWidth}px`,
+			}
+
+			setSelectedColumns(newSelectedColumns)
+		}
+	}
+
+	const resizeable =
+		header.showActions && columnIndex !== selectedColumns.length - 1
+
+	return (
+		<Table.Header
+			key={header.id}
+			noPadding={header.noPadding}
+			ref={headerRef}
+		>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="space-between"
+			>
+				<Text lines="1">{header.component}</Text>
+				{header.showActions && (
+					<CustomColumnActions
+						columnId={header.id}
+						selectedColumns={selectedColumns}
+						setSelectedColumns={setSelectedColumns}
+						trackingId="TracesTableColumn"
+					/>
+				)}
+			</Box>
+			{resizeable && (
+				<Box
+					style={{
+						position: 'absolute',
+						top: 0,
+						bottom: 0,
+						right: 0,
+						width: 3,
+						cursor: 'col-resize',
+					}}
+					draggable
+					onDrag={handleDrag}
+				/>
+			)}
+		</Table.Header>
+	)
+}

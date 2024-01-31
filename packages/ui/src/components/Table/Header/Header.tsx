@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { forwardRef } from 'react'
 import clsx from 'clsx'
 
 import { Text } from '../../../components/Text/Text'
@@ -10,14 +10,17 @@ export type Props = {
 	noPadding?: boolean
 }
 
-export const Header: React.FC<Props> = ({ children, noPadding }) => {
-	return (
-		<Box
-			cssClass={clsx(styles.header, {
-				[styles.noPadding]: noPadding,
-			})}
-		>
-			<Text size="xSmall">{children}</Text>
-		</Box>
-	)
-}
+export const Header = forwardRef<HTMLDivElement, Props>(
+	({ children, noPadding }, ref) => {
+		return (
+			<Box
+				cssClass={clsx(styles.header, {
+					[styles.noPadding]: noPadding,
+				})}
+				ref={ref}
+			>
+				<Text size="xSmall">{children}</Text>
+			</Box>
+		)
+	},
+)
