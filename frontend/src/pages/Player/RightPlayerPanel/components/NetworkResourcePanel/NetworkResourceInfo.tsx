@@ -232,20 +232,27 @@ export const NetworkResourceInfo = ({
 				} else {
 					parsedResponseBody = JSON.parse(response.body)
 				}
-				Object.keys(parsedResponseBody).forEach((key) => {
-					const renderType =
-						typeof parsedResponseBody[key] === 'object'
-							? 'json'
-							: 'string'
-
+				if (Array.isArray(parsedResponseBody)) {
 					responsePayloadData.push({
-						keyDisplayValue: key,
-						valueDisplayValue:
-							renderType === 'string'
-								? parsedResponseBody[key]?.toString()
-								: parsedResponseBody[key],
+						keyDisplayValue: 'json',
+						valueDisplayValue: parsedResponseBody,
 					})
-				})
+				} else {
+					Object.keys(parsedResponseBody).forEach((key) => {
+						const renderType =
+							typeof parsedResponseBody[key] === 'object'
+								? 'json'
+								: 'string'
+
+						responsePayloadData.push({
+							keyDisplayValue: key,
+							valueDisplayValue:
+								renderType === 'string'
+									? parsedResponseBody[key]?.toString()
+									: parsedResponseBody[key],
+						})
+					})
+				}
 			} catch (e) {
 				responsePayloadData.push({
 					keyDisplayValue: '-',
