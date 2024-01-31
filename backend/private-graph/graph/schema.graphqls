@@ -2035,6 +2035,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2082,6 +2083,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2110,6 +2112,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2127,6 +2130,7 @@ type Query {
 		metric_types: [MetricAggregator!]!
 		group_by: [String!]!
 		bucket_by: String!
+		bucket_count: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String

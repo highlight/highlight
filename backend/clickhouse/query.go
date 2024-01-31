@@ -447,12 +447,21 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string) string {
 	return ""
 }
 
-func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfig sampleableTableConfig[T], projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketCount *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	if len(metricTypes) == 0 {
 		return nil, errors.New("no metric types provided")
 	}
 
+	nBuckets := 48
 	if bucketBy == modelInputs.MetricBucketByNone.String() {
+		nBuckets = 1
+	} else if bucketCount != nil {
+		nBuckets = *bucketCount
+	}
+	if nBuckets > 1000 {
+		nBuckets = 1000
+	}
+	if nBuckets < 1 {
 		nBuckets = 1
 	}
 
@@ -551,9 +560,15 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 		return nil, err
 	}
 
-	limitCount := 100
-	if limit != nil && *limit < 100 {
+	limitCount := 10
+	if limit != nil {
 		limitCount = *limit
+	}
+	if limitCount > 100 {
+		limitCount = 100
+	}
+	if limitCount < 1 {
+		limitCount = 1
 	}
 
 	if limitAggregator != nil && len(groupBy) > 0 {

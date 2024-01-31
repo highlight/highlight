@@ -2154,6 +2154,7 @@ export type QueryErrors_KeysArgs = {
 
 export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2327,6 +2328,7 @@ export type QueryLogs_KeysArgs = {
 
 export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2517,6 +2519,7 @@ export type QuerySessions_KeysArgs = {
 
 export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2596,6 +2599,7 @@ export type QueryTraces_KeysArgs = {
 
 export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
+	bucket_count?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>

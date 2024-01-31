@@ -12,7 +12,8 @@ interface TraceKey {
 }
 
 export function QueryEditor({ query, onChange, datasource }: Props) {
-  const { queryText, table, groupBy, metric, column, bucketBy, limitAggregator, limitColumn, limit } = query;
+  const { queryText, table, groupBy, metric, column, bucketBy, bucketCount, limitAggregator, limitColumn, limit } =
+    query;
 
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, queryText: event.target.value });
@@ -36,6 +37,10 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
 
   const onBucketByChange = (option: SelectableValue<string>) => {
     onChange({ ...query, bucketBy: option.value });
+  };
+
+  const onBucketCountChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange({ ...query, bucketCount: Number(event.target.value) });
   };
 
   const onLimitAggregatorChange = (option: SelectableValue<string>) => {
@@ -140,14 +145,8 @@ export function QueryEditor({ query, onChange, datasource }: Props) {
           />
         </InlineField>
         {bucketBy !== undefined && bucketBy !== 'None' && (
-          <InlineField label="Buckets" labelWidth={10}>
-            <AsyncSelect
-              key={table}
-              defaultOptions
-              value={{ name: bucketBy, label: bucketBy }}
-              onChange={onBucketByChange}
-              loadOptions={(q) => loadBucketByOptions(table, q)}
-            />
+          <InlineField label="Buckets" labelWidth={8}>
+            <Input type="number" value={bucketCount} onChange={onBucketCountChange} width={8} />
           </InlineField>
         )}
       </InlineFieldRow>

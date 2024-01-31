@@ -10,6 +10,7 @@ export interface HighlightQuery extends DataQuery {
   groupBy?: string[];
   queryText?: string;
   bucketBy?: string;
+  bucketCount?: number;
   limitAggregator?: string;
   limitColumn?: string;
   limit?: number;
