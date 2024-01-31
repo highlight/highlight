@@ -1409,6 +1409,16 @@ func (r *mutationResolver) HandleAWSMarketplace(ctx context.Context, workspaceID
 		return nil, err
 	}
 
+	// create customer record with the current frontend workspace context
+	if err := r.DB.WithContext(ctx).Model(&model.AWSMarketplaceCustomer{}).Create(&model.AWSMarketplaceCustomer{
+		WorkspaceID:          workspaceID,
+		CustomerIdentifier:   customer.CustomerIdentifier,
+		CustomerAWSAccountID: customer.CustomerAWSAccountId,
+		ProductCode:          customer.ProductCode,
+	}).Error; err != nil {
+		return nil, err
+	}
+
 	err = r.updateAWSMPBillingDetails(ctx, workspace, &customer)
 	if err != nil {
 		return nil, err
