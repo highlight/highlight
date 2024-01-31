@@ -6,6 +6,17 @@ createdAt: 2023-10-03T00:00:00.000Z
 updatedAt: 2023-10-03T00:00:00.000Z
 ---
 
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/QJkjrIvJ-YI"
+  title="Page Route for Next.js"
+  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>
+
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/4xDCu5jSBxo"
+  title="Next.js API Endpoints"
+  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>
 
 ## Installation
 
