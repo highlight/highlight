@@ -7,18 +7,13 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/openlyinc/pointy"
-	log "github.com/sirupsen/logrus"
-
-	model2 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
-)
-
-var (
-	awsGraduatedProductId = os.Getenv("AWS_MP_GRADUATED_PRODUCT_ID")
+	"github.com/highlight-run/highlight/backend/pricing"
+	model2 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 type Handlers interface {
@@ -81,8 +76,8 @@ func (h *handlers) HandleAWSMarketplaceSQS(ctx context.Context, events events.SQ
 		}
 
 		updates := map[string]interface{}{}
-		if msg.Action == subscribeSuccess && msg.ProductCode == awsGraduatedProductId {
-			updates["PlanTier"] = model2.PlanTypeUsageBased
+		if plan, ok := pricing.AWSMPProducts[msg.ProductCode]; msg.Action == subscribeSuccess && ok {
+			updates["PlanTier"] = plan
 		} else if msg.Action == subscribeFail || msg.Action == unsubscribePending || msg.Action == unsubscribeSuccess {
 			updates["PlanTier"] = model2.PlanTypeFree
 		}
