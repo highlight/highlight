@@ -28,7 +28,6 @@ import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequ
 import ErrorObjectCount from '@pages/ErrorsV2/ErrorBody/components/ErrorObjectCount'
 import ErrorOccurenceDate from '@pages/ErrorsV2/ErrorBody/components/ErrorOccurenceDate'
 import { getHeaderFromError } from '@pages/ErrorsV2/utils'
-import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -105,8 +104,8 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		return header
 	}, [event])
 
-	const { setShowLeftPanel } = useErrorPageConfiguration()
-	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const { showPlayerAbsoluteTime, setShowLeftPanel } =
+		usePlayerConfiguration()
 
 	useHotkeys(
 		'h',
