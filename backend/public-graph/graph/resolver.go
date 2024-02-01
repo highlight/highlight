@@ -2857,7 +2857,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		beaconTime = &now
 	}
 
-	// TODO(spenny): do this for traces too
 	sessionHasErrors := len(errors) > 0
 	// We care about if the session in it's entirety has errors or not.
 	// `ProcessPayload` is run on chunks of a session so we need to check if we've seen any errors

@@ -108,6 +108,11 @@ func (t *TraceRow) WithEnvironment(environment string) *TraceRow {
 	return t
 }
 
+func (t *TraceRow) WithHasErrors(hasErrors bool) *TraceRow {
+	t.HasErrors = hasErrors
+	return t
+}
+
 func (t *TraceRow) WithStatusCode(statusCode string) *TraceRow {
 	t.StatusCode = statusCode
 	return t
