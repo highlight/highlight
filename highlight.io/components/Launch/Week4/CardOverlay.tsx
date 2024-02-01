@@ -4,6 +4,7 @@ import {
 	HiSparkles,
 	HiTemplate,
 	HiTerminal,
+	HiViewGridAdd,
 } from 'react-icons/hi'
 import { Typography } from '../../common/Typography/Typography'
 
@@ -13,6 +14,7 @@ const icons = {
 	3: <HiTemplate className="text-[#6F6E77]" />,
 	4: <HiSparkles className="text-[#6F6E77]" />,
 	5: <HiCube className="text-[#6F6E77]" />,
+	6: <HiViewGridAdd className="text-[#6F6E77]" />,
 }
 
 type IconKeys = keyof typeof icons
