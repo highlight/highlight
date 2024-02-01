@@ -1,5 +1,5 @@
 ---
-toc: Rust
+toc: Rust App
 title: Using highlight.io without a framework in Rust
 slug: other
 quickstart: true
