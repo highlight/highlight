@@ -40,9 +40,7 @@ slug: rust
         </aside>
         <aside className="parameter">
           <h5>logger <code>Box&lt;dyn log::Log&gt;</code> <code>optional</code></h5>
-          <p>The logger Highlight will use to emit to the standard output. By default, Highlight will initialize an
-          <code>env_logger</code> for you, but if you want to provide a custom logger, you can speicfy it here.
-          If you provide a custom logger, do not make it global, as Highlight will do it for you.</p>
+          <p>The logger Highlight will use to emit to the standard output. By default, Highlight will initialize an env_logger for you, but if you want to provide a custom logger, you can speicfy it here. If you provide a custom logger, do not make it global, as Highlight will do it for you.</p>
         </aside>
       </article>
     </aside>
@@ -50,7 +48,6 @@ slug: rust
   <div className="right">
     <code>
         use highlightio::{Highlight, HighlightConfig};
-
         fn main() {
             let h = Highlight::init(HighlightConfig {
                 project_id: "<YOUR_PROJECT_ID>".to_string(),
@@ -103,14 +100,10 @@ slug: rust
   </div>
   <div className="right">
     <code>
-        // ...
-
         let x = match do_something() {
             Ok(x) => x,
             Err(e) => h.capture_error_with_session(&e, session_id, request_id)
         };
-
-        // ...
     </code>
   </div>
 </section>
@@ -118,7 +111,7 @@ slug: rust
 <section className="section">
   <div className="left">
     <h3>Highlight::span</h3>
-    <p>Highlight::span returns a span that carries all of the current Open Telemetry context as its parent span. You can end it with <code>span.end()</code> by importing <code>highlightio::SpanTrait</code>.</p>
+    <p>Highlight::span returns a span that carries all of the current Open Telemetry context as its parent span. You can end it with end() by importing highlightio::SpanTrait.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>name <code>string-like (impl Into&lt;Cow&lt;'static, str&gt;&gt;)</code> <code>required</code></h5>
@@ -133,11 +126,7 @@ slug: rust
   <div className="right">
     <code>
         use highlightio::SpanTrait as _;
-
-        // ...
-
         let span = h.span("custom-span-name");
-        // do some work
         span.end();
     </code>
   </div>
