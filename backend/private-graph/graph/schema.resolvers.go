@@ -7906,13 +7906,15 @@ func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]
 }
 
 // Trace is the resolver for the trace field.
-func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string) (*modelInputs.TracePayload, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
+func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*modelInputs.TracePayload, error) {
+	if _, err := r.canAdminViewSession(ctx, pointy.StringValue(sessionSecureID, "")); err != nil {
+		_, err = r.isAdminInProjectOrDemoProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	trace, err := r.ClickhouseClient.ReadTrace(ctx, project.ID, traceID)
+	trace, err := r.ClickhouseClient.ReadTrace(ctx, projectID, traceID)
 	if err != nil {
 		return nil, err
 	}
@@ -7920,7 +7922,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 	var errors = []*modelInputs.TraceError{}
 	err = r.DB.WithContext(ctx).Model(&model.ErrorObject{}).
 		Joins("JOIN error_groups ON error_objects.error_group_id = error_groups.id").
-		Where("error_objects.trace_id = ? AND error_objects.project_id = ?", traceID, project.ID).
+		Where("error_objects.trace_id = ? AND error_objects.project_id = ?", traceID, projectID).
 		Order("error_objects.timestamp DESC").
 		Select("error_objects.*, error_groups.secure_id as error_group_secure_id").
 		Find(&errors).Error

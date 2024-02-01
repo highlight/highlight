@@ -14512,8 +14512,16 @@ export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
 	Types.FindSimilarErrorsQueryVariables
 >
 export const GetTraceDocument = gql`
-	query GetTrace($project_id: ID!, $trace_id: String!) {
-		trace(project_id: $project_id, trace_id: $trace_id) {
+	query GetTrace(
+		$project_id: ID!
+		$trace_id: String!
+		$session_secure_id: String
+	) {
+		trace(
+			project_id: $project_id
+			trace_id: $trace_id
+			session_secure_id: $session_secure_id
+		) {
 			trace {
 				timestamp
 				traceID
@@ -14562,6 +14570,7 @@ export const GetTraceDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      trace_id: // value for 'trace_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *   },
  * });
  */

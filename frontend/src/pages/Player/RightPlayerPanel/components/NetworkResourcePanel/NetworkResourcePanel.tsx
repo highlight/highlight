@@ -54,6 +54,7 @@ export const NetworkResourcePanel = () => {
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
 
+	const { session } = useReplayerContext()
 	const { resources } = useResourcesContext()
 	const resourceIdx = resources.findIndex(
 		(r) => activeNetworkResourceId === r.id,
@@ -126,7 +127,11 @@ export const NetworkResourcePanel = () => {
 				(resource.initiatorType === 'websocket' ? (
 					<WebSocketDetails resource={resource} hide={hide} />
 				) : (
-					<TraceProvider projectId={projectId} traceId={traceId}>
+					<TraceProvider
+						projectId={projectId}
+						traceId={traceId}
+						session_secure_id={session?.secure_id}
+					>
 						<NetworkResourceDetails
 							resource={resource}
 							hide={hide}

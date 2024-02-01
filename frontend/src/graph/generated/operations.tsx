@@ -4831,6 +4831,7 @@ export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
 export type GetTraceQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	trace_id: Types.Scalars['String']
+	session_secure_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetTraceQuery = { __typename?: 'Query' } & {
