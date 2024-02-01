@@ -2,7 +2,7 @@ import { gql } from 'graphql-request'
 import { GetStaticProps } from 'next'
 import Image from 'next/legacy/image'
 import { useState } from 'react'
-import { AnimateCustomerThumbnail } from '../../components/Animate'
+import { AnimateFadeIn } from '../../components/Animate'
 import { Author } from '../../components/Blog/BlogPost/BlogPost'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
@@ -166,7 +166,7 @@ const CustomerCaseCard = ({
 	return (
 		<div className={styles.caseCard}>
 			<div className={styles.thumbnail}>
-				<AnimateCustomerThumbnail loaded={loaded}>
+				<AnimateFadeIn loaded={loaded}>
 					<Image
 						src={thumbnail}
 						layout="fill"
@@ -175,7 +175,7 @@ const CustomerCaseCard = ({
 						onLoadingComplete={() => setLoaded(true)}
 						priority
 					/>
-				</AnimateCustomerThumbnail>
+				</AnimateFadeIn>
 			</div>
 			<div className={styles.caseDetails}>
 				<div>

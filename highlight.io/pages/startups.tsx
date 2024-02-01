@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { HiCheckCircle } from 'react-icons/hi'
+import { AnimateFadeIn } from '../components/Animate'
 import { PrimaryButton } from '../components/common/Buttons/PrimaryButton'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
@@ -10,12 +11,13 @@ import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import { Typography } from '../components/common/Typography/Typography'
 import { CustomerReel } from '../components/Home/CompaniesReel/CustomerReel'
-import swag from '../public/images/highlightswag.svg'
+import swag from '../public/images/highlightswag.webp'
 import meta from '../public/images/startupherometa.png'
 import hero from '../public/images/startupshero.svg'
 
 const StartupsPage = () => {
 	const [email, setEmail] = useState<string>('')
+	const [heroLoaded, setHeroLoaded] = useState(false)
 
 	return (
 		<div>
@@ -46,7 +48,7 @@ const StartupsPage = () => {
 								funding, you may qualify for up to 1 year of
 								free Highlight usage.
 							</Typography>
-							<div className="flex items-center flex-grow gap-1 p-2 pl-4 mt-4 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light">
+							<div className="flex items-center flex-grow gap-1 p-2 pl-4 mt-4 transition-colors border rounded-lg text-copy-on-dark border-copy-on-light focus-within:border-white">
 								<input
 									type="text"
 									placeholder={'Enter your email'}
@@ -71,13 +73,18 @@ const StartupsPage = () => {
 						</div>
 
 						<div className="flex justify-end">
-							<Image
-								alt=""
-								src={hero}
-								height="424"
-								width="568"
-								className="scale-75"
-							/>
+							<AnimateFadeIn loaded={heroLoaded}>
+								<Image
+									alt=""
+									src={hero}
+									height="424"
+									width="568"
+									className="scale-75"
+									onLoadingComplete={() =>
+										setHeroLoaded(true)
+									}
+								/>
+							</AnimateFadeIn>
 						</div>
 					</div>
 				</Section>
