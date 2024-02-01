@@ -429,7 +429,7 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string) string {
 	case modelInputs.MetricAggregatorCount:
 		return "round(count() * any(_sample_factor))"
 	case modelInputs.MetricAggregatorCountDistinctKey:
-		return fmt.Sprintf("round(count(distinct TraceAttributes['%s']) * any(_sample_factor))", highlight.TraceKeyAttribute)
+		return fmt.Sprintf("round(count(distinct %s) * any(_sample_factor))", column)
 	case modelInputs.MetricAggregatorMin:
 		return fmt.Sprintf("toFloat64(min(%s))", column)
 	case modelInputs.MetricAggregatorAvg:
@@ -480,27 +480,23 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	var config model.TableConfig[T]
 	if useSampling {
 		config = sampleableConfig.samplingTableConfig
-		fromSb, err = makeSelectBuilder(
-			config,
-			nil,
-			projectID,
-			params,
-			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
-		)
 	} else {
 		config = sampleableConfig.tableConfig
-		fromSb, err = makeSelectBuilder(
-			config,
-			nil,
-			projectID,
-			params,
-			Pagination{CountOnly: true},
-			OrderBackwardNatural,
-			OrderForwardNatural,
-		)
 	}
+	for _, metricType := range metricTypes {
+		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
+			config.DefaultFilter = ""
+		}
+	}
+	fromSb, err = makeSelectBuilder(
+		config,
+		nil,
+		projectID,
+		params,
+		Pagination{CountOnly: true},
+		OrderBackwardNatural,
+		OrderForwardNatural,
+	)
 
 	var metricExpr string
 	if col, found := keysToColumns[T(strings.ToLower(column))]; found {
@@ -513,6 +509,20 @@ func readMetrics[T ~string](ctx context.Context, client *Client, sampleableConfi
 	case string(modelInputs.MetricColumnMetricValue):
 		metricExpr = "toFloat64OrZero(Events.Attributes[1]['metric.value'])"
 	case "":
+		metricExpr = "1.0"
+	}
+
+	needsValue := false
+	for _, metricType := range metricTypes {
+		if metricType != modelInputs.MetricAggregatorCount {
+			needsValue = true
+		}
+		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
+			metricExpr = fmt.Sprintf("TraceAttributes['%s']", highlight.TraceKeyAttribute)
+			config.DefaultFilter = ""
+		}
+	}
+	if !needsValue {
 		metricExpr = "1.0"
 	}
 
