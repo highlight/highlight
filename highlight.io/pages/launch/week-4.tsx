@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { BiChevronRight } from 'react-icons/bi'
 import { BsTwitter } from 'react-icons/bs'
@@ -15,7 +14,7 @@ import HiddenDay from '../../components/Launch/Week4/HiddenDay'
 import preview from '../../public/images/launch/week-4/meta.png'
 
 const LaunchPage = () => {
-	const day = 2
+	const day = 4
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
@@ -71,7 +70,7 @@ const LaunchPage = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 max-w-[550px] md:max-w-[1200px] mx-auto px-4 md:px-8">
+				<div className="grid grid-cols-1 lg:grid-cols-2 max-w-[550px] md:max-w-[1200px] mx-auto px-4 md:px-8">
 					<Link
 						onClick={(e) => {
 							e.preventDefault()
@@ -88,7 +87,7 @@ const LaunchPage = () => {
 
 					<Link
 						href="https://twitter.com/highlightio?lang=en"
-						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-x-[1px] md:border-x-transparent md:border-y-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all"
+						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-x-[1px] md:border-l-transparent border-b-[1px] md:border-y-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<BsTwitter className="w-6 h-6" />
@@ -99,23 +98,23 @@ const LaunchPage = () => {
 						<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded-[6px]" />
 					</Link>
 
-					<Link
-						href="https://news.ycombinator.com/item?id=37675894"
-						className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all"
-					>
-						<div className="flex gap-3 items-center">
-							<Image
-								src="/images/companies/icons/hackernews.svg"
-								alt=""
-								width={24}
-								height={24}
-							/>
-							<Typography type="copy4" emphasis>
-								Check in on Hacker News
-							</Typography>
-						</div>
-						<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded" />
-					</Link>
+					{/* <Link */}
+					{/* 	href="https://news.ycombinator.com/item?id=37675894" */}
+					{/* 	className="z-50 flex justify-between items-center text-[#1A1523] text-opacity-70 p-4 w-full border-[1px] border-[#C8C7CB] flex-shrink-0 hover:text-opacity-100 transition-all" */}
+					{/* > */}
+					{/* 	<div className="flex gap-3 items-center"> */}
+					{/* 		<Image */}
+					{/* 			src="/images/companies/icons/hackernews.svg" */}
+					{/* 			alt="" */}
+					{/* 			width={24} */}
+					{/* 			height={24} */}
+					{/* 		/> */}
+					{/* 		<Typography type="copy4" emphasis> */}
+					{/* 			Check in on Hacker News */}
+					{/* 		</Typography> */}
+					{/* 	</div> */}
+					{/* 	<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded" /> */}
+					{/* </Link> */}
 				</div>
 				<div className="flex flex-col items-center w-full max-w-[550px] md:max-w-[1200px] mx-auto px-4 md:px-8">
 					<DayOne />

@@ -54,7 +54,7 @@ const DayFour = () => {
 					</Link>
 					<a
 						className="flex flex-shrink-0 items-center gap-1 border border-[#E4E2E4] text-[#6F6E77] px-4 py-1 rounded-[6px] hover:bg-black hover:text-white hover:border-opacity-70 transition-all"
-						href="https://youtu.be/qTdF30A7XY0"
+						href="https://youtu.be/xKk-xmQcS6A"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
