@@ -2391,6 +2391,7 @@ query GetTrace($project_id: ID!, $trace_id: String!) {
 			serviceName
 			serviceVersion
 			environment
+			hasErrors
 			traceAttributes
 			startTime
 			statusCode

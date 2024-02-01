@@ -4852,6 +4852,7 @@ export type GetTraceQuery = { __typename?: 'Query' } & {
 					| 'serviceName'
 					| 'serviceVersion'
 					| 'environment'
+					| 'hasErrors'
 					| 'traceAttributes'
 					| 'startTime'
 					| 'statusCode'
