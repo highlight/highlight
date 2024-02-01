@@ -730,7 +730,8 @@ const IngestTimeline: React.FC<{
 					(100 *
 						(groupedByBucket[b.bucket_id][0]?.metric_value ?? 0)) /
 					((groupedByBucket[b.bucket_id][0]?.metric_value ?? 0) +
-						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0)),
+						(groupedByBucket[b.bucket_id][1]?.metric_value ?? 0) ||
+						1),
 				unit: '%',
 			},
 		],
