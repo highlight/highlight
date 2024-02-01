@@ -48,7 +48,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
-import { useProjectId } from '@hooks/useProjectId'
+import { useLocalStorageProjectId, useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import {
@@ -120,12 +120,14 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const { projectId } = useProjectId()
+	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
-	const goBackPath = location.state?.previousPath ?? `/${projectId}/sessions`
+	const goBackPath =
+		location.state?.previousPath ?? `/${localStorageProjectId}/sessions`
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
@@ -219,7 +221,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					py="8"
 					justifyContent="space-between"
 				>
-					{isSetup ? (
+					{isSetup || isSettings ? (
 						<LinkButton
 							to={goBackPath}
 							kind="secondary"
@@ -234,8 +236,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							>
 								<IconSolidArrowSmLeft />{' '}
 								<Text>
-									Back to{' '}
-									{currentProject?.name ?? 'Highlight'}
+									Back to {currentProject?.name ?? 'Project'}
 								</Text>
 							</Box>
 						</LinkButton>

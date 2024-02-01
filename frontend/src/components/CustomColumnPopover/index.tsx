@@ -40,7 +40,7 @@ type TraceColumnType =
 	| 'boolean'
 export type TraceCustomColumn = CustomColumn<TraceColumnType>
 
-type ValidCustomColumn = CustomColumn<any>
+export type ValidCustomColumn = CustomColumn<any>
 
 type Props = {
 	attributePrefix: string

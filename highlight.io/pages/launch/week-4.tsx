@@ -7,6 +7,7 @@ import { Meta } from '../../components/common/Head/Meta'
 import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 import DayOne from '../../components/Launch/Week4/DayOne'
+import DayThree from '../../components/Launch/Week4/DayThree'
 import DayTwo from '../../components/Launch/Week4/DayTwo'
 import HiddenDay from '../../components/Launch/Week4/HiddenDay'
 import preview from '../../public/images/launch/week-4/meta.png'
@@ -39,7 +40,7 @@ const LaunchPage = () => {
 			/>
 			<Navbar hideBanner hideGitHubPopup bg="white" light />
 			<main className="scroll-smooth bg-[#F9F9F9] mb-32">
-				<div className="relative flex flex-col pt-20 text-center px-8 z-50 pb-20">
+				<div className="relative flex flex-col pt-20 text-center px-4 md:px-8 z-50 pb-20">
 					<div className="w-full flex justify-center text-[#3b3b40] text-opacity-80 z-50">
 						<Typography
 							type="copy3"
@@ -68,7 +69,7 @@ const LaunchPage = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-2 max-w-[550px] md:max-w-[1200px] mx-auto px-8">
+				<div className="grid grid-cols-1 lg:grid-cols-2 max-w-[550px] md:max-w-[1200px] mx-auto px-4 md:px-8">
 					<Link
 						onClick={(e) => {
 							e.preventDefault()
@@ -114,10 +115,10 @@ const LaunchPage = () => {
 					{/* 	<BiChevronRight className="h-7 w-7 bg-white bg-opacity-10 p-1 rounded" /> */}
 					{/* </Link> */}
 				</div>
-				<div className="flex flex-col items-center w-full max-w-[550px] md:max-w-[1200px] mx-auto px-8">
+				<div className="flex flex-col items-center w-full max-w-[550px] md:max-w-[1200px] mx-auto px-4 md:px-8">
 					<DayOne />
 					<DayTwo />
-					<HiddenDay title="Day 3: January 31" />
+					<DayThree />
 					<HiddenDay title="Day 4: February 1" />
 					<HiddenDay title="Day 5: February 2" />
 				</div>

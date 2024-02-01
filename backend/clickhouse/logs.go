@@ -189,13 +189,11 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 
 // This is a lighter weight version of the previous function for loading the minimal about of data for a session
 func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
-	selectStr := "Timestamp, UUID, SeverityText, Body"
+	selectCols := []string{"Timestamp", "UUID", "SeverityText", "Body"}
 
 	sb, err := makeSelectBuilder(
 		logsTableConfig,
-		selectStr,
-		nil,
-		nil,
+		selectCols,
 		projectID,
 		params,
 		Pagination{},
@@ -253,9 +251,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
 	sb, err := makeSelectBuilder(
 		logsTableConfig,
-		"COUNT(*)",
-		nil,
-		nil,
+		[]string{"COUNT(*)"},
 		projectID,
 		params,
 		Pagination{CountOnly: true},
@@ -328,6 +324,14 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())
 
+	bucketIdxExpr := fmt.Sprintf(
+		"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber)",
+		nBuckets,
+		startTimestamp,
+		endTimestamp,
+		startTimestamp,
+	)
+
 	// If the queried time range is >= 24 hours, query the sampling table.
 	// Else, query the logs table directly.
 	var fromSb *sqlbuilder.SelectBuilder
@@ -335,15 +339,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	if params.DateRange.EndDate.Sub(params.DateRange.StartDate) >= 24*time.Hour {
 		fromSb, err = makeSelectBuilder(
 			logsSamplingTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber), toUInt64(round(count() * any(_sample_factor))), any(_sample_factor)",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-			),
-			nil,
-			nil,
+			[]string{bucketIdxExpr, "toUInt64(round(count() * any(_sample_factor)))", "any(_sample_factor)"},
 			projectID,
 			params,
 			Pagination{CountOnly: true},
@@ -353,15 +349,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	} else {
 		fromSb, err = makeSelectBuilder(
 			logsTableConfig,
-			fmt.Sprintf(
-				"toUInt64(intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber), count(), 1.0",
-				nBuckets,
-				startTimestamp,
-				endTimestamp,
-				startTimestamp,
-			),
-			nil,
-			nil,
+			[]string{bucketIdxExpr, "count()", "1.0"},
 			projectID,
 			params,
 			Pagination{CountOnly: true},
@@ -452,7 +440,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return readMetrics(ctx, client, logsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
 }
 

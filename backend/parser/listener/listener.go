@@ -2,8 +2,8 @@ package listener
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
-	"unicode"
 
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/highlight-run/highlight/backend/model"
@@ -166,20 +166,13 @@ func (s *searchListener[T]) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 func (s *searchListener[T]) appendRules(value string) {
 	// Body column filters
 	if s.currentKey == s.tableConfig.BodyColumn {
-		if strings.Contains(value, "*") {
-			if strings.HasPrefix(value, "*") {
-				value = "%" + value[1:]
-			}
-			if strings.HasSuffix(value, "*") {
-				value = value[:len(value)-1] + "%"
-			}
+		containsSpecialChars, _ := regexp.MatchString(`[^a-zA-Z0-9]`, value)
 
+		if containsSpecialChars {
+			value = wildcardValue(value)
 			s.rules = append(s.rules, s.tableConfig.BodyColumn+" ILIKE "+s.sb.Var(value))
 		} else {
-			values := strings.FieldsFunc(value, isSeparator)
-			for _, v := range values {
-				s.rules = append(s.rules, "hasTokenCaseInsensitive("+s.tableConfig.BodyColumn+", "+s.sb.Var(v)+")")
-			}
+			s.rules = append(s.rules, "hasTokenCaseInsensitive("+s.tableConfig.BodyColumn+", "+s.sb.Var(value)+")")
 		}
 
 		return
@@ -201,9 +194,9 @@ func (s *searchListener[T]) appendRules(value string) {
 			value = wildcardValue(value)
 
 			if traceAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] LIKE %s", s.currentKey, value)))
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] ILIKE %s", s.currentKey, value)))
 			} else {
-				s.rules = append(s.rules, s.sb.Like(filterKey, value))
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(filterKey+" ILIKE %s", value)))
 			}
 		} else {
 			if traceAttributeKey {
@@ -217,9 +210,9 @@ func (s *searchListener[T]) appendRules(value string) {
 			value = wildcardValue(value)
 
 			if traceAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] NOT LIKE %s", s.currentKey, value)))
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(s.attributesColumn+"[%s] NOT ILIKE %s", s.currentKey, value)))
 			} else {
-				s.rules = append(s.rules, s.sb.NotLike(filterKey, value))
+				s.rules = append(s.rules, s.sb.Var(sqlbuilder.Buildf(filterKey+" NOT ILIKE %s", value)))
 			}
 		} else {
 			if traceAttributeKey {
@@ -258,17 +251,14 @@ func (s *searchListener[T]) appendRules(value string) {
 }
 
 func wildcardValue(value string) string {
-	if strings.HasPrefix(value, "*") {
-		value = "%" + value[1:]
-	}
+	value = strings.ReplaceAll(strings.ReplaceAll(value, "_", "\\_"), "*", "%")
 
-	if strings.HasSuffix(value, "*") {
-		value = value[:len(value)-1] + "%"
+	if !strings.HasPrefix(value, "%") {
+		value = "%" + value
+	}
+	if !strings.HasSuffix(value, "%") {
+		value = value + "%"
 	}
 
 	return value
-}
-
-func isSeparator(r rune) bool {
-	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 }

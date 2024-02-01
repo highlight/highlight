@@ -37,6 +37,10 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
 import React, { Key, useEffect, useMemo, useRef, useState } from 'react'
 
+import {
+	ColumnHeader,
+	CustomColumnHeader,
+} from '@/components/CustomColumnHeader'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { parseSearch } from '@/components/Search/utils'
 import { useGetLogsKeysLazyQuery } from '@/graph/generated/hooks'
@@ -127,12 +131,6 @@ type LogsTableInnerProps = {
 
 const LOADING_AFTER_HEIGHT = 28
 
-type ColumnHeader = {
-	id: string
-	component: React.ReactNode
-	noPadding?: boolean
-}
-
 const LogsTableInner = ({
 	logEdges,
 	loadingAfter,
@@ -182,7 +180,11 @@ const LogsTableInner = ({
 
 		selectedColumns.forEach((column) => {
 			gridColumns.push(column.size)
-			columnHeaders.push({ id: column.id, component: column.label })
+			columnHeaders.push({
+				id: column.id,
+				component: column.label,
+				showActions: !!setSelectedColumns,
+			})
 
 			// @ts-ignore
 			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
@@ -306,12 +308,14 @@ const LogsTableInner = ({
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
-						<Table.Header
+						<CustomColumnHeader
 							key={header.id}
-							noPadding={header.noPadding}
-						>
-							{header.component}
-						</Table.Header>
+							header={header}
+							selectedColumns={selectedColumns}
+							setSelectedColumns={setSelectedColumns!}
+							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
+							trackingIdPrefix="LogsTableColumn"
+						/>
 					))}
 				</Table.Row>
 				{enableFetchMoreLogs && (

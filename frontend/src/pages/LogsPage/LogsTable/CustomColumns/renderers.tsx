@@ -19,6 +19,10 @@ type ColumnRendererProps = {
 	queryParts: SearchExpression[]
 }
 
+const EmptyState: React.FC = () => (
+	<Text color="secondaryContentOnDisabled">empty</Text>
+)
+
 const StringColumnRenderer: React.FC<ColumnRendererProps> = ({ getValue }) => {
 	const value = getValue()
 
@@ -29,7 +33,7 @@ const StringColumnRenderer: React.FC<ColumnRendererProps> = ({ getValue }) => {
 					{value}
 				</Text>
 			) : (
-				<Text color="secondaryContentOnDisabled">empty</Text>
+				<EmptyState />
 			)}
 		</Table.Cell>
 	)
@@ -58,10 +62,10 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 						shape="basic"
 						iconLeft={<IconSolidPlayCircle />}
 					>
-						{secureSessionID}
+						<Text lines="1">{secureSessionID}</Text>
 					</Tag>
 				) : (
-					<Text color="secondaryContentOnDisabled">empty</Text>
+					<EmptyState />
 				)}
 			</span>
 		</Table.Cell>
@@ -71,21 +75,33 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 const DateTimeColumnRenderer: React.FC<ColumnRendererProps> = ({
 	getValue,
 }) => {
+	const date = getValue()
+
 	return (
 		<Table.Cell alignItems="flex-start">
-			<Box pt="2">
-				<LogTimestamp timestamp={getValue()} />
-			</Box>
+			{date ? (
+				<Box pt="2">
+					<LogTimestamp timestamp={date} />
+				</Box>
+			) : (
+				<EmptyState />
+			)}
 		</Table.Cell>
 	)
 }
 
 const LevelRenderer: React.FC<ColumnRendererProps> = ({ getValue }) => {
+	const level = getValue()
+
 	return (
 		<Table.Cell alignItems="flex-start">
-			<Box pt="2">
-				<LogLevel level={getValue()} />
-			</Box>
+			{level ? (
+				<Box pt="2">
+					<LogLevel level={level} />
+				</Box>
+			) : (
+				<EmptyState />
+			)}
 		</Table.Cell>
 	)
 }
@@ -95,15 +111,21 @@ const BodyRenderer: React.FC<ColumnRendererProps> = ({
 	getValue,
 	queryParts,
 }) => {
+	const message = getValue()
+
 	return (
 		<Table.Cell alignItems="flex-start">
-			<Stack gap="2" pt="2">
-				<LogMessage
-					queryParts={queryParts}
-					message={getValue()}
-					expanded={row.getIsExpanded()}
-				/>
-			</Stack>
+			{message ? (
+				<Stack gap="2" pt="2">
+					<LogMessage
+						queryParts={queryParts}
+						message={message}
+						expanded={row.getIsExpanded()}
+					/>
+				</Stack>
+			) : (
+				<EmptyState />
+			)}
 		</Table.Cell>
 	)
 }

@@ -18,6 +18,10 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { isEqual } from 'lodash'
 import React, { Key, useMemo, useRef } from 'react'
 
+import {
+	ColumnHeader,
+	CustomColumnHeader,
+} from '@/components/CustomColumnHeader'
 import { CustomColumnPopover } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
@@ -70,7 +74,7 @@ export const TracesList: React.FC<Props> = ({
 
 	const columnData = useMemo(() => {
 		const gridColumns: string[] = []
-		const columnHeaders = []
+		const columnHeaders: ColumnHeader[] = []
 		const columns: ColumnDef<TraceEdge, any>[] = []
 
 		selectedColumns.forEach((column, index) => {
@@ -80,6 +84,7 @@ export const TracesList: React.FC<Props> = ({
 			columnHeaders.push({
 				id: column.id,
 				component: column.label,
+				showActions: true,
 			})
 
 			// @ts-ignore
@@ -216,12 +221,14 @@ export const TracesList: React.FC<Props> = ({
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
-						<Table.Header
+						<CustomColumnHeader
 							key={header.id}
-							noPadding={header.noPadding}
-						>
-							{header.component}
-						</Table.Header>
+							header={header}
+							selectedColumns={selectedColumns}
+							setSelectedColumns={setSelectedColumns!}
+							standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
+							trackingIdPrefix="TracesTableColumn"
+						/>
 					))}
 				</Table.Row>
 				{enableFetchMoreTraces && (
@@ -265,6 +272,9 @@ export const TracesList: React.FC<Props> = ({
 							virtualRowKey={virtualRow.key}
 							isSelected={isSelected}
 							gridColumns={columnData.gridColumns}
+							selectedColumnsIds={selectedColumns.map(
+								(c) => c.id,
+							)}
 						/>
 					)
 				})}
@@ -291,6 +301,7 @@ type TracesTableRowProps = {
 	virtualRowKey: Key
 	isSelected: boolean
 	gridColumns: string[]
+	selectedColumnsIds: string[]
 }
 
 const TracesTableRow = React.memo<TracesTableRowProps>(
@@ -319,7 +330,8 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 		return (
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
 			prevProps.isSelected === nextProps.isSelected &&
-			isEqual(prevProps.gridColumns, nextProps.gridColumns)
+			isEqual(prevProps.gridColumns, nextProps.gridColumns) &&
+			isEqual(prevProps.selectedColumnsIds, nextProps.selectedColumnsIds)
 		)
 	},
 )

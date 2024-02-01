@@ -588,17 +588,24 @@ func TestReadLogsWithBodyFilter(t *testing.T) {
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "STRIPE_INTEGRATION_ERROR", // uses reserved separator character
+		Query:     "STRIPE_INTEGRATION_ERROR", // ensure we escape "_" correctly
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 2)
+	assert.Len(t, payload.Edges, 1)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "STRIPE-INTEGRATION-ERROR", // uses reserved separator character
+		Query:     "STRIPE-INTEGRATION-ERROR",
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 2)
+	assert.Len(t, payload.Edges, 1)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.QueryInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "\"body * space\"", // wildcard match
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
 }
 
 func TestReadLogsWithKeyFilter(t *testing.T) {
@@ -1502,7 +1509,6 @@ func Test_LogMatchesQuery_ClickHouse_Body(t *testing.T) {
 		"hello world a test",
 		"hello, world this is a test",
 		"foo*bar",
-		"0! 000\\\"0000000000000",
 		"(*",
 		"*!",
 		"*\\x80",
