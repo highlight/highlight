@@ -1,4 +1,4 @@
-# Highlight.io asynchronous (tokio, rt) example
+# Highlight.io actix-web example
 
 ## Try it!
 ```bash
@@ -6,7 +6,7 @@
 git clone https://github.com/highlight/highlight
 cd highlight/sdk/highlight-rust/
 # create your .env file
-cargo run -p highlightio-example-tokio
+cargo run -p highlightio-actix-example-hello-world
 ```
 
 ## Environment variables (.env)
