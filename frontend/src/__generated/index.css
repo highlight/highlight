@@ -6937,18 +6937,15 @@ body {
   max-height: calc(100vh - 160px - 32px - 42px - 32px - var(--header-height) - var(--banner-height));
 }
 .ltrwrc0 {
-  height: calc(100vh - 108px);
-}
-.ltrwrc1 {
   position: fixed;
   left: 100%;
   transform: translateX(300px);
 }
-.ltrwrc2 {
+.ltrwrc1 {
   height: 100%;
   padding: 0;
 }
-.ltrwrc3 {
+.ltrwrc2 {
   border-radius: 8px;
 }
 ._1l6nlco0 {
